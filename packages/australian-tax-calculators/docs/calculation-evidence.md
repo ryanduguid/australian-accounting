@@ -3481,17 +3481,28 @@ Choices the law leaves to the reader:
   variation applies to the asset, and whether a class variation or a s 14-215
   exclusion applies.
 - The ATO's notices state a varied rate and a maximum sale price; the
-  worksheet applies the rate to the vendor's share and the full rate above the
-  maximum, as the ATO's purchaser page says.
+  worksheet applies the rate to the vendor's share and the full rate when 'the
+  sale price of the asset (or its market value, if not at arm's length)'
+  exceeds the maximum, as the ATO's purchaser page says (reread 23 November
+  2026). That page lets a purchaser entitled to an input tax credit take it off
+  only 'in determining how much withholding is required', so the maximum is
+  compared with `sale_price` as contracted, GST inclusive, never the base: a
+  higher figure, so the doubt falls on the side of withholding in full.
 - Where every vendor gave a document and one is a notice of variation, the
   class variations' 'not all' condition is not met; the worksheet follows the
   ATO's Zac and Jen example and treats each vendor alike.
 - The law sets no rounding; each vendor's amount is rounded half up to the
   cent, except that with no document at all no class variation applies and
-  the single s 14-200(3)(a) amount is rounded once.
+  the single s 14-200(3)(a) amount is rounded once; its vendor rows are
+  rounded down and the cents left over go to the largest remainders, marked,
+  so the rows add up to it.
 - With an exercised option the first element includes the option fee (ITAA
-  1997 s 134-1(1) item 1); a notice's maximum price is compared with the
-  price without it, the base.
+  1997 s 134-1(1) item 1); the sale price does not.
+- s 14-215(2) (compilation 215, reread 23 November 2026) adds similar
+  interests only where 'the CGT asset is an interest in real property, or an
+  interest in a mining, quarrying or prospecting right'. A company title
+  interest is an indirect Australian real property interest (shares) under
+  s 14-215(1)(a)(ii), so its market value is its own.
 
 | Case | Source | Worksheet |
 | --- | --- | --- |

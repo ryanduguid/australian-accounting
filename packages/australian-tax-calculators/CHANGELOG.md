@@ -11,7 +11,8 @@
   property or a company title interest acquired from 1 July 2017 to 30 June
   2027: 12.5% with the $750,000 market value exclusion before 1 January 2025,
   15% with none from then, the option payment reduction, clearance
-  certificates, notices of variation, class variations to nil and s 14-215
+  certificates, notices of variation (applied up to their maximum sale price,
+  compared with `sale_price`), class variations to nil and s 14-215
   exclusions as stated facts, and each vendor's interest share. New codes:
   `foreign_resident_withholding.asset_unsupported`,
   `foreign_resident_withholding.date_outside_year`,

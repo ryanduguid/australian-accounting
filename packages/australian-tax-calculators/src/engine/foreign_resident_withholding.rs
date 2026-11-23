@@ -11,8 +11,9 @@
 //! compilation of 1 January 2025, Acts No. 57 of 2017 and No. 135 of 2024,
 //! the multiple vendor class variations F2016L01123 and LI 2026/38
 //! (F2026L01231), and the ATO's foreign resident capital gains withholding
-//! pages, all read on 22 November 2026. Clearance certificates, notices of
-//! variation, class variations and exclusions are the operator's facts.
+//! pages, all read on 22 November 2026; ss 14-200 and 14-215 and the ATO's
+//! purchaser page reread on 23 November 2026. Clearance certificates, notices
+//! of variation, class variations and exclusions are the operator's facts.
 
 use serde_json::{Map, Value, json};
 
@@ -20,6 +21,7 @@ use super::business_capital::year_first;
 use super::{Arg, Result, cents, date_arg, flag, int, money, precise, rate, refuse, result, scope};
 use crate::dates;
 use crate::decimal::Decimal;
+use crate::decimal::Rounding;
 
 const KIND: &str = "foreign_resident_withholding";
 const MAX_VENDORS: usize = 50;
@@ -50,6 +52,7 @@ pub struct ForeignResidentWithholdingArgs<'a> {
     pub market_value: &'a Arg,
     pub cost_base_first_element: &'a Arg,
     pub option_payments: &'a Arg,
+    pub sale_price: &'a Arg,
     pub vendors: &'a Arg,
     pub exclusion: &'a Arg,
     pub class_variation_to_nil: &'a Arg,
@@ -160,14 +163,14 @@ fn covered(args: &ForeignResidentWithholdingArgs) -> Result<()> {
     if args.payment.text() != Some("capital_gains") {
         return refuse(
             "foreign_resident_withholding.payment_unsupported",
-            "Only payment capital_gains (TAA Sch 1 s 14-200) is built. Interest, dividend and royalty withholding (Subdivision 12-F), managed investment trust fund payments (Subdivision 12-H) and s 12-315 payments are not.",
+            "Only payment capital_gains (TAA Sch 1 s 14-200) is built. The s 14-205 amount for a look-through earnout, interest, dividend and royalty withholding (Subdivision 12-F), managed investment trust fund payments (Subdivision 12-H) and s 12-315 payments are not.",
         );
     }
     match args.asset.text() {
         Some(asset) if ASSETS.contains(&asset) => Ok(()),
         _ => refuse(
             "foreign_resident_withholding.asset_unsupported",
-            "asset must be taxable_australian_real_property or company_title_interest. For another indirect Australian real property interest or an option or right, s 14-210(1)(a) to (d) turn on what the purchaser knows or believes and s 14-225 declarations can apply; a look-through earnout (s 14-205) is not built either.",
+            "asset must be taxable_australian_real_property or company_title_interest. For another indirect Australian real property interest or an option or right, s 14-210(1)(a) to (d) turn on what the purchaser knows or believes and s 14-225 declarations can apply.",
         ),
     }
 }
@@ -202,6 +205,7 @@ struct Facts {
     day: i64,
     market_value: Decimal,
     base: Decimal,
+    sale_price: Decimal,
     vendors: Vec<Vendor>,
     excluded: Option<&'static str>,
     nil_class: bool,
@@ -213,6 +217,7 @@ fn facts(args: &ForeignResidentWithholdingArgs, year: &str) -> Result<Facts> {
     let market_value = money(args.market_value)?;
     let first = money(args.cost_base_first_element)?;
     let option = money(args.option_payments)?;
+    let sale_price = money(args.sale_price)?;
     if option.gt(&first)? {
         return refuse(
             "foreign_resident_withholding.option_exceeds_price",
@@ -226,6 +231,7 @@ fn facts(args: &ForeignResidentWithholdingArgs, year: &str) -> Result<Facts> {
         day,
         market_value,
         base: first.sub(&option)?,
+        sale_price,
         vendors,
         excluded,
         nil_class,
@@ -260,9 +266,14 @@ fn whole_nil(facts: &Facts, threshold: Option<&str>) -> Result<Option<String>> {
     Ok(None)
 }
 
-/// Each vendor's share of the base and amount (s 14-200(3); the multiple
-/// vendor class variations; the ATO's variation notice rule).
-fn vendor_rows(facts: &Facts, full: &Decimal) -> Result<Vec<(Decimal, Decimal, &'static str)>> {
+/// One vendor's share of the base, amount and basis.
+type Row = (Decimal, Decimal, &'static str);
+
+/// Each vendor's share of the base and unrounded amount (s 14-200(3); the
+/// multiple vendor class variations; the ATO's variation notice rule: the
+/// sale price, or market value if not at arm's length, must not exceed the
+/// notice's maximum sale price).
+fn vendor_rows(facts: &Facts, full: &Decimal) -> Result<Vec<Row>> {
     let total = facts
         .vendors
         .iter()
@@ -276,7 +287,7 @@ fn vendor_rows(facts: &Facts, full: &Decimal) -> Result<Vec<(Decimal, Decimal, &
                 let (applied, basis) = match &v.document {
                     Document::None => (full.clone(), "no document: full rate"),
                     Document::Clearance => (int(0), "clearance certificate: nil"),
-                    Document::Variation { maximum, .. } if facts.base.gt(maximum)? => (
+                    Document::Variation { maximum, .. } if facts.sale_price.gt(maximum)? => (
                         full.clone(),
                         "variation does not apply above its maximum price: full rate",
                     ),
@@ -284,10 +295,36 @@ fn vendor_rows(facts: &Facts, full: &Decimal) -> Result<Vec<(Decimal, Decimal, &
                         (rate.clone(), "notice of variation: varied rate")
                     }
                 };
-                Ok((share.clone(), cents(applied.mul(&share)?)?, basis))
+                Ok((share.clone(), applied.mul(&share)?, basis))
             })
             .collect()
     })
+}
+
+/// Rounds each row down to the cent and gives the cents left over from
+/// `payable` to the rows with the largest remainders, the first on a tie, so
+/// the rows add up to it (the worksheet's convention).
+fn allocate(rows: &mut [Row], payable: &Decimal) -> Result<()> {
+    let mut remainders = Vec::with_capacity(rows.len());
+    let mut left = payable.clone();
+    for (i, row) in rows.iter_mut().enumerate() {
+        let down = row.1.quantize(-2, Rounding::Down)?;
+        remainders.push((row.1.sub(&down)?, i));
+        left = left.sub(&down)?;
+        row.1 = down;
+    }
+    remainders.sort_by(|a, b| b.0.compare(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    let cent = Decimal::parse("0.01")?;
+    for (_, i) in remainders {
+        if !left.gt(&int(0))? {
+            break;
+        }
+        rows[i].1 = rows[i].1.add(&cent)?;
+        rows[i].2 =
+            "no document: full rate, plus the rounding cent left over from the single amount";
+        left = left.sub(&cent)?;
+    }
+    Ok(())
 }
 
 const STEPS: [(&str, &str); 4] = [
@@ -305,7 +342,7 @@ const STEPS: [(&str, &str); 4] = [
     ),
     (
         "amount_payable",
-        "TAA Sch 1 s 14-200(3) and (4): the sum of the vendors' amounts, each rounded half up to the cent; nil if excluded (s 14-215) or varied to nil (s 14-235(5), (6))",
+        "TAA Sch 1 s 14-200(3) and (4): the sum of the vendors' amounts, or with no document the single s 14-200(3)(a) amount; nil if excluded (s 14-215) or varied to nil (s 14-235(5), (6)). The law sets no rounding: by the worksheet's convention each amount is rounded half up to the cent, and the single amount's rows share its cents",
     ),
 ];
 
@@ -327,18 +364,28 @@ pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Re
         }
     }
     let nil = whole_nil(&facts, threshold)?;
-    let rows = vendor_rows(&facts, &full)?;
+    let mut rows = vendor_rows(&facts, &full)?;
     let full_amount = precise(|| Ok(full.mul(&facts.base)?))?;
     // No document: no class variation applies, so one s 14-200(3)(a) figure.
     let undocumented = facts
         .vendors
         .iter()
         .all(|v| matches!(v.document, Document::None));
-    let payable = match nil {
-        Some(_) => int(0),
-        None if undocumented => precise(|| Ok(cents(full_amount.clone())?))?,
-        None => rows.iter().try_fold(int(0), |sum, row| sum.add(&row.1))?,
-    };
+    let payable = precise(|| {
+        if nil.is_some() {
+            return Ok(int(0));
+        }
+        if undocumented {
+            let single = cents(full_amount.clone())?;
+            allocate(&mut rows, &single)?;
+            return Ok(single);
+        }
+        for row in &mut rows {
+            row.1 = cents(row.1.clone())?;
+        }
+        rows.iter()
+            .try_fold(int(0), |sum, row| Ok(sum.add(&row.1)?))
+    })?;
     let mut rates = vec![rate("rate", full_rate)];
     rates.push(rate("threshold", threshold.unwrap_or("none")));
     let mut out = result(
@@ -355,7 +402,7 @@ pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Re
     Ok(out)
 }
 
-fn explain(out: &mut Value, facts: &Facts, rows: &[(Decimal, Decimal, &str)], nil: Option<String>) {
+fn explain(out: &mut Value, facts: &Facts, rows: &[Row], nil: Option<String>) {
     let applies = nil.is_none();
     out["acquisition_date"] = json!(dates::format(facts.day));
     out["nil_reason"] = json!(nil);

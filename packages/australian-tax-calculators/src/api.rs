@@ -788,6 +788,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("market_value", Dec),
             ("cost_base_first_element", Dec),
             ("option_payments", Dec),
+            ("sale_price", Dec),
             ("vendors", Json),
             ("exclusion", Raw),
             ("class_variation_to_nil", Raw),
@@ -2234,11 +2235,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 market_value: &a[3],
                 cost_base_first_element: &a[4],
                 option_payments: &a[5],
-                vendors: &a[6],
-                exclusion: &a[7],
-                class_variation_to_nil: &a[8],
-                year: &a[9],
-                scope_confirmed: &a[10],
+                sale_price: &a[6],
+                vendors: &a[7],
+                exclusion: &a[8],
+                class_variation_to_nil: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
             })
         }
         "sb-cgt-concessions" => {

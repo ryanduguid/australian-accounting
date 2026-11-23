@@ -203,7 +203,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `government-super-amounts` | `income-tests`' 16 components and `residency`, `eligible_income`, `personal_contributions`, `concessional_contributions`, `return_lodged`, `under_71`, `temporary_visa_held`, `non_concessional_within_cap`, `total_super_balance_below_cap`, `year`, `scope_confirmed`; for a spouse contribution all of `spouse_contributions`, `spouse_assessable_income`, `spouse_assessable_fhss_released_amount`, `spouse_reportable_fringe_benefits_total`, `spouse_reportable_employer_super_contributions`, `spouse_excess_concessional_contributions`, `spouse_non_concessional_within_cap` and `spouse_total_super_balance_below_cap`; see [Government super amounts](#government-super-amounts) |
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
-| `foreign-resident-withholding` | `payment`, `acquisition_date`, `asset`, `market_value`, `cost_base_first_element`, `option_payments`, `vendors`, `exclusion`, `class_variation_to_nil`, `year`, `scope_confirmed`; see [Foreign resident withholding](#foreign-resident-withholding) |
+| `foreign-resident-withholding` | `payment`, `acquisition_date`, `asset`, `market_value`, `cost_base_first_element`, `option_payments`, `sale_price`, `vendors`, `exclusion`, `class_variation_to_nil`, `year`, `scope_confirmed`; see [Foreign resident withholding](#foreign-resident-withholding) |
 | `income-tests` | `taxable_income`, `assessable_fhss_released_amount`, `family_trust_distribution_amounts`, `reportable_fringe_benefits_section_57a`, `reportable_fringe_benefits_other`, `reportable_employer_super_contributions`, `deductible_personal_super_contributions`, `excess_concessional_contributions`, `net_financial_investment_loss`, `net_rental_property_loss`, `tax_free_government_pensions`, `target_foreign_income`, `exempt_foreign_employment_income`, `child_support_paid`, `assessable_income`, `business_deductions`, `residency`, `year`, `scope_confirmed`; see [Income tests](#income-tests) |
 | `division-296` | `total_super_balance_end_of_year`, `total_super_earnings`, `child_recipient`, `structured_settlement_contribution`, `died_in_year`, `year`, `scope_confirmed` |
 | `termination-payment` | `redundancy_payment`, `completed_years_of_service`, `excluded_payment`, `non_excluded_payment`, `other_taxable_payments`, `date_of_birth`, `year`, `scope_confirmed` |
@@ -2848,17 +2848,20 @@ interest, for an acquisition date (the contract date, ITAA 1997 s 109-5) from
 - The rate is 12.5% before 1 January 2025 (Act No. 57 of 2017) and 15% from
   then (Act No. 135 of 2024). Before 1 January 2025 a `market_value` under
   $750,000 excludes the transaction (s 14-215(1)(a)); from then there is no
-  threshold.
+  threshold. Similar interests in the same real property count in the value
+  (s 14-215(2)); a company title interest, being shares, is valued alone.
 - The base is `cost_base_first_element` less `option_payments`
   (s 14-200(3)(a)).
 - Every vendor counts unless it gave a clearance certificate (s 14-210(1)(e)
   and (2)). Each vendor's `interest` share of the base is withheld at the full
   rate, at its notice of variation's rate up to the notice's maximum price, or
   not at all with a certificate, as the multiple vendor class variations
-  (F2016L01123; LI 2026/38 s 6) and the ATO's examples do; each amount is
-  rounded to the cent, and with no document at all the one s 14-200(3)(a)
-  amount is rounded once. A notice's maximum price caps the price without
-  option payments.
+  (F2016L01123; LI 2026/38 s 6) and the ATO's examples do. A notice does not
+  apply when `sale_price` (GST inclusive, or the market value where the
+  parties do not deal at arm's length) exceeds its maximum sale price.
+- The law sets no rounding. Each vendor's amount is rounded half up to the
+  cent; with no document at all the one s 14-200(3)(a) amount is rounded once
+  and the vendor rows share its cents, the left-over cent marked.
 - `exclusion` (a s 14-215 paragraph) and `class_variation_to_nil`
   (s 14-235(5), such as LI 2026/38 ss 7 to 10) give nil.
 

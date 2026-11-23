@@ -2442,7 +2442,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "foreign_resident_withholding.asset_unsupported",
-        "The asset is not taxable Australian real property or a company title interest, or the acquisition involves a look-through earnout (s 14-205).",
+        "The asset is not taxable Australian real property or a company title interest.",
     ),
     (
         "foreign_resident_withholding.date_outside_year",
@@ -2458,7 +2458,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "foreign_resident_withholding.payment_unsupported",
-        "The payment is not capital_gains: Subdivisions 12-F and 12-H and s 12-315 withholding are not built.",
+        "The payment is not capital_gains: the s 14-205 earnout amount, Subdivisions 12-F and 12-H and s 12-315 withholding are not built.",
     ),
     (
         "foreign_resident_withholding.variation_invalid",

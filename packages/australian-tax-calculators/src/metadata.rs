@@ -3298,9 +3298,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("payment", "capital_gains: foreign resident capital gains withholding (TAA Sch 1 s 14-200); any other payment is refused"),
             ("acquisition_date", "YYYY-MM-DD in the year given: when the contract was entered into or, if none, when the vendor stopped being the owner (ITAA 1997 s 109-5(2) item A1); it sets the rate"),
             ("asset", "taxable_australian_real_property or company_title_interest (s 14-210(1)(e)); anything else is refused"),
-            ("market_value", "AUD: the asset's market value just after the transaction, with similar interests in the same property (s 14-215(2), (3)); before 1 January 2025 a value under $750,000 excludes the transaction"),
+            ("market_value", "AUD: the asset's market value just after the transaction; for taxable Australian real property, an interest in real property, add any similar interests in the same property (s 14-215(2), (3)); a company title interest is the shares, valued alone; before 1 January 2025 a value under $750,000 excludes the transaction"),
             ("cost_base_first_element", "AUD: the first element of the asset's cost base just after the acquisition: the price, or market value where you do not deal at arm's length, GST inclusive less any input tax credit you are entitled to (s 14-200(3)(a)(i))"),
-            ("option_payments", "AUD: what you paid, and the market value of property you gave, for an option you exercised to acquire the asset (s 14-200(3)(a)(ii)); nil for none"),
+            ("option_payments", "AUD: what you paid, and the market value of property you gave, for an option you exercised to acquire the asset, or to renew or extend it (s 14-200(3)(a)(ii)); nil for none"),
+            ("sale_price", "AUD: the sale price as the contract states it, GST inclusive where GST applies, with no input tax credit or option payment taken off, or the market value where you do not deal at arm's length; a notice of variation does not apply when this exceeds its maximum sale price"),
             ("vendors", "list of 1 to 50 objects {interest, document}: interest, a positive decimal string, is the vendor's share of the asset just before the acquisition relative to the others (equal for joint tenants); document is none, clearance_certificate (given before you pay, its period covering the contract date) or variation with rate (the notice's varied rate, 0 to 1) and maximum_price (AUD)"),
             ("exclusion", "null, or the s 14-215 exclusion that applies: approved_stock_exchange, crossing_system, already_withheld, securities_lending, insolvent_company or bankruptcy"),
             ("class_variation_to_nil", "boolean: a class variation under s 14-235(5) varies the amount to nil, such as LI 2026/38 ss 7 to 10 (death, exempt entity, relationship breakdown, mortgagee sale with no residue)"),
@@ -4486,6 +4487,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("market_value", Text("1000000.00")),
             ("cost_base_first_element", Text("1000000.00")),
             ("option_payments", Text("0.00")),
+            ("sale_price", Text("1000000.00")),
             (
                 "vendors",
                 Json(

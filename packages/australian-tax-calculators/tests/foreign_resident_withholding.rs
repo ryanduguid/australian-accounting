@@ -26,7 +26,8 @@ fn base() -> Value {
         "payment": "capital_gains", "acquisition_date": "2024-12-16",
         "asset": "taxable_australian_real_property",
         "market_value": "1200000.00", "cost_base_first_element": "1200000.00",
-        "option_payments": "0.00", "vendors": [none()], "exclusion": null,
+        "option_payments": "0.00", "sale_price": "1200000.00",
+        "vendors": [none()], "exclusion": null,
         "class_variation_to_nil": false, "year": "2024-25", "scope_confirmed": true,
     })
 }
@@ -60,6 +61,7 @@ fn price(date: &str, year: &str, amount: &str) -> Value {
     with(json!({
         "acquisition_date": date, "year": year,
         "market_value": amount, "cost_base_first_element": amount,
+        "sale_price": amount,
     }))
 }
 
@@ -184,11 +186,12 @@ fn threshold_reads_market_value() {
 fn option_payments_reduce_the_base() {
     let mut input = price("2026-05-01", "2025-26", "1000000.00");
     input["option_payments"] = json!("10000.00");
+    input["sale_price"] = json!("990000.00");
     let r = run(&input);
     assert_eq!(r["amounts"]["withholding_base"], "990000.00");
     assert_eq!(r["amounts"]["amount_payable"], "148500.00");
     // The first element includes the option fee (ITAA 1997 s 134-1(1) item
-    // 1); a notice's maximum caps the sale price, the base without it.
+    // 1); a notice's maximum caps the sale price, which does not.
     let notice = json!({"interest": "1", "document": "variation", "rate": "0.05", "maximum_price": "995000.00"});
     input["vendors"] = json!([notice]);
     assert_eq!(payable(&input), "49500.00");
@@ -249,6 +252,7 @@ fn refuses_payments_and_assets_not_built() {
         "royalty",
         "mit_fund_payment",
         "s12_315",
+        "look_through_earnout",
     ] {
         assert_eq!(
             code(&with(json!({"payment": payment}))),
@@ -258,7 +262,6 @@ fn refuses_payments_and_assets_not_built() {
     for asset in [
         "indirect_australian_real_property_interest",
         "option_or_right",
-        "look_through_earnout",
     ] {
         assert_eq!(
             code(&with(json!({"asset": asset}))),
@@ -329,4 +332,64 @@ fn no_documents_round_the_single_amount_once() {
     let r = run(&input);
     assert_eq!(r["amounts"]["amount_payable"], "15.01");
     assert_eq!(r["amounts"]["amount_at_full_rate"], "15.01");
+}
+
+/// The vendor rows add up to the amount payable: with no document the one
+/// rounding's left-over cent goes to the row with the largest remainder, and
+/// the row says so.
+#[test]
+fn no_document_rows_reconcile_to_the_amount_payable() {
+    let mut input = price("2025-03-01", "2024-25", "100.06");
+    input["vendors"] = json!([none(), none()]);
+    let r = run(&input);
+    assert_eq!(r["vendors"][0]["amount"], "7.51");
+    assert_eq!(r["vendors"][1]["amount"], "7.50");
+    assert!(
+        r["vendors"][0]["basis"]
+            .as_str()
+            .unwrap()
+            .contains("rounding cent")
+    );
+    // 3 equal vendors of 100.01 at 15%: 5.0005 each, 15.0015 in all, 15.00.
+    let mut three = price("2025-03-01", "2024-25", "100.01");
+    three["vendors"] = json!([none(), none(), none()]);
+    let r = run(&three);
+    assert_eq!(r["amounts"]["amount_payable"], "15.00");
+    for i in 0..3 {
+        assert_eq!(r["vendors"][i]["amount"], "5.00");
+    }
+}
+
+/// s 14-215(2) adds similar interests only where the asset is an interest in
+/// real property; a company title interest is the shares, valued alone.
+#[test]
+fn company_title_threshold_reads_the_interest_alone() {
+    let mut under = price("2024-12-31", "2024-25", "749999.99");
+    under["asset"] = json!("company_title_interest");
+    assert_eq!(payable(&under), "0.00");
+    let mut at = price("2024-12-31", "2024-25", "750000.00");
+    at["asset"] = json!("company_title_interest");
+    assert_eq!(payable(&at), "93750.00");
+}
+
+/// A notice's maximum sale price is compared with the sale price, not the
+/// first element of the cost base net of an input tax credit: $1.1 million
+/// GST inclusive, a $100,000 credit and a 5% notice capped at $1.05 million
+/// give the full 15% of $1 million.
+#[test]
+fn variation_maximum_reads_the_sale_price() {
+    let mut input = price("2026-05-01", "2025-26", "1000000.00");
+    input["sale_price"] = json!("1100000.00");
+    let notice = |maximum: &str| json!({"interest": "1", "document": "variation", "rate": "0.05", "maximum_price": maximum});
+    input["vendors"] = json!([notice("1050000.00")]);
+    assert_eq!(payable(&input), "150000.00");
+    input["vendors"] = json!([notice("1100000.00")]);
+    assert_eq!(payable(&input), "50000.00");
+}
+
+/// A negative interest is refused, as every stated amount is.
+#[test]
+fn refuses_a_negative_interest() {
+    let input = with(json!({"vendors": [{"interest": "-1", "document": "none"}]}));
+    assert_eq!(code(&input), "input.amount_invalid");
 }
