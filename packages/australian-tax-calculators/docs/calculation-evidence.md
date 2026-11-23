@@ -1016,6 +1016,48 @@ flagged, not refused.
 | $23.98 of diesel at an average 214.8 c/L on 30 September 2026 | PCG 2016/2 Method 1, worked by hand | 23.98 x 53.7 / 214.8 = $5.995 exactly, $6.00 half up (cost x rate before the division) |
 | 300 L of E85 at 23.015 c/L | Rounding | $69.045, $69.05 half up |
 
+## FBT instalment
+
+Added on 22 November 2026. Its sources were read that afternoon, 5.30 pm to
+6.00 pm AEDT:
+
+- FBTAA, compilation 97 (C2026C00332, 1 July 2026), volume 2, Part VII
+  Division 2: s 102 (4 instalments a year), s 103 (due dates), s 104 (notice
+  in the approved form), s 105 (the credit on assessment, instalments less
+  s 112A credits), s 109 (the relevant fraction: 0.25, 0.50, 0.75, 1.00),
+  s 110(1) and (5) (the notional tax amount, and the employer's estimate as
+  that amount from the quarter's end), s 111(1) (the formula, read from its
+  image's text: '(Notional tax amount x Relevant fraction) - (Previous
+  instalments - Previous credits)'; nil unless positive), s 111(2) and (3)
+  (an instalment is not payable below $1,000 or an amount the Commissioner
+  determines), s 112 (the estimate and the Commissioner's own), s 112A (a
+  negative amount is a credit) and s 112B (GIC where the estimate is under
+  90% of the tax assessed). The map that scoped this build named TAA 1953
+  Sch 1 Div 45; FBT instalments are in the FBTAA, and TAA Sch 1 Part 4-15
+  only collects them (the note to s 103).
+- ATO, 'Fringe benefits tax (FBT) instalment' (last updated 1 May 2025):
+  labels F1 to F4, 6A and 6B; the F3 formula with 25%, 50%, 75% and 100%; nil
+  at F3 and a credit at 6B for a negative amount; the 4 reason codes; and the
+  example ($28,000 x 75% - $20,000 = $1,000, code 31). It says instalments
+  apply after FBT of $3,000 or more; the instrument setting that amount under
+  s 111(3) was not found, so the worksheet takes F1 as given and does not
+  decide whether instalments are payable.
+- ATO, Fringe benefits tax - a guide for employers, chapter 3: the varied
+  instalments of $4,000, $3,000 and $4,000 on a $16,000 estimate, and $600 on
+  $2,400.
+
+The Act states no rounding for the estimate times the fraction; the worksheet
+rounds it half up to the cent. `tests/fbt_instalment.rs` holds each case.
+
+| Case | Source | Result |
+|---|---|---|
+| December quarter, $28,000 estimate, $20,000 paid | ATO instalment page | F3 and 6A $1,000 |
+| $16,000 estimate at quarters 1, 2 (after $5,000) and 3 (after $8,000) | Employer's guide, chapter 3 | $4,000, $3,000, $4,000 |
+| $2,400 estimate at quarter 1 | Employer's guide, chapter 3 | $600 |
+| $8,000 estimate at quarter 2 after $5,000 | s 112A | F3 nil, 6B $1,000 |
+| $1,000.02 estimate at quarter 1 | Rounding | $250.005, $250.01 half up |
+| $500.01 of credits after $500 of instalments | s 112A | Refused: a credit is at most the instalments before it |
+
 ## FBT minor benefit check
 
 Added on 19 November 2026. Its sources were read that afternoon, 3.00 pm to
@@ -3942,6 +3984,62 @@ from the provisions: the 53% rounding, excess concessional contributions,
 the FHSS amount, family trust distribution amounts, child support and
 business deductions.
 
+## Foreign resident withholding
+
+`foreign_resident_withholding` was checked on 22 November 2026 against TAA 1953
+Schedule 1 ss 14-200, 14-210, 14-215, 14-220 and 14-235 in compilation 227
+(1 October 2026), compilations 148 (1 July 2017) and 215 (11 December 2024)
+and the compilation of 1 January 2025; the Treasury Laws Amendment (Foreign
+Resident Capital Gains Withholding Payments) Act 2017 (No. 57) Schedule 1 items
+1 to 4 (12.5% and $750,000 for acquisitions on or after 1 July 2017); the
+Treasury Laws Amendment (2024 Tax and Other Measures No. 1) Act 2024 (No. 135)
+s 2 and Schedule 1 items 1 to 7 (15% and no threshold for acquisitions on or
+after 1 January 2025); ITAA 1997 ss 108-7 and 109-5 (compilation 268); the
+multiple vendor class variation F2016L01123 (from 1 July 2016) and LI 2026/38
+(F2026L01231, which repealed it and the other 4 class variations); and the
+ATO's foreign resident capital gains withholding pages (last updated 22 June
+to 9 October 2026).
+
+Choices the law leaves to the reader:
+
+- Every document is the operator's fact: whether a clearance certificate was
+  given before payment and covers the contract date, whether a notice of
+  variation applies to the asset, and whether a class variation or a s 14-215
+  exclusion applies.
+- The ATO's notices state a varied rate and a maximum sale price; the
+  worksheet applies the rate to the vendor's share and the full rate when 'the
+  sale price of the asset (or its market value, if not at arm's length)'
+  exceeds the maximum, as the ATO's purchaser page says (reread 23 November
+  2026). That page lets a purchaser entitled to an input tax credit take it off
+  only 'in determining how much withholding is required', so the maximum is
+  compared with `sale_price` as contracted, GST inclusive. Neither page says
+  whether a notice's maximum is GST inclusive, so a maximum at or above the
+  base (the price net of the credit) but below `sale_price` is refused; the
+  operator settles it from the notice.
+- Where every vendor gave a document and one is a notice of variation, the
+  class variations' 'not all' condition is not met; the worksheet follows the
+  ATO's Zac and Jen example and treats each vendor alike.
+- The law sets no rounding; each vendor's amount is rounded half up to the
+  cent, except that with no document at all no class variation applies and
+  the single s 14-200(3)(a) amount is rounded once; its vendor rows are
+  rounded down and the cents left over go to the largest remainders, marked,
+  so the rows add up to it.
+- With an exercised option the first element includes the option fee (ITAA
+  1997 s 134-1(1) item 1); the sale price does not.
+- s 14-215(2) (compilation 215, reread 23 November 2026) adds similar
+  interests only where 'the CGT asset is an interest in real property, or an
+  interest in a mining, quarrying or prospecting right'. A company title
+  interest is an indirect Australian real property interest (shares) under
+  s 14-215(1)(a)(ii), so its market value is its own.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Jane and Toni, contract 16 December 2024, $1.2 million | $150,000 (12.5%); $180,000 after 1 January 2025 | $150,000.00; $180,000.00 |
+| Willow and Stanley, 8 January 2025, $600,000, one certificate | $45,000 | $45,000.00 |
+| Maisie and Max, $650,000, both certificates; neither | nil; $97,500 ($48,750 each) | $0.00; $97,500.00 |
+| Zac and Jen, $1 million, Jen's certificate; Zac's 5% notice | $75,000; $25,000 | $75,000.00; $25,000.00 |
+| Kim, 3 vendors, $1.3 million, no certificates | $195,000 ($65,000 each) | $195,000.00 |
+
 ## Rental property
 
 `rental_property` was checked on 22 November 2026 against ITAA 1997 ss 6-5,
@@ -4151,6 +4249,68 @@ The same guide gives Mike's lease from 1 December 2025 to 31 December 2026 as
 397 days; the period has 396, as the 2021 guide counts the same dates a year
 earlier.
 
+## HELP indexation
+
+This command was added on 22 November 2026. HESA Division 140 and s 137-19A
+were read that day in compilation 105 (17 October 2026, C2026C00478, the latest
+on the Register), with the Universities Accord (Student Support and Other
+Measures) Act 2024 (No. 108, 2024, rectified version 2) and the Universities
+Accord (Cutting Student Debt by 20 Per Cent) Act 2025 (No. 30, 2025), each as
+made. The factors are the ATO's 'Study and training loan indexation rates'
+(last updated 17 April 2026) plus one, as s 140-20 has the Commissioner
+publish them.
+
+- Act No. 108, 2024 Sch 1 Part 1 made the factor the lower of the CPI and WPI
+  factors, and item 56 applies that from the financial year ending 30 June
+  2023, recalculating 2022-23 and 2023-24: the ATO shows 3.2% (previously
+  7.1%) and 4% (previously 4.7%). Before that the factor was the CPI factor:
+  compilation 83 (C2022C00005, from 1 January 2022, read on 23 November
+  2026) has s 140-10(1)(b) divide the 4 quarters' index numbers to the March
+  quarter by the 4 to the March quarter a year earlier, and s 198-20 makes the
+  index number the All Groups CPI. Items 18 and 19 move both
+  factors to the quarters ending 31 December from 1 June 2025.
+- s 140-26 (Act No. 30, 2025 Sch 2 item 37), for 2024-25 only, takes 20% off
+  the step 6 amount before indexation and off the debts incurred from 1 July
+  to 31 December 2024 less their repayments; s 137-19A takes 20% off each
+  debt incurred from 1 January to 1 June 2025, which joins the 1 June 2026
+  calculation.
+- The map named 'ss 140-5 to 140-25'; there is no s 140-15 in compilation
+  105, and ss 140-26, 140-30 and 137-19A also apply.
+
+Choices the Act leaves to the reader:
+
+- A voluntary repayment counts from the date the operator gives. The ATO
+  says a payment can take up to 4 business days to be received and that
+  indexation applies if it is not received and processed before 1 June; the
+  result warns of this.
+- The operator places each voluntary repayment: against the debts indexed
+  (`voluntary_repayments`, step 3) or against the debts of the first half of
+  the year (`current_repayments`, s 140-25).
+- Step 2A and s 140-25(1A) cut each group's total to whole dollars, and the
+  Act groups debts by course and provider, which the command cannot see. So
+  each debt in a list of more than one names its `group`; a list's one debt
+  may omit it.
+- `compulsory_repayments` is the step 4 total as s 140-5(1) defines it
+  (rechecked in compilation 105 on 23 November 2026): amounts assessed in the
+  period, except any from a return given before it, plus any assessed after
+  it from a return given before its end, each dated by its notice's date of
+  issue (s 140-5(2)). The operator works it out from the notices.
+
+`tests/help_indexation.rs` holds these cases.
+
+| Case | Source | Command |
+|---|---|---|
+| 2024-25, $90,000 and an $11,000 debt in November 2024 | ATO Example 1 (Maylin) | $18,000 off, indexation $2,304, $83,104 (with the May 2025 debt, $90,304) |
+| 2024-25, $10,000 | ATO Example 2 (Asha, a VSL debt with the same arithmetic) | $2,000 off, indexation $256, $8,256 |
+| 2019-20, $15,000, $1,500 debt, $525 voluntary, $3,000 compulsory | HESA s 140-5 example, 7 years later | $12,975 before indexation, $13,208 |
+| $10,000 for each year | ATO rates | $10,180; $10,060; $10,390; $10,320; $10,400; $8,256; $10,280 |
+| 2025-26, $20,000, $5,000 proposed | steps 3 and s 140-25 | $15,420 before 1 June, $15,560 after, $140 saved |
+| 2024-25, $10,000, $1,000 proposed | s 140-26(1) | $7,430 before 1 June, $7,256 after |
+| Debts on 1 January, 1 June and 2 June 2025 | s 137-19A | $800, $800, $1,000 |
+| 2025-26, Maylin's $83,104 carried with the $9,000 May 2025 debt | ss 140-5(1) step 1 and 137-19A | $7,200 added, $90,304 indexed, $92,832 |
+| 2024-25, a $1,000 debt in September 2024 less $200 repaid | s 140-26(2) | $640 |
+| 2 debts of $0.60 in one group, then in 2 | s 140-25(1A) | $1, then nil; without groups, refused |
+
 ## Non-commercial losses
 
 This worksheet was added on 22 November 2026. ITAA 1997 Division 35 was read
@@ -4276,6 +4436,70 @@ the two agree on every case the page's tests hold. Its choices:
 | Chris: 70% commission | TR 2022/3 example 40 | the principal is one payer |
 | 75% and 74.99% for a result; 80% and 79.99% from one payer; 20% by others | ss 87-18, 87-15(3), 87-25 | met; not met |
 
+## PAYG instalment
+
+This worksheet was added on 22 November 2026. Schedule 1 to the TAA 1953,
+Division 45, was read that day in compilation 227 (C2026C00468, from
+1 October 2026), volume 2
+(https://www.legislation.gov.au/C1953A00001/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html),
+and compared with compilation 219 (C2025C00404, from 1 July 2025): from
+s 45-110 to the start of Subdivision 45-N the only change is to the offsets
+left out of the Commissioner's notional tax, which this worksheet does not
+work out. The ATO's 'How to vary your PAYG instalments' (last updated 23 June
+2026), 'PAYG instalments: how to complete your activity statement' (last
+updated 9 January 2023) and 'Complete your BAS' pages were read the same day.
+On 23 November 2026 ss 45-110, 45-205 and 45-215 in compilation 227 and both
+PAYG instalment pages (last updated as before) were read again: no step of the
+Act or the pages rounds an amount, and s 45-215(1)(b) compares the varied rate
+with 'the instalment rate you used to work out the amount of your instalment
+for the previous instalment quarter (if any)'. Under ss 45-110(2)(a) and
+45-15 that rate can differ from T2 when the Commissioner gives a new rate
+after that quarter, so the worksheet takes it as `previous_rate`.
+
+The worksheet follows ryanduguid.github.io's PAYG instalments page
+(`paygInstalment` in `assets/business-calculators.mjs`, checked 15 November
+2026). Its 11 cases and 400 seeded random inputs were run through the
+command on 22 November 2026: each case agrees, and of the random inputs all
+agree or are refused by both except one, a credit claimed before the second
+instalment. The page adds such a credit back; s 45-410(3) does not, and no
+credit can exist then (s 45-410(2) never gives a negative first amount, and
+s 45-215(1)(b) needs an earlier quarter), so the worksheet refuses it. Its
+other choices:
+
+- no step rounds; only the instalment and credit drop their cents ('round
+  down to whole dollars' on Complete your BAS), so a sub-cent remainder never
+  rounds up into a whole dollar (25% of $399.99 is $99.9975, an instalment of
+  $99), and other amounts show to the cent toward nil. The page rounds each
+  step half up to the cent first;
+- a varied rate's credit compares it with `previous_rate`, the rate used for
+  the previous quarter (s 45-215(1)(b)), where the page compares it with T2;
+- a varied rate keeps 2 decimal places and drops the rest, as the ATO's
+  example 2 gives 12.27% for $10,125 / $82,480; the Act prescribes no
+  rounding;
+- each method takes only its own facts, where the page ignores the others;
+- a varied amount adds back each s 45-420 credit the payer was entitled to,
+  claimed or not (s 45-410(4) and (5), step 2), so it takes
+  `credits_entitled`; the page and the ATO's 'How to vary' page speak of
+  credits claimed, which agree when every credit was claimed;
+- nil estimated instalment income varies the rate to nil whatever the
+  estimated tax ('How to vary', step 3), where the page refuses an estimated
+  tax above it.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Sophia: $20,100 at 1.7% | Activity statement page | $341.70, 341 at T11 and 5A |
+| Cari: $14,000, third quarter after $10,000 | How to vary, example 1 | $500, then $3,500 |
+| Harmander: $10,125 / $82,480 | How to vary, example 2 | 12.27% |
+| Bill: 10% then 5% on $10,000 | Activity statement page | $500 at 5B |
+
+On 23 November 2026 the page's current `paygInstalment` (main at 1aa0a6cb),
+its 12 cases and 400 seeded random inputs were run again, with T2 given as
+`previous_rate`: 40 are refused by both, and each of the other 372 equals an
+independent reading of the steps, unrounded for the worksheet and rounded
+half up to the cent at each step for the page. They differ in the instalment
+or credit on 14, each by $1 where the page's rounding carries a sub-cent
+remainder into a whole dollar.
+
 ## SMSF tax
 
 This worksheet was added on 22 November 2026. That day ITAA 1997 ss 295-10,
@@ -4324,6 +4548,56 @@ Choices the Act leaves to the reader:
 | $200,000 segregated, $34,200 other at 40% | both methods together | ECPI $213,680; T1 $3,078.00 |
 | Existing, new, wound up, new and wound up, each year | SAR 2026 table 9 | levy $259, $518, nil, $259 |
 | $1,001 at 33.33% | rounding choice | ECPI $333 |
+
+## ESS discount
+
+This worksheet was added on 22 November 2026. ITAA 1997 Division 83A was read
+that day in compilation 268 (1 October 2026), volume 3
+(https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html),
+and compared with compilations 234 (1 July 2022), which reads the same, and
+210 (1 July 2020), which adds only the cessation of employment taxing point
+(former ss 83A-115(5) and 83A-120(5)). Act No. 8, 2022 Sch 10 item 9 applies
+its repeal to taxing points from 1 July 2022. The Income Tax Assessment (1997
+Act) Regulations 2021 ss 83A-315.01 to 83A-315.09 were read in compilation 16
+(27 June 2026); their s 83A-315.08 table (266 entries) and s 83A-315.09(2)
+percentages (19 rows) agree with the ATO legal database's copy read the same
+day. They apply to income years from 2021-22 (s 1000-1.02; commenced 1 April
+2021), so the worksheet values a right by them only on a day from 1 July 2021.
+
+Choices the Act leaves to the reader:
+
+- The exercise period is compared by calendar months: a period is no more
+  than N months when the last exercise day is on or before the same day N
+  months after the valuation day (the month's last day where shorter). The
+  ATO's example counts whole months.
+- s 83A-110(1) with a cost base above the market value includes nil; the
+  loss is a CGT matter.
+- Salary sacrificed shares or rights at a real risk of forfeiture, their
+  discount equal to their market value, beside shares relying on
+  s 83A-105(4) in one year are refused: whether the first count toward the
+  $5,000 is not settled here. So are forfeited interests acquired in that
+  year, which state no conditions. Only a salary sacrificed share relies on
+  s 83A-105(4); a share beside it that is not is treated on its own facts.
+- A salary sacrificed right without a real risk of forfeiture is refused:
+  its scheme fails s 83A-105(4)(b)(ii), which `salary_sacrifice` states.
+- Act No. 8, 2022 Sch 10 item 9 is applied to the taxing point after the
+  30-day rule: ending employment before 1 July 2022 counts only where that
+  point is before then.
+- The 15-year taxing point is the day before the 15th anniversary of
+  acquisition, the end of the period starting then.
+
+`tests/ess_discount.rs` holds these cases.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| $1,500 discount, $91,000 adjusted taxable income | ATO $1,000 reduction example 1 (Lester) | $1,000 reduction, $500 |
+| $1,300 discount, $200,000 | example 2 (Jane) | no reduction, $1,300 |
+| 2,500 shares at $1.00 bought for $0.85 | ATO start-up concession example (Sarah) | start-up, nil; at $2,124.99, taxed upfront |
+| 200,000 rights at 10 cents, shares at 12 cents, 48 months | ATO unlisted rights example (Barry) | 19.4%, $3,880; value $4,000 intrinsic |
+| Restrictions lifted 23 June, sold 20 July for $1,518 | s 83A-115(3), the 30-day rule | taxing point 20 July, $1,518 in the next year |
+| Employment ended 1 March 2022, then 1 July 2022 | former s 83A-120(5), Act No. 8, 2022 | taxing point 1 March 2022; then the restrictions |
+| Forfeited by a hurdle, a lapse, a market value condition | ATO forfeiture examples 1, 7, 9 and 10 | excluded, excluded, not excluded |
+| Every s 83A-315.08 entry and s 83A-315.09 row | the regulations | each entry |
 
 ## Government super amounts
 
@@ -4634,6 +4908,80 @@ offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
 
+## Leave provisions
+
+Added on 22 November 2026, when the sources were read: AASB 119 compilation
+no. 5 (COMPdec22_01-23, periods beginning from 1 January 2023 to before
+1 July 2026) with its tables of standards and amendments; AASB 2022-9
+(December 2022), effective from 1 July 2026 and not compiled there; and
+AASB 101 compilation no. 6 (COMPdec22_01-24).
+
+Read again on 23 November 2026: AASB 119 compilation COMPdec22_07-26
+(F2026C01064, periods beginning from 1 July 2026 to before 1 January 2027,
+with AASB 2022-9 compiled); AASB 2018-2 and AASB 2021-7; AASB 101 compilations
+COMPdec22_01-24, ACOMPdec22_01-23 (2023), ACOMPdec21_01-22 (2022),
+COMPmar20_07-21 and COMPmay19_01-20 (2020); and AASB 2020-1, AASB 2020-6 and
+AASB 2022-6.
+
+Of the paragraphs applied (AASB 119 paras 8, 9, 11, 13, 15, 16, 67, 68, 70,
+72, 75 to 87 and 153 to 156, with para 155's paras 56 to 98; AASB 101 paras
+69, 70, 72A and 75A), the AASB 119 table of amendments lists every change since
+the August 2015 standard: para 3 (AASB 2021-7, from 1 January 2022, removing a
+reference to AAS 25 beside AASB 1056; reporting by
+employee benefit plans stays outside AASB 119), para 8 (AASB 17, AASB 2022-8
+and AASB 2022-9, insurance definitions and footnote Aus1), and paras 57 and
+156 (AASB 2018-2, cross-references to para 122A, from periods beginning
+1 January 2019, before every period in scope). None changes a rule applied
+here, so the AASB 119 rules read the same for every reporting period ending
+from 1 July 2020 to 30 June 2027, whatever its reporting date. AASB 18 and
+AASB 2026-2 apply to periods beginning from 1 January 2027 and 1 July 2029,
+outside the scope.
+
+AASB 101 para 69 was amended only by AASB 2020-1, which AASB 2020-6 and
+AASB 2022-6 deferred to periods beginning on or after 1 January 2024 (para
+139U; early application with AASB 2022-6 allowed and disclosed). Before then
+para 69(d) needs an 'unconditional right' to defer settlement (the 2020 to
+2023 compilations); from then a right at the end of the reporting period, which
+must have substance (para 72A), whatever the entity expects (para 75A). The
+`year` is the financial year in which the reporting period ends, so every
+period ending in 2020-21 to 2023-24, and a 2024-25 period ending before
+31 December 2024, takes the earlier test unless the entity applied AASB 2020-1
+and AASB 2022-6 early (paras 139U and 139W, with disclosure); a 2024-25 period
+ending from 31 December 2024, and every later one, takes the new one. The caller states
+`can_defer_settlement` under the test for its period; the calculation is the
+same.
+
+The probability is measurement (AASB 119 para 72, through para 155) and the
+right to defer is classification (AASB 101 para 69(d)), so a long-term line
+without a right to defer takes any probability: V7 below. Para 8 classifies
+the whole benefit (IAS 19 Basis for Conclusions BC20(b)), so the part of a
+long-term benefit due within 12 months stays long-term; a long-term line takes
+1 to 50 whole years, and such a part takes 1, the nearest: V8 below. `hourly_rate` is the rate expected to be paid on a
+short-term line (para 16) and the rate at the reporting date on a long-term
+line, which salary growth projects (para 87(b)).
+
+AASB 119 has no numeric example for annual or long service leave. V1 to V6
+are made-up figures worked independently in Python's `decimal`. P68 applies
+the para 68 illustrative example (a lump sum of 1% of final salary for each
+year of service, salary 10,000 growing 7%, discount 10%): its obligations at
+the end of years 1 to 4 (89, 196, 324 and 476) are the command's amounts with
+the cents dropped.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| V1 | Annual, short-term, 152 h x $45.50, probability 1 | **$6,916.00** current |
+| V2 | Long service, 400 h x $52.00, 2 years, growth 3%, discount 4.5%, probability 1, no right to defer | projected $22,066.72, **$20,207.16** current |
+| V3 | Long service, 120 h x $38.00, 5 years, growth 3.5%, discount 4.25%, probability 0.4, right to defer | projected $5,415.85, **$1,759.33** non-current |
+| V4 | Annual, long-term, 300 h x $40.00, 1 year, growth 3%, discount 4% | **$11,884.62** current |
+| V6 | Annual, short-term, 80 h x $30.00, probability 0.85 | **$2,040.00** current |
+| V7 | Long service, 400 h x $52.00, 2 years, growth 3%, discount 4.5%, probability 0.9, no right to defer | projected $22,066.72, **$18,186.44** current |
+| V8 | Long service, part due within 12 months, 100 h x $50.00, 1 year, growth 3%, discount 5%, probability 1, no right to defer (0 years refused) | **$4,904.76** current |
+| V1, V2, V3, V4 and V6 together | | annual **$20,840.62**, long service **$21,966.49**, total **$42,807.11**, current **$41,047.78**, non-current **$1,759.33** |
+| P68 | 1 to 4 years' benefit at rates $100.00, $107.00, $114.49 and $122.50, 4 to 1 years | **$89.53**, **$196.96**, **$324.99**, **$476.64** |
+
+`tests/leave_provisions.rs` also covers each year, the year boundaries, each
+assumption's bounds (1 to 50 years; 0 refused), both versions of the right to defer in the text, and every refusal.
+
 ## Foreign income conversion
 
 This worksheet was added on 22 November 2026. ITAA 1997 ss 960-49 to 960-55
@@ -4858,6 +5206,39 @@ amount is a worksheet's or `fbt`'s, and the tests check the composition. Read on
   the years ending 31 March 2023 to 2027.
 - ATO, FBT return 2027 instructions: not found (HTTP 404), so 2027 follows the
   2026 labels with a warning.
+
+Not-for-profit employers were added on 22 November 2026 from sources read that
+afternoon, 5.00 pm to 5.40 pm AEDT:
+
+- FBTAA, compilation 97, volume 1: s 5B(1D) to (1M) (the aggregate
+  non-exempt amount: the $17,000 cap for public hospitals, not-for-profit
+  hospitals and public ambulance services at step 2, $30,000 for others at
+  step 3, and the lesser of $5,000 and the salary packaged meal entertainment
+  and entertainment facility leasing amount at step 4; (1L) disregards meal
+  entertainment, car parking and entertainment facility leasing among the
+  excluded benefits); s 57A(1) to (5) (the exempt employers); s 65J(1),
+  (2A) (the rebate, read from the formula image's text: 'FBT rate x (Gross tax
+  - Aggregate non-rebatable amount) x Rebatable days in year / Total days in
+  year'), (2B) to (2J) (the aggregate non-rebatable amount, times the FBT
+  rate at step 4). Volume 2: s 135Q (a s 57A employer's reportable amount, and
+  at (1)(c) a car exempt under s 8A counted as if a fringe benefit, which
+  s 5B(1K) step 1 reads; refused for these kinds). A rebatable employer's
+  bases follow s 65J(2G) step 1, which reads s 5E, so an exempt electric car
+  adds nothing; s 135P(3), in the same volume 2 text, brings the car into the
+  reportable amount only.
+- ATO, 'Completing your FBT return 2026 - not-for-profit employers' and
+  'Worked examples for NFP employers completing FBT return 2026' (both
+  published 1 April 2026): the steps for items 14C, 17 and 18, item 23 for
+  capped employers, and examples 1 to 3 (rebatable: items 17 $13,322.05 and
+  18 $35,320.85 at 2.0802 and 1.8868, $13,322.21 and $35,321.00 by the
+  formulas; public benevolent institution: 14C $22,005, 16 $10,342.35, 22
+  $5,657.65; public hospital: 14C $35,005, 16 $16,452.35, 21 $452.35, all
+  matched).
+- ATO, FBT return 2026 calculation details for taxable employers, items 20 to
+  22 (instalments reported, payment due and credit).
+
+`tests/fbt_return_nfp.rs` holds these cases, the caps' boundaries and the
+refusals; `tests/fbt_return.rs` is unchanged and passes.
 
 The reportable amount follows s 135P(2)'s formula, the individual amount over
 1 - 0.47, not the ATO's 1.8868 (1 / 0.53 is 1.88679...). No provision states
