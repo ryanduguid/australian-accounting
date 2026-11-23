@@ -6215,7 +6215,7 @@ pub use individual_offsets::{
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 mod work_expenses;
-pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
+pub use work_expenses::{WORK_EXPENSES_OPTIONAL, WORK_EXPENSES_RECORDS, work_expenses};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
 mod excess_contributions;

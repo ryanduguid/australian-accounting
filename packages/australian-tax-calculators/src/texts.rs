@@ -4636,16 +4636,28 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The car was neither owned nor leased by the taxpayer, so neither Division 28 method applies (ITAA 1997 s 28-12(1)).",
     ),
     (
+        "work_expenses.diary_year_unsupported",
+        "An hours diary was given for a year before 2022-23; it is read only for the years PCG 2023/1 covers.",
+    ),
+    (
         "work_expenses.fact_conflict",
-        "The facts contradict each other or the year: hours beyond the year, business kilometres above total kilometres, nil total kilometres, a log book after the year claimed, an amount for a running expense when none was incurred, or category D cents per kilometre car expenses beside log book car expenses in category A.",
+        "The facts contradict each other or the year: hours beyond the year, business kilometres above total kilometres, nil total kilometres, a log book after the year claimed, an amount for a running expense when none was incurred, category D cents per kilometre car expenses beside log book car expenses in category A, hours beside an hours diary, a diary date outside the year or over 24 hours, a log book beside log_book_weeks or business_kilometres, or a log book whose dates or odometer readings run backwards, overlap or fall outside its period.",
     ),
     (
         "work_expenses.fact_invalid",
-        "connection, log_book_year or log_book_weeks is not one of the answers the worksheet takes.",
+        "connection, log_book_year or log_book_weeks is not one of the answers the worksheet takes, or an hours diary or log book is not the list or object of dated rows the worksheet reads.",
+    ),
+    (
+        "work_expenses.log_book_entry_incomplete",
+        "A journey in the log book does not say why it was made (ITAA 1997 s 28-125(2)(d)).",
     ),
     (
         "work_expenses.log_book_expired",
         "The log book was kept more than 4 income years before the year claimed (ITAA 1997 s 28-115(2)).",
+    ),
+    (
+        "work_expenses.log_book_outside_year",
+        "The log book period includes no part of the income year it is kept for (ITAA 1997 s 28-120(2)).",
     ),
     (
         "work_expenses.log_book_too_short",

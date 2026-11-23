@@ -2957,7 +2957,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             // The method's and the year's own inputs, by name.
             let mut given = Vec::new();
             for (key, decimal) in engine::WORK_EXPENSES_OPTIONAL {
-                if let Some(arg) = optional(v, key, if decimal { Dec } else { Raw })? {
+                let kind = if decimal {
+                    Dec
+                } else if engine::WORK_EXPENSES_RECORDS.contains(&key) {
+                    Json
+                } else {
+                    Raw
+                };
+                if let Some(arg) = optional(v, key, kind)? {
                     given.push((key.to_string(), arg));
                 }
             }
