@@ -256,6 +256,37 @@ The existing $45,000 boundary gives $4,288 at 16%. At the engine's existing
 2026–27 first rate of 15%, the same arithmetic gives $4,020. The latter is a
 regression of the existing rate, not a rate corroborated by this Library passage.
 
+## Part-year tax-free threshold
+
+Income Tax Rates Act 1986 s 20(1) (compilation 66, 1 July 2026, read on
+23 November 2026): with one or more part-year residency periods, the Part I
+table applies as if its tax-free threshold were (the $18,200 of s 3(1) less
+$4,736) plus $4,736 x the months in the year with a part-year residency period
+/ 12. Section 18(1) counts each period from the start of the month residency
+began to the end of the month it ended; s 18(2)(a) gives an eligible pensioner
+(s 16) no part-year residency period, and s 18(2)(b) excludes a period of the
+whole year. Under s 18(1) as written, residency that begins and ends within
+one month, or a 1 July resident's residency that ends during July, is no
+period, so the threshold stays $18,200 and the inputs are omitted. Division 4
+reads the same in the compilations of 1 July 2024 and
+28 March 2025, apart from s 16's list of excluded Social Security Act parts.
+The Act states no rounding, so the threshold stays exact.
+
+| Case | Source | Months | Threshold | Taxable income | Basic tax |
+|---|---|---|---|---|---|
+| John, 2025-26 | ATO 'Tax-free threshold for newcomers to Australia' (updated 3 June 2026) | 3 | $14,648 | $20,000 | (20,000 - 14,648) x 16% = **$856.32** |
+| Britney, 2025-26 | ATO 'Living overseas and becoming a foreign tax-resident' (updated 3 June 2026) | 6 | $15,832 | $100,000 | (45,000 - 15,832) x 16% + 55,000 x 30% = **$21,166.88** |
+| 2026-27 | s 20(1) | 1 | $13,858.666... | $20,000 | (20,000 - 13,858.666...) x 15% = **$921.20** |
+| 2027-28 | s 20(1) | 8 | $16,621.333... | $16,000 | **nil** |
+| Eligible pensioner | s 18(2)(a) | 3 | $18,200 | as given | the full-year result |
+
+The ATO's John page says the thresholds for the other rates do not change, so
+only the first band's lower limit moves. `personal-tax-estimate` still refuses
+a part-year resident: under ITAA 1936 s 251U(1)(d) the days of non-residence
+can make the person a prescribed person for the Medicare levy, unless a
+dependant who is not one prevents it (s 251U(2)), which `medicare-levy` and
+`medicare-levy-surcharge` do not take. Tests: `tests/part_year_resident.rs`.
+
 ## Foreign resident tax
 
 This worksheet's evidence is not a Library document. On 14 November 2026 the

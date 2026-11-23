@@ -1505,8 +1505,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Fuel Tax Act 2006 ss 41-5, 41-20, 43-5, 43-10, 47-5 and 47-10 at the ATO's legal database; the ATO's 'Rates - business' (QC44494, last updated 29 July 2026) and its pages for 2022-23 to 2026-27 (QC69964 and QC72768, last updated 27 June 2024; QC102637, 29 January 2025; QC105117, 28 April 2026; QC107638, 29 July 2026), their 192 rates equal to data.gov.au's 'Historical FTC rates' (August 2026); 'Working out your fuel tax credits' (QC44511, last updated 6 July 2021, step 3); 'Simplified fuel tax credits' (QC48520, 6 July 2021); 'Basic method for heavy vehicles' (QC64655, 2 June 2021: Table 1 and Jim's example); PCG 2016/2 paras 4 and 9 to 13; PCG 2021/2 paras 4 to 12 and its We Deliver example (paras 19 to 24)",
         ),
         "resident_tax" => (
-            "2026-09-10",
-            "Income Tax Rates Act 1986, Schedule 7 Part I clause 1",
+            "2026-11-23",
+            "Income Tax Rates Act 1986, Schedule 7 Part I clause 1; ss 3(1), 16, 18 and 20 for a part-year resident's tax-free threshold (compilation 66, compared with the compilations of 1 July 2024 and 28 March 2025)",
         ),
         "foreign_resident_tax" => (
             "2026-11-14",
@@ -2609,6 +2609,16 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
 /// Inputs a worksheet takes but does not require, with their units.
 pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
     match kind {
+        "resident_tax" => vec![
+            (
+                "part_year_residency_months",
+                "integer from 1 to 12, for a person resident for part of the year only: the number of months in the year of income during which there is a part-year residency period (Income Tax Rates Act 1986 ss 18(1) and 20(1)), counting the month the person became or ceased to be a resident; pro-rates the tax-free threshold. s 18(1) gives no period when residency begins and ends within one month, or when a person resident on 1 July ceases to be one during July; omit both inputs then, and the full threshold applies",
+            ),
+            (
+                "eligible_pensioner",
+                "boolean, required with part_year_residency_months and taken only with it: the person is an eligible pensioner for the year (s 16), so no period is a part-year residency period (s 18(2)(a)) and the full threshold applies",
+            ),
+        ],
         "government_super_amounts" => vec![
             (
                 "spouse_contributions",

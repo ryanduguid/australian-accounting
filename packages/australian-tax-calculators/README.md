@@ -140,7 +140,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
 | `fuel-tax-credits` | `lines`, `year`, `scope_confirmed`; `small_claimant` with a simplified method, `rate_at_period_end` and `return_date` optionally; see [Fuel tax credits](#fuel-tax-credits) |
 | `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `recipient_associate`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000`, `government_unimproved_on_1_july_2000` and the applicable date facts below; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
-| `resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
+| `resident-tax` | `taxable_income`, `year`, `scope_confirmed`; for a part-year resident `part_year_residency_months` with `eligible_pensioner`; see [Resident tax](#resident-tax) |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
 | `capital-gains` | `other_gains`, `discount_gains`, `current_losses`, `prior_losses`, `scope_confirmed`, `year` |
 | `main-residence` | `capital_gain`, `capital_loss`, `market_value_basis`, `ownership_start`, `ownership_end`, `lived_periods`, `income_use_periods`, `absence_choice_periods`, `new_home_acquired`, `year`, `scope_confirmed` |
@@ -396,7 +396,7 @@ own dates and figures.
 | GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
 | Fuel tax credits | 2022-23 to 2026-27, fuel acquired from 1 July 2022 to 31 January 2027 at the ATO's 16 published rate periods; established entitlement, fuel, quantity and use |
 | GST margin scheme | 2025-26 to 2027-28, one taxable supply of real property under a contract from 9 December 2008; the s 75-5 conditions, the consideration or a valuation under s 75-10(3) items 1 to 4, and a lot's share under s 75-15; acquisitions s 75-11 governs are refused |
-| Resident tax | 2024-25 to 2027-28; full-year resident ordinary income, before offsets and levies |
+| Resident tax | 2024-25 to 2027-28; resident ordinary income, before offsets and levies, with a part-year resident's pro-rated tax-free threshold |
 | Foreign resident tax | 2024-25 to 2027-28; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
 | CGT | 2025-26 and 2026-27, resident individual's established gains and losses; losses before the 50% discount |
 | Main residence | CGT events in 2024-25 to 2026-27; one dwelling disposed of by a resident individual, before the discount |
@@ -508,6 +508,22 @@ capital gain (s 119-10). The SG worksheet does not implement post-June 2026
 Payday entitlement rules. The separate Payday engine reviews timing on a supplied
 liability. SMSF fund tax, Division 296 fund earnings and their attribution, the transfer balance cap and trusts remain
 outside these worksheets.
+
+## Resident tax
+
+`resident_tax` applies Schedule 7 Part I of the Income Tax Rates Act 1986 for
+2024-25 to 2027-28. For a person resident for part of the year, give
+`part_year_residency_months`, an integer from 1 to 12 counting the month
+residency began or ended (s 18(1)), and `eligible_pensioner`. The tax-free
+threshold is then $13,464 plus $4,736 x the months / 12 (s 20(1)), kept exact,
+so 3 months gives $14,648; only the first band's lower limit moves. An eligible
+pensioner (s 16) has no part-year residency period and keeps $18,200
+(s 18(2)(a)); whether a payment makes the person one is yours to establish.
+Section 18(1) gives no period when residency begins and ends within one month, or when a person resident on 1 July ceases to be one during July; omit both inputs then, and the full threshold applies.
+`eligible_pensioner` without the months, a near miss of either name, or months
+outside 1 to 12 are refused; other unknown fields are ignored, as the Python
+original ignores them. See
+[calculation evidence](docs/calculation-evidence.md#part-year-tax-free-threshold).
 
 ## Foreign resident tax
 
@@ -4008,7 +4024,8 @@ meets none is not.
 
 Residing, domicile, the places of abode and intention are never inferred
 from the dates or anything else: you give them. The worksheet does not set
-when residency began or ended or pro-rate the tax-free threshold, and it
+when residency began or ended or pro-rate the tax-free threshold (`resident-tax`
+does, from the months you give), and it
 refuses a resident who is also a resident of another country under its law,
 as a tax treaty's tie-breaker may then apply (TR 2023/1 paragraph 108). The
 tests hold it to TR 2023/1 examples 5, 7, 10, 11, 13 to 16 and 18; see
@@ -4430,8 +4447,12 @@ whole year and no study loan.
 A refusal from a part keeps the part's code, and its message starts with the
 part's command, such as a sole parent's `medicare-levy-surcharge:
 dependent_children is not an input ...`: there is no partial total. The
-estimate itself refuses a part-year resident and a working holiday maker, whose
-rates and apportionment no worksheet here works out, as
+estimate itself refuses a part-year resident, whose days of non-residence can
+make them a prescribed person for the Medicare levy (ITAA 1936 s 251U(1)(d),
+subject to s 251U(2) for dependants), which `medicare-levy`
+and `medicare-levy-surcharge` cannot yet take (`resident-tax` alone pro-rates
+the threshold), and a working holiday maker, whose rates no worksheet here
+works out, as
 `estimate.residency_unsupported`, an unknown residency as `input.residency_invalid`, Medicare levy
 exemption days beside the surcharge, whose scope excludes them, as
 `estimate.surcharge_with_exemption`, parts that describe different families

@@ -3202,12 +3202,26 @@ fn a_refused_withholding_sg_or_borrowing_input_gets_the_commands_own_refusal() {
 /// Cases by name for the personal tax worksheets: the ATO's examples the
 /// worksheets' own tests hold, and a case for each branch. 2025-26 unless a
 /// case names its year.
-const PERSONAL: [(&str, &str, &str); 42] = [
+const PERSONAL: [(&str, &str, &str); 44] = [
     // 26,800 at 16% and 55,000 at 30%.
     (
         "resident",
         "resident-tax",
         r#"{"taxable_income": "100000"}"#,
+    ),
+    // ITRA s 20(1): one month gives a threshold of 13,858.666..., kept exact.
+    (
+        "resident_part_year",
+        "resident-tax",
+        r#"{"taxable_income": "20000", "year": "2026-27",
+            "part_year_residency_months": 1, "eligible_pensioner": false}"#,
+    ),
+    // ITRA s 18(2)(a): an eligible pensioner keeps the full threshold.
+    (
+        "resident_part_year_pensioner",
+        "resident-tax",
+        r#"{"taxable_income": "100000", "part_year_residency_months": 6,
+            "eligible_pensioner": true}"#,
     ),
     (
         "resident_2026",

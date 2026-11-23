@@ -479,6 +479,85 @@ pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> 
         taxable_income,
         &year,
         meta::RESIDENT_TAX_SCALES,
+        None,
+    )?;
+    year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
+    Ok(out)
+}
+
+/// Income Tax Rates Act 1986 s 20(1), with ss 16 and 18, compilation 66
+/// (1 July 2026), whose Division 4 reads the same in the compilations of
+/// 1 July 2024 and 28 March 2025 apart from s 16's list, all read on
+/// 23 November 2026.
+const PART_YEAR_THRESHOLD: &str = "Income Tax Rates Act 1986 s 20(1) and s 3(1): with one or more part-year residency periods (s 18(1)), the Schedule 7 Part I table applies as if its tax-free threshold were (the $18,200 tax-free threshold - $4,736) + $4,736 x the number of months in the year of income during which there is a part-year residency period / 12";
+const ELIGIBLE_PENSIONER: &str = "Income Tax Rates Act 1986 s 18(2)(a): no period is a part-year residency period for an eligible pensioner (s 16), so the full $18,200 tax-free threshold applies";
+
+/// The pro-rated tax-free threshold (s 20(1)), or $18,200 for an eligible
+/// pensioner (s 18(2)(a)).
+fn part_year_threshold(months: &Arg, eligible_pensioner: Option<&Arg>) -> Result<Step> {
+    let m = match months.int() {
+        Some(Some(n)) if (1..=12).contains(&n) => int(n),
+        _ => {
+            return refuse(
+                "input.count_invalid",
+                "part_year_residency_months must be an integer from 1 to 12.",
+            );
+        }
+    };
+    let Some(pensioner) = eligible_pensioner else {
+        return refuse(
+            "input.missing_field",
+            "eligible_pensioner is required with part_year_residency_months.",
+        );
+    };
+    if flag(pensioner, "eligible_pensioner")? {
+        let full = int(18200);
+        return Ok(step(
+            "tax_free_threshold",
+            ELIGIBLE_PENSIONER,
+            "18200",
+            &[],
+            full,
+        ));
+    }
+    let value = precise(|| Ok(int(13464).add(&int(4736).mul(&m)?.div(&int(12))?)?))?;
+    let formula = "18200 - 4736 + 4736 x part_year_residency_months / 12";
+    Ok(step(
+        "tax_free_threshold",
+        PART_YEAR_THRESHOLD,
+        formula,
+        &[&m],
+        value,
+    ))
+}
+
+/// `resident_tax`, or for a person resident for part of the year the same with
+/// the tax-free threshold pro-rated by `months` unless the person is an
+/// eligible pensioner.
+pub fn resident_tax_part_year(
+    taxable_income: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+    months: Option<&Arg>,
+    eligible_pensioner: Option<&Arg>,
+) -> Result<Value> {
+    let Some(months) = months else {
+        if eligible_pensioner.is_some() {
+            return refuse(
+                "input.field_unknown",
+                "eligible_pensioner is an input only with part_year_residency_months.",
+            );
+        }
+        return resident_tax(taxable_income, year, scope_confirmed);
+    };
+    let year = scope(scope_confirmed, year, "resident_tax")?;
+    let threshold = part_year_threshold(months, eligible_pensioner)?;
+    let mut out = basic_tax(
+        "resident_tax",
+        taxable_income,
+        &year,
+        meta::RESIDENT_TAX_SCALES,
+        Some(threshold),
     )?;
     year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
     Ok(out)
@@ -506,6 +585,7 @@ pub fn foreign_resident_tax(
         taxable_income,
         &year,
         meta::FOREIGN_RESIDENT_TAX_SCALES,
+        None,
     )?;
     year_warning(&mut out, texts::FOREIGN_RESIDENT_YEAR_WARNINGS, &year);
     Ok(out)
@@ -565,20 +645,24 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
 }
 
 /// Basic income tax on whole-dollar taxable income: each band of the year's
-/// scale at its rate.
-fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -> Result<Value> {
-    let income = money(taxable_income)?;
-    whole_dollars(&income, "taxable income")?;
-    let scale = lookup(scales, year);
-    let rates: Vec<(String, String)> = scale
-        .iter()
-        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
-        .collect();
+/// scale at its rate. `threshold`, when given, is the step for a part-year
+/// resident's tax-free threshold, which replaces the first band's lower limit.
+/// The tax, each band's term and the values the terms read.
+type Bands<'a> = (Decimal, Vec<String>, Vec<(&'a str, Decimal)>);
+
+/// The tax of each band of `scale` on `income`, with its terms and the values
+/// they read; the first band starts at `threshold` when one is given.
+fn tax_by_band<'a>(
+    scale: &[(i64, Option<i64>, &'static str)],
+    rates: &'a [(String, String)],
+    income: &Decimal,
+    threshold: Option<&Step>,
+) -> Result<Bands<'a>> {
     let mut values = vec![("taxable_income_used", income.clone())];
     let mut terms = Vec::new();
     let tax = precise(|| {
         let mut tax = int(0);
-        for ((low, high, rate), (name, _)) in scale.iter().zip(&rates) {
+        for (i, ((low, high, rate), (name, _))) in scale.iter().zip(rates).enumerate() {
             let (ceiling, top) = match high {
                 None => (income.clone(), "taxable_income_used".to_string()),
                 Some(high) => (
@@ -586,29 +670,56 @@ fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -
                     format!("min(taxable_income_used, {high})"),
                 ),
             };
-            let band = py_max(int(0), ceiling.sub(&int(*low))?)?;
+            let (floor, label) = match threshold {
+                Some(t) if i == 0 => {
+                    values.push(("tax_free_threshold", t.value.clone()));
+                    (t.value.clone(), "tax_free_threshold".to_string())
+                }
+                _ => (int(*low), low.to_string()),
+            };
+            let band = py_max(int(0), ceiling.sub(&floor)?)?;
             tax = tax.add(&band.mul(&d(rate))?)?;
-            terms.push(format!("max(0, {top} - {low}) x {name}"));
+            terms.push(format!("max(0, {top} - {label}) x {name}"));
             values.push((name.as_str(), d(rate)));
         }
         Ok(tax)
     })?;
-    let steps = vec![
-        step(
-            "taxable_income_used",
-            "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
-            "taxable_income",
-            &[&income],
-            income.clone(),
-        ),
-        step_by_name(
-            "basic_income_tax",
-            basic_tax_authority(kind, year),
-            &terms.join(" + "),
-            &values,
-            tax,
-        ),
-    ];
+    Ok((tax, terms, values))
+}
+
+fn basic_tax(
+    kind: &str,
+    taxable_income: &Arg,
+    year: &str,
+    scales: &TaxScales,
+    threshold: Option<Step>,
+) -> Result<Value> {
+    let income = money(taxable_income)?;
+    whole_dollars(&income, "taxable income")?;
+    let scale = lookup(scales, year);
+    let mut rates: Vec<(String, String)> = scale
+        .iter()
+        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
+        .collect();
+    if threshold.is_some() {
+        rates[0].0 = "over_tax_free_threshold".to_string();
+    }
+    let (tax, terms, values) = tax_by_band(scale, &rates, &income, threshold.as_ref())?;
+    let mut steps = vec![step(
+        "taxable_income_used",
+        "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
+        "taxable_income",
+        &[&income],
+        income.clone(),
+    )];
+    steps.extend(threshold);
+    steps.push(step_by_name(
+        "basic_income_tax",
+        basic_tax_authority(kind, year),
+        &terms.join(" + "),
+        &values,
+        tax,
+    ));
     derived_result(kind, year, steps, rates)
 }
 

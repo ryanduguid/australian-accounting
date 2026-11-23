@@ -57,7 +57,7 @@ impl Drop for Server {
 fn linked(request: &Value, mut expected: Value) -> Value {
     if request["params"]["uri"] == "aus-accounting://disclaimer" {
         let text = expected.pointer_mut("/result/contents/0/text").unwrap();
-        *text = json!(engine::statutory_fbt_text(text.as_str().unwrap()));
+        *text = json!(engine::disclaimer(text.as_str().unwrap()));
     }
     if let Some(worksheets) = expected
         .pointer_mut("/result/contents/0/text/calculation_worksheets")

@@ -157,6 +157,21 @@ fn statutory_fbt(facts: &Value, amounts: &mut Value) {
     }
 }
 
+/// A frozen disclaimer, with the worksheet scopes the linked engine states: the
+/// statutory FBT wording and #837's resident_tax scope.
+pub fn disclaimer(text: &str) -> String {
+    let mut text = statutory_fbt_text(text);
+    let label = "\nresident_tax: ";
+    if let Some(start) = text.find(label) {
+        let from = start + label.len();
+        let end = from + text[from..].find('\n').unwrap();
+        let mut scope = json!({});
+        resident_tax(&mut scope, &["scope"]);
+        text.replace_range(from..end, scope["scope"].as_str().unwrap());
+    }
+    text
+}
+
 pub fn statutory_fbt_text(text: &str) -> String {
     text.replace(
         "for the year ended 31 March 2026. Excludes",
@@ -164,8 +179,22 @@ pub fn statutory_fbt_text(text: &str) -> String {
     )
 }
 
+/// #837: resident_tax also pro-rates a part-year resident's tax-free threshold, so its
+/// scope, check date and source passage are the linked engine's, as the engine's own
+/// `adapt_resident_tax` in tests/parity.rs applies them. Without the new inputs every
+/// amount is the frozen one.
+fn resident_tax(value: &mut Value, fields: &[&str]) {
+    let now = &australian_tax_calculators::engine::worksheet_catalogue()["resident_tax"];
+    for field in fields {
+        value[*field] = now[*field].clone();
+    }
+}
+
 /// A frozen successful calculate_tax_worksheet result, as the linked engine gives it.
 pub fn worksheet(kind: &str, facts: &Value, result: &mut Value) {
+    if kind == "resident_tax" {
+        resident_tax(result, &["scope", "source_checked"]);
+    }
     if kind == "contribution_caps" && result["amounts"].get("carry_forward_applied").is_some() {
         carry_forward(facts, result);
     }
@@ -183,6 +212,9 @@ pub fn worksheet(kind: &str, facts: &Value, result: &mut Value) {
 
 /// A frozen worksheet catalogue entry (the scope resource), as the linked engine gives it.
 pub fn catalogue(kind: &str, entry: &mut Value) {
+    if kind == "resident_tax" {
+        resident_tax(entry, &["scope", "source_checked", "source_passage"]);
+    }
     let Some(review) = review(kind) else {
         return;
     };
@@ -247,6 +279,10 @@ pub fn freshness(row: &mut Value) {
         return;
     };
     let kind = kind.to_owned();
+    if kind == "resident_tax" {
+        resident_tax(row, &["source_checked"]);
+        resident_tax(&mut row["provenance"], &["source_passage"]);
+    }
     let Some(review) = review(&kind) else {
         return;
     };
@@ -302,6 +338,21 @@ pub fn file_note(kind: &str, note: &str, before: &Value, after: &Value) -> Strin
         }
     }
     let covered = "The engine's source check covered: ";
+    if kind == "resident_tax" {
+        let now = &australian_tax_calculators::engine::worksheet_catalogue()["resident_tax"];
+        for (old, new) in [
+            (
+                before["scope"].as_str().unwrap(),
+                now["scope"].as_str().unwrap(),
+            ),
+            (
+                "Income Tax Rates Act 1986, Schedule 7 Part I clause 1.",
+                &format!("{}.", now["source_passage"].as_str().unwrap()),
+            ),
+        ] {
+            note = note.replace(old, new);
+        }
+    }
     if let Some(review) = review(kind)
         && let Some(start) = note.find(covered)
     {
