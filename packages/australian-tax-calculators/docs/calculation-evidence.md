@@ -2202,22 +2202,28 @@ read that day:
 - South Australia: the Stamp Duties Act 1923 (SA) ss 42A and 42B and Sch 2
   cl 2(1) (version 15.9.2026) and RevenueSA, 'Stamp duty on vehicles'.
 - Tasmania: the Duties Act 2001 (Tas) ss 3 and 197 (in force 24 November
-  2026) and the State Revenue Office, 'Rates of duty'.
+  2026) and the State Revenue Office, 'Rates of duty'. Section 197(3A) applies
+  'Despite subsection (2)' only, so a fleet-discounted vehicle of $600 or less
+  pays s 197(3)'s $20.
 - ACT: the Duties Act 1999 (ACT) ss 203, 204, 207 and 208 (republication 79),
   the Duties (Motor Vehicle Duty) Determination 2025 (DI2025-152) and its 2026
   successor (DI2026-154), which commences on 1 February 2027 and revokes it,
   and the Legislation Act 2001 (ACT) s 74(2) (republication 127): an
   instrument that commences on a day commences at the beginning of it.
-- Northern Territory: the Stamp Duty Act 1978 (NT) ss 57, 59 and 92A and Sch 1
-  cl 6(2) (as in force at 1 July 2025, the current version) and the Territory
-  Revenue Office's stamp duty page.
+- Northern Territory: the Stamp Duty Act 1978 (NT) ss 4, 57, 59 and 92A and
+  Sch 1 cl 6(2) (as in force at 1 July 2025, the current version) and the
+  Territory Revenue Office's stamp duty page. The s 92A exemption applies to
+  the issue of a certificate of registration under s 57, and s 4 defines a
+  motor vehicle certificate of registration as one issued on the registration
+  or the transfer of the registration of a motor vehicle, so it applies on a
+  transfer too.
 
 Only Transport and Main Roads publishes a current worked passenger example.
 The ACT Revenue Office's circular DAA005.9 works its examples at the 2024
 rates, which DI2025-152 replaced, so it is used only for the method: duty on
 each $100 or part. Every other figure was worked by hand from the Act at each
 band edge, and an oracle written in Python from the spec, not the code, gives
-936 cases: each edge less 1, at, plus 1, plus 99 and plus 100, and common
+946 cases: each edge less 1, at, plus 1, plus 99 and plus 100, and common
 values, under every choice each jurisdiction asks.
 
 | Case | Source | Duty |

@@ -174,18 +174,10 @@ fn act(args: &MotorVehicleDutyArgs, day: i64) -> Result<Scale> {
     })
 }
 
-fn tasmania(args: &MotorVehicleDutyArgs, value: &Decimal) -> Result<Scale> {
+fn tasmania(args: &MotorVehicleDutyArgs) -> Result<Scale> {
     let why = "in Tasmania (Duties Act 2001 (Tas) s 197(3A))";
-    if !only_flag(true, args.fleet_discount, "fleet_discount", why)? {
-        return Ok(TAS);
-    }
-    if !value.gt(&int(600))? {
-        return refuse(
-            "motor_vehicle_duty.fleet_value_unsettled",
-            "A fleet-discounted vehicle of $600 or less falls under both s 197(3) ($20) and s 197(3A) ($3.50 per $100); which applies is unsettled.",
-        );
-    }
-    Ok(TAS_FLEET)
+    let fleet = only_flag(true, args.fleet_discount, "fleet_discount", why)?;
+    Ok(if fleet { TAS_FLEET } else { TAS })
 }
 
 /// Each conditional input given only where it is asked.
@@ -226,7 +218,7 @@ fn rule(place: &str, args: &MotorVehicleDutyArgs, day: i64, value: &Decimal) -> 
         "qld" => Rule::Banded(queensland(args.engine)?),
         "wa" => Rule::WesternAustralia,
         "sa" => Rule::Banded(SA),
-        "tas" => Rule::Banded(tasmania(args, value)?),
+        "tas" => Rule::Banded(tasmania(args)?),
         "act" => Rule::Banded(act(args, day)?),
         _ => {
             let why = "in the Northern Territory (Stamp Duty Act 1978 (NT) s 92A)";

@@ -2555,19 +2555,20 @@ Each jurisdiction's scale is one step:
 | Western Australia | 2.75% to $25,000; a rate rising by 1% for every $6,666.66 to 6.5% at $50,000; 6.5% above; rounded down to 5 cents |
 | South Australia | $1, $2, $3 and $4 for every $100 or part in bands at $1,000, $2,000 and $3,000; at least $5 |
 | Tasmania | $20 to $600; $3 for every $100 or part to $35,000; then $1,050 and $11 for every $100 or part to $40,000; $4 for every $100 or part of the whole value above; $3.50 with a fleet discount |
-| ACT | Tables 1 to 3 of the determination in force on the day by emissions category: DI2025-152 to 31 January 2027 and DI2026-154 from 1 February 2027; a used vehicle other than Category AAA pays the non-rated rate |
+| ACT | Tables 1 to 3 of the determination in force on the day by emissions category: DI2025-152 to 31 January 2027 and DI2026-154 from 1 February 2027; a used vehicle other than Category AAA pays the non-rated rate (used eligible hybrids and plug-in hybrids, a class of their own to 31 January 2027, at the same rates) |
 | Northern Territory | $3 for every $100 or part; an electric vehicle's first $50,000 is exempt |
 
 It refuses every other vehicle class (motor cycles, goods and commercial
 vehicles, buses, heavy vehicles and trailers), a duty date outside the year,
-cents, an unknown engine or emissions category, a jurisdiction's input given
-in another, and a Tasmanian fleet-discount vehicle of $600 or less, where
-s 197(3) and (3A) overlap. It leaves out whether a vehicle is a passenger
+cents, an unknown engine or emissions category and a jurisdiction's input
+given in another. A Tasmanian fleet-discount vehicle of $600 or less pays
+s 197(3)'s $20, since s 197(3A) displaces only s 197(2). It leaves out whether a vehicle is a passenger
 vehicle, green car or electric and in which category, its dutiable value,
 exemptions, concessions and refunds, South Australia's component for a
-compulsory third party policy and penalty tax. The tests hold it to the
+compulsory third party policy on registration (the result is the
+registration component of the duty only) and penalty tax. The tests hold it to the
 Queensland Transport and Main Roads examples, to figures worked by hand at
-each edge and to 936 cases from an oracle written from the Acts; see
+each edge and to 946 cases from an oracle written from the Acts; see
 [calculation evidence](docs/calculation-evidence.md#motor-vehicle-duty).
 
 ## GST margin scheme

@@ -12,7 +12,6 @@
   exemption. New codes: `motor_vehicle_duty.date_outside_year`,
   `motor_vehicle_duty.emissions_category_invalid`,
   `motor_vehicle_duty.engine_invalid`,
-  `motor_vehicle_duty.fleet_value_unsettled`,
   `motor_vehicle_duty.jurisdiction_invalid` and
   `motor_vehicle_duty.vehicle_class_unsupported`.
 - `trading-stock` works out the change in value of trading stock under ITAA

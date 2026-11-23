@@ -3201,11 +3201,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "new_vehicle",
-                "boolean, in act only and then required: true for a new motor vehicle as the determination defines it (not registered before, or a demonstrator within a year of its first ACT registration); a used vehicle other than Category AAA pays the non-rated rates",
+                "boolean, in act only and then required: true for a new motor vehicle as the determination defines it (not registered before, or a demonstrator within a year of its first ACT registration); a used vehicle other than Category AAA pays the non-rated rates (to 31 January 2027 DI2025-152 classes used eligible hybrids and plug-in hybrids separately, at the same rates)",
             ),
             (
                 "fleet_discount",
-                "boolean, in tas only and then required: true for a new motor vehicle bought with a manufacturer's fleet discount (Duties Act 2001 (Tas) s 197(3A) and (6)); true with a value of $600 or less is refused",
+                "boolean, in tas only and then required: true for a new motor vehicle bought with a manufacturer's fleet discount (Duties Act 2001 (Tas) s 197(3A) and (6)); a vehicle of $600 or less pays s 197(3)'s $20 either way",
             ),
             (
                 "electric",

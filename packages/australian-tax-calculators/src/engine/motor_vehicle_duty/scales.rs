@@ -97,7 +97,7 @@ pub(super) const QLD: [(&str, Scale); 4] = [
 pub(super) const WA: &str = "Duties Act 2008 (WA) s 236(1) and (2) (03-z0-00, as at 22 October 2026): for a vehicle that is not a heavy vehicle, 2.75% of a dutiable value to $25,000; over $25,000 to $50,000, R% where R = 2.75 + (DV - 25,000) / 6,666.66 rounded to 2 decimal places; over $50,000, 6.5%; the amount rounded down to the nearest 5 cents; read on 24 November 2026";
 
 pub(super) const SA: Scale = Scale {
-    authority: "Stamp Duties Act 1923 (SA) Sch 2 cl 2(1)(a) and (c) (version 15.9.2026): a motor vehicle that is not a commercial motor vehicle or trailer, $1 for every $100 or fractional part to $1,000; $10 plus $2 over $1,000; $30 plus $3 over $2,000; $60 plus $4 over $3,000; at least $5; read on 24 November 2026",
+    authority: "Stamp Duties Act 1923 (SA) Sch 2 cl 2(1)(a) and (c) (version 15.9.2026): a motor vehicle that is not a commercial motor vehicle or trailer, $1 for every $100 or fractional part to $1,000; $10 plus $2 over $1,000; $30 plus $3 over $2,000; $60 plus $4 over $3,000; at least $5; the component in respect of registration only, not the cl 2(3) component for a compulsory third party policy; read on 24 November 2026",
     per: 100,
     minimum: Some("5"),
     bands: Cow::Borrowed(&[
@@ -121,10 +121,10 @@ pub(super) const TAS: Scale = Scale {
 };
 
 pub(super) const TAS_FLEET: Scale = Scale {
-    authority: "Duties Act 2001 (Tas) s 197(3A) and (6) (in force 24 November 2026): a new motor vehicle, other than a heavy vehicle, for which a manufacturer's fleet discount has been provided, $3.50 per $100, or part, read on 24 November 2026",
+    authority: "Duties Act 2001 (Tas) s 197(3), (3A) and (6) (in force 24 November 2026): a new motor vehicle, other than a heavy vehicle, for which a manufacturer's fleet discount has been provided, $3.50 per $100, or part ('Despite subsection (2)', so a motor vehicle of $600 or less stays at s 197(3)'s $20); read on 24 November 2026",
     per: 100,
     minimum: None,
-    bands: Cow::Borrowed(&[band(0, "0", "3.50", 0)]),
+    bands: Cow::Borrowed(&[band(0, "20", "0", 0), band(601, "0", "3.50", 0)]),
 };
 
 pub(super) const NT: Scale = Scale {
@@ -166,6 +166,8 @@ const fn row(
 
 /// An ACT determination's rows for categories AAA, AA, A, B, C and D; a
 /// non-rated vehicle, and a used vehicle other than Category AAA, pays C's.
+/// DI2025-152 classes used eligible hybrids and plug-in hybrids on their own;
+/// their rates equal Category C's, so they share its row.
 pub(super) struct ActPeriod {
     pub authority: &'static str,
     pub rows: [ActRow; 6],

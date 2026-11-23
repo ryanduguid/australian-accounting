@@ -4206,10 +4206,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A Queensland engine is not hybrid_or_electric, up_to_4_cylinders, 5_or_6_cylinders or 7_or_more_cylinders.",
     ),
     (
-        "motor_vehicle_duty.fleet_value_unsettled",
-        "A Tasmanian fleet-discounted vehicle is worth $600 or less, where s 197(3) and (3A) both apply and which prevails is unsettled.",
-    ),
-    (
         "motor_vehicle_duty.jurisdiction_invalid",
         "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
     ),

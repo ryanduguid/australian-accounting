@@ -5,7 +5,7 @@
 //! Motor vehicle duty on a passenger vehicle in each state and territory for
 //! 2026-27: the Transport and Main Roads examples for Queensland, figures
 //! worked by hand from each Act or determination at its band edges, and an
-//! independent oracle's 936 cases (`data/motor_vehicle_duty_cases.json`:
+//! independent oracle's 946 cases (`data/motor_vehicle_duty_cases.json`:
 //! every band edge, minus 1, plus 1, plus 99 and plus 100, and common values,
 //! under every choice each jurisdiction asks), written from the spec, not the
 //! code. Every source was read on 24 November 2026
@@ -117,6 +117,9 @@ fn each_scale_turns_at_its_edges() {
         ("tas", "40000", none.clone(), "1600.00"),
         ("tas", "40001", none.clone(), "1604.00"),
         ("tas", "40001", json!({"fleet_discount": true}), "1403.50"),
+        // Section 197(3A) displaces s 197(2) only; s 197(3) keeps $20.
+        ("tas", "600", json!({"fleet_discount": true}), "20.00"),
+        ("tas", "601", json!({"fleet_discount": true}), "24.50"),
         ("nt", "80000", none.clone(), "2400.00"),
         ("nt", "50000", json!({"electric": true}), "0.00"),
         ("nt", "50001", json!({"electric": true}), "3.00"),
@@ -158,7 +161,7 @@ fn the_act_changes_rates_on_1_february_2027() {
 fn every_oracle_case_agrees() {
     let text = include_str!("data/motor_vehicle_duty_cases.json");
     let rows: Vec<Value> = serde_json::from_str(text).unwrap();
-    assert_eq!(rows.len(), 936);
+    assert_eq!(rows.len(), 946);
     for row in &rows {
         let facts = &row["input"];
         let place = facts["jurisdiction"].as_str().unwrap();
@@ -264,11 +267,6 @@ fn what_the_acts_do_not_settle_is_refused() {
         ("act", json!({"new_vehicle": null}), "input.missing_field"),
         ("act", json!({"new_vehicle": "yes"}), "input.flag_invalid"),
         ("vic", json!({"green_car": null}), "input.missing_field"),
-        (
-            "tas",
-            json!({"fleet_discount": true, "dutiable_value": "600"}),
-            "motor_vehicle_duty.fleet_value_unsettled",
-        ),
         ("nt", json!({"electric": null}), "input.missing_field"),
         (
             "nsw",
