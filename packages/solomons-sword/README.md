@@ -83,7 +83,9 @@ Amounts are non-negative strings with at most 2 decimal places; facts are
   trust is a s 99A(2) kind and the Commissioner's opinion is stated (the
   resident scale with the threshold for an estate whose deceased died less than
   3 years before year end, otherwise without it and limited by Rates Act s 14).
-  Medicare levy, offsets and credits are not computed. Refused: non-resident
+  Tax is worked on each amount in dollars and cents, as the Rates Act sets no
+  whole-dollar rounding, and rounded half up to the cent. Medicare levy,
+  offsets and credits are not computed. Refused: non-resident
   trust estates, part-year residents, beneficiaries under 18 (Div 6AA), s 95A(2)
   deemed entitlements, s 97A and s 97(3) beneficiaries, capital gains and
   franked distributions (Div 6E), special disability trusts, managed investment
@@ -91,7 +93,9 @@ Amounts are non-negative strings with at most 2 decimal places; facts are
 - **`trust-loss-tests`** (*ITAA 1936* Sch 2F): for deducting a prior-year tax
   loss, which of the 50% stake, pattern of distributions, control and income
   injection tests apply to a fixed or non-fixed trust or an excepted trust
-  (family trust elections taken as stated), and whether each is passed on the
+  (family trust elections taken as stated; complying superannuation and
+  approved deposit funds and pooled superannuation trusts are excepted under
+  s 272-100(b)), and whether each is passed on the
   stated facts. The pattern of distributions test is worked out from stated
   test year distributions when given: each individual counts the smallest
   percentage they received (s 269-70), and the totals must exceed 50% for income

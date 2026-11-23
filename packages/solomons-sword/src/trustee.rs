@@ -388,7 +388,7 @@ const STEPS: [&str; 6] = [
     "A resident beneficiary not under a legal disability, or a resident trustee beneficiary, is assessed on the share itself (s 97(1); s 95B).",
     "The trustee is assessed on the share of an adult beneficiary under a legal disability (s 98(1)), a non-resident individual or company beneficiary (s 98(2A), (3)), or a trustee beneficiary whose trustee is non-resident (s 98(4)).",
     "The part to which no beneficiary is presently entitled is taxed at 45% under s 99A, or under s 99 only where the trust is a s 99A(2) kind and the Commissioner's opinion that s 99A would be unreasonable is stated.",
-    "Tax is income tax at the Income Tax Rates Act 1986 rates, rounded half up to the cent. Medicare levy, tax offsets and credits are not computed.",
+    "Tax is income tax at the Income Tax Rates Act 1986 rates on the amount in dollars and cents, as the rates carry no whole-dollar rounding, rounded half up to the cent. Medicare levy, tax offsets and credits are not computed.",
 ];
 
 fn resident_trust(v: &Value) -> Result<()> {

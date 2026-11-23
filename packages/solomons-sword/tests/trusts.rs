@@ -397,6 +397,24 @@ fn trustee_section_99a_rate_and_section_99_discretion() {
 }
 
 #[test]
+fn trustee_taxes_a_share_in_dollars_and_cents() {
+    // The Rates Act applies its rates to the amount with no whole-dollar rounding;
+    // tax is rounded half up to the cent.
+    let b = one(
+        2025,
+        "25000.50",
+        json!({"under_legal_disability": true}),
+        json!({}),
+    );
+    assert_eq!(b["trustee_tax"], "1088.08");
+    assert_eq!(unallocated(2025, "0.55", json!({}))["trustee_tax"], "0.25");
+    assert_eq!(
+        unallocated(2027, "50000.99", bankrupt())["trustee_tax"],
+        "8250.30"
+    );
+}
+
+#[test]
 fn trustee_section_14_limitation_and_phase_out() {
     for (fy, net, tax) in [
         (2025, "416", "0.00"),
@@ -756,16 +774,32 @@ fn trust_loss_excepted_trusts() {
     assert_eq!(r["deductible"], false);
     let r = losses(json!({"excepted_trust": "designated_infrastructure_project_entity"}));
     assert_eq!(r["not_established"], json!(["income_injection"]));
+    // s 272-100(b) covers complying super funds, complying ADFs and PSTs alike.
     for kind in [
         "complying_superannuation_fund",
+        "complying_approved_deposit_fund",
+        "pooled_superannuation_trust",
         "deceased_estate",
         "exempt_entity_unit_trust",
     ] {
-        let r = losses(
-            json!({"excepted_trust": kind, "trust_kind": "fixed", "income_injection_scheme": true}),
-        );
-        assert_eq!(test(&r, "income_injection")["applies"], false, "{kind}");
-        assert_eq!(r["deductible"], true, "{kind}");
+        for trust_kind in ["fixed", "non_fixed"] {
+            let r = losses(json!({"excepted_trust": kind, "trust_kind": trust_kind,
+                "income_injection_scheme": true, "fifty_percent_stake_test_passed": false,
+                "group_began_to_control": true}));
+            for name in [
+                "fifty_percent_stake",
+                "pattern_of_distributions",
+                "control",
+                "income_injection",
+            ] {
+                assert_eq!(
+                    test(&r, name)["applies"],
+                    false,
+                    "{kind} {trust_kind} {name}"
+                );
+            }
+            assert_eq!(r["deductible"], true, "{kind} {trust_kind}");
+        }
     }
     assert!(losses_err(json!({"excepted_trust": "charity"})).contains("excepted_trust must be"));
 }

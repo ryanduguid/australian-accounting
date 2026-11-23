@@ -76,11 +76,13 @@ fn excepted(v: &Value) -> Result<Option<(&str, &'static str)>> {
     let kind = text(v, "excepted_trust")?;
     let para = match kind {
         "family_trust" => "s 272-100(a)",
-        "complying_superannuation_fund" => "s 272-100(b)",
+        "complying_superannuation_fund"
+        | "complying_approved_deposit_fund"
+        | "pooled_superannuation_trust" => "s 272-100(b)",
         "deceased_estate" => "s 272-100(c)",
         "exempt_entity_unit_trust" => "s 272-100(d)",
         "designated_infrastructure_project_entity" => "s 272-100(f)",
-        _ => return Err("excepted_trust must be family_trust, complying_superannuation_fund, deceased_estate, exempt_entity_unit_trust, designated_infrastructure_project_entity or null".into()),
+        _ => return Err("excepted_trust must be family_trust, complying_superannuation_fund, complying_approved_deposit_fund, pooled_superannuation_trust, deceased_estate, exempt_entity_unit_trust, designated_infrastructure_project_entity or null".into()),
     };
     Ok(Some((kind, para)))
 }
