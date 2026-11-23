@@ -60,6 +60,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
         "engine/workers_compensation_premium",
+        "engine/portable_lsl_levy",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -207,7 +208,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4 and
     // workers-compensation-premium and transfer-duty
     // and foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 123);
+    assert_eq!(checked, 124);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -111,6 +111,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One employer's workers compensation premium for a 12-month policy or premium period in 2026-27 in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, on the wages it estimates and the industry or premium rate its insurer gives it, with the premium worked again on its actual wages and the same scheme facts and the adjustment. The operator establishes the wages as the scheme defines them, the rate, the apprentice wages and each scheme's facts. New South Wales: a small employer (average performance premium, wages x the WIC rate, of $30,000 or less) under icare's formula with no apprentice incentive, the average performance premium less the Safe Employer Reward, plus GST, then the dust diseases contribution at a rate that includes GST (the gst amount excludes the GST within that contribution); a premium under icare's $240 minimum is refused. Victoria: a new employer (cl 12(5), including its related-employer and predecessor conditions) or small employer under the WorkCover Premiums Order (No. 34) 2026/2027 cl 6 to 12, with one premium rate and one remuneration figure (one workplace and coverage period), N / 365 to 6 places and the $400 minimum premium, 0.1 buy-out value and 15,500 deductible amount of Gazette S 284, plus GST. Queensland: a new policy (not reinstated under s 11 or carried on by a successor under s 12) that commences to insure in 2026-27 under WorkCover Queensland Notice (No. 1) of 2026 ss 3.2, 4.1, 5.2, 8.3 and 10.1 with no further premium under s 3.1, plus GST and insurance duty of 5% of the premium and its GST (Duties Act 2001 (Qld) s 362(3)), with s 4.1's minimum including both. South Australia: ReturnToWorkSA's BP x (1 - D) + C - A with its discount bands, claims costs capped at 3 x D x BP and no discount or claims costs while the employer has not completed a full financial year registered, at least $200 and rounded down to the dollar, plus GST; the supplementary underwriting rate is nil. Western Australia, Tasmania, the ACT and the Northern Territory: a policy whose premium is the insurer's rate times this employer's wages, plus GST, with no minimum, fixed charge, other adjustment or group allocation. Each step is worked exactly and shown to the cent, half up, except where a scheme rounds otherwise. Refuses experience-rated and performance-rated premiums, group members in New South Wales, Victoria, Queensland and South Australia, a New South Wales apprentice incentive, a Victorian remuneration that rounds to $0, a Queensland policy that commenced before 1 July 2026, a Queensland premium that rounding the estimated premium and apprentice discount first would move, Queensland actual wages, and a South Australian base premium above a band's bound less a cent and below the bound (ReturnToWorkSA's table and calculator differ). Excludes the industry classification and rate, what counts as wages, exemption from holding a policy, the Mine Safety Fund adjustment, catastrophic claims contribution and performance discount in New South Wales, default assessments, policies carried on from an earlier policy, business transfers in South Australia, the South Australian work health and safety fee, Comcare and self-insurers, household workers, early payment discounts and instalment interest.",
     ),
     (
+        "portable_lsl_levy",
+        "Portable long service leave levies across the national black coal mining industry scheme (Coal LSL, s 3B eligible wages and 2.7% prescribed levy rate from 1 July 2023) and the verified Australian state and territory portable LSL schemes for construction, community services, contract cleaning and security. Covers 20 jurisdiction-scheme combinations: Cth Coal LSL (2023-24 to 2026-27); NSW construction (project cost >= $250,000 incl. GST at 0.25%), contract cleaning (1.0%) and community services (1.3% in 2025-26, 1.7% in 2026-27); Vic LeavePlus construction (2.7%) and PLSA community services (1.65%), contract cleaning (1.80%) and security (1.80%) for 2026-27; Qld QLeave construction (project cost >= $150,000 excl. GST: 0.35% LSL, 0.1% CSQ training and 0.125% WHSQ, each rounded to the nearest dollar with 50c downwards under s 72(2)), contract cleaning (0.5%) and community services (1.35%); SA construction (2.00%) and community services (2.2%); WA MyLeave construction (0.75%); ACT construction (2.75%, DI2024-12), community services (1.85%, DI2024-16), security (1.47%, DI2024-15) and contract cleaning under the Services Industry Scheme (1.07%, DI2024-224 and DI2026-228); Tas TasBuild construction (1.8% on-time discounted or 2.5% standard); and NT NT Build construction ($1 million to $5 billion incl. GST at 0.1%, rounded to the nearest dollar with 50c downwards under s 33(2)). Refuses unavailable jurisdiction-scheme pairs, unverified periods, NT projects above $5 billion, partial or special project exemptions, ineligible Coal LSL employees, unconfirmed reimbursement exclusions on positive Coal LSL allowances and mismatched or unread branch fields. Excludes worker or employer coverage determinations, apprentice and trainee exemptions, ACT Services Industry expansion discounts from 1 January 2027 for food and beverage businesses, late-payment interest, penalties, instalment plans, refunds and lodgement.",
+    ),
+    (
         "payroll_tax",
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
     ),
@@ -660,6 +664,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "workers_compensation_premium",
         "https://www.worksafe.vic.gov.au/resources/workcover-insurance-premiums-order",
+    ),
+    (
+        "portable_lsl_levy",
+        "https://www.legislation.gov.au/F2018L00217/latest/text",
     ),
     (
         "payroll_tax",
@@ -1387,6 +1395,33 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-employers/workers-compensation-insurance",
             "https://www.act.gov.au/open/act-workers-compensation-scheme-suggested-reasonable-premium-rates",
             "https://www.workcover.wa.gov.au/resources/rates-fees-payments/",
+        ],
+    ),
+    (
+        "portable_lsl_levy",
+        &[
+            "https://coallsl.com.au/employer/administer-lsl/levy",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/bci-long-service-payments-scheme/long-service-levy",
+            "https://longservice.my.site.com/bci/s/levy-calculator",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/cci-long-service-leave-scheme/managing-employer-returns-and-paying-levies",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/csi-long-service-leave-scheme/making-levy-contributions",
+            "https://leaveplus.com.au/employers/charges/",
+            "https://www.plsa.vic.gov.au/employer-information/about-the-portable-long-service-benefits-scheme",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-1991-090",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2024-0162",
+            "https://www.qleave.qld.gov.au/building-and-construction/levy-payers/what-is-the-levy",
+            "https://www.qleave.qld.gov.au/contract-cleaning/employers/employer-obligations",
+            "https://www.qleave.qld.gov.au/community-services/employers/pay-the-levy",
+            "https://saplsl-construction.org.au/employers/how-to-complete-employer-returns",
+            "https://saplsl-community.org.au/employers-home/what-do-i-have-to-do",
+            "https://www.wa.gov.au/government/announcements/myleave-2027-employer-contribution-rate",
+            "https://www.legislation.act.gov.au/di/2024-12/",
+            "https://www.legislation.act.gov.au/di/2024-15/",
+            "https://www.legislation.act.gov.au/di/2024-16/",
+            "https://www.legislation.act.gov.au/di/2024-224/",
+            "https://www.legislation.act.gov.au/di/2026-228/",
+            "https://tasbuild.com.au/employers-information/",
+            "https://www.ntbuild.com.au/levy-payers",
         ],
     ),
     (
@@ -2853,6 +2888,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "The insurer's notice is the premium: this worksheet takes the wages, the industry or premium rate and each scheme's facts as established, and holds no rate table.",
             "An employer may be exempt from holding a policy, which this worksheet does not decide: in New South Wales with wages of $7,500 or less and no apprentice or trainee, outside a group; in Victoria with rateable remuneration of $7,500 or less for 2026-27 (Premiums Order (No. 34) cl 7), unless it employs an apprentice or trainee.",
             "South Australia's work health and safety fee, which carries no GST, is added to the premium and is not worked here.",
+        ],
+    ),
+    (
+        "portable_lsl_levy",
+        &[
+            "Each administering board and statute defines eligible workers, covered work, ordinary pay inclusions and exclusions, apprentice or trainee exemptions and project cost inclusions; this worksheet takes the supplied pay or project cost figures as established.",
+            "NSW construction rounds down to the whole dollar (verified on the LSC Building Levy Calculator) and Queensland construction (s 72(2)) and NT construction (s 33(2)) round to the nearest dollar with 50 cents downwards; other schemes round half up to the cent once at the final step. Reconcile against the board's return portal before payment.",
         ],
     ),
     (
@@ -4657,7 +4699,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5272,6 +5314,54 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "period.unsupported",
         "The worksheet has no rates for the period.",
+    ),
+    (
+        "portable_lsl_levy.bonus_invalid",
+        "Coal LSL bonuses is not a valid list of bonus objects with plain non-negative decimal amounts and recognised frequencies.",
+    ),
+    (
+        "portable_lsl_levy.branch_field_mismatch",
+        "An input field was supplied that does not apply to the selected scheme or Coal LSL branch, or would be discarded unread.",
+    ),
+    (
+        "portable_lsl_levy.branch_invalid",
+        "Coal LSL branch is missing or is not base_rate, annual_salary or casual.",
+    ),
+    (
+        "portable_lsl_levy.employee_ineligible",
+        "Coal LSL eligible_employee is false, so no eligible wages arise under s 3B.",
+    ),
+    (
+        "portable_lsl_levy.exemption_unsupported",
+        "partial_exemption is true on a project-cost scheme; owner-builder, non-profit, church, Crown and local government reductions are outside this worksheet.",
+    ),
+    (
+        "portable_lsl_levy.jurisdiction_invalid",
+        "jurisdiction is not cth, nsw, vic, qld, sa, wa, act, tas or nt.",
+    ),
+    (
+        "portable_lsl_levy.project_cost_above_tier",
+        "Northern Territory project_cost exceeds $5 billion, where a two-tier ministerial levy determination applies.",
+    ),
+    (
+        "portable_lsl_levy.reimbursements_unconfirmed",
+        "Coal LSL base_rate received positive allowances without allowances_exclude_expense_reimbursements set to true.",
+    ),
+    (
+        "portable_lsl_levy.reporting_month_invalid",
+        "Coal LSL reporting_month is not a valid YYYY-MM month from 2023-07 onwards within the supplied financial year.",
+    ),
+    (
+        "portable_lsl_levy.scheme_invalid",
+        "scheme is not coal, construction, community_services, contract_cleaning or security.",
+    ),
+    (
+        "portable_lsl_levy.scheme_unavailable",
+        "No covered portable long service leave scheme exists for the requested jurisdiction and scheme combination.",
+    ),
+    (
+        "portable_lsl_levy.scheme_year_unsupported",
+        "The requested financial year is outside the primary-source-verified years for the selected jurisdiction and scheme.",
     ),
     (
         "ppsr_timing.date_outside_year",

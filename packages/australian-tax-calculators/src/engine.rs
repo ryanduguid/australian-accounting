@@ -5094,6 +5094,8 @@ mod motor_vehicle_duty;
 pub use motor_vehicle_duty::{MotorVehicleDutyArgs, motor_vehicle_duty};
 mod insurance_duty;
 pub use insurance_duty::{InsuranceDutyArgs, insurance_duty};
+mod portable_lsl_levy;
+pub use portable_lsl_levy::{PortableLslLevyArgs, portable_lsl_levy};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6517,7 +6519,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 137] = [
+const KINDS: [&str; 138] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6545,6 +6547,7 @@ const KINDS: [&str; 137] = [
     "workers_compensation_premium",
     "motor_vehicle_duty",
     "insurance_duty",
+    "portable_lsl_levy",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
