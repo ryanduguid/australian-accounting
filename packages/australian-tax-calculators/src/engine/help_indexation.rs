@@ -138,13 +138,16 @@ fn dated(
 
 /// HESA s 140-5(1) steps 2 and 2A, or s 140-25(1A): each debt (less 20% when
 /// s 137-19A reduces it) added to its group, and each group's total cut to
-/// whole dollars. A debt without a `group` is a group of its own. The flag
-/// says whether s 137-19A reduced any of them.
+/// whole dollars. Only a list's one debt may omit its `group`: the Act groups
+/// by course and provider, which the command cannot tell from the debts. The
+/// flag says whether s 137-19A reduced any of them.
 fn debt_total(given: Option<&Arg>, name: &str, period: (i64, i64)) -> Result<(Decimal, bool)> {
     let reduced = (day(REDUCED_FROM), day(REDUCED_TO));
-    let mut groups: BTreeMap<String, Decimal> = BTreeMap::new();
+    let mut groups: BTreeMap<Option<&str>, Decimal> = BTreeMap::new();
     let mut any_reduced = false;
-    for (i, fields) in objects(given, name)?.into_iter().enumerate() {
+    let debts = objects(given, name)?;
+    let several = debts.len() > 1;
+    for (i, fields) in debts.into_iter().enumerate() {
         let item = format!("{name} {}", i + 1);
         stated::known_keys(fields, &item, "a debt", &["incurred", "amount", "group"])?;
         let on = dated(fields, &item, "incurred", period)?;
@@ -154,8 +157,13 @@ fn debt_total(given: Option<&Arg>, name: &str, period: (i64, i64)) -> Result<(De
             any_reduced = true;
         }
         let key = match fields.get("group") {
-            None => format!("\u{0}{i}"),
-            Some(Value::String(group)) if !group.is_empty() => group.clone(),
+            None if several => {
+                return entries_invalid(format!(
+                    "{item}: give each of several debts a group, such as one course with one provider; HESA s 140-5(1) step 2A and s 140-25(1A) cut each group's total to whole dollars."
+                ));
+            }
+            None => None,
+            Some(Value::String(group)) if !group.is_empty() => Some(group.as_str()),
             Some(_) => {
                 return entries_invalid(format!("{item}: group must be a non-empty string."));
             }
@@ -309,7 +317,7 @@ fn work(year: &str, f: &Facts, repaid: &Decimal, factor: &Decimal) -> Result<Wor
 const STEPS: [(&str, &str); 8] = [
     (
         "before_indexation",
-        "HESA s 140-5(1) steps 1 to 6: the preceding accumulated HELP debt, plus debts incurred from 1 January to 30 June of the preceding year (each group's total in whole dollars, step 2A), less voluntary repayments made from the preceding 1 June to 31 May, less compulsory repayment amounts assessed in that period and increases to them, plus reductions to them",
+        "HESA s 140-5(1) steps 1 to 6: the preceding accumulated HELP debt, plus debts incurred from 1 January to 30 June of the preceding year (each group's total in whole dollars, step 2A), less voluntary repayments made from the preceding 1 June to 31 May, less the step 4 compulsory repayment amounts (those assessed in that period, except any from a return given before it, and those assessed after it from a return given before its end; s 140-5(2) dates an assessment by its notice's date of issue), less increases and plus reductions to compulsory repayment amounts by amended assessments made in that period",
     ),
     (
         "reduction",

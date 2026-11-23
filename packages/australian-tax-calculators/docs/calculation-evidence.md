@@ -4137,8 +4137,11 @@ publish them.
 - Act No. 108, 2024 Sch 1 Part 1 made the factor the lower of the CPI and WPI
   factors, and item 56 applies that from the financial year ending 30 June
   2023, recalculating 2022-23 and 2023-24: the ATO shows 3.2% (previously
-  7.1%) and 4% (previously 4.7%). Before that the factor was the CPI factor
-  (the replaced words 'worked out as follows:'). Items 18 and 19 move both
+  7.1%) and 4% (previously 4.7%). Before that the factor was the CPI factor:
+  compilation 83 (C2022C00005, from 1 January 2022, read on 23 November
+  2026) has s 140-10(1)(b) divide the 4 quarters' index numbers to the March
+  quarter by the 4 to the March quarter a year earlier, and s 198-20 makes the
+  index number the All Groups CPI. Items 18 and 19 move both
   factors to the quarters ending 31 December from 1 June 2025.
 - s 140-26 (Act No. 30, 2025 Sch 2 item 37), for 2024-25 only, takes 20% off
   the step 6 amount before indexation and off the debts incurred from 1 July
@@ -4157,8 +4160,15 @@ Choices the Act leaves to the reader:
 - The operator places each voluntary repayment: against the debts indexed
   (`voluntary_repayments`, step 3) or against the debts of the first half of
   the year (`current_repayments`, s 140-25).
-- A debt with no `group` is a group of its own for the whole-dollar rule of
-  step 2A and s 140-25(1A).
+- Step 2A and s 140-25(1A) cut each group's total to whole dollars, and the
+  Act groups debts by course and provider, which the command cannot see. So
+  each debt in a list of more than one names its `group`; a list's one debt
+  may omit it.
+- `compulsory_repayments` is the step 4 total as s 140-5(1) defines it
+  (rechecked in compilation 105 on 23 November 2026): amounts assessed in the
+  period, except any from a return given before it, plus any assessed after
+  it from a return given before its end, each dated by its notice's date of
+  issue (s 140-5(2)). The operator works it out from the notices.
 
 `tests/help_indexation.rs` holds these cases.
 
@@ -4171,6 +4181,9 @@ Choices the Act leaves to the reader:
 | 2025-26, $20,000, $5,000 proposed | steps 3 and s 140-25 | $15,420 before 1 June, $15,560 after, $140 saved |
 | 2024-25, $10,000, $1,000 proposed | s 140-26(1) | $7,430 before 1 June, $7,256 after |
 | Debts on 1 January, 1 June and 2 June 2025 | s 137-19A | $800, $800, $1,000 |
+| 2025-26, Maylin's $83,104 carried with the $9,000 May 2025 debt | ss 140-5(1) step 1 and 137-19A | $7,200 added, $90,304 indexed, $92,832 |
+| 2024-25, a $1,000 debt in September 2024 less $200 repaid | s 140-26(2) | $640 |
+| 2 debts of $0.60 in one group, then in 2 | s 140-25(1A) | $1, then nil; without groups, refused |
 
 ## Non-commercial losses
 

@@ -3751,7 +3751,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "earlier_debts",
-                "list of up to 100 objects {incurred (YYYY-MM-DD, 1 January to 30 June of the preceding financial year), amount (AUD, as incurred, before any 20% reduction), group (optional text: debts with the same group are one step 2 group, such as one course with one provider)} (HESA s 140-5(1) steps 2 to 2C; s 137-19A reduces a debt incurred from 1 January to 1 June 2025)",
+                "list of up to 100 objects {incurred (YYYY-MM-DD, 1 January to 30 June of the preceding financial year), amount (AUD, as incurred, before any 20% reduction), group (text, required when the list has more than one debt: debts with the same group are one step 2 group, such as one course with one provider)} (HESA s 140-5(1) steps 2 to 2C; s 137-19A reduces a debt incurred from 1 January to 1 June 2025)",
             ),
             (
                 "voluntary_repayments",
@@ -3759,7 +3759,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "compulsory_repayments",
-                "AUD: compulsory repayment amounts assessed from the preceding 1 June to 31 May (HESA s 140-5(1) step 4); nil for none",
+                "AUD: the step 4 total of HESA s 140-5(1): compulsory repayment amounts assessed from the preceding 1 June to 31 May, except any assessed from a return given before that preceding 1 June, plus any assessed after 31 May from a return given by 31 May; an assessment is dated by its notice's date of issue (s 140-5(2)); nil for none",
             ),
             (
                 "assessment_increases",
@@ -3771,7 +3771,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "current_debts",
-                "list of up to 100 objects {incurred (YYYY-MM-DD, 1 July to 31 December of the financial year), amount (AUD, as incurred), group (optional text)}: HELP debts added after indexation (HESA s 140-25(1) and (1A))",
+                "list of up to 100 objects {incurred (YYYY-MM-DD, 1 July to 31 December of the financial year), amount (AUD, as incurred), group (text, required when the list has more than one debt, as for earlier_debts)}: HELP debts added after indexation (HESA s 140-25(1) and (1A))",
             ),
             (
                 "current_repayments",

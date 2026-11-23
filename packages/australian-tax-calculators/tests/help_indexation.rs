@@ -86,13 +86,78 @@ fn ato_example_1_maylin() {
     assert_eq!(amount(&out, "current_debts"), "8800.00");
     assert_eq!(amount(&out, "accumulated_debt"), "83104.00");
     assert_eq!(out["rates"]["reduction_rate"], "0.20");
-    // 83,104 + 7,200 = 90,304, the ATO's total.
+    // 83,104 + 7,200 = 90,304, the ATO's total. Carried into 2025-26 as the
+    // reduced 1 June 2025 debt (s 140-5(1) step 1), with the May debt
+    // reduced once by s 137-19A: 90,304 x 1.028 = 92,832.51.
     let next = with(
-        base("2025-26", "0.00"),
+        base("2025-26", &amount(&out, "accumulated_debt")),
         "earlier_debts",
         json!([{"incurred": "2025-05-20", "amount": "9000.00"}]),
     );
-    assert_eq!(amount(&run(&next), "earlier_debts"), "7200.00");
+    let next = run(&next);
+    assert_eq!(amount(&next, "earlier_debts"), "7200.00");
+    assert_eq!(amount(&next, "before_indexation"), "90304.00");
+    assert_eq!(amount(&next, "reduction"), "0.00");
+    assert_eq!(amount(&next, "accumulated_debt"), "92832.00");
+}
+
+#[test]
+fn a_2024_25_current_debt_is_reduced_after_its_repayment() {
+    // s 140-26(2): (1,000 - 200) x 0.8 = 640, not 1,000 x 0.8 - 200 = 600.
+    let mut input = base("2024-25", "0.00");
+    input["current_debts"] = json!([{"incurred": "2024-09-01", "amount": "1000.00"}]);
+    input["current_repayments"] = json!("200.00");
+    let out = run(&input);
+    assert_eq!(amount(&out, "current_debts"), "640.00");
+    assert_eq!(amount(&out, "accumulated_debt"), "640.00");
+}
+
+#[test]
+fn several_debts_must_each_name_their_group() {
+    // HESA s 140-5(1) step 2A and s 140-25(1A) cut each group's total, not
+    // each debt, to whole dollars. Two 60-cent debts of one course are $1.20,
+    // so $1; the command cannot tell that from debts without a group, and
+    // reading each as its own group gave nil. Found by Alcuin round 1 (S3).
+    let debt = |group: Option<&str>| {
+        let mut d = json!({"incurred": "2025-08-01", "amount": "0.60"});
+        if let Some(g) = group {
+            d["group"] = json!(g);
+        }
+        d
+    };
+    let input = |debts: Value| with(base("2025-26", "0.00"), "current_debts", debts);
+    assert_eq!(
+        code(&input(json!([debt(None), debt(None)]))),
+        "help_indexation.entries_invalid"
+    );
+    let one_course = run(&input(json!([debt(Some("c")), debt(Some("c"))])));
+    assert_eq!(amount(&one_course, "accumulated_debt"), "1.00");
+    let two_courses = run(&input(json!([debt(Some("c")), debt(Some("d"))])));
+    assert_eq!(amount(&two_courses, "accumulated_debt"), "0.00");
+    // One debt alone is its own group.
+    let alone = run(&input(
+        json!([{"incurred": "2025-08-01", "amount": "1.60"}]),
+    ));
+    assert_eq!(amount(&alone, "accumulated_debt"), "1.00");
+}
+
+#[test]
+fn a_named_group_never_joins_an_unnamed_debt() {
+    // The command once keyed an unnamed debt by NUL and its index, so a group
+    // named NUL then '0' joined the first unnamed debt: 0.60 + 0.60 gave $1.
+    // Found by Alcuin round 1 (S4).
+    let debts = json!([
+        {"incurred": "2025-08-01", "amount": "0.60"},
+        {"incurred": "2025-08-02", "amount": "0.60", "group": "\u{0}0"},
+    ]);
+    let input = with(base("2025-26", "0.00"), "current_debts", debts);
+    assert_eq!(code(&input), "help_indexation.entries_invalid");
+    let named = json!([
+        {"incurred": "2025-08-01", "amount": "0.60", "group": "a"},
+        {"incurred": "2025-08-02", "amount": "0.60", "group": "\u{0}0"},
+    ]);
+    let out = run(&with(base("2025-26", "0.00"), "current_debts", named));
+    assert_eq!(amount(&out, "accumulated_debt"), "0.00");
 }
 
 #[test]
@@ -282,9 +347,9 @@ fn a_repayment_larger_than_the_debt_after_1_june_leaves_nil() {
 #[test]
 fn section_137_19a_reduces_debts_from_1_january_to_1_june_2025() {
     let debts = json!([
-        {"incurred": "2025-01-01", "amount": "1000.00"},
-        {"incurred": "2025-06-01", "amount": "1000.00"},
-        {"incurred": "2025-06-02", "amount": "1000.00"},
+        {"incurred": "2025-01-01", "amount": "1000.00", "group": "a"},
+        {"incurred": "2025-06-01", "amount": "1000.00", "group": "b"},
+        {"incurred": "2025-06-02", "amount": "1000.00", "group": "c"},
     ]);
     let out = run(&with(base("2025-26", "0.00"), "earlier_debts", debts));
     assert_eq!(amount(&out, "earlier_debts"), "2600.00");
@@ -299,8 +364,8 @@ fn each_group_is_cut_to_whole_dollars() {
     let debts = json!([
         {"incurred": "2025-07-01", "amount": "100.60", "group": "course a"},
         {"incurred": "2025-08-01", "amount": "100.60", "group": "course a"},
-        {"incurred": "2025-09-01", "amount": "0.99"},
-        {"incurred": "2025-10-01", "amount": "50.50"},
+        {"incurred": "2025-09-01", "amount": "0.99", "group": "course b"},
+        {"incurred": "2025-10-01", "amount": "50.50", "group": "course c"},
     ]);
     let out = run(&with(base("2025-26", "0.00"), "current_debts", debts));
     // 201.20 -> 201; 0.99 -> 0; 50.50 -> 50.

@@ -3430,8 +3430,8 @@ TR 92/12 Example 5A; see
 (HESA s 140-25(2)) for 2019-20 to 2025-26: the preceding accumulated debt,
 plus debts incurred from 1 January to 30 June of the preceding year (each
 group's total in whole dollars), less voluntary repayments made from the
-preceding 1 June to 31 May, compulsory repayment amounts and amended
-assessments in that period (s 140-5(1)), times the HELP debt indexation
+preceding 1 June to 31 May, the step 4 compulsory repayment amounts and
+amended assessments in that period (s 140-5(1)), times the HELP debt indexation
 factor; then the debts of 1 July to 31 December of the year less their
 repayments (s 140-25), cents disregarded (s 140-30). The factor is the ATO's
 published rate plus one: the CPI factor to 2021-22 and the lower of the CPI
@@ -3444,8 +3444,8 @@ indexed, then to the year's own, s 151-10(2)) and on or after it.
 
 It refuses a missing balance, a location-preferred HELP debtor's reduced
 indexation, 2024-25 amounts or 1 January to 1 June 2025 debts already reduced
-by 20%, dates outside their period,
-repayments above the debt, and years before 2019-20 or after 2025-26. The
+by 20%, several debts in a list without a `group` each, dates outside their
+period, repayments above the debt, and years before 2019-20 or after 2025-26. The
 tests hold it to the ATO's rates and its 2 reduction examples; see
 [calculation evidence](docs/calculation-evidence.md#help-indexation).
 
