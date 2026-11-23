@@ -1343,6 +1343,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // ss 45-110 to 45-420 in compilations 219 (1 July 2025) and 227
         // (1 October 2026), apart from the Commissioner's notional tax.
         "payg_instalment" => vec!["2025-26", "2026-27"],
+        // The years the site's allocation form offers: 2020-21 for the
+        // guideline's examples (paragraph 122) and 2022-23 onwards, as it
+        // applies from 1 July 2022 (paragraph 17).
+        "pcg_2021_4" => vec![
+            "2020-21", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // ITAA 1936 s 6(1) 'resident' reads the same in compilations 169
         // (1 July 2020) and 193 (1 October 2026).
         "residency_tests" => vec![
@@ -1869,6 +1875,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "payg_instalment" => (
             "2026-11-23",
             "TAA 1953 Sch 1 ss 45-110, 45-112, 45-205, 45-215, 45-410 and 45-420, compilation 227 (C2026C00468, 1 October 2026; ss 45-110, 45-205 and 45-215 read again on 23 November 2026), against compilation 219 (C2025C00404, 1 July 2025), which reads the same for them; the ATO's 'How to vary your PAYG instalments' (last updated 23 June 2026) and 'PAYG instalments: how to complete your activity statement' (last updated 9 January 2023) pages; the site's PAYG instalments page and its 11 cases (checked 15 November 2026)",
+        ),
+        "pcg_2021_4" => (
+            "2026-11-24",
+            "PCG 2021/4 (updated guideline of 19 June 2024) paragraphs 10 to 12, 17, 28, 71 to 73, 76 to 101 and 122, footnotes 6 and 7 and case studies 1 to 12, on the ATO legal database; the ATO's 'Tax rates – Australian resident' (last updated 13 August 2026) and company tax rates for 2020-21 and 2022-23 to 2025-26; Income Tax Rates Act 1986 s 23(2) (Compilation No. 66, 1 July 2026)",
         ),
         "rental_property" => (
             "2026-11-22",
@@ -2479,6 +2489,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Sophia's T1 x T2 ($341.70, entered as 341), Cari's varied amount (example 1), Harmander's varied rate (example 2, 12.27%) and Bill's credit at 5B",
             "2026-06-23",
             "2026-11-22",
+        ),
+        "pcg_2021_4" => (
+            "PCG 2021/4",
+            "Case studies 1 to 12 with their scores and zones; examples 4, 5 and 6 (paragraphs 87 to 99)",
+            "2024-06-19",
+            "2026-11-24",
         ),
         "residency_tests" => (
             "TR 2023/1",
@@ -3138,6 +3154,32 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "previous_rate",
                 "per cent, 0 to 100 at most 2 decimal places, method varied_rate only, and then required: the instalment rate you used for the year's previous instalment quarter (s 45-215(1)(b)); usually the T2 rate, but not where the Commissioner gave a new rate after that quarter; in the year's first quarter give T2, as no credit arises without earlier instalments",
+            ),
+        ],
+        "pcg_2021_4" => vec![
+            (
+                "recipients",
+                "list of 1 to 6 objects, the IPP first and then each associated entity, for the allocation, in place of entitlement, returned and tax: kind (individual, an Australian resident aged 18 or over all year, the IPP's kind; base_rate_company; or company), firm_income (AUD, what it is entitled to from the whole of firm group, a franked dividend with its franking credit), firm_deductions (AUD, firm-related deductions) and other_income (AUD, other income less other deductions, negative for a loss)",
+            ),
+            (
+                "entitlement",
+                "AUD, for the scorer, with returned and tax: the income the IPP and associated entities are collectively entitled to from the whole of firm group (paragraphs 82 and 83)",
+            ),
+            (
+                "returned",
+                "AUD, for the scorer: the profit entitlement included in the IPP's assessable income (paragraph 82)",
+            ),
+            (
+                "tax",
+                "AUD, for the scorer: the total tax paragraph 85 counts for the IPP and associated entities on that firm income",
+            ),
+            (
+                "remuneration",
+                "AUD, for the scorer with factor_3 true only, and then required unless returned equals entitlement (paragraph 81): the remuneration returned in the IPP's hands (paragraphs 100 and 101)",
+            ),
+            (
+                "benchmark",
+                "AUD, with factor_3 true only, and then required unless the IPP returns all of the entitlement (paragraph 81): the commercial benchmark for the IPP's services (paragraph 101)",
             ),
         ],
         "foreign_income_tax_offset" => vec![
@@ -5408,6 +5450,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "payg_instalment" => vec![
             ("method", "amount, varied_amount, rate or varied_rate: option 1 (the T7 amount, s 45-112), option 1 varied from estimated tax (s 45-410), option 2 (T1 x T2, s 45-110) or option 2 at a varied rate (s 45-205); each takes only its own facts"),
         ],
+        "pcg_2021_4" => vec![
+            ("gateway_1", "boolean: the arrangement is commercially driven (Gateway 1, paragraphs 39 to 46); false is refused"),
+            ("gateway_2", "boolean: the arrangement has no high-risk features (Gateway 2, paragraphs 47 to 63); false is refused"),
+            ("factor_3", "boolean: score risk assessment factor 3 against a commercial benchmark too (paragraphs 77 to 80)"),
+        ],
         "government_super_amounts" => {
             let mut units = input_units("income_tests");
             units.extend([
@@ -6692,6 +6739,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("earlier_instalments", Text("6944.00")),
             ("credits_claimed", Text("0.00")),
             ("earlier_instalment_income", Text("41240.00")),
+        ],
+        // Case study 1: Nicolas returns $330,000 of $600,000 and his
+        // company pays $70,200 at 26%: 31.56%, scores 4 and 3, green.
+        "pcg_2021_4" => vec![
+            ("year", Text("2020-21")),
+            ("gateway_1", Flag(true)),
+            ("gateway_2", Flag(true)),
+            ("factor_3", Flag(false)),
+            (
+                "recipients",
+                Json(
+                    r#"[{"kind": "individual", "firm_income": "330000", "firm_deductions": "0", "other_income": "0"}, {"kind": "base_rate_company", "firm_income": "270000", "firm_deductions": "0", "other_income": "0"}]"#,
+                ),
+            ),
         ],
         // The ATO's Angelo (Super co-contribution): $35,000 of salary and
         // $1,040 of personal contributions; the year is the page's.

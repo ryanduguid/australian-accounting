@@ -4538,6 +4538,48 @@ Choices the Act leaves to the reader:
 | A $5,000 trust share with a $3,000 Division 6AA part | s 102AE(4), s 102AG | $1,260.00 |
 | Full-time 3 months, intending full-time study next year | s 102AC(8)(b) | prescribed |
 
+## PCG 2021/4
+
+This worksheet was added on 24 November 2026. Each source was read that day,
+from 00:05 to 00:15 AEDT:
+
+- PCG 2021/4, Allocation of professional firm profits (updated guideline of
+  19 June 2024) on the ATO legal database
+  (https://www.ato.gov.au/law/view/document?docid=COG/PCG20214/NAT/ATO/00001):
+  paragraphs 10 to 12 (the gateways), 17 (from 1 July 2022), 76 (Table 1),
+  78 to 80 (Table 2), 81 (100% returned), 82 to 86 (factors 1 and 2 and the
+  larger of paragraph 85(a) and (b)), 100 and 101 (factor 3), 122 (2020-21
+  rates), footnotes 6 (no levy) and 7 (26% for a corporate taxpayer),
+  examples 4 to 6 and case studies 1 to 12;
+- the ATO's 'Tax rates – Australian resident' (last updated 13 August 2026),
+  the resident scales for 2020-21 and 2022-23 to 2026-27, which
+  `PRIOR_RESIDENT_TAX_SCALES` and `RESIDENT_TAX_SCALES` already hold;
+- the ATO's company tax rates for 2020-21 (26% for a base rate entity, last
+  updated 30 May 2024), 2022-23 to 2025-26 (25%) and the Income Tax Rates Act
+  1986 s 23(2), Compilation No. 66 (1 July 2026), for 2026-27 (25%, otherwise
+  30%), which `deferred_tax` already holds.
+
+The site's PCG 2021/4 pages (ryanduguid.github.io, main at dcc7ecbe,
+`assets/pcg-2021-4.mjs`) were run on their 16 cases, the 96 vectors of
+their tests (case studies 1 to 12, examples 4 to 6, every Table 1 boundary
+and Table 2 edge, rounding and refusals) and a seeded sweep of 160
+arrangements and 160 allocations over every year and kind, 432 rows in
+`tests/data/pcg_2021_4_site_cases.json`. The worksheet gives the same
+percentages, scores, zone, firm income, tax and each recipient's tax and limb
+on all 407 rows the site works out, and refuses the 25 it refuses.
+
+The guideline prints Bernie's tax (case study 4) as $116,916 and Frank's
+(case study 5) as $105,666; the 2020-21 scale gives $116,917 and $105,667,
+as the site does, with the same rate and scores.
+
+| Case | Source | Result |
+| --- | --- | --- |
+| Case study 1: Nicolas $330,000, his company $270,000 | Table 4 | $119,167 and $70,200; 55.00%, 31.56%; scores 4 and 3; green at 7 |
+| Example 4: 6 recipients of $1,100,000 | Paragraphs 87 to 93 | Associate 2 $33,850 under 85(b); 33.31%; green at 7 |
+| Example 5: $600,000 less $40,000, with $50,000 other income | Paragraph 94 | $238,450 under 85(b) |
+| Case study 7: $360,000 against a $350,000 benchmark | Table 10 | 102.86%, factor 3 score 3; green at 10 on all 3 |
+| Exactly 50% returned and 30% tax; a cent less of each | Table 1 | Scores 4 and 3, green; 5 and 4, red at 9 |
+
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read

@@ -6248,6 +6248,8 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
+mod pcg_2021_4;
+pub use pcg_2021_4::{PCG_OPTIONAL, PcgArgs, pcg_2021_4};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 mod foreign_resident_withholding;
@@ -6296,7 +6298,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 119] = [
+const KINDS: [&str; 120] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6384,6 +6386,7 @@ const KINDS: [&str; 119] = [
     "small_business_income_offset",
     "non_commercial_losses",
     "psi_test",
+    "pcg_2021_4",
     "government_super_amounts",
     "rental_property",
     "foreign_resident_withholding",
@@ -6482,6 +6485,7 @@ fn evidence_heading(kind: &str) -> String {
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         "ato_interest_penalties" => "ato-penalties-and-interest".into(),
+        "pcg_2021_4" => "pcg-20214".into(),
         _ => kind.replace('_', "-"),
     }
 }
