@@ -33,6 +33,7 @@ use std::process::{Command, Stdio};
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/vic_property_taxes.rs`, `tests/alcohol_excise.rs`, `tests/asic_fees.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/private_health_insurance_rebate.rs`, `tests/depreciation_pools.rs`,
+/// `tests/instant_asset_write_off.rs`,
 /// `tests/withholding_schedules.rs`, `tests/payment_withholding.rs`,
 /// `tests/work_expenses.rs`, `tests/ato_interest_penalties.rs`,
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
@@ -47,7 +48,7 @@ use std::process::{Command, Stdio};
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
 /// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 107] = [
+const NEW_KINDS: [(&str, &str); 108] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -104,6 +105,7 @@ const NEW_KINDS: [(&str, &str); 107] = [
         "depreciation_small_business_pool",
     ),
     ("capital-works", "capital_works"),
+    ("instant-asset-write-off", "instant_asset_write_off"),
     (
         "small-business-income-offset",
         "small_business_income_offset",
@@ -299,6 +301,7 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     adapt_fbt(command, input, &mut expected);
     adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
+    adapt_depreciation_years(command, input, &mut expected);
     adapt_contribution_caps(command, &mut expected);
     adapt_2027_28(command, input, &mut expected);
     let study = match command {
@@ -650,14 +653,58 @@ fn adapt_depreciation(command: &str, expected: &mut Value) {
         ))
     });
     record["sources"].as_array_mut().unwrap().extend(sections);
-    record["source_checked"] = json!("2026-11-13");
+    record["source_checked"] = json!("2026-11-23");
     if command == "worksheet-catalogue" {
         record["source_passage"] = json!(
-            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year"
+            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year; Guides to depreciating assets 2021 to 2026, the methods and days held in a leap year, with Laura's photocopier in the 2021 and 2024 guides and Paul's refrigerator in the 2023 guide; IT(TP)A 1997 Subdivisions 40-BA and 40-BB, flagged"
         );
         record["optional_inputs"] = json!({"opening_adjustable_value":
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year"});
     }
+}
+
+/// `depreciation` also accepts 2020-21 to 2024-25, with 366 days held in
+/// 2023-24, and cites the guides for those years (CHANGELOG.md). The 3 frozen
+/// 2023-24 inputs refused as an unsupported period now meet the refusals of
+/// their other inputs: a string day count or an effective life of 1001.
+fn adapt_depreciation_years(command: &str, input: &Value, expected: &mut Value) {
+    let periods = match command {
+        "periods" if input["kind"] == "depreciation" => expected["ok"].as_array_mut(),
+        "worksheet-catalogue" => {
+            let entry = &mut expected["ok"]["depreciation"];
+            entry["required_inputs"]["days"] = json!("integer from 0 to 365, or to 366 in 2023-24");
+            entry["supported_periods"].as_array_mut()
+        }
+        _ => None,
+    };
+    if let Some(periods) = periods {
+        let added = ["2020-21", "2021-22", "2022-23", "2023-24", "2024-25"].map(|id| {
+            let start: i32 = id[..4].parse().unwrap();
+            json!({"id": id, "basis": "income year", "start": format!("{start}-07-01"),
+                "end": format!("{}-06-30", start + 1), "arguments": {"year": id}})
+        });
+        periods.splice(0..0, added);
+        return;
+    }
+    if command != "depreciation" {
+        return;
+    }
+    let Some(Value::String(error)) = expected.get_mut("error") else {
+        return;
+    };
+    if input["year"] == "2023-24" && error.starts_with("Unsupported period") {
+        *error = if input["effective_life"] == "1001" {
+            "effective_life must be a finite Decimal between 0.01 and 1000 years.".into()
+        } else {
+            assert_eq!(input["days"], "146", "a frozen 2023-24 input");
+            "days must be an integer from 0 to 366 for 2023-24.".into()
+        };
+        return;
+    }
+    *error = error.replace(
+        "; supported: 2025-26, 2026-27.",
+        "; supported: 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27.",
+    );
 }
 
 /// `contribution-caps` can also work out the unused concessional cap from each
@@ -715,7 +762,7 @@ const REFUSED_2027_28: [(&str, &str); 6] = [
     ),
     (
         "depreciation",
-        "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
+        "2027-28 has 366 days, and this worksheet has been checked for a year of 366 days only in 2023-24.",
     ),
     (
         "payg-withholding",

@@ -197,9 +197,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
-    // smsf-tax, ess-discount and help-indexation.
+    // smsf-tax, ess-discount, help-indexation and
+    // instant-asset-write-off.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax and pcg-2021-4.
-    assert_eq!(checked, 107);
+    assert_eq!(checked, 108);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

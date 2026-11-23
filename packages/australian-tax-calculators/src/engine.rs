@@ -1186,13 +1186,18 @@ pub fn depreciation(
             "effective_life's significant digits and taxable_use's decimal places, as written, must total 22 or fewer: beyond that the 40-digit working precision can miss the exact cent.",
         );
     }
+    // Days held can be 366 in a leap year, over 365 (every Guide to
+    // depreciating assets from 2021 to 2026): 2023-24 alone of these years.
+    let most = dates::parse(&format!("20{}-06-30", &year[5..])).expect("year")
+        - dates::parse(&format!("{}-07-01", &year[..4])).expect("year")
+        + 1;
     let Some(Some(days)) = days
         .int()
-        .filter(|n| n.is_some_and(|n| (0..=365).contains(&n)))
+        .filter(|n| n.is_some_and(|n| (0..=most).contains(&n)))
     else {
         return refuse(
             "input.day_count_invalid",
-            format!("days must be an integer from 0 to 365 for {year}."),
+            format!("days must be an integer from 0 to {most} for {year}."),
         );
     };
     let factor = match method.text() {
@@ -1286,7 +1291,11 @@ pub fn depreciation(
             ),
         ])
     })?;
-    derived_result("depreciation", &year, steps, Vec::new())
+    let out = derived_result("depreciation", &year, steps, Vec::new())?;
+    let later_year = opening_adjustable_value.is_some();
+    Ok(depreciation_pools::depreciation_flags(
+        out, &year, prime_cost, later_year,
+    ))
 }
 
 /// The provisions `depreciation`'s decline in value applies, in ITAA 1997
@@ -6236,6 +6245,8 @@ mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
 };
+mod instant_asset_write_off;
+pub use instant_asset_write_off::instant_asset_write_off;
 mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
@@ -6300,7 +6311,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 121] = [
+const KINDS: [&str; 122] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6386,6 +6397,7 @@ const KINDS: [&str; 121] = [
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
+    "instant_asset_write_off",
     "small_business_income_offset",
     "non_commercial_losses",
     "psi_test",

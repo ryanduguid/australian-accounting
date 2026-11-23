@@ -61,6 +61,24 @@
   item 1(a) of the Corporations (Fees) Regulations 2001. New codes:
   `asic_fees.dates_outside_year`, `asic_fees.fee_unknown` and
   `asic_fees.weekend_undecided`.
+- `instant-asset-write-off` works out one asset's instant asset write-off for
+  2020-21 to 2026-27: a small business entity's under ITAA 1997 s 328-180 with
+  the limit for its dates (IT(TP)A 1997 ss 328-180(4) and (4A) and 328-181(2),
+  Act No. 71 of 2026 Sch 2), or a medium sized business's under s 40-82(2A).
+  It refuses assets temporary full expensing may take for other entities. New
+  codes: `instant_asset_write_off.acquired_after_first_use`,
+  `instant_asset_write_off.budget_time_day`,
+  `instant_asset_write_off.entity_invalid`,
+  `instant_asset_write_off.first_use_outside_year`,
+  `instant_asset_write_off.precision_exceeded` and
+  `instant_asset_write_off.temporary_full_expensing`.
+- `depreciation` also accepts 2020-21 to 2024-25, with up to 366 days held in
+  2023-24, and flags temporary full expensing for 2020-21 to 2022-23, backing
+  business investment for a 2020-21 start year and the adjusted prime cost
+  formula a later year may need. 3 frozen 2023-24 inputs refused as an
+  unsupported period now meet their day count or effective life refusals, and
+  the catalogue's `days` text, source date and passage change with the years
+  (`tests/parity.rs`). 2027-28 stays refused, with a reworded reason.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

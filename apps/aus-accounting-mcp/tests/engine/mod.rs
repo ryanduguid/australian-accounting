@@ -53,7 +53,7 @@ const DEPRECIATION_PAGES: [&str; 3] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-72",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-75",
 ];
-const DEPRECIATION_PASSAGE: &str = "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year";
+const DEPRECIATION_PASSAGE: &str = "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year; Guides to depreciating assets 2021 to 2026, the methods and days held in a leap year, with Laura's photocopier in the 2021 and 2024 guides and Paul's refrigerator in the 2023 guide; IT(TP)A 1997 Subdivisions 40-BA and 40-BB, flagged";
 const CAPS_PAGES: [&str; 2] = [
     "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/concessional-contributions-cap",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/291-20",
@@ -90,7 +90,7 @@ fn review(kind: &str) -> Option<Review> {
         },
         "depreciation" => Review {
             pages: &DEPRECIATION_PAGES,
-            checked: "2026-11-13",
+            checked: "2026-11-23",
             passage: DEPRECIATION_PASSAGE,
         },
         "contribution_caps" => Review {
@@ -230,6 +230,9 @@ pub fn catalogue(kind: &str, entry: &mut Value) {
                 "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton); claiming an exemption, example (Priya)"
             );
             evidence["checked"] = json!(review.checked);
+        }
+        "depreciation" => {
+            entry["required_inputs"]["days"] = json!("integer from 0 to 365, or to 366 in 2023-24");
         }
         _ => {}
     }

@@ -2435,6 +2435,17 @@ opening adjustable value (s 40-75(7)(b)). The closing value is the opening
 value less the decline as shown in cents, so carrying it forward never writes
 off more than cost.
 
+The years 2020-21 to 2024-25 were added on 23 November 2026. Every Guide to
+depreciating assets from 2021 to 2026 (read that day) gives the same formulas
+and says days held 'can be 366' in a leap year 'even though the denominator
+remains 365'. `tests/depreciation_years.rs` checks Laura's $1,500 photocopier
+with a 5-year life: in the 2021 guide, **$600.00** by diminishing value and
+**$300.00** by prime cost for 2020-21 (closing **$1,200.00**); in the 2024
+guide, 366 days in 2023-24, **$601.64** (ATO $602, closing $898) and
+**$300.82** (ATO $301, closing $1,199). Paul's $2,000 refrigerator in the
+2023 guide, used wholly privately, declines **$200.00** in 2021-22 from a
+$1,600 opening value and deducts nothing.
+
 ## Quarterly SG
 
 The general rate in ¶18-600 is 12% for 2025–26. Paragraph ¶18-620 caps the
@@ -3426,6 +3437,40 @@ denominator is 365 in a leap year while the days can be 366.
 The tests also cover the 4% rate, partial use, the undeducted limit, the
 16 September 1987 and 27 February 1992 boundaries and days limited by a
 start of construction in or after the year.
+
+## Instant asset write-off
+
+Added on 23 November 2026. The sources were read that day: ITAA 1997 ss 40-25,
+40-82 and 328-180 and IT(TP)A 1997 ss 40-140 to 40-190, 328-180 and 328-181
+from the ATO's legal database; Treasury Laws Amendment (Tax Reform No. 2) Act
+2026 (No. 71 of 2026) Sch 2 items 3 and 15 and its commencement table
+(Schedule 2 from 1 October 2026); the ATO's 'Instant asset write-off for
+eligible businesses' (last updated 28 August 2026), tables 1 and 2 and its
+examples; and 'TFE for small business entities using simplified
+depreciation', example 1.
+
+The ATO's table 1 adds 'purchased by 31 December 2020' to the $150,000 limit
+for a small business. IT(TP)A s 328-180(4A) has no such condition, but an asset
+acquired from 1 January to 30 June 2021 is held after the 2020 budget time, so
+s 328-181(2) removes the limit and both give the same result. The table gives
+no row for first use from 1 July 2021 to 30 June 2023: the law leaves
+s 328-180(1)(b)'s $1,000 for an asset acquired before 7.30 pm on
+6 October 2020.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Fiona's computer, 2025-26 | **$6,800**, 80% business use, 18 November 2025 | **$5,440.00** written off |
+| Fiona's printer | **$700**, wholly business | **$700.00** |
+| Jack's MIG welder | **$4,500**, ready for use 12 March 2026 | **$4,500.00** |
+| Daryl's ute | **$40,000**, 40% use, 28 July 2025 | Not written off; **$16,000.00** to the pool |
+| Jack's excavator, 2022-23 | **$220,000**, first used 20 January 2023 | **$220,000.00** (temporary full expensing) |
+| X Co's van, 2020-21 | **$35,000**, held and used 30 November 2020 | **$35,000.00** |
+
+The ATO does not give the welder's or the excavator's acquisition date; the
+tests take the first use date, and any date the ATO's account allows gives the
+same result. `tests/instant_asset_write_off.rs` also covers each limit either
+side of its amount, the 3 budget times, s 40-82(2A) and (5), the temporary full
+expensing refusal and the input refusals.
 
 ## Horticulture shearing withholding
 

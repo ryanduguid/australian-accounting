@@ -525,6 +525,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "instant-asset-write-off",
+        &[
+            ("entity", Raw),
+            ("acquired", Raw),
+            ("first_used", Raw),
+            ("cost", Dec),
+            ("taxable_use", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "horticulture-shearing-withholding",
         PAYEE_ARGS.split_at(2).1,
     ),
@@ -1427,7 +1439,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 84] = [
+const DERIVED: [&str; 85] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1472,6 +1484,7 @@ const DERIVED: [&str; 84] = [
     "depreciation-low-value-pool",
     "depreciation-small-business-pool",
     "capital-works",
+    "instant-asset-write-off",
     "deferred-tax",
     "leave-provisions",
     "horticulture-shearing-withholding",
@@ -1931,6 +1944,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "depreciation-low-value-pool"
             | "depreciation-small-business-pool"
             | "capital-works"
+            | "instant-asset-write-off"
             | "small-business-income-offset"
             | "trading-stock"
             | "prepayments"
@@ -2607,6 +2621,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         }
         "capital-works" => {
             engine::capital_works(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7])
+        }
+        "instant-asset-write-off" => {
+            engine::instant_asset_write_off(&a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6])
         }
         "horticulture-shearing-withholding" => engine::horticulture_shearing_withholding(
             &a[0], &a[1], &a[2], &a[3], &a[4], &a[5], &a[6], &a[7],
