@@ -55,6 +55,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/gst_adjustments",
         "engine/deferred_tax",
         "engine/leave_provisions",
+        "engine/long_service_leave",
         "engine/foreign_income_conversion",
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
@@ -205,7 +206,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4 and
     // workers-compensation-premium.
-    assert_eq!(checked, 117);
+    assert_eq!(checked, 118);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

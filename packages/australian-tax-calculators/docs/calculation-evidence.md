@@ -5604,6 +5604,59 @@ the cents dropped.
 `tests/leave_provisions.rs` also covers each year, the year boundaries, each
 assumption's bounds (1 to 50 years; 0 refused), both versions of the right to defer in the text, and every refusal.
 
+## Long service leave
+
+This worksheet was added on 24 November 2026. Each source was read that day:
+
+- New South Wales: Long Service Leave Act 1955 s 4(2)(a) and (a3).
+  legislation.nsw.gov.au and AustLII answered with Cloudflare challenges, so
+  the in-force text was read in the Internet Archive's captures of
+  legislation.nsw.gov.au: the version from 25 March 2021 (captured 1 February
+  2022) and the version from 1 July 2025 (captured 16 December 2025) give
+  s 4(2)(a) to (a3) word for word alike. NSW Industrial Relations' long
+  service leave page and short guide (February 2026) agree.
+- Victoria: Long Service Leave Act 2018, authorised version 006 (12 December
+  2025), ss 6, 9 and 10; in operation from 1 November 2018, s 9 substituted
+  from 1 July 2021 (No. 14/2021 s 75).
+- Queensland: Industrial Relations Act 2016 (in force) s 95, last amended by
+  Act No. 19 of 2020 s 134, in part 13, division 4, which commenced on assent
+  (s 2(1)(c)), 22 June 2020. Section 95(2)(a) and (7) give 8.6667 weeks.
+- Western Australia: Long Service Leave Act 1958 s 8, last amended by Act
+  No. 30 of 2021 from 20 June 2022; s 8(4) (the 2006 transition, commencement
+  day 4 July 2006) cannot apply after 4 July 2007.
+- South Australia: Long Service Leave Act 1987, version of 1 July 2017, s 5,
+  unchanged since 1 January 1988 apart from s 5(1a) (1997).
+- Tasmania: Long Service Leave Act 1976 ss 8 and 9 and Schedule 3 (Act No. 41
+  of 2011 from 1 July 2012, with a 12-month transition).
+- The ACT: Long Service Leave Act 1976 R29 (19 November 2025) ss 3, 4, 11A and
+  11C, against R28 (1 October 2022): A2025-30 added only the offence in
+  s 11A(4) and (5). WorkSafe ACT's calculation guidelines give the weeks as
+  years x 1/5 x 52/12.
+- The Northern Territory: Long Service Leave Act 1981 (as in force at
+  14 October 2015) ss 8 and 10, s 10 last amended from 27 October 2004.
+
+The site's long service leave calculator (ryanduguid.github.io, main at
+dcc7ecbe) was run on its 39 page cases, its unit tests' inputs and a sweep of
+every place, status, reason and threshold, 3,016 rows in
+`tests/data/long_service_leave_site_cases.json`. The worksheet gives the same
+service, weeks, balance and value on 2,485 rows and refuses the 69 the page
+refuses. It departs on 462:
+
+| Rule | Source | Rows |
+| --- | --- | --- |
+| Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | 241 differ in the fourth place of the weeks or in cents (3 page cases) |
+| A last day before 1 July 2020, after 30 June 2027 or before the earliest text read is refused | each Act's commencement and amendment history above | 185 refused (2 page cases) |
+| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with service from before 1 July 2012 are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 42 refused (6, 6 and 30; 2 page cases) |
+
+The Queensland row count falls to 235 (2 page cases) because 6 of its rows
+are now refused. WorkSafe ACT's guidance note 067A rounds 7 years to 6.0667
+weeks before multiplying, giving $3,397.35 at $560 a week; the Act's 1/5 of a
+month a year gives 91/15 weeks exactly, $3,397.33, which the worksheet uses.
+The part year as days over 365.25 (over 364 in Queensland, as Business
+Queensland's example of 18 years, 3 months and 16 days giving 15.8548 weeks
+requires) is the worksheet's convention: the Acts give a proportion of years
+without a day count.
+
 ## Foreign income conversion
 
 This worksheet was added on 22 November 2026. ITAA 1997 ss 960-49 to 960-55

@@ -167,6 +167,19 @@
   `first_home_owner_grant.location_needed`, `first_home_owner_grant.value_basis`
   and `first_home_owner_grant.value_invalid`. `tests/first_home_owner_grant.rs`
   holds it to the page's 26 cases.
+- `long-service-leave`: one employee's long service leave under the general
+  Act of each state and territory, as weeks to take or pay and their value,
+  with the hours a `leave-provisions` line takes. It mirrors the site's long
+  service leave calculator, except that Queensland uses the 8.6667 weeks the
+  Industrial Relations Act 2016 s 95 states and the last day must fall from
+  1 July 2020 to 30 June 2027 and within each Act's text as read, and it
+  refuses endings the Acts leave to facts the page does not ask (a Queensland
+  fixed term before 10 years, a South Australian departure without notice,
+  Tasmanian leave taken across the 2012 transition). New codes:
+  `long_service_leave.before_current_text`, `end_before_start`,
+  `excluded_invalid`, `hours_invalid`, `jurisdiction_invalid`,
+  `pay_invalid`, `reason_invalid`, `start_too_early`, `status_invalid`,
+  `taken_above_weeks`, `taken_invalid`, `unsettled` and `year_mismatch`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an
