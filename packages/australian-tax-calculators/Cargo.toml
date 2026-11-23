@@ -1,6 +1,6 @@
 [package]
 name = "australian-tax-calculators"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2024"
 rust-version = "1.99"
 description = "Bounded Australian tax calculation worksheets with explicit scope and sources"
@@ -14,6 +14,9 @@ num-bigint = "0.5"
 num-integer = "0.1"
 num-traits = "0.2"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+
+[profile.dev.package."*"]
+opt-level = 2
 
 [profile.release]
 lto = true

@@ -1,16 +1,30 @@
-# Codecov reports coverage for the README badge. The CI coverage gates decide
-# merges, so Codecov's own statuses are informational and it posts no comments.
+# Require exact project coverage across both fresh Python reports.
+codecov:
+  notify:
+    after_n_builds: 2
 coverage:
+  round: down
   status:
+    default_rules:
+      flag_coverage_not_uploaded_behavior: exclude
     project:
       default:
-        informational: true
+        target: 100%
+        threshold: 0%
+        if_not_found: failure
+      aus-accounting-mcp:
+        target: 100%
+        threshold: 0%
+        if_not_found: failure
+        flags:
+          - aus-accounting-mcp
+      lodgment-calendar:
+        target: 100%
+        threshold: 0%
+        if_not_found: failure
+        flags:
+          - lodgment-calendar
     patch:
       default:
         informational: true
 comment: false
-# Path filters skip unchanged components, so each component's upload carries
-# a flag and keeps its last figure until its tests run again.
-flag_management:
-  default_rules:
-    carryforward: true

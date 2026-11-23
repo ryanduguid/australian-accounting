@@ -1,3 +1,28 @@
+# v0.12.0
+
+## Changed
+
+- `calculate_tax_worksheet` runs the `australian-tax-calculators` 1.2.0 executable
+  and serves the 102 worksheet kinds in its catalogue, where 0.11.0 served 66. The
+  new kinds include work expenses, rental property, the private health insurance
+  rebate, super lump sums, the R&D tax offset, capital works, non-commercial losses
+  and the PSI test; the
+  [1.2.0 release notes](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.2.0)
+  list them all. The server accepts only the x86_64 Linux or Windows executable from
+  that release, or a source build whose SHA-256 is given in `AUS_TAX_CALCULATORS_SHA256`,
+  so install 1.2.0 in place of 1.1.0
+  ([#820](https://github.com/ryanduguid/australian-accounting/pull/820),
+  [#826](https://github.com/ryanduguid/australian-accounting/pull/826)).
+- The server is licensed under AGPL-3.0-or-later with section 7(b) attribution terms
+  in NOTICE, and `aus-accounting-mcp --help` names them. Earlier versions keep the
+  licences they were released with
+  ([#779](https://github.com/ryanduguid/australian-accounting/pull/779)).
+- The Claude Desktop bundle carries the 1.2.0 calculator executable for x86-64 Linux
+  and Windows.
+- The published engine pins are unchanged: `payday-super-checker` 0.2.3,
+  `ato-benchmark-compare` 0.2.2, `div7a-loan-review` 0.3.2, `gst-review` 0.1.0 and
+  `lodgment-calendar` 0.2.0.
+
 # v0.11.0
 
 ## Changed

@@ -425,6 +425,21 @@ pub const EARLIER_CONCESSIONAL_CAPS: &[(&str, &str)] = &[
     ("2023-24", "27500"),
 ];
 
+/// The general transfer balance cap (ITAA 1997 s 294-35(3)) for the years
+/// before [`CONTRIBUTION_CAPS`] begins: $1,600,000 for 2017-18, indexed in
+/// $100,000 steps (s 960-285), as the CCH note to s 294-35 at the ATO's legal
+/// database and the ATO's 'Contributions caps' page (last updated
+/// 11 September 2026) give them, read on 22 November 2026.
+pub const EARLIER_TRANSFER_BALANCE_CAPS: &[(&str, &str)] = &[
+    ("2017-18", "1600000"),
+    ("2018-19", "1600000"),
+    ("2019-20", "1600000"),
+    ("2020-21", "1600000"),
+    ("2021-22", "1700000"),
+    ("2022-23", "1700000"),
+    ("2023-24", "1900000"),
+];
+
 /// Study loan repayment thresholds: minimum, step, printed base, flat-from.
 pub const STUDY_LOAN_REPAYMENT_THRESHOLDS: &[(&str, [(&str, &str); 4])] = &[
     (
@@ -1111,6 +1126,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The income years holding the ATO rate periods bundled in
         // data/fuel-tax-credit-rates.json, 1 July 2022 to 31 January 2027.
         "fuel_tax_credits" => vec!["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"],
+        // The financial years holding the substituted rates bundled in
+        // data/alcohol-excise-rates.json, 1 July 2022 to 31 January 2027.
+        "alcohol_excise" => vec!["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"],
         "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
@@ -1272,6 +1290,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "small_business_income_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Sections 70-35 to 70-50 and 328-285 to 328-295 of ITAA 1997 and
+        // ss 82KZL to 82KZMF of ITAA 1936 read the same from these years'
+        // compilations to the current ones, but for the $50 million entity
+        // (trading stock from 2021-22; prepayments from 1 July 2020).
+        "trading_stock" | "prepayments" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // Division 35 reads the same in compilations 210 (1 July 2020), 223
         // (1 July 2021) and 268 (1 October 2026).
         "non_commercial_losses" => vec![
@@ -1279,6 +1304,16 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // Part 2-42 reads the same in compilations 210 (1 July 2020), 223
         // (1 July 2021) and 268 (1 October 2026).
+        // Division 6AA and ITRA ss 13 and 15 and Schedule 11 read the same in the
+        // 1 July 2020 and current compilations; the ordinary scales it reuses
+        // (RESIDENT_TAX_SCALES, FOREIGN_RESIDENT_TAX_SCALES) start at 2024-25.
+        "minors_income" => vec!["2024-25", "2025-26", "2026-27"],
+        // Division 295's rules and the Rates Act's rates read the same for
+        // each year (history notes and endnotes read on 22 November 2026);
+        // s 295-545(2A) applies to income derived from 2018-19.
+        "smsf_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1314,6 +1349,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2023, AASB 18 Appendix D), and the s 23(2) rates are on the ATO's
         // tables for 2020-21 to 2025-26 and in compilation 66 for 2026-27.
         "deferred_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // ITAA 1997 s 960-50 and ss 770-70 to 770-80 read the same in
+        // compilations 210 (1 July 2020) and 268 (1 October 2026); the worked
+        // limit takes only the years of RESIDENT_TAX_SCALES.
+        "foreign_income_conversion" | "foreign_income_tax_offset" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
         "income_tests" => vec!["2024-25", "2025-26", "2026-27"],
@@ -1354,6 +1395,19 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "ato_interest_penalties" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27", "2027-28",
         ],
+        // The financial year of `to`: accounts start from 1 July 2017, and
+        // the general cap for 2027-28 is not yet known.
+        "transfer_balance" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27",
+        ],
+        // The charge's or contributions' year: the charge runs from 2013-14 to
+        // 2020-21, and the release needs every base rate of the year, published
+        // to 31 December 2026.
+        "excess_contributions" => vec![
+            "2013-14", "2014-15", "2015-16", "2016-17", "2017-18", "2018-19", "2019-20", "2020-21",
+            "2021-22", "2022-23", "2023-24", "2024-25", "2025-26",
+        ],
         // ITAA 1997 ss 8-1, 26-31, 40-27 and Division 43 read the same from
         // 2020-21 (no amendment after Act No. 126 of 2017 in compilation 264's
         // history but s 43-145's build to rent manner, out of scope); the tax
@@ -1380,6 +1434,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
 pub fn source_review(kind: &str) -> (&'static str, &'static str) {
     match kind {
         "gst" => ("2026-09-10", "GST fast facts: Charging GST"),
+        "alcohol_excise" => (
+            "2026-11-22",
+            "Excise Tariff Act 1921 ss 6A and 6L and the Schedule (definitions, the note on non-commercial liquor, items 1 to 3), compilation 58 (1 July 2026), the Schedule's items 1 to 3 compared with compilations 54, 55 and 56; Excise Act 1901 ss 77FA and 78, compilation 69 (27 August 2026); Excise Regulation 2015 ss 8, 62 and 64 and Sch 1 cl 1(1) item 3 and cl 2(1) item 10, (2) to (4), compilation 6 (29 November 2025), compared with compilations 4 and 5; the Commissioner's Notices of Substituted Rates of Excise Duty No. 1 and 3 of 2022 to 2025 and No. 1 and 3 of 2026; the ATO's Historical Excise Rates workbook (data.gov.au, 1 September 2026); the ATO's Excise duty rates for alcohol (QC63605, 29 July 2026), Calculating alcohol excise duty (QC63603, 15 May 2023), Remission scheme for alcohol manufacturers (QC65935, 18 November 2026) and Excise guidelines for the alcohol industry chapter 6",
+        ),
         "fuel_tax_credits" => (
             "2026-11-19",
             "Fuel Tax Act 2006 ss 41-5, 41-20, 43-5, 43-10, 47-5 and 47-10 at the ATO's legal database; the ATO's 'Rates - business' (QC44494, last updated 29 July 2026) and its pages for 2022-23 to 2026-27 (QC69964 and QC72768, last updated 27 June 2024; QC102637, 29 January 2025; QC105117, 28 April 2026; QC107638, 29 July 2026), their 192 rates equal to data.gov.au's 'Historical FTC rates' (August 2026); 'Working out your fuel tax credits' (QC44511, last updated 6 July 2021, step 3); 'Simplified fuel tax credits' (QC48520, 6 July 2021); 'Basic method for heavy vehicles' (QC64655, 2 June 2021: Table 1 and Jim's example); PCG 2016/2 paras 4 and 9 to 13; PCG 2021/2 paras 4 to 12 and its We Deliver example (paras 19 to 24)",
@@ -1660,6 +1718,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-22",
             "TAA 1953 ss 8AAC and 8AAD and Sch 1 ss 280-100, 280-105, 284-75, 284-80, 284-85, 284-90, 284-220, 284-224, 284-225, 286-75, 286-80 and 298-20, ITAA 1997 s 5-15 and Crimes Act 1914 s 4AA at the ATO's legal database; Taxation (Interest on Overpayments and Early Payments) Act 1983 ss 3, 3C, 8A to 8C, 9, 10, 12D and 12E (compilation 58, 14 October 2024, at the Federal Register of Legislation, and the ATO's legal database); the ATO's 'General interest charge (GIC) rates' and 'Shortfall interest charge (SIC) rates' (last updated 4 September 2026), 'Credit interest rates and calculation' (QC58284, 19 June 2026), 'Penalty units' (QC71196, 26 June 2026) and 'Significant global entities - penalties' (1 July 2026); PS LA 2006/8, PS LA 2011/19 paras 15 to 30, PS LA 2011/23 para 4, PS LA 2012/5 paras 95 to 137, MT 2008/2 paras 33 and 55 to 63 and MT 2012/3 paras 35 and 88 to 89",
         ),
+        "transfer_balance" => (
+            "2026-11-22",
+            "ITAA 1997 ss 294-15 to 294-55, 294-80, 294-85, 294-90, 294-230 and 294-235 (ATO legal database); IT(TP)A 1997 ss 294-30 and 294-55 (compilation 104); Superannuation (Excess Transfer Balance Tax) Imposition Act 2016 s 5; ATO Calculating your personal transfer balance cap (31 March 2026), its 6 examples; Transfer balance account (18 June 2025); Excess transfer balance (7 February 2025); GIC rates (4 September 2026)",
+        ),
+        "excess_contributions" => (
+            "2026-11-22",
+            "TAA 1953 s 8AAD and Sch 1 ss 97-25 and 97-30 (compilation 227) and former Div 95 (compilation 180); Superannuation (Excess Concessional Contributions Charge) Act 2013 ss 4 and 5; Act No. 45 of 2021 Sch 2 item 14; ITAA 1997 ss 292-20, 292-25 and 292-30; ATO Contributions caps (11 September 2026), Tables 3 and 5",
+        ),
         "depreciation_low_value_pool" => (
             "2026-11-22",
             "ITAA 1997 ss 40-425, 40-430, 40-435, 40-440 and 40-445 (ATO legal database); ATO Low-value pool (last updated 26 June 2025), examples 1 to 3 and the closing balance example; Guide to depreciating assets 2026, Working out the decline in value of depreciating assets in a low-value pool and its examples",
@@ -1712,6 +1778,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-19",
             "ITAA 1997 Division 152 (ss 152-5 to 152-35, 152-50, 152-55, 152-105, 152-110, 152-205 to 152-220, 152-305, 152-320, 152-325, 152-330, 152-410 and 152-430), s 104-190(1A) and s 328-110, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 item 82",
         ),
+        "trading_stock" => (
+            "2026-11-22",
+            "ITAA 1997 ss 70-35, 70-40, 70-45, 70-50, 328-285 and 328-295, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-285 without subsection (2)) and 223 (1 July 2021); Act No. 92 of 2020 Sch 3 item 40(8); the ATO's 'Simplified trading stock rules' (last updated 27 May 2026) and 'Valuing trading stock' (7 May 2025) pages",
+        ),
+        "prepayments" => (
+            "2026-11-22",
+            "ITAA 1936 ss 82KZL, 82KZM, 82KZMA, 82KZMD, 82KZME and 82KZMF, compilation 193 (1 October 2026), against compilations 169 (1 July 2020) and 175 (4 April 2021); Act No. 92 of 2020 Sch 3 item 40(5); Acts Interpretation Act 1901 s 2G, compilation 39 (28 March 2026); the ATO's Deductions for prepaid expenses 2021 (27 May 2021) and 2026 (30 May 2026)",
+        ),
         "small_business_income_offset" => (
             "2026-11-22",
             "ITAA 1997 ss 328-110, 328-355 to 328-375, 4-10(3) and 63-10, compilation 268 (1 October 2026), against compilations 210 (1 July 2020; s 328-360(1) at 13%) and 223 (1 July 2021; 16%); the ATO's 'Small business income tax offset' page (last updated 7 May 2025)",
@@ -1719,6 +1793,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "non_commercial_losses" => (
             "2026-11-22",
             "ITAA 1997 Division 35 (ss 35-10 to 35-55), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; the ATO's non-commercial loss pages 'Four tests', 'The income requirement', 'Excepted business activities' and 'How to defer your losses' (each last updated 7 April 2025)",
+        ),
+        "minors_income" => (
+            "2026-11-22",
+            "ITAA 1936 Division 6AA (ss 102AA to 102AGA), compilation 193 (1 October 2026), against compilation 169 (1 July 2020), which reads the same; Income Tax Rates Act 1986 ss 3, 13 and 15 and Schedules 7 and 11, compilation 66 (1 July 2026), against compilation 55 (1 July 2020), the same but for editorial changes; ITAA 1997 ss 61-115 and 995-1 (apportionable deductions), compilation 268 (1 October 2026); the ATO's 'Tax rates if you're under 18 years old' (last updated 1 June 2026) and 'A1 Under 18 2026' (30 May 2026)",
+        ),
+        "smsf_tax" => (
+            "2026-11-22",
+            "ITAA 1997 ss 295-10, 295-160, 295-385, 295-387, 295-390, 295-545, 295-550, 295-605 and 295-610 on the ATO legal database with their history notes (s 295-545 last amended by Act No. 52 of 2024, whose Schedule 7 item 5 applies it to income derived from 2018-19); Income Tax Rates Act 1986 ss 26 and 29 and Schedule 7 Part I, compilation 66 (1 July 2026); Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Act 1991 s 6 and Regulations 2018 s 6; the ATO's Instructions to complete your SMSF annual return 2026 Sections B and D and Appendix 1 (30 May 2026), SAR 2021 levy questions (6 August 2024), Exempt current pension income (16 September 2025) and Tax rates - Australian residents (13 August 2026)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -1767,6 +1849,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "deferred_tax" => (
             "2026-11-22",
             "AASB 112 compilations of September 2023 (F2023C00930) and March 2020 (compilation no. 4) with their tables of amendments, paras 5, 7, 8, 15, 24, 34 to 36, 46 to 48, 53, 56, 58, 60, 61A to 63, 66 to 68, 74, 80, 81(c), 81(e), 85 and 86; AASB 2021-5; AASB 18 Appendix D (June 2024); AASB agenda decision on substantive enactment (December 2012); Income Tax Rates Act 1986 ss 23(2) and 23AA, compilation 66 (1 July 2026); ATO company tax rates for 2020-21 to 2025-26",
+        ),
+        "foreign_income_conversion" => (
+            "2026-11-22",
+            "ITAA 1997 ss 960-49 to 960-55, compilation 268 (1 October 2026), against compilation 210 (1 July 2020); Income Tax Assessment (1997 Act) Regulations 2021 s 960-50.01, Schedule 2 and s 1000-1.02, compilation 16 (27 June 2026); Income Tax Assessment Regulations 1997 reg 960-50.01 and Schedule 2, compilation 85 (in force 1 July 2020); the ATO's Translation (conversion) rules, General information on average rates and Foreign exchange rates pages",
+        ),
+        "foreign_income_tax_offset" => (
+            "2026-11-22",
+            "ITAA 1997 Division 770 (ss 770-5 to 770-80) and s 63-10(1) item 22, compilation 268 (1 October 2026), against compilation 210 (1 July 2020); Income Tax Rates Act 1986 ss 3(1), 16, 18 and 20, compilation 66 (1 July 2026), against compilation 55 (1 July 2020); the ATO's Guide to foreign income tax offset rules 2024, 2025 and 2026 and its part-year tax-free threshold pages",
         ),
         "income_tests" => (
             "2026-11-16",
@@ -2240,6 +2330,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-19",
         ),
+        "trading_stock" => (
+            "ATO Simplified trading stock rules page and the s 328-295 example",
+            "Colin's $6,800 and $7,820, Joel's $5,600 against $8,000 and $12,000, and Angela's $30,000 and $34,000",
+            "2026-05-27",
+            "2026-11-22",
+        ),
+        "prepayments" => (
+            "ATO Deductions for prepaid expenses 2021 and 2026",
+            "Martin (2021), Tom Pty Ltd, Noel Pty Ltd, the Jacobs Trust, Marion, Jasmin, John and Maree (2026)",
+            "2026-05-30",
+            "2026-11-22",
+        ),
         "small_business_income_offset" => (
             "ATO Small business income tax offset page and the site's sole trader vectors",
             "the rate table (13% for 2020-21, 16% from 2021-22, $1,000 cap, $5 million turnover) and the offset as the proportion of the basic income tax liability",
@@ -2250,6 +2352,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "ATO non-commercial loss pages",
             "Slaide's estimate, Nguyen's profits test, Joe's, Fred's and Alex's income requirement and Michael's deferred loss",
             "2025-04-07",
+            "2026-11-22",
+        ),
+        "minors_income" => (
+            "ATO Tax rates if you're under 18 years old",
+            "tables 1 to 4: nil to $416, then 66% of the excess to $1,307 and 45% of the whole above it for a resident; 30% of the whole to $416, $124.80 plus 66% of the excess to $713 and 45% of the whole above it for a foreign resident",
+            "2026-06-01",
+            "2026-11-22",
+        ),
+        "smsf_tax" => (
+            "Instructions to complete your SMSF annual return 2026",
+            "Appendix 1 examples 1 and 2 (proportionate and segregated ECPI, refunds of $44,176 and $56,611), Section D label B examples 1 and 2 (SMSF B and SMSF BB), the T2, T3 and T5 examples, the E2 no-TFN example and table 9 (supervisory levy)",
+            "2026-05-30",
             "2026-11-22",
         ),
         "psi_test" => (
@@ -2310,6 +2424,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "GSTR 2000/2",
             "Marcus's $50 on a $550 debt overdue 12 months (paras 49AA to 53), ABC Pty Ltd's $24 at 40% taxable (para 55), Isabella's $60 at 60% creditable purpose (paras 69 and 70) and Y's $100 at a 25% extent of consideration (para 72)",
             "2000-03-29",
+            "2026-11-22",
+        ),
+        "foreign_income_conversion" => (
+            "ATO Translation of foreign currency rental expenses and rental income",
+            "NZD1,000 and NZD1,500 at 1.10, NZD600 at 1.20 and an NZD2,000 asset held and paid for on the day of 1.05: AUD909, AUD1,364, AUD500 and AUD1,905 in whole dollars",
+            "2016-03-01",
+            "2026-11-22",
+        ),
+        "foreign_income_tax_offset" => (
+            "ATO Guide to foreign income tax offset rules 2026, 2025 and 2024 and the part-year tax-free threshold pages",
+            "Anna's offset limit ($2,198.80 for 2025-26, $2,321.00 for 2024-25, $2,769.60 for 2023-24), Karen's ($6,400 and $6,900) and the thresholds of John ($14,648) and Britney ($15,832)",
+            "2026-06-03",
             "2026-11-22",
         ),
         "income_tests" => (
@@ -2510,6 +2636,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "consideration_extent",
                 "fraction, decimal string above 0 and at most 1, default 1: the extent you provide, or are liable to provide, the consideration (ss 11-30(3) and 131-40(2))",
+            ),
+        ],
+        "alcohol_excise" => vec![
+            (
+                "remission_used_this_year",
+                "AUD, required with a line marked remission and refused otherwise: the remissions and refunds under Excise Regulation 2015 Sch 1 cl 2(1) item 10 and cl 2(2) already applied for goods entered earlier in the financial year; the cap left is the year's cap less it",
+            ),
+            (
+                "manufacturer_from",
+                "YYYY-MM-DD date, with a line marked remission: the day the entity first became an alcohol manufacturer (its manufacturer licence's start); after the financial year's start it pro-rates the cap by the eligible days / 365 (cl 2(3)); absent, the entity was an alcohol manufacturer at the start of the year",
+            ),
+            (
+                "duty_paid",
+                "boolean, with a line marked remission: true when the duty on those goods was paid, so the amount is a refund (Sch 1 cl 1(1) item 3 and cl 2(2), refund code ERRO) counted towards the same cap",
             ),
         ],
         "fuel_tax_credits" => vec![
@@ -2726,6 +2866,24 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, overpayment_interest only and required: true when the overpayment results from a decision to which the Act applies (s 3(1)); false is refused",
             ),
         ],
+        "excess_contributions" => vec![
+            (
+                "additional_tax",
+                "AUD, concessional_charge only and required: the tax for the income year less the tax disregarding the excess concessional contributions (TAA 1953 Sch 1 former s 95-10(1) and (2)), the amount the charge is on",
+            ),
+            (
+                "tax_due_date",
+                "YYYY-MM-DD, concessional_charge only and required: the day tax under the first notice of assessment for the year is or would be due; the charge runs to the day before (former s 95-10(3))",
+            ),
+            (
+                "excess",
+                "AUD above nil, non_concessional_release only and required: the excess of non-concessional contributions over the cap for the contributions year (s 97-25(1)(a)), such as contribution-caps' excess_non_concessional",
+            ),
+            (
+                "determination_date",
+                "YYYY-MM-DD, non_concessional_release only and required: the day the Commissioner makes, or is assumed to make, the first determination for the year, the last day of associated earnings (s 97-30(1)(b))",
+            ),
+        ],
         "sb_cgt_concessions" => vec![
             (
                 "small_business_when_stopped",
@@ -2792,6 +2950,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, for a primary_production or professional_arts activity only, and then required: your assessable income for the year from other sources not related to the activity, except net capital gain (s 35-10(4)(b))",
             ),
         ],
+        "minors_income" => vec![
+            (
+                "full_time_occupation",
+                "object of 4 booleans, for excepted_person full_time_occupation only, and then required: engaged_on_last_day (engaged in a full-time occupation on 30 June), three_months_in_year (for periods totalling at least 3 months in the year, ignoring a period followed later in the year by full-time education), intends_full_time_occupation_next_year and intends_full_time_education_next_year (on 30 June, for the next income year): ITAA 1936 s 102AC(6) to (8)",
+            ),
+            (
+                "dependent_on_relatives",
+                "boolean, for excepted_person double_orphan_pension, double_orphan_pension_s1003 or permanent_disability_certificate only, and then required: wholly or substantially dependent on relatives for support for the whole period, taken to be so whilst living with relatives unless the contrary is established (ITAA 1936 s 102AC(3) to (5)); true means not excepted",
+            ),
+        ],
         "psi_test" => vec![
             (
                 "commission",
@@ -2846,6 +3014,44 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "previous_rate",
                 "per cent, 0 to 100 at most 2 decimal places, method varied_rate only, and then required: the instalment rate you used for the year's previous instalment quarter (s 45-215(1)(b)); usually the T2 rate, but not where the Commissioner gave a new rate after that quarter; in the year's first quarter give T2, as no credit arises without earlier instalments",
+            ),
+        ],
+        "foreign_income_tax_offset" => vec![
+            (
+                "tax_payable",
+                "AUD, for limit_method stated only, and then required: your income tax payable for the year disregarding tax offsets, with the Medicare levy and surcharge and without penalties or interest (s 770-75(2)(b)(i) and (3); the ATO guide's step 1)",
+            ),
+            (
+                "tax_payable_assumed",
+                "AUD, for limit_method stated only, and then required: the same on the s 770-75(4) assumptions (the guide's step 2)",
+            ),
+            (
+                "taxable_income",
+                "AUD, whole dollars, for limit_method worked only, and then required: your taxable income for the year",
+            ),
+            (
+                "disregarded_income",
+                "AUD, for limit_method worked only, and then required: the assessable income s 770-75(4)(a) leaves out: amounts on which foreign income tax that counts was paid, and other foreign-source ordinary or statutory income",
+            ),
+            (
+                "disregarded_deductions",
+                "AUD, for limit_method worked only, and then required: the deductions s 770-75(4)(b) leaves out: debt deductions attributable to an overseas permanent establishment and other deductions reasonably related to the disregarded income (not, for example, gifts or tax agent fees), and the foreign loss component of any tax losses deducted in the year (the note to s 770-75(4); Income Tax (Transitional Provisions) Act 1997 s 770-35)",
+            ),
+            (
+                "medicare_levy",
+                "AUD, for limit_method worked only, and then required: the Medicare levy and Medicare levy surcharge on your taxable income, such as medicare-levy and medicare-levy-surcharge give",
+            ),
+            (
+                "medicare_levy_assumed",
+                "AUD, for limit_method worked only, and then required: the Medicare levy and surcharge on the income under the s 770-75(4) assumptions",
+            ),
+            (
+                "residency_periods",
+                "list of 1 to 12 objects {from, to}, YYYY-MM-DD dates inside the income year, for limit_method worked only: the periods you were an Australian resident when you were one for part of the year; omit for a resident for the whole year (Income Tax Rates Act 1986 ss 18 and 20)",
+            ),
+            (
+                "eligible_pensioner",
+                "boolean, with residency_periods only: you were an eligible pensioner for the year (s 16 as it applies to the year; in compilation 66: paid a taxable pension, allowance or benefit under the Veterans' Entitlements Act 1986, the Military Rehabilitation and Compensation Act 2004 or the Social Security Act 1991 other than Youth Allowance, JobSeeker Payment or Special Benefit), so the full $18,200 applies (s 18(2)(a))",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -3084,6 +3290,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "proposed_concessional_contribution",
                 "AUD, with earlier_concessional_contributions only: a further concessional contribution for the year; the unused cap it applies and what is left are worked out after it; omit for none",
+            ),
+            (
+                "determination_date",
+                "YYYY-MM-DD, 2024-25 and 2025-26: the day the Commissioner is assumed to make the first excess non-concessional contributions determination for the year; adds associated_earnings, total_release_amount and associated_earnings_tax_offset for excess_non_concessional (TAA 1953 Sch 1 ss 97-25 and 97-30, ITAA 1997 s 292-30); omit for none",
             ),
         ],
         "private_health_insurance_rebate" => vec![
@@ -3602,6 +3812,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
     ];
     match kind {
         "gst" => vec![("amount", "AUD"), ("gst_inclusive", "boolean")],
+        "alcohol_excise" => vec![(
+            "lines",
+            "list of 1 to 1,000 objects, each with date (YYYY-MM-DD, the day the goods are entered for home consumption: the day of delivery under a periodic settlement permission, otherwise the day of payment; inside the financial year and from 1 July 2022 to 31 January 2027), product (beer, brandy, spirit for spirits not elsewhere included, or other_excisable_beverage, which includes a spirit beverage or RTD; wine, tobacco, fuel, concessional_spirit and non_commercial are refused), volume_litres (decimal string above 0, at most 4 decimal places, the dutiable volume at 20 degrees Celsius) and strength_percent (decimal string above 0 to 100, at most 3 decimal places, the alcoholic strength by volume at 20 degrees Celsius); for beer, container_litres (the individual container) with pressurised_system (boolean, required for a container of 8 to 48 litres: designed to connect to a pressurised gas or pump delivery system) unless brew_on_premises is true (produced for non-commercial purposes using commercial facilities, subitems 1.15 and 1.16); optionally labelled_strength_percent (Excise Act 1901 s 77FA: duty on it where higher; for goods entered unlabelled, the labelled strength of the same kind the manufacturer enters labelled, s 77FA(2)), remission (boolean: the goods meet Excise Regulation 2015 Sch 1 cl 2(1) item 10 (a), (b), (d) and (e)) and imported (boolean; true is refused)",
+        )],
         "fuel_tax_credits" => vec![(
             "lines",
             "list of 1 to 1,000 objects, each acquired (YYYY-MM-DD, the day the fuel was acquired, inside the income year and from 1 July 2022 to 31 January 2027) and either a line by use, with fuel (diesel, petrol, b5, b20, e10, e85, lpg, lng_cng or b100), quantity (decimal string at most 4 decimal places: litres, or kilograms for lng_cng) and use (heavy_vehicle_public_road: a vehicle above 4.5 tonnes GVM travelling on a public road, including fuel to power a bus's or coach's passenger air-conditioning, QC107638 note 1; other_business: every other business use, including other auxiliary equipment, off public roads and public road travel incidental to the vehicle's main use; light_vehicle_public_road: 4.5 tonnes GVM or less on a public road, which gets nil), or a line by the basic method for heavy vehicles (PCG 2021/2), with method basic_heavy_vehicle, fuel diesel, litres (the vehicle's eligible diesel), exactly one of public_road_km (actual) and total_km (98.4% taken as on public roads), and exactly one of rigid_truck_gross_weight_tonnes (above 4.5, at most 3 decimal places) and litres_per_km (the engine diagnostic report's driving fuel economy, above 0, at most 6 decimal places), or a line by use whose litres PCG 2016/2 Method 1 works out, with method litres_from_cost, fuel (a liquid fuel: diesel, petrol, b5, b20, e10, e85 or b100), use, cost (AUD, the GST inclusive spend on the fuel) and average_price_cents_per_litre (above 0, at most 4 decimal places: the average GST inclusive retail price of that fuel in the area of operation over the tax period, read from the Australian Institute of Petroleum's weekly pump prices, https://aip.com.au/pricing/pump-prices-retail/, as PCG 2016/2 para 9 says; this command holds no prices)",
@@ -4716,6 +4930,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             "question",
             "gic, sic, failure_to_lodge, statement_penalty, early_payment_interest or overpayment_interest; remission and scheme_penalty are refused",
         )],
+        "transfer_balance" => vec![
+            ("events", "list of 1 to 1000 objects, each date (YYYY-MM-DD, from 1 July 2017), kind and amount (AUD above nil): credits existing_income_stream (1 July 2017 only), new_income_stream and lrba_repayment; debits commutation, reduced_super, payment_split and stopped_retirement_phase; reversionary, child, capped defined benefit, structured settlement, regulation and Commissioner's events are refused"),
+            ("to", "YYYY-MM-DD: the last day worked, on or after every event; year is its financial year"),
+            ("previously_liable", "boolean: liable to excess transfer balance tax for an excess transfer balance period starting on or after 1 July 2018 before these events (Imposition Act 2016 s 5(2))"),
+        ],
+        "excess_contributions" => vec![(
+            "question",
+            "concessional_charge (2013-14 to 2020-21) or non_concessional_release (contributions years 2013-14 to 2025-26)",
+        )],
         "depreciation_low_value_pool" => vec![
             ("previous_closing_pool_balance", "AUD: the pool's closing pool balance for the previous income year (ITAA 1997 s 40-440(1) step 3(a)); 0.00 in the year the pool starts"),
             ("low_cost_assets", "AUD: the taxable use percentage of the cost of the low-cost assets (cost under $1,000, s 40-425(2)) allocated to the pool for the year"),
@@ -4824,6 +5047,26 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("last_rollover_event", "YYYY-MM-DD, or null for this one: the last CGT event in the year for which you obtain the small business roll-over, from event_date to the end of the year; the replacement asset period runs from it (s 104-190(1A))"),
             ("earnout_latest_due", "YYYY-MM-DD, or null for no look-through earnout right: the latest time a possible financial benefit becomes or could become due under a look-through earnout right relating to the asset and this disposal, on or after event_date; the replacement asset period ends no earlier than 6 months after it (s 104-190(1A)(b)(ii))"),
         ],
+        "trading_stock" => vec![
+            ("entity", "small_business_entity, medium_business_entity (not a small business entity, but one at $50 million: ITAA 1997 s 328-285(2)) or other: the entity's status for the income year, which the operator establishes (s 328-110)"),
+            ("opening_value", "AUD: the value of all trading stock on hand at the start of the year, the amount taken into account at the end of the last year; nil for none (ss 70-40 and 328-295(1))"),
+            ("items", "list of up to 500 objects, one per item or line of like items on hand at the end of the year, each {cost, market_selling_value, replacement_value} in AUD or null for a value not given, net of any input tax credit (s 70-45(1A)), and method: cost, market_selling_value, replacement_value, lowest (the least of all 3) or obsolescence, with obsolescence_value (AUD) for obsolescence only (s 70-50); [] for none"),
+            ("estimated_closing_value", "AUD, or null to use the items' total: your reasonable estimate of the value of all trading stock on hand at the end of the year (s 328-285(1)(b))"),
+            ("simplified_choice", "boolean: you choose not to account for changes in the value of trading stock (s 328-285); refused when the choice is not open"),
+        ],
+        "prepayments" => vec![
+            ("taxpayer", "small_business_entity, medium_business_entity (covered by ITAA 1936 s 82KZM(1A): a small business entity at $50 million) or other: the taxpayer's status for the expenditure year, which the operator establishes"),
+            ("individual", "boolean: the taxpayer is an individual"),
+            ("business_expenditure", "boolean: the expenditure is incurred in carrying on a business"),
+            ("chose_82kzmd", "boolean: a small or medium business chose to apply s 82KZMD to the expenditure (s 82KZMA(2)(b)); true is refused for other and for expenditure s 82KZMD cannot apply to"),
+            ("expenditure", "AUD: the amount ITAA 1997 s 8-1 would allow as a deduction in the year incurred, net of any input tax credit"),
+            ("incurred", "YYYY-MM-DD: the day the expenditure is incurred, in the income year"),
+            ("service_start", "YYYY-MM-DD: the first day on which the thing to be done under the agreement for the expenditure is required or permitted to start being done (s 82KZL(1) and (2))"),
+            ("service_end", "YYYY-MM-DD: the last day on which it is required or permitted to be done"),
+            ("agreement_date", "YYYY-MM-DD: the day the agreement was entered into; on or before 11 November 1999 is refused"),
+            ("exclusion", "none, law_or_court_order or contract_of_service: the excluded expenditure limb of s 82KZL(1) (b) or (c) the expenditure falls in; an amount under $1,000 is excluded without it"),
+            ("tax_shelter", "boolean: the operator has established that s 82KZME applies to the expenditure (subsections (2) and (3) met, none of (5), (8) or (9)); true is refused for excluded expenditure or a thing done by the end of the year"),
+        ],
         "small_business_income_offset" => vec![
             ("taxable_income", "AUD, whole dollars: your taxable income for the income year"),
             ("basic_income_tax_liability", "AUD: your basic income tax liability for the year, the tax on your taxable income at your rates before tax offsets and without the Medicare levy (ITAA 1997 s 4-10(3) step 2)"),
@@ -4848,6 +5091,42 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("reportable_super_contributions", "AUD: your reportable superannuation contributions (s 35-10(2E)(c))"),
             ("total_net_investment_loss", "AUD: your total net investment losses (s 35-10(2E)(d))"),
             ("net_exempt_income", "AUD: your net exempt income for the year left after ss 36-10 and 36-15, which reduces an amount deferred (s 35-15); nil for none"),
+        ],
+        "minors_income" => vec![
+            ("taxable_income", "AUD, whole dollars: your taxable income for the income year, from ordinary taxable income only"),
+            ("residency", "resident (an Australian resident for the whole year) or foreign_resident (a foreign resident for the whole year and a prescribed non-resident, as foreign-resident-tax takes)"),
+            ("under_18_on_30_june", "boolean: you were under 18 on 30 June, the last day of the income year (ITAA 1936 s 102AC(1)(a))"),
+            ("excepted_person", "none or the ITAA 1936 s 102AC(2) ground: full_time_occupation (b), carer_allowance (c)(i), disability_support_pension (c)(ii), disability_certificate (d), special_disability_trust (da), double_orphan_pension (e), double_orphan_pension_s1003 (f) or permanent_disability_certificate (g)"),
+            ("excepted_income", "list of up to 50 objects, each {ground, amount} with amount in AUD: excepted assessable income (ITAA 1936 s 102AE(2)) other than trust shares, ground employment, business, damages_or_compensation, death_benefit, public_fund, family_breakdown, deceased_estate, lottery_prize, partnership or accumulations, as limited by s 102AE(3) and (5) to (10); [] for none"),
+            ("trust_shares", "list of up to 50 objects, each {amount, division_6aa_part} in AUD: a share of a trust's net income included under s 97 or 100, and the part of it to which Division 6AA applies, attributable to trust income that is not excepted trust income (s 102AG); [] for none"),
+            ("other_assessable_income", "AUD: all other assessable income, which is eligible assessable income (s 102AE(1)), such as interest, dividends with franking credits, rent and net capital gains not from excepted property; nil for none"),
+            ("deductions_exclusive", "AUD: deductions that relate exclusively to eligible assessable income (s 102AD(a))"),
+            ("deductions_related", "AUD: the part of your other deductions, not apportionable deductions, that may appropriately be related to eligible assessable income (s 102AD(b))"),
+            ("apportionable_deductions", "AUD: your apportionable deductions (ITAA 1997 s 995-1: gifts under s 30-15 items 1, 2, 7 and 8 and rates and land tax under s 25-75), apportioned by s 102AD(c)"),
+            ("special_income_component", "boolean: your taxable income includes a special income component (an abnormal income amount, Income Tax Rates Act 1986 s 3(1)); true is refused"),
+        ],
+        "smsf_tax" => vec![
+            ("complying_fund", "boolean: the fund is a complying superannuation fund for the year; false is refused"),
+            ("australian_superannuation_fund", "boolean: the fund is an Australian superannuation fund for the year; false is refused"),
+            ("assessable_contributions", "AUD, whole dollars: contributions included in assessable income under Subdivision 295-C (label R), including no-TFN-quoted ones"),
+            ("no_tfn_contributions", "AUD, whole dollars: the part of assessable_contributions that is no-TFN contributions income (s 295-610; label R3)"),
+            ("net_non_arms_length_income", "AUD, whole dollars: non-arm's length income under s 295-550(1), (2), (4) and (5) less the deductions attributable to it (label U); nil for none or a loss"),
+            ("general_expense_non_arms_length_income", "AUD: non-arm's length income under s 295-550(8) and (9), twice each general expense shortfall, which is not part of label U; nil for none"),
+            ("segregated_pension_income", "AUD, whole dollars: ordinary and statutory income from segregated current pension assets (s 295-385), other than non-arm's length income and contributions"),
+            ("unsegregated_income", "AUD, whole dollars: the other ordinary and statutory income to which the actuary's proportion applies (s 295-390), net capital gain included; not contributions, non-arm's length income or income from segregated assets"),
+            ("segregated_non_current_income", "AUD, whole dollars: income from segregated non-current assets, to which the proportion does not apply (s 295-390(2)(c))"),
+            ("exempt_proportion", "decimal fraction from 0 to 1: the actuary's certificate's proportion of average current pension liabilities to average superannuation liabilities (s 295-390(3)), 0.5 for 50%; 0 with no retirement phase interest"),
+            ("disregarded_small_fund_assets", "boolean: the fund's assets are disregarded small fund assets for the year (s 295-387); with true, segregated_pension_income above nil is refused (s 295-385(7))"),
+            ("deductions", "AUD, whole dollars: the fund's deductions (Section C), already apportioned for exempt income, other than those netted in net_non_arms_length_income"),
+            ("contribution_deductions", "AUD, whole dollars: the part of deductions attributable to assessable contributions (s 295-545(2A)(b)(ii)); at most assessable_contributions"),
+            ("non_refundable_offsets", "AUD: non-refundable non-carry forward tax offsets (label C: foreign income tax offset and other rebates)"),
+            ("carry_forward_offsets", "AUD: non-refundable carry forward tax offsets (label D: the early stage venture capital and early stage investor offsets)"),
+            ("refundable_offsets", "AUD: refundable tax offsets (label E: the complying fund's franking credits, no-TFN and NRAS tax offsets)"),
+            ("eligible_credits", "AUD: credits for amounts withheld and interest on no-TFN tax offsets (label H)"),
+            ("payg_instalments", "AUD: PAYG instalments raised for the year (label K)"),
+            ("interest_charge", "AUD: the s 102AAM interest charge (label G)"),
+            ("newly_registered", "boolean: this is the first annual return of a fund newly registered in the year (label N)"),
+            ("wound_up", "boolean: the fund was wound up in the year (label M)"),
         ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
@@ -4975,6 +5254,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("tax_consolidated_group", "boolean: the company is a member of a tax-consolidated group (AASB Interpretation 1052); true is refused"),
             ("outside_profit_or_loss", "boolean: any tax relates to items recognised in other comprehensive income or equity (paras 61A to 63); true is refused"),
         ],
+        "foreign_income_conversion" => vec![
+            ("items", "list of 1 to 200 objects: kind (ordinary_income, statutory_income, deduction, depreciating_asset_cost, cgt_event or foreign_tax_paid); currency (a 3-letter code other than AUD); amount (a decimal string in that currency, at most 4dp); the kind's YYYY-MM-DD dates (derived, and received if received; included, and received if received; deductible, and paid if paid; held, and satisfied if the obligation was satisfied; event; paid); rate (the foreign currency equal to 1 AUD, as the ATO publishes rates, above zero, at most 6dp); rate_source (text of 1 to 200 characters: where the rate comes from); basis: specific with rate_date, the day the kind's rule translates on, or average with average_from and average_to, a period of at most 12 months containing that day"),
+        ],
+        "foreign_income_tax_offset" => vec![
+            ("foreign_tax_paid", "AUD: the foreign income tax you paid, or are treated as paying, on amounts included in your assessable income for the year that counts towards the offset (ITAA 1997 s 770-10(1), after s 770-10(3) to (6), s 770-130 and s 770-140), translated into AUD"),
+            ("nane_foreign_tax", "AUD: foreign income tax paid on s 23AI or 23AK non-assessable non-exempt income that counts towards the offset (s 770-10(2)); nil for none"),
+            ("limit_method", "default ($1,000, for a claim of no more than $1,000 or without working out s 770-75(2)(b)), stated (from your 2 income tax payable figures) or worked (a resident individual's, 2024-25 to 2026-27)"),
+        ],
         "income_tests" => vec![
             ("taxable_income", "AUD, whole dollars: taxable income, including any assessable FHSS released amount (nil for a loss)"),
             ("assessable_fhss_released_amount", "AUD: the amount ITAA 1997 s 313-20 includes in assessable income for released FHSS amounts"),
@@ -5012,6 +5299,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
     use Example::{Flag, Json, Text, Whole};
     match kind {
         "gst" => vec![("amount", Text("1100.00")), ("gst_inclusive", Flag(true))],
+        // 10 cases of 24 x 375 ml cans and a 50 litre keg of 4.8% beer
+        // delivered on 15 September 2026: $208.09 at subitem 1.10 and $78.10
+        // at 1.11.
+        "alcohol_excise" => vec![
+            ("year", Text("2026-27")),
+            (
+                "lines",
+                Json(
+                    r#"[{"date": "2026-09-15", "product": "beer", "volume_litres": "90", "strength_percent": "4.8", "container_litres": "0.375"}, {"date": "2026-09-15", "product": "beer", "volume_litres": "50", "strength_percent": "4.8", "container_litres": "50"}]"#,
+                ),
+            ),
+        ],
         // 10,000 litres of diesel in a heavy vehicle on public roads and
         // 2,000 litres off road, acquired from 3 August 2026: $2,130 + $1,074.
         "fuel_tax_credits" => vec![
@@ -5743,6 +6042,25 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
+        // The ATO's Leanne: $1 million from 1 October 2025, $200,000 commuted
+        // on 13 May 2026; her cap is indexed by 50% of $100,000 to $2.05 million.
+        "transfer_balance" => vec![
+            (
+                "events",
+                Json(
+                    r#"[{"date": "2025-10-01", "kind": "new_income_stream", "amount": "1000000.00"}, {"date": "2026-05-13", "kind": "commutation", "amount": "200000.00"}]"#,
+                ),
+            ),
+            ("to", Text("2026-07-01")),
+            ("previously_liable", Flag(false)),
+            ("year", Text("2026-27")),
+        ],
+        "excess_contributions" => vec![
+            ("question", Text("non_concessional_release")),
+            ("year", Text("2024-25")),
+            ("excess", Text("100000.00")),
+            ("determination_date", Text("2025-09-15")),
+        ],
         // The Guide to depreciating assets 2026's John: $5,000 closing balance
         // for 2024-25 and a $990 printer used 60% for taxable purposes.
         "depreciation_low_value_pool" => vec![
@@ -5883,6 +6201,37 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("retirement_exemption_used", Text("0.00")),
             ("choice_date", Text("2026-06-30")),
         ],
+        // Joel's knitwear store (ATO 'Simplified trading stock rules'): a
+        // $12,000 stocktake against $5,600, without the choice; the items are
+        // fabricated.
+        "trading_stock" => vec![
+            ("year", Text("2025-26")),
+            ("entity", Text("small_business_entity")),
+            ("opening_value", Text("5600.00")),
+            (
+                "items",
+                Json(
+                    r#"[{"cost": "7000.00", "market_selling_value": "9000.00", "replacement_value": "7200.00", "method": "cost"}, {"cost": "5500.00", "market_selling_value": "5000.00", "replacement_value": "5600.00", "method": "lowest"}]"#,
+                ),
+            ),
+            ("estimated_closing_value", Text("12000.00")),
+            ("simplified_choice", Flag(false)),
+        ],
+        // Tom Pty Ltd (ATO Deductions for prepaid expenses 2026).
+        "prepayments" => vec![
+            ("year", Text("2025-26")),
+            ("taxpayer", Text("small_business_entity")),
+            ("individual", Flag(false)),
+            ("business_expenditure", Flag(true)),
+            ("chose_82kzmd", Flag(false)),
+            ("expenditure", Text("15000.00")),
+            ("incurred", Text("2026-05-31")),
+            ("service_start", Text("2026-06-01")),
+            ("service_end", Text("2027-06-30")),
+            ("agreement_date", Text("2026-05-31")),
+            ("exclusion", Text("none")),
+            ("tax_shelter", Flag(false)),
+        ],
         // The site's sole trader vector for 2026-27 ($20,000 of profit on top
         // of $60,000 of wages); the turnovers are fabricated.
         "small_business_income_offset" => vec![
@@ -5925,8 +6274,53 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("net_exempt_income", Text("0.00")),
             ("other_income", Text("60000.00")),
         ],
+        // The ATO's SAR 2026 Appendix 1 example 1: $234,200 of income, an
+        // actuary's 50% and $62,000 of franking credits, a $44,176 refund.
+        "smsf_tax" => vec![
+            ("year", Text("2025-26")),
+            ("complying_fund", Flag(true)),
+            ("australian_superannuation_fund", Flag(true)),
+            ("assessable_contributions", Text("0")),
+            ("no_tfn_contributions", Text("0")),
+            ("net_non_arms_length_income", Text("0")),
+            ("general_expense_non_arms_length_income", Text("0")),
+            ("segregated_pension_income", Text("0")),
+            ("unsegregated_income", Text("234200")),
+            ("segregated_non_current_income", Text("0")),
+            ("exempt_proportion", Text("0.5")),
+            ("disregarded_small_fund_assets", Flag(false)),
+            ("deductions", Text("0")),
+            ("contribution_deductions", Text("0")),
+            ("non_refundable_offsets", Text("0.00")),
+            ("carry_forward_offsets", Text("0.00")),
+            ("refundable_offsets", Text("62000.00")),
+            ("eligible_credits", Text("0.00")),
+            ("payg_instalments", Text("0.00")),
+            ("interest_charge", Text("0.00")),
+            ("newly_registered", Flag(false)),
+            ("wound_up", Flag(false)),
+        ],
         // TR 2022/3 example 20: Joe installs ducts to plans with his own tools
         // and is liable for defects; the amount is the site's.
+        // The ATO's table 1 row 3 (Tax rates if you're under 18 years old):
+        // part-time wages of $28,000 and $2,000 of dividends; figures fabricated.
+        "minors_income" => vec![
+            ("year", Text("2025-26")),
+            ("taxable_income", Text("30000")),
+            ("residency", Text("resident")),
+            ("under_18_on_30_june", Flag(true)),
+            ("excepted_person", Text("none")),
+            (
+                "excepted_income",
+                Json(r#"[{"ground": "employment", "amount": "28000.00"}]"#),
+            ),
+            ("trust_shares", Json("[]")),
+            ("other_assessable_income", Text("2000.00")),
+            ("deductions_exclusive", Text("0.00")),
+            ("deductions_related", Text("0.00")),
+            ("apportionable_deductions", Text("0.00")),
+            ("special_income_component", Flag(false)),
+        ],
         "psi_test" => vec![
             ("year", Text("2025-26")),
             ("earner", Text("sole_trader")),
@@ -6127,6 +6521,30 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("uncertain_tax_treatment", Flag(false)),
             ("tax_consolidated_group", Flag(false)),
             ("outside_profit_or_loss", Flag(false)),
+        ],
+        // Ex 16 of the ATO's Guide to foreign income tax offset rules 2026:
+        // Anna's $3,400 of foreign tax limited to $2,198.80.
+        "foreign_income_tax_offset" => vec![
+            ("year", Text("2025-26")),
+            ("foreign_tax_paid", Text("3400.00")),
+            ("nane_foreign_tax", Text("0.00")),
+            ("limit_method", Text("worked")),
+            ("taxable_income", Text("31130")),
+            ("disregarded_income", Text("12000.00")),
+            ("disregarded_deductions", Text("700.00")),
+            ("medicare_levy", Text("390.80")),
+            ("medicare_levy_assumed", Text("0.00")),
+        ],
+        // The ATO's rental expense example: NZD1,500 of interest paid on
+        // the day the rate was 1.10.
+        "foreign_income_conversion" => vec![
+            ("year", Text("2025-26")),
+            (
+                "items",
+                Json(
+                    r#"[{"kind": "deduction", "currency": "NZD", "amount": "1500.00", "deductible": "2025-07-01", "paid": "2025-07-01", "rate": "1.10", "rate_source": "the ATO's rental expense example", "basis": "specific", "rate_date": "2025-07-01"}]"#,
+                ),
+            ),
         ],
         "income_tests" => vec![
             ("year", Text("2025-26")),

@@ -8,7 +8,7 @@
 set -euo pipefail
 
 REPO="ryanduguid/australian-accounting"
-DESCRIPTION="Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, 66 bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice."
+DESCRIPTION="Local MCP for ATO benchmarks, Payday Super timing, limited Division 7A loan reviews, 102 bounded tax and super worksheets and cited local Markdown retrieval. Synthetic SBR fixtures. Not advice."
 HOMEPAGE="https://duguid.com.au/tools/australian-tax-ai-agents/"
 TOPICS=(
   accounting

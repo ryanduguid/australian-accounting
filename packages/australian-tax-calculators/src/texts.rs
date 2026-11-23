@@ -3,6 +3,10 @@
 
 pub const SCOPES: &[(&str, &str)] = &[
     (
+        "alcohol_excise",
+        "Excise duty on beer, spirits and other excisable beverages manufactured in Australia and entered for home consumption from 1 July 2022 to 31 January 2027, in one financial year from 2022-23 to 2026-27, at the substituted rate the Commissioner published for the day (Excise Tariff Act 1921 Schedule items 1 to 3, s 6A), with the remission for alcohol manufacturers under its yearly cap and the refund of duty paid where it was available (Excise Regulation 2015 Sch 1 cl 2(1) item 10). The operator establishes each line's product, dutiable volume and strength at 20 degrees Celsius under the measurement determinations, container and entry day, and the remission conditions other than the cap. Excludes licences, approvals and the free subitems 3.5 to 3.8, quotas in a declared period, other remissions, refunds and drawbacks, imported goods (customs duty), wine (wine equalisation tax), tobacco and fuel.",
+    ),
+    (
         "fuel_tax_credits",
         "Fuel tax credits for taxable fuel acquired from 1 July 2022 to 31 January 2027, in one income year from 2022-23 to 2026-27, by an entity registered or required to be registered for GST, for use in carrying on its enterprise (Fuel Tax Act 2006 s 41-5). The operator establishes each line: the fuel (diesel, petrol, B5, B20, E10, E85, LPG, LNG or CNG, or B100), the day it was acquired, its quantity in litres (LNG and CNG in kilograms) and its use: in a heavy vehicle (gross vehicle mass above 4.5 tonnes) travelling on a public road, including fuel to power a bus's or coach's passenger air-conditioning (QC107638 note 1); in all other business uses, including a heavy vehicle's other auxiliary equipment, travel off public roads and a heavy vehicle whose public road travel is incidental to its main use (s 43-10(4)); or in a vehicle of 4.5 tonnes GVM or less on a public road, which gets no credit (s 41-20). Each line takes the ATO's published rate for the day it was acquired (s 43-5(2) and (2A) item 1; for a heavy vehicle on a public road the rate net of the road user charge, s 43-10(3) and (6)), from the 16 rate periods bundled with this command, each with its ATO page and the day it was read; its credit is the quantity times the rate in cents, divided by 100 and rounded half up to the cent, and the lines' credits are added and the whole dollars, cents dropped, are the amount for BAS label 7D. A small claimant (credits of $10,000 or less in the previous 12 months and expected to be so in the current 12 months) may use the basic method for heavy vehicles for diesel (PCG 2021/2: public road litres are the public road kilometres, actual or 98.4% of the total, times the diesel consumption rate, from the ATO's rigid truck table by gross weight or the engine's diagnostic report; the rest of the diesel takes the other rate), PCG 2016/2 Method 1 (a liquid fuel's litres are its GST inclusive cost divided by the average GST inclusive price the operator reads for its fuel type, area and tax period from the Australian Institute of Petroleum's weekly retail prices) and Method 2 (every liquid fuel line at the rate on the last day of a tax period in which the rate changed only because of indexation). Given the day the return is given, lines acquired more than 4 years before it are flagged under s 47-5(2). Refuses a year outside 2022-23 to 2026-27, an acquisition outside the income year or after 31 January 2027 (the rates change at the February 2027 indexation), a basic method line for a fuel other than diesel, a Method 1 line for LPG, LNG or CNG, a rigid truck of 4.5 tonnes or less, public road litres above the diesel, Method 2 across a change other than indexation alone (29 September 2022, 1 April 2026 and 3 August 2026, and each 1 July) or for LPG, LNG or CNG, and a simplified method without the small claimant statement. Excludes deciding entitlement and registration, who acquired the fuel in a hire or supply chain, whether a road is public or travel incidental, the environmental criteria (s 41-25), apportioning fuel between uses (PCG 2016/8, FTD 2010/1), the auxiliary equipment percentages (PCG 2016/11) and the list of heavy vehicles used mainly off public roads, consumption rates for articulated combinations (give litres_per_km from the engine's report), the average price itself, converting LPG kilograms to litres, aviation fuel, fuel for packaging or supply, domestic heating, electricity generation and non-business claims, fuel manufactured or imported (s 43-5(2A) item 2), fuel tax adjustments (Division 44), attributing credits to a tax period (s 65-5), the s 47-5(1) limit and the s 47-10 exception, and substituted accounting periods.",
     ),
@@ -295,6 +299,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One question before remission: the general interest charge on one unpaid amount from its due day, with its payments; the shortfall interest charge on the additional income tax of one amended assessment; the failure to lodge on time penalty on one document; the false or misleading statement and not reasonably arguable penalties on one statement's or one period's parts; or the interest the Commissioner pays on one early payment, or on one refund of relevant tax overpaid as a result of a decision to which the Overpayments Act applies. The behaviour behind a shortfall, whether a position is reasonably arguable, whether a disclosure was voluntary or saved resources, the entity's size and significant global entity status are the operator's established facts. Excludes remission (the Commissioner's discretion), Division 296 GIC, scheme penalties, trust, partnership, petroleum resource rent tax and minimum tax positions, the s 284-75(3) penalty, part of a payment refunded before its due day, and other credit interest (Overpayments Act Parts IIB to IIG, IIIA and IIIAA).",
     ),
     (
+        "transfer_balance",
+        "One person's transfer balance account from 1 July 2017 to a day in 2017-18 to 2026-27, from its credits (income streams existing on 1 July 2017, new retirement phase income streams, LRBA repayments) and debits (commutations, s 294-85 events, payment splits, income streams leaving retirement phase): the personal transfer balance cap with proportional indexation, each day's excess, excess transfer balance earnings at the GIC rate credited daily, and excess transfer balance tax for each excess transfer balance period. An estimate before any determination: reversionary, child recipient, capped defined benefit, structured settlement and regulation events and the Commissioner's determinations, authorities and notices are refused. The person is alive on every day to the day worked: a transfer balance account ends on death (ITAA 1997 s 294-45).",
+    ),
+    (
+        "excess_contributions",
+        "One question: concessional_charge, the excess concessional contributions charge for 2013-14 to 2020-21 on the additional income tax from including excess concessional contributions, from 1 July to the day before tax under the first assessment is due; or non_concessional_release, the associated earnings, total release amount, assessable amount and 15% tax offset for an excess of non-concessional contributions for a contributions year from 2013-14 to 2025-26, released in full, to an assumed first determination date. Estimates by the method TAA 1953 Sch 1 s 97-30 sets out, which can differ by some dollars from a determination using the ATO's published Table 5 rates.",
+    ),
+    (
         "rental_property",
         "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
     ),
@@ -323,8 +335,24 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The small business income tax offset (ITAA 1997 Subdivision 328-F) of one individual, not as a trustee, who is not a prescribed person under s 102AC of the ITAA 1936, for an income year from 2020-21 to 2026-27: net small business income (s 328-365), each partnership or trust amount and its s 328-370 deductions, the basic income tax liability and the offsets applied before this one are the operator's established figures, and each partnership or trust is a small business entity at $5 million that is not a corporate tax entity.",
     ),
     (
+        "trading_stock",
+        "The change in value of the trading stock of one entity carrying on a business, for an income year from 1 July to 30 June, 2020-21 to 2026-27, under ITAA 1997 s 70-35: the excess of the value of all trading stock on hand at the end of the year over its value at the start is assessable, and the excess of the start value over the end value is deductible. The start value is the amount taken into account at the end of the last year (s 70-40). Each item on hand at the end is valued at its cost, market selling value or replacement value as elected for that item (s 70-45(1)), the least of the 3 for lowest, or below all 3 where obsolescence or other special circumstances warrant it (s 70-50), each net of input tax credits (s 70-45(1A)). A small business entity, or from 2021-22 an entity covered by s 328-285(2) ($50 million; Act No. 92 of 2020 Sch 3 item 40(8)), may choose not to account for the change when its reasonable estimate of the end value is within $5,000 of the start value (s 328-285(1)); the end value is then the start value (s 328-295). The operator establishes the entity's status, what is trading stock, each value, the elected methods, the obsolescence value and that it is reasonable, and the estimate. Excludes live stock acquired by natural increase and horse breeding stock (ss 70-55 to 70-65), stock taken for private use, disposals outside the ordinary course of business, assets becoming or ceasing to be trading stock (ss 70-30, 70-90 to 70-115), the cases in the s 70-45(2) table, primary producers' Subdivision 385, absorption costing and substituted accounting periods.",
+    ),
+    (
+        "prepayments",
+        "When one amount of expenditure incurred under an agreement in an income year from 1 July to 30 June, 2020-21 to 2026-27, is deductible under ITAA 1936 Subdivision H, where ITAA 1997 s 8-1 would otherwise allow it in full in the year incurred. Excluded expenditure (under $1,000, required by a law or court order, or under a contract of service: s 82KZL(1)) is deductible when incurred. The eligible service period runs from the later of the first day of the thing to be done and the day the expenditure is incurred to the last day, at most 10 years (s 82KZL(1)), months being read under Acts Interpretation Act 1901 s 2G(2). A thing wholly done in the expenditure year is deductible then. Where the operator states s 82KZME applies, s 82KZMF apportions the deduction by days. A small business entity or an entity covered by s 82KZM(1A) ($50 million, for expenditure incurred on or after 1 July 2020: Act No. 92 of 2020 Sch 3 item 40(5)) that has not chosen s 82KZMD, and an individual's non-business expenditure, deduct the whole amount in the expenditure year when the eligible service period is no longer than 12 months and ends by the last day of the next income year (s 82KZM(1)); otherwise s 82KZM, or for other taxpayers s 82KZMD, apportions it by days. Each year's amount is rounded to the cent half up on the running total. The operator establishes the deductible amount net of input tax credits, the taxpayer's status, the dates, the excluded expenditure limb and whether s 82KZME applies. Refuses agreements entered into on or before 11 November 1999. Excludes R&D expenditure (ss 355-205 and 355-480), Division 230 financial arrangements (s 82KZLA), Division 245, general insurers' expenditure, capital, private or domestic amounts, the STS accounting method and substituted accounting periods.",
+    ),
+    (
         "non_commercial_losses",
         "Whether ITAA 1997 Division 35 defers the loss from one business activity, or a group of similar ones, of one individual carrying it on alone or in partnership, for an income year from 2020-21 to 2026-27: the activity's income, deductions, asset values and earlier years and the income requirement amounts are the operator's established figures; not a bankruptcy (s 35-20), not section 40-880 expenditure (s 35-10(2A) and (2B)), and the Commissioner's discretion (s 35-55) is not decided.",
+    ),
+    (
+        "minors_income",
+        "The tax on one individual's taxable income under Division 6AA of Part III of the ITAA 1936 (minors' unearned income) for an income year from 2024-25 to 2026-27 ending on 30 June, on the individual's own return, not a trustee's under s 98 (Income Tax Rates Act 1986 Schedule 12): a full-year Australian resident, or a full-year foreign resident who is a prescribed non-resident, with ordinary taxable income only (no special income component, superannuation or employment termination remainder, or part-year tax-free threshold). Whether the individual is an excepted person, which income is excepted assessable income, the part of each trust share to which the Division applies and every deduction the Act relates to eligible income are the operator's established facts, as the Commissioner's opinion settles them. Basic income tax before offsets and levies; years before 2024-25 are outside it because the ordinary scales it uses start then.",
+    ),
+    (
+        "smsf_tax",
+        "The income tax calculation statement (item 13) of one complying self managed superannuation fund that is an Australian superannuation fund, for an income year from 2020-21 to 2026-27, from the operator's established figures: assessable contributions (ITAA 1997 Subdivision 295-C) and the no-TFN-quoted part (s 295-610); net non-arm's length income (s 295-550(1), (2), (4) and (5), less the deductions attributable to it; label U) and the general expense amounts of s 295-550(8) and (9); income from segregated current pension assets (s 295-385), other income to which the actuary's proportion applies (s 295-390), and income from segregated non-current assets; the actuary's proportion; deductions, already apportioned for exempt income, and the part attributable to contributions; the tax offsets, credits, PAYG instalments and s 102AAM interest charge; and whether the fund was newly registered or wound up in the year. It works out exempt current pension income (the proportion's product rounded down to whole dollars), taxable income, the non-arm's length component (s 295-545(2A)) taxed at 45% and the low tax component at 15% (Income Tax Rates Act 1986 s 26(1)), the 32% extra tax on no-TFN-quoted contributions (s 29), gross tax, the offsets in the return's order, the supervisory levy lines L, M and N ($259 a year, Supervisory Levy Imposition Regulations 2018 s 6) and the amount due or refundable. Excludes non-complying and foreign funds, a change of tax status (ss 295-320 and 295-325), funds other than SMSFs, the actuary's certificate and every judgement it rests on (which assets are segregated, the s 295-385(9) choice, the disregarded small fund assets test), whether income is non-arm's length (including under a limited recourse borrowing arrangement), deduction apportionment (TR 93/17), tax losses (Division 36) and capital losses, and the offsets' own rules.",
     ),
     (
         "psi_test",
@@ -411,12 +439,24 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)), with previously unrecognised amounts used in the year shown apart (para 80(e)), and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63), a change in the expected rate with opening balances when the year's rate is not the closing rate (the reversals in the year need a schedule) and, in 2020-21, opening balances measured at the base rate entity rate.",
     ),
     (
+        "foreign_income_conversion",
+        "Foreign currency amounts of one taxpayer translated into Australian dollars under ITAA 1997 s 960-50 for an income year from 2020-21 to 2026-27 that starts on 1 July: ordinary income (s 960-50(6) item 6), statutory income other than a Division 102 amount (item 7), deductions other than under s 25-35 or Division 40 (item 8 as the regulations substitute it), a depreciating asset's cost (item 2), amounts relevant to CGT (item 5) and payments no other item covers, such as foreign income tax paid (item 11), each at the rate for the day its item names or, under item 12, at an average of the rates over a period of at most 12 months containing that day (Income Tax Assessment Regulations 1997 Schedule 2 clause 1.3 for 2020-21; Income Tax Assessment (1997 Act) Regulations 2021 Schedule 2 clause 3 from 2021-22). The operator states each rate as the foreign currency equal to 1 AUD, with its source; the command neither fetches nor assumes one, and refuses a specific rate for any other day. The operator establishes each amount's kind and dates, that an average rate reasonably approximates the item's rate and comes from a source that is not an associate or the taxpayer, and that the same time of day is used for daily rates. Excludes functional currency (Subdivision 960-D), CFC attribution, branch income of an overseas permanent establishment, forex gains and losses (Division 775), bad debts (item 8A), trading stock (items 3 and 4), withholding (item 10), film and digital game amounts, spot contracts, item 11A amounts, the financial report and records consistency rules, and which country is an amount's source.",
+    ),
+    (
+        "foreign_income_tax_offset",
+        "The foreign income tax offset (ITAA 1997 Division 770) for an income year from 2020-21 to 2026-27: the foreign income tax that counts towards it (s 770-70) and its limit (s 770-75), either $1,000 without working out s 770-75(2)(b) (note 1), or the greater of $1,000 and the income tax payable less that payable on the s 770-75(4) assumptions, each disregarding tax offsets and including the Medicare levy and surcharge (the ATO's Guide to foreign income tax offset rules, steps 1 to 3), raised by tax on s 23AI and 23AK income (s 770-80). The 2 income tax figures are stated, for any taxpayer, or worked out for an individual who was an Australian resident for the whole year or part of it, not a working holiday maker or trustee, in 2024-25 to 2026-27: basic income tax at the year's resident rates on whole-dollar taxable income with no amount taxed at another rate, with the part-year tax-free threshold of the Income Tax Rates Act 1986 ss 18 and 20, plus the Medicare levy and surcharge the operator gives for each income. The operator establishes which foreign income tax counts (s 770-10, including what a treaty allows, that foreign IIR and UTPR tax does not count where s 770-10(6) applies, that it was paid, s 770-130, and not refunded, s 770-140), translated into AUD, and the disregarded income and reasonably related deductions. The offset is applied against basic income tax, then the levy and the surcharge, and the rest is lost (s 63-10(1) item 22); applying it is outside it. Excludes CFC attributed tax (s 770-135), the Joint Petroleum Development Area rule, life insurance classes, deferred non-commercial losses' adjustment, pre-commencement excess foreign income tax and amendments (s 770-190).",
+    ),
+    (
         "income_tests",
         "The income measures of one individual who was an Australian resident for the whole income year and alive at its end, each the person's own for the whole year, from components the operator has established and classified: income for surcharge purposes (ITAA 1997 s 995-1), Division 293 income (s 293-20(1)(a)), rebate income (ITAA 1936 s 6(1)), repayment income for study and training loans (HESA s 154-5), adjusted taxable income for offsets (ITAA 1997 s 995-1, ITAA 1936 s 6(1) and A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) and total income for the super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003 s 8). A spouse's measures come from the spouse's own components. A dependant's adjusted taxable income for part of a year, a deceased person's annualised adjusted taxable income (Sch 3 cl 2(2)), the co-contribution's 10% eligible income test, the combined family amounts and every threshold and eligibility test the measures feed are outside it. Income for surcharge purposes follows s 995-1, which does not add exempt foreign employment income; the ATO's surcharge page adds it where taxable income is $1 or more, and the result warns when that changes the figure. Measures another agency applies are outside it: the Commonwealth Seniors Health Card income test and family assistance adjusted taxable income are Services Australia's (https://www.servicesaustralia.gov.au/income-test-for-commonwealth-seniors-health-card). Refuses part-year residents, working holiday makers and foreign residents, and components that cannot all be true together.",
     ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
+    (
+        "alcohol_excise",
+        "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol",
+    ),
     (
         "fuel_tax_credits",
         "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/incentives-and-concessions/fuel-schemes/fuel-tax-credits-business/rates-business",
@@ -702,6 +742,14 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
     ),
     (
+        "transfer_balance",
+        "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/calculating-your-personal-transfer-balance-cap",
+    ),
+    (
+        "excess_contributions",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
+    ),
+    (
         "sb_cgt_concessions",
         "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_4/document_4.html",
     ),
@@ -730,8 +778,20 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_7/document_7.html",
     ),
     (
+        "trading_stock",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+    ),
+    (
+        "prepayments",
+        "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
         "non_commercial_losses",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "minors_income",
+        "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
     (
         "psi_test",
@@ -817,6 +877,18 @@ pub const SOURCES: &[(&str, &str)] = &[
         "deferred_tax",
         "https://standards.aasb.gov.au/aasb-112-sep-2023",
     ),
+    (
+        "foreign_income_conversion",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/960-50",
+    ),
+    (
+        "foreign_income_tax_offset",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/770-75",
+    ),
+    (
+        "smsf_tax",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
+    ),
 ];
 
 /// Schedule 5 (NAT 3348) for payments from 1 July 2026: its methods, and the
@@ -843,6 +915,18 @@ const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "alcohol_excise",
+        &[
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/calculating-alcohol-excise-duty",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-remissions-for-excisable-alcohol/remission-scheme-for-alcohol-manufacturers",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/ALCOHOL/00007",
+            "https://www.legislation.gov.au/C1921A00026/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C1901A00009/2026-08-27/2026-08-27/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/F2015L00355/2025-11-29/2025-11-29/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://data.gov.au/data/dataset/excise-data",
+        ],
+    ),
     (
         "fuel_tax_credits",
         &[
@@ -1529,6 +1613,35 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "transfer_balance",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-80",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-230",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/294-235",
+            "https://www.legislation.gov.au/C2016A00080/latest/text",
+            "https://www.legislation.gov.au/C2004A05128/latest/text",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/transfer-balance-account",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/withdrawing-and-using-your-super/retirement-withdrawal-lump-sum-or-income-stream/excess-transfer-balance",
+            "https://www.ato.gov.au/tax-rates-and-codes/general-interest-charge-rates",
+        ],
+    ),
+    (
+        "excess_contributions",
+        &[
+            "https://www.legislation.gov.au/C1953A00001/latest/text",
+            "https://www.legislation.gov.au/C2021C00276/asmade/text",
+            "https://www.legislation.gov.au/C2013A00116/latest/text",
+            "https://www.legislation.gov.au/C2021A00045/asmade/text",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/292-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/292-30",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/non-concessional-contributions-cap",
+        ],
+    ),
+    (
         "private_health_insurance_rebate",
         &[
             "https://www.legislation.gov.au/C2007A00031/2026-09-19/2026-09-19/text/original/epub/OEBPS/document_1/document_1.html",
@@ -1748,6 +1861,26 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "trading_stock",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_7/document_7.html",
+            "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_7/document_7.html",
+            "https://www.legislation.gov.au/C2020A00092/asmade/2020-10-14/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/income-and-deductions-for-business/accounting-for-trading-stock/simplified-trading-stock-rules",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/income-and-deductions-for-business/accounting-for-trading-stock/valuing-trading-stock",
+        ],
+    ),
+    (
+        "prepayments",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2020A00092/asmade/2020-10-14/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C1901A00002/2026-03-28/2026-03-28/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/api/public/content/0-3a8a1b7d-086d-40b2-abfe-55615b4f3528",
+            "https://www.ato.gov.au/api/public/content/0-347c6a18-4343-461e-b4f3-9f12a5ddb904",
+        ],
+    ),
+    (
         "non_commercial_losses",
         &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_1/document_1.html",
@@ -1755,6 +1888,27 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/losses/non-commercial-losses/offset-or-defer-the-loss-individuals-or-sole-traders/the-income-requirement",
             "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/losses/non-commercial-losses/offset-or-defer-the-loss-individuals-or-sole-traders/excepted-business-activities",
             "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/losses/non-commercial-losses/how-to-defer-your-losses",
+        ],
+    ),
+    (
+        "minors_income",
+        &[
+            "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C1936A00027/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.legislation.gov.au/C2004A03348/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-if-you-re-under-18-years-old",
+            "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/adjustment-questions-a1-a4-individual-tax-return-2026/a1-under-18-2026",
+        ],
+    ),
+    (
+        "smsf_tax",
+        &[
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+            "https://www.legislation.gov.au/F2018L00605/latest/text",
+            "https://www.legislation.gov.au/C2024A00052/asmade/text",
+            "https://www.ato.gov.au/forms-and-instructions/self-managed-superannuation-fund-annual-return-2026-instructions/instructions-to-complete-your-smsf-annual-return-2026/section-d-income-tax-calculation-statement-item-13",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/smsf-administration-and-reporting/exempt-current-pension-income",
         ],
     ),
     (
@@ -1813,6 +1967,25 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
             "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-201112-to-202021",
             "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-2025-26",
+        ],
+    ),
+    (
+        "foreign_income_conversion",
+        &[
+            "https://www.legislation.gov.au/F2021L00206/latest/text",
+            "https://www.legislation.gov.au/F1997B02703/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/foreign-exchange-gains-and-losses/translation-conversion-rules",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/foreign-exchange-gains-and-losses/in-detail/general-information-on-average-rates",
+            "https://www.ato.gov.au/tax-rates-and-codes/foreign-exchange-rates-overview",
+        ],
+    ),
+    (
+        "foreign_income_tax_offset",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860107/20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19860107/18",
+            "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/coming-to-australia/tax-free-threshold-for-newcomers-to-australia",
+            "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/living-overseas-and-becoming-a-foreign-tax-resident",
         ],
     ),
     (
@@ -1915,9 +2088,33 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "trading_stock",
+        &[
+            "Making or not making the s 328-285 choice, and each item's valuation method, are the taxpayer's elections; the result shows the consequence of the ones given.",
+        ],
+    ),
+    (
+        "prepayments",
+        &[
+            "Whether s 82KZME applies is taken as stated; the worksheet does not test the tax shelter conditions.",
+        ],
+    ),
+    (
         "non_commercial_losses",
         &[
             "The tests are applied to the figures given; whether the activity is a business, which activities are similar, what is used on a continuing basis and whether an estimate is reasonable stay with the operator.",
+        ],
+    ),
+    (
+        "minors_income",
+        &[
+            "A prescribed person's low income tax offset cannot exceed the basic income tax liability not attributable to eligible taxable income (ITAA 1997 s 61-115(2)); tax_on_other_income is that part where the special rates apply. No offset or levy is applied here.",
+        ],
+    ),
+    (
+        "smsf_tax",
+        &[
+            "The ATO assesses the fund from its return; this is a check of the return's item 13, not a lodgment. The ATO has not published the SMSF annual return 2027 instructions, so 2026-27 follows the law in force on 22 November 2026 and the 2026 return's labels.",
         ],
     ),
     (
@@ -1944,6 +2141,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "A person not required to lodge may still choose to, for example to claim a refund of tax withheld; the ATO may also ask a person to lodge.",
             "The due date is the instrument's for lodging yourself; a registered tax agent's lodgment program may allow a later date.",
+        ],
+    ),
+    (
+        "foreign_income_conversion",
+        &[
+            "Each Australian dollar amount is rounded half up to cents and the totals add the rounded amounts; keep the rate used and its source with your records.",
+        ],
+    ),
+    (
+        "foreign_income_tax_offset",
+        &[
+            "The ATO works out the offset from the return; this checks the amount, and does not decide which foreign tax counts or what a tax treaty allows.",
         ],
     ),
     ("fbt_car_statutory", &[CAR_REPORTABLE_NOTE]),
@@ -2188,6 +2397,10 @@ pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, 
 /// in the law it does not apply.
 pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     (
+        "alcohol_excise",
+        "The excise duty rates for goods entered from 1 February 2027 had not been published when this worksheet was checked, so no 2027-28 rate is held.",
+    ),
+    (
         "work_expenses",
         "No cents per kilometre rate for 2027-28 had been determined under ITAA 1997 s 28-25(4) when this worksheet was checked.",
     ),
@@ -2277,6 +2490,43 @@ pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared
 /// reworded and never moves to a different failure; a new failure gets a new code.
 /// A code carries no message text, parameter value or source location.
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
+    (
+        "alcohol_excise.classification_unsettled",
+        "A line's labelled strength is above its actual strength and would put the goods in another subitem, which Excise Act 1901 s 77FA does not settle.",
+    ),
+    (
+        "alcohol_excise.date_outside_year",
+        "A line's date is outside the financial year given.",
+    ),
+    (
+        "alcohol_excise.fact_conflict",
+        "manufacturer_from is after a line marked remission.",
+    ),
+    ("alcohol_excise.line_invalid", "A line is not an object."),
+    (
+        "alcohol_excise.lines_invalid",
+        "lines is not a list of 1 to 1,000 line objects.",
+    ),
+    (
+        "alcohol_excise.not_excisable",
+        "The goods are wine, non-commercial liquor made with non-commercial equipment, or beer or another beverage of 1.15% alcohol by volume or less, none of which is in Excise Tariff Act 1921 Schedule items 1 to 3.",
+    ),
+    (
+        "alcohol_excise.product_invalid",
+        "A line's product is not beer, brandy, spirit or other_excisable_beverage.",
+    ),
+    (
+        "alcohol_excise.product_out_of_scope",
+        "The line is tobacco, fuel, spirit under the free subitems 3.5 to 3.8 (an approval or determination), or imported goods (customs duty), none of which the worksheet works.",
+    ),
+    (
+        "alcohol_excise.quantity_invalid",
+        "A volume, container or strength is not a decimal string above 0 within its limit and decimal places.",
+    ),
+    (
+        "alcohol_excise.rate_unpublished",
+        "A line is on or after 1 February 2027, when the next substituted rates apply and none is held.",
+    ),
     (
         "annuity_withholding.deductible_above_payment",
         "The deductible amount divided by the instalments exceeds the annuity payment.",
@@ -2735,6 +2985,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "employment_start is after termination_date.",
     ),
     (
+        "excess_contributions.charge_abolished",
+        "An excess concessional contributions charge was asked for a year from 2021-22, when the charge no longer applies.",
+    ),
+    (
+        "excess_contributions.date_order",
+        "A date is out of the order the question's period needs.",
+    ),
+    (
+        "excess_contributions.fact_invalid",
+        "A fact is not of the form the question takes.",
+    ),
+    (
+        "excess_contributions.question_invalid",
+        "The question is not one the command answers.",
+    ),
+    (
+        "excess_contributions.rate_unpublished",
+        "A day's charge rate, or a base interest rate the proxy rate averages, is not yet published.",
+    ),
+    (
         "fbt.deduction_exceeds_contribution",
         "A deduction for a recipient's contribution to a property, residual or board fringe benefit exceeds the contribution.",
     ),
@@ -2941,6 +3211,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "fhss.year_mismatch",
         "determination_date is not in the financial year given as year.",
+    ),
+    (
+        "foreign_income_conversion.average_period",
+        "An average rate's period is longer than 12 months, runs backwards or does not contain the day the amount is translated on.",
+    ),
+    (
+        "foreign_income_conversion.basis_invalid",
+        "basis is not specific or average.",
+    ),
+    (
+        "foreign_income_conversion.currency_invalid",
+        "currency is not a 3-letter code other than AUD.",
+    ),
+    (
+        "foreign_income_conversion.items_invalid",
+        "items is not a list of 1 to 200 objects.",
+    ),
+    (
+        "foreign_income_conversion.kind_invalid",
+        "kind is not one of the amounts the worksheet translates.",
+    ),
+    (
+        "foreign_income_conversion.rate_date",
+        "A specific rate is for a day other than the one the amount's translation rule names.",
+    ),
+    (
+        "foreign_income_conversion.text_invalid",
+        "rate_source is not text of 1 to 200 characters.",
+    ),
+    (
+        "foreign_income_tax_offset.limit_method_invalid",
+        "limit_method is not default, stated or worked.",
+    ),
+    (
+        "foreign_income_tax_offset.residency_periods_invalid",
+        "residency_periods is not a list of 1 to 12 periods inside the income year, each running forwards.",
+    ),
+    (
+        "foreign_income_tax_offset.worked_year",
+        "The worked limit was asked for a year resident-tax has no rates for.",
     ),
     (
         "franking_account.distribution_invalid",
@@ -3300,7 +3610,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3569,6 +3879,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "Medicare Levy Act 1986 s 9A applies, and the worksheet does not make that adjustment.",
     ),
     (
+        "minors_income.excepted_income_invalid",
+        "excepted_income is not a list of at most 50 objects, each with a ground ITAA 1936 s 102AE(2) lists and an amount.",
+    ),
+    (
+        "minors_income.excepted_person_invalid",
+        "excepted_person is not none or a ground of ITAA 1936 s 102AC(2).",
+    ),
+    (
+        "minors_income.facts_inconsistent",
+        "Taxable income exceeds the assessable income given, or eligible taxable income exceeds taxable income (a loss or deduction against excepted income, which the worksheet does not take).",
+    ),
+    (
+        "minors_income.residency_invalid",
+        "residency is not resident or foreign_resident.",
+    ),
+    (
+        "minors_income.special_income_component",
+        "Taxable income includes a special income component, which Income Tax Rates Act 1986 Schedule 11 clause 3 taxes by a formula the worksheet does not take.",
+    ),
+    (
+        "minors_income.trust_shares_invalid",
+        "trust_shares is not a list of at most 50 objects, each with amount and division_6aa_part, the part no more than the amount.",
+    ),
+    (
         "no_abn_withholding.gst_above_payment",
         "The GST included is more than the payment.",
     ),
@@ -3707,6 +4041,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "ppsr_timing.time_unresolved",
         "An input or calculated time falls in the skipped or repeated ACT hour at a daylight saving change.",
+    ),
+    (
+        "prepayments.agreement_before_cutoff",
+        "The agreement was entered into on or before 11 November 1999, when a pre-RBT obligation (ITAA 1936 s 82KZL(1)) or a pre-existing obligation (s 82KZME(8)) may apply.",
+    ),
+    (
+        "prepayments.choice_unavailable",
+        "chose_82kzmd is true for a taxpayer that is neither a small business entity nor covered by ITAA 1936 s 82KZMA(2A), or for expenditure s 82KZMD cannot apply to (ss 82KZMA(3) and (4)).",
+    ),
+    (
+        "prepayments.dates_invalid",
+        "incurred is outside the income year, service_end is before service_start, or agreement_date is after incurred.",
+    ),
+    (
+        "prepayments.exclusion_invalid",
+        "exclusion is not none, law_or_court_order or contract_of_service.",
+    ),
+    (
+        "prepayments.tax_shelter_conflict",
+        "tax_shelter is true for excluded expenditure or a thing done by the end of the expenditure year, which s 82KZME cannot cover (ss 82KZME(2)(b) and (7)).",
+    ),
+    (
+        "prepayments.taxpayer_invalid",
+        "taxpayer is not small_business_entity, medium_business_entity or other.",
     ),
     (
         "private_health_insurance_rebate.lhc_loading",
@@ -3850,6 +4208,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "shares is not a list of at most 50 objects, each with amount and deductions.",
     ),
     (
+        "smsf_tax.disregarded_small_fund_assets",
+        "Income from segregated current pension assets was given for a fund with disregarded small fund assets (ITAA 1997 s 295-385(7)).",
+    ),
+    (
+        "smsf_tax.foreign_fund",
+        "The fund is not an Australian superannuation fund.",
+    ),
+    (
+        "smsf_tax.non_complying",
+        "The fund is not a complying superannuation fund for the year.",
+    ),
+    (
+        "smsf_tax.part_exceeds_total",
+        "No-TFN contributions exceed assessable contributions, or contribution deductions exceed deductions or assessable contributions.",
+    ),
+    (
+        "smsf_tax.proportion_invalid",
+        "exempt_proportion is not a decimal from 0 to 1.",
+    ),
+    (
         "super_benefit_tax.benefit_nil",
         "The superannuation lump sum or the value of the interest it is paid from is nil.",
     ),
@@ -3900,6 +4278,54 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "trade_in.not_arms_length",
         "The trade-in is not at arm's length, so market value rules apply that are not worked.",
+    ),
+    (
+        "trading_stock.entity_invalid",
+        "entity is not small_business_entity, medium_business_entity or other.",
+    ),
+    (
+        "trading_stock.items_invalid",
+        "items is not a list of at most 500 objects.",
+    ),
+    (
+        "trading_stock.method_invalid",
+        "An item's method is not cost, market_selling_value, replacement_value, lowest or obsolescence.",
+    ),
+    (
+        "trading_stock.obsolescence_not_below",
+        "An item's obsolescence value is not below its cost, market selling value and replacement value (ITAA 1997 s 70-50).",
+    ),
+    (
+        "trading_stock.simplified_unavailable",
+        "The s 328-285 choice was made by an entity that cannot make it for the year, or with the estimated closing value more than $5,000 from the opening value.",
+    ),
+    (
+        "trading_stock.value_missing",
+        "An item's elected value is null, or lowest or obsolescence lacks one of the 3 values.",
+    ),
+    (
+        "transfer_balance.date_order",
+        "An event or date is out of the order the account needs.",
+    ),
+    (
+        "transfer_balance.event_refused",
+        "An event of a kind the command does not work, with the reason.",
+    ),
+    (
+        "transfer_balance.fact_invalid",
+        "An event or fact is not of the form the command takes.",
+    ),
+    (
+        "transfer_balance.rate_unpublished",
+        "A day with excess needs a GIC rate the ATO has not yet published.",
+    ),
+    (
+        "transfer_balance.transition_undecided",
+        "IT(TP)A 1997 s 294-30 may disregard the 2017 excess, which only the debits to 31 December 2017 decide.",
+    ),
+    (
+        "transfer_balance.year_mismatch",
+        "The year is not the financial year of the last day worked.",
     ),
     (
         "voluntary_agreement_withholding.abn_not_quoted",
@@ -4156,5 +4582,129 @@ pub const LODGMENT_PROVISIONS: [(&str, &str, &str, &str); 23] = [
         "subsection 7(3)",
         "Table K item (2)",
         "eligible for the seniors and pensioners tax offset, with rebate income under the year's amount",
+    ),
+];
+
+/// `smsf_tax`: (id, authority, formula, return label) for each amount, in order.
+pub const SMSF_TAX_STEPS: [(&str, &str, &str, &str); 20] = [
+    (
+        "gross_income",
+        "ITAA 1997 s 295-10(1) step 2 and SAR 2026 label W: assessable contributions (Subdivision 295-C), net non-arm's length income (label U) and the fund's other ordinary and statutory income",
+        "assessable_contributions + net_non_arms_length_income + segregated_pension_income + unsegregated_income + segregated_non_current_income",
+        "W",
+    ),
+    (
+        "exempt_current_pension_income",
+        "ITAA 1997 s 295-385(1) (income from segregated current pension assets) and s 295-390(1) and (3) (the actuary's proportion of other income, not non-arm's length income, contributions or income from segregated non-current assets, s 295-390(2)); SAR 2026 label Y, in whole dollars, the proportion's product rounded down",
+        "segregated_pension_income + floor(unsegregated_income x exempt_proportion)",
+        "Y",
+    ),
+    (
+        "total_assessable_income",
+        "SAR 2026 label V: gross income less exempt current pension income",
+        "gross_income - exempt_current_pension_income",
+        "V",
+    ),
+    (
+        "taxable_income",
+        "ITAA 1997 s 4-15 and SAR 2026 labels O and A: total assessable income less deductions; nil for a loss",
+        "max(0, total_assessable_income - deductions)",
+        "A",
+    ),
+    (
+        "loss",
+        "SAR 2026 label O: the loss, which Section E carries forward (Division 36, not worked out here)",
+        "max(0, deductions - total_assessable_income)",
+        "",
+    ),
+    (
+        "non_arms_length_component",
+        "ITAA 1997 s 295-545(2A): the lesser of net non-arm's length income under s 295-550(1), (2), (4) and (5) plus that under s 295-550(8) and (9), and taxable income less assessable contributions plus the deductions attributable to them (not below nil)",
+        "min(net_non_arms_length_income + general_expense_non_arms_length_income, max(0, taxable_income - assessable_contributions + contribution_deductions))",
+        "",
+    ),
+    (
+        "low_tax_component",
+        "ITAA 1997 s 295-545(3): the rest of taxable income",
+        "taxable_income - non_arms_length_component",
+        "",
+    ),
+    (
+        "tax_on_taxable_income",
+        "Income Tax Rates Act 1986 s 26(1): 15% of the low tax component and 45% of the non-arm's length component",
+        "low_tax_component x low_tax_rate + non_arms_length_component x non_arms_length_rate",
+        "T1",
+    ),
+    (
+        "no_tfn_contributions_tax",
+        "ITAA 1997 ss 295-605 and 295-610 and Income Tax Rates Act 1986 s 29(2): the 45% top rate plus 2% less 15%",
+        "no_tfn_contributions x no_tfn_rate",
+        "J",
+    ),
+    (
+        "gross_tax",
+        "ITAA 1997 s 295-10(1) steps 1 and 5; SAR 2026 label B",
+        "tax_on_taxable_income + no_tfn_contributions_tax",
+        "B",
+    ),
+    (
+        "subtotal_1",
+        "ITAA 1997 s 295-10(1) step 6; SAR 2026 label T2: gross tax less non-refundable non-carry forward tax offsets (label C), not below nil",
+        "max(0, gross_tax - non_refundable_offsets)",
+        "T2",
+    ),
+    (
+        "non_refundable_offsets_lost",
+        "SAR 2026 label T2: the non-refundable non-carry forward tax offsets above gross tax are lost",
+        "max(0, non_refundable_offsets - gross_tax)",
+        "",
+    ),
+    (
+        "subtotal_2",
+        "SAR 2026 label T3: subtotal 1 less non-refundable carry forward tax offsets (label D), not below nil",
+        "max(0, subtotal_1 - carry_forward_offsets)",
+        "T3",
+    ),
+    (
+        "carry_forward_offsets_unused",
+        "SAR 2026 label T3: the carry forward tax offsets above subtotal 1, which Division 65 may carry forward",
+        "max(0, carry_forward_offsets - subtotal_1)",
+        "",
+    ),
+    (
+        "tax_payable",
+        "SAR 2026 label T5: subtotal 2 less refundable tax offsets (label E), not below nil",
+        "max(0, subtotal_2 - refundable_offsets)",
+        "T5",
+    ),
+    (
+        "tax_offset_refunds",
+        "SAR 2026 label I: the refundable tax offsets above subtotal 2",
+        "max(0, refundable_offsets - subtotal_2)",
+        "I",
+    ),
+    (
+        "supervisory_levy",
+        "Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Regulations 2018 s 6; SAR 2026 label L: the levy for the next year, paid with this return",
+        "levy",
+        "L",
+    ),
+    (
+        "levy_adjustment_wound_up",
+        "SAR 2026 label M and table 9: an existing fund wound up in the year pays no levy for the next year",
+        "levy",
+        "M",
+    ),
+    (
+        "levy_adjustment_new_fund",
+        "SAR 2026 label N and table 9: a newly registered fund not wound up in the year also pays the levy for this year",
+        "levy",
+        "N",
+    ),
+    (
+        "amount_due_or_refundable",
+        "SAR 2026 label S: tax payable, the s 102AAM interest charge (G), the levy (L) and the new fund adjustment (N), less eligible credits (H), tax offset refunds (I), PAYG instalments (K) and the wound up adjustment (M); negative is a refund",
+        "tax_payable + interest_charge + supervisory_levy + levy_adjustment_new_fund - eligible_credits - tax_offset_refunds - payg_instalments - levy_adjustment_wound_up",
+        "S",
     ),
 ];

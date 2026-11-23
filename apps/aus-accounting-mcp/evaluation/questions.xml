@@ -275,6 +275,12 @@
     <calls>[{"name": "get_reviewed_rate", "arguments": {"record_id": "concessional-cap-2026-27", "as_at": "2024-03-15"}}]</calls>
     <tools><tool>get_reviewed_rate</tool></tools>
   </qa_pair>
+  <qa_pair id="union-fees-paper-question">
+    <question>A fabricated 2025-26 workpaper lists domestic employee union fees at paper question D3. Which paper question do the ATO instructions specify? Return the question code only.</question>
+    <answer>D5</answer>
+    <calls>[{"name":"itr_label","arguments":{"year":"2025-26","channel":"paper","item":"employee_union_fees"}}]</calls>
+    <tools><tool>itr_label</tool></tools>
+  </qa_pair>
   <qa_pair id="abn-check-digit">
     <question>A fabricated supplier invoice quotes ABN 51 824 753 557. Does that number pass the ABN check digit test? Return only the result the server reports.</question>
     <answer>CHECK_DIGIT_INVALID</answer>
