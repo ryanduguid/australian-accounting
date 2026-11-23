@@ -4894,6 +4894,8 @@ mod fbt_ev_exemption;
 mod fbt_instalment;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 pub use fbt_instalment::{FBT_INSTALMENT_OPTIONAL, FbtInstalmentArgs, fbt_instalment};
+mod foreign_purchaser_surcharge;
+pub use foreign_purchaser_surcharge::{ForeignPurchaserSurchargeArgs, foreign_purchaser_surcharge};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
@@ -6292,7 +6294,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 117] = [
+const KINDS: [&str; 118] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6310,6 +6312,7 @@ const KINDS: [&str; 117] = [
     "balancing_adjustment",
     "trade_in",
     "franking_account",
+    "foreign_purchaser_surcharge",
     "dasp_tax",
     "super_benefit_tax",
     "super_withholding",

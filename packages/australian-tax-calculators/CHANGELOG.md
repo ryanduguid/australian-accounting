@@ -4,6 +4,18 @@
 
 ### Added
 
+- `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
+  buyer's share in 2026-27 and the foreign or absentee owner land tax
+  surcharge for a full land tax year, in each of the 8 states and
+  territories, with foreign status taken as established. It mirrors the
+  site's foreign surcharge calculator and agrees with it on every case except
+  where the Act differs: Queensland's surcharge from $349,999 and Tasmania's
+  rounding to 10 cents. New codes:
+  `foreign_purchaser_surcharge.absentee_trust_unsupported`,
+  `foreign_purchaser_surcharge.dutiable_value_nil`,
+  `foreign_purchaser_surcharge.jurisdiction_invalid`,
+  `foreign_purchaser_surcharge.owner_invalid` and
+  `foreign_purchaser_surcharge.use_invalid`. `derive` takes it.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

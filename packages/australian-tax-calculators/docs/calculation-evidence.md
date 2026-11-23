@@ -3054,6 +3054,64 @@ The statute reduces 'so much of [the tax] as is attributable to' item 1, 2, 3,
 ATO's step 3 method, as section B does. The opening surplus counts in it, and a
 deficit opening does not, its credit being in the year's credits.
 
+## Foreign purchaser surcharge
+
+This worksheet was added on 24 November 2026. Each source was read that day:
+
+- Duties Act 1997 (NSW) s 104U on AustLII (as at 29 June 2026); Revenue NSW,
+  'What is surcharge purchaser duty' (9%) and 'What is surcharge land tax'
+  (last updated 8 April 2026: 5% from 2025, no threshold). The Land Tax Act
+  1956 (NSW) could not be read: AustLII served its download page and
+  legislation.nsw.gov.au a challenge.
+- Duties Act 2000 (Vic) s 28A(2), authorised version 141; SRO Victoria,
+  'Calculating foreign purchaser additional duty' (Emily's $16,000) and the
+  absentee individuals and corporations pages (4% from the 2024 land tax
+  year; $40,000 on $1,000,000). Land Tax Act 2005 (Vic) Sch 1 Tables 1.6 and
+  4.5, version 086, read on 23 November 2026: at every band from $50,000 the
+  absentee owner rates less the general rates are 4% of the whole value.
+- Duties Act 2001 (Qld) s 244, current as at 22 October 2026; the Queensland
+  Revenue Office's AFAD and absentee land tax pages. Land Tax Act 2010 (Qld)
+  Schs 2 and 3, read on 23 November 2026.
+- Duties Act 2008 (WA) ss 205G, 205H and 205O on AustLII; the Department of
+  Treasury and Finance's foreign transfer duty fact sheet (22 October 2026:
+  Simon's $14,000) and 'About land tax'.
+- Stamp Duties Act 1923 (SA) s 72, version 15.9.2026; RevenueSA's foreign
+  ownership surcharge page ($7,000 on a $100,000 interest) and land tax rates
+  page (no foreign owner surcharge).
+- Duties Act 2001 (Tas) ss 30C and 30E; the State Revenue Office's 'Rates of
+  surcharge' (8% and 1.5% from 1 April 2020). Land Tax Rating Act 2000 (Tas)
+  ss 6A and 7, read on 23 November 2026.
+- DI2026-155 (ACT: no foreign purchaser rate); Land Tax Act 2004 (ACT) s 17E
+  and DI2026-152 s 7, read on 23 November 2026; the ACT Revenue Office's
+  foreign ownership surcharge page (0.75% of the AUV a year).
+- NT.GOV.AU, 'Land taxes', and the Stamp Duty Act 1978 (NT): neither
+  surcharge.
+
+The site's foreign surcharge calculator (ryanduguid.github.io, main at
+dcc7ecbe) was run through its own `foreignSurcharge` on its cases, its Node
+tests' and oracle's figures, a grid of every jurisdiction, use and kind of
+buyer at each threshold edge and seeded values: 980 rows in
+`tests/data/foreign_surcharge_site_cases.json`, each with the page's verdicts
+as `foreign_purchaser` and `foreign_owner`. The worksheet gives the same 2
+amounts on 871 rows. 2 rows are facts the worksheet does not take (an
+exemption and a partner visa, which the page refuses). The other 107 differ
+only where an Act differs from the page:
+
+| Rule | Act | Rows |
+| --- | --- | --- |
+| Queensland's surcharge is 3.0c for each $1 more than $349,999, from $350,000; the page works 3% over $350,000, 3 cents less | Land Tax Act 2010 (Qld) Sch 2 Pt 2, Sch 3 Pt 2 | 56 moved |
+| Tasmanian land tax is rounded to 10 cents; the page applies no rounding | Land Tax Rating Act 2000 (Tas) s 7 | 21 moved |
+| A Victorian trust's absentee surcharge turns on its absentee beneficiaries' interests; the page works them from its answers | Land Tax Act 2005 (Vic) s 46IA | 30 refused |
+
+Of the page's 23 cases, 4 are its FIRB fee, a federal fee the worksheet does
+not work. Of the other 19, 15 agree, 1 moves (Queensland's foreign company,
+$1,500.03 for $1,500), 1 is refused (SRO Victoria's Clara, a fixed trust) and
+2 are facts the worksheet does not take.
+
+`tests/foreign_purchaser_surcharge.rs` also works by hand Victoria's $50,000
+edge, Queensland's $350,000 edge ($0.03), Tasmania's s 7 rounding ($8,000.02
+down, $8,000.06 up, 5 cents down) and the ACT's fractions of a cent.
+
 ## DASP tax
 
 Added on 19 November 2026. Its sources were read that afternoon: the

@@ -1163,6 +1163,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
+        // Duty surcharges on transactions in 2026-27 and land tax surcharges
+        // for the 2026 (nsw, vic) or 2026-27 land tax year, read on 24
+        // November 2026.
+        "foreign_purchaser_surcharge" => vec!["2026-27"],
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // The years the map asks for; the untaxed plan cap for 2027-28 is not
         // yet published (s 307-350, indexed each February).
@@ -1512,6 +1516,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "super_benefit_tax" => (
             "2026-11-22",
             "ITAA 1997 ss 301-10 to 301-40, 301-90 to 301-115, 301-225, 302-60, 302-140, 302-145, 302-195, 303-10, 307-120, 307-125, 307-145, 307-150, 307-205, 307-275 to 307-290, 307-345, 307-350 and 960-285, from the ATO's legal database; the ATO's 'Payments from super' (last updated 16 September 2026, Tables 9, 10, 12 and 13), 'Tax on super benefits' (2 August 2023) and 'Tax rates – Australian resident' (13 August 2026); Schedule 12 of the Taxation Administration (Withholding Schedules) Instrument 2026 (F2026L00716) and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024",
+        ),
+        "foreign_purchaser_surcharge" => (
+            "2026-11-24",
+            "Duties Act 1997 (NSW) s 104U (AustLII, as at 29 June 2026); Duties Act 2000 (Vic) s 28A (authorised version 141); Duties Act 2001 (Qld) s 244 (current as at 22 October 2026); Duties Act 2008 (WA) s 205O (AustLII); Stamp Duties Act 1923 (SA) s 72 (version 15.9.2026); Duties Act 2001 (Tas) ss 30C and 30E; DI2026-155 (ACT); Land Tax Act 2005 (Vic) Sch 1 Tables 1.6 and 4.5 (version 086); Land Tax Act 2010 (Qld) Schs 2 and 3; Land Tax Rating Act 2000 (Tas) ss 6A and 7; Land Tax Act 2004 (ACT) s 17E with DI2026-152; and each revenue office's surcharge pages, with Revenue NSW's surcharge land tax page for the 5% rate (the Land Tax Act 1956 (NSW) could not be read)",
         ),
         "dasp_tax" => (
             "2026-11-19",
@@ -1996,6 +2004,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Bridget, Andrew and Louise examples; the Gayle example",
             "2026-06-01",
             "2026-11-18",
+        ),
+        "foreign_purchaser_surcharge" => (
+            "Revenue office foreign purchaser pages: Revenue NSW 'What is surcharge purchaser duty' and 'What is surcharge land tax'; SRO Victoria 'Calculating foreign purchaser additional duty' and its absentee owner surcharge pages; the DTF foreign transfer duty fact sheet; RevenueSA's foreign ownership surcharge page; the ACT Revenue Office's foreign ownership surcharge page",
+            "SRO Victoria's Emily ($16,000) and absentee corporation ($40,000); the DTF's Simon ($14,000); RevenueSA's $7,000 on a $100,000 interest; the ACT's 0.75% of the AUV",
+            "2026-10-22",
+            "2026-11-24",
         ),
         "dasp_tax" => (
             "superannuation-superannuation-benefits-termination-payments",
@@ -4238,6 +4252,33 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the day the recipient receives the benefit, in the income year given",
             ),
         ],
+        "foreign_purchaser_surcharge" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "property_use",
+                "residential (residential property as the jurisdiction's surcharge defines it), primary_production (Tasmania's primary production property) or other",
+            ),
+            (
+                "dutiable_value",
+                "AUD, whole dollars, more than nil: the dutiable value of the foreign buyer's share or interest in the property",
+            ),
+            (
+                "foreign_purchaser",
+                "boolean: the buyer is a foreign person, foreign corporation or foreign trust under the jurisdiction's duty surcharge test, as established",
+            ),
+            (
+                "land_value",
+                "AUD, whole dollars, nil or more: in nsw the residential land's taxable value; in vic and qld the owner's total taxable value; in tas the foreign-owned residential land's assessed value; in act the parcel's AUV",
+            ),
+            (
+                "foreign_owner",
+                "boolean: the owner is a foreign person (nsw, tas, act) or an absentee or foreign company or trust (vic, qld) under the land tax surcharge test, as established",
+            ),
+            (
+                "owner",
+                "individual, company or trust (the trustee of any trust); a trust that is a foreign owner in vic is refused",
+            ),
+        ],
         "dasp_tax" => vec![
             (
                 "tax_free_component",
@@ -5657,6 +5698,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("disability_superannuation_benefit", Flag(false)),
             ("low_rate_cap_used", Text("0.00")),
             ("other_lump_sums_this_year", Flag(false)),
+        ],
+        // Revenue NSW's example: 9% of $1,000,000 and 5% of $1,200,000.
+        "foreign_purchaser_surcharge" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("property_use", Text("residential")),
+            ("dutiable_value", Text("1000000")),
+            ("foreign_purchaser", Flag(true)),
+            ("land_value", Text("1200000")),
+            ("foreign_owner", Flag(true)),
+            ("owner", Text("individual")),
         ],
         "dasp_tax" => vec![
             ("tax_free_component", Text("25000.00")),

@@ -14,7 +14,7 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
-/// `tests/payroll_tax.rs`,
+/// `tests/payroll_tax.rs`, `tests/foreign_purchaser_surcharge.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -46,7 +46,7 @@ use std::process::{Command, Stdio};
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
 /// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 103] = [
+const NEW_KINDS: [(&str, &str); 104] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -57,6 +57,7 @@ const NEW_KINDS: [(&str, &str); 103] = [
     ("transfer-balance", "transfer_balance"),
     ("excess-contributions", "excess_contributions"),
     ("ppsr-timing", "ppsr_timing"),
+    ("foreign-purchaser-surcharge", "foreign_purchaser_surcharge"),
     ("dasp-tax", "dasp_tax"),
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
     ("gst-margin-scheme", "gst_margin_scheme"),
