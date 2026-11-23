@@ -374,17 +374,30 @@ fn company_title_threshold_reads_the_interest_alone() {
 
 /// A notice's maximum sale price is compared with the sale price, not the
 /// first element of the cost base net of an input tax credit: $1.1 million
-/// GST inclusive, a $100,000 credit and a 5% notice capped at $1.05 million
-/// give the full 15% of $1 million.
+/// GST inclusive and a $100,000 credit. Below the base the notice fails on
+/// either reading (15% of $1 million); at or above the sale price it applies
+/// on either (5%); in between the answer turns on the maximum's GST basis,
+/// which the ATO does not state, so it is refused.
 #[test]
 fn variation_maximum_reads_the_sale_price() {
     let mut input = price("2026-05-01", "2025-26", "1000000.00");
     input["sale_price"] = json!("1100000.00");
     let notice = |maximum: &str| json!({"interest": "1", "document": "variation", "rate": "0.05", "maximum_price": maximum});
-    input["vendors"] = json!([notice("1050000.00")]);
+    input["vendors"] = json!([notice("999999.99")]);
     assert_eq!(payable(&input), "150000.00");
     input["vendors"] = json!([notice("1100000.00")]);
     assert_eq!(payable(&input), "50000.00");
+    for maximum in ["1000000.00", "1050000.00", "1099999.99"] {
+        input["vendors"] = json!([notice(maximum)]);
+        assert_eq!(
+            code(&input),
+            "foreign_resident_withholding.variation_maximum_unsettled"
+        );
+    }
+    // An excluded transaction is nil whatever the notice says.
+    input["vendors"] = json!([notice("1050000.00")]);
+    input["exclusion"] = json!("bankruptcy");
+    assert_eq!(payable(&input), "0.00");
 }
 
 /// A negative interest is refused, as every stated amount is.
@@ -392,4 +405,88 @@ fn variation_maximum_reads_the_sale_price() {
 fn refuses_a_negative_interest() {
     let input = with(json!({"vendors": [{"interest": "-1", "document": "none"}]}));
     assert_eq!(code(&input), "input.amount_invalid");
+}
+
+/// Unequal interests 1:2 at $100.06 and 15%: 5.003 and 10.006 round down to
+/// 5.00 and 10.00; the cent the single 15.01 leaves goes to the larger
+/// remainder, the second vendor.
+#[test]
+fn the_rounding_cent_goes_to_the_largest_remainder() {
+    let mut input = price("2025-03-01", "2024-25", "100.06");
+    input["vendors"] = json!([
+        {"interest": "1", "document": "none"},
+        {"interest": "2", "document": "none"},
+    ]);
+    let r = run(&input);
+    assert_eq!(r["vendors"][0]["amount"], "5.00");
+    assert_eq!(r["vendors"][1]["amount"], "10.01");
+    assert_eq!(r["amounts"]["amount_payable"], "15.01");
+}
+
+/// Every vendor row adds up to the amount payable, with and without
+/// documents, over a sweep of bases and interest splits.
+#[test]
+fn vendor_rows_always_add_up_to_the_amount_payable() {
+    let cents = |v: &Value| -> i64 {
+        let text = v.as_str().unwrap().replace('.', "");
+        text.parse().unwrap()
+    };
+    let splits: [&[&str]; 5] = [
+        &["1", "1"],
+        &["1", "2"],
+        &["1", "1", "1"],
+        &["3", "5", "7", "11"],
+        &["0.33", "0.33", "0.34", "1", "2", "9"],
+    ];
+    for base in (0..400).map(|i| format!("{}.{:02}", 1000 + i * 7, (i * 37) % 100)) {
+        for split in splits {
+            for mixed in [false, true] {
+                let mut input = price("2026-01-15", "2025-26", &base);
+                let vendors: Vec<Value> = split
+                    .iter()
+                    .enumerate()
+                    .map(|(i, interest)| {
+                        let document = if mixed && i == 0 {
+                            "clearance_certificate"
+                        } else {
+                            "none"
+                        };
+                        json!({"interest": interest, "document": document})
+                    })
+                    .collect();
+                input["vendors"] = json!(vendors);
+                let r = run(&input);
+                let rows: i64 = r["vendors"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| cents(&v["amount"]))
+                    .sum();
+                assert_eq!(
+                    rows,
+                    cents(&r["amounts"]["amount_payable"]),
+                    "{base} {split:?} {mixed}"
+                );
+            }
+        }
+    }
+}
+
+/// The wording the round 2 review asked for: the authority calls rounding
+/// the worksheet's convention, a company title interest is valued alone and
+/// option renewals and extensions count.
+#[test]
+fn inputs_and_authorities_state_the_rules() {
+    let r = run(&base());
+    assert!(
+        r["authorities"]["amount_payable"]
+            .as_str()
+            .unwrap()
+            .contains("The law sets no rounding")
+    );
+    let units = australian_tax_calculators::metadata::input_units("foreign_resident_withholding");
+    let text = |name: &str| units.iter().find(|(key, _)| *key == name).unwrap().1;
+    assert!(text("market_value").contains("a company title interest is the shares, valued alone"));
+    assert!(text("option_payments").contains("or to renew or extend it"));
+    assert!(text("sale_price").contains("GST inclusive"));
 }

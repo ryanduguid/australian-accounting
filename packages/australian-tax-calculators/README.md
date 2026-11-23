@@ -3214,7 +3214,10 @@ interest, for an acquisition date (the contract date, ITAA 1997 s 109-5) from
   not at all with a certificate, as the multiple vendor class variations
   (F2016L01123; LI 2026/38 s 6) and the ATO's examples do. A notice does not
   apply when `sale_price` (GST inclusive, or the market value where the
-  parties do not deal at arm's length) exceeds its maximum sale price.
+  parties do not deal at arm's length) exceeds its maximum sale price. A
+  maximum at or above the base but below `sale_price` is refused
+  (`variation_maximum_unsettled`): the answer turns on whether the maximum is
+  GST inclusive, which the ATO does not say.
 - The law sets no rounding. Each vendor's amount is rounded half up to the
   cent; with no document at all the one s 14-200(3)(a) amount is rounded once
   and the vendor rows share its cents, the left-over cent marked.

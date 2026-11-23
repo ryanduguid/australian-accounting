@@ -303,7 +303,10 @@ fn vendor_rows(facts: &Facts, full: &Decimal) -> Result<Vec<Row>> {
 
 /// Rounds each row down to the cent and gives the cents left over from
 /// `payable` to the rows with the largest remainders, the first on a tie, so
-/// the rows add up to it (the worksheet's convention).
+/// the rows add up to it (the worksheet's convention). The rows are the exact
+/// interest shares of `full x base` at working precision, so the rounded-down
+/// rows fall short of it by less than 1 cent each, and `payable` (it rounded
+/// half up) leaves 0 to n whole cents for n rows: one pass places them all.
 fn allocate(rows: &mut [Row], payable: &Decimal) -> Result<()> {
     let mut remainders = Vec::with_capacity(rows.len());
     let mut left = payable.clone();
@@ -345,6 +348,24 @@ const STEPS: [(&str, &str); 4] = [
         "TAA Sch 1 s 14-200(3) and (4): the sum of the vendors' amounts, or with no document the single s 14-200(3)(a) amount; nil if excluded (s 14-215) or varied to nil (s 14-235(5), (6)). The law sets no rounding: by the worksheet's convention each amount is rounded half up to the cent, and the single amount's rows share its cents",
     ),
 ];
+
+/// A notice's maximum between the base (the price net of any input tax credit)
+/// and `sale_price` (GST inclusive): whether the notice applies turns on
+/// which figure the maximum states, which the ATO's pages do not say.
+fn maximum_settled(facts: &Facts) -> Result<()> {
+    for v in &facts.vendors {
+        if let Document::Variation { maximum, .. } = &v.document
+            && facts.sale_price.gt(maximum)?
+            && !facts.base.gt(maximum)?
+        {
+            return refuse(
+                "foreign_resident_withholding.variation_maximum_unsettled",
+                "A notice's maximum sale price is at least the base but below sale_price, so whether it applies turns on whether the maximum is GST inclusive. If it is, the notice does not apply: give that vendor document none. If it is net of the input tax credit, give sale_price net of the credit.",
+            );
+        }
+    }
+    Ok(())
+}
 
 /// The amount payable, rounding the rows to the cent: nil when the whole
 /// acquisition is; with no document (no class variation applies) the one
@@ -388,6 +409,9 @@ pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Re
         }
     }
     let nil = whole_nil(&facts, threshold)?;
+    if nil.is_none() {
+        maximum_settled(&facts)?;
+    }
     let mut rows = vendor_rows(&facts, &full)?;
     let full_amount = precise(|| Ok(full.mul(&facts.base)?))?;
     let payable = precise(|| payable(&facts, &mut rows, &full_amount, nil.is_some()))?;

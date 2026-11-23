@@ -3942,8 +3942,10 @@ Choices the law leaves to the reader:
   exceeds the maximum, as the ATO's purchaser page says (reread 23 November
   2026). That page lets a purchaser entitled to an input tax credit take it off
   only 'in determining how much withholding is required', so the maximum is
-  compared with `sale_price` as contracted, GST inclusive, never the base: a
-  higher figure, so the doubt falls on the side of withholding in full.
+  compared with `sale_price` as contracted, GST inclusive. Neither page says
+  whether a notice's maximum is GST inclusive, so a maximum at or above the
+  base (the price net of the credit) but below `sale_price` is refused; the
+  operator settles it from the notice.
 - Where every vendor gave a document and one is a notice of variation, the
   class variations' 'not all' condition is not met; the worksheet follows the
   ATO's Zac and Jen example and treats each vendor alike.

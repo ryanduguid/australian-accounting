@@ -3285,6 +3285,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A varied rate exceeds the full rate for the acquisition date.",
     ),
     (
+        "foreign_resident_withholding.variation_maximum_unsettled",
+        "A notice's maximum sale price lies between the base and the GST inclusive sale_price, so whether it applies turns on the maximum's GST basis.",
+    ),
+    (
         "foreign_resident_withholding.vendors_invalid",
         "vendors is not a list of 1 to 50 vendor objects with an interest above nil and a known document.",
     ),

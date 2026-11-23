@@ -123,7 +123,8 @@
   `foreign_resident_withholding.exclusion_invalid`,
   `foreign_resident_withholding.option_exceeds_price`,
   `foreign_resident_withholding.payment_unsupported`,
-  `foreign_resident_withholding.variation_invalid` and
+  `foreign_resident_withholding.variation_invalid`,
+  `foreign_resident_withholding.variation_maximum_unsettled` and
   `foreign_resident_withholding.vendors_invalid`.
   `tests/foreign_resident_withholding.rs` holds it to the ATO's examples.
 
