@@ -2610,6 +2610,52 @@ pub const MEDICARE_SHARED_REDUCTION_NOTE: &str = "The family reduction is shared
 /// Every refusal code and the failure it names. A code stays when a message is
 /// reworded and never moves to a different failure; a new failure gets a new code.
 /// A code carries no message text, parameter value or source location.
+/// Adds a source and a warning to a result whose optional input brought in a
+/// rule its fixed scope, sources and warnings do not cover, and rewrites the
+/// scope's exclusion of that rule with each `(from, to)` pair.
+pub fn add_note(
+    out: &mut serde_json::Value,
+    (source, warning): (&str, &str),
+    scope: &[(&str, &str)],
+) {
+    for (key, text) in [("sources", source), ("warnings", warning)] {
+        if let Some(list) = out[key].as_array_mut() {
+            list.push(serde_json::Value::from(text));
+        }
+    }
+    if let Some(text) = out["scope"].as_str() {
+        let rewritten = scope.iter().fold(text.to_string(), |text, (from, to)| {
+            text.replacen(from, to, 1)
+        });
+        out["scope"] = serde_json::Value::from(rewritten);
+    }
+}
+
+/// Added to a `contribution-caps` result given the downsizer inputs, whose
+/// other results are unchanged.
+pub const DOWNSIZER_SOURCE: &str =
+    "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/292-102";
+pub const DOWNSIZER_WARNING: &str = "downsizer_covered is the part of the contribution s 292-102 covers, which does not count towards the concessional or non-concessional cap; the operator states the criteria of s 292-102(1)(b) to (f), (h), (i) and (2). downsizer_not_covered is not a downsizer contribution and is not added to non_concessional_contributions: whether the fund accepts it as a personal contribution, which would count towards the non-concessional cap, is the fund's decision.";
+
+/// Added to a `pension-minimum` result for a transition to retirement income
+/// stream, whose other results are unchanged.
+pub const TTR_MAXIMUM_SOURCE: &str = "https://www.legislation.gov.au/F1996B00580/latest/text";
+/// The rewrites of the `contribution-caps` scope given the downsizer inputs.
+pub const DOWNSIZER_SCOPE: &[(&str, &str)] = &[(
+    "the CGT cap, downsizer and other excluded contributions,",
+    "the CGT cap, other excluded contributions (the downsizer contribution given is tested under ITAA 1997 s 292-102 on the stated age, dates, limits and conditions),",
+)];
+/// The rewrites of the `pension-minimum` scope for a transition to retirement
+/// income stream.
+pub const TTR_MAXIMUM_SCOPE: &[(&str, &str)] = &[
+    (
+        "Excludes pensions under",
+        "Includes the transition to retirement 10% maximum of SISR reg 6.01(2). Excludes pensions under",
+    ),
+    ("the transition to retirement 10% maximum, ", ""),
+];
+pub const TTR_MAXIMUM_WARNING: &str = "maximum_payment is 10% of the account balance on 1 July, or on the commencement day in the first year, under SISR reg 6.01(2) 'transition to retirement income stream'; it is not reduced for a part year or rounded, it excludes commutations and includes payment splits, and it ends once the pensioner satisfies a condition of release with a nil cashing restriction.";
+
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "alcohol_excise.classification_unsettled",
@@ -3068,6 +3114,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "derivation.unsupported",
         "derive was asked to explain a command whose amounts it does not derive.",
+    ),
+    (
+        "downsizer.contribution_before_settlement",
+        "downsizer_contribution_date is before downsizer_settlement_date, where s 292-102(1)(g) allows 90 days after the change of ownership.",
+    ),
+    (
+        "downsizer.date_outside_year",
+        "downsizer_contribution_date is not in the income year given.",
+    ),
+    (
+        "downsizer.settlement_before_contract",
+        "downsizer_settlement_date is before downsizer_contract_date.",
     ),
     (
         "entertainer_withholding.foreign_resident_tfn",

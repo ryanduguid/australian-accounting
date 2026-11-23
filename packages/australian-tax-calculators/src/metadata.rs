@@ -3392,7 +3392,51 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "determination_date",
                 "YYYY-MM-DD, 2024-25 and 2025-26: the day the Commissioner is assumed to make the first excess non-concessional contributions determination for the year; adds associated_earnings, total_release_amount and associated_earnings_tax_offset for excess_non_concessional (TAA 1953 Sch 1 ss 97-25 and 97-30, ITAA 1997 s 292-30); omit for none",
             ),
+            (
+                "downsizer_contribution",
+                "AUD, with the other downsizer inputs or none of them: a contribution the person chose to treat as a downsizer contribution (ITAA 1997 s 292-102(1)(h) and (8)); the result adds downsizer_covered and downsizer_not_covered and leaves the other amounts unchanged",
+            ),
+            (
+                "downsizer_contribution_date",
+                "YYYY-MM-DD in the income year: the day the downsizer contribution was made",
+            ),
+            (
+                "downsizer_age",
+                "whole years at downsizer_contribution_date; at least 55 (s 292-102(1)(a), contributions from 1 January 2023)",
+            ),
+            (
+                "downsizer_contract_date",
+                "YYYY-MM-DD: the day the contract to dispose of the old interest was entered into; on or after 1 July 2018 (Act No. 132 of 2017 Sch 2 item 4)",
+            ),
+            (
+                "downsizer_settlement_date",
+                "YYYY-MM-DD: the day the change of ownership occurred; the contribution must be made within 90 days after it (s 292-102(1)(g))",
+            ),
+            (
+                "downsizer_longer_period_allowed",
+                "boolean: the Commissioner allowed a longer period under s 292-102(1)(g) that the contribution is within",
+            ),
+            (
+                "downsizer_capital_proceeds",
+                "AUD: the capital proceeds from the disposals of the old interest and any related spousal interest, as s 292-102(3)(b) and (3A) count them",
+            ),
+            (
+                "downsizer_earlier_own",
+                "AUD: other contributions already covered under s 292-102 for this person (s 292-102(3)(a)); 0.00 if none",
+            ),
+            (
+                "downsizer_earlier_from_proceeds",
+                "AUD: other contributions already covered under s 292-102 in relation to these disposals, for this person or their spouse (s 292-102(3)(b)); 0.00 if none",
+            ),
+            (
+                "downsizer_conditions_met",
+                "boolean: as the operator establishes, s 292-102(1)(b) to (f), (h) and (i) and the 10-year ownership condition of s 292-102(2) are met: an Australian dwelling that is not a mobile home, the main residence exemption, the choice given to the fund in the approved form, and no earlier downsizer contribution from another dwelling or interest",
+            ),
         ],
+        "pension_minimum" => vec![(
+            "transition_to_retirement",
+            "boolean: the pension is a transition to retirement income stream whose pensioner has not satisfied a condition of release with a nil cashing restriction; true adds maximum_payment, 10% of account_balance (SISR reg 6.01(2)), and leaves the minimum unchanged",
+        )],
         "private_health_insurance_rebate" => vec![
             (
                 "spouse_income_for_surcharge_purposes",

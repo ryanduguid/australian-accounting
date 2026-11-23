@@ -1748,6 +1748,25 @@ pub(crate) fn takes(command: &str, key: &str) -> bool {
         || named.iter().flatten().any(|(n, _)| *n == key)
 }
 
+/// The downsizer inputs of `contribution-caps`: all or none.
+fn downsizer_inputs(v: &Value) -> Result<Option<[Arg; 10]>> {
+    if !engine::DOWNSIZER_INPUTS.iter().any(|k| v.get(k).is_some()) {
+        return Ok(None);
+    }
+    let kind = |key: &str| match key {
+        "downsizer_contribution"
+        | "downsizer_capital_proceeds"
+        | "downsizer_earlier_own"
+        | "downsizer_earlier_from_proceeds" => Dec,
+        _ => Raw,
+    };
+    let given: Vec<Arg> = engine::DOWNSIZER_INPUTS
+        .iter()
+        .map(|key| argument(v, key, kind(key)))
+        .collect::<Result<_>>()?;
+    Ok(Some(given.try_into().expect("10 inputs")))
+}
+
 /// The `contribution-caps` inputs that work out the unused concessional cap
 /// from each earlier year's contributions instead of taking it as a total.
 const CARRY_FORWARD_INPUTS: [&str; 3] = [
@@ -1781,11 +1800,16 @@ fn contribution_caps_by_year(v: &Value) -> Result<Value> {
     let flag = argument(v, "defined_benefit_interest", Raw)?;
     let proposed = optional(v, "proposed_concessional_contribution", Dec)?;
     let date = optional(v, "determination_date", Raw)?;
+    let given = downsizer_inputs(v)?;
+    let downsizer = given.as_ref().map(|a| engine::DownsizerArgs {
+        given: a.each_ref(),
+    });
     let carry = engine::CarryForward {
         earlier_contributions: &earlier,
         proposed_contribution: proposed.as_ref(),
         defined_benefit_interest: &flag,
         determination_date: date.as_ref(),
+        downsizer: downsizer.as_ref(),
     };
     engine::contribution_caps_by_year(&a[0], &a[1], &a[2], &a[3], carry, &a[4], &a[5])
         .or_else(|e| refusal(e.code(), e.to_string()))
@@ -2844,7 +2868,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         }
         "study-loan-repayment" => engine::study_loan_repayment(&a[0], &a[1], &a[2]),
         "contribution-caps" => {
+            // Optional: the determination date, and the downsizer inputs.
             let date = optional(v, "determination_date", Raw)?;
+            let given = downsizer_inputs(v)?;
+            let downsizer = given.as_ref().map(|a| engine::DownsizerArgs {
+                given: a.each_ref(),
+            });
             engine::contribution_caps(
                 &a[0],
                 &a[1],
@@ -2854,9 +2883,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 &a[5],
                 &a[6],
                 date.as_ref(),
+                downsizer.as_ref(),
             )
         }
-        "pension-minimum" => engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4]),
+        "pension-minimum" => {
+            // Optional: whether the pension is a transition to retirement income stream.
+            let ttr = optional(v, "transition_to_retirement", Raw)?;
+            engine::pension_minimum(&a[0], &a[1], &a[2], &a[3], &a[4], ttr.as_ref())
+        }
         "ato-interest-penalties" => {
             // The question's own facts, by name, as JSON.
             let facts: serde_json::Map<String, Value> = v

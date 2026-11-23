@@ -4,6 +4,14 @@
 
 ### Added
 
+- `contribution-caps` takes 10 optional downsizer inputs, all or none, and
+  tests one downsizer contribution under ITAA 1997 s 292-102: age 55, a
+  contract from 1 July 2018, 90 days after the change of ownership and the
+  $300,000 and capital proceeds limits, with the other criteria stated.
+  `pension-minimum` takes an optional `transition_to_retirement` and adds the
+  10% maximum of SISR reg 6.01(2). Without the new inputs both commands answer
+  as before. New codes: `downsizer.contribution_before_settlement`,
+  `downsizer.date_outside_year` and `downsizer.settlement_before_contract`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an
