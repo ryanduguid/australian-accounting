@@ -2832,6 +2832,35 @@ fn medicare_working(
 const EXEMPTION_AUTHORITY: &str = "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day";
 const NON_RESIDENT_AUTHORITY: &str = "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(1)(d), (2) and (3): the share of the levy for each full exemption day, each non-resident day on which every dependant was also a prescribed person (a whole day: s 251U(3) gives no half under para (d)) and half of each half exemption day";
 
+/// The exemption's day counts as rates and values, in the order the result has
+/// always given them, and the full days' term and authority: with non-resident
+/// days, both name them.
+fn exemption_facts(
+    exemption: &Exemption,
+    values: &mut Vec<(&str, Decimal)>,
+    rates: &mut Vec<(String, String)>,
+) -> (&'static str, &'static str) {
+    let mut days = vec![
+        ("exemption_full_days", exemption.full),
+        ("exemption_half_days", exemption.half),
+    ];
+    let named = if exemption.non_resident > 0 {
+        days.push(("non_resident_days", exemption.non_resident));
+        (
+            "(exemption_full_days + non_resident_days)",
+            NON_RESIDENT_AUTHORITY,
+        )
+    } else {
+        ("exemption_full_days", EXEMPTION_AUTHORITY)
+    };
+    days.push(("days_in_year", exemption.days_in_year));
+    for (key, n) in days {
+        rates.push(rate(key, n));
+        values.push((key, int(n)));
+    }
+    named
+}
+
 /// The s 9(1) steps: the share of the levy before s 9 (`levy`: the levy times
 /// `scale` and its formula, times family income where the last is true) for
 /// the prescribed days, and the levy left.
@@ -2842,22 +2871,7 @@ fn exemption_working(
     rates: &mut Vec<(String, String)>,
 ) -> Calc<Vec<Step>> {
     let (before, scale, before_formula, times_family_income) = levy;
-    rates.push(rate("exemption_full_days", exemption.full));
-    rates.push(rate("exemption_half_days", exemption.half));
-    values.push(("exemption_full_days", int(exemption.full)));
-    values.push(("exemption_half_days", int(exemption.half)));
-    let (full_days, authority) = if exemption.non_resident > 0 {
-        rates.push(rate("non_resident_days", exemption.non_resident));
-        values.push(("non_resident_days", int(exemption.non_resident)));
-        (
-            "(exemption_full_days + non_resident_days)",
-            NON_RESIDENT_AUTHORITY,
-        )
-    } else {
-        ("exemption_full_days", EXEMPTION_AUTHORITY)
-    };
-    rates.push(rate("days_in_year", exemption.days_in_year));
-    values.push(("days_in_year", int(exemption.days_in_year)));
+    let (full_days, authority) = exemption_facts(exemption, &mut values, rates);
     let halves = if times_family_income {
         "family_income x 2 x days_in_year"
     } else {
