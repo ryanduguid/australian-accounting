@@ -738,10 +738,13 @@ fn cases() -> Vec<(&'static str, Value)> {
             .iter()
             .map(|facts| ("unused-leave-payment", leave(facts))),
     );
-    // FBT instalments: F1 kept, and a variation each way, the last with an
-    // earlier s 112A credit and an F3 below nil that becomes the 6B credit.
+    // FBT instalments: F1 kept; a first-quarter variation with no previous
+    // instalments or credits given; and a variation each way, the last with an
+    // earlier s 112A credit and an s 111(1) amount below nil that becomes the
+    // 6B credit.
     for facts in [
         json!({"quarter": 2, "ato_instalment": "5000.00"}),
+        json!({"quarter": 1, "estimated_tax": "2400.00", "reason_code": 30}),
         json!({"quarter": 3, "estimated_tax": "28000.00", "previous_instalments": "20000.00",
                "previous_credits": "0.00", "reason_code": 31}),
         json!({"quarter": 4, "estimated_tax": "12000.00", "previous_instalments": "15000.00",
