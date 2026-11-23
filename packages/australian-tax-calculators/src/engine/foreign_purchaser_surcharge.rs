@@ -14,6 +14,7 @@
 
 use serde_json::Value;
 
+use super::land_tax;
 use super::{
     Arg, Result, Step, d, derived_result, flag, int, money, precise, rate, refuse, scope, step,
     whole_dollars,
@@ -35,31 +36,6 @@ pub struct ForeignPurchaserSurchargeArgs<'a> {
     pub scope_confirmed: &'a Arg,
 }
 
-/// How a jurisdiction charges its land tax surcharge.
-enum Land {
-    /// No foreign owner land tax surcharge.
-    None(&'static str),
-    /// The rate on the whole value; `tens` rounds to 10 cents (Tasmania's s 7).
-    Flat {
-        rate: &'static str,
-        authority: &'static str,
-        tens: bool,
-    },
-    /// The rate on the whole value once it reaches `from` (Victoria).
-    From {
-        from: i64,
-        rate: &'static str,
-        authority: &'static str,
-    },
-    /// The rate on each dollar over `over`, from `from` (Queensland).
-    Over {
-        from: i64,
-        over: i64,
-        rate: &'static str,
-        authority: &'static str,
-    },
-}
-
 struct Place {
     code: &'static str,
     /// The duty surcharge rate and authority on residential property.
@@ -68,26 +44,22 @@ struct Place {
     primary: Option<(&'static str, &'static str)>,
     /// Why no duty surcharge is charged when none applies to the use.
     no_duty: &'static str,
-    land: Land,
+    /// Why no land tax surcharge is charged where `land-tax` has none.
+    no_land: Option<&'static str>,
     /// Whether the land tax surcharge is charged on residential land only.
     land_residential_only: bool,
 }
 
 const NSW_DUTY: &str = "Duties Act 1997 (NSW) s 104U(1) and (2): surcharge purchaser duty of 9% of the dutiable value of the residential-related property, or of the share transferred to foreign persons (AustLII, as at 29 June 2026), with Revenue NSW's 'What is surcharge purchaser duty', read on 24 November 2026";
-const NSW_LAND: &str = "Revenue NSW, 'What is surcharge land tax' (last updated 8 April 2026): 5% of the land value of the residential land a foreign person owns, from the 2025 land tax year, with no threshold, read on 23 and 24 November 2026; the Land Tax Act 1956 (NSW) could not be read";
 const VIC_DUTY: &str = "Duties Act 2000 (Vic) s 28A(2): additional duty of 8% of the dutiable value of the land-related interest in residential property transferred to a foreign purchaser (authorised version 141), with SRO Victoria's 'Calculating foreign purchaser additional duty', read on 24 November 2026";
-const VIC_LAND: &str = "Land Tax Act 2005 (Vic) Sch 1 Tables 4.5 and 1.6 for 2024 to 2033 (authorised version 086): the absentee owner rates less the general rates are 4% of the whole taxable value at every band from $50,000, and nil below it; SRO Victoria's 'Absentee individuals' (4% from the 2024 land tax year), read on 23 and 24 November 2026";
 const QLD_DUTY: &str = "Duties Act 2001 (Qld) s 244(2): additional foreign acquirer duty of 8% of the dutiable value to the extent of the acquirer's interest in AFAD residential land (current as at 22 October 2026), with the Queensland Revenue Office's AFAD page, read on 24 November 2026";
-const QLD_LAND: &str = "Land Tax Act 2010 (Qld) Sch 2 Pt 2 and Sch 3 Pt 2: nil below $350,000, then 3.0c for each $1 more than $349,999 (current reprint, read on 23 November 2026). The Queensland Revenue Office's pages give (taxable value - $350,000) x 3%, which is 3 cents less; the Act is applied";
 const WA_DUTY: &str = "Duties Act 2008 (WA) s 205O: foreign transfer duty of 7% of the dutiable value of the foreign dutiable transaction (AustLII), with the Department of Treasury and Finance's foreign transfer duty fact sheet (22 October 2026), read on 24 November 2026";
 const WA_LAND: &str = "Western Australia charges no foreign owner land tax surcharge (the Department of Treasury and Finance's 'About land tax', read on 24 November 2026)";
 const SA_DUTY: &str = "Stamp Duties Act 1923 (SA) s 72(3): a foreign ownership surcharge of 7% of the value of the interest acquired in residential land (version 15.9.2026), with RevenueSA's foreign ownership surcharge page, read on 24 November 2026";
 const SA_LAND: &str = "South Australia charges no foreign owner land tax surcharge (RevenueSA's land tax rates and thresholds, read on 24 November 2026)";
 const TAS_DUTY: &str = "Duties Act 2001 (Tas) s 30C(2): duty of 8% of the dutiable value of residential property acquired by a foreign person, for agreements from 1 April 2020, with the State Revenue Office's 'Rates of surcharge', read on 24 November 2026";
 const TAS_PRIMARY: &str = "Duties Act 2001 (Tas) s 30E(2): duty of 1.5% of the dutiable value of primary production property acquired by a foreign person, for agreements from 1 April 2020, with the State Revenue Office's 'Rates of surcharge', read on 24 November 2026";
-const TAS_LAND: &str = "Land Tax Rating Act 2000 (Tas) s 6A(2): foreign investor land tax of 2% of the assessed land value of the residential land it applies to, and s 7 rounding to 10 cents, read on 23 November 2026";
 const ACT_DUTY: &str = "The Taxation Administration (Amounts Payable—Duty) Determination 2026 (DI2026-155) sets no foreign purchaser rate: the ACT charges no foreign purchaser duty surcharge, read on 24 November 2026";
-const ACT_LAND: &str = "Land Tax Act 2004 (ACT) s 17E(3)(b), AUV x P, with DI2026-152 s 7: P is 0.75% of the base value, read on 23 November 2026, and the ACT Revenue Office's foreign ownership surcharge page (0.75% of the AUV a year), read on 24 November 2026";
 const NT_DUTY: &str = "The Stamp Duty Act 1978 (NT) charges no foreign purchaser duty surcharge (reprint REPS013), read on 24 November 2026";
 const NT_LAND: &str =
     "The Northern Territory has no land tax (NT.GOV.AU, 'Land taxes'), read on 24 November 2026";
@@ -100,11 +72,7 @@ const PLACES: [Place; 8] = [
         residential: Some(("0.09", NSW_DUTY)),
         primary: None,
         no_duty: RESIDENTIAL_ONLY,
-        land: Land::Flat {
-            rate: "0.05",
-            authority: NSW_LAND,
-            tens: false,
-        },
+        no_land: None,
         land_residential_only: true,
     },
     Place {
@@ -112,11 +80,7 @@ const PLACES: [Place; 8] = [
         residential: Some(("0.08", VIC_DUTY)),
         primary: None,
         no_duty: RESIDENTIAL_ONLY,
-        land: Land::From {
-            from: 50_000,
-            rate: "0.04",
-            authority: VIC_LAND,
-        },
+        no_land: None,
         land_residential_only: false,
     },
     Place {
@@ -124,12 +88,7 @@ const PLACES: [Place; 8] = [
         residential: Some(("0.08", QLD_DUTY)),
         primary: None,
         no_duty: RESIDENTIAL_ONLY,
-        land: Land::Over {
-            from: 350_000,
-            over: 349_999,
-            rate: "0.03",
-            authority: QLD_LAND,
-        },
+        no_land: None,
         land_residential_only: false,
     },
     Place {
@@ -137,7 +96,7 @@ const PLACES: [Place; 8] = [
         residential: Some(("0.07", WA_DUTY)),
         primary: None,
         no_duty: RESIDENTIAL_ONLY,
-        land: Land::None(WA_LAND),
+        no_land: Some(WA_LAND),
         land_residential_only: false,
     },
     Place {
@@ -145,7 +104,7 @@ const PLACES: [Place; 8] = [
         residential: Some(("0.07", SA_DUTY)),
         primary: None,
         no_duty: RESIDENTIAL_ONLY,
-        land: Land::None(SA_LAND),
+        no_land: Some(SA_LAND),
         land_residential_only: false,
     },
     Place {
@@ -153,11 +112,7 @@ const PLACES: [Place; 8] = [
         residential: Some(("0.08", TAS_DUTY)),
         primary: Some(("0.015", TAS_PRIMARY)),
         no_duty: "No duty surcharge: Tasmania charges it on residential and primary production property only",
-        land: Land::Flat {
-            rate: "0.02",
-            authority: TAS_LAND,
-            tens: true,
-        },
+        no_land: None,
         land_residential_only: true,
     },
     Place {
@@ -165,11 +120,7 @@ const PLACES: [Place; 8] = [
         residential: None,
         primary: None,
         no_duty: ACT_DUTY,
-        land: Land::Flat {
-            rate: "0.0075",
-            authority: ACT_LAND,
-            tens: false,
-        },
+        no_land: None,
         land_residential_only: true,
     },
     Place {
@@ -177,7 +128,7 @@ const PLACES: [Place; 8] = [
         residential: None,
         primary: None,
         no_duty: NT_DUTY,
-        land: Land::None(NT_LAND),
+        no_land: Some(NT_LAND),
         land_residential_only: false,
     },
 ];
@@ -187,7 +138,6 @@ const NOT_FOREIGN_PURCHASER: &str =
 const NOT_FOREIGN_OWNER: &str = "No land tax surcharge: the owner is not a foreign person or absentee under the jurisdiction's test";
 const LAND_RESIDENTIAL_ONLY: &str =
     "No land tax surcharge: this jurisdiction charges it on residential land only";
-const BELOW_THRESHOLD: &str = "No land tax surcharge: the value is below the threshold";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Use {
@@ -237,108 +187,38 @@ type Rates = Vec<(String, String)>;
 
 const LAND_ID: &str = "land_tax_surcharge";
 
-/// The land tax surcharge on `value` under `land`, its rates added to `rates`.
-fn charged(land: &Land, value: &Decimal, rates: &mut Rates) -> Result<Step> {
-    match *land {
-        Land::None(authority) => Ok(nil(LAND_ID, authority)),
-        Land::Flat {
-            rate: applied,
-            authority,
-            tens,
-        } => flat((applied, authority), tens, value, rates),
-        Land::From {
-            from,
-            rate: applied,
-            authority,
-        } => {
-            if value.lt(&int(from))? {
-                return Ok(nil(LAND_ID, BELOW_THRESHOLD));
-            }
-            flat((applied, authority), false, value, rates)
-        }
-        Land::Over {
-            from,
-            over,
-            rate: applied,
-            authority,
-        } => {
-            if value.lt(&int(from))? {
-                return Ok(nil(LAND_ID, BELOW_THRESHOLD));
-            }
-            let [applied, over] = [d(applied), int(over)];
-            rates.push(rate("land_tax_surcharge_rate", &applied));
-            rates.push(rate("land_tax_surcharge_threshold", &over));
-            let formula = "(land_value - land_tax_surcharge_threshold) x land_tax_surcharge_rate";
-            let amount = value.sub(&over)?.mul(&applied)?;
-            Ok(step(
-                LAND_ID,
-                authority,
-                formula,
-                &[value, &over, &applied],
-                amount,
-            ))
-        }
-    }
-}
-
-/// The rate on the whole value; `tens` rounds to 10 cents as Tasmania's s 7
-/// does: up to the next 10 cents when more than 5 cents remain, otherwise
-/// down.
-fn flat(
-    (applied, authority): (&str, &'static str),
-    tens: bool,
-    value: &Decimal,
-    rates: &mut Rates,
-) -> Result<Step> {
-    let applied = d(applied);
-    rates.push(rate("land_tax_surcharge_rate", &applied));
-    let mut amount = value.mul(&applied)?;
-    let mut formula = "land_value x land_tax_surcharge_rate";
-    if tens {
-        let tenths = amount.mul(&int(10))?.sub(&d("0.5"))?;
-        amount = ceiling(&tenths)?.div(&int(10))?;
-        formula = "dollars_up(land_value x land_tax_surcharge_rate x 10 - 0.5) / 10";
-        if amount.is_zero() {
-            // Nil land: nil, not the negative zero the ceiling gives.
-            amount = d("0");
-        }
-    }
-    Ok(step(
-        LAND_ID,
-        authority,
-        formula,
-        &[value, &applied],
-        amount,
-    ))
-}
-
-/// `amount` rounded up to the next whole number.
-fn ceiling(amount: &Decimal) -> Result<Decimal> {
-    let down = amount.quantize(0, crate::decimal::Rounding::Down)?;
-    Ok(if down.lt(amount)? {
-        down.add(&int(1))?
-    } else {
-        down
-    })
-}
-
-/// The land tax surcharge step.
+/// The land tax surcharge's steps, the last `land_tax_surcharge`, worked by
+/// `land-tax`'s own tables with each value it names read as `land_value`.
 fn land(
     place: &Place,
     (property, foreign): (Use, bool),
     value: &Decimal,
     rates: &mut Rates,
-) -> Result<Step> {
-    if matches!(place.land, Land::None(_)) {
-        return charged(&place.land, value, rates);
+) -> Result<Vec<Step>> {
+    let why = match place.no_land {
+        Some(why) => why,
+        None if !foreign => NOT_FOREIGN_OWNER,
+        None if place.land_residential_only && property != Use::Residential => {
+            LAND_RESIDENTIAL_ONLY
+        }
+        None => "",
+    };
+    if !why.is_empty() {
+        return Ok(vec![nil(LAND_ID, why)]);
     }
-    if !foreign {
-        return Ok(nil(LAND_ID, NOT_FOREIGN_OWNER));
+    let found = land_tax::surcharge_alone(place.code, value)?;
+    let (mut steps, applied) = found.expect("land-tax has each charged surcharge");
+    rates.extend(applied);
+    for step in &mut steps {
+        step.formula = step
+            .formula
+            .replace("taxable_value", "land_value")
+            .replace("surcharge_value", "land_value");
     }
-    if place.land_residential_only && property != Use::Residential {
-        return Ok(nil(LAND_ID, LAND_RESIDENTIAL_ONLY));
+    if let Some(last) = steps.last_mut() {
+        last.id = LAND_ID.into();
     }
-    charged(&place.land, value, rates)
+    Ok(steps)
 }
 
 /// The jurisdiction for `jurisdiction`.
@@ -411,7 +291,9 @@ pub fn foreign_purchaser_surcharge(args: &ForeignPurchaserSurchargeArgs) -> Resu
         let mut rates = Vec::new();
         let duty = duty(place, (property, purchaser), &value, &mut rates)?;
         let land = land(place, (property, foreign_owner), &land_value, &mut rates)?;
-        Ok((vec![duty, land], rates))
+        let mut steps = vec![duty];
+        steps.extend(land);
+        Ok((steps, rates))
     })?;
     derived_result(KIND, &year, steps, rates)
 }

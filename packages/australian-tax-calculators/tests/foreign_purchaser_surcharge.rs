@@ -392,11 +392,21 @@ fn the_steps_show_their_working() {
         working(input("qld", "residential", "400000", true, "400000", true)),
         [
             "dutiable_value x duty_surcharge_rate = 400000 x 0.08 = 32000.00",
-            "(land_value - land_tax_surcharge_threshold) x land_tax_surcharge_rate = (400000 - 349999) x 0.03 = 1500.03",
+            "surcharge_base + (land_value - surcharge_threshold) x surcharge_rate = 0 + (400000 - 349999) x 0.03 = 1500.03",
         ]
     );
     assert_eq!(
         working(input("tas", "residential", "400001", true, "400003", true))[1],
-        "dollars_up(land_value x land_tax_surcharge_rate x 10 - 0.5) / 10 = dollars_up(400003 x 0.02 x 10 - 0.5) / 10 = 8000.1"
+        "tens(land_value x surcharge_rate) = tens(400003 x 0.02) = 8000.10"
+    );
+    // Victoria's is the absentee owner rates less the general rates, as
+    // land-tax works it.
+    assert_eq!(
+        working(input("vic", "residential", "400000", true, "1000000", true))[1..],
+        [
+            "base + (land_value - threshold) x rate = 4650 + (1000000 - 1000000) x 0.009 = 4650.000",
+            "absentee_base + (land_value - absentee_threshold) x absentee_rate = 44650 + (1000000 - 1000000) x 0.049 = 44650.000",
+            "absentee_rate_tax - land_tax = 44650.000 - 4650.000 = 40000.000",
+        ]
     );
 }
