@@ -3956,6 +3956,73 @@ from the provisions: the 53% rounding, excess concessional contributions,
 the FHSS amount, family trust distribution amounts, child support and
 business deductions.
 
+## Residential vacancy fee
+
+`residential_vacancy_fee` was checked on 24 November 2026 against the Foreign
+Acquisitions and Takeovers Act 1975 Part 6A (ss 115A to 115T) and s 4
+definitions in compilation 35 (`C2025C00672`, 5 December 2025); the Foreign
+Acquisitions and Takeovers Regulation 2015 Division 4A (ss 43C and 43D) in
+compilation 20 (`F2025C01038`, 1 November 2025); the Foreign Acquisitions and
+Takeovers Fees Imposition Act 2015 ss 5 to 9 in compilations 4 (`C2021C00021`,
+1 January 2021), 5 (`C2022C00334`, 6 December 2022) and 6 (`C2024C00141`,
+9 April 2024); the Foreign Acquisitions and Takeovers Fees Imposition Amendment
+Act 2024 (No. 17, 2024, `C2024A00017`, Schedule 2); the Foreign Acquisitions
+and Takeovers Fees Imposition Regulations 2020 Part 2 Division 2 (ss 8 to 11),
+Part 3 (ss 42 to 46), ss 53, 57, 59 to 61A and 67 in compilations 1
+(`F2021C00683`), 2 (`F2022C00757`) and 4 (`F2024C01252`, 10 December 2024);
+the ATO's 'Vacancy fee return for foreign owners', 'Residential fees for a
+foreign person', 'Request waiver of an application fee', 'Types of property a
+foreign person can buy' and 'Consumer price index' pages; and Treasury's
+Guidance Note 6: Residential Land (v5, 1 July 2026), Guidance Note 10: Fees
+(v12, 18 September 2026) and Schedule of Fees (v8, June 2026).
+
+Statutory indexation across all 9 verified residential fee periods from
+1 January 2021 to 30 June 2027 (Fees Regulations ss 59 to 61 and Fees Act
+ss 7 to 9, All Groups CPI weighted average of 8 capital cities):
+
+| Effective period | Factor | Below $75,000 (s 53) | Up to $1m (s 10 item 1) | Step per $1m (s 10 items 2 to 3) | Residential cap | Statutory cap (Act s 6(3)) | Established 3x |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 Jan 2021 to 30 Jun 2021 | 1.000 | $2,000 | $6,350 | $12,700 | $500,000 | $1,000,000 | No |
+| 1 Jul 2021 to 30 Jun 2022 | 1.006 | $2,000 | $6,350 | $12,700 | $503,000 | $1,006,000 | No |
+| 1 Jul 2022 to 28 Jul 2022 | 1.045 | $2,000 | $6,600 | $13,200 | $522,500 | $1,045,000 | No |
+| 29 Jul 2022 to 30 Jun 2023 | 1.000 | $4,000 | $13,200 | $26,400 | $1,045,000 | $1,045,000 | No |
+| 1 Jul 2023 to 8 Apr 2024 | 1.071 | $4,200 | $14,100 | $28,200 | $1,119,100 | $1,119,100 | No |
+| 9 Apr 2024 to 30 Jun 2024 | 1.000 | $4,200 | $14,100 | $28,200 | $1,119,100 | $7,000,000 | Yes |
+| 1 Jul 2024 to 30 Jun 2025 | 1.047 | $4,300 | $14,700 | $29,500 | $1,171,600 | $7,329,000 | Yes |
+| 1 Jul 2025 to 30 Jun 2026 | 1.077 | $4,500 | $15,100 | $30,300 | $1,205,200 | $7,539,000 | Yes |
+| 1 Jul 2026 to 30 Jun 2027 | 1.113 | $4,600 | $15,600 | $31,300 | $1,245,500 | $7,791,000 | Yes |
+
+Choices the law leaves to the reader and boundaries refused:
+- FATA s 115C(1) triggers liability when a dwelling is residentially occupied
+  for fewer than 183 days in the vacancy year; in a 366-day leap year, 183
+  occupied days is not liable despite leaving 183 vacant days.
+- Occupancy, genuine rental availability (minimum 30-day terms), lodgment
+  timing and FATR s 43D exemption evidence are the operator's facts.
+- Build-to-rent developments receive case-by-case commercial-rate waivers
+  under FATA s 115 and bespoke Treasury reporting conditions (GN6 Section I,
+  GN10 Section L) and are refused, along with partial application fee waivers
+  and discretionary FATA s 115H vacancy fee waivers or remissions.
+- Consideration below $75,000 under a developer exemption certificate hits the
+  unsettled boundary between Fees Regulations s 44(2) (Division 2 of Part 2)
+  and s 53(1) (de minimis rule despite Part 2) and is refused.
+- Fees Regulations s 57(2) apportions a tenant in common's fee by ownership
+  share without stating a rounding rule; the worksheet rounds half up to cents.
+- For 2026-27 vacancy years ending in 2027-28, Fees Act s 7(3) guarantees the
+  2027-28 statutory cap cannot fall below the 2026-27 `$7,791,000` cap, so
+  fees at or below `$7,791,000` (including the `$7,473,000` maximum for an
+  established dwelling) are verified uncapped whilst any higher uncapped fee
+  is refused (`cap_unsettled`).
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Myeong, $850,000 new townhouse, $13,200 fee, 1 Aug 2022 and 1 Aug 2023 starts | ATO: $13,200 | $13,200.00 |
+| Myeong, 1 Aug 2024 to 31 Jul 2025 | ATO: $26,400 (doubled) | $26,400.00 |
+| Edmond, 5 Oct 2022 start | ATO: ends 4 Oct 2023, due 3 Nov 2023 | 2023-10-04, due 2023-11-03 |
+| Rishi, $31,300 exemption certificate, 2 Nov 2026 start | ATO: ends 1 Nov 2027, due 1 Dec 2027, $62,600 | $62,600.00 |
+| GN10 Example 34, $1.5m established, 2 Jul 2024, settled 15 Aug 2024 | Treasury GN10: $88,500 app fee, $177,000 vacancy fee | $88,500.00 / $177,000.00 |
+| Sara, 25% tenant in common of $1.5m new dwelling, 1 Aug 2026 | ATO: $7,825 app fee ($15,650 doubled vacancy fee) | $7,825.00 / $15,650.00 |
+| GN6 Example 27, Nikolai, 250 days occupied, late return | Treasury GN6: deemed liable (FATA s 115D(3)) | `deemed_liable_late_return` |
+
 ## Foreign resident withholding
 
 `foreign_resident_withholding` was checked on 22 November 2026 against TAA 1953

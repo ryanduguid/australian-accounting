@@ -315,6 +315,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
     ),
     (
+        "residential_vacancy_fee",
+        "Australian federal annual vacancy fee for one foreign-owned residential dwelling for one vacancy year starting in 2020-21 to 2026-27 under FATA 1975 Part 6A (ss 115A to 115T), FATR 2015 Div 4A (ss 43C and 43D), Fees Imposition Act 2015 ss 5 to 9 and Fees Imposition Regulations 2020 Part 3 (ss 42 to 46). Occupancy, return lodgment timing, FATR s 43D exemptions and acquisition basis are the operator's facts; build-to-rent developments, partial application fee waivers, discretionary s 115H waivers or remissions, s 45(b) waived other exemption certificates and state vacant residential land taxes are outside this worksheet.",
+    ),
+    (
         "foreign_resident_withholding",
         "Foreign resident capital gains withholding only: the amount a purchaser pays the Commissioner under TAA 1953 Sch 1 s 14-200 on acquiring taxable Australian real property or a company title interest from one or more vendors, the acquisition (contract) date from 1 July 2017 to 30 June 2027, at 12.5% with the $750,000 market value exclusion before 1 January 2025 and 15% with none from then; clearance certificates, notices of variation (varied rate and maximum price), class variations to nil and s 14-215 exclusions are stated facts. Excludes other indirect Australian real property interests, options or rights as the asset, look-through earnouts (s 14-205), and interest, dividend, royalty, managed investment trust and s 12-315 withholding.",
     ),
@@ -829,6 +833,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "rental_property",
         "https://www.ato.gov.au/forms-and-instructions/rental-properties-2026",
+    ),
+    (
+        "residential_vacancy_fee",
+        "https://www.legislation.gov.au/C2004A01402/latest/text",
     ),
     (
         "foreign_resident_withholding",
@@ -1744,6 +1752,19 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "residential_vacancy_fee",
+        &[
+            "https://www.legislation.gov.au/C2015A00152/latest/text",
+            "https://www.legislation.gov.au/C2024A00017/asmade/text",
+            "https://www.legislation.gov.au/F2020L01648/latest/text",
+            "https://www.legislation.gov.au/F2015L01854/latest/text",
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/foreign-resident-investments/foreign-investment-in-australia/vacancy-fee-return-for-foreign-owners",
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/foreign-resident-investments/foreign-investment-in-australia/fees-for-foreign-residential-investors",
+            "https://foreigninvestment.gov.au/guidance/general/fees",
+            "https://foreigninvestment.gov.au/guidance/types-investments/residential-land",
+        ],
+    ),
+    (
         "foreign_resident_withholding",
         &[
             "https://www.legislation.gov.au/C2017A00057/asmade/text",
@@ -2161,6 +2182,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Each line is the operator's classification: an expense that is capital, an initial repair or an improvement is not deductible under s 8-1 and goes to the cost base or capital works instead.",
             "The amounts are to the cent; a return shows whole dollars, and the ATO's examples round the same figures to the dollar.",
+        ],
+    ),
+    (
+        "residential_vacancy_fee",
+        &[
+            "An annual vacancy fee return must be lodged through ATO Online services for foreign investors within 30 days after the end of each completed vacancy year, even where the dwelling was occupied for 183 or more days or qualifies for a FATR 2015 s 43D exemption (FATA 1975 s 115D(1), civil penalty 500 penalty units).",
+            "Short-term leases or holiday rentals with terms under 30 days do not count as residential occupation under FATA 1975 s 115C(4); established dwellings acquired as a principal place of residence cannot be rented out under standard approval conditions.",
+            "Records explaining vacancy fee liability must be kept in English (or readily convertible to English) for at least 5 years after the end of each vacancy year (FATA 1975 s 115G(1), civil penalty 500 penalty units). For tenants in common, Fees Regulations s 57(2) apportions the fee by ownership share without a statutory rounding rule; this worksheet rounds to the nearest cent half up.",
         ],
     ),
     (
@@ -3851,7 +3880,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, residential-vacancy-fee, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4415,6 +4444,74 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "residency_tests.treaty_tie_breaker",
         "The individual is a resident under ITAA 1936 s 6(1) and also of another country under its law; a tax treaty's tie-breaker may apply, and the worksheet does not apply treaties.",
+    ),
+    (
+        "residential_vacancy_fee.acquisition_basis_invalid",
+        "acquisition_basis is not notifiable_action, developer_exemption_certificate, other_exemption_certificate, no_notice_order or build_to_rent.",
+    ),
+    (
+        "residential_vacancy_fee.application_date_unsupported",
+        "application_date is missing, outside 2021-01-01 to 2027-06-30, or after vacancy_year_start for a notified acquisition or developer exemption certificate.",
+    ),
+    (
+        "residential_vacancy_fee.application_fee_invalid",
+        "application_fee_payable is nil, missing for other_exemption_certificate, or combined with incompatible schedule or waiver inputs.",
+    ),
+    (
+        "residential_vacancy_fee.build_to_rent_unsupported",
+        "Build-to-rent developments receive case-by-case commercial-rate fee waivers under FATA s 115 and bespoke Treasury vacancy-fee reporting conditions.",
+    ),
+    (
+        "residential_vacancy_fee.cap_unsettled",
+        "The uncapped vacancy fee exceeds the verified statutory fee cap floor whilst the payable window crosses a cap change or enters an unindexed financial year.",
+    ),
+    (
+        "residential_vacancy_fee.consideration_invalid",
+        "consideration is nil, missing when deriving the notional residential application fee, or supplied with a full waiver.",
+    ),
+    (
+        "residential_vacancy_fee.date_outside_year",
+        "vacancy_year_start is outside the stated financial year.",
+    ),
+    (
+        "residential_vacancy_fee.days_invalid",
+        "residentially_occupied_days is not a JSON integer from 0 to the number of days in the vacancy year.",
+    ),
+    (
+        "residential_vacancy_fee.de_minimis_developer_ec_unsettled",
+        "Consideration below $75,000 under a developer exemption certificate hits the unsettled boundary between Fees Regulations s 44(2) and s 53(1).",
+    ),
+    (
+        "residential_vacancy_fee.discretionary_waiver_unsupported",
+        "Discretionary waiver or remission of a vacancy fee under FATA s 115H is decided case by case by the Treasurer or Commissioner.",
+    ),
+    (
+        "residential_vacancy_fee.dwelling_kind_invalid",
+        "dwelling_kind is missing, not new_or_near_new or established, or established was given for a developer exemption certificate.",
+    ),
+    (
+        "residential_vacancy_fee.exemption_invalid",
+        "exemption is not null or one of the four FATR 2015 s 43D exemption grounds.",
+    ),
+    (
+        "residential_vacancy_fee.other_ec_waiver_unsupported",
+        "A fully waived other exemption certificate fee under Fees Regulations s 45(b) depends on the specific Division 7 certificate kind and lowest fee.",
+    ),
+    (
+        "residential_vacancy_fee.ownership_invalid",
+        "ownership is not sole, joint_tenants or tenants_in_common, or ownership_share is missing, out of range or given for sole or joint_tenants.",
+    ),
+    (
+        "residential_vacancy_fee.partial_waiver_unsupported",
+        "Partial waivers of the original application fee fall outside Fees Regulations Part 3's full-waiver substitution rules.",
+    ),
+    (
+        "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
+        "A pre-9 April 2024 vacancy year with a waived application fee has its 30-day return window crossing a change in the s 10 item 1 fee.",
+    ),
+    (
+        "residential_vacancy_fee.waiver_invalid",
+        "application_fee_waiver is not none, full or partial, or full was given for a developer exemption certificate.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",

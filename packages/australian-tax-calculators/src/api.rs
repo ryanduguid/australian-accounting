@@ -936,6 +936,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "residential-vacancy-fee",
+        &[
+            ("vacancy_year_start", Raw),
+            ("held_full_vacancy_year", Raw),
+            ("residentially_occupied_days", Raw),
+            ("return_lodged_on_time", Raw),
+            ("exemption", Raw),
+            ("acquisition_basis", Raw),
+            ("ownership", Raw),
+            ("application_fee_waiver", Raw),
+            ("vacancy_fee_waiver_or_remission", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "foreign-resident-withholding",
         &[
             ("payment", Raw),
@@ -1398,7 +1414,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1481,6 +1497,7 @@ const DERIVED: [&str; 82] = [
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
+    "residential-vacancy-fee",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1909,6 +1926,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "government-super-amounts"
             | "rental-property"
             | "foreign-resident-withholding"
+            | "residential-vacancy-fee"
             | "horticulture-shearing-withholding"
             | "upward-variation-withholding"
             | "daily-casual-withholding"
@@ -2898,6 +2916,31 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 other_taxable_income: other.as_ref(),
                 year: &a[12],
                 scope_confirmed: &a[13],
+            })
+        }
+        "residential-vacancy-fee" => {
+            let given = engine::RESIDENTIAL_VACANCY_FEE_OPTIONAL.map(|key| {
+                let kind = match key {
+                    "application_fee_payable" | "consideration" => Dec,
+                    _ => Raw,
+                };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?];
+            engine::residential_vacancy_fee(&engine::ResidentialVacancyFeeArgs {
+                vacancy_year_start: &a[0],
+                held_full_vacancy_year: &a[1],
+                residentially_occupied_days: &a[2],
+                return_lodged_on_time: &a[3],
+                exemption: &a[4],
+                acquisition_basis: &a[5],
+                ownership: &a[6],
+                application_fee_waiver: &a[7],
+                vacancy_fee_waiver_or_remission: &a[8],
+                year: &a[9],
+                scope_confirmed: &a[10],
+                optional: given.each_ref().map(Option::as_ref),
             })
         }
         "foreign-resident-withholding" => {

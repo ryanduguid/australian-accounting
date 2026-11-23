@@ -1436,6 +1436,14 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // TAA Sch 1 s 14-200 from 1 July 2017 (Act No. 57 of 2017) to 30 June
         // 2027; 15% and no threshold from 1 January 2025 (Act No. 135 of 2024).
+        // FATA 1975 Part 6A (ss 115A to 115T) and Fees Imposition Regulations
+        // 2020 Part 3 (commenced 1 January 2021, s 62): vacancy years starting
+        // in 2020-21 to 2026-27 (each ending on or after 30 June 2021), with
+        // doubled fees for vacancy years starting on or after 9 April 2024
+        // (Act No. 17 of 2024 Sch 2, Regs s 67(2)).
+        "residential_vacancy_fee" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "foreign_resident_withholding" => vec![
             "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
             "2025-26", "2026-27",
@@ -1852,6 +1860,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "rental_property" => (
             "2026-11-22",
             "ITAA 1997 ss 6-5, 8-1, 26-31, 26-102, 40-27, 43-10, 43-15, 43-20, 43-25, 43-80, 43-140, 43-145, 43-210, 43-215, 43-220, 43-230, 43-235 and 43-240 on the ATO's legal database, with the amendment history of compilation 264 (21 May 2026); Treasury Laws Amendment (Housing Tax Integrity) Act 2017 (No. 126, 2017) Schedule 1 and Schedule 2 item 13; TR 2000/2 paragraphs 13 to 26; TR 93/32 paragraphs 6 and 11 to 13; ATO Rental properties guide 2026 (NAT 1729-06.2026, current at 1 June 2026): the time-based method, Tables 1 and 2 and Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40; s 25-25 through borrowing-expenses-schedule (checked 19 November 2026) and the resident scale through resident-tax",
+        ),
+        "residential_vacancy_fee" => (
+            "2026-11-24",
+            "FATA 1975 Part 6A (ss 115A to 115T), compilation 35 (C2025C00672, 5 December 2025); FATR 2015 Div 4A (ss 43C and 43D), compilation 20 (F2025C01038, 1 November 2025); Fees Imposition Act 2015 ss 5 to 9, compilations 4 to 6 (C2021C00021, C2022C00334, C2024C00141); Fees Imposition Amendment Act 2024 (No. 17, 2024, C2024A00017); Fees Imposition Regulations 2020 Part 2 Div 2, Part 3 (ss 42 to 46), ss 53, 57, 59 to 61A and 67, compilations 1, 2 and 4 (F2021C00683, F2022C00757, F2024C01252); ATO Vacancy fee return for foreign owners and Residential fees for a foreign person pages; Treasury Guidance Note 6 (v5, 1 July 2026), Guidance Note 10 (v12, 18 September 2026) and Schedule of Fees (v8, June 2026)",
         ),
         "foreign_resident_withholding" => (
             "2026-11-22",
@@ -2326,6 +2338,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40 and Tables 1 and 2",
             "2026-05-30",
             "2026-11-22",
+        ),
+        "residential_vacancy_fee" => (
+            "ATO Vacancy fee return for foreign owners and Residential fees for a foreign person pages; Treasury Guidance Notes 6 (v5) and 10 (v12)",
+            "Myeong ($13,200 pre-9 April 2024, $26,400 from 1 August 2024), Edmond (vacancy year and 30-day due date), Rishi ($62,600 for 2026-27 exemption certificate), Sara (25% tenant in common), GN10 Example 34 ($88,500 to $177,000 established dwelling) and GN6 Examples 23 to 27 (short-stay exclusion and late-return deemed liability)",
+            "2026-09-18",
+            "2026-11-24",
         ),
         "foreign_resident_withholding" => (
             "ATO foreign resident capital gains withholding pages",
@@ -3927,6 +3945,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean: the amounts the command reduces by 20% (every amount for 2024-25 under HESA s 140-26, and earlier_debts incurred from 1 January to 1 June 2025 under s 137-19A) already include that reduction; true is then refused, as the command applies it itself, and has no effect otherwise",
             ),
         ],
+        "residential_vacancy_fee" => vec![
+            (
+                "application_fee_payable",
+                "AUD above nil: the original foreign investment application fee payable by this owner (Fees Regulations ss 43(a), 45(a) or 46(a), already apportioned if tenants_in_common); omit when deriving from consideration or when application_fee_waiver is full",
+            ),
+            (
+                "consideration",
+                "AUD above nil: consideration for acquiring the residential land interest, used with dwelling_kind and application_date to derive the statutory application fee under Fees Regulations Part 2 Div 2 and s 53 (required for developer_exemption_certificate; omit with application_fee_payable or full waiver)",
+            ),
+            (
+                "dwelling_kind",
+                "new_or_near_new or established (required when deriving from consideration or for a post-9 April 2024 full waiver; established is refused for developer_exemption_certificate)",
+            ),
+            (
+                "application_date",
+                "YYYY-MM-DD from 2021-01-01 to 2027-06-30: date the notice or application was given (or date of acquisition for developer_exemption_certificate); required when deriving from consideration or for a post-9 April 2024 full waiver",
+            ),
+            (
+                "ownership_share",
+                "decimal string strictly between 0 and 1: this tenant in common's share of the interest (Fees Regulations s 57(2)); required for tenants_in_common when deriving from the schedule or under a full waiver, omitted otherwise",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4047,6 +4087,17 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("borrowing_loans", "list of objects as borrowing-expenses-schedule takes loans, your own borrowing expenses only; empty for none"),
             ("capital_works", "list of objects, the whole property's, each with construction_expenditure (AUD, given, never derived), kind (building or structural_improvement), began and first_used (YYYY-MM-DD) and taken_to_begin_before_16_september_1987 (boolean, s 43-220(1)(a) or (b); required for a building begun after 15 September 1987)"),
             ("depreciating_assets", "list of objects, the whole property's, each with decline_in_value (AUD from its start time to the end of the days held, before any private use reduction), acquired (YYYY-MM-DD, when you acquired it or entered into the contract under which you did, if earlier: Act No. 126 of 2017 Schedule 2 item 13), first_used (YYYY-MM-DD, its start time, first used or installed ready for use), held_when_first_used, residence_or_private_use and low_value_pool (booleans), and new_premises_exception (boolean, for an asset not held when first used) and deductible_in_2016_17 (boolean, for an asset acquired before 9 May 2017) where needed (s 40-27)"),
+        ],
+        "residential_vacancy_fee" => vec![
+            ("vacancy_year_start", "YYYY-MM-DD inside the stated financial year: the first day of this 12-month vacancy year (occupation day or its anniversary, FATA 1975 s 115C(2) and (3))"),
+            ("held_full_vacancy_year", "boolean: whether the owner continuously held the residential land interest as a foreign person for the entire 12-month vacancy year (false if sold, transferred, deceased or ceased to be a foreign person during the year)"),
+            ("residentially_occupied_days", "JSON integer from 0 to days in the vacancy year (365 or 366): distinct days the dwelling was residentially occupied by the owner or a relative, occupied under a lease or licence of at least 30 days, or genuinely available on the rental market for terms of at least 30 days (FATA s 115C(4); excludes short-term stays under 30 days)"),
+            ("return_lodged_on_time", "boolean: whether the annual vacancy fee return was lodged within 30 days after the end of the vacancy year (FATA s 115D(1); false deems liability under s 115D(3) and overrides FATR s 43D exemptions)"),
+            ("exemption", "null, or the FATR 2015 s 43D(2) exemption ground supported by evidence: damaged_unsafe_or_unsuitable, substantial_repairs_or_renovations, legal_restriction_or_court_order or medical_or_residential_care"),
+            ("acquisition_basis", "notifiable_action (Fees Regulations s 43), developer_exemption_certificate (s 44), other_exemption_certificate (s 45), no_notice_order (s 46) or build_to_rent (refused)"),
+            ("ownership", "sole, joint_tenants (FATA s 115D(4), Fees Regulations s 57(1)) or tenants_in_common (s 57(2))"),
+            ("application_fee_waiver", "none, full (Fees Regulations ss 43(b) and 46(b)) or partial (refused)"),
+            ("vacancy_fee_waiver_or_remission", "boolean: true if relying on a discretionary Treasurer or Commissioner waiver or remission under FATA s 115H (refused)"),
         ],
         "foreign_resident_withholding" => vec![
             ("payment", "capital_gains: foreign resident capital gains withholding (TAA Sch 1 s 14-200); any other payment is refused"),
@@ -5550,6 +5601,22 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // The ATO's multiple vendor example: Zac (foreign resident, no
         // document) and Jen (clearance certificate) sell a $1 million property
         // in equal shares under a contract of 1 February 2025.
+        // The ATO's Myeong example (Vacancy fee return for foreign owners):
+        // $850,000 new townhouse settled 1 August 2022, $13,200 application fee,
+        // vacancy year 1 August 2024 to 31 July 2025 -> doubled fee $26,400.
+        "residential_vacancy_fee" => vec![
+            ("year", Text("2024-25")),
+            ("vacancy_year_start", Text("2024-08-01")),
+            ("held_full_vacancy_year", Flag(true)),
+            ("residentially_occupied_days", Whole(120)),
+            ("return_lodged_on_time", Flag(true)),
+            ("exemption", Json("null")),
+            ("acquisition_basis", Text("notifiable_action")),
+            ("ownership", Text("sole")),
+            ("application_fee_waiver", Text("none")),
+            ("vacancy_fee_waiver_or_remission", Flag(false)),
+            ("application_fee_payable", Text("13200.00")),
+        ],
         "foreign_resident_withholding" => vec![
             ("year", Text("2024-25")),
             ("payment", Text("capital_gains")),

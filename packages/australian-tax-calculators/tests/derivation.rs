@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 81] = [
+const DERIVED: [&str; 82] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -100,6 +100,7 @@ const DERIVED: [&str; 81] = [
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
+    "residential-vacancy-fee",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -757,6 +758,67 @@ fn cases() -> Vec<(&'static str, Value)> {
             .unwrap()
             .extend(facts.as_object().unwrap().clone());
         cases.push(("fbt-instalment", input));
+    }
+    // Residential vacancy fee: stated fee (Myeong pre- and post-9 April 2024),
+    // schedule-derived established dwelling (GN10 Example 34), tenants in common
+    // (Sara 25% share), waived full fee, occupied >= 183 days, exempt, late return
+    // override, and 2026-27 exemption certificate (Rishi).
+    for facts in [
+        json!({
+            "year": "2023-24", "vacancy_year_start": "2023-08-01", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 100, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "13200.00", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2024-25", "vacancy_year_start": "2024-08-15", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 79, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "consideration": "1500000.00", "dwelling_kind": "established",
+            "application_date": "2024-07-02", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2026-27", "vacancy_year_start": "2026-08-01", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 0, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "developer_exemption_certificate", "ownership": "tenants_in_common",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "consideration": "1500000.00", "dwelling_kind": "new_or_near_new",
+            "application_date": "2026-08-01", "ownership_share": "0.25", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2026-27", "vacancy_year_start": "2026-11-02", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 100, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "other_exemption_certificate", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "31300.00", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2025-26", "vacancy_year_start": "2025-07-10", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 183, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "full", "vacancy_fee_waiver_or_remission": false,
+            "dwelling_kind": "new_or_near_new", "application_date": "2025-07-01",
+            "scope_confirmed": true
+        }),
+        json!({
+            "year": "2025-26", "vacancy_year_start": "2025-07-10", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 50, "return_lodged_on_time": true,
+            "exemption": "substantial_repairs_or_renovations",
+            "acquisition_basis": "notifiable_action", "ownership": "joint_tenants",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "15100.00", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2025-26", "vacancy_year_start": "2025-07-10", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 250, "return_lodged_on_time": false, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "15100.00", "scope_confirmed": true
+        }),
+    ] {
+        cases.push(("residential-vacancy-fee", facts));
     }
     cases
 }
@@ -2467,7 +2529,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, residential-vacancy-fee, not \"payg-gross-up\""
     );
 }
 

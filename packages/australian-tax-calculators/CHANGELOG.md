@@ -4,6 +4,35 @@
 
 ### Added
 
+- `residential-vacancy-fee` works out the Australian federal annual vacancy fee
+  for a foreign owner of a residential dwelling for vacancy years starting in
+  2020-21 to 2026-27 under FATA 1975 Part 6A (ss 115A to 115T), FATR 2015
+  Division 4A (ss 43C and 43D), Fees Imposition Act 2015 ss 5 to 9 and Fees
+  Imposition Regulations 2020 Part 3 (ss 42 to 46), with the 183-day occupancy
+  test, late-return deemed liability (s 115D(3) and FATR s 43D(4)), 9 April
+  2024 fee doubling (s 67(2)), established dwelling 3x tripling (ss 10(2) and
+  53(1)(c)), 9 verified indexed schedules from 1 January 2021 to 30 June 2027,
+  joint tenancy and tenants in common apportionment (s 57), full-waiver
+  substitution (ss 43(b) and 46(b)), statutory fee cap (Act s 6(3), Regs
+  s 61A) and `derive` steps. New codes:
+  `residential_vacancy_fee.acquisition_basis_invalid`,
+  `residential_vacancy_fee.application_date_unsupported`,
+  `residential_vacancy_fee.application_fee_invalid`,
+  `residential_vacancy_fee.build_to_rent_unsupported`,
+  `residential_vacancy_fee.cap_unsettled`,
+  `residential_vacancy_fee.consideration_invalid`,
+  `residential_vacancy_fee.date_outside_year`,
+  `residential_vacancy_fee.days_invalid`,
+  `residential_vacancy_fee.de_minimis_developer_ec_unsettled`,
+  `residential_vacancy_fee.discretionary_waiver_unsupported`,
+  `residential_vacancy_fee.dwelling_kind_invalid`,
+  `residential_vacancy_fee.exemption_invalid`,
+  `residential_vacancy_fee.other_ec_waiver_unsupported`,
+  `residential_vacancy_fee.ownership_invalid`,
+  `residential_vacancy_fee.partial_waiver_unsupported`,
+  `residential_vacancy_fee.pre_2024_waiver_boundary_unsettled` and
+  `residential_vacancy_fee.waiver_invalid`. `tests/residential_vacancy_fee.rs`
+  holds it to the ATO's and Treasury's examples.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an
