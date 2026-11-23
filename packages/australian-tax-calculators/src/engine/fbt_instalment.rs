@@ -145,9 +145,30 @@ const VARIATION_STEPS: [(&str, &str, &str); 6] = [
     ("credit", CREDIT, "max(0 - instalment_formula, 0)"),
 ];
 
+/// The s 111(1) formula's working and operands: a previous amount not given
+/// is nil and shows as 0, as `derive` names only the inputs given.
+fn net_working<'a>(
+    share: &'a Decimal,
+    previous: [&'a Decimal; 2],
+    given: [bool; 2],
+) -> (String, Vec<&'a Decimal>) {
+    let mut net = NET_FORMULA.to_string();
+    let mut operands = vec![share];
+    for ((name, value), given) in ["previous_instalments", "previous_credits"]
+        .into_iter()
+        .zip(previous)
+        .zip(given)
+    {
+        if given {
+            operands.push(value);
+        } else {
+            net = net.replace(name, "0");
+        }
+    }
+    (net, operands)
+}
+
 /// The s 111(1) formula with s 110(5), then F3 (and 6A) and the 6B credit.
-/// A previous amount not given is nil and its working shows 0, as `derive`
-/// names only the inputs given.
 fn variation_steps(
     estimate: &Decimal,
     fraction: &Decimal,
@@ -167,21 +188,7 @@ fn variation_steps(
     } else {
         zero
     };
-    let mut net = NET_FORMULA.to_string();
-    let mut net_operands = vec![&share];
-    for ((name, value), given) in [
-        ("previous_instalments", paid),
-        ("previous_credits", credits),
-    ]
-    .into_iter()
-    .zip(given)
-    {
-        if given {
-            net_operands.push(value);
-        } else {
-            net = net.replace(name, "0");
-        }
-    }
+    let (net, net_operands) = net_working(&share, [paid, credits], given);
     let operands: [Vec<&Decimal>; 6] = [
         vec![estimate],
         vec![estimate, fraction],
