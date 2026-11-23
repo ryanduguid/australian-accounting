@@ -435,6 +435,30 @@ fn the_cap_value_is_kept_apart_from_the_consideration() {
     // s 14AC(3)): the contract and the land's value, not its price.
     assert_eq!(grant(&qld("built", 760_000, 740_000)).0, "30000.00");
     assert_eq!(grant(&qld("built", 700_000, 750_000)).0, "0.00");
+    let wa_built = |value, cap: Option<u64>, extra: &[&str]| {
+        let mut input = with(
+            case("wa", "2026-08-01", "built", value, extra),
+            json!({"north_of_26th": false}),
+        );
+        if let Some(cap) = cap {
+            input["cap_value"] = json!(cap.to_string());
+        }
+        input
+    };
+    let contract = &["building_contract"];
+    assert_eq!(
+        grant(&wa_built(820_000, Some(800_000), contract)).0,
+        "10000.00"
+    );
+    assert_eq!(grant(&wa_built(700_000, Some(800_001), contract)).0, "0.00");
+    // A home built is paid only on the stated fact that the building
+    // contract's consideration is at least the grant, so the land in
+    // total_value never stands in for it (Qld s 20(1), WA s 19(2CA)).
+    assert_eq!(
+        code(&wa_built(500_000, None, &[])),
+        "first_home_owner_grant.fact_needed"
+    );
+    assert_eq!(grant(&wa_built(500_000, None, contract)).0, "10000.00");
     // Without it, the value tested is total_value, as on the page.
     assert_eq!(
         grant(&case("qld", "2026-08-01", "bought", 20_000, &[])),
