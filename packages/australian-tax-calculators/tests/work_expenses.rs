@@ -621,6 +621,10 @@ fn the_atos_simon_and_yui_examples_match() {
     let simon = run(&standard(education("2026-27", json!({})), "400.00", "0.00"));
     assert_eq!(amount(&simon, "standard_deduction_limit"), "400.00");
     assert_eq!(amount(&simon, "standard_deduction"), "400.00");
+    // No labour income: no standard deduction (s 25-130(1)(c)).
+    let none = run(&standard(education("2026-27", json!({})), "0.00", "0.00"));
+    assert_eq!(amount(&none, "standard_deduction_limit"), "0.00");
+    assert_eq!(amount(&none, "standard_deduction"), "0.00");
     // Yui: $95,000 of wages; a $200 course claimed beside $350 of working
     // from home and client travel leaves a $450 standard deduction.
     let yui = run(&standard(

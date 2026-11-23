@@ -2856,7 +2856,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "other_work_related_deductions",
-                "AUD, for 2026-27 only, with the other 2 standard deduction facts or none: the taxpayer's other deductions for the year that s 25-130(2)(c) to (g) covers, besides this method's (other work expenses under s 8-1, car expenses, travel between workplaces, repairs, decline in value and balancing adjustments for assets used for work, COVID-19 tests); not income protection, sickness or accident premiums or union and association fees (s 25-130(3))",
+                "AUD, for 2026-27 only, with the other 2 standard deduction facts or none: the other deductions the return claims for the year that s 25-130(2)(c) to (g) covers (not expenses left unclaimed), besides this method's (other work expenses under s 8-1, car expenses, travel between workplaces, repairs, decline in value and balancing adjustments for assets used for work, COVID-19 tests); not income protection, sickness or accident premiums or union and association fees (s 25-130(3))",
             ),
             (
                 "australian_resident",
