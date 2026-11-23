@@ -4,6 +4,7 @@
 
 //! The return's inputs and each benefit's, checked or refused before any
 //! worksheet runs.
+use super::kind::{Entertainment, Kind, check_entertainment, check_exempt_car};
 use super::{COMMAND, Columns, Count, ROWS, missing};
 use crate::api::Refusal;
 use serde_json::{Value, json};
@@ -22,9 +23,24 @@ const ALWAYS_EXCLUDED: [(&str, &str); 2] = [
 ];
 
 /// The inputs the return takes, and those each benefit takes.
-const INPUTS: [&str; 4] = ["employer", "year_ended", "scope_confirmed", "benefits"];
-const BENEFIT_INPUTS: [&str; 6] = [
-    "employee", "command", "input", "gst_type", "excluded", "employer",
+const INPUTS: [&str; 8] = [
+    "employer",
+    "year_ended",
+    "scope_confirmed",
+    "benefits",
+    "employer_kind",
+    "rebatable_days",
+    "employer_days",
+    "instalments_reported",
+];
+const BENEFIT_INPUTS: [&str; 7] = [
+    "employee",
+    "command",
+    "input",
+    "gst_type",
+    "excluded",
+    "employer",
+    "entertainment",
 ];
 
 /// Refuse a field the return does not take, naming the payroll tax gross-up
@@ -96,6 +112,7 @@ pub(super) struct Given<'a> {
     pub(super) columns: Columns,
     pub(super) type_one: bool,
     pub(super) excluded: bool,
+    pub(super) entertainment: Entertainment,
     pub(super) input: Value,
 }
 
@@ -183,13 +200,26 @@ fn worksheet_input(at: &str, b: &Value, top: &Value, year: i64) -> Result<Value,
     Ok(input)
 }
 
+/// A benefit's own employer, where given, must be the return's.
+fn same_employer(at: &str, b: &Value, employer: &str) -> Result<(), Refusal> {
+    match b.get("employer").filter(|e| e.as_str() != Some(employer)) {
+        Some(other) => Err(Refusal::new(
+            "fbt_return.multiple_employers",
+            format!(
+                "{at}.employer is {other}, not {employer}: {COMMAND} composes one employer's return"
+            ),
+        )),
+        None => Ok(()),
+    }
+}
+
 /// One benefit, checked before any worksheet runs.
 pub(super) fn check_benefit<'a>(
     at: &str,
     b: &'a Value,
     top: &Value,
     employer: &str,
-    year: i64,
+    (year, kind): (i64, Kind),
 ) -> Result<Given<'a>, Refusal> {
     let Some(fields) = b.as_object() else {
         return Err(Refusal::new(
@@ -206,28 +236,26 @@ pub(super) fn check_benefit<'a>(
             format!("{key} is not an input of a benefit within {COMMAND}"),
         ));
     }
-    if let Some(other) = b.get("employer").filter(|e| e.as_str() != Some(employer)) {
-        return Err(Refusal::new(
-            "fbt_return.multiple_employers",
-            format!(
-                "{at}.employer is {other}, not {employer}: {COMMAND} composes one employer's return"
-            ),
-        ));
-    }
+    same_employer(at, b, employer)?;
     let (command, label, count, columns) = row_for(at, b)?;
     let Some(employee) = b["employee"].as_str().filter(|e| !e.is_empty()) else {
         return Err(missing(format!(
             "{at}.employee is required: a label for the employee the benefit is provided in respect of"
         )));
     };
+    let type_one = gst_type(at, b)?;
+    let excluded = excluded(at, command, b)?;
+    let input = worksheet_input(at, b, top, year)?;
+    check_exempt_car(at, &input, kind)?;
     Ok(Given {
         employee,
         command,
         label,
         count,
         columns,
-        type_one: gst_type(at, b)?,
-        excluded: excluded(at, command, b)?,
-        input: worksheet_input(at, b, top, year)?,
+        type_one,
+        excluded,
+        entertainment: check_entertainment(at, b, command, excluded, kind)?,
+        input,
     })
 }

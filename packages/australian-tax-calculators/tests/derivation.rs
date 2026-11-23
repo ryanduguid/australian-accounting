@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 79] = [
+const DERIVED: [&str; 81] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -73,6 +73,7 @@ const DERIVED: [&str; 79] = [
     "voluntary-agreement-withholding",
     "rd-tax-offset",
     "deferred-tax",
+    "leave-provisions",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -98,6 +99,7 @@ const DERIVED: [&str; 79] = [
     "gst-bad-debt",
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
+    "fbt-instalment",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -737,6 +739,25 @@ fn cases() -> Vec<(&'static str, Value)> {
             .iter()
             .map(|facts| ("unused-leave-payment", leave(facts))),
     );
+    // FBT instalments: F1 kept; a first-quarter variation with no previous
+    // instalments or credits given; and a variation each way, the last with an
+    // earlier s 112A credit and an s 111(1) amount below nil that becomes the
+    // 6B credit.
+    for facts in [
+        json!({"quarter": 2, "ato_instalment": "5000.00"}),
+        json!({"quarter": 1, "estimated_tax": "2400.00", "reason_code": 30}),
+        json!({"quarter": 3, "estimated_tax": "28000.00", "previous_instalments": "20000.00",
+               "previous_credits": "0.00", "reason_code": 31}),
+        json!({"quarter": 4, "estimated_tax": "12000.00", "previous_instalments": "15000.00",
+               "previous_credits": "1000.00", "reason_code": 30}),
+    ] {
+        let mut input = json!({"year_ended": 2027, "scope_confirmed": true});
+        input
+            .as_object_mut()
+            .unwrap()
+            .extend(facts.as_object().unwrap().clone());
+        cases.push(("fbt-instalment", input));
+    }
     cases
 }
 
@@ -2439,14 +2460,14 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, deferred-tax, \
+         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, deferred-tax, leave-provisions, \
          horticulture-shearing-withholding, upward-variation-withholding, \
          daily-casual-withholding, no-abn-withholding, \
          entertainer-withholding, return-to-work-withholding, \
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
     );
 }
 
