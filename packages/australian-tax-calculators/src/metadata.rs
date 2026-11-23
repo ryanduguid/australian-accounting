@@ -1314,6 +1314,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "smsf_tax" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Contracts from 1 July 2025 to 22 November 2026, the day the
+        // site page's rules were read.
+        "first_home_owner_grant" => vec!["2025-26", "2026-27"],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1797,6 +1800,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "smsf_tax" => (
             "2026-11-22",
             "ITAA 1997 ss 295-10, 295-160, 295-385, 295-387, 295-390, 295-545, 295-550, 295-605 and 295-610 on the ATO legal database with their history notes (s 295-545 last amended by Act No. 52 of 2024, whose Schedule 7 item 5 applies it to income derived from 2018-19); Income Tax Rates Act 1986 ss 26 and 29 and Schedule 7 Part I, compilation 66 (1 July 2026); Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Act 1991 s 6 and Regulations 2018 s 6; the ATO's Instructions to complete your SMSF annual return 2026 Sections B and D and Appendix 1 (30 May 2026), SAR 2021 levy questions (6 August 2024), Exempt current pension income (16 September 2025) and Tax rates - Australian residents (13 August 2026)",
+        ),
+        "first_home_owner_grant" => (
+            "2026-11-23",
+            "The First Home Owner Grant Acts of Victoria (version 053), Queensland (22 October 2026), Western Australia (22 October 2026), South Australia (4.12.2025), Tasmania (9 October 2026), the Northern Territory (1 July 2026) and the ACT (republication 37); Revenue NSW, SRO Victoria, QRO, DTF WA, RevenueSA, SRO Tasmania, NT Government and ACT Revenue Office pages; the site's grant page and its 26 cases (checked 23 November 2026)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -2357,6 +2364,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Appendix 1 examples 1 and 2 (proportionate and segregated ECPI, refunds of $44,176 and $56,611), Section D label B examples 1 and 2 (SMSF B and SMSF BB), the T2, T3 and T5 examples, the E2 no-TFN example and table 9 (supervisory levy)",
             "2026-05-30",
             "2026-11-22",
+        ),
+        "first_home_owner_grant" => (
+            "Not a Library document: each First Home Owner Grant Act and revenue office page",
+            "RevenueSA's $10,000 example; the site page's 26 cases",
+            "2026-10-22",
+            "2026-11-23",
         ),
         "psi_test" => (
             "TR 2022/3",
@@ -2946,6 +2959,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for excepted_person double_orphan_pension, double_orphan_pension_s1003 or permanent_disability_certificate only, and then required: wholly or substantially dependent on relatives for support for the whole period, taken to be so whilst living with relatives unless the contrary is established (ITAA 1936 s 102AC(3) to (5)); true means not excepted",
             ),
         ],
+        "first_home_owner_grant" => vec![(
+            "north_of_26th",
+            "boolean, for wa only, and then required: the home is north of the 26th parallel of South latitude (all of Perth is south of it)",
+        )],
         "psi_test" => vec![
             (
                 "commission",
@@ -5068,6 +5085,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("newly_registered", "boolean: this is the first annual return of a fund newly registered in the year (label N)"),
             ("wound_up", "boolean: the fund was wound up in the year (label M)"),
         ],
+        "first_home_owner_grant" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            ("contract_date", "date, YYYY-MM-DD, from 2025-07-01 to 2026-11-22 and within year: the date the contract to buy or build was made (the commencement date)"),
+            ("home", "bought (a new home, including off the plan), built (under a comprehensive home building contract, including a house and land package) or established"),
+            ("total_value", "AUD, whole dollars from 1 to 1,000,000,000: for a home bought, the price; for a home built, the land and the building contract with its variations"),
+            ("facts", "object of booleans, each your statement, not tested: person (every applicant is a person aged 18 or over), citizen (an applicant is an Australian citizen or permanent resident), first_home (no applicant or spouse is excluded by the prior grant and ownership rules) and residence (the residence requirement will be met), all 4 required; building_contract (a home built: the contract price without the land is at least the grant); nt_no_replacement (nt: the contract replaces none signed before 1 October 2024); tas_conditions (tas: the completion and replacement conditions of s 18L or 18M)"),
+        ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
@@ -6257,6 +6281,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("deductions_related", Text("0.00")),
             ("apportionable_deductions", Text("0.00")),
             ("special_income_component", Flag(false)),
+        ],
+        // The site page's opening example: a new home bought in New South
+        // Wales at the $600,000 cap.
+        "first_home_owner_grant" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("contract_date", Text("2026-08-01")),
+            ("home", Text("bought")),
+            ("total_value", Text("600000")),
+            (
+                "facts",
+                Json(r#"{"person": true, "citizen": true, "first_home": true, "residence": true}"#),
+            ),
         ],
         "psi_test" => vec![
             ("year", Text("2025-26")),

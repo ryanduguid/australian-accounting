@@ -355,6 +355,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The income tax calculation statement (item 13) of one complying self managed superannuation fund that is an Australian superannuation fund, for an income year from 2020-21 to 2026-27, from the operator's established figures: assessable contributions (ITAA 1997 Subdivision 295-C) and the no-TFN-quoted part (s 295-610); net non-arm's length income (s 295-550(1), (2), (4) and (5), less the deductions attributable to it; label U) and the general expense amounts of s 295-550(8) and (9); income from segregated current pension assets (s 295-385), other income to which the actuary's proportion applies (s 295-390), and income from segregated non-current assets; the actuary's proportion; deductions, already apportioned for exempt income, and the part attributable to contributions; the tax offsets, credits, PAYG instalments and s 102AAM interest charge; and whether the fund was newly registered or wound up in the year. It works out exempt current pension income (the proportion's product rounded down to whole dollars), taxable income, the non-arm's length component (s 295-545(2A)) taxed at 45% and the low tax component at 15% (Income Tax Rates Act 1986 s 26(1)), the 32% extra tax on no-TFN-quoted contributions (s 29), gross tax, the offsets in the return's order, the supervisory levy lines L, M and N ($259 a year, Supervisory Levy Imposition Regulations 2018 s 6) and the amount due or refundable. Excludes non-complying and foreign funds, a change of tax status (ss 295-320 and 295-325), funds other than SMSFs, the actuary's certificate and every judgement it rests on (which assets are segregated, the s 295-385(9) choice, the disregarded small fund assets test), whether income is non-arm's length (including under a limited recourse borrowing arrangement), deduction apportionment (TR 93/17), tax losses (Division 36) and capital losses, and the offsets' own rules.",
     ),
     (
+        "first_home_owner_grant",
+        "The first home owner grant in one of the 8 states and territories for a new home bought or built under a contract made from 1 July 2025 to 22 November 2026: the amount on the contract date, the value cap and the lesser-of-consideration rule each Act sets, from 4 eligibility facts the operator states and does not have tested; no grant for an established home except a Northern Territory contract from 1 July to 30 September 2025. Owner-builders, substantially renovated homes, exemptions, the Commissioner's discretions, transfer duty and other home buyer schemes are outside it.",
+    ),
+    (
         "psi_test",
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
@@ -788,6 +792,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "minors_income",
         "https://www.legislation.gov.au/C1936A00027/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "first_home_owner_grant",
+        "https://www.revenue.nsw.gov.au/grants-schemes/first-home-owner-new-homes-grant",
     ),
     (
         "psi_test",
@@ -1904,6 +1912,25 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "first_home_owner_grant",
+        &[
+            "https://content.legislation.vic.gov.au/sites/default/files/2025-11/00-5aa053-authorised.pdf",
+            "https://www.sro.vic.gov.au/buying-property/first-home-owner-grant/understanding-first-home-owner-grant",
+            "https://www.legislation.qld.gov.au/view/pdf/current/act-2000-014",
+            "https://qro.qld.gov.au/property-concessions-grants/first-home-grant/eligibility/",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a2000.html",
+            "https://www.wa.gov.au/system/files/2026-10/first-home-owner-grant.pdf",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/first-home-and-housing-construction-grants-act-2000/current/2000.25.auth.pdf",
+            "https://www.revenuesa.sa.gov.au/FHOG/grant-details",
+            "https://www.legislation.tas.gov.au/view/html/inforce/current/act-2000-019",
+            "https://www.sro.tas.gov.au/first-home-owner/eligibility",
+            "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11819",
+            "https://nt.gov.au/property/home-owner-assistance/buy-build-new-home",
+            "https://www.legislation.act.gov.au/a/2000-23/",
+            "https://www.revenue.act.gov.au/home-buyer-assistance/first-home-owner-grant",
+        ],
+    ),
+    (
         "psi_test",
         &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
@@ -2097,6 +2124,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "smsf_tax",
         &[
             "The ATO assesses the fund from its return; this is a check of the return's item 13, not a lodgment. The ATO has not published the SMSF annual return 2027 instructions, so 2026-27 follows the law in force on 22 November 2026 and the 2026 return's labels.",
+        ],
+    ),
+    (
+        "first_home_owner_grant",
+        &[
+            "The grant is paid only on an application the revenue office or an approved agent decides; confirm it with them before relying on it. The New South Wales rules rest on Revenue NSW's page: the Act could not be read on 23 November 2026.",
         ],
     ),
     (
@@ -3195,6 +3228,50 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "determination_date is not in the financial year given as year.",
     ),
     (
+        "first_home_owner_grant.below_grant",
+        "The value is below the grant where the source read gives no lesser-of-consideration rule, or for a home built, whose building contract price must be at least the grant.",
+    ),
+    (
+        "first_home_owner_grant.date_invalid",
+        "contract_date is not a YYYY-MM-DD date in the financial year given as year.",
+    ),
+    (
+        "first_home_owner_grant.date_uncovered",
+        "The contract date is before 1 July 2025 or after 22 November 2026, the day the grant rules were read.",
+    ),
+    (
+        "first_home_owner_grant.fact_needed",
+        "A fact the transaction needs is not stated: the building contract price for a home built, or the Northern Territory or Tasmanian conditions.",
+    ),
+    (
+        "first_home_owner_grant.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "first_home_owner_grant.facts_not_stated",
+        "One of the 4 eligibility facts every grant needs is not stated.",
+    ),
+    (
+        "first_home_owner_grant.home_invalid",
+        "home is not bought, built or established.",
+    ),
+    (
+        "first_home_owner_grant.jurisdiction_invalid",
+        "jurisdiction is not one of the 8 states and territories.",
+    ),
+    (
+        "first_home_owner_grant.location_needed",
+        "A Western Australian home's location, north_of_26th, is not stated.",
+    ),
+    (
+        "first_home_owner_grant.value_basis",
+        "A Victorian home built over $750,000 in total: the Act caps the building work's consideration, which the total does not show.",
+    ),
+    (
+        "first_home_owner_grant.value_invalid",
+        "total_value is not whole dollars from 1 to 1,000,000,000.",
+    ),
+    (
         "foreign_income_conversion.average_period",
         "An average rate's period is longer than 12 months, runs backwards or does not contain the day the amount is translated on.",
     ),
@@ -3592,7 +3669,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

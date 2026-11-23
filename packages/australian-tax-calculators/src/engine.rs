@@ -6240,6 +6240,8 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod first_home_owner_grant;
+pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 mod withholding_schedules;
@@ -6278,7 +6280,7 @@ pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
 mod smsf_tax;
 pub use smsf_tax::smsf_tax;
 
-const KINDS: [&str; 111] = [
+const KINDS: [&str; 112] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6390,6 +6392,7 @@ const KINDS: [&str; 111] = [
     "prepayments",
     "minors_income",
     "smsf_tax",
+    "first_home_owner_grant",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
