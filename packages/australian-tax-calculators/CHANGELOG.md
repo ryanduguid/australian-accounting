@@ -4,6 +4,17 @@
 
 ### Added
 
+- `motor-vehicle-duty` works out the duty on one passenger vehicle in each
+  state and territory on a date in 2026-27 from each Act's scale, with
+  Queensland's engine rows, Victoria's green car and primary producer rate,
+  the ACT's emissions categories under the determination in force on the day,
+  Tasmania's fleet discount and the Northern Territory's electric vehicle
+  exemption. New codes: `motor_vehicle_duty.date_outside_year`,
+  `motor_vehicle_duty.emissions_category_invalid`,
+  `motor_vehicle_duty.engine_invalid`,
+  `motor_vehicle_duty.fleet_value_unsettled`,
+  `motor_vehicle_duty.jurisdiction_invalid` and
+  `motor_vehicle_duty.vehicle_class_unsupported`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

@@ -188,8 +188,8 @@ fn tasmania(args: &MotorVehicleDutyArgs, value: &Decimal) -> Result<Scale> {
     Ok(TAS_FLEET)
 }
 
-/// Each conditional input given only where it is asked, then the rule.
-fn rule(place: &str, args: &MotorVehicleDutyArgs, day: i64, value: &Decimal) -> Result<Rule> {
+/// Each conditional input given only where it is asked.
+fn only_where_asked(place: &str, args: &MotorVehicleDutyArgs) -> Result<()> {
     let asked = [
         ("engine", args.engine, "qld", "in Queensland"),
         ("green_car", args.green_car, "vic", "in Victoria"),
@@ -214,6 +214,12 @@ fn rule(place: &str, args: &MotorVehicleDutyArgs, day: i64, value: &Decimal) -> 
             when(false, given, key, why)?;
         }
     }
+    Ok(())
+}
+
+/// The rule for `place`, once its conditional inputs are where they belong.
+fn rule(place: &str, args: &MotorVehicleDutyArgs, day: i64, value: &Decimal) -> Result<Rule> {
+    only_where_asked(place, args)?;
     Ok(match place {
         "nsw" => Rule::Banded(NSW),
         "vic" => Rule::Banded(victoria(args)?),
@@ -296,9 +302,28 @@ fn banded(scale: &Scale, value: &Decimal) -> Result<(Step, Rates)> {
 /// Western Australia's s 236(2) for a vehicle that is not a heavy vehicle,
 /// rounded down to the nearest 5 cents (s 236(1)).
 fn western_australia(value: &Decimal) -> Result<(Step, Rates)> {
-    let [low, high] = [int(25_000), int(50_000)];
     let to_five_cents = "floor(dutiable_value x {r} / 100 x 20) / 20";
-    let (percent, r, operands_rate, mut rates) = if value.gt(&low)? && !value.gt(&high)? {
+    let (percent, r, operands_rate, mut rates) = wa_rate(value)?;
+    let twenty = int(20);
+    let amount = value
+        .mul(&percent)?
+        .div(&int(100))?
+        .mul(&twenty)?
+        .quantize(0, Rounding::Down)?
+        .div(&twenty)?;
+    let formula = to_five_cents.replace("{r}", r);
+    let mut operands = vec![value];
+    operands.extend(operands_rate.iter());
+    rates.push(rate("rate_applied_percent", &percent));
+    Ok((step("duty", WA, &formula, &operands, amount), rates))
+}
+
+/// Western Australia's rate for `value`: 2.75% to $25,000, R% to $50,000
+/// (rounded to 2 decimal places) and 6.5% above; with its formula, operands
+/// and rates.
+fn wa_rate(value: &Decimal) -> Result<(Decimal, &'static str, Vec<Decimal>, Rates)> {
+    let [low, high] = [int(25_000), int(50_000)];
+    Ok(if value.gt(&low)? && !value.gt(&high)? {
         let [base, divisor] = [d("2.75"), d("6666.66")];
         let exact = base.add(&value.sub(&low)?.div(&divisor)?)?;
         let rates = vec![
@@ -321,19 +346,7 @@ fn western_australia(value: &Decimal) -> Result<(Step, Rates)> {
         };
         let rates = vec![rate("rate_percent", &percent)];
         (percent.clone(), "rate_percent", vec![percent], rates)
-    };
-    let twenty = int(20);
-    let amount = value
-        .mul(&percent)?
-        .div(&int(100))?
-        .mul(&twenty)?
-        .quantize(0, Rounding::Down)?
-        .div(&twenty)?;
-    let formula = to_five_cents.replace("{r}", r);
-    let mut operands = vec![value];
-    operands.extend(operands_rate.iter());
-    rates.push(rate("rate_applied_percent", &percent));
-    Ok((step("duty", WA, &formula, &operands, amount), rates))
+    })
 }
 
 pub fn motor_vehicle_duty(args: &MotorVehicleDutyArgs) -> Result<Value> {

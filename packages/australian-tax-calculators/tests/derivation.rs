@@ -543,6 +543,21 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "group_member": false, "employed_all_year": true,
                    "year": "2026-27", "scope_confirmed": true}),
         ),
+        // Western Australia's sliding rate at $37,500 (R = 4.63) and the ACT's
+        // Table 3 for a new Category B vehicle after 1 February 2027.
+        (
+            "motor-vehicle-duty",
+            json!({"jurisdiction": "wa", "vehicle_class": "passenger",
+                   "dutiable_value": "37500", "duty_date": "2026-09-15",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "motor-vehicle-duty",
+            json!({"jurisdiction": "act", "vehicle_class": "passenger",
+                   "dutiable_value": "90000", "duty_date": "2027-03-01",
+                   "emissions_category": "b", "new_vehicle": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // A strata unit's share of land bought with some consideration unpaid
         // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
         // margin scheme: the margin is shown beside the full GST.

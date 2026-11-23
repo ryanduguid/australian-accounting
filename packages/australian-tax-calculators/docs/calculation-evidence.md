@@ -2178,6 +2178,59 @@ trade-in; the other side and the years held are fabricated.
 | An asset bought without GST (nil full and adjusted credits) traded in for $22,000 | Worked by hand under GST Act s 132-5(3): the adjustment is at most the nil difference between the credits | $2,000.00 GST, nil decreasing adjustment, $20,000.00 termination value |
 | A trade-in that is not a taxable supply | GST Act s 9-5 | No GST; the termination value is the allowance |
 
+## Motor vehicle duty
+
+This worksheet was added on 24 November 2026. The Acts and determinations were
+read that day:
+
+- New South Wales: the Duties Act 1997 (NSW) could not be read (NSW
+  Legislation returned a Cloudflare challenge and AustLII refused the
+  request). The scale rests on Revenue NSW, 'Motor vehicle duty' (last updated
+  16 October 2025), and Service NSW, 'Check motor vehicle stamp duty': $3 for every $100 or part to
+  $45,000, then $1,350 plus $5 for every $100 or part.
+- Victoria: the Duties Act 2000 (Vic) ss 3(1), 218 and 219 (authorised
+  version 141), with the 2026-27 luxury car tax threshold of $80,809 for other
+  vehicles (s 218(5)), the State Revenue Office's 'Motor vehicle duty (current
+  rates)' and the ATO's 'Luxury car tax rate and thresholds'.
+- Queensland: the Duties Act 2001 (Qld) ss 377, 378, 382 and 383 and Sch 4C (reprint
+  current as at 22 October 2026), and Transport and Main Roads, 'Vehicle
+  registration duty help' (reviewed 14 August 2026), whose 8 light vehicle
+  figures the tests hold.
+- Western Australia: the Duties Act 2008 (WA) ss 228 to 230 and 236 (03-z0-00,
+  as at 22 October 2026), the formula read from the PDF, and RevenueWA,
+  'Vehicle licence duty'.
+- South Australia: the Stamp Duties Act 1923 (SA) ss 42A and 42B and Sch 2
+  cl 2(1) (version 15.9.2026) and RevenueSA, 'Stamp duty on vehicles'.
+- Tasmania: the Duties Act 2001 (Tas) ss 3 and 197 (in force 24 November
+  2026) and the State Revenue Office, 'Rates of duty'.
+- ACT: the Duties Act 1999 (ACT) ss 203, 204, 207 and 208 (republication 79),
+  the Duties (Motor Vehicle Duty) Determination 2025 (DI2025-152) and its 2026
+  successor (DI2026-154), which commences on 1 February 2027 and revokes it,
+  and the Legislation Act 2001 (ACT) s 74(2) (republication 127): an
+  instrument that commences on a day commences at the beginning of it.
+- Northern Territory: the Stamp Duty Act 1978 (NT) ss 57, 59 and 92A and Sch 1
+  cl 6(2) (as in force at 1 July 2025, the current version) and the Territory
+  Revenue Office's stamp duty page.
+
+Only Transport and Main Roads publishes a current worked passenger example.
+The ACT Revenue Office's circular DAA005.9 works its examples at the 2024
+rates, which DI2025-152 replaced, so it is used only for the method: duty on
+each $100 or part. Every other figure was worked by hand from the Act at each
+band edge, and an oracle written in Python from the spec, not the code, gives
+936 cases: each edge less 1, at, plus 1, plus 99 and plus 100, and common
+values, under every choice each jurisdiction asks.
+
+| Case | Source | Duty |
+|---|---|---|
+| Queensland, 1 to 4 cylinders, $35,600 and $135,600 | Transport and Main Roads | $1,068.00 and $6,780.00 |
+| New South Wales, $45,000 and $45,001 | Worked by hand | $1,350.00 and $1,355.00 |
+| Victoria, $80,809 and $80,810 | Worked by hand: 405 lots of $200 at $8.40 and $10.40 | $3,402.00 and $4,212.00 |
+| Western Australia, $37,500 | Worked by hand: R = 4.625001875, 4.63% | $1,736.25 |
+| South Australia, $300 | Worked by hand: the $5 minimum | $5.00 |
+| Tasmania, $40,000 and $40,001 | Worked by hand | $1,600.00 and $1,604.00 |
+| ACT, new Category B, $80,000, 31 January and 1 February 2027 | Worked by hand from each determination | $3,177.00 and $3,419.00 |
+| Northern Territory, electric, $80,000 | Worked by hand: 300 lots of $100 above $50,000 | $900.00 |
+
 ## Payroll tax
 
 This worksheet was added on 19 November 2026. The revenue offices' pages were
