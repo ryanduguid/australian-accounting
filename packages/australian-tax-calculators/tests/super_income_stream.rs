@@ -168,6 +168,12 @@ fn dependants() {
     assert_eq!(r["treatment"], "income_stream_dependant_under_60");
     assert_eq!(r["amounts"]["tax_offset"], "165.00");
     assert_eq!(r["amounts"]["withholding"], "2.00");
+    // The disability flag is a member's: refused, not ignored, either way.
+    for disability in [true, false] {
+        let mut flagged = v.clone();
+        flagged["disability_superannuation_benefit"] = json!(disability);
+        assert_eq!(code(&flagged), "input.field_unknown", "{disability}");
+    }
     // A dependant 60 or over: 10% of the untaxed element, whatever the
     // deceased's age.
     let mut old = aged_66("weekly", "1000.00");
@@ -233,6 +239,17 @@ fn monthly_and_quarterly() {
     assert_eq!(amount(&quarterly, "withholding_amount"), "546.00");
     assert_eq!(amount(&quarterly, "offset_adjustment"), "80.60");
     assert_eq!(amount(&quarterly, "withholding"), "81.00");
+    // An exact half dollar survives the conversion and rounds up: a quarter's
+    // $7,079 is (7,079 - 538 x 13) x 10% = $8.50 and a month's $3,025 is
+    // 2% x $3,025 = $60.50, each above the withholding amount less the offset.
+    for (period, untaxed, adjustment, withheld) in [
+        ("quarterly", "7079.00", "8.50", "9.00"),
+        ("monthly", "3025.00", "60.50", "61.00"),
+    ] {
+        let v = aged_66(period, untaxed);
+        assert_eq!(amount(&v, "offset_adjustment"), adjustment, "{period}");
+        assert_eq!(amount(&v, "withholding"), withheld, "{period}");
+    }
 }
 
 /// Cents in the stream are ignored first, and the result is rounded once,
@@ -244,6 +261,16 @@ fn cents_and_rounding() {
     assert_eq!(amount(&v, "withholding_amount"), "139.00");
     assert_eq!(amount(&v, "tax_offset"), "100.50");
     assert_eq!(amount(&v, "withholding"), "39.00");
+    // Under 60 the taxable component is summed, then floored once; the
+    // offset floors its own element: $1,000.60 + $200.60 is $1,201, and
+    // 15% of $1,000 is $150.
+    let mut both = veronica("2026-27", "2026-09-01", "1968-01-15");
+    both["benefit"] = json!("1201.20");
+    both["interest_value"] = json!("1201.20");
+    both["interest_tax_free_component"] = json!("0.00");
+    both["untaxed_element"] = json!("200.60");
+    assert_eq!(amount(&both, "withheld_from"), "1201.00");
+    assert_eq!(amount(&both, "tax_offset"), "150.00");
 }
 
 /// Without a TFN: 47% or 45% of the step 1 amount, cents ignored.

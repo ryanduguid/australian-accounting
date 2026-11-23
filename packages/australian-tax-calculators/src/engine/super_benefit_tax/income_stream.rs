@@ -127,6 +127,13 @@ fn row(b: &SuperBenefitTaxArgs, stream: &[Option<&Arg>; 4], paid: i64) -> Result
         when(false, stream[3], "deceased_aged_60_or_over", why)?;
         member_row(b, age)?
     } else {
+        let why = "for a member's income stream (recipient member)";
+        when(
+            false,
+            b.optional[2],
+            "disability_superannuation_benefit",
+            why,
+        )?;
         dependant_row(stream, age)?
     };
     Ok((age, row))
@@ -284,17 +291,24 @@ fn adjustment(
     rates.push(rate("medicare_levy_shade_in_weekly", shade_in));
     rates.push(rate("adjustment_limit_weekly", limit));
     let t = int(threshold);
-    let (band, operands, weekly_value) = if w.lt(&t)? || !w.lt(&int(limit))? {
-        ("0", vec![], int(0))
+    // The weekly band times `times / per`, rearranged so the only division
+    // is the last one by `per` (1 or 3): an exact half dollar stays exact.
+    let (formula_out, operands, value) = if w.lt(&t)? || !w.lt(&int(limit))? {
+        ("0".to_string(), vec![], int(0))
     } else if w.lt(&int(shade_in))? {
-        let v = w.sub(&t)?.mul(&d("0.10"))?;
-        let band = "(weekly_equivalent - medicare_levy_threshold_weekly) x 0.10";
-        (band, vec![&w, &t], v)
+        let v = from
+            .mul(&int(per))?
+            .sub(&t.mul(&int(times))?)?
+            .mul(&d("0.10"))?
+            .div(&int(per))?;
+        let band = format!(
+            "(withheld_from x {per} - medicare_levy_threshold_weekly x {times}) x 0.10 / {per}"
+        );
+        (band, vec![from, &t], v)
     } else {
-        ("weekly_equivalent x 0.02", vec![&w], w.mul(&d("0.02"))?)
+        let band = "withheld_from x 0.02".to_string();
+        (band, vec![from], from.mul(&d("0.02"))?)
     };
-    let value = weekly_value.mul(&int(times))?.div(&int(per))?;
-    let formula_out = format!("({band}) x {times} / {per}");
     Ok(vec![
         step("weekly_equivalent", WEEKLY, formula, &[from], w.clone()),
         step(

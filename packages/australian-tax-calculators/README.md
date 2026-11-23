@@ -2752,9 +2752,11 @@ step 1  withheld_from      floor(taxable component) under 60; floor(untaxed elem
 step 2  withholding_amount Schedule 1 on withheld_from for the period: scale 2 with the threshold, scale 1 without
 step 3  tax_offset         disability under 60, or dependant under 60 of a deceased under 60: floor(taxed) x 15%
                            60 or over (member or dependant): floor(untaxed) x 10%; otherwise nil
-step 4  offset_adjustment  only when tax_offset > 0, on W, the weekly equivalent of withheld_from:
+step 4  offset_adjustment  only when tax_offset > 0, on W = withheld_from x d / m, the weekly equivalent
+                           (d / m: weekly 1 / 1, fortnightly 1 / 2, monthly 3 / 13, quarterly 1 / 13):
                            W < threshold: nil; < shade-in: (W - threshold) x 10%; < limit: W x 2%; else nil
                            (2024-25, 2025-26: $500, $625, $1,181; 2026-27: $538, $673, $1,216), back to the period
+                           exactly: (withheld_from x d - threshold x m) x 10% / d, or withheld_from x 2%
 step 5  withholding        dollars(max(withholding_amount - tax_offset, offset_adjustment))
 no TFN  floor(withheld_from x 47%), 45% for a foreign resident
 ```

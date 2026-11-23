@@ -4013,7 +4013,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "tfn_provided",
-                "boolean: the payee had given the payer their TFN before the payment",
+                "boolean: the payee had given the payer their TFN before the payment; for an income stream, also true when the payee claimed an exemption from quoting a TFN or told the payer of a TFN application or enquiry within the last 28 days (Schedule 13)",
             ),
             (
                 "foreign_resident",

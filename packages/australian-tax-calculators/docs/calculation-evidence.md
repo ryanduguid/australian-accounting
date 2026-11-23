@@ -3148,7 +3148,10 @@ against each year's instrument, and its fortnightly adjustment
 (($1,100 - $1,076) x 10%) is the weekly band formula converted back to the
 fortnight. The schedules do not say whether the weekly adjustment is rounded
 before it is converted; the command rounds once, at step 5, and Veronica's
-result is the same either way. `tests/super_income_stream.rs` holds each case.
+result is the same either way. It converts back exactly: the 10% band is
+(withheld_from x d - threshold x m) x 10% / d and the 2% band is
+withheld_from x 2%, where the weekly equivalent is withheld_from x d / m, so a
+quarter's $7,079 in 2026-27 gives exactly $8.50 and $9 withheld. `tests/super_income_stream.rs` holds each case.
 
 | Example | Facts given | Withheld |
 | --- | --- | --- |
@@ -3157,7 +3160,8 @@ result is the same either way. `tests/super_income_stream.rs` holds each case.
 | Veronica, 2026-27 | As 2024-25 | $60 - $165; adjustment $2.40, **$2** |
 
 The tests also cover scale 1, each offset row, a dependant on each side of 60,
-each band edge of the adjustment in both rule sets, monthly and quarterly
+each band edge of the adjustment in 2026-27 and the upper edge in 2024-25 and
+2025-26, monthly and quarterly
 payments, cents ignored and the 50-cent rounding, the no-TFN rates, the
 proportion at commencement and each refusal.
 
