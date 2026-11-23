@@ -203,9 +203,14 @@ fn the_2015_budget_time() {
     }
     // Where the 2015 budget time cannot change the limit, its day is accepted:
     // $1,000 for first use in 2021-22 and $20,000 from 1 July 2026 either way.
-    for (year, used, limit) in [("2021-22", "2021-08-01", "1000"), ("2026-27", "2026-08-01", "20000")] {
-        let r = run(json!({"year": year, "acquired": "2015-05-12", "first_used": used,
-            "cost": "500.00", "taxable_use": "1"}));
+    for (year, used, limit) in [
+        ("2021-22", "2021-08-01", "1000"),
+        ("2026-27", "2026-08-01", "20000"),
+    ] {
+        let r = run(
+            json!({"year": year, "acquired": "2015-05-12", "first_used": used,
+            "cost": "500.00", "taxable_use": "1"}),
+        );
         assert_eq!(outcome(&r), ("500.00", limit, "true"), "{year}");
     }
 }
@@ -277,7 +282,10 @@ fn a_medium_business_in_2020_21() {
             "{first_used}"
         );
     }
-    assert_eq!(outcome(&run(used("2020-10-05"))), ("100000.00", "150000", "true"));
+    assert_eq!(
+        outcome(&run(used("2020-10-05"))),
+        ("100000.00", "150000", "true")
+    );
 }
 
 /// From 1 July 2021 s 40-82(5) leaves a medium business no write-off, and an
