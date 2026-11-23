@@ -1163,13 +1163,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2026 pointing to the s 40-291A choice from 2026-27. 2027-28 is refused:
         // Schedule 1 to that Act changes capital gains from 1 July 2027.
         "balancing_adjustment" => vec!["2024-25", "2025-26", "2026-27"],
-        // Dealings from 1 July 2023, after the transitional rebate rules for
-        // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
-        // and QC22757); the rate and cap are set by the Act, not indexed.
         // The 2025 and 2026 tax years, the 2 under the 1%, 2% and 3% vacant
         // residential land tax rates; windfall gains tax on a rezoning in
         // either year.
         "vic_property_taxes" => vec!["2025", "2026"],
+        // Dealings from 1 July 2023, after the transitional rebate rules for
+        // 2017 and earlier vintages ended (WETR 2009/2; the ATO's QC22756
+        // and QC22757); the rate and cap are set by the Act, not indexed.
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
@@ -5825,8 +5825,6 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
-        // A dozen bottles sold by wholesale for $120 and a dozen at the
-        // cellar door for $140: $34.80 + $20.30 of wine tax.
         "vic_property_taxes" => vec![
             ("year", Text("2026")),
             ("tax", Text("windfall_gains")),
@@ -5835,6 +5833,8 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 Json(r#"[{"civ_before": "900000", "civ_after": "1300000"}]"#),
             ),
         ],
+        // A dozen bottles sold by wholesale for $120 and a dozen at the
+        // cellar door for $140: $34.80 + $20.30 of wine tax.
         "wine_equalisation_tax" => vec![
             ("year", Text("2026-27")),
             (
