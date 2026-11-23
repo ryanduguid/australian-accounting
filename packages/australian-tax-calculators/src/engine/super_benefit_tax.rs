@@ -18,9 +18,11 @@ use super::{
 use crate::dates;
 use crate::decimal::Decimal;
 
+mod income_stream;
 mod parts;
 mod withholding;
 
+pub use income_stream::STREAM_OPTIONAL;
 pub use withholding::{SuperWithholdingArgs, super_withholding};
 
 const KIND: &str = "super_benefit_tax";
@@ -51,6 +53,7 @@ pub struct SuperBenefitTaxArgs<'a> {
 }
 
 const TAX_FREE: &str = "ITAA 1997 s 307-125(2) and (3)(b): the tax free component bears the same proportion to the benefit as the interest's tax free component bears to its value just before the benefit is paid; the Act states no rounding, so this worksheet rounds it to the cent (0.5 cents up)";
+const TAX_FREE_STREAM: &str = "ITAA 1997 s 307-125(2) and (3)(a): the tax free component of an income stream payment bears the same proportion to the payment as the interest's tax free component bore to its value when the stream commenced; the Act states no rounding, so this worksheet rounds it to the cent (0.5 cents up)";
 const TAXABLE: &str =
     "ITAA 1997 ss 307-120(2) and 307-125(2): the taxable component is the rest of the benefit";
 const TAXED: &str = "ITAA 1997 s 307-275(1) and (2): the taxable component is an element taxed in the fund except as ss 307-280 to 307-290 make part of it untaxed, as the fund states it";
@@ -157,8 +160,9 @@ struct Components {
 
 /// The amounts given, refused when nil or inconsistent: benefit, interest
 /// value, the interest's tax free component and the element untaxed in the
-/// fund.
-fn amounts(args: &SuperBenefitTaxArgs) -> Result<[Decimal; 4]> {
+/// fund. An income stream payment is not limited by the interest's value
+/// when the stream commenced.
+fn amounts(args: &SuperBenefitTaxArgs, stream: bool) -> Result<[Decimal; 4]> {
     let benefit = money(args.benefit)?;
     let interest = money(args.interest_value)?;
     let interest_free = money(args.interest_tax_free_component)?;
@@ -169,7 +173,7 @@ fn amounts(args: &SuperBenefitTaxArgs) -> Result<[Decimal; 4]> {
             "The benefit and the value of the superannuation interest must each be more than nil.",
         );
     }
-    if benefit.gt(&interest)? {
+    if !stream && benefit.gt(&interest)? {
         return conflict(
             "benefit cannot exceed interest_value, the value of the interest it is paid from.",
         );
@@ -180,12 +184,14 @@ fn amounts(args: &SuperBenefitTaxArgs) -> Result<[Decimal; 4]> {
     Ok([benefit, interest, interest_free, untaxed])
 }
 
-fn components(args: &SuperBenefitTaxArgs) -> Result<Components> {
-    let [benefit, interest, interest_free, untaxed] = amounts(args)?;
+/// The components of a lump sum, or with `stream` of an income stream payment.
+fn components(args: &SuperBenefitTaxArgs, stream: bool) -> Result<Components> {
+    let [benefit, interest, interest_free, untaxed] = amounts(args, stream)?;
     let free = cents(benefit.mul(&interest_free)?.div(&interest)?)?;
     let formula = "cents(benefit x interest_tax_free_component / interest_value)";
     let operands = [&benefit, &interest_free, &interest];
-    let tax_free = step("tax_free_component", TAX_FREE, formula, &operands, free);
+    let authority = if stream { TAX_FREE_STREAM } else { TAX_FREE };
+    let tax_free = step("tax_free_component", authority, formula, &operands, free);
     let taxable_value = benefit.sub(&tax_free.value)?;
     let formula = "benefit - tax_free_component";
     let operands = [&benefit, &tax_free.value];
@@ -385,7 +391,7 @@ fn totals(t: Treatment, c: &Components, ids: &[String], tax: &[Decimal]) -> Resu
 pub fn super_benefit_tax(args: &SuperBenefitTaxArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let paid = payment_day(args, &year)?;
-    let c = components(args)?;
+    let c = components(args, false)?;
     let (t, ages) = treatment(args, &c, paid)?;
     refuse_pre_1983_service(args, &c)?;
     let p = parts::parts(t, &c, &year, args)?;

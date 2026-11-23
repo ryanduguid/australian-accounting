@@ -53,6 +53,61 @@ size. On the command line each refusal is one `error:` line with exit 2, as is a
 - **Section 99B Foreign Trust Receipt Assessment**: Computes assessable amounts under *s 99B(1)* after corpus exemptions (*s 99B(2)(a)*) and prior-taxed income. Residency during the year of income is a required input, stated with `--resident-during-year` or `--not-resident-during-year`, because *s 99B(1)* turns on it: an unstated residency is refused and a non-resident receipt is refused rather than assessed. The 3 exemption amounts default to nil, which gives the largest assessable amount, and the *s 99B(2)(a)* corpus add-back defaults to nil in the other direction, leaving the whole corpus exempt. The result carries one caveat naming each nil it relied on, in both directions, because a nil default cannot be told apart from a figure nobody supplied.
 - **Trust Resolution Schedule Verifier**: Checks timing against 30 June or the deed's earlier deadline, deed-power and percentage-completeness facts the caller supplies. The deed and execution facts, including whether the resolution streams specific income and the deed's own deadline, are stated or unstated; an unstated one returns `null` for validity, naming the fact, rather than reporting compliance or a breach. Missing streaming powers are a defect only for a resolution that streams.
 
+## Partnerships, trustee assessment and trust losses
+
+3 JSON commands added after the Python port cover income years 2024-25 to
+2026-27 (`financial_year` 2025 to 2027) and refuse other years, because their
+provisions were compared only in the compilations in force from 1 July 2024.
+Amounts are non-negative strings with at most 2 decimal places; facts are
+`true`, `false` or `null`. Each refusal reads `refused: <reason> (<provision>)`.
+
+- **`partnership-net-income`** (*ITAA 1936* ss 90, 91, 92): net income or
+  partnership loss, leaving out deductions under s 290-150 or Division 36 of the
+  *ITAA 1997*, and each partner's share of it and of exempt and non-assessable
+  non-exempt income by their stated interest (the interests must total 100%).
+  Shares are rounded half up to the cent and cents left over go to the largest
+  shares first. A non-resident partner is decided only when all the income is
+  from Australian sources. Refused: part-year residents, corporate limited
+  partnerships (Div 5A), venture capital partnerships (s 92(2AA)), foreign
+  hybrids (s 830-45), uncontrolled partnership income (s 94), segregated or
+  pension asset interests (s 92(2A)) and salary or interest allocated to
+  partners.
+- **`trustee-assessment`** (*ITAA 1936* ss 95, 97, 98, 99, 99A; *Income Tax
+  Rates Act 1986*): splits a resident trust's net income by Division 6
+  percentage and says who is assessed on each share. The trustee is taxed on an
+  adult resident beneficiary under a legal disability (s 98(1)(a), resident
+  scale with the tax-free threshold), a non-resident individual (non-resident
+  scale), a non-resident company (25% for a base rate entity, otherwise 30%), a
+  non-resident trustee beneficiary (45%, s 98(4)), and income to which no
+  beneficiary is presently entitled: 45% under s 99A, or under s 99 when the
+  trust is a s 99A(2) kind and the Commissioner's opinion is stated (the
+  resident scale with the threshold for an estate whose deceased died less than
+  3 years before year end, otherwise without it and limited by Rates Act s 14).
+  Tax is worked on each amount in dollars and cents, as the Rates Act sets no
+  whole-dollar rounding, and rounded half up to the cent. Medicare levy,
+  offsets and credits are not computed. Refused: non-resident
+  trust estates, part-year residents, beneficiaries under 18 (Div 6AA), s 95A(2)
+  deemed entitlements, s 97A and s 97(3) beneficiaries, capital gains and
+  franked distributions (Div 6E), special disability trusts, managed investment
+  trusts, public trading and corporate unit trusts and s 94 income.
+- **`trust-loss-tests`** (*ITAA 1936* Sch 2F): for deducting a prior-year tax
+  loss, which of the 50% stake, pattern of distributions, control and income
+  injection tests apply to a fixed or non-fixed trust or an excepted trust
+  (family trust elections taken as stated; complying superannuation and
+  approved deposit funds and pooled superannuation trusts are excepted under
+  s 272-100(b)), and whether each is passed on the
+  stated facts. The pattern of distributions test is worked out from stated
+  test year distributions when given: each individual counts the smallest
+  percentage they received (s 269-70), and the totals must exceed 50% for income
+  and for capital. `deductible` is `true`, `false` or `null` with the tests not
+  established named. Refused: widely held trusts (Subdivs 266-C to 266-E), bad
+  debt deductions and current-year losses (Div 268). Not decided: part-year
+  deductions (ss 266-50, 267-50) and family trust distribution tax.
+
+```sh
+echo '{"financial_year":2025,"assessable_income":"1000","deductions":"0","partners":[{"name":"A","residency":"resident","interest_percentage":"50"},{"name":"B","residency":"resident","interest_percentage":"50"}]}' | solomons-sword partnership-net-income
+```
+
 ## Original commands
 
 ```sh
@@ -90,10 +145,13 @@ invalid request exits 2, writes `error: <reason>` to stderr and writes no stdout
 
 | Command | Input fields | Result |
 | --- | --- | --- |
+| `partnership-net-income` | `financial_year`, `assessable_income`, `deductions`, optional `excluded_deductions`, `exempt_income`, `non_assessable_non_exempt_income`, `all_income_from_australian_sources`, `partners` array (`name`, `residency`, `interest_percentage`) and the refusal flags | Net income or partnership loss and each partner's `assessable_income`, `deductible_loss`, `exempt_income` and `non_assessable_non_exempt_income` |
 | `proportionate-share` | `trust_accounting_income`, `section95_net_taxable_income`, optional `net_capital_gains`, `franked_dividends`, `franking_credits` (each `0.00` when omitted), `beneficiaries` array | One object per beneficiary with every `BeneficiaryTaxShare` field |
 | `s100a-risk` | `beneficiary_name`, `distribution_amount` and the 11 facts by their Python parameter names | Every `Section100AAssessment` field; `risk_zone` is the zone value |
 | `s99b-liability` | `beneficiary_name`, `gross_amount_received_aud`, `beneficiary_was_resident_during_year`, optional `corpus_amount_aud`, `corpus_attributable_to_notional_assessable_income_aud`, `not_assessable_to_resident_aud`, `already_assessed_under_div6_aud` | Every `Section99BAssessment` field |
 | `trust-resolution` | `financial_year`, `resolution_date`, `is_signed_by_trustee`, `streaming_powers_in_deed`, `default_beneficiary_clause_exists`, `allocated_percentages_total`, `uses_specific_streaming`, `deed_resolution_deadline` (date or `null`) | `result` (`true`, `false` or `null`), `issues`, and the schedule's `resolution_deadline`, `is_effective_by_year_end` and `is_within_income_year` |
+| `trust-loss-tests` | `financial_year`, `loss_year`, `trust_kind`, `excepted_trust`, `deduction`, the stated test facts and optional `test_year_distributions` (`income` and `capital` arrays of name-to-percentage objects) | Each test's `applies`, `passed` and provision, the pattern of distributions working, `deductible`, `not_established` and `not_decided` |
+| `trustee-assessment` | `financial_year`, `trust_residency`, `net_income`, `income_of_trust_estate`, `beneficiaries` array (`name`, `kind`, `residency`, `entitlement`, `under_18`, `under_legal_disability`, `base_rate_entity`), `all_net_income_from_australian_sources`, `section_99a_2_kind`, `commissioner_opinion_99a_unreasonable`, `deceased_estate_less_than_3_years` and the refusal flags | Each beneficiary's Division 6 percentage, share, provision and trustee tax; the part no beneficiary is entitled to; `total_trustee_tax` |
 | `validate-amount` | `value` string | The command line's decimal parser result, or its refusal |
 
 A beneficiary object has `beneficiary_name`, `is_resident`,

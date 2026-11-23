@@ -3,8 +3,24 @@
 
 pub const SCOPES: &[(&str, &str)] = &[
     (
+        "vic_property_taxes",
+        "One Victorian tax on land for the 2025 or 2026 tax year, on values the operator states: vacant residential land tax on one parcel of residential land that met the classification and vacancy conditions of Land Tax Act 2005 (Vic) ss 34B and 34C as in force for that tax year, is not exempt and is not in an alpine resort as defined for that year (including Sch 3 cl 23), as the tax on the parcel for its liable assessed owner (not a deemed owner's personal liability, s 34E); the commercial and industrial property tax on land that entered the tax reform scheme on a stated date, with the earliest tax year it could be taxed if it then meets every condition of s 3; or windfall gains tax on one WGT event that took effect in that year and is not a rezoning excluded by Windfall Gains Tax Act 2021 (Vic) s 3 or a Gazette declaration, with no exemption under ss 37 to 40A or waiver under s 41, on every title rezoned by that one event owned by one assessment unit (one owner, the same joint owners, one trust or a complete group) whose grouping and capacity are already settled under ss 17 to 25. Excluded: separate occupancy valuations (s 14), land not separately valued (s 15), residential land of more than 2 hectares (s 37(2)) and events with a correcting component (s 38(3A)). Values are the Valuer-General's; deferral, interest and apportionment of the tax to titles (s 16(2)) are not worked.",
+    ),
+    (
+        "motor_vehicle_duty",
+        "The duty on an application to register, or to transfer the registration of, one passenger vehicle in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, for a duty date in 2026-27 (1 July 2026 to 30 June 2027). The operator establishes the vehicle's dutiable value under the jurisdiction's Act and that it is a passenger vehicle there, and, where they set the rate, its Queensland engine row (Duties Act 2001 (Qld) Sch 4C), whether it is a Victorian green car or primary producer passenger car, its ACT emissions category and whether it is new, a Tasmanian manufacturer's fleet discount, and whether it is a Northern Territory electric motor vehicle (Stamp Duty Act 1978 (NT) s 92A). Each scale is the Act's or determination's in force or made on 24 November 2026 (the ACT's DI2025-152 to 31 January 2027 and DI2026-154 from 1 February 2027; New South Wales from Revenue NSW's and Service NSW's pages), charged per $100 (Victoria $200) or part, with South Australia's $5 minimum, Tasmania's $20 for a vehicle of $600 or less, and Western Australia's sliding rate rounded down to 5 cents (Duties Act 2008 (WA) s 236). Excludes motorcycles, goods and commercial vehicles, buses, heavy vehicles, trailers and special vehicles; deciding the dutiable value, class or category; exemptions, concessions and refunds other than the rates named (family and dealer transfers, disability, veterans and Victoria's s 218(2) modification reduction); Queensland's s 384 reduction; South Australia's component for a compulsory third party policy on registration (Stamp Duties Act 1923 (SA) Sch 2 cl 2(3)) and concessional transfers; ACT deemed emissions and the Commissioner's discretion; and penalty tax and interest.",
+    ),
+    (
+        "insurance_duty",
+        "The duty on one premium for general insurance in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, for a contract effected or renewed in 2026-27 (1 July 2026 to 30 June 2027), at the rate each Act sets for the class the operator states: New South Wales Types A, B and C (from Revenue NSW's pages; Type C 2.5% for a policy taken out before 1 January 2018 and exempt from then), Victoria's general and business insurance (Duties Act 2000 (Vic) s 179), Queensland's class 1, class 2 and CTP insurance (Duties Act 2001 (Qld) s 362), and general insurance elsewhere (in South Australia any insurance other than life insurance, personal accident insurance included; the ACT's duty repealed from 1 July 2017). The operator establishes the class, that the premium is dutiable and not exempt, and the premium as the Act defines it, apportioned to the jurisdiction and the class. Each rate is the one in force on 24 November 2026; the duty is shown to the cent with the exact figure beside it. Excludes life insurance, Queensland accident insurance (Duties Act 2001 (Qld) s 362(3)), CTP insurance outside Queensland, a Northern Territory policy for more than one year, exemptions, apportionment, who is liable, returns and refunds, and penalty tax and interest.",
+    ),
+    (
         "alcohol_excise",
         "Excise duty on beer, spirits and other excisable beverages manufactured in Australia and entered for home consumption from 1 July 2022 to 31 January 2027, in one financial year from 2022-23 to 2026-27, at the substituted rate the Commissioner published for the day (Excise Tariff Act 1921 Schedule items 1 to 3, s 6A), with the remission for alcohol manufacturers under its yearly cap and the refund of duty paid where it was available (Excise Regulation 2015 Sch 1 cl 2(1) item 10). The operator establishes each line's product, dutiable volume and strength at 20 degrees Celsius under the measurement determinations, container and entry day, and the remission conditions other than the cap. Excludes licences, approvals and the free subitems 3.5 to 3.8, quotas in a declared period, other remissions, refunds and drawbacks, imported goods (customs duty), wine (wine equalisation tax), tobacco and fuel.",
+    ),
+    (
+        "asic_fees",
+        "ASIC's standard fee in 2026-27 for registering a company with or without share capital, reserving a company name, a company's annual review (public, proprietary, or special purpose public or proprietary) or registering or renewing a business name for 1 or 3 years, as indexed from 1 July 2026; and for a late payment of an annual review fee or a late lodgement of a document, the late fee for the tier the day ASIC received it falls in: on or before the due date nil, within one month after it $102, more than one month after it $428. The month starts the day after the due date (Acts Interpretation Act 1901 s 2G(1) and s 36(1) item 6). The operator gives the due date: the worksheet never works it out from a review date, and refuses a received date that a move of the due date, or of the month's end, past a weekend could change (AIA s 36(2), Corporations Act s 105(3)). Excludes other ASIC fees, public holidays, fee waivers and refunds, and dates outside 2026-27.",
     ),
     (
         "fuel_tax_credits",
@@ -16,7 +32,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "resident_tax",
-        "Full-year Australian resident individual, ordinary taxable income only. Excludes minors' special rates, working holiday makers, offsets, Medicare levy, surcharge, HELP, PAYG credits and tax payable/refundable. Supply established whole-dollar taxable income; this is basic tax before offsets and levies.",
+        "Australian resident individual, ordinary taxable income only; for a part-year resident (part_year_residency_months, with eligible_pensioner), the tax-free threshold pro-rated under Income Tax Rates Act 1986 s 20 unless s 18(2)(a) applies; with no part-year residency period under s 18(1) (residency beginning and ending within one month, or a 1 July resident ceasing during July) the inputs are omitted and the full threshold applies. Excludes minors' special rates, working holiday makers, offsets, Medicare levy, surcharge, HELP, PAYG credits and tax payable/refundable. Supply established whole-dollar taxable income; this is basic tax before offsets and levies.",
     ),
     (
         "foreign_resident_tax",
@@ -52,7 +68,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "super_withholding",
-        "The amount a payer withholds under Schedule 12 of the PAYG withholding schedules from one superannuation lump sum or roll-over paid from 13 October 2020 to 30 June 2027 in a financial year from 2020-21 to 2026-27. The operator establishes the facts super-benefit-tax takes, whether the payee had given the payer their TFN, whether the payee is a foreign resident and, if so, that no tax treaty makes the payment assessable only in another country. The components, ages, treatments and caps are those of super-benefit-tax. With a TFN, each part is withheld at Table A's rate: the tax offset's ceiling rate plus the 2% Medicare levy for an Australian resident (22% on a member's element taxed in the fund under preservation age; nil up to the low rate cap left and 17% above it from preservation age to 59, possible only to 2023-24; nil at 60 and above; on the element untaxed in the fund 32% under preservation age, 17% up to the low rate cap left then 32% from preservation age to 59, 17% at 60 and above, each up to the untaxed plan cap left, and 47% above it; 17% and 32% on a non-dependant's elements), the ceiling rate itself for a foreign resident, and the total is rounded to the nearest dollar, 50 cents up. Nothing is withheld from a terminal medical condition payment, a member benefit under $200 that is the payee's entire benefit, a death benefit to a dependant or a death benefit to the trustee of a deceased estate. A roll-over has 47% withheld from the element untaxed in the fund above the untaxed plan cap left and nothing else, with or without a TFN and for a foreign resident; without a TFN, cents are ignored. Without a TFN, 47% (45% for a foreign resident) of the taxable component is withheld from a member under 60, or of the element untaxed in the fund from a member 60 or over, ignoring cents. Refused: a payment before 13 October 2020; no TFN for a non-dependant or a member benefit under $200, for which the schedule states no rate; and everything super-benefit-tax refuses. Excluded: tax treaties, commutations of income streams, departing Australia superannuation payments (dasp-tax), superannuation income streams (Schedule 13), the tax on the payment (super-benefit-tax) and study and training support loans, from which nothing is withheld for these payments.",
+        "The amount a payer withholds under Schedule 12 of the PAYG withholding schedules from one superannuation lump sum or roll-over paid from 13 October 2020 to 30 June 2027 in a financial year from 2020-21 to 2026-27. The operator establishes the facts super-benefit-tax takes, whether the payee had given the payer their TFN, whether the payee is a foreign resident and, if so, that no tax treaty makes the payment assessable only in another country. The components, ages, treatments and caps are those of super-benefit-tax. With a TFN, each part is withheld at Table A's rate: the tax offset's ceiling rate plus the 2% Medicare levy for an Australian resident (22% on a member's element taxed in the fund under preservation age; nil up to the low rate cap left and 17% above it from preservation age to 59, possible only to 2023-24; nil at 60 and above; on the element untaxed in the fund 32% under preservation age, 17% up to the low rate cap left then 32% from preservation age to 59, 17% at 60 and above, each up to the untaxed plan cap left, and 47% above it; 17% and 32% on a non-dependant's elements), the ceiling rate itself for a foreign resident, and the total is rounded to the nearest dollar, 50 cents up. Nothing is withheld from a terminal medical condition payment, a member benefit under $200 that is the payee's entire benefit, a death benefit to a dependant or a death benefit to the trustee of a deceased estate. A roll-over has 47% withheld from the element untaxed in the fund above the untaxed plan cap left and nothing else, with or without a TFN and for a foreign resident; without a TFN, cents are ignored. Without a TFN, 47% (45% for a foreign resident) of the taxable component is withheld from a member under 60, or of the element untaxed in the fund from a member 60 or over, ignoring cents. Refused: a payment before 13 October 2020; no TFN for a non-dependant or a member benefit under $200, for which the schedule states no rate; and everything super-benefit-tax refuses. Excluded: tax treaties, commutations of income streams, departing Australia superannuation payments (dasp-tax), the tax on the payment (super-benefit-tax) and study and training support loans, from which nothing is withheld for these payments. With income_stream_period (weekly, fortnightly, monthly or quarterly), the payment is instead one superannuation income stream payment in 2024-25 to 2026-27 under Schedule 13 Part A: an account-based stream, or a capped defined benefit stream to a payee under 60, paid to the member or a death benefits dependant. Its components are proportioned on the interest's value and tax free component when the stream commenced (s 307-125(3)(a)). Cents in the stream are ignored; withholding applies to the taxable component under 60 and the element untaxed in the fund at 60 or over; the PAYG withholding tax table (Schedule 1, scale 2 with the tax-free threshold, scale 1 without) gives the withholding amount; the tax offset per payment is 15% of the element taxed in the fund for a disability stream under 60 or a dependant under 60 whose deceased died under 60, 10% of the element untaxed in the fund at 60 or over, and otherwise nil; where it is above nil, the offset adjustment on the weekly equivalent covers the Medicare levy; the greater of the withholding amount less the offset and the adjustment is withheld, rounded to the nearest dollar, 50 cents up. Without a TFN, 47% (45% for a foreign resident) of the amount withholding applies to, ignoring cents; for an income stream, tfn_provided is false only when the payee has not quoted a TFN, has not claimed an exemption from quoting one and has not told the payer of a TFN application or enquiry (or 28 days have passed since), and true for an exemption or an application within the 28 days, which Schedule 13 withholds from like a quoted TFN. Refused for an income stream: years before 2024-25, a capped defined benefit stream to a payee 60 or over (Parts B to E), a dependant under 60 whose deceased died aged 60 or over, a foreign resident with a TFN and an annual payment. Excluded for an income stream: a SAPTO claim through withholding (Schedule 9), Medicare levy variation declarations, study and training support loan debts (Schedule 8) and tax treaties.",
     ),
     (
         "gst_margin_scheme",
@@ -81,6 +97,14 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "trade_in",
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
+    ),
+    (
+        "land_tax",
+        "One owner's land tax for a full land tax year in one of New South Wales and Victoria (the 2026 land tax year, on land owned at midnight on 31 December 2025) and Queensland, Western Australia, South Australia, Tasmania and the Australian Capital Territory (2026-27); the Northern Territory has no land tax. The operator establishes the jurisdiction's total taxable value of the owner's land after exemptions and concessions (in New South Wales the 3-year average land value, in Victoria and South Australia the site value, in the ACT one parcel's average unimproved value), whether the owner pays trust rates (a New South Wales special trust, Victorian trust surcharge rates, Queensland company and trustee rates other than for the trustees Land Tax Act 2010 (Qld) s 33 taxes at Sch 1, or South Australian trust rates under Land Tax Act 1936 (SA) s 8A(1a) after the exceptions in s 8A(1b) and (1c)), whether the owner is a foreign person or absentee who pays the jurisdiction's surcharge on all of the land (in the ACT, a parcel wholly foreign-owned: s 17F apportions), the value a New South Wales or Tasmanian surcharge applies to (in Tasmania the foreign-owned part of one folio, Land Tax Act 2000 (Tas) s 16B(1)), and in Western Australia whether all of the land is in the Perth metropolitan region. Each scale is the Act's or the revenue office's, with the surcharges of New South Wales (5% of the surcharge value), Victoria (the absentee owner rates less the general or trust rates), Queensland (3.0c for each $1 over $349,999 from $350,000, Land Tax Act 2010 (Qld) Schs 2 and 3), Tasmania (2% of the surcharge value) and the ACT (0.75%), and Western Australia's metropolitan region improvement tax (0.14% over $300,000). Tasmania's amounts are rounded to 10 cents (Land Tax Rating Act 2000 (Tas) s 7), and a case where rounding each amount and their sum differ is refused; South Australia's land tax under $20 is nil (Land Tax Act 1936 (SA) s 6); other amounts are worked exactly and shown to the cent, half up, the worksheet's convention, before any rounding a revenue office applies to the amount it collects (such as Taxation Administration Act 2001 (Qld) s 152). The ACT figure is for a taxable parcel liable in all 4 quarters. Excludes deciding which land is taxable, exemptions and concessions, who is a foreign person or absentee, and the taxable and surcharge values; joint ownership, grouping of related companies, single holding assessments, New South Wales companies that are not their group's concessional company, Victorian absentee trusts (s 46IA), Queensland build-to-rent land (s 58B), an exempt ACT parcel, the Victorian COVID-19 debt temporary surcharge on single holdings, Queensland trust aggregation, land only partly in the Perth metropolitan region, the ACT's unit entitlement and quarterly instalments, apportionment between properties, and part-year or supplementary assessments.",
+    ),
+    (
+        "workers_compensation_premium",
+        "One employer's workers compensation premium for a 12-month policy or premium period in 2026-27 in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, on the wages it estimates and the industry or premium rate its insurer gives it, with the premium worked again on its actual wages and the same scheme facts and the adjustment. The operator establishes the wages as the scheme defines them, the rate, the apprentice wages and each scheme's facts. New South Wales: a small employer (average performance premium, wages x the WIC rate, of $30,000 or less) under icare's formula with no apprentice incentive, the average performance premium less the Safe Employer Reward, plus GST, then the dust diseases contribution at a rate that includes GST (the gst amount excludes the GST within that contribution); a premium under icare's $240 minimum is refused. Victoria: a new employer (cl 12(5), including its related-employer and predecessor conditions) or small employer under the WorkCover Premiums Order (No. 34) 2026/2027 cl 6 to 12, with one premium rate and one remuneration figure (one workplace and coverage period), N / 365 to 6 places and the $400 minimum premium, 0.1 buy-out value and 15,500 deductible amount of Gazette S 284, plus GST. Queensland: a new policy (not reinstated under s 11 or carried on by a successor under s 12) that commences to insure in 2026-27 under WorkCover Queensland Notice (No. 1) of 2026 ss 3.2, 4.1, 5.2, 8.3 and 10.1 with no further premium under s 3.1, plus GST and insurance duty of 5% of the premium and its GST (Duties Act 2001 (Qld) s 362(3)), with s 4.1's minimum including both. South Australia: ReturnToWorkSA's BP x (1 - D) + C - A with its discount bands, claims costs capped at 3 x D x BP and no discount or claims costs while the employer has not completed a full financial year registered, at least $200 and rounded down to the dollar, plus GST; the supplementary underwriting rate is nil. Western Australia, Tasmania, the ACT and the Northern Territory: a policy whose premium is the insurer's rate times this employer's wages, plus GST, with no minimum, fixed charge, other adjustment or group allocation. Each step is worked exactly and shown to the cent, half up, except where a scheme rounds otherwise. Refuses experience-rated and performance-rated premiums, group members in New South Wales, Victoria, Queensland and South Australia, a New South Wales apprentice incentive, a Victorian remuneration that rounds to $0, a Queensland policy that commenced before 1 July 2026, a Queensland premium that rounding the estimated premium and apprentice discount first would move, Queensland actual wages, and a South Australian base premium above a band's bound less a cent and below the bound (ReturnToWorkSA's table and calculator differ). Excludes the industry classification and rate, what counts as wages, exemption from holding a policy, the Mine Safety Fund adjustment, catastrophic claims contribution and performance discount in New South Wales, default assessments, policies carried on from an earlier policy, business transfers in South Australia, the South Australian work health and safety fee, Comcare and self-insurers, household workers, early payment discounts and instalment interest.",
     ),
     (
         "payroll_tax",
@@ -339,6 +363,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One area's capital works deduction under ITAA 1997 Division 43 for an income year from 2020-21 to 2026-27, for capital works begun on or after 16 September 1987 that qualify for a deduction for their start date and type (the operator establishes this, for example from the Rental properties guide 2026 table 1: structural improvements begun before 27 February 1992 do not). The rate is 4% for the part used in the 4% manner (s 43-145, including the 4% build to rent manner) for works begun after 26 February 1992, and 2.5% otherwise (s 43-210 steps 1 and 3; s 43-215 step 1(b) for works begun 16 September 1987 to 26 February 1992), on the construction expenditure for the part, for the days in the year it was owned or leased and used in that way over 365 (366 days are allowed in 2023-24), reduced for use only partly for producing assessable income, and limited to the undeducted construction expenditure (s 43-210 step 6, s 43-215 step 4). The operator establishes the construction expenditure attributable to their own area (a co-owner's own part), the days, the taxable use and the undeducted construction expenditure (s 43-235). Excludes works begun before 16 September 1987, works taken by s 43-220 to have begun before then, hotel and apartment buildings begun before 27 February 1992 (s 43-215 step 2), the calculation of undeducted construction expenditure, destruction (s 43-40) and splitting expenditure amongst co-owners.",
     ),
     (
+        "instant_asset_write_off",
+        "One asset's instant asset write-off for the income year from 2020-21 to 2026-27 in which it is first used, or installed ready for use, for a taxable purpose: for a small business entity that chose the simplified depreciation rules (ITAA 1997 s 328-180) for that year and the year it started to hold the asset, with the cost limit for its dates (IT(TP)A 1997 ss 328-180(4) and (4A) and 328-181(2), Act No. 71 of 2026 Sch 2), or for a medium sized business under s 40-82(2A). The operator establishes the entity's status and turnover for both years, the dates, the asset's Division 40 cost at the test time and its taxable purpose proportion. Excludes assets excluded from the simplified depreciation rules (s 328-175), cars whose cost the car limit reduces, an asset first used for any purpose in an earlier year, later second element amounts, balancing adjustments, split ownership and, for other than a small business entity, any asset temporary full expensing may take.",
+    ),
+    (
         "small_business_income_offset",
         "The small business income tax offset (ITAA 1997 Subdivision 328-F) of one individual, not as a trustee, who is not a prescribed person under s 102AC of the ITAA 1936, for an income year from 2020-21 to 2026-27: net small business income (s 328-365), each partnership or trust amount and its s 328-370 deductions, the basic income tax liability and the offsets applied before this one are the operator's established figures, and each partnership or trust is a small business entity at $5 million that is not a corporate tax entity.",
     ),
@@ -367,12 +395,20 @@ pub const SCOPES: &[(&str, &str)] = &[
         "What ITAA 1997 Division 83A includes in one individual's assessable income for an income year from 2020-21 to 2026-27 for employee share scheme interests (shares, stapled securities and rights to acquire them) acquired from 1 July 2015 in relation to employment in Australia, by an individual who was an Australian resident, not a temporary resident, throughout: the discount, the start-up concession (s 83A-33), the upfront inclusion (s 83A-25) with the $1,000 reduction and its income test (s 83A-35), deferral (s 83A-105) to the taxing point (ss 83A-115 and 83A-120, with cessation of employment before 1 July 2022) and the amount then (s 83A-110), the value of an unlisted right under the Income Tax Assessment (1997 Act) Regulations 2021 on a day from 1 July 2021 where chosen, and the s 83A-310 exclusion for a forfeited interest. Market values (including of unlisted shares), consideration, cost bases, dates and the scheme and personal conditions are the operator's established facts. Excludes a share acquired by exercising an ESS right (s 83A-20(2): list the right), takeovers and restructures (s 83A-130), indeterminate rights (s 83A-340), the employer's deduction (Subdivision 83A-D), CGT on a later disposal and the amendment itself.",
     ),
     (
+        "first_home_owner_grant",
+        "The first home owner grant in one of the 8 states and territories for a new home bought or built under a contract made from 1 July 2025 to 22 November 2026: the amount on the contract date, the value cap and the lesser-of-consideration rule each Act sets, from 4 eligibility facts the operator states and does not have tested; no grant for an established home except a Northern Territory contract from 1 July to 30 September 2025. Owner-builders, substantially renovated homes, exemptions, the Commissioner's discretions, transfer duty and other home buyer schemes are outside it.",
+    ),
+    (
         "psi_test",
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
     (
         "payg_instalment",
         "One quarterly PAYG instalment of a quarterly payer who pays 4 instalments a year, for the 2025-26 or 2026-27 income year, under Division 45 of Schedule 1 to the TAA 1953: the T7 amount, an amount varied from estimated tax, instalment income times the T2 rate, or a varied rate with any credit for earlier quarters. The figures, estimates and method are the operator's; not monthly, 2-a-year or annual instalments, a multi-rate trustee or a consolidated group; no GDP adjustment is applied (it is in the T7 amount already), and neither general interest charge on a low variation (ss 45-230 and 45-232), the right to claim a credit nor a due date is decided.",
+    ),
+    (
+        "pcg_2021_4",
+        "The ATO's risk zone under PCG 2021/4 for one individual professional practitioner's (IPP's) allocation of professional firm profits, in 2020-21 (the rates of the guideline's examples) or 2022-23 to 2026-27 (it applies from 1 July 2022, paragraph 17), for an arrangement the operator has established passes Gateways 1 and 2 (paragraphs 10 to 12). Either the operator states the income the IPP and its associated entities are entitled to from the whole of firm group, the IPP's share and the total tax paragraph 85 counts, or gives the IPP and up to 5 associates, each an Australian resident individual aged 18 or over all year, a base rate entity company or another company, with its firm income, firm-related deductions and other income less other deductions; each one's tax is then the larger of the tax on its firm income less firm-related deductions alone and its tax on all income less the tax without them (paragraph 85), on the year's resident scale or company rate, with no offset or levy (footnote 6). Factors 1 and 2, and factor 3 against the operator's commercial benchmark when chosen, are scored on Table 1 (paragraph 76) and zoned on Table 2 (paragraph 78); an IPP that returns all of it is low risk (paragraph 81). Excludes testing the gateways and whether the guideline applies (paragraph 28), full-time equivalents for a part-time IPP (paragraph 71), superannuation contributions and fringe benefits (paragraphs 72, 73 and 95 to 99), tax offsets, trustees taxed under ITAA 1936 s 98 or 99A, minors under Division 6AA, non-residents and super funds as recipients, the benchmark itself, and Part IVA (paragraphs 36 and 37).",
     ),
     (
         "government_super_amounts",
@@ -451,6 +487,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)), with previously unrecognised amounts used in the year shown apart (para 80(e)), and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63), a change in the expected rate with opening balances when the year's rate is not the closing rate (the reversals in the year need a schedule) and, in 2020-21, opening balances measured at the base rate entity rate.",
     ),
     (
+        "long_service_leave",
+        "One employee's long service leave under the general long service leave Act of one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, at a last day from 1 July 2020 to 30 June 2027 and not before the Act's text as read (New South Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022): the weeks an employee still employed can take, or the weeks paid when employment ends for the reason given, less leave already taken or paid, and their value at the weekly pay. Service runs from the first day to the end of the last day, less excluded days, in completed years, then completed months, then days, an anniversary on a missing day falling on the 1st of the next month; a part year is months over 12 plus days over 365.25, or in Queensland days over 364. New South Wales s 4(2)(a): 8 2/3 weeks for 10 years and 4 1/3 for each further 5; on ending after 10 to 15 years for any reason a proportion on 3 months for 15 years, after 15 each completed year at 2 months for 10, and after 5 to 10 years for the employer ending it other than for serious and wilful misconduct, illness, incapacity or a pressing necessity, or death, a proportion on 2 months for 10. Victoria ss 6, 9 and 10: after 7 years 1/60 of the continuous employment. Queensland s 95: 8.6667 weeks for 10 years and the proportion for a further 5 or more, and on ending after 7 years a proportion on 8.6667 weeks for 10, before 10 only for the reasons in s 95(4). Western Australia s 8, South Australia s 5, Tasmania ss 8 and 9, the ACT ss 3, 4, 11A and 11C and the Northern Territory ss 8 and 10 as the README sets out. The operator establishes the dates, the excluded days, the leave taken, the reason and the ordinary weekly pay. Weeks are shown to 4 places, half up; the value is the exact weeks less leave taken times the pay, half up to the cent once. Refuses a fixed term ending before the full period in New South Wales, Queensland, Tasmania, the ACT and the Northern Territory, a death under 10 years in the Northern Territory, leaving without notice between 7 and 10 years in South Australia, a dismissal found unfair outside Queensland where the reason decides, leave taken in Tasmania with service from before 1 July 2012, leave taken above the exact weeks, a start before 23 June 1990 and a last day outside the dates covered. Excludes awards, agreements and portable schemes that displace the Act, Queensland's seasonal employees, mining and casual industry schemes, what counts as service or ordinary pay, leave in advance, cashing out and public holidays during leave.",
+    ),
+    (
         "leave_provisions",
         "One entity's annual leave and long service leave provisions under AASB 119 at a reporting date ending in a financial year from 2020-21 to 2026-27, from lines of accumulated unused leave the preparer has established. A line is short-term if the preparer expects the benefit it belongs to to be settled wholly before 12 months after the reporting date, and other long-term otherwise, its part due within 12 months included (para 8; paras 9 and 153). A short-term line's provision is its hours times the hourly rate the entity expects to pay for them times the probability of payment, undiscounted (paras 11, 13(a), 15 and 16). An other long-term line's is its hours times the hourly rate at the reporting date, grown by the stated salary growth rate for its whole years to settlement (1 to 50), times the probability of vesting or payment, and discounted at the stated discount rate for those years (paras 155, 67, 68, 70, 72 and 83 to 87). Each amount is rounded half up to the cent. A short-term line is current (AASB 101 paras 69(a) and 70); a long-term line is current when the entity has no right at the reporting date to defer settling it for 12 months (para 69(d)), and non-current otherwise. For periods beginning before 1 January 2024 that right must be unconditional, unless AASB 2020-1 and AASB 2022-6 were applied early; from 1 January 2024 (AASB 2020-1 and AASB 2022-6) it must have substance and exist at the reporting date (para 72A), whatever the entity expects (para 75A). The probability measures a line and the right to defer classifies it, so a line without a right to defer takes any probability. The preparer establishes the hours, rates, the expectation of settlement, the right to defer and every actuarial assumption: the discount rate from market yields on high quality corporate bonds (government bonds where there is no deep market, and for a not-for-profit public sector entity, Aus83.1) at the reporting date for the term (para 83), and unbiased, mutually compatible salary growth and probabilities (paras 75 to 80); none is defaulted. Excludes on-costs (payroll tax, workers compensation and superannuation on leave), the profit or loss split into service cost, interest and remeasurements (para 156), the year's movement, fractional years to settlement and AASB 18. Refuses defined benefit plans and other post-employment benefits (paras 26 to 152), plan assets and reimbursement rights (paras 113 to 119), leave other than annual and long service leave (sick, parental, jury and military service leave, long-term disability and termination benefits), and a long-term line under 1 year to settlement (1 is the nearest whole year it takes).",
     ),
@@ -470,12 +510,48 @@ pub const SCOPES: &[(&str, &str)] = &[
         "help_indexation",
         "One person's accumulated HELP debt under HESA Division 140 for 1 June 2020 to 1 June 2026 (financial years 2019-20 to 2025-26): the preceding accumulated debt, debts incurred in the last 6 months of the preceding year, voluntary and compulsory repayments and amended assessments in the period, indexation at the ATO's published factor, the 20% reduction of ss 137-19A and 140-26 for 2025, debts incurred in the first 6 months of the year and the s 140-30 rounding; and what a voluntary repayment's timing does to the result. The operator supplies the balance, debts, repayments and compulsory repayment amounts; the command never estimates them. It does not take a location-preferred HELP debtor's reduced indexation or reduction, other study and training loans (VET Student Loans Act, SSL, ABSTUDY SSL, AASL, SFSS), payment processing time or HELP balance re-credits.",
     ),
+    (
+        "defined_benefit_income_cap",
+        "The defined benefit income cap of one person for an income year from 2017-18 to 2026-27 (ITAA 1997 s 303-4), the 50% of the excess that is assessable (s 303-2) and the untaxed element offset after its reduction (s 303-3, with ss 301-100(2) and 302-85(2)). Which benefits are defined benefit income, and which get concessional treatment, are the operator's statements in the amounts given; the person's other income, tax and the transfer balance cap are not worked out.",
+    ),
+    (
+        "foreign_pension_upp",
+        "The deductible amount of the undeducted purchase price of one foreign pension or annuity for an income year: ITAA 1936 s 27H(2) from the stated purchase price, residual capital value and relevant number (2007-08 to 2026-27), or the ATO's 2026 D11 shortcuts for a UK State Pension or a Dutch SVB pension (2025-26 only), with the amount excluded and the assessable rest. It does not hold the Life Tables, apportion a part year, translate currency or make the Commissioner's determination under s 27H(3) or (3A).",
+    ),
+    (
+        "scholarship_exemption",
+        "Whether one scholarship, bursary, educational allowance or educational assistance paid to or for a student in an income year from 2017-18 to 2026-27 is exempt under ITAA 1997 s 51-10 item 2.1A, given the student's stated facts against s 51-35(c) to (e). The Commonwealth education and training payments s 51-35(a), (b) and (f) exclude, and friendly society plans, are refused, as the ATO's tool leaves them out; a scholarship the Commonwealth funds or pays is otherwise tested like any other.",
+    ),
+    (
+        "super_crystallisation",
+        "The crystallised segment of one taxed superannuation interest just before 1 July 2007 (ITTPA 1997 s 307-225): the stated concessional, post-June 1994 invalidity and CGT exempt components and undeducted contributions, with the pre-July 83 component worked out under former ITAA 1936 s 27AA(1)(d), and the taxable component left. Interests from an untaxed source and income streams first paid before 1 July 2007 are refused; the components are the fund's records, not worked out.",
+    ),
+    (
+        "endorsement_review",
+        "One of the ATO's 3 endorsement review worksheets (income tax exempt charities, Worksheet 1 for a DGR endorsed as a whole, Worksheet 2 for a DGR endorsed for a fund, authority or institution) from the entity's own yes or no answers, each tied to the provision it tests as read on 24 November 2026, with what each 'No' means and what to do. It checks no register; use dgr-check for a recipient's listed DGR status.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
     (
+        "vic_property_taxes",
+        "https://www.legislation.vic.gov.au/in-force/acts/windfall-gains-tax-act-2021/010",
+    ),
+    (
+        "motor_vehicle_duty",
+        "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2001-071",
+    ),
+    (
+        "insurance_duty",
+        "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2001-071",
+    ),
+    (
         "alcohol_excise",
         "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol",
+    ),
+    (
+        "asic_fees",
+        "https://www.asic.gov.au/for-business-and-companies/forms-and-fees/all-fees/fees-for-commonly-lodged-documents",
     ),
     (
         "fuel_tax_credits",
@@ -552,6 +628,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "super_withholding",
         "https://www.legislation.gov.au/F2026L00716/asmade/text",
+    ),
+    (
+        "land_tax",
+        "https://www.legislation.vic.gov.au/in-force/acts/land-tax-act-2005/086",
+    ),
+    (
+        "workers_compensation_premium",
+        "https://www.worksafe.vic.gov.au/resources/workcover-insurance-premiums-order",
     ),
     (
         "payroll_tax",
@@ -795,6 +879,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/43-210",
     ),
     (
+        "instant_asset_write_off",
+        "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/simpler-depreciation-for-small-business/instant-asset-write-off",
+    ),
+    (
         "small_business_income_offset",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_7/document_7.html",
     ),
@@ -819,12 +907,20 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
     ),
     (
+        "first_home_owner_grant",
+        "https://www.revenue.nsw.gov.au/grants-schemes/first-home-owner-new-homes-grant",
+    ),
+    (
         "psi_test",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
     ),
     (
         "payg_instalment",
         "https://www.legislation.gov.au/C1953A00001/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html",
+    ),
+    (
+        "pcg_2021_4",
+        "https://www.ato.gov.au/law/view/document?docid=COG/PCG20214/NAT/ATO/00001",
     ),
     (
         "rental_property",
@@ -911,6 +1007,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.aasb.gov.au/admin/file/content105/c9/AASB119_08-15_COMPdec22_01-23.pdf",
     ),
     (
+        "long_service_leave",
+        "https://www.legislation.vic.gov.au/in-force/acts/long-service-leave-act-2018",
+    ),
+    (
         "foreign_income_conversion",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/960-50",
     ),
@@ -925,6 +1025,26 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "help_indexation",
         "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-indexation-rates",
+    ),
+    (
+        "defined_benefit_income_cap",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/303-4",
+    ),
+    (
+        "foreign_pension_upp",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19360027/27H",
+    ),
+    (
+        "scholarship_exemption",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/pdf/2",
+    ),
+    (
+        "super_crystallisation",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-225",
+    ),
+    (
+        "endorsement_review",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/30-125",
     ),
 ];
 
@@ -953,6 +1073,58 @@ const FBT_GUIDE_REDUCTIONS: &str =
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
+        "vic_property_taxes",
+        &[
+            "https://www.legislation.vic.gov.au/in-force/acts/land-tax-act-2005/086",
+            "https://www.legislation.vic.gov.au/in-force/acts/commercial-and-industrial-property-tax-reform-act-2024/004",
+            "https://www.legislation.vic.gov.au/in-force/acts/interpretation-legislation-act-1984/134",
+            "https://www.legislation.vic.gov.au/as-made/acts/state-taxation-acts-and-other-acts-amendment-act-2023",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/vacant-residential-land-tax-current-rates",
+            "https://www.sro.vic.gov.au/owning-property/vacant-residential-land-tax/understanding-vacant-residential-land-tax",
+            "https://www.sro.vic.gov.au/businesses-and-organisations/commercial-and-industrial-property-tax/understanding-commercial-and-industrial-property-tax",
+            "https://www.sro.vic.gov.au/owning-property/windfall-gains-tax/understanding-windfall-gains-tax",
+        ],
+    ),
+    (
+        "motor_vehicle_duty",
+        &[
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/motor-vehicle-duty",
+            "https://www.service.nsw.gov.au/transaction/check-motor-vehicle-stamp-duty",
+            "https://content.legislation.vic.gov.au/sites/default/files/2026-06/00-79aa141-authorised.pdf",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/motor-vehicle-duty-current-rates",
+            "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+            "https://www.qld.gov.au/transport/registration/costs/duty/rates",
+            "https://www.qld.gov.au/transport/registration/costs/duty/help",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/RedirectURL?OpenAgent&query=mrdoc_49928.pdf",
+            "https://www.wa.gov.au/organisation/department-of-treasury-and-finance/vehicle-licence-duty",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/stamp-duties-act-1923/current/1923.1569.auth.pdf",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2001-015",
+            "https://www.sro.tas.gov.au/motor-vehicle-duty/rates-of-duty",
+            "https://www.legislation.act.gov.au/DownloadFile/a/1999-7/current/PDF/1999-7.PDF",
+            "https://www.legislation.act.gov.au/DownloadFile/di/2025-152/current/PDF/2025-152.PDF",
+            "https://www.legislation.act.gov.au/DownloadFile/di/2026-154/current/PDF/2026-154.PDF",
+            "https://www.revenue.act.gov.au/motor-vehicle-duty",
+            "https://legislation.nt.gov.au/en/Legislation/STAMP-DUTY-ACT-1978",
+            "https://treasury.nt.gov.au/dtf/territory-revenue-office/stamp-duty",
+        ],
+    ),
+    (
+        "insurance_duty",
+        &[
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/insurance-duty/types-of-insurance",
+            "https://content.legislation.vic.gov.au/sites/default/files/2026-06/00-79aa141-authorised.pdf",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/insurance-policies-current-rates",
+            "https://qro.qld.gov.au/duties/insurance-duty/rates/",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/RedirectURL?OpenAgent&query=mrdoc_49928.pdf",
+            "https://www.wa.gov.au/government/publications/self-assess-and-pay-insurance-duty",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/stamp-duties-act-1923/current/1923.1569.auth.pdf",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2001-015",
+            "https://www.sro.tas.gov.au/insurance-duty/rates-of-duty",
+            "https://www.legislation.act.gov.au/DownloadFile/a/1999-7/current/PDF/1999-7.PDF",
+            "https://legislation.nt.gov.au/en/Legislation/STAMP-DUTY-ACT-1978",
+        ],
+    ),
+    (
         "alcohol_excise",
         &[
             "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/calculating-alcohol-excise-duty",
@@ -962,6 +1134,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C1901A00009/2026-08-27/2026-08-27/text/original/epub/OEBPS/document_1/document_1.html",
             "https://www.legislation.gov.au/F2015L00355/2025-11-29/2025-11-29/text/original/epub/OEBPS/document_1/document_1.html",
             "https://data.gov.au/data/dataset/excise-data",
+        ],
+    ),
+    (
+        "asic_fees",
+        &[
+            "https://download.asic.gov.au/asic-nga/data/fees-data-current.json",
+            "https://www.asic.gov.au/for-business-and-companies/forms-and-fees/all-fees/fee-indexation",
+            "https://www.asic.gov.au/for-business-and-companies/forms-and-fees/late-fees",
+            "https://www.legislation.gov.au/F2001B00275/latest/text",
+            "https://www.legislation.gov.au/F2003B00173/latest/text",
+            "https://www.legislation.gov.au/F2022L00349/latest/text",
+            "https://www.legislation.gov.au/C1901A00002/latest/text",
         ],
     ),
     (
@@ -1097,6 +1281,50 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/F2025L00647/asmade/text",
             "https://www.legislation.gov.au/F2025L01016/asmade/text",
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
+        ],
+    ),
+    (
+        "land_tax",
+        &[
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/thresholds-and-rates",
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/types-of-landowners/trusts",
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/surcharge-land-tax/what-is-surcharge-land-tax",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/land-tax-current-rates",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2010-015",
+            "https://qro.qld.gov.au/land-tax/calculate/individual/",
+            "https://qro.qld.gov.au/land-tax/calculate/company-trust/",
+            "https://qro.qld.gov.au/land-tax/calculate/absentee/",
+            "https://qro.qld.gov.au/land-tax/calculate/foreign-company-trust/",
+            "https://www.legislation.wa.gov.au/legislation/prod/filestore.nsf/FileURL/mrdoc_28122.htm/$FILE/Land%20Tax%20Act%202002%20-%20%5B02-d0-04%5D.html",
+            "https://www.legislation.wa.gov.au/legislation/prod/filestore.nsf/FileURL/mrdoc_17548.htm/$FILE/Metropolitan%20Region%20Improvement%20Tax%20Act%201959%20-%20%5B04-a0-08%5D.html",
+            "https://www.wa.gov.au/organisation/department-of-treasury-and-finance/land-tax-assessment",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/land-tax-act-1936/current/1936.2318.auth.pdf",
+            "https://www.revenuesa.sa.gov.au/landtax/rates-and-thresholds",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2000-073",
+            "https://www.sro.tas.gov.au/land-tax/rates-of-land-tax",
+            "https://www.sro.tas.gov.au/Documents/foreign-investor-land-tax-surcharge-guideline.pdf",
+            "https://legislation.act.gov.au/DownloadFile/a/2004-4/current/PDF/2004-4.PDF",
+            "https://www.legislation.act.gov.au/View/di/2026-152/current/html/2026-152.html",
+            "https://nt.gov.au/property/land/buying-and-selling-land/land-taxes",
+        ],
+    ),
+    (
+        "workers_compensation_premium",
+        &[
+            "https://content-v2.api.worksafe.vic.gov.au/sites/default/files/2026-06/Workcover-premiums-order-34-2026-06.pdf",
+            "https://www.gazette.vic.gov.au/gazette/Gazettes2026/GG2026S284.pdf",
+            "https://www.icare.nsw.gov.au/workers-compensation/employers/new-policy/premium-calculation-for-small-employers",
+            "https://www.icare.nsw.gov.au/workers-compensation/employers/new-policy/understanding-your-premium",
+            "https://cdn.workcoverqld.com.au/api/public/content/Queensland-Government-Gazette-2026.pdf",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2001-071",
+            "https://qro.qld.gov.au/resource/da356-1/",
+            "https://www.rtwsa.com/insurance/insurance-with-us/premium-calculations/your-premium-explained",
+            "https://www.rtwsa.com/insurance/insurance-with-us/employer-remuneration-return/apprentice-and-trainee-incentive",
+            "https://www.rtwsa.com/media/documents/Your-work-injury-insurance-booklet-June-2026_web.pdf",
+            "https://worksafe.nt.gov.au/forms-and-resources/bulletins/understanding-workers-compensation-premiums-northern-territory",
+            "https://worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-employers/workers-compensation-insurance",
+            "https://www.act.gov.au/open/act-workers-compensation-scheme-suggested-reasonable-premium-rates",
+            "https://www.workcover.wa.gov.au/resources/rates-fees-payments/",
         ],
     ),
     (
@@ -1729,6 +1957,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "instant_asset_write_off",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/328-180",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-82",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-180",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/328-181",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970040/40-160",
+            "https://www.ato.gov.au/law/view/pdf/acts/20260071.pdf",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/depreciation-and-capital-expenses-and-allowances/temporary-full-expensing/tfe-for-small-business-entities-using-simplified-depreciation",
+        ],
+    ),
+    (
         "rental_property",
         &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/8-1",
@@ -1981,6 +2221,25 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "first_home_owner_grant",
+        &[
+            "https://content.legislation.vic.gov.au/sites/default/files/2025-11/00-5aa053-authorised.pdf",
+            "https://www.sro.vic.gov.au/buying-property/first-home-owner-grant/understanding-first-home-owner-grant",
+            "https://www.legislation.qld.gov.au/view/pdf/current/act-2000-014",
+            "https://qro.qld.gov.au/property-concessions-grants/first-home-grant/eligibility/",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a2000.html",
+            "https://www.wa.gov.au/system/files/2026-10/first-home-owner-grant.pdf",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/first-home-and-housing-construction-grants-act-2000/current/2000.25.auth.pdf",
+            "https://www.revenuesa.sa.gov.au/FHOG/grant-details",
+            "https://www.legislation.tas.gov.au/view/html/inforce/current/act-2000-019",
+            "https://www.sro.tas.gov.au/first-home-owner/eligibility",
+            "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11819",
+            "https://nt.gov.au/property/home-owner-assistance/buy-build-new-home",
+            "https://www.legislation.act.gov.au/a/2000-23/",
+            "https://www.revenue.act.gov.au/home-buyer-assistance/first-home-owner-grant",
+        ],
+    ),
+    (
         "psi_test",
         &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
@@ -1996,6 +2255,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/forms-and-instructions/payg-instalments-how-to-complete-your-activity-statement",
             "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/completing-your-bas-for-gst/complete-your-bas",
             "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/payg-instalments/calculate-your-payg-instalments/how-we-calculate-your-payg-instalment-amount-or-rate",
+        ],
+    ),
+    (
+        "pcg_2021_4",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents",
+            "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-201112-to-202021",
+            "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-2025-26",
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
         ],
     ),
     (
@@ -2036,6 +2304,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
             "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-201112-to-202021",
             "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-2025-26",
+        ],
+    ),
+    (
+        "long_service_leave",
+        &[
+            "https://legislation.nsw.gov.au/view/whole/html/inforce/current/act-1955-038",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/leave/long-service-leave",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2016-063",
+            "https://www.legislation.qld.gov.au/view/whole/html/asmade/act-2020-019",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_548_homepage.html",
+            "https://www.legislation.sa.gov.au/lz?path=%2FC%2FA%2FLONG%20SERVICE%20LEAVE%20ACT%201987",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-1976-095",
+            "https://www.legislation.act.gov.au/a/1976-27/",
+            "https://www.worksafe.act.gov.au/__data/assets/pdf_file/0009/1673964/Long-service-leave-calculation-guidelines.pdf",
+            "https://legislation.nt.gov.au/Legislation/LONG-SERVICE-LEAVE-ACT-1981",
         ],
     ),
     (
@@ -2101,6 +2384,49 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/individuals-and-families/study-and-training-support-loans/voluntary-repayments",
         ],
     ),
+    (
+        "defined_benefit_income_cap",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/303-2",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/303-3",
+            "https://www.ato.gov.au/law/view/document?DocID=COG/LCR20171/NAT/ATO/00001",
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/transfer-balance-cap",
+        ],
+    ),
+    (
+        "foreign_pension_upp",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2007-05-11/2007-05-11/text/original/pdf/1",
+            "https://www.legislation.gov.au/F2025L01060/asmade/2025-09-09/text/original/pdf",
+            "https://www.ato.gov.au/forms-and-instructions/individual-supplementary-tax-return-2026-instructions/deduction-questions-d11-d15-supplementary-tax-return-2026/d11-deductible-amount-of-upp-of-a-foreign-pension-or-annuity-2026",
+        ],
+    ),
+    (
+        "scholarship_exemption",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2017-07-01/2017-07-01/text/original/pdf/2",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/scholarships-prizes-and-awards/scholarship-payments",
+            "https://www.ato.gov.au/calculators-and-tools/is-my-scholarship-taxable",
+        ],
+    ),
+    (
+        "super_crystallisation",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2007-02-19/2007-02-19/text/original/pdf/1",
+            "https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/apra-regulated-funds/managing-member-benefits/managing-and-calculating-member-benefits/calculating-components-of-a-super-benefit",
+            "https://www.ato.gov.au/calculators-and-tools/super-crystallisation-calculator",
+        ],
+    ),
+    (
+        "endorsement_review",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/50-50",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/Sch1-426-45",
+            "https://www.ato.gov.au/calculators-and-tools/charities-income-tax-exempt-charities-endorsement-review-worksheet",
+            "https://www.ato.gov.au/calculators-and-tools/charities-review-of-a-dgr-endorsed-as-a-whole-worksheet-1",
+            "https://www.ato.gov.au/calculators-and-tools/charities-review-of-a-dgr-endorsed-as-a-part-of-an-organisation-worksheet-2",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -2115,9 +2441,44 @@ const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
+        "motor_vehicle_duty",
+        &[
+            "Each revenue office or registration authority decides the dutiable value, the vehicle's class and any exemption or concession; this worksheet takes the value and class as established.",
+            "The scales are those in force or made on 24 November 2026; an amendment for a later duty date is not reflected.",
+        ],
+    ),
+    (
+        "insurance_duty",
+        &[
+            "Each revenue office decides the class, any exemption and how a premium is apportioned between jurisdictions and classes; this worksheet takes the class and the apportioned premium as established.",
+            "No Act sets a rounding rule for one premium's duty: each is paid on a return of total premiums. amounts.duty is rates.exact_duty to the cent, for display; add exact figures when totalling a return.",
+            "The rates are those in force on 24 November 2026; an amendment for a later effected date is not reflected.",
+        ],
+    ),
+    (
+        "long_service_leave",
+        &[
+            "An award, enterprise agreement, pre-modern federal award or portable long service leave scheme can displace the Act, and what counts as service and ordinary pay are the operator's facts: this worksheet applies the Act to them and does not decide them.",
+        ],
+    ),
+    (
         "leave_provisions",
         &[
             "The discount rate, salary growth, probabilities, settlement expectations and rights to defer are the preparer's stated assumptions and judgements (AASB 119 paras 75 to 87; AASB 101 para 69); the worksheet applies them and does not test them.",
+        ],
+    ),
+    (
+        "vic_property_taxes",
+        &[
+            "The State Revenue Office decides whether land is vacant residential land, has a qualifying use or is exempt, and the Valuer-General sets its values; this worksheet takes those facts and values as established.",
+            "No land leaves the commercial and industrial property tax's 10-year transition period before 1 July 2034, so the tax is nil in 2025 and 2026. The earliest possible tax year shown is not a finding of future liability: the land must then still be tax reform scheme land with a qualifying use that is taxable for land tax (s 3), and a future entry date is a hypothetical.",
+            "Each amount is the statutory formula amount shown to the cent, half up, before any administrative adjustment the Commissioner makes; it is not an assessed amount.",
+        ],
+    ),
+    (
+        "asic_fees",
+        &[
+            "Public holidays are not checked: if the due date or the last day of the first month after it is one where the payment or document reaches ASIC, check ASIC's invoice. A late fee is on top of the fee itself. GST does not apply to ASIC fees.",
         ],
     ),
     (
@@ -2226,9 +2587,21 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "first_home_owner_grant",
+        &[
+            "The grant is paid only on an application the revenue office or an approved agent decides; confirm it with them before relying on it. The New South Wales rules rest on Revenue NSW's page: the Act could not be read on 23 November 2026.",
+        ],
+    ),
+    (
         "psi_test",
         &[
             "A personal services business is still subject to Part IVA of the ITAA 1936 on splitting the income (TR 2022/3 paragraphs 25 and 160); the PSI is still reported in the tax return.",
+        ],
+    ),
+    (
+        "pcg_2021_4",
+        &[
+            "A green zone is not a ruling: Part IVA can still apply (PCG 2021/4 paragraphs 36 and 37). Whether the gateways are passed is the operator's answer.",
         ],
     ),
     (
@@ -2310,6 +2683,21 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "super_withholding",
         &[
             "The amount withheld is a credit against the payee's tax, which super-benefit-tax works out; it is not the tax. A payee with a tax treaty that makes the payment assessable only in another country has nothing withheld, which this command does not decide.",
+        ],
+    ),
+    (
+        "land_tax",
+        &[
+            "Each revenue office decides which land is taxable, its value and whether an owner is a foreign person or absentee; this worksheet takes the taxable value and any surcharge value as established.",
+            "The ACT assesses land tax each quarter on the days in the quarter; this worksheet gives the full year's amount, which the quarterly assessments can differ from by cents.",
+        ],
+    ),
+    (
+        "workers_compensation_premium",
+        &[
+            "The insurer's notice is the premium: this worksheet takes the wages, the industry or premium rate and each scheme's facts as established, and holds no rate table.",
+            "An employer may be exempt from holding a policy, which this worksheet does not decide: in New South Wales with wages of $7,500 or less and no apprentice or trainee, outside a group; in Victoria with rateable remuneration of $7,500 or less for 2026-27 (Premiums Order (No. 34) cl 7), unless it employs an apprentice or trainee.",
+            "South Australia's work health and safety fee, which carries no GST, is added to the premium and is not worked here.",
         ],
     ),
     (
@@ -2445,6 +2833,36 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "The factors are the ATO's published rates plus one; the CPI and WPI factors behind them were not recomputed from ABS index numbers here.",
         ],
     ),
+    (
+        "defined_benefit_income_cap",
+        &[
+            "Whether an income stream is a capped defined benefit income stream, and whether each benefit gets concessional treatment, are your statements; ask the fund, which reports them on the PAYG payment summary.",
+        ],
+    ),
+    (
+        "foreign_pension_upp",
+        &[
+            "The ATO decides a foreign pension's deductible amount by private ruling on a request for a determination (NAT 16543); the formula's amount rests on the purchase price and relevant number you give, and the Commissioner may find it inappropriate (s 27H(3)).",
+        ],
+    ),
+    (
+        "scholarship_exemption",
+        &[
+            "Whether the student is full-time, the payment's conditions and its educational purpose are your judgements on the scholarship agreement; the ATO's examples show how it reads work experience.",
+        ],
+    ),
+    (
+        "super_crystallisation",
+        &[
+            "The non-qualifying and excessive components are taken as nil, as the ATO's calculator takes neither; the pre-July 83 component is shown to the cent, the law giving no rounding rule.",
+        ],
+    ),
+    (
+        "endorsement_review",
+        &[
+            "The worksheets date from 2021; each answer is tied to the provision as read on 24 November 2026, and conditions they do not ask about are listed under not_asked.",
+        ],
+    ),
 ];
 
 /// A `foreign_resident_tax` warning for a year whose rates the ATO had not
@@ -2522,6 +2940,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
         "The excise duty rates for goods entered from 1 February 2027 had not been published when this worksheet was checked, so no 2027-28 rate is held.",
     ),
     (
+        "asic_fees",
+        "ASIC's fees from 1 July 2027 are indexed on the March 2027 quarter CPI and had not been published when this worksheet was checked on 24 November 2026.",
+    ),
+    (
         "work_expenses",
         "No cents per kilometre rate for 2027-28 had been determined under ITAA 1997 s 28-25(4) when this worksheet was checked.",
     ),
@@ -2560,7 +2982,7 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ),
     (
         "depreciation",
-        "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
+        "2027-28 has 366 days, and this worksheet has been checked for a year of 366 days only in 2023-24.",
     ),
     ("payg_withholding", WITHHOLDING_2027_28),
     ("horticulture_shearing_withholding", WITHHOLDING_2027_28),
@@ -2659,6 +3081,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "annuity_withholding.income_not_whole_cents",
         "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
+    ),
+    (
+        "asic_fees.dates_outside_year",
+        "A due date or received date falls outside 2026-27, whose amounts the worksheet holds.",
+    ),
+    (
+        "asic_fees.fee_unknown",
+        "fee is not one of the ASIC fees the worksheet holds.",
+    ),
+    (
+        "asic_fees.weekend_undecided",
+        "A move of the due date, or of the end of the month after it, past a weekend could change the late fee tier, which the worksheet does not decide.",
     ),
     (
         "ato_interest_penalties.date_order",
@@ -3058,6 +3492,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "unrecognised_used is more than opening_unrecognised_deductible.",
     ),
     (
+        "defined_benefit_income_cap.first_day_outside_year",
+        "first_day is not in the income year.",
+    ),
+    (
         "depreciation.precision_exceeded",
         "An effective life's significant digits and the taxable use's decimal places total more than 22.",
     ),
@@ -3068,6 +3506,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "derivation.unsupported",
         "derive was asked to explain a command whose amounts it does not derive.",
+    ),
+    (
+        "endorsement_review.answers_invalid",
+        "answers is not an object of exactly the worksheet's booleans.",
+    ),
+    (
+        "endorsement_review.worksheet_invalid",
+        "worksheet is not one of the 3 endorsement review worksheets.",
     ),
     (
         "entertainer_withholding.foreign_resident_tfn",
@@ -3398,6 +3844,50 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "determination_date is not in the financial year given as year.",
     ),
     (
+        "first_home_owner_grant.below_grant",
+        "The value is below the grant where the source read gives no lesser-of-consideration rule, or for a home built, whose building contract price must be at least the grant.",
+    ),
+    (
+        "first_home_owner_grant.date_invalid",
+        "contract_date is not a YYYY-MM-DD date in the financial year given as year.",
+    ),
+    (
+        "first_home_owner_grant.date_uncovered",
+        "The contract date is before 1 July 2025 or after 22 November 2026, the day the grant rules were read.",
+    ),
+    (
+        "first_home_owner_grant.fact_needed",
+        "A fact the transaction needs is not stated: the building contract price for a home built, or the Northern Territory or Tasmanian conditions.",
+    ),
+    (
+        "first_home_owner_grant.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "first_home_owner_grant.facts_not_stated",
+        "One of the 4 eligibility facts every grant needs is not stated.",
+    ),
+    (
+        "first_home_owner_grant.home_invalid",
+        "home is not bought, built or established.",
+    ),
+    (
+        "first_home_owner_grant.jurisdiction_invalid",
+        "jurisdiction is not one of the 8 states and territories.",
+    ),
+    (
+        "first_home_owner_grant.location_needed",
+        "A Western Australian home's location, north_of_26th, is not stated.",
+    ),
+    (
+        "first_home_owner_grant.value_basis",
+        "A Victorian home built over $750,000 in total: the Act caps the building work's consideration, which the total does not show.",
+    ),
+    (
+        "first_home_owner_grant.value_invalid",
+        "total_value or cap_value is not whole dollars from 1 to 1,000,000,000.",
+    ),
+    (
         "foreign_income_conversion.average_period",
         "An average rate's period is longer than 12 months, runs backwards or does not contain the day the amount is translated on.",
     ),
@@ -3436,6 +3926,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "foreign_income_tax_offset.worked_year",
         "The worked limit was asked for a year resident-tax has no rates for.",
+    ),
+    (
+        "foreign_pension_upp.commuted",
+        "Part of the annuity has been commuted (ITAA 1936 s 27H(3A)).",
+    ),
+    (
+        "foreign_pension_upp.method_invalid",
+        "method is not formula, uk_state_pension or dutch_svb_fallback.",
+    ),
+    (
+        "foreign_pension_upp.method_year_unsupported",
+        "A shortcut method was asked for a year other than 2025-26.",
+    ),
+    (
+        "foreign_pension_upp.part_year",
+        "The annuity was not derived for the whole income year, which s 27H(2) does not apportion.",
+    ),
+    (
+        "foreign_pension_upp.relevant_number_invalid",
+        "relevant_number is not a term of years or a life expectation factor above 0.",
+    ),
+    (
+        "foreign_pension_upp.residual_exceeds_price",
+        "The residual capital value exceeds the undeducted purchase price.",
+    ),
+    (
+        "foreign_pension_upp.share_invalid",
+        "total_annuity_derived is less than annuity_derived or under $1.",
+    ),
+    (
+        "foreign_pension_upp.uk_category_invalid",
+        "uk_category is not a, b_widow, c or d.",
     ),
     (
         "foreign_resident_withholding.asset_unsupported",
@@ -3811,7 +4333,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.count_invalid",
-        "A count of performances or instalments is not an integer in the range the input allows.",
+        "A count of performances, instalments or part-year residency months is not an integer in the range the input allows.",
     ),
     (
         "input.date_invalid",
@@ -3851,7 +4373,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3923,6 +4445,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A count of completed years of service is not a whole number from 0 to 150.",
     ),
     (
+        "instant_asset_write_off.acquired_after_first_use",
+        "The asset's acquisition date is after its first use.",
+    ),
+    (
+        "instant_asset_write_off.budget_time_day",
+        "The asset was acquired on the day of a 7.30 pm budget time the result turns on, and the command takes dates only.",
+    ),
+    (
+        "instant_asset_write_off.entity_invalid",
+        "entity is not small_business_simplified, medium_business or other.",
+    ),
+    (
+        "instant_asset_write_off.first_use_outside_year",
+        "The asset's first use for a taxable purpose is outside the income year.",
+    ),
+    (
+        "instant_asset_write_off.precision_exceeded",
+        "taxable_use has more than 26 significant digits.",
+    ),
+    (
+        "instant_asset_write_off.temporary_full_expensing",
+        "Temporary full expensing (IT(TP)A 1997 Subdivision 40-BB) may take the asset, which displaces s 40-82, and the command does not decide whether it does.",
+    ),
+    (
+        "insurance_duty.class_invalid",
+        "class is not one the jurisdiction's insurance duty has (nsw type_a, type_b or type_c; vic general or business; qld class_1, class_2 or ctp; general elsewhere).",
+    ),
+    (
+        "insurance_duty.date_outside_year",
+        "effected_date is not in the year asked for.",
+    ),
+    (
+        "insurance_duty.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "insurance_duty.term_unsettled",
+        "A Northern Territory policy issued or renewed for more than one year, whose duty under Sch 1 cl 6(3)(b)(ii) is unsettled for a premium for the whole term.",
+    ),
+    (
         "invalid_carer_tax_offset.dependant_invalid",
         "dependant is not spouse or other.",
     ),
@@ -3941,6 +4503,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "invalid_carer_tax_offset.successive_spouses",
         "The person had a different spouse during different parts of the year, whose incomes ITAA 1997 s 61-20(3) adds separately.",
+    ),
+    (
+        "land_tax.absentee_trust_unsupported",
+        "A Victorian trust was given as an absentee owner: s 46IA charges a fixed or unit trust's surcharge on its absentee beneficiaries' share, which this worksheet does not take.",
+    ),
+    (
+        "land_tax.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas or act; the Northern Territory has no land tax.",
+    ),
+    (
+        "land_tax.metropolitan_region_invalid",
+        "metropolitan_region is not all, none or part.",
+    ),
+    (
+        "land_tax.metropolitan_region_part",
+        "The land is partly in the Perth metropolitan region, whose improvement tax on that part alone is not worked.",
+    ),
+    (
+        "land_tax.rounding_unsettled",
+        "Tasmania's s 7 rounding to 10 cents gives a different total applied to the land tax and the foreign investor land tax apart than to their sum, and which it requires is unsettled.",
+    ),
+    (
+        "land_tax.surcharge_unavailable",
+        "A foreign or absentee owner was given in a jurisdiction whose surcharge this worksheet does not hold (wa, sa).",
+    ),
+    (
+        "land_tax.surcharge_value_above_taxable_value",
+        "A Tasmanian surcharge value is more than the taxable value, though the land it applies to is part of the owner's taxable land.",
+    ),
+    (
+        "land_tax.trust_rates_unavailable",
+        "Trust rates were asked for in a jurisdiction whose trust rates this worksheet does not hold (wa, tas, act).",
     ),
     (
         "leave.accrual_split_invalid",
@@ -4017,6 +4611,58 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "lodgment_required.triggers_invalid",
         "triggers is not a list of the conditions the worksheet takes.",
+    ),
+    (
+        "long_service_leave.before_current_text",
+        "The last day is before the Act's text this worksheet read began (New South Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022).",
+    ),
+    (
+        "long_service_leave.end_before_start",
+        "The last day is before the first day of service.",
+    ),
+    (
+        "long_service_leave.excluded_invalid",
+        "excluded_days is not a whole number from 0 to 36,500 fewer than the days of service.",
+    ),
+    (
+        "long_service_leave.hours_invalid",
+        "hours_per_week is not above 0 to 168 to at most 2 decimal places.",
+    ),
+    (
+        "long_service_leave.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "long_service_leave.pay_invalid",
+        "weekly_pay is more than $1,000,000.",
+    ),
+    (
+        "long_service_leave.reason_invalid",
+        "reason is not one of the 10 endings the worksheet takes.",
+    ),
+    (
+        "long_service_leave.start_too_early",
+        "The first day of service is before 23 June 1990.",
+    ),
+    (
+        "long_service_leave.status_invalid",
+        "status is not employed or ends.",
+    ),
+    (
+        "long_service_leave.taken_above_weeks",
+        "Leave taken or paid is more than the exact weeks of the entitlement.",
+    ),
+    (
+        "long_service_leave.taken_invalid",
+        "leave_taken is not weeks from 0 to 1,000 to at most 4 decimal places.",
+    ),
+    (
+        "long_service_leave.unsettled",
+        "The Act does not settle the ending before its full qualifying period: a fixed term ending in New South Wales, Tasmania, the ACT or the Northern Territory, or a death under 10 years in the Northern Territory.",
+    ),
+    (
+        "long_service_leave.year_mismatch",
+        "The last day does not fall in the year given.",
     ),
     (
         "lump_sum_arrears.accrual_years_invalid",
@@ -4156,6 +4802,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "trust_shares is not a list of at most 50 objects, each with amount and division_6aa_part, the part no more than the amount.",
     ),
     (
+        "motor_vehicle_duty.date_outside_year",
+        "duty_date is not in the year asked for.",
+    ),
+    (
+        "motor_vehicle_duty.emissions_category_invalid",
+        "An ACT emissions_category is not aaa, aa, a, b, c, d or non_rated.",
+    ),
+    (
+        "motor_vehicle_duty.engine_invalid",
+        "A Queensland engine is not hybrid_or_electric, up_to_4_cylinders, 5_or_6_cylinders or 7_or_more_cylinders.",
+    ),
+    (
+        "motor_vehicle_duty.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "motor_vehicle_duty.vehicle_class_unsupported",
+        "vehicle_class is not passenger; other classes' rates are not worked.",
+    ),
+    (
         "no_abn_withholding.gst_above_payment",
         "The GST included is more than the payment.",
     ),
@@ -4254,6 +4920,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax.wages_conflict",
         "australian_wages is less than taxable_wages, which it includes.",
+    ),
+    (
+        "pcg_2021_4.benchmark_nil",
+        "Factor 3 was chosen with a nil commercial benchmark.",
+    ),
+    (
+        "pcg_2021_4.entitlement_nil",
+        "The profit entitlement of the IPP and associates from the whole of firm group is nil.",
+    ),
+    (
+        "pcg_2021_4.gateway_failed",
+        "The arrangement fails Gateway 1 or 2, so PCG 2021/4 gives it no risk score (paragraphs 10 to 12).",
+    ),
+    (
+        "pcg_2021_4.recipient_kind_unsupported",
+        "A recipient is not an individual, a base rate entity company or another company, whose tax the worksheet works out.",
+    ),
+    (
+        "pcg_2021_4.recipients_invalid",
+        "recipients is not a list of 1 to 6 objects with the IPP, an individual, first.",
+    ),
+    (
+        "pcg_2021_4.returned_above_entitlement",
+        "The amount the IPP returns is more than the profit entitlement.",
+    ),
+    (
+        "pcg_2021_4.tax_above_entitlement",
+        "The tax counted is more than the profit entitlement it is paid on.",
     ),
     (
         "period.unsupported",
@@ -4445,6 +5139,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The asset is a share in a company or an interest in a trust, whose additional basic conditions the worksheet does not work out.",
     ),
     (
+        "scholarship_exemption.commonwealth_payment",
+        "The payment is one of the Commonwealth payments ITAA 1997 s 51-35(a), (b) or (f) excludes from item 2.1A.",
+    ),
+    (
+        "scholarship_exemption.commonwealth_payment_invalid",
+        "commonwealth_payment is not one of its 4 values.",
+    ),
+    (
+        "scholarship_exemption.friendly_society_plan",
+        "The payment is an education benefit under a friendly society scholarship plan.",
+    ),
+    (
+        "scholarship_exemption.payment_type_invalid",
+        "payment_type is not a payment item 2.1A covers.",
+    ),
+    (
         "scope.not_confirmed",
         "The stated scope conditions were not confirmed.",
     ),
@@ -4503,6 +5213,42 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_benefit_tax.recipient_invalid",
         "recipient is not member, death_benefits_dependant or non_dependant.",
+    ),
+    (
+        "super_crystallisation.components_exceed_value",
+        "The stated components and undeducted contributions add to more than the interest's value.",
+    ),
+    (
+        "super_crystallisation.dates_invalid",
+        "eligible_service_start is after 30 June 2007.",
+    ),
+    (
+        "super_crystallisation.income_stream_before_july_2007",
+        "The interest supports an income stream first paid before 1 July 2007 (ITTPA 1997 s 307-125).",
+    ),
+    (
+        "super_crystallisation.untaxed_source",
+        "The interest is from an untaxed source (ITTPA 1997 s 307-225(3)).",
+    ),
+    (
+        "super_withholding.capped_defined_benefit",
+        "A capped defined benefit income stream was given for a payee 60 or over; Schedule 13 Parts B to E and the defined benefit income cap are outside the command.",
+    ),
+    (
+        "super_withholding.deceased_60_recipient_under_60",
+        "A death benefit income stream was given to a dependant under 60 whose deceased died aged 60 or over; Schedule 13 Part A and ITAA 1997 s 302-65(b) treat its element taxed in the fund differently, and the command does not choose between them.",
+    ),
+    (
+        "super_withholding.income_stream_foreign_resident",
+        "An income stream payment to a foreign resident with a TFN was given; Schedule 13 names no scale for it.",
+    ),
+    (
+        "super_withholding.income_stream_period_invalid",
+        "income_stream_period is not weekly, fortnightly, monthly or quarterly.",
+    ),
+    (
+        "super_withholding.income_stream_year",
+        "An income stream payment was given for a year before 2024-25; Schedule 13 as it stood then was not read for this command.",
     ),
     (
         "super_withholding.no_tfn_unstated",
@@ -4579,6 +5325,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "transfer_balance.year_mismatch",
         "The year is not the financial year of the last day worked.",
+    ),
+    (
+        "vic_property_taxes.concession_unavailable",
+        "The s 88EB concessional rate of vacant residential land tax was claimed for 2025; it needs an s 88EA exemption in a preceding tax year, and s 88EA commenced on 1 January 2025.",
+    ),
+    (
+        "vic_property_taxes.entry_date_before_reform",
+        "The land's entry date into the commercial and industrial property tax reform scheme is before 1 July 2024, when the Act commenced.",
+    ),
+    (
+        "vic_property_taxes.parcels_invalid",
+        "parcels is not a list of 1 to 100 objects, each with civ_before and civ_after as whole-dollar amounts of 0 or more.",
+    ),
+    (
+        "vic_property_taxes.residential_land_invalid",
+        "residential_land is not vacant_home, construction, uninhabitable or undeveloped.",
+    ),
+    (
+        "vic_property_taxes.tax_invalid",
+        "tax is not vacant_residential_land, commercial_industrial or windfall_gains.",
+    ),
+    (
+        "vic_property_taxes.transition_end_unsettled",
+        "The entry date is 31 December, so the transition period ends at the midnight that fixes liability; the Acts do not settle whether the land is still within it then.",
+    ),
+    (
+        "vic_property_taxes.undeveloped_before_2026",
+        "Vacant residential land tax on undeveloped land (s 34B(2B)) was asked for the 2025 tax year; it applies from 2026.",
     ),
     (
         "voluntary_agreement_withholding.abn_not_quoted",
@@ -4659,6 +5433,70 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "work_expenses.reimbursed",
         "The expenses were reimbursed or paid for by someone else, so the taxpayer did not bear them.",
+    ),
+    (
+        "workers_compensation_premium.adjustment_unsettled",
+        "Actual wages were given for a Queensland policy commencing in 2026-27, for which the notice sets no year-end adjustment.",
+    ),
+    (
+        "workers_compensation_premium.apprentice_above_wages",
+        "Apprentice wages are more than the wages they are part of.",
+    ),
+    (
+        "workers_compensation_premium.apprentice_unavailable",
+        "Apprentice wages above nil were given for a scheme this worksheet deducts none for (vic, wa, tas, act, nt).",
+    ),
+    (
+        "workers_compensation_premium.apprentice_unsettled",
+        "Apprentice wages above nil were given in New South Wales, where icare does not say whether its apprentice incentive comes off before or after GST.",
+    ),
+    (
+        "workers_compensation_premium.band_edge_unsettled",
+        "A South Australian base premium is above a discount band's bound less a cent and below the bound, where ReturnToWorkSA's table and its calculator give different bands.",
+    ),
+    (
+        "workers_compensation_premium.below_minimum",
+        "A New South Wales premium is below icare's $240 minimum, whose GST treatment icare does not state.",
+    ),
+    (
+        "workers_compensation_premium.days_invalid",
+        "days_registered is not an integer from 1 to 365.",
+    ),
+    (
+        "workers_compensation_premium.employer_invalid",
+        "employer is not new, small or other.",
+    ),
+    (
+        "workers_compensation_premium.experience_rated",
+        "The premium is experience or performance rated: a New South Wales average performance premium over $30,000, or a Victorian employer that is neither new nor small.",
+    ),
+    (
+        "workers_compensation_premium.group_rated",
+        "The employer is a member of a group in a scheme that rates the group together (nsw, vic, qld, sa).",
+    ),
+    (
+        "workers_compensation_premium.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "workers_compensation_premium.policy_after_year",
+        "A Queensland policy_start is after 30 June 2027.",
+    ),
+    (
+        "workers_compensation_premium.policy_before_year",
+        "A Queensland policy commenced before 1 July 2026, so its premium rate and prior-year adjustment come from WorkCover Queensland's models.",
+    ),
+    (
+        "workers_compensation_premium.rate_invalid",
+        "A rate is not a percentage in its range to at most 4 decimal places.",
+    ),
+    (
+        "workers_compensation_premium.remuneration_nil",
+        "A Victorian remuneration rounds to $0, and the Premiums Order's deductible divides by it.",
+    ),
+    (
+        "workers_compensation_premium.rounding_unsettled",
+        "A Queensland premium differs by a cent with the estimated premium and apprentice discount each rounded to the cent first, and the notice does not say which.",
     ),
     (
         "working_holiday_maker.band_unsettled",

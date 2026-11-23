@@ -56,7 +56,7 @@
     "tests/test_server_paths.py": "e127826fc01d0648f207728a293071896d62a36b697198ba8af068c3408e37a8",
     "tests/test_tool_discovery.py": "d3e6c14deac1d9cdf7787885216c991a407a4fedab779b6a0cb56bf95ad59d1e",
     "tests/test_tool_table.py": "d458c834ae5f4f2141bad3e128ece5a58b75a4138b0f376c3e3f0d172d9c71a5",
-    "tests/test_worksheet_catalogue.py": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93"
+    "tests/test_worksheet_catalogue.py": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2"
   },
   "proofs": {
     "F": {
@@ -3727,7 +3727,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:25",
       "function": "test_scope_serves_engine_metadata_and_every_example_is_callable",
-      "source_sha256": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93",
+      "source_sha256": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2",
       "status": "not-yet-ported",
       "proofs": [
         "I"
@@ -3737,7 +3737,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:70",
       "function": "test_advertised_required_fields_match_the_mcp_discriminator",
-      "source_sha256": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93",
+      "source_sha256": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2",
       "status": "not-yet-ported",
       "proofs": [
         "REQUIRED",
@@ -3748,7 +3748,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:80",
       "function": "test_pension_days_bound_matches_the_engine",
-      "source_sha256": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93",
+      "source_sha256": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2",
       "status": "covered",
       "proofs": [
         "PENSION",
@@ -3758,7 +3758,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:97",
       "function": "test_study_loan_repayment_calls_through_and_refuses_cents",
-      "source_sha256": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93",
+      "source_sha256": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2",
       "status": "covered",
       "proofs": [
         "F"
@@ -3767,7 +3767,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:123",
       "function": "test_new_worksheets_call_through_to_the_engine",
-      "source_sha256": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93",
+      "source_sha256": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2",
       "status": "covered",
       "proofs": [
         "F"
@@ -3777,7 +3777,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:133",
       "function": "test_medicare_levy_refuses_a_year_without_published_thresholds",
-      "source_sha256": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93",
+      "source_sha256": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2",
       "status": "not-yet-ported",
       "proofs": [
         "E"
@@ -3787,7 +3787,7 @@
     {
       "original": "tests/test_worksheet_catalogue.py:140",
       "function": "test_medicare_levy_refuses_section_9a_and_requires_the_flag",
-      "source_sha256": "96c0a6973a5504d94319c0c58671707d19f755b57bc8922fc07a0e403e5c0c93",
+      "source_sha256": "7ef6f22e78afb61858794fb46a0fe6417a172ab07e70911a93e0a35acb39feb2",
       "status": "covered",
       "proofs": [
         "F"

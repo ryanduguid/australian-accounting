@@ -56,7 +56,7 @@ const OUTSIDE: &str = "Tax on items recognised in other comprehensive income or 
 
 /// The company rate for the year (ITRA s 23(2); 26% for a base rate entity
 /// in 2020-21 on the ATO's 2020-21 table).
-fn current_rate(year: &str, base_rate_entity: bool) -> &'static str {
+pub(super) fn current_rate(year: &str, base_rate_entity: bool) -> &'static str {
     match (year, base_rate_entity) {
         ("2020-21", true) => "0.26",
         (_, true) => "0.25",

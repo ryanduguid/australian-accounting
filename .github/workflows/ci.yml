@@ -6,9 +6,9 @@ name: tests
 # one call of the reusable ci-package.yml for each Python engine under packages/,
 # and one call of ci-rust.yml for each Rust crate. Each ci-package.yml call applies
 # its own package's path filter to optional gates and always runs Linux tests.
-# A pull request runs the crate calls and the parity
-# check only when app_ci.py selects them: a change to a crate, a shared file or
-# an unknown path.
+# A pull request runs only the crates affected by its changed paths (transitively
+# across local Cargo path dependencies) and scopes au-accounting parity to the
+# affected linked engines; shared or unknown changes and non-PR events run all.
 
 on:
   workflow_dispatch:
@@ -83,9 +83,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     outputs:
-      ci-matrix: ${{ steps.list.outputs.ci-matrix }}
-      parity: ${{ steps.list.outputs.parity }}
-      parity-count: ${{ steps.list.outputs.parity-count }}
+      ci-matrix: ${{ steps.select.outputs.ci-matrix }}
+      parity: ${{ steps.select.outputs.parity }}
+      parity-count: ${{ steps.select.outputs.parity-count }}
+      parity-engines: ${{ steps.select.outputs.parity-engines }}
+      parity-run: ${{ steps.select.outputs.parity-run }}
       run: ${{ steps.select.outputs.run }}
     steps:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -95,8 +97,6 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 2
-      - id: list
-        run: python3 .github/ci/rust_crates.py >> "$GITHUB_OUTPUT"
       - id: select
         run: python3 .github/ci/app_ci.py select crates >> "$GITHUB_OUTPUT"
 
@@ -132,6 +132,7 @@ jobs:
   umbrella-parity:
     name: au-accounting parity (${{ matrix.os }})
     needs: [crates, rust]
+    if: needs.crates.result == 'success' && needs.rust.result == 'success' && needs.crates.outputs.parity-run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -171,6 +172,7 @@ jobs:
         env:
           AU_ACCOUNTING_PARITY_BIN: ${{ github.workspace }}/bin
           AU_ACCOUNTING_PARITY_CAP: "600"
+          AU_ACCOUNTING_PARITY_ENGINES: ${{ needs.crates.outputs.parity-engines }}
         run: cargo test --locked --test parity -- --ignored --nocapture
 
   dependency-policy:

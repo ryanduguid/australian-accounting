@@ -479,6 +479,85 @@ pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> 
         taxable_income,
         &year,
         meta::RESIDENT_TAX_SCALES,
+        None,
+    )?;
+    year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
+    Ok(out)
+}
+
+/// Income Tax Rates Act 1986 s 20(1), with ss 16 and 18, compilation 66
+/// (1 July 2026), whose Division 4 reads the same in the compilations of
+/// 1 July 2024 and 28 March 2025 apart from s 16's list, all read on
+/// 23 November 2026.
+const PART_YEAR_THRESHOLD: &str = "Income Tax Rates Act 1986 s 20(1) and s 3(1): with one or more part-year residency periods (s 18(1)), the Schedule 7 Part I table applies as if its tax-free threshold were (the $18,200 tax-free threshold - $4,736) + $4,736 x the number of months in the year of income during which there is a part-year residency period / 12";
+const ELIGIBLE_PENSIONER: &str = "Income Tax Rates Act 1986 s 18(2)(a): no period is a part-year residency period for an eligible pensioner (s 16), so the full $18,200 tax-free threshold applies";
+
+/// The pro-rated tax-free threshold (s 20(1)), or $18,200 for an eligible
+/// pensioner (s 18(2)(a)).
+fn part_year_threshold(months: &Arg, eligible_pensioner: Option<&Arg>) -> Result<Step> {
+    let m = match months.int() {
+        Some(Some(n)) if (1..=12).contains(&n) => int(n),
+        _ => {
+            return refuse(
+                "input.count_invalid",
+                "part_year_residency_months must be an integer from 1 to 12.",
+            );
+        }
+    };
+    let Some(pensioner) = eligible_pensioner else {
+        return refuse(
+            "input.missing_field",
+            "eligible_pensioner is required with part_year_residency_months.",
+        );
+    };
+    if flag(pensioner, "eligible_pensioner")? {
+        let full = int(18200);
+        return Ok(step(
+            "tax_free_threshold",
+            ELIGIBLE_PENSIONER,
+            "18200",
+            &[],
+            full,
+        ));
+    }
+    let value = precise(|| Ok(int(13464).add(&int(4736).mul(&m)?.div(&int(12))?)?))?;
+    let formula = "18200 - 4736 + 4736 x part_year_residency_months / 12";
+    Ok(step(
+        "tax_free_threshold",
+        PART_YEAR_THRESHOLD,
+        formula,
+        &[&m],
+        value,
+    ))
+}
+
+/// `resident_tax`, or for a person resident for part of the year the same with
+/// the tax-free threshold pro-rated by `months` unless the person is an
+/// eligible pensioner.
+pub fn resident_tax_part_year(
+    taxable_income: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+    months: Option<&Arg>,
+    eligible_pensioner: Option<&Arg>,
+) -> Result<Value> {
+    let Some(months) = months else {
+        if eligible_pensioner.is_some() {
+            return refuse(
+                "input.field_unknown",
+                "eligible_pensioner is an input only with part_year_residency_months.",
+            );
+        }
+        return resident_tax(taxable_income, year, scope_confirmed);
+    };
+    let year = scope(scope_confirmed, year, "resident_tax")?;
+    let threshold = part_year_threshold(months, eligible_pensioner)?;
+    let mut out = basic_tax(
+        "resident_tax",
+        taxable_income,
+        &year,
+        meta::RESIDENT_TAX_SCALES,
+        Some(threshold),
     )?;
     year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
     Ok(out)
@@ -506,6 +585,7 @@ pub fn foreign_resident_tax(
         taxable_income,
         &year,
         meta::FOREIGN_RESIDENT_TAX_SCALES,
+        None,
     )?;
     year_warning(&mut out, texts::FOREIGN_RESIDENT_YEAR_WARNINGS, &year);
     Ok(out)
@@ -565,20 +645,24 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
 }
 
 /// Basic income tax on whole-dollar taxable income: each band of the year's
-/// scale at its rate.
-fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -> Result<Value> {
-    let income = money(taxable_income)?;
-    whole_dollars(&income, "taxable income")?;
-    let scale = lookup(scales, year);
-    let rates: Vec<(String, String)> = scale
-        .iter()
-        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
-        .collect();
+/// scale at its rate. `threshold`, when given, is the step for a part-year
+/// resident's tax-free threshold, which replaces the first band's lower limit.
+/// The tax, each band's term and the values the terms read.
+type Bands<'a> = (Decimal, Vec<String>, Vec<(&'a str, Decimal)>);
+
+/// The tax of each band of `scale` on `income`, with its terms and the values
+/// they read; the first band starts at `threshold` when one is given.
+fn tax_by_band<'a>(
+    scale: &[(i64, Option<i64>, &'static str)],
+    rates: &'a [(String, String)],
+    income: &Decimal,
+    threshold: Option<&Step>,
+) -> Result<Bands<'a>> {
     let mut values = vec![("taxable_income_used", income.clone())];
     let mut terms = Vec::new();
     let tax = precise(|| {
         let mut tax = int(0);
-        for ((low, high, rate), (name, _)) in scale.iter().zip(&rates) {
+        for (i, ((low, high, rate), (name, _))) in scale.iter().zip(rates).enumerate() {
             let (ceiling, top) = match high {
                 None => (income.clone(), "taxable_income_used".to_string()),
                 Some(high) => (
@@ -586,29 +670,56 @@ fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -
                     format!("min(taxable_income_used, {high})"),
                 ),
             };
-            let band = py_max(int(0), ceiling.sub(&int(*low))?)?;
+            let (floor, label) = match threshold {
+                Some(t) if i == 0 => {
+                    values.push(("tax_free_threshold", t.value.clone()));
+                    (t.value.clone(), "tax_free_threshold".to_string())
+                }
+                _ => (int(*low), low.to_string()),
+            };
+            let band = py_max(int(0), ceiling.sub(&floor)?)?;
             tax = tax.add(&band.mul(&d(rate))?)?;
-            terms.push(format!("max(0, {top} - {low}) x {name}"));
+            terms.push(format!("max(0, {top} - {label}) x {name}"));
             values.push((name.as_str(), d(rate)));
         }
         Ok(tax)
     })?;
-    let steps = vec![
-        step(
-            "taxable_income_used",
-            "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
-            "taxable_income",
-            &[&income],
-            income.clone(),
-        ),
-        step_by_name(
-            "basic_income_tax",
-            basic_tax_authority(kind, year),
-            &terms.join(" + "),
-            &values,
-            tax,
-        ),
-    ];
+    Ok((tax, terms, values))
+}
+
+fn basic_tax(
+    kind: &str,
+    taxable_income: &Arg,
+    year: &str,
+    scales: &TaxScales,
+    threshold: Option<Step>,
+) -> Result<Value> {
+    let income = money(taxable_income)?;
+    whole_dollars(&income, "taxable income")?;
+    let scale = lookup(scales, year);
+    let mut rates: Vec<(String, String)> = scale
+        .iter()
+        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
+        .collect();
+    if threshold.is_some() {
+        rates[0].0 = "over_tax_free_threshold".to_string();
+    }
+    let (tax, terms, values) = tax_by_band(scale, &rates, &income, threshold.as_ref())?;
+    let mut steps = vec![step(
+        "taxable_income_used",
+        "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
+        "taxable_income",
+        &[&income],
+        income.clone(),
+    )];
+    steps.extend(threshold);
+    steps.push(step_by_name(
+        "basic_income_tax",
+        basic_tax_authority(kind, year),
+        &terms.join(" + "),
+        &values,
+        tax,
+    ));
     derived_result(kind, year, steps, rates)
 }
 
@@ -1186,13 +1297,18 @@ pub fn depreciation(
             "effective_life's significant digits and taxable_use's decimal places, as written, must total 22 or fewer: beyond that the 40-digit working precision can miss the exact cent.",
         );
     }
+    // Days held can be 366 in a leap year, over 365 (every Guide to
+    // depreciating assets from 2021 to 2026): 2023-24 alone of these years.
+    let most = dates::parse(&format!("20{}-06-30", &year[5..])).expect("year")
+        - dates::parse(&format!("{}-07-01", &year[..4])).expect("year")
+        + 1;
     let Some(Some(days)) = days
         .int()
-        .filter(|n| n.is_some_and(|n| (0..=365).contains(&n)))
+        .filter(|n| n.is_some_and(|n| (0..=most).contains(&n)))
     else {
         return refuse(
             "input.day_count_invalid",
-            format!("days must be an integer from 0 to 365 for {year}."),
+            format!("days must be an integer from 0 to {most} for {year}."),
         );
     };
     let factor = match method.text() {
@@ -1286,7 +1402,11 @@ pub fn depreciation(
             ),
         ])
     })?;
-    derived_result("depreciation", &year, steps, Vec::new())
+    let out = derived_result("depreciation", &year, steps, Vec::new())?;
+    let later_year = opening_adjustable_value.is_some();
+    Ok(depreciation_pools::depreciation_flags(
+        out, &year, prime_cost, later_year,
+    ))
 }
 
 /// The provisions `depreciation`'s decline in value applies, in ITAA 1997
@@ -4898,11 +5018,19 @@ mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
 pub use super_benefit_tax::{
-    SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs, super_benefit_tax,
-    super_withholding,
+    STREAM_OPTIONAL, SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs,
+    super_benefit_tax, super_withholding,
 };
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
+mod land_tax;
+pub use land_tax::{LandTaxArgs, land_tax};
+mod workers_compensation_premium;
+pub use workers_compensation_premium::{WorkersCompensationArgs, workers_compensation_premium};
+mod motor_vehicle_duty;
+pub use motor_vehicle_duty::{MotorVehicleDutyArgs, motor_vehicle_duty};
+mod insurance_duty;
+pub use insurance_duty::{InsuranceDutyArgs, insurance_duty};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6197,8 +6325,12 @@ mod government_super_amounts;
 pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod vic_property_taxes;
+pub use vic_property_taxes::{VicPropertyTaxesArgs, vic_property_taxes};
 mod alcohol_excise;
 pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
+mod asic_fees;
+pub use asic_fees::{AsicFeesArgs, asic_fees};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
@@ -6230,6 +6362,8 @@ mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
 };
+mod instant_asset_write_off;
+pub use instant_asset_write_off::instant_asset_write_off;
 mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
@@ -6242,8 +6376,12 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod first_home_owner_grant;
+pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
+mod pcg_2021_4;
+pub use pcg_2021_4::{PCG_OPTIONAL, PcgArgs, pcg_2021_4};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 mod foreign_resident_withholding;
@@ -6277,6 +6415,8 @@ mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 mod leave_provisions;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
+mod long_service_leave;
+pub use long_service_leave::{LongServiceLeaveArgs, long_service_leave};
 mod foreign_income_conversion;
 pub use foreign_income_conversion::foreign_income_conversion;
 mod foreign_income_tax_offset;
@@ -6291,8 +6431,20 @@ mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
+mod defined_benefit_income_cap;
+pub use defined_benefit_income_cap::{DefinedBenefitIncomeCapArgs, defined_benefit_income_cap};
+mod foreign_pension_upp;
+pub use foreign_pension_upp::{
+    FOREIGN_PENSION_UPP_OPTIONAL, ForeignPensionUppArgs, foreign_pension_upp,
+};
+mod scholarship_exemption;
+pub use scholarship_exemption::{ScholarshipExemptionArgs, scholarship_exemption};
+mod super_crystallisation;
+pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation};
+mod endorsement_review;
+pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 117] = [
+const KINDS: [&str; 132] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6314,6 +6466,10 @@ const KINDS: [&str; 117] = [
     "super_benefit_tax",
     "super_withholding",
     "payroll_tax",
+    "land_tax",
+    "workers_compensation_premium",
+    "motor_vehicle_duty",
+    "insurance_duty",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
@@ -6365,7 +6521,9 @@ const KINDS: [&str; 117] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "vic_property_taxes",
     "alcohol_excise",
+    "asic_fees",
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",
@@ -6375,9 +6533,11 @@ const KINDS: [&str; 117] = [
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
+    "instant_asset_write_off",
     "small_business_income_offset",
     "non_commercial_losses",
     "psi_test",
+    "pcg_2021_4",
     "government_super_amounts",
     "rental_property",
     "foreign_resident_withholding",
@@ -6402,6 +6562,7 @@ const KINDS: [&str; 117] = [
     "cgt_cost_base_adjustments",
     "payg_instalment",
     "leave_provisions",
+    "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
     "trading_stock",
@@ -6410,6 +6571,12 @@ const KINDS: [&str; 117] = [
     "smsf_tax",
     "ess_discount",
     "help_indexation",
+    "defined_benefit_income_cap",
+    "foreign_pension_upp",
+    "scholarship_exemption",
+    "super_crystallisation",
+    "endorsement_review",
+    "first_home_owner_grant",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6476,6 +6643,7 @@ fn evidence_heading(kind: &str) -> String {
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         "ato_interest_penalties" => "ato-penalties-and-interest".into(),
+        "pcg_2021_4" => "pcg-20214".into(),
         _ => kind.replace('_', "-"),
     }
 }
