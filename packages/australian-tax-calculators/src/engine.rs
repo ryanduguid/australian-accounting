@@ -5025,6 +5025,8 @@ mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod land_tax;
 pub use land_tax::{LandTaxArgs, land_tax};
+mod workers_compensation_premium;
+pub use workers_compensation_premium::{WorkersCompensationArgs, workers_compensation_premium};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6422,7 +6424,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 122] = [
+const KINDS: [&str; 123] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6445,6 +6447,7 @@ const KINDS: [&str; 122] = [
     "super_withholding",
     "payroll_tax",
     "land_tax",
+    "workers_compensation_premium",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",

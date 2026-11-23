@@ -1199,6 +1199,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The 2026-27 rates and thresholds each revenue office published, read
         // on 19 November 2026.
         "payroll_tax" => vec!["2026-27"],
+        // The premium period each scheme's 2026-27 method was read for on
+        // 24 November 2026.
+        "workers_compensation_premium" => vec!["2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1551,6 +1554,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "land_tax" => (
             "2026-11-23",
             "Land Tax Act 2005 (Vic) Sch 1 Tables 1.6, 3.6, 4.5 and 5.5 (authorised version 086, 1 May 2026); Land Tax Act 2010 (Qld) s 32 and Schs 1 to 3 (current reprint); Land Tax Act 2002 (WA) s 5 Table 11 (02-d0-04) and Metropolitan Region Improvement Tax Act 1959 (WA) s 3 Table 3 (04-a0-08); Land Tax Act 1936 (SA) ss 6 and 8A and Sch 1 (version 4.12.2025); Land Tax Rating Act 2000 (Tas) ss 6, 6A and 7 and Sch 1; Land Tax Act 2004 (ACT) ss 9 and 17E (republication 34) with DI2026-152 ss 6 and 7; Revenue NSW's thresholds and rates, trusts and surcharge land tax pages (the NSW Acts were not readable); and each revenue office's rates page",
+        ),
+        "workers_compensation_premium" => (
+            "2026-11-24",
+            "WorkCover Premiums Order (No. 34) 2026/2027 (Victoria Government Gazette P1, 29 April 2026) cl 5 to 12 and Gazette S 284 (2 June 2026) items 1 to 3; WorkCover Queensland Notice (No. 1) of 2026 (Queensland Government Gazette No. 43, 26 June 2026) ss 3, 4, 5, 8 and 10; Duties Act 2001 (Qld) ss 356, 361 and 362(3) (current as at 22 October 2026) and QRO public ruling DA356.1; icare's small employer premium formula and premium updates for 2026-27 (9 November 2026); ReturnToWorkSA's premium formula, 2026-27 booklet and premium calculator; NT WorkSafe's premium bulletin (SIRA's 2026 Guidelines and the SA Premium Order 2026-27 were not readable)",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -2055,6 +2062,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Revenue NSW's 3-year average, special trust and surcharge examples 1 to 3; SRO Victoria's $5,550 and $44,650; QRO's 6 examples; RevenueSA's $2,670 and $3,550; SRO Tasmania FILTS example 1",
             "2026-09-29",
             "2026-11-23",
+        ),
+        "workers_compensation_premium" => (
+            "Scheme premium pages: icare premium calculation for small employers; ReturnToWorkSA your premium explained; NT WorkSafe understanding workers compensation premiums",
+            "icare's Rob's Restaurant; ReturnToWorkSA examples 1 to 3; NT WorkSafe's builder",
+            "2026-11-09",
+            "2026-11-24",
         ),
         "payroll_tax" => (
             "Revenue office payroll tax pages: Revenue NSW thresholds and rates; SRO Victoria payroll tax surcharges; QRO payroll tax deductions; RevenueWA employer guide; SRO Tasmania annual adjustment return guideline",
@@ -3312,6 +3325,52 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "all, none or part, in wa only and then required: whether the land is in the Perth metropolitan region, for the metropolitan region improvement tax; part is refused",
             ),
         ],
+        "workers_compensation_premium" => vec![
+            (
+                "apprentice_wages",
+                "AUD, in qld and sa only (nil when absent; above nil elsewhere is refused, in nsw because icare's text does not settle whether its apprentice incentive comes off before or after GST): the wages of qualifying apprentices included in wages, which the scheme deducts at the rate (WorkCover Queensland Notice (No. 1) of 2026 s 8.3, ReturnToWorkSA's apprentice incentive); no more than wages",
+            ),
+            (
+                "actual_wages",
+                "AUD, outside qld (refused there: the 2026-27 notice sets no year-end adjustment for a new policy): the wages actually paid in the period; the premium is worked again on them with the same rate and scheme facts (in sa with actual_apprentice_wages), and the adjustment is the difference",
+            ),
+            (
+                "dust_diseases_rate",
+                "percentage from 0 to 10, to at most 4 decimal places, in nsw only and then required: the dust diseases rate for the WIC, including GST (icare's WIC rate table)",
+            ),
+            (
+                "safe_employer_reward",
+                "percentage from 0 to 100, to at most 4 decimal places, in nsw only and then required: the Safe Employer Reward on the renewal notice, 0 if none",
+            ),
+            (
+                "employer",
+                "new, small or other, in vic only and then required: new (first required to register on or after 1 July 2025, Premiums Order (No. 34) cl 12(5)) or small (total annualised remuneration for 2025-26 of $200,000 or less); other is refused, as its premium is performance rated (cl 12)",
+            ),
+            (
+                "days_registered",
+                "integer from 1 to 365, in vic only and then required: N in Premiums Order (No. 34) cl 11, the days in 2026-27 the employer is or is likely to be required to be registered",
+            ),
+            (
+                "excess_buy_out",
+                "boolean, in vic only and then required: true when the employer has made a buy-out election (Premiums Order (No. 34) cl 10)",
+            ),
+            (
+                "policy_start",
+                "YYYY-MM-DD, in qld only and then required: the day the policy commences to insure, from 1 July 2026 to 30 June 2027; a policy that commenced before 1 July 2026 is refused",
+            ),
+            (
+                "new_employer",
+                "boolean, in sa only and then required: true while the employer has not completed a full financial year registered with ReturnToWorkSA (its initial part year and first full year), when it pays the base premium with no discount or claims costs; false once it has, or when it took over a business whose history transfers",
+            ),
+            (
+                "actual_apprentice_wages",
+                "AUD, in sa with actual_wages and then required: the apprentice remuneration in the actual wages",
+            ),
+            (
+                "claims_costs",
+                "AUD, in sa when new_employer is false and then required: the income support paid in 2025-26 on claims with a date of injury in 2023-24 to 2025-26, as ReturnToWorkSA counts them",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -4450,6 +4509,24 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "foreign_owner",
                 "boolean: true when the owner pays the jurisdiction's foreign or absentee owner surcharge on all of the land (in qld an absentee individual, or with trust_rates a foreign company or trustee; in act a parcel wholly foreign-owned); true is refused in wa and sa, which have none, and for a vic trust (s 46IA)",
+            ),
+        ],
+        "workers_compensation_premium" => vec![
+            (
+                "jurisdiction",
+                "nsw, vic, qld, wa, sa, tas, act or nt: the scheme that insures the workers",
+            ),
+            (
+                "wages",
+                "AUD: the wages (remuneration) estimated for the 2026-27 period as the scheme defines them, for the workers it covers",
+            ),
+            (
+                "rate",
+                "percentage of wages (the same as dollars per $100 of wages), above 0 to 100, to at most 4 decimal places: the industry or premium rate the insurer gives the employer's classification",
+            ),
+            (
+                "group_member",
+                "boolean, true when the employer is a member of a group for premium purposes; true is refused in nsw, vic, qld and sa",
             ),
         ],
         "payroll_tax" => vec![
@@ -5887,6 +5964,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("taxable_value", Text("680000")),
             ("trust_rates", Flag(false)),
             ("foreign_owner", Flag(false)),
+        ],
+        // NT WorkSafe's builder: $400,000 at 3.50%.
+        "workers_compensation_premium" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nt")),
+            ("wages", Text("400000.00")),
+            ("rate", Text("3.5")),
+            ("group_member", Flag(false)),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),

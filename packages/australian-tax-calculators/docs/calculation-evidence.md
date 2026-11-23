@@ -2371,6 +2371,63 @@ $125,013, and the 5-cent ties $125,100 and $500,010), the s 6 minimum
 nil and $25,001, $125.50) and Queensland's absentee and foreign company
 scales at $6,400,000 ($103,000 and $106,500).
 
+## Workers compensation premium
+
+This worksheet was added on 24 November 2026. Each source was read that day,
+from 03:15 to 03:30 AEST:
+
+- WorkCover Premiums Order (No. 34) 2026/2027, Victoria Government Gazette P1
+  (29 April 2026), from WorkSafe Victoria's PDF: cl 5 (new and small
+  employer), 6 (rounding), 7 (exemption limit $7,500), 8 (premium payable plus
+  GST), 9 (WorkCover premium, preliminary premium, premium rate), 10 (buy-out),
+  11 (deductible benefit) and 12(4) and (5) (employer performance rating 1
+  for a small or new employer; small employer, total annualised remuneration
+  for 2025-26 of $200,000 or less). Gazette S 284 (2 June 2026) items 1 to 3:
+  minimum premium $400, buy-out value 0.1, deductible amount 15,500.
+- WorkCover Queensland Notice (No. 1) of 2026, Queensland Government Gazette
+  No. 43 (26 June 2026), from WorkCover Queensland's PDF (scanned; read by
+  OCR): ss 1, 3.1 and 3.2, 4.1 (minimums of $200, $150, $100 and $50 by the
+  quarter a policy commences in, inclusive of GST and duty), 5.2, 8.3, 10.1, 11
+  and 12. Duties Act 2001 (Qld), current as at 22 October 2026, ss 356, 357,
+  361 and 362(3) (5% of net premiums for accident insurance); the Queensland
+  Revenue Office's public ruling DA356.1 (net premiums include the GST).
+- icare, 'Premium calculation for small employers' (the formula, the $30,000
+  small employer limit, Rob's Restaurant, the definitions of D, SER and A) and
+  'Premium updates for 2026-27' (updated 9 November 2026: the $240 minimum;
+  2025-26 WIC rates kept). SIRA's Workers Compensation Market Practice and
+  Premiums Guidelines 2026 were not read: sira.nsw.gov.au answered with a
+  Cloudflare challenge, also after one change of network and a slower retry.
+- ReturnToWorkSA, 'Your premium explained' (the formula, the discount bands
+  and examples 1 to 3), 'Apprentice incentive', the 'Your work injury
+  insurance' booklet (June 2026: the $200 minimum 'subject to any rounding';
+  new employers pay the base premium for a full year) and its 2026-27 premium
+  calculator workbook (the premium is `INT` of the sum after the minimum; the
+  band is looked up with `MATCH(BP, {..., 9999.99}, -1)`). The ReturnToWorkSA
+  Premium Order 2026-27 in the South Australian Government Gazette was not
+  read: governmentgazette.sa.gov.au answered with a Cloudflare challenge.
+- NT WorkSafe, 'Understanding workers compensation premiums' (the builder's
+  example); WorkSafe Tasmania, 'Workers compensation insurance'; the ACT's
+  suggested reasonable premium rates; WorkCover WA's rates page.
+
+The site's workers compensation calculator (ryanduguid.github.io, main at
+dcc7ecbe) was run on its 25 page cases, the 31 edge inputs of its unit tests
+and a sweep of each scheme's edges, 1,326 rows in
+`tests/data/workers_compensation_site_cases.json`. The worksheet gives the
+same 6 figures on 849 rows and the same refusal on 308; it refuses the other
+169, where a source does not settle the case or the page goes further than
+its source (table below). Of the page's own 25 cases, 18 agree and 7 are
+refused alike.
+
+| Rule | Source | Rows |
+| --- | --- | --- |
+| A South Australian base premium above $9,999.99 and below $10,000 (and at each other bound) is refused | ReturnToWorkSA's table and calculator differ | 24 refused |
+| A New South Wales apprentice incentive is refused | icare says it is 'discounted from premium after premium payable is calculated', not whether before or after GST | 61 refused |
+| A New South Wales average performance premium is compared with $30,000 unrounded | icare does not say APP is rounded before the test; the page rounds it first | 12 refused |
+| Queensland actual wages are refused | the 2026-27 notice sets no year-end adjustment for a policy commencing in 2026-27 | 48 refused |
+| A Victorian remuneration that rounds to $0 is refused | Premiums Order (No. 34) cl 11 divides by the remuneration | 24 refused |
+| N / 365 is rounded to 6 places before the deductible | Premiums Order (No. 34) cl 6(1) and (4); the page uses the exact fraction | none in the fixture; $150,000 at 7.123% for 1 day gives $3.03, not $3.02, in the tests |
+| A Queensland premium that rounding the estimated premium and the apprentice discount first would move is refused | the notice does not say which is rounded | none in the fixture; in the tests |
+
 ## Payroll tax
 
 This worksheet was added on 19 November 2026. The revenue offices' pages were

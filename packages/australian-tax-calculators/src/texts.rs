@@ -95,6 +95,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One owner's land tax for a full land tax year in one of New South Wales and Victoria (the 2026 land tax year, on land owned at midnight on 31 December 2025) and Queensland, Western Australia, South Australia, Tasmania and the Australian Capital Territory (2026-27); the Northern Territory has no land tax. The operator establishes the jurisdiction's total taxable value of the owner's land after exemptions and concessions (in New South Wales the 3-year average land value, in Victoria and South Australia the site value, in the ACT one parcel's average unimproved value), whether the owner pays trust rates (a New South Wales special trust, Victorian trust surcharge rates, Queensland company and trustee rates other than for the trustees Land Tax Act 2010 (Qld) s 33 taxes at Sch 1, or South Australian trust rates under Land Tax Act 1936 (SA) s 8A(1a) after the exceptions in s 8A(1b) and (1c)), whether the owner is a foreign person or absentee who pays the jurisdiction's surcharge on all of the land (in the ACT, a parcel wholly foreign-owned: s 17F apportions), the value a New South Wales or Tasmanian surcharge applies to (in Tasmania the foreign-owned part of one folio, Land Tax Act 2000 (Tas) s 16B(1)), and in Western Australia whether all of the land is in the Perth metropolitan region. Each scale is the Act's or the revenue office's, with the surcharges of New South Wales (5% of the surcharge value), Victoria (the absentee owner rates less the general or trust rates), Queensland (3.0c for each $1 over $349,999 from $350,000, Land Tax Act 2010 (Qld) Schs 2 and 3), Tasmania (2% of the surcharge value) and the ACT (0.75%), and Western Australia's metropolitan region improvement tax (0.14% over $300,000). Tasmania's amounts are rounded to 10 cents (Land Tax Rating Act 2000 (Tas) s 7), and a case where rounding each amount and their sum differ is refused; South Australia's land tax under $20 is nil (Land Tax Act 1936 (SA) s 6); other amounts are worked exactly and shown to the cent, half up, the worksheet's convention, before any rounding a revenue office applies to the amount it collects (such as Taxation Administration Act 2001 (Qld) s 152). The ACT figure is for a taxable parcel liable in all 4 quarters. Excludes deciding which land is taxable, exemptions and concessions, who is a foreign person or absentee, and the taxable and surcharge values; joint ownership, grouping of related companies, single holding assessments, New South Wales companies that are not their group's concessional company, Victorian absentee trusts (s 46IA), Queensland build-to-rent land (s 58B), an exempt ACT parcel, the Victorian COVID-19 debt temporary surcharge on single holdings, Queensland trust aggregation, land only partly in the Perth metropolitan region, the ACT's unit entitlement and quarterly instalments, apportionment between properties, and part-year or supplementary assessments.",
     ),
     (
+        "workers_compensation_premium",
+        "One employer's workers compensation premium for a 12-month policy or premium period in 2026-27 in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, on the wages it estimates and the industry or premium rate its insurer gives it, with the premium worked again on its actual wages and the same scheme facts and the adjustment. The operator establishes the wages as the scheme defines them, the rate, the apprentice wages and each scheme's facts. New South Wales: a small employer (average performance premium, wages x the WIC rate, of $30,000 or less) under icare's formula with no apprentice incentive, the average performance premium less the Safe Employer Reward, plus GST, then the dust diseases contribution at a rate that includes GST (the gst amount excludes the GST within that contribution); a premium under icare's $240 minimum is refused. Victoria: a new employer (cl 12(5), including its related-employer and predecessor conditions) or small employer under the WorkCover Premiums Order (No. 34) 2026/2027 cl 6 to 12, with one premium rate and one remuneration figure (one workplace and coverage period), N / 365 to 6 places and the $400 minimum premium, 0.1 buy-out value and 15,500 deductible amount of Gazette S 284, plus GST. Queensland: a new policy (not reinstated under s 11 or carried on by a successor under s 12) that commences to insure in 2026-27 under WorkCover Queensland Notice (No. 1) of 2026 ss 3.2, 4.1, 5.2, 8.3 and 10.1 with no further premium under s 3.1, plus GST and insurance duty of 5% of the premium and its GST (Duties Act 2001 (Qld) s 362(3)), with s 4.1's minimum including both. South Australia: ReturnToWorkSA's BP x (1 - D) + C - A with its discount bands, claims costs capped at 3 x D x BP and no discount or claims costs while the employer has not completed a full financial year registered, at least $200 and rounded down to the dollar, plus GST; the supplementary underwriting rate is nil. Western Australia, Tasmania, the ACT and the Northern Territory: a policy whose premium is the insurer's rate times this employer's wages, plus GST, with no minimum, fixed charge, other adjustment or group allocation. Each step is worked exactly and shown to the cent, half up, except where a scheme rounds otherwise. Refuses experience-rated and performance-rated premiums, group members in New South Wales, Victoria, Queensland and South Australia, a New South Wales apprentice incentive, a Victorian remuneration that rounds to $0, a Queensland policy that commenced before 1 July 2026, a Queensland premium that rounding the estimated premium and apprentice discount first would move, Queensland actual wages, and a South Australian base premium above a band's bound less a cent and below the bound (ReturnToWorkSA's table and calculator differ). Excludes the industry classification and rate, what counts as wages, exemption from holding a policy, the Mine Safety Fund adjustment, catastrophic claims contribution and performance discount in New South Wales, default assessments, policies carried on from an earlier policy, business transfers in South Australia, the South Australian work health and safety fee, Comcare and self-insurers, household workers, early payment discounts and instalment interest.",
+    ),
+    (
         "payroll_tax",
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
     ),
@@ -584,6 +588,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "land_tax",
         "https://www.legislation.vic.gov.au/in-force/acts/land-tax-act-2005/086",
+    ),
+    (
+        "workers_compensation_premium",
+        "https://www.worksafe.vic.gov.au/resources/workcover-insurance-premiums-order",
     ),
     (
         "payroll_tax",
@@ -1187,6 +1195,25 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://legislation.act.gov.au/DownloadFile/a/2004-4/current/PDF/2004-4.PDF",
             "https://www.legislation.act.gov.au/View/di/2026-152/current/html/2026-152.html",
             "https://nt.gov.au/property/land/buying-and-selling-land/land-taxes",
+        ],
+    ),
+    (
+        "workers_compensation_premium",
+        &[
+            "https://content-v2.api.worksafe.vic.gov.au/sites/default/files/2026-06/Workcover-premiums-order-34-2026-06.pdf",
+            "https://www.gazette.vic.gov.au/gazette/Gazettes2026/GG2026S284.pdf",
+            "https://www.icare.nsw.gov.au/workers-compensation/employers/new-policy/premium-calculation-for-small-employers",
+            "https://www.icare.nsw.gov.au/workers-compensation/employers/new-policy/understanding-your-premium",
+            "https://cdn.workcoverqld.com.au/api/public/content/Queensland-Government-Gazette-2026.pdf",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2001-071",
+            "https://qro.qld.gov.au/resource/da356-1/",
+            "https://www.rtwsa.com/insurance/insurance-with-us/premium-calculations/your-premium-explained",
+            "https://www.rtwsa.com/insurance/insurance-with-us/employer-remuneration-return/apprentice-and-trainee-incentive",
+            "https://www.rtwsa.com/media/documents/Your-work-injury-insurance-booklet-June-2026_web.pdf",
+            "https://worksafe.nt.gov.au/forms-and-resources/bulletins/understanding-workers-compensation-premiums-northern-territory",
+            "https://worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-employers/workers-compensation-insurance",
+            "https://www.act.gov.au/open/act-workers-compensation-scheme-suggested-reasonable-premium-rates",
+            "https://www.workcover.wa.gov.au/resources/rates-fees-payments/",
         ],
     ),
     (
@@ -2448,6 +2475,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Each revenue office decides which land is taxable, its value and whether an owner is a foreign person or absentee; this worksheet takes the taxable value and any surcharge value as established.",
             "The ACT assesses land tax each quarter on the days in the quarter; this worksheet gives the full year's amount, which the quarterly assessments can differ from by cents.",
+        ],
+    ),
+    (
+        "workers_compensation_premium",
+        &[
+            "The insurer's notice is the premium: this worksheet takes the wages, the industry or premium rate and each scheme's facts as established, and holds no rate table.",
+            "An employer may be exempt from holding a policy, which this worksheet does not decide: in New South Wales with wages of $7,500 or less and no apprentice or trainee, outside a group; in Victoria with rateable remuneration of $7,500 or less for 2026-27 (Premiums Order (No. 34) cl 7), unless it employs an apprentice or trainee.",
+            "South Australia's work health and safety fee, which carries no GST, is added to the premium and is not worked here.",
         ],
     ),
     (
@@ -4005,7 +4040,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4945,6 +4980,70 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "work_expenses.reimbursed",
         "The expenses were reimbursed or paid for by someone else, so the taxpayer did not bear them.",
+    ),
+    (
+        "workers_compensation_premium.adjustment_unsettled",
+        "Actual wages were given for a Queensland policy commencing in 2026-27, for which the notice sets no year-end adjustment.",
+    ),
+    (
+        "workers_compensation_premium.apprentice_above_wages",
+        "Apprentice wages are more than the wages they are part of.",
+    ),
+    (
+        "workers_compensation_premium.apprentice_unavailable",
+        "Apprentice wages above nil were given for a scheme this worksheet deducts none for (vic, wa, tas, act, nt).",
+    ),
+    (
+        "workers_compensation_premium.apprentice_unsettled",
+        "Apprentice wages above nil were given in New South Wales, where icare does not say whether its apprentice incentive comes off before or after GST.",
+    ),
+    (
+        "workers_compensation_premium.band_edge_unsettled",
+        "A South Australian base premium is above a discount band's bound less a cent and below the bound, where ReturnToWorkSA's table and its calculator give different bands.",
+    ),
+    (
+        "workers_compensation_premium.below_minimum",
+        "A New South Wales premium is below icare's $240 minimum, whose GST treatment icare does not state.",
+    ),
+    (
+        "workers_compensation_premium.days_invalid",
+        "days_registered is not an integer from 1 to 365.",
+    ),
+    (
+        "workers_compensation_premium.employer_invalid",
+        "employer is not new, small or other.",
+    ),
+    (
+        "workers_compensation_premium.experience_rated",
+        "The premium is experience or performance rated: a New South Wales average performance premium over $30,000, or a Victorian employer that is neither new nor small.",
+    ),
+    (
+        "workers_compensation_premium.group_rated",
+        "The employer is a member of a group in a scheme that rates the group together (nsw, vic, qld, sa).",
+    ),
+    (
+        "workers_compensation_premium.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "workers_compensation_premium.policy_after_year",
+        "A Queensland policy_start is after 30 June 2027.",
+    ),
+    (
+        "workers_compensation_premium.policy_before_year",
+        "A Queensland policy commenced before 1 July 2026, so its premium rate and prior-year adjustment come from WorkCover Queensland's models.",
+    ),
+    (
+        "workers_compensation_premium.rate_invalid",
+        "A rate is not a percentage in its range to at most 4 decimal places.",
+    ),
+    (
+        "workers_compensation_premium.remuneration_nil",
+        "A Victorian remuneration rounds to $0, and the Premiums Order's deductible divides by it.",
+    ),
+    (
+        "workers_compensation_premium.rounding_unsettled",
+        "A Queensland premium differs by a cent with the estimated premium and apprentice discount each rounded to the cent first, and the notice does not say which.",
     ),
     (
         "working_holiday_maker.band_unsettled",
