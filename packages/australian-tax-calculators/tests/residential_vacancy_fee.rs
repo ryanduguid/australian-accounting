@@ -40,7 +40,7 @@ fn refuse_code(input: &Value) -> &'static str {
 
 #[test]
 fn ato_myeong_pre_and_post_9_april_2024_doubling() {
-    // ATO 'Vacancy fee return for foreign owners' — Myeong:
+    // ATO 'Vacancy fee return for foreign owners': Myeong:
     // $850,000 new townhouse settled 1 August 2022, $13,200 fee.
     for (year, start, end, due, expected_mult, expected_fee) in [
         (
@@ -93,7 +93,7 @@ fn ato_myeong_pre_and_post_9_april_2024_doubling() {
 
 #[test]
 fn ato_edmond_vacancy_year_and_due_date_and_retention() {
-    // ATO 'Vacancy fee return for foreign owners' — Edmond:
+    // ATO 'Vacancy fee return for foreign owners': Edmond:
     // Occupied from 5 October 2022 -> year ends 4 October 2023, due 3 November 2023.
     let mut input = base("2022-23", "2022-10-05");
     input["residentially_occupied_days"] = json!(200);
@@ -112,7 +112,7 @@ fn ato_edmond_vacancy_year_and_due_date_and_retention() {
 
 #[test]
 fn ato_rishi_2026_27_exemption_certificate_doubled_vacancy_fee() {
-    // ATO 'Residential fees for a foreign person' — Rishi:
+    // ATO 'Residential fees for a foreign person': Rishi:
     // Exemption certificate in Sept 2026 ($31,300), settled 2 November 2026,
     // year ends 1 November 2027, return due 1 December 2027, vacancy fee $62,600.
     let mut input = base("2026-27", "2026-11-02");
@@ -151,7 +151,7 @@ fn treasury_gn10_example_34_established_dwelling_tripled_and_doubled() {
 
 #[test]
 fn ato_sara_tenants_in_common_proportionate_share() {
-    // ATO 'Residential fees for a foreign person' — Sara:
+    // ATO 'Residential fees for a foreign person': Sara:
     // 25% tenant in common of $1.5m new dwelling on 1 August 2026:
     // whole fee $31,300 -> 25% share = $7,825 -> doubled vacancy fee = $15,650.
     let mut input = base("2026-27", "2026-08-01");
@@ -420,7 +420,7 @@ fn exemptions_not_held_full_year_and_full_waivers_and_cap() {
     assert!(dout["record_retention_until"].is_null());
     assert_eq!(dout["amounts"]["vacancy_fee_payable"], "0.00");
 
-    // Post-9 April 2024 full waiver (s 43(b)) — established dwelling (3x) and new (1x).
+    // Post-9 April 2024 full waiver (s 43(b)): established dwelling (3x) and new (1x).
     let mut w_new = base("2026-27", "2026-08-01");
     w_new["application_fee_waiver"] = json!("full");
     w_new["dwelling_kind"] = json!("new_or_near_new");
@@ -439,23 +439,46 @@ fn exemptions_not_held_full_year_and_full_waivers_and_cap() {
     w_pre["application_fee_waiver"] = json!("full");
     assert_eq!(eval(&w_pre)["amounts"]["vacancy_fee_payable"], "14100.00");
 
-    // Statutory s 6(3) cap binds on a large custom stated application fee
-    // whose payable window lies cleanly inside 2025-26 ($7,539,000 cap).
-    let mut capped = base("2024-25", "2024-08-01");
-    capped["acquisition_basis"] = json!("other_exemption_certificate");
-    capped["application_fee_payable"] = json!("4000000.00");
-    let cout = eval(&capped);
-    assert_eq!(cout["amounts"]["uncapped_vacancy_fee"], "8000000.00");
-    assert_eq!(cout["amounts"]["vacancy_fee_payable"], "7539000.00");
-    assert_eq!(cout["rates"]["statutory_fee_cap"], "7539000");
+    // Statutory s 6(3) cap floor (S1): an uncapped fee equal to the floor at
+    // vacancy_year_end cannot exceed the cap under any s 115E notice date
+    // (Fees Act s 7(3) prevents downward indexation).
+    let mut at_floor = base("2024-25", "2024-08-01");
+    at_floor["acquisition_basis"] = json!("other_exemption_certificate");
+    at_floor["application_fee_payable"] = json!("3769500.00");
+    let fout = eval(&at_floor);
+    assert_eq!(fout["amounts"]["uncapped_vacancy_fee"], "7539000.00");
+    assert_eq!(fout["amounts"]["vacancy_fee_payable"], "7539000.00");
+    assert_eq!(fout["rates"]["statutory_fee_cap_floor"], "7539000");
 
-    // Straddling the 1 July 2025 cap change ($7,329,000 -> $7,539,000) refuses cleanly.
-    let mut straddle = base("2024-25", "2024-07-01");
-    straddle["acquisition_basis"] = json!("other_exemption_certificate");
-    straddle["application_fee_payable"] = json!("4000000.00");
+    // Even inside a single FY (vacancy year ends 31 July 2025), an uncapped fee
+    // above the $7,539,000 floor ($8,000,000) refuses cap_unsettled because a
+    // delayed s 115E notice or s 115F due date after 1 July 2026 would carry a
+    // higher indexed cap ($7,791,000) and this worksheet takes no notice date.
+    let mut over_floor = base("2024-25", "2024-08-01");
+    over_floor["acquisition_basis"] = json!("other_exemption_certificate");
+    over_floor["application_fee_payable"] = json!("4000000.00");
     assert_eq!(
-        refuse_code(&straddle),
+        refuse_code(&over_floor),
         "residential_vacancy_fee.cap_unsettled"
+    );
+
+    // Ending shortly before 30 June (29 June 2025) where a notice could be
+    // issued after 1 July 2025 also refuses cleanly above the $7,329,000 floor.
+    let mut june_end = base("2023-24", "2024-06-30");
+    june_end["acquisition_basis"] = json!("other_exemption_certificate");
+    june_end["application_fee_payable"] = json!("3700000.00");
+    assert_eq!(
+        refuse_code(&june_end),
+        "residential_vacancy_fee.cap_unsettled"
+    );
+
+    // Pre-9 April 2024 full waiver with a late return also refuses cleanly.
+    let mut late_pre_waiver = base("2022-23", "2022-08-01");
+    late_pre_waiver["application_fee_waiver"] = json!("full");
+    late_pre_waiver["return_lodged_on_time"] = json!(false);
+    assert_eq!(
+        refuse_code(&late_pre_waiver),
+        "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
     );
 }
 
@@ -681,4 +704,130 @@ fn unknown_field_and_unsupported_year_are_refused() {
     let mut future = base("2027-28", "2027-08-01");
     future["application_fee_payable"] = json!("15600.00");
     assert_eq!(refuse_code(&future), "period.unsupported");
+}
+
+#[test]
+fn exhaustive_nine_schedule_date_and_consideration_boundaries() {
+    // Every effective-date start and end across all 9 verified schedules from
+    // 1 January 2021 to 30 June 2027, checking de minimis (<$75k), $75k, $1m,
+    // $1m+$0.01, $2m, $2m+$0.01, $40m and >$40m for both new/near-new and
+    // established dwellings.
+    let schedules: [(&str, &str, i64, i64, i64, i64, bool); 9] = [
+        (
+            "2021-01-01",
+            "2021-06-30",
+            2_000,
+            6_350,
+            12_700,
+            500_000,
+            false,
+        ),
+        (
+            "2021-07-01",
+            "2022-06-30",
+            2_000,
+            6_350,
+            12_700,
+            503_000,
+            false,
+        ),
+        (
+            "2022-07-01",
+            "2022-07-28",
+            2_000,
+            6_600,
+            13_200,
+            522_500,
+            false,
+        ),
+        (
+            "2022-07-29",
+            "2023-06-30",
+            4_000,
+            13_200,
+            26_400,
+            1_045_000,
+            false,
+        ),
+        (
+            "2023-07-01",
+            "2024-04-08",
+            4_200,
+            14_100,
+            28_200,
+            1_119_100,
+            false,
+        ),
+        (
+            "2024-04-09",
+            "2024-06-30",
+            4_200,
+            14_100,
+            28_200,
+            1_119_100,
+            true,
+        ),
+        (
+            "2024-07-01",
+            "2025-06-30",
+            4_300,
+            14_700,
+            29_500,
+            1_171_600,
+            true,
+        ),
+        (
+            "2025-07-01",
+            "2026-06-30",
+            4_500,
+            15_100,
+            30_300,
+            1_205_200,
+            true,
+        ),
+        (
+            "2026-07-01",
+            "2027-06-30",
+            4_600,
+            15_600,
+            31_300,
+            1_245_500,
+            true,
+        ),
+    ];
+
+    for (from, to, dm, t1, step, cap, triple) in schedules {
+        let est_mult = if triple { 3 } else { 1 };
+        let points: [(&str, i64); 8] = [
+            ("74999.99", dm),
+            ("75000.00", t1),
+            ("1000000.00", t1),
+            ("1000000.01", step),
+            ("2000000.00", step),
+            ("2000000.01", step * 2),
+            ("40000000.00", (step * 39).min(cap)),
+            ("40000000.01", cap),
+        ];
+        for app_date in [from, to] {
+            for (cons, new_expected) in points {
+                for (kind, mult) in [("new_or_near_new", 1), ("established", est_mult)] {
+                    let mut input = base("2026-27", "2027-06-30");
+                    input["consideration"] = json!(cons);
+                    input["dwelling_kind"] = json!(kind);
+                    input["application_date"] = json!(app_date);
+                    let out = eval(&input);
+                    let expected_base = format!("{}.00", new_expected * mult);
+                    let expected_vac = format!("{}.00", new_expected * mult * 2);
+                    assert_eq!(
+                        out["amounts"]["application_fee_base"], expected_base,
+                        "{app_date} {kind} {cons}"
+                    );
+                    assert_eq!(
+                        out["amounts"]["vacancy_fee_payable"], expected_vac,
+                        "{app_date} {kind} {cons}"
+                    );
+                }
+            }
+        }
+    }
 }

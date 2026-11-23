@@ -3241,9 +3241,12 @@ Part 3 ss 42 to 46, ss 53, 57, 59 to 61A and 67).
   s 57(2), including 3x for established dwellings from 9 April 2024 under
   ss 10(2) and 53(1)(c)), or set to the s 10 item 1 notional tier-1 fee on a
   full waiver (`application_fee_waiver: "full"`, ss 43(b) and 46(b)).
-- Fees Imposition Act 2015 ss 6(3) and 7 (Fees Regulations s 61A) cap the fee
-  at the indexed statutory cap (or verify the fee stays below the 2026-27
-  `$7,791,000` floor when the payable window enters `2027-28`).
+- Fees Imposition Act 2015 s 7(3) guarantees the s 6(3) statutory fee cap
+  (enforced by Fees Regulations s 61A) never decreases on later 1 July
+  indexations. The worksheet checks that the uncapped fee does not exceed the
+  cap floor at `vacancy_year_end` (or `$7,791,000` for `2027-28` onwards), so
+  the cap cannot bind regardless of when the s 115E notice is issued or the
+  s 115F payment falls due; any higher uncapped fee is refused (`cap_unsettled`).
 
 It refuses build-to-rent developments, partial application fee waivers,
 discretionary s 115H vacancy fee waivers or remissions, waived fees for other

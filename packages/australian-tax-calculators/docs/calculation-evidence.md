@@ -4007,11 +4007,19 @@ Choices the law leaves to the reader and boundaries refused:
   and s 53(1) (de minimis rule despite Part 2) and is refused.
 - Fees Regulations s 57(2) apportions a tenant in common's fee by ownership
   share without stating a rounding rule; the worksheet rounds half up to cents.
-- For 2026-27 vacancy years ending in 2027-28, Fees Act s 7(3) guarantees the
-  2027-28 statutory cap cannot fall below the 2026-27 `$7,791,000` cap, so
-  fees at or below `$7,791,000` (including the `$7,473,000` maximum for an
-  established dwelling) are verified uncapped whilst any higher uncapped fee
-  is refused (`cap_unsettled`).
+- Fees Imposition Act 2015 s 7(3) guarantees the s 6(3) statutory fee cap
+  (enforced by Fees Regulations s 61A) cannot decrease on any later 1 July
+  indexation. Because the Commissioner may issue a FATA s 115E notice of
+  liability after a subsequent 1 July (setting a s 115F due date at least 21
+  days later) and this worksheet takes no notice date, the cap in force at
+  `vacancy_year_end` (or `$7,791,000` for `2027-28` onwards) is treated as a
+  non-decreasing floor: any uncapped fee at or below that floor (including
+  every single residential dwelling under all 9 schedules, up to `$7,473,000`
+  for a 2026-27 established dwelling over `$40` million) is guaranteed uncapped
+  under every possible notice date, whilst any higher uncapped fee is refused
+  (`cap_unsettled`). Likewise, a pre-9 April 2024 full waiver with a late
+  return is refused (`pre_2024_waiver_boundary_unsettled`) because a delayed
+  notice can cross an indexation date.
 
 | Case | Source | Worksheet |
 | --- | --- | --- |

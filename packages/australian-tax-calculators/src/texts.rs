@@ -4463,7 +4463,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "residential_vacancy_fee.cap_unsettled",
-        "The uncapped vacancy fee exceeds the verified statutory fee cap floor whilst the payable window crosses a cap change or enters an unindexed financial year.",
+        "The uncapped vacancy fee exceeds the Fees Imposition Act 2015 s 6(3) statutory cap floor at vacancy_year_end, so the binding cap turns on when the s 115E notice is issued or s 115F payment falls due.",
     ),
     (
         "residential_vacancy_fee.consideration_invalid",

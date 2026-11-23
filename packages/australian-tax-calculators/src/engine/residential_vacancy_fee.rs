@@ -547,13 +547,19 @@ fn whole_and_share_steps(
     }
 }
 
+#[derive(Clone, Copy)]
+struct VacancyWindow {
+    start: i64,
+    end: i64,
+    return_due: i64,
+    lodged_on_time: bool,
+}
+
 fn resolve_fee_base(
     basis: AcquisitionBasis,
     ownership: Ownership,
     waiver: Waiver,
-    vacancy_start: i64,
-    vacancy_end: i64,
-    return_due: i64,
+    window: VacancyWindow,
     optional: &[Option<&Arg>; 5],
 ) -> Result<FeeBase> {
     let [
@@ -563,7 +569,7 @@ fn resolve_fee_base(
         app_date_arg,
         share_arg,
     ] = *optional;
-    let post_april_2024 = vacancy_start >= parse_day(APRIL_2024_AMENDMENT);
+    let post_april_2024 = window.start >= parse_day(APRIL_2024_AMENDMENT);
 
     // Mode 1: Stated application_fee_payable.
     if let Some(fee_arg) = stated_fee {
@@ -636,7 +642,7 @@ fn resolve_fee_base(
         let share = parse_ownership_share(share_arg, ownership)?;
         if post_april_2024 {
             let dk = parse_dwelling_kind(dwelling_arg, basis)?;
-            let (app_day, sched) = parse_application_date(app_date_arg, basis, vacancy_start)?;
+            let (app_day, sched) = parse_application_date(app_date_arg, basis, window.start)?;
             let estab_mult = if dk == DwellingKind::Established && sched.established_triple {
                 3
             } else {
@@ -677,14 +683,20 @@ fn resolve_fee_base(
 
         // Pre-9 April 2024 s 43(b) / s 46(b): item 1 of s 10 table in force when
         // the vacancy fee becomes payable (no notice-date freeze, no 3x rule).
+        if !window.lodged_on_time {
+            return refuse(
+                "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
+                "For a pre-9 April 2024 vacancy year with a waived application fee and a late return, the s 10 item 1 amount turns on when the Commissioner issues the s 115E notice or the fee becomes payable, which is outside this worksheet.",
+            );
+        }
         if app_date_arg.is_some() || dwelling_arg.is_some() {
             return refuse(
                 "residential_vacancy_fee.application_fee_invalid",
                 "For a vacancy year starting before 9 April 2024 with a waived application fee, omit application_date and dwelling_kind: pre-9 April 2024 Fees Regulations ss 43(b) and 46(b) use the s 10 item 1 amount in force when the vacancy fee becomes payable.",
             );
         }
-        let s_end = schedule_for(vacancy_end);
-        let s_due = schedule_for(return_due);
+        let s_end = schedule_for(window.end);
+        let s_due = schedule_for(window.return_due);
         let (Some(se), Some(sd)) = (s_end, s_due) else {
             return refuse(
                 "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
@@ -696,8 +708,8 @@ fn resolve_fee_base(
                 "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
                 format!(
                     "The 30-day return window ({} to {}) crosses a change in the s 10 item 1 fee (${} to ${}), so the pre-9 April 2024 waived-fee amount depends on the exact date the fee became payable.",
-                    dates::format(vacancy_end),
-                    dates::format(return_due),
+                    dates::format(window.end),
+                    dates::format(window.return_due),
                     se.tier_one,
                     sd.tier_one,
                 ),
@@ -743,7 +755,7 @@ fn resolve_fee_base(
         );
     }
     let dk = parse_dwelling_kind(dwelling_arg, basis)?;
-    let (app_day, sched) = parse_application_date(app_date_arg, basis, vacancy_start)?;
+    let (app_day, sched) = parse_application_date(app_date_arg, basis, window.start)?;
     let share = parse_ownership_share(share_arg, ownership)?;
     let estab_mult = if dk == DwellingKind::Established && sched.established_triple {
         3
@@ -873,17 +885,13 @@ pub fn residential_vacancy_fee(args: &ResidentialVacancyFeeArgs) -> Result<Value
         LiabilityStatus::LiableVacant
     };
 
-    let fee_base = precise(|| {
-        resolve_fee_base(
-            basis,
-            ownership,
-            waiver,
-            start,
-            end,
-            return_due,
-            &args.optional,
-        )
-    })?;
+    let window = VacancyWindow {
+        start,
+        end,
+        return_due,
+        lodged_on_time,
+    };
+    let fee_base = precise(|| resolve_fee_base(basis, ownership, waiver, window, &args.optional))?;
 
     let vac_mult: i64 = if start >= parse_day(APRIL_2024_AMENDMENT) {
         2
@@ -931,47 +939,32 @@ pub fn residential_vacancy_fee(args: &ResidentialVacancyFeeArgs) -> Result<Value
             uncapped.clone(),
         );
 
-        let cap_end = statutory_cap_for(end);
-        let cap_due = statutory_cap_for(return_due);
-        match (cap_end, cap_due) {
-            (Some(c1), Some(c2)) if c1 == c2 => {
-                let cap_d = int(c1);
-                let payable = if uncapped.gt(&cap_d)? {
-                    cap_d.clone()
-                } else {
-                    uncapped.clone()
-                };
-                let p_step = step(
-                    "vacancy_fee_payable",
-                    "Fees Imposition Act 2015 ss 6(3) and 7 and Fees Regulations 2020 s 61A: vacancy fee capped at the indexed statutory fee cap",
-                    "min(uncapped_vacancy_fee, statutory_fee_cap)",
-                    &[&uncapped, &cap_d],
-                    payable,
-                );
-                Ok((u_step, p_step, Some(("statutory_fee_cap", c1))))
-            }
-            _ => {
-                let floor_cap = cap_end.unwrap_or(CAP_FLOOR_2026_27);
-                if uncapped.gt(&int(floor_cap))? {
-                    return refuse(
-                        "residential_vacancy_fee.cap_unsettled",
-                        format!(
-                            "The uncapped vacancy fee (${uncapped}) exceeds the verified statutory fee cap floor (${floor_cap}) whilst the payable window ({} to {}) crosses a cap change or enters an unindexed financial year.",
-                            dates::format(end),
-                            dates::format(return_due),
-                        ),
-                    );
-                }
-                let p_step = step(
-                    "vacancy_fee_payable",
-                    "Fees Imposition Act 2015 ss 6(3) and 7(3) and Fees Regulations 2020 s 61A: uncapped vacancy fee does not exceed the indexed statutory fee cap floor",
-                    "uncapped_vacancy_fee",
-                    &[&uncapped],
-                    uncapped.clone(),
-                );
-                Ok((u_step, p_step, Some(("statutory_fee_cap_floor", floor_cap))))
-            }
+        // Fees Imposition Act 2015 s 7(3) guarantees the s 6(3) statutory cap
+        // (enforced by Fees Regulations s 61A) never decreases on later 1 July
+        // indexations. Therefore, the cap in force at vacancy_year_end (or
+        // $7,791,000 for 2027-28+) is a strict lower bound for every possible
+        // FATA s 115E notice date and s 115F payment due date. Whenever the
+        // uncapped fee is at or below that floor, the cap cannot bind; whenever
+        // it exceeds the floor, the applicable cap depends on when the s 115E
+        // notice is issued or the s 115F payment falls due (which may follow a
+        // later 1 July indexation), so the worksheet refuses cleanly.
+        let floor_cap = statutory_cap_for(end).unwrap_or(CAP_FLOOR_2026_27);
+        if uncapped.gt(&int(floor_cap))? {
+            return refuse(
+                "residential_vacancy_fee.cap_unsettled",
+                format!(
+                    "The uncapped vacancy fee (${uncapped}) exceeds the Fees Imposition Act 2015 s 6(3) statutory fee cap floor at vacancy_year_end (${floor_cap}). Because the applicable indexed cap under s 7 and Fees Regulations s 61A can rise if the Commissioner's s 115E notice or s 115F due date falls after a later 1 July indexation, and this worksheet takes no notice date, a fee above the cap floor is refused."
+                ),
+            );
         }
+        let p_step = step(
+            "vacancy_fee_payable",
+            "Fees Imposition Act 2015 ss 6(3) and 7(3) and Fees Regulations 2020 s 61A: uncapped vacancy fee does not exceed the non-decreasing statutory fee cap floor, so the cap cannot bind regardless of s 115E notice or s 115F due date",
+            "uncapped_vacancy_fee",
+            &[&uncapped],
+            uncapped.clone(),
+        );
+        Ok((u_step, p_step, Some(("statutory_fee_cap_floor", floor_cap))))
     })?;
 
     if let Some((k, v)) = cap_rate {
