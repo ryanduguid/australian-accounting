@@ -14,32 +14,35 @@ use crate::engine::{
 use serde_json::{Value, json};
 
 pub const COMMANDS: &[&str] = &[
+    "partnership-net-income",
     "proportionate-share",
     "s100a-risk",
     "s99b-liability",
+    "trust-loss-tests",
     "trust-resolution",
+    "trustee-assessment",
     "validate-amount",
 ];
 
 type Result<T> = std::result::Result<T, String>;
 
-fn text<'a>(v: &'a Value, key: &str) -> Result<&'a str> {
+pub(crate) fn text<'a>(v: &'a Value, key: &str) -> Result<&'a str> {
     v.get(key)
         .and_then(Value::as_str)
         .ok_or_else(|| format!("{key} must be a string"))
 }
 
-fn integer(v: &Value, key: &str) -> Result<i64> {
+pub(crate) fn integer(v: &Value, key: &str) -> Result<i64> {
     v.get(key)
         .and_then(Value::as_i64)
         .ok_or_else(|| format!("{key} must be an integer"))
 }
 
-fn is_absent(v: &Value, key: &str) -> bool {
+pub(crate) fn is_absent(v: &Value, key: &str) -> bool {
     v.get(key).is_none_or(Value::is_null)
 }
 
-fn decimal(v: &Value, key: &str) -> Result<Decimal> {
+pub(crate) fn decimal(v: &Value, key: &str) -> Result<Decimal> {
     let t = text(v, key)?;
     if t.len() > 8192 {
         return Err(format!("{key}: decimal input exceeds 8192 bytes"));
@@ -76,7 +79,7 @@ fn date(v: &Value, key: &str) -> Result<Date> {
     Date::parse(text(v, key)?).ok_or_else(|| format!("{key} must be a YYYY-MM-DD date"))
 }
 
-fn array<'a>(v: &'a Value, key: &str) -> Result<&'a [Value]> {
+pub(crate) fn array<'a>(v: &'a Value, key: &str) -> Result<&'a [Value]> {
     match v.get(key) {
         None => Ok(&[]),
         Some(Value::Array(a)) => Ok(a),
@@ -259,10 +262,13 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         return Err("input must be a JSON object".into());
     }
     match command {
+        "partnership-net-income" => crate::partnership::evaluate(v),
         "proportionate-share" => proportionate_share(v),
         "s100a-risk" => s100a_risk(v),
         "s99b-liability" => s99b_liability(v),
+        "trust-loss-tests" => crate::trust_losses::evaluate(v),
         "trust-resolution" => trust_resolution(v),
+        "trustee-assessment" => crate::trustee::evaluate(v),
         "validate-amount" => cli::decimal_type(text(v, "value")?).map(|d| json!(d.to_string())),
         _ => Err(format!("unknown command {command}")),
     }
