@@ -1428,6 +1428,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Each year's rates were read at the ATO, the Commissioner's
         // instruments and PCG 2023/1 on 22 November 2026; 2027-28 has no cents
         // per kilometre rate yet.
+        // The financial year holding the notice day, from 27 March 2021, when
+        // s 117(4) began (Act No. 25, 2021), to 30 June 2027; the Act's text
+        // was read on 24 November 2026.
+        "notice_period" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "work_expenses" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1876,6 +1882,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "fbt_entertainment_classifier" => (
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
+        ),
+        "notice_period" => (
+            "2026-11-24",
+            "Fair Work Act 2009 ss 18, 22, 117, 118 and 123, compilation 73 (C2026C00355, 7 July 2026), with endnote 4's amendment history; Fair Work Amendment (Supporting Australia's Jobs and Economic Recovery) Act 2021 (No. 25, 2021) s 2 and Schedule 1 item 19, as made, and the transitional Schedule 1 Part 10 clause 46(9) it inserts in the Fair Work Act; Acts Interpretation Act 1901 s 2G",
         ),
         "work_expenses" => (
             "2026-11-24",
@@ -2531,6 +2541,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-15",
         ),
+        "notice_period" => (
+            "Fair Work Ombudsman: 'Dismissal', 'Notice of termination and redundancy pay' and 'Who doesn't get notice'",
+            "Gunter (5 months, 1 week from the day after notice) and Joan (5 years and 3 months with unpaid parental leave, 4 weeks)",
+            "2026-11-24",
+            "2026-11-24",
+        ),
         "work_expenses" => (
             "ATO working from home, car and self-education pages; PCG 2023/1; TR 98/9",
             "Keisha, Yang and Wanda (fixed rate method), PCG 2023/1 examples 1 (Gerry) and 8 (Piruntha), Johan (cents per kilometre), Lana (log book), Maureen (self-education reduction), TR 98/9 paras 145 to 155 (Con), the explanatory memorandum's examples 4.1 to 4.4 (Nicky) and the ATO's standard deduction examples (Simon and Yui)",
@@ -3085,6 +3101,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "return_date",
                 "YYYY-MM-DD, the day the return taking these credits into account is given, not before any line's acquisition: lines acquired more than 4 years before it are listed in time_limit_lines, with the s 47-5(2) warning",
+            ),
+        ],
+        "notice_period" => vec![
+            (
+                "to_avoid_division",
+                "boolean, with exclusion specified_period only, and then required: a substantial reason for employing the employee for a specified period, task or season was to avoid the Division (s 123(2)); true keeps the notice",
+            ),
+            (
+                "full_rate_of_pay",
+                "AUD an hour, with weekly_hours or not at all: the employee's full rate of pay (s 18: with incentive payments and bonuses, loadings, monetary allowances, overtime and penalty rates and other separately identifiable amounts) as the operator has worked it out",
+            ),
+            (
+                "weekly_hours",
+                "hours above 0 to 168, to at most 2 decimal places, with full_rate_of_pay or not at all: the hours the employee would have worked in each week of the notice period, taken as the same each week",
             ),
         ],
         "work_expenses" => vec![
@@ -5972,6 +6002,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
             ),
         ],
+        "notice_period" => vec![
+            ("notice_date", "YYYY-MM-DD in the year given, from 2021-03-27: the day the employer gives the written notice (s 117(1))"),
+            ("service_start", "YYYY-MM-DD, on or before notice_date: the first day of continuous service with the employer, earlier service with a first employer included where s 22(5) counts it"),
+            ("excluded_days", "whole number from 0 to 36,500, fewer than the days from service_start to notice_date: the days that do not count towards continuous service for notice (unauthorised absence and prescribed periods, s 22(4); casual employment with the employer, s 117(4)), as the operator has established them; unpaid leave counts. The worksheet takes them off the end of the period"),
+            ("date_of_birth", "YYYY-MM-DD, before service_start: the employee's, for s 117(3)(b)"),
+            ("exclusion", "none, specified_period (s 123(1)(a)), serious_misconduct (s 123(1)(b)), casual (s 123(1)(c)), training_arrangement (s 123(1)(d), not an apprentice), prescribed_division (s 123(1)(e)), daily_hire_building (s 123(3)(b)), daily_hire_meat (s 123(3)(c)), weekly_hire_meat_seasonal (s 123(3)(d)) or prescribed_notice (s 123(3)(e)): the exclusion the operator has established"),
+        ],
         "work_expenses" => vec![
             ("method", "home_office, car_cents_per_kilometre, car_log_book or self_education"),
             ("reimbursed", "boolean: any of the expenses was reimbursed or paid for by an employer or anyone else; true is refused, so an unknown reimbursement is too"),
@@ -7354,6 +7391,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // birthday, the turnover 2 years back and the net value are fabricated.
         // Keisha, the ATO's fixed rate method example: 843 hours in 2025-26.
         // Her actual expenses are fabricated.
+        // The Fair Work Ombudsman's Joan: 5 years and 3 months with unpaid
+        // parental leave, 4 weeks.
+        "notice_period" => vec![
+            ("year", Text("2026-27")),
+            ("notice_date", Text("2026-08-01")),
+            ("service_start", Text("2021-05-01")),
+            ("excluded_days", Whole(0)),
+            ("date_of_birth", Text("1991-01-01")),
+            ("exclusion", Text("none")),
+        ],
         "work_expenses" => vec![
             ("year", Text("2025-26")),
             ("method", Text("home_office")),

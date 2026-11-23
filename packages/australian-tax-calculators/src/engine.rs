@@ -6413,6 +6413,8 @@ mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 mod work_expenses;
 pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
+mod notice_period;
+pub use notice_period::{NoticePeriodArgs, notice_period};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
 mod excess_contributions;
@@ -6519,7 +6521,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 138] = [
+const KINDS: [&str; 139] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6604,6 +6606,7 @@ const KINDS: [&str; 138] = [
     "asic_fees",
     "sb_cgt_concessions",
     "work_expenses",
+    "notice_period",
     "ato_interest_penalties",
     "transfer_balance",
     "excess_contributions",

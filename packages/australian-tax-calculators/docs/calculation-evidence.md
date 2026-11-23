@@ -5841,6 +5841,75 @@ self-education), Division 28 (car), s 25-10 (repairs) or Subdivision 40-B
 (decline in value). Example 4.4 is set in 2027-28, which the worksheet does
 not cover; the test works the same figures in 2026-27.
 
+## Notice period
+
+This worksheet was added on 24 November 2026, when every source below was
+read.
+
+- Fair Work Act 2009, compilation 73 (C2026C00355, compilation date 7 July
+  2026, the latest on the Federal Register of Legislation,
+  https://www.legislation.gov.au/C2009A00028/latest/text): s 117 (notice or
+  payment in lieu), s 118, s 123 (limits on scope), s 18 (full rate of pay)
+  and s 22 (service; s 22(4) for notice of termination). Endnote 4 records
+  s 117 as amended only by Act No. 25, 2021, and no amendment of s 123.
+- Fair Work Amendment (Supporting Australia's Jobs and Economic Recovery) Act
+  2021 (No. 25, 2021) as made
+  (https://www.legislation.gov.au/C2021A00025/asmade/text): Schedule 1 item
+  19 adds s 117(4); s 2 table item 2 commences Schedule 1 Parts 1 and 2 on
+  27 March 2021; the transitional clause 46(9) it inserts in the Fair Work
+  Act's Schedule 1 Part 10 applies the casual reference in s 117 to periods
+  of employment starting before, on or after that day.
+- The Fair Work Ombudsman's 'Dismissal'
+  (https://www.fairwork.gov.au/ending-employment/notice-and-final-pay/dismissal-how-much-notice),
+  'Notice of termination and redundancy pay' fact sheet and 'Who doesn't get
+  notice'.
+
+Choices the sources leave to the reader:
+
+- 'More than 1 year' is service running past the last day of a year from the
+  first day: Acts Interpretation Act 1901 s 2G(2) ends a period of years on
+  the day before the anniversary, so service from 1 August 2025 to the end of
+  31 July 2026 is exactly 1 year (1 week) and to 1 August is more (2 weeks).
+- Excluded days come off the end of the period, as they do not count towards
+  its length (s 22(4)(b)). The days between employments on a transfer of
+  employment are excluded days too (s 22(5)(b)); the first employer's service
+  counts (s 22(5)(a)), so `service_start` is its first day. The note to
+  s 22(5) and ss 91(1) and 122(1) let a second employer refuse that service
+  only for annual leave and redundancy pay, not for notice.
+- 'Over 45 years old' (s 117(3)(b)) is refused for an employee aged 45 in
+  completed years at the end of the notice day: read as older than 45 years
+  it includes them, read as aged above 45 it does not, and neither the Act nor
+  the Fair Work Ombudsman's pages say which. 46 or more is over 45; 44 or less
+  is not. A 29 February birthday is taken at 28 February for the 45th and
+  1 March for the 46th, the earliest and latest it could fall, so the refusal
+  covers both readings.
+- The notice ends no earlier than the notice day plus 7 days a week: the time
+  between giving notice and the termination day must be at least the period
+  (s 117(2)(a)), and the Fair Work Ombudsman starts the period on the day
+  after notice is given.
+- The payment in lieu takes the hours a week as the same in each week; an
+  employee whose hours or full rate differ by week is outside it. It is
+  rounded up to the cent, as s 117(2)(b) requires at least the full rate for
+  the hours.
+- 30 June 2027 is the last notice day accepted, not a statement that the law
+  stays the same to then; a later amendment is not covered.
+
+`tests/notice_period.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Gunter, 5 months' service, notice on Tuesday 4 August 2026 | FWO 'Dismissal' | 1 week, ending Tuesday 11 August |
+| Joan, 35, 5 years and 3 months with 12 months' unpaid parental leave | FWO 'Dismissal' | 4 weeks |
+| 50, 3 1/2 years | s 117(3) | 3 + 1 = 4 weeks |
+| Exactly 1, 3 and 5 years, and a day more | s 117(3)(a), s 2G | 1, 2, 3 weeks; 2, 3, 4 weeks |
+| 50, exactly 2 years; a day short | s 117(3)(b) | 3 weeks; 2 weeks |
+| Notice the day before the 45th birthday, on it, the day before the 46th, on it | s 117(3)(b) | Not over 45; refused; refused; over 45 |
+| 1 year and 10 days with 10 days excluded | s 22(4) | 1 week |
+| Service from 29 February 2024: exactly 1 and 3 years, and a day more; 50, exactly 2 years | s 117(3), s 2G | 1, 2 weeks; 2, 3 weeks; 2 + 1 weeks |
+| Transfer: 3 years and 5 days with a 5-day gap between employers | s 22(5) | 2 weeks |
+| 3 weeks at 38 hours and $40.00; 1 week at 7.25 hours and $33.33 | s 117(2)(b) | $4,560.00; $241.65, rounded up |
+| Each s 123 exclusion; a specified period to avoid the Division | s 123(1) to (3) | No notice; notice as worked |
+
 ## Residency tests
 
 This worksheet was added on 22 November 2026. Paragraph (a) of 'resident or

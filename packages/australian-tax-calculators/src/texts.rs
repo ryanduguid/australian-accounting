@@ -331,6 +331,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Tax-exempt body entertainment fringe benefits (FBTAA s 38) in the FBT year ended 31 March 2026 or 2027: non-deductible exempt entertainment expenditure (s 136(1)) an employer wholly or partly exempt from income tax, or without assessable income from the activities the entertainment relates to, incurred in entertaining employees or their associates. The taxable value is so much of the expenditure as is attributable to that entertainment (s 39): actual takes the amount the operator attributes to employees and associates; per_head apportions a function's expenditure by the employees and associates entertained over everyone entertained, rounded to cents, where the actual amount cannot easily be worked out (the employer's guide, 15.9). No recipient's contribution or reduction applies (FBT return 2026 instructions, item 23L). Excludes deciding what is entertainment or exempt (such as minor benefits, s 58P), meal entertainment valued under Division 9A (fbt-meal-entertainment), the 50/50 split for entertainment facility leasing expenses (s 152B), splitting the value between type 1 and type 2 for fbt, gross-up and FBT payable.",
     ),
     (
+        "notice_period",
+        "The minimum notice of termination an employer must give a national system employee under the National Employment Standards (Fair Work Act 2009 s 117), for written notice given from 27 March 2021 to 30 June 2027. Continuous service runs from the first day to the end of the notice day, less the days the operator states do not count (unauthorised absence and prescribed periods, s 22(4); casual periods with the employer, s 117(4)); unpaid leave counts. s 117(3)(a): 1 week for not more than 1 year, 2 for more than 1 to 3, 3 for more than 3 to 5 and 4 for more than 5, a period of years ending on the day before its anniversary (Acts Interpretation Act 1901 s 2G); s 117(3)(b): 1 more week for an employee over 45 years old with at least 2 years of continuous service at the end of the notice day. The notice ends no earlier than the notice day plus 7 days a week. With a stated full rate of pay (s 18) and hours a week, the payment in lieu of s 117(2)(b) is the weeks times the hours times the rate, half up to the cent. The operator establishes the dates, the days not counted, whether the employee is a national system employee and which s 123 exclusion applies (a specified period, task or season unless it was to avoid the Division, serious misconduct, a casual, a training arrangement, a daily or weekly hire employee in building and construction or meat, or one the regulations prescribe); an excluded employee has no s 117 notice. Excludes longer notice under an award, enterprise agreement or contract, notice by the employee (s 118), redundancy pay, unfair dismissal, other State or Territory laws and a full rate of pay that varies from week to week. Refuses an employee aged 45 in completed years, as 'over 45 years old' may mean older than 45 years or aged above 45.",
+    ),
+    (
         "work_expenses",
         "An employee's deduction for one of 4 kinds of work expense in an income year from 2020-21 to 2026-27, from amounts the taxpayer incurred and bore, none reimbursed or paid for by an employer or anyone else and none covered by an allowance. home_office: working from home running expenses by the fixed rate (52c an hour before 2022-23, with a dedicated home office; PCG 2023/1 Table 1 from 2022-23, 67c to 2023-24 and 70c from 1 July 2024) plus the expenses it does not cover, the 80c shortcut (PCG 2020/3) in 2020-21 and 2021-22, and the actual cost, each with its return amount and the higher named; the operator establishes the recorded hours and the records each method needs (PCG 2023/1 paras 18 and 56 to 63) and apportions each expense's work-related amount. car_cents_per_kilometre: ITAA 1997 s 28-25, the first 5,000 business kilometres at the rate the Commissioner determines for the year. car_log_book: s 28-90, each car expense deductible outside Division 28 (decline in value included, as worked out under Division 40 with the car limit) at the business use percentage, with a log book of at least 12 continuous weeks (s 28-120(1)) kept for the year or one of the 4 before it (s 28-115(2)). Both car methods are for one car the taxpayer owned or leased (s 28-12(1)). self_education: the connection to current employment when the expense was incurred (ITAA 1997 s 8-1, TR 2024/3) and, before 2022-23, the $250 reduction of ITAA 1936 s 82A for a prescribed course of education, over the ATO's categories A to E. In 2026-27, given the assessable labour income, the other work-related deductions and residence, it adds the standard deduction for work-related expenses (ITAA 1997 s 25-130): the lesser of $1,000 and that income for a resident, reduced, but not below zero, by the covered deductions claimed, and the year's covered deductions with and without this method's claim. Excludes occupancy expenses (rent, mortgage interest, rates, house insurance) and whether the home is a place of business; the substantiation rules of Division 900 and their exceptions; reasonable allowance amounts and occupation-specific guidance; a log book notice or an added car requiring a new log book (s 28-115(3) and (4)), a car held under 12 weeks, cars taken on hire (s 28-165) and joint ownership splits; working out decline in value, the electric vehicle home charging rate and the apportionment of each expense; HELP, VET student loan and similar repayments, which are not deductible; foreign employment income; and the tax effect of the deduction.",
     ),
@@ -893,6 +897,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "sb_cgt_concessions",
         "https://www.legislation.gov.au/C2004A05138/2026-05-21/2026-05-21/text/original/epub/OEBPS/document_4/document_4.html",
+    ),
+    (
+        "notice_period",
+        "https://www.legislation.gov.au/C2009A00028/latest/text",
     ),
     (
         "work_expenses",
@@ -1966,6 +1974,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "notice_period",
+        &[
+            "https://www.legislation.gov.au/C2021A00025/asmade/text",
+            "https://www.fairwork.gov.au/ending-employment/notice-and-final-pay/dismissal-how-much-notice",
+            "https://www.fairwork.gov.au/tools-and-resources/fact-sheets/minimum-workplace-entitlements/notice-of-termination-and-redundancy-pay",
+            "https://www.fairwork.gov.au/ending-employment/dismissal/who-doesnt-get-notice",
+        ],
+    ),
+    (
         "work_expenses",
         &[
             "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim/work-related-deductions/working-from-home-expenses/fixed-rate-method",
@@ -2655,6 +2672,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "fuel_tax_credits",
         &[
             "Each line's rate is the one the ATO publishes for its acquisition day; the ATO's fuel tax credit calculator remains the authority for an amount claimed.",
+        ],
+    ),
+    (
+        "notice_period",
+        &[
+            "An award, enterprise agreement or contract can require longer notice than the National Employment Standards, and whether the employee is a national system employee, the days not counted and any s 123 exclusion are the operator's facts: this worksheet applies s 117 to them and does not decide them.",
         ],
     ),
     (
@@ -4702,7 +4725,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5201,6 +5224,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "non_resident_withholding.variation_rate_invalid",
         "variation_rate is not null or a decimal string from 0 to 1 (TAA Sch 1 s 15-15).",
+    ),
+    (
+        "notice_period.age_unsettled",
+        "The employee is 45 in completed years at the end of the notice day, where the readings of 'over 45 years old' in s 117(3)(b) differ.",
+    ),
+    (
+        "notice_period.before_current_text",
+        "The notice day is before 27 March 2021, when s 117(4) began; the earlier text was not read.",
+    ),
+    (
+        "notice_period.birth_after_start",
+        "The date of birth is not before the first day of service.",
+    ),
+    (
+        "notice_period.excluded_invalid",
+        "excluded_days is not a whole number from 0 to 36,500 fewer than the days of service.",
+    ),
+    (
+        "notice_period.exclusion_invalid",
+        "exclusion is not none or one of the s 123 exclusions the worksheet takes.",
+    ),
+    (
+        "notice_period.hours_invalid",
+        "weekly_hours is not above 0 to 168 to at most 2 decimal places.",
+    ),
+    (
+        "notice_period.start_after_notice",
+        "The first day of service is after the notice day.",
+    ),
+    (
+        "notice_period.year_mismatch",
+        "The notice day does not fall in the year given.",
     ),
     (
         "payg.extra_pays_not_weekly_or_fortnightly",

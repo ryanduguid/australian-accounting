@@ -16,8 +16,8 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-138 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, ASIC's 2026-27 fees with the late fee for a due and received date, resident and foreign
-resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the foreign resident capital gains withholding a purchaser pays on Australian real property, the small business income tax offset, a HELP debt on each 1 June from 2020 to 2026 with a voluntary repayment's timing, the defined benefit income cap with its assessable excess and reduced untaxed offset, the deductible amount of a foreign pension's undeducted purchase price, whether a scholarship is exempt, the crystallised segment of a super interest at 30 June 2007, the ATO's endorsement review worksheets for charities and DGRs, a company's deferred tax under AASB 112 with its tax expense and rate reconciliation, annual and long service leave provisions under AASB 119 with their current and non-current split, one employee's long service leave under each state and territory's Act, whether an individual must lodge a return under each year's lodgment instrument, the 4 residency tests for an individual, the change in value of trading stock with each item's valuation and the small business choice, when a prepaid expense is deductible, whether Division 35 defers a business activity loss, whether the personal services income rules apply, the employee share scheme discount with its taxing points, reductions and forfeiture exclusion, one quarterly PAYG instalment by the amount, a varied amount, the rate or a varied rate, the ATO's risk zone for an allocation of professional firm profits under PCG 2021/4, a complying SMSF's annual return tax, levy and amount due, the tax on a minor's unearned income at the Division 6AA rates, an employee's working from home, car and self-education deductions, foreign currency amounts in Australian dollars, the foreign income tax offset with a part-year resident's tax-free threshold, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
+139 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, ASIC's 2026-27 fees with the late fee for a due and received date, resident and foreign
+resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the foreign resident capital gains withholding a purchaser pays on Australian real property, the small business income tax offset, a HELP debt on each 1 June from 2020 to 2026 with a voluntary repayment's timing, the defined benefit income cap with its assessable excess and reduced untaxed offset, the deductible amount of a foreign pension's undeducted purchase price, whether a scholarship is exempt, the crystallised segment of a super interest at 30 June 2007, the ATO's endorsement review worksheets for charities and DGRs, a company's deferred tax under AASB 112 with its tax expense and rate reconciliation, annual and long service leave provisions under AASB 119 with their current and non-current split, one employee's long service leave under each state and territory's Act, whether an individual must lodge a return under each year's lodgment instrument, the 4 residency tests for an individual, the change in value of trading stock with each item's valuation and the small business choice, when a prepaid expense is deductible, whether Division 35 defers a business activity loss, whether the personal services income rules apply, the employee share scheme discount with its taxing points, reductions and forfeiture exclusion, one quarterly PAYG instalment by the amount, a varied amount, the rate or a varied rate, the ATO's risk zone for an allocation of professional firm profits under PCG 2021/4, a complying SMSF's annual return tax, levy and amount due, the tax on a minor's unearned income at the Division 6AA rates, an employee's working from home, car and self-education deductions, the minimum notice of termination under the National Employment Standards, foreign currency amounts in Australian dollars, the foreign income tax offset with a part-year resident's tax-free threshold, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years from 2020-21, the instant asset write-off, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, foreign purchaser duty and land tax surcharges in each state and territory, whether an electric car's fringe benefits are exempt, transfer duty with first home buyer concessions in each state and territory, one employer's payroll tax in each state and territory, Victoria's vacant residential land tax, commercial and industrial property tax and windfall gains tax, an owner's land tax for a full year in each of the 7 jurisdictions that levy it, one employer's workers compensation premium for 2026-27 in each scheme, the duty on a passenger vehicle in each, the duty on a general insurance premium in each, the first home owner grant in each state and territory, portable long service leave levies across Coal LSL and the Australian state and territory schemes, a company's franking account with franking deficit tax, its offset and the benchmark rule, an R&D entity's refundable or non-refundable R&D tax offset with the amount a recoupment or feedstock clawback adds to assessable income, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, Schedule 2 withholding for horticulture and shearing, Schedule 14 additional amounts, daily and casual withholding, withholding where no ABN is quoted, Schedule 3 withholding for entertainers, Schedule 4 return to work payments, Schedule 6 annuities, Schedule 10 voluntary agreements, super contribution caps, the super co-contribution, the low income super tax offset and the spouse contribution tax offset,
 account-based pension minimums, the transfer balance account with excess transfer balance tax, the excess concessional contributions charge, excess non-concessional contribution release amounts, study and training loan repayments, Schedule 8 study
@@ -250,6 +250,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `super-crystallisation` | `eligible_service_start`, `interest_value`, `concessional_component`, `post_june_1994_invalidity_component`, `cgt_exempt_component`, `undeducted_contributions`, `untaxed_source`, `income_stream_before_july_2007`, `year`, `scope_confirmed`; see [Super crystallisation](#super-crystallisation) |
 | `endorsement-review` | `worksheet`, `answers`, `year`, `scope_confirmed`; see [Endorsement review](#endorsement-review) |
 | `government-super-amounts` | `income-tests`' 16 components and `residency`, `eligible_income`, `personal_contributions`, `concessional_contributions`, `return_lodged`, `under_71`, `temporary_visa_held`, `non_concessional_within_cap`, `total_super_balance_below_cap`, `year`, `scope_confirmed`; for a spouse contribution all of `spouse_contributions`, `spouse_assessable_income`, `spouse_assessable_fhss_released_amount`, `spouse_reportable_fringe_benefits_total`, `spouse_reportable_employer_super_contributions`, `spouse_excess_concessional_contributions`, `spouse_non_concessional_within_cap` and `spouse_total_super_balance_below_cap`; see [Government super amounts](#government-super-amounts) |
+| `notice-period` | `notice_date`, `service_start`, `excluded_days`, `date_of_birth`, `exclusion`, `year`, `scope_confirmed`; with `exclusion` `specified_period`, `to_avoid_division`; optionally `full_rate_of_pay` and `weekly_hours` together; see [Notice period](#notice-period) |
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
 | `residential-vacancy-fee` | `vacancy_year_start`, `held_full_vacancy_year`, `residentially_occupied_days`, `return_lodged_on_time`, `exemption`, `acquisition_basis`, `ownership`, `application_fee_waiver`, `vacancy_fee_waiver_or_remission`, `year`, `scope_confirmed`; optional `application_fee_payable`, or `consideration`, `dwelling_kind`, `application_date` and `ownership_share` |
@@ -498,6 +499,7 @@ DI2026-157).
 | PSI test | 2020-21 to 2026-27; one individual's PSI with the operator's answers to each test; no s 87-40 for an agent on 75% or more commission; a determination not decided |
 | HELP indexation | 2019-20 to 2025-26 (1 June 2020 to 1 June 2026); one person's HELP debt under HESA Division 140 at the ATO's published factor, with the 2025 20% reduction; no location-preferred debtor, other study loans or processing time |
 | PCG 2021/4 | 2020-21 (the guideline's examples) and 2022-23 to 2026-27; an arrangement the operator says passes both gateways; the scorer's stated totals, or up to 6 resident adult individuals and companies with the tax paragraph 85 counts; no offsets, super, FBT, trusts or non-residents |
+| Notice period | Notice given from 27 March 2021 to 30 June 2027; one national system employee's minimum notice of termination under Fair Work Act 2009 s 117; s 123 exclusions, days not counted and the full rate of pay as stated; employees aged 45 in completed years refused; awards, agreements and contracts not covered |
 | Work expenses | 2020-21 to 2026-27; one employee's working from home, car (cents per kilometre or log book) or self-education deduction, one `method` a call; no reimbursed expenses or allowance for them; occupancy expenses not covered |
 | Residency tests | 2020-21 to 2026-27; one individual's stated judgements on residing, domicile, places of abode, intention and Commonwealth fund membership, and the dates in Australia; no treaty tie-breakers, no part-year dates |
 | Lodgment required | 2020-21 to 2025-26; one individual's own return, not as trustee, partner or agent, no substituted accounting period; residency, stated conditions and exception facts as answered; no child support instrument |
@@ -4579,6 +4581,64 @@ over relying on the standard deduction, not the tax it saves. Given before 2026-
 hold it to the explanatory memorandum's examples 4.1 to 4.4 and the ATO's
 Simon and Yui. `personal-tax-estimate` applies the same deduction to a whole
 year's labour income.
+
+## Notice period
+
+`notice-period` works out the minimum notice of termination an employer must
+give under the National Employment Standards (Fair Work Act 2009 s 117), for
+written notice given (`notice_date`) from 27 March 2021, when s 117(4) took
+casual periods out of continuous service, to 30 June 2027; `year` is the
+financial year holding the notice day. 30 June 2027 is the last notice day
+it accepts, not a promise that the law stays the same to then: it applies the
+Act as compiled on 7 July 2026 and read on 24 November 2026, and a later
+amendment is not covered. Continuous service runs from `service_start` to the
+end of the notice day, less `excluded_days` (periods that do not count but do
+not break it: unauthorised absence and prescribed periods, s 22(4), casual
+employment with the employer, s 117(4), and on a transfer of employment the
+days between the 2 employments, s 22(5)(b)); unpaid leave, such as unpaid
+parental leave, counts. After a transfer of employment, `service_start` is the
+first day with the first employer, whose service counts (s 22(5)(a)). The
+weeks (s 117(3)) are:
+
+| Continuous service at the end of the notice day | Weeks |
+| --- | --- |
+| Not more than 1 year | 1 |
+| More than 1 year but not more than 3 years | 2 |
+| More than 3 years but not more than 5 years | 3 |
+| More than 5 years | 4 |
+
+plus 1 week for an employee over 45 years old (from `date_of_birth`) with at
+least 2 years of continuous service. A period of years ends on the day before
+its anniversary (Acts Interpretation Act 1901 s 2G), so service to the end of
+that day is exactly the years and a day more is more. An employee aged 45 in
+completed years is refused (`notice_period.age_unsettled`): 'over 45 years
+old' can be read as older than 45 years or as aged above 45, and the Act does
+not say which.
+
+`exclusion` states the s 123 exclusion the operator has established: `none`;
+`specified_period` (s 123(1)(a)), with `to_avoid_division` true where a
+substantial reason for that was to avoid the Division (s 123(2)), which keeps
+the notice; `serious_misconduct`, `casual`, `training_arrangement` and
+`prescribed_division` (s 123(1)(b) to (e)); and `daily_hire_building`,
+`daily_hire_meat`, `weekly_hire_meat_seasonal` and `prescribed_notice`
+(s 123(3)(b) to (e)). An excluded employee has no s 117 notice.
+
+The result gives `notice_required`, `over_45` (null when excluded), the
+`provision`, and the rates `days_counted`, `base_weeks`, `extra_weeks`,
+`minimum_notice_weeks` and `earliest_termination_day`, the notice day plus 7
+days a week (the period starts the day after notice is given). Instead of
+notice the employer may pay at least the full rate of pay (s 18: with
+incentive payments, bonuses, loadings, monetary allowances, overtime and
+penalty rates) for the hours the employee would have worked to the end of the
+minimum period (s 117(2)(b)). Given `full_rate_of_pay` (an hour) and
+`weekly_hours`, the amount `payment_in_lieu` is the weeks times the hours
+times the rate, rounded up to the cent so that it is at least the amount
+owed, the hours taken as the same each week. It does not work out the full
+rate of pay (a pieceworker's, which s 18(2) defines separately, included),
+longer notice under an award,
+enterprise agreement or contract, notice by the employee (s 118) or
+redundancy pay. The tests hold it to the Fair Work Ombudsman's Gunter and
+Joan; see [calculation evidence](docs/calculation-evidence.md#notice-period).
 
 ## Residency tests
 
