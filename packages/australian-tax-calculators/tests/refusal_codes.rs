@@ -206,8 +206,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4 and
     // workers-compensation-premium and transfer-duty
-    // and foreign-purchaser-surcharge.
-    assert_eq!(checked, 120);
+    // and foreign-purchaser-surcharge and esic.
+    assert_eq!(checked, 121);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

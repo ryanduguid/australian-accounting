@@ -16,6 +16,19 @@
   `foreign_purchaser_surcharge.jurisdiction_invalid`,
   `foreign_purchaser_surcharge.owner_invalid` and
   `foreign_purchaser_surcharge.use_invalid`. `derive` takes it.
+- `esic` works out an investor's early stage investor tax offset under ITAA
+  1997 Subdivision 360-A for 2016-17 to 2026-27: the early stage innovation
+  company tests at the time of issue (s 360-40), the 100-point test from the
+  stated items (s 360-45), the investor tests and the $50,000 limit (ss 360-15
+  and 360-20), 20% of the amount (s 360-25(1)) and the $200,000 cap with
+  affiliates and carried forward offsets (s 360-25(2)). New codes:
+  `esic.amount_above_income`, `esic.clawback_year_unsettled`,
+  `esic.incorporation_after_year`, `esic.innovation_items_conflict`,
+  `esic.innovation_items_invalid`, `esic.investor_invalid`,
+  `esic.non_cash_before_2018_19`,
+  `esic.retail_limit_unsettled`, `esic.six_year_route_before_2018_19`,
+  `esic.trust_or_partnership_unsupported` and `esic.year_invalid`.
+
 - `super-withholding` takes one superannuation income stream payment with
   `income_stream_period`: Schedule 13 Part A withholding in 2024-25 to
   2026-27 for an account-based stream, or a capped defined benefit stream to
