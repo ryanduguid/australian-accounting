@@ -198,7 +198,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
     // smsf-tax, ess-discount and help-indexation.
-    // With transfer-balance, excess-contributions and asic-fees, vic-property-taxes and land-tax and pcg-2021-4.
+    // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax and pcg-2021-4.
     assert_eq!(checked, 107);
 }
 
