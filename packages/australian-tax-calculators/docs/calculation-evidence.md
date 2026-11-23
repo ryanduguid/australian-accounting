@@ -4408,6 +4408,70 @@ the two agree on every case the page's tests hold. Its choices:
 | Chris: 70% commission | TR 2022/3 example 40 | the principal is one payer |
 | 75% and 74.99% for a result; 80% and 79.99% from one payer; 20% by others | ss 87-18, 87-15(3), 87-25 | met; not met |
 
+## PAYG instalment
+
+This worksheet was added on 22 November 2026. Schedule 1 to the TAA 1953,
+Division 45, was read that day in compilation 227 (C2026C00468, from
+1 October 2026), volume 2
+(https://www.legislation.gov.au/C1953A00001/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_2/document_2.html),
+and compared with compilation 219 (C2025C00404, from 1 July 2025): from
+s 45-110 to the start of Subdivision 45-N the only change is to the offsets
+left out of the Commissioner's notional tax, which this worksheet does not
+work out. The ATO's 'How to vary your PAYG instalments' (last updated 23 June
+2026), 'PAYG instalments: how to complete your activity statement' (last
+updated 9 January 2023) and 'Complete your BAS' pages were read the same day.
+On 23 November 2026 ss 45-110, 45-205 and 45-215 in compilation 227 and both
+PAYG instalment pages (last updated as before) were read again: no step of the
+Act or the pages rounds an amount, and s 45-215(1)(b) compares the varied rate
+with 'the instalment rate you used to work out the amount of your instalment
+for the previous instalment quarter (if any)'. Under ss 45-110(2)(a) and
+45-15 that rate can differ from T2 when the Commissioner gives a new rate
+after that quarter, so the worksheet takes it as `previous_rate`.
+
+The worksheet follows ryanduguid.github.io's PAYG instalments page
+(`paygInstalment` in `assets/business-calculators.mjs`, checked 15 November
+2026). Its 11 cases and 400 seeded random inputs were run through the
+command on 22 November 2026: each case agrees, and of the random inputs all
+agree or are refused by both except one, a credit claimed before the second
+instalment. The page adds such a credit back; s 45-410(3) does not, and no
+credit can exist then (s 45-410(2) never gives a negative first amount, and
+s 45-215(1)(b) needs an earlier quarter), so the worksheet refuses it. Its
+other choices:
+
+- no step rounds; only the instalment and credit drop their cents ('round
+  down to whole dollars' on Complete your BAS), so a sub-cent remainder never
+  rounds up into a whole dollar (25% of $399.99 is $99.9975, an instalment of
+  $99), and other amounts show to the cent toward nil. The page rounds each
+  step half up to the cent first;
+- a varied rate's credit compares it with `previous_rate`, the rate used for
+  the previous quarter (s 45-215(1)(b)), where the page compares it with T2;
+- a varied rate keeps 2 decimal places and drops the rest, as the ATO's
+  example 2 gives 12.27% for $10,125 / $82,480; the Act prescribes no
+  rounding;
+- each method takes only its own facts, where the page ignores the others;
+- a varied amount adds back each s 45-420 credit the payer was entitled to,
+  claimed or not (s 45-410(4) and (5), step 2), so it takes
+  `credits_entitled`; the page and the ATO's 'How to vary' page speak of
+  credits claimed, which agree when every credit was claimed;
+- nil estimated instalment income varies the rate to nil whatever the
+  estimated tax ('How to vary', step 3), where the page refuses an estimated
+  tax above it.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| Sophia: $20,100 at 1.7% | Activity statement page | $341.70, 341 at T11 and 5A |
+| Cari: $14,000, third quarter after $10,000 | How to vary, example 1 | $500, then $3,500 |
+| Harmander: $10,125 / $82,480 | How to vary, example 2 | 12.27% |
+| Bill: 10% then 5% on $10,000 | Activity statement page | $500 at 5B |
+
+On 23 November 2026 the page's current `paygInstalment` (main at 1aa0a6cb),
+its 12 cases and 400 seeded random inputs were run again, with T2 given as
+`previous_rate`: 40 are refused by both, and each of the other 372 equals an
+independent reading of the steps, unrounded for the worksheet and rounded
+half up to the cent at each step for the page. They differ in the instalment
+or credit on 14, each by $1 where the page's rounding carries a sub-cent
+remainder into a whole dollar.
+
 ## SMSF tax
 
 This worksheet was added on 22 November 2026. That day ITAA 1997 ss 295-10,

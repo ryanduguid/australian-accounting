@@ -6242,6 +6242,8 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod payg_instalment;
+pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 mod foreign_resident_withholding;
@@ -6288,7 +6290,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 115] = [
+const KINDS: [&str; 116] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6396,6 +6398,7 @@ const KINDS: [&str; 115] = [
     "gst_bad_debt",
     "deferred_tax",
     "cgt_cost_base_adjustments",
+    "payg_instalment",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
     "trading_stock",
