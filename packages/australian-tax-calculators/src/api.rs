@@ -388,6 +388,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "portable-lsl-levy",
+        &[
+            ("jurisdiction", Raw),
+            ("scheme", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1398,7 +1407,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1470,6 +1479,7 @@ const DERIVED: [&str; 82] = [
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "portable-lsl-levy",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -1940,6 +1950,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "super-benefit-tax"
             | "super-withholding"
             | "payroll-tax"
+            | "portable-lsl-levy"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2273,6 +2284,52 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 employed_all_year: &a[4],
                 year: &a[5],
                 scope_confirmed: &a[6],
+            })
+        }
+        "portable-lsl-levy" => {
+            let ordinary_wages = optional(v, "ordinary_wages", Dec)?;
+            let paid_on_time = optional(v, "paid_on_time", Raw)?;
+            let project_cost = optional(v, "project_cost", Dec)?;
+            let partial_exemption = optional(v, "partial_exemption", Raw)?;
+            let reporting_month = optional(v, "reporting_month", Raw)?;
+            let branch = optional(v, "branch", Raw)?;
+            let eligible_employee = optional(v, "eligible_employee", Raw)?;
+            let base_rate_of_pay = optional(v, "base_rate_of_pay", Dec)?;
+            let annual_salary_paid = optional(v, "annual_salary_paid", Dec)?;
+            let casual_loading = optional(v, "casual_loading", Dec)?;
+            let ordinary_rate_of_pay = optional(v, "ordinary_rate_of_pay", Dec)?;
+            let salary_sacrificed = optional(v, "salary_sacrificed", Dec)?;
+            let overtime_and_penalty_rates = optional(v, "overtime_and_penalty_rates", Dec)?;
+            let allowances = optional(v, "allowances", Dec)?;
+            let allowances_exclude_expense_reimbursements =
+                optional(v, "allowances_exclude_expense_reimbursements", Raw)?;
+            let bonuses = optional(v, "bonuses", Json)?;
+            let instrument_specifies_loading = optional(v, "instrument_specifies_loading", Raw)?;
+            let loading_quantifiable = optional(v, "loading_quantifiable", Raw)?;
+            engine::portable_lsl_levy(&engine::PortableLslLevyArgs {
+                jurisdiction: &a[0],
+                scheme: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                ordinary_wages: ordinary_wages.as_ref(),
+                paid_on_time: paid_on_time.as_ref(),
+                project_cost: project_cost.as_ref(),
+                partial_exemption: partial_exemption.as_ref(),
+                reporting_month: reporting_month.as_ref(),
+                branch: branch.as_ref(),
+                eligible_employee: eligible_employee.as_ref(),
+                base_rate_of_pay: base_rate_of_pay.as_ref(),
+                annual_salary_paid: annual_salary_paid.as_ref(),
+                casual_loading: casual_loading.as_ref(),
+                ordinary_rate_of_pay: ordinary_rate_of_pay.as_ref(),
+                salary_sacrificed: salary_sacrificed.as_ref(),
+                overtime_and_penalty_rates: overtime_and_penalty_rates.as_ref(),
+                allowances: allowances.as_ref(),
+                allowances_exclude_expense_reimbursements:
+                    allowances_exclude_expense_reimbursements.as_ref(),
+                bonuses: bonuses.as_ref(),
+                instrument_specifies_loading: instrument_specifies_loading.as_ref(),
+                loading_quantifiable: loading_quantifiable.as_ref(),
             })
         }
         "gst-margin-scheme" => {

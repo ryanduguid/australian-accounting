@@ -4,6 +4,28 @@
 
 ### Added
 
+- `portable-lsl-levy` works out portable long service leave levies for the
+  national black coal mining industry scheme (Coal LSL, mirroring
+  `tools/coal-lsl-levy` under s 3B of the Payroll Levy Collection Act 1992 and
+  s 6 of the Payroll Levy Regulations 2018 at 2.7% from 1 July 2023) and the
+  verified Australian state and territory portable LSL schemes across
+  construction, community services, contract cleaning and security (NSW LSC,
+  Vic LeavePlus and PLSA, Qld QLeave, SA Portable Long Service Leave, WA
+  MyLeave, ACT Leave, Tas TasBuild and NT Build), including statutory
+  nearest-dollar rounding with 50 cents downwards under Qld s 72(2) and NT
+  s 33(2). New codes: `portable_lsl_levy.bonus_invalid`,
+  `portable_lsl_levy.branch_field_mismatch`, `portable_lsl_levy.branch_invalid`,
+  `portable_lsl_levy.employee_ineligible`,
+  `portable_lsl_levy.exemption_unsupported`,
+  `portable_lsl_levy.jurisdiction_invalid`,
+  `portable_lsl_levy.project_cost_above_tier`,
+  `portable_lsl_levy.reimbursements_unconfirmed`,
+  `portable_lsl_levy.reporting_month_invalid`,
+  `portable_lsl_levy.scheme_invalid`, `portable_lsl_levy.scheme_unavailable`
+  and `portable_lsl_levy.scheme_year_unsupported`. `tests/portable_lsl_levy.rs`
+  holds Coal LSL to the site parity vectors and checks all 19 state and
+  territory schemes.
+
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

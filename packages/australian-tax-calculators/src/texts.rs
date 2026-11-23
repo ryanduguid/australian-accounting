@@ -83,6 +83,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Trading in one depreciating asset for a replacement in an income year from 2025-26 to 2026-27, for a taxpayer with an income year from 1 July to 30 June, at arm's length, where the replacement is started to be held and first used in that income year. The traded-in asset's facts are balancing_adjustment's, and the operator establishes them as it states. Its termination value is the trade-in allowance, the amount by which the replacement's price is reduced (ITAA 1997 s 40-305(1)(b) item 2), less the GST payable on the trade-in where it is a taxable supply (1/11 of the allowance: GST Act ss 9-70 and 9-75(1); ITAA 1997 s 27-95(1)), plus the GST Act s 132-5 decreasing adjustment for an asset acquired partly for a private purpose or for making financial supplies, from its input tax credit as adjusted and the full one (s 27-95(3)); its balancing adjustment, reduction for non-taxable use and CGT event K7 amount are then worked as balancing_adjustment works them. The replacement's cost is its price before the trade-in, including GST and any luxury car tax (ss 40-180 and 40-185(1)(b) item 2), less its input tax credit (s 27-80(1)): for a creditable acquisition the GST payable, 1/11 of the price less any luxury car tax, times the extent of creditable purpose (GST Act ss 9-75, 11-25 and 11-30), and for a passenger car no more than 1/11 of the car limit times that extent (s 69-10(1) and (3)). A passenger car's cost is then reduced to the car limit for the year (ITAA 1997 s 40-230(1)): $69,674 for 2025-26 and $69,883 for 2026-27, as the ATO publishes them. Amounts are worked exactly and shown to the cent, half up. Refuses a trade-in not at arm's length (s 40-300(2) item 6, s 27-95(2) and s 40-225 would apply), an involuntary disposal (whose s 40-365 choice is not made), a taxable trade-in with an adjusted input tax credit above the full one, a creditable acquisition with a nil creditable purpose, and luxury car tax above the price. Excludes deciding whether either supply is taxable, the allowance, price, creditable purpose and input tax credits; a car whose purchaser may quote an ABN for luxury car tax, a car that is not a luxury car under s 25-1(2) of the Luxury Car Tax Act, a car leased or hired, and a car excluded from the car limit by s 40-230(2); a trade-in of a luxury car on which luxury car tax is payable; a replacement first held or used in another year; a decreasing adjustment arising in a later income year (s 27-95(5)) and increasing adjustments (s 27-95(4)); assets in a pool or written off under s 328-180 or temporary full expensing; and everything balancing_adjustment excludes.",
     ),
     (
+        "portable_lsl_levy",
+        "Portable long service leave levies across the national black coal mining industry scheme (Coal LSL, s 3B eligible wages and 2.7% prescribed levy rate from 1 July 2023) and the verified Australian state and territory portable LSL schemes for construction, community services, contract cleaning and security. Covers 20 jurisdiction-scheme combinations: Cth Coal LSL (2023-24 to 2026-27); NSW construction (project cost >= $250,000 incl. GST at 0.25%), contract cleaning (1.0%) and community services (1.3% in 2025-26, 1.7% in 2026-27); Vic LeavePlus construction (2.7%) and PLSA community services (1.65%), contract cleaning (1.80%) and security (1.80%) for 2026-27; Qld QLeave construction (project cost >= $150,000 excl. GST: 0.35% LSL, 0.1% CSQ training and 0.125% WHSQ, each rounded to the nearest dollar with 50c downwards under s 72(2)), contract cleaning (0.5%) and community services (1.35%); SA construction (2.00%) and community services (2.2%); WA MyLeave construction (0.75%); ACT construction (2.75%, DI2024-12), community services (1.85%, DI2024-16), security (1.47%, DI2024-15) and contract cleaning under the Services Industry Scheme (1.07%, DI2024-224 and DI2026-228); Tas TasBuild construction (1.8% on-time discounted or 2.5% standard); and NT NT Build construction ($1 million to $5 billion incl. GST at 0.1%, rounded to the nearest dollar with 50c downwards under s 33(2)). Refuses unavailable jurisdiction-scheme pairs, unverified periods, NT projects above $5 billion, partial or special project exemptions, ineligible Coal LSL employees, unconfirmed reimbursement exclusions on positive Coal LSL allowances and mismatched or unread branch fields. Excludes worker or employer coverage determinations, apprentice and trainee exemptions, ACT Services Industry expansion discounts from 1 January 2027 for food and beverage businesses, late-payment interest, penalties, instalment plans, refunds and lodgement.",
+    ),
+    (
         "payroll_tax",
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
     ),
@@ -552,6 +556,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "super_withholding",
         "https://www.legislation.gov.au/F2026L00716/asmade/text",
+    ),
+    (
+        "portable_lsl_levy",
+        "https://www.legislation.gov.au/F2018L00217/latest/text",
     ),
     (
         "payroll_tax",
@@ -1097,6 +1105,32 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/F2025L00647/asmade/text",
             "https://www.legislation.gov.au/F2025L01016/asmade/text",
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/payments-from-super",
+        ],
+    ),
+    (
+        "portable_lsl_levy",
+        &[
+            "https://coallsl.com.au/employer/administer-lsl/levy",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/bci-long-service-payments-scheme/long-service-levy",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/cci-long-service-leave-scheme/managing-employer-returns-and-paying-levies",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/csi-long-service-leave-scheme/making-levy-contributions",
+            "https://leaveplus.com.au/employers/charges/",
+            "https://www.plsa.vic.gov.au/employer-information/about-the-portable-long-service-benefits-scheme",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-1991-090",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2024-0162",
+            "https://www.qleave.qld.gov.au/building-and-construction/levy-payers/what-is-the-levy",
+            "https://www.qleave.qld.gov.au/contract-cleaning/employers/employer-obligations",
+            "https://www.qleave.qld.gov.au/community-services/employers/pay-the-levy",
+            "https://saplsl-construction.org.au/employers/how-to-complete-employer-returns",
+            "https://saplsl-community.org.au/employers-home/what-do-i-have-to-do",
+            "https://www.wa.gov.au/government/announcements/myleave-2027-employer-contribution-rate",
+            "https://www.legislation.act.gov.au/di/2024-12/",
+            "https://www.legislation.act.gov.au/di/2024-15/",
+            "https://www.legislation.act.gov.au/di/2024-16/",
+            "https://www.legislation.act.gov.au/di/2024-224/",
+            "https://www.legislation.act.gov.au/di/2026-228/",
+            "https://tasbuild.com.au/employers-information/",
+            "https://www.ntbuild.com.au/levy-payers",
         ],
     ),
     (
@@ -2310,6 +2344,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "super_withholding",
         &[
             "The amount withheld is a credit against the payee's tax, which super-benefit-tax works out; it is not the tax. A payee with a tax treaty that makes the payment assessable only in another country has nothing withheld, which this command does not decide.",
+        ],
+    ),
+    (
+        "portable_lsl_levy",
+        &[
+            "Each administering board and statute defines eligible workers, covered work, ordinary pay inclusions and exclusions, apprentice or trainee exemptions and project cost inclusions; this worksheet takes the supplied pay or project cost figures as established.",
+            "Except where statute prescribes nearest-dollar rounding with 50 cents rounded downwards (Queensland BCI Act 1991 s 72(2) and NT Act 2005 s 33(2)), levy amounts are rounded half up to the cent once at the final step; reconcile against the board's return portal before payment.",
         ],
     ),
     (
@@ -3851,7 +3892,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4258,6 +4299,54 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "period.unsupported",
         "The worksheet has no rates for the period.",
+    ),
+    (
+        "portable_lsl_levy.bonus_invalid",
+        "Coal LSL bonuses is not a valid list of bonus objects with plain non-negative decimal amounts and recognised frequencies.",
+    ),
+    (
+        "portable_lsl_levy.branch_field_mismatch",
+        "An input field was supplied that does not apply to the selected scheme or Coal LSL branch, or would be discarded unread.",
+    ),
+    (
+        "portable_lsl_levy.branch_invalid",
+        "Coal LSL branch is missing or is not base_rate, annual_salary or casual.",
+    ),
+    (
+        "portable_lsl_levy.employee_ineligible",
+        "Coal LSL eligible_employee is false, so no eligible wages arise under s 3B.",
+    ),
+    (
+        "portable_lsl_levy.exemption_unsupported",
+        "partial_exemption is true on a project-cost scheme; owner-builder, non-profit, church, Crown and local government reductions are outside this worksheet.",
+    ),
+    (
+        "portable_lsl_levy.jurisdiction_invalid",
+        "jurisdiction is not cth, nsw, vic, qld, sa, wa, act, tas or nt.",
+    ),
+    (
+        "portable_lsl_levy.project_cost_above_tier",
+        "Northern Territory project_cost exceeds $5 billion, where a two-tier ministerial levy determination applies.",
+    ),
+    (
+        "portable_lsl_levy.reimbursements_unconfirmed",
+        "Coal LSL base_rate received positive allowances without allowances_exclude_expense_reimbursements set to true.",
+    ),
+    (
+        "portable_lsl_levy.reporting_month_invalid",
+        "Coal LSL reporting_month is not a valid YYYY-MM month from 2023-07 onwards within the supplied financial year.",
+    ),
+    (
+        "portable_lsl_levy.scheme_invalid",
+        "scheme is not coal, construction, community_services, contract_cleaning or security.",
+    ),
+    (
+        "portable_lsl_levy.scheme_unavailable",
+        "No covered portable long service leave scheme exists for the requested jurisdiction and scheme combination.",
+    ),
+    (
+        "portable_lsl_levy.scheme_year_unsupported",
+        "The requested financial year is outside the primary-source-verified years for the selected jurisdiction and scheme.",
     ),
     (
         "ppsr_timing.date_outside_year",
