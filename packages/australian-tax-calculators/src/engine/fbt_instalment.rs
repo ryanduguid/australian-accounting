@@ -146,10 +146,13 @@ const VARIATION_STEPS: [(&str, &str, &str); 6] = [
 ];
 
 /// The s 111(1) formula with s 110(5), then F3 (and 6A) and the 6B credit.
+/// A previous amount not given is nil and its working shows 0, as `derive`
+/// names only the inputs given.
 fn variation_steps(
     estimate: &Decimal,
     fraction: &Decimal,
     [paid, credits]: &[Decimal; 2],
+    given: [bool; 2],
 ) -> Result<Vec<Step>> {
     let share = cents(estimate.mul(fraction)?)?;
     let formula = share.sub(&paid.sub(credits)?)?;
@@ -164,10 +167,25 @@ fn variation_steps(
     } else {
         zero
     };
+    let mut net = NET_FORMULA.to_string();
+    let mut net_operands = vec![&share];
+    for ((name, value), given) in [
+        ("previous_instalments", paid),
+        ("previous_credits", credits),
+    ]
+    .into_iter()
+    .zip(given)
+    {
+        if given {
+            net_operands.push(value);
+        } else {
+            net = net.replace(name, "0");
+        }
+    }
     let operands: [Vec<&Decimal>; 6] = [
         vec![estimate],
         vec![estimate, fraction],
-        vec![&share, paid, credits],
+        net_operands,
         vec![&formula],
         vec![&f3],
         vec![&formula],
@@ -178,6 +196,11 @@ fn variation_steps(
         .zip(operands)
         .zip(values)
         .map(|((&(id, rule, working), operands), value)| {
+            let working = if id == "instalment_formula" {
+                &net
+            } else {
+                working
+            };
             step(id, rule, working, &operands, value.clone())
         })
         .collect())
@@ -189,9 +212,10 @@ fn varied(at: usize, optional: &[Option<&Arg>; 5]) -> Result<(Vec<Step>, i64)> {
         unreachable!("varied is called with an estimate");
     };
     let code = reason(code)?;
+    let given = [paid.is_some(), credits.is_some()];
     let previous = previous(at, paid, credits)?;
     let estimate = money(estimate)?;
-    let steps = variation_steps(&estimate, &d(FRACTIONS[at]), &previous)?;
+    let steps = variation_steps(&estimate, &d(FRACTIONS[at]), &previous, given)?;
     Ok((steps, code))
 }
 
