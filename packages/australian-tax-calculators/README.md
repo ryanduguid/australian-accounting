@@ -3541,10 +3541,12 @@ balances at the base rate entity rate, and years before 2020-21 and after
 `leave-provisions` measures one entity's annual leave and long service leave
 provisions under AASB 119 at a reporting date ending in a financial year from
 2020-21 to 2026-27. Each line is accumulated unused leave in hours at the
-reporting date (paras 13(a) and 15), with the hourly rate expected to be paid
-and the probability that it vests and is paid. A line expected to be settled
-wholly within 12 months is short-term; any other is an other long-term benefit
-(para 8).
+reporting date (paras 13(a) and 15), with an hourly rate and the probability
+that it vests and is paid. A line expected to be settled wholly within 12
+months is short-term; any other is an other long-term benefit (para 8). On a
+short-term line `hourly_rate` is the rate the entity expects to pay for the
+leave (para 16); on a long-term line it is the rate at the reporting date,
+before the future salary growth that `salary_growth` adds (para 87(b)).
 
 ```text
 short-term line     = cents(hours x hourly_rate x probability)                       paras 11, 16
@@ -3554,16 +3556,21 @@ current_provision   = short-term lines + long-term lines with no right to defer 
 non_current_provision = total_provision - current_provision
 ```
 
-`years_to_settlement` is a whole number of years from 0 to 50; 0, for a
-portion expected within 6 months, leaves the amount neither grown nor
-discounted. The discount
+`years_to_settlement` is a whole number of years from 1 to 50; a portion
+expected to be settled within 12 months goes on a short-term line. The discount
 rate, salary growth and probabilities are the caller's stated assumptions;
 none has a default. The discount rate is the market yield at the reporting
 date on high quality corporate bonds of a consistent term, or government bonds
 where there is no deep market and for a not-for-profit public sector entity
 (para 83 and Aus83.1). A long-term line is current when the entity has no
 right at the reporting date to defer settling it for 12 months
-(`can_defer_settlement` false), and such a line must have probability 1.
+(`can_defer_settlement` false), whatever its probability: the probability
+measures the line and the right to defer classifies it. For a period beginning
+before 1 January 2024 only an unconditional right counts (AASB 101 para 69(d)
+before AASB 2020-1): that is every period ending in 2020-21 to 2023-24 and a
+2024-25 period ending before 31 December 2024, unless AASB 2020-1 was applied
+early. From 1 January 2024 the right must have substance and exist at the
+reporting date (paras 72A and 75A).
 `lines` in the result shows each line's value at the current rate, its
 projected value, its provision and its class.
 

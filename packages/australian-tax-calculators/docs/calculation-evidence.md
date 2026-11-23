@@ -4344,15 +4344,47 @@ no. 5 (COMPdec22_01-23, periods beginning from 1 January 2023 to before
 (December 2022), effective from 1 July 2026 and not compiled there; and
 AASB 101 compilation no. 6 (COMPdec22_01-24).
 
+Read again on 23 November 2026: AASB 119 compilation COMPdec22_07-26
+(F2026C01064, periods beginning from 1 July 2026 to before 1 January 2027,
+with AASB 2022-9 compiled); AASB 2018-2 and AASB 2021-7; AASB 101 compilations
+COMPdec22_01-24, ACOMPdec22_01-23 (2023), ACOMPdec21_01-22 (2022),
+COMPmar20_07-21 and COMPmay19_01-20 (2020); and AASB 2020-1, AASB 2020-6 and
+AASB 2022-6.
+
 Of the paragraphs applied (AASB 119 paras 8, 9, 11, 13, 15, 16, 67, 68, 70,
-72, 75 to 87 and 153 to 156; AASB 101 paras 69, 70 and 75A), the table of
-amendments shows only para 8 (AASB 17 and AASB 2022-8, insurance definitions)
-and para 156 (AASB 2018-2, a cross-reference to para 122A, from 1 January
-2019) changed since the August 2015 standard; AASB 2022-9 changes only
-footnote Aus1 in para 8. None changes a rule applied here, so the rules read
-the same for every reporting period ending from 1 July 2020 to 30 June 2027.
-AASB 101 para 69(d) said 'unconditional right' before AASB 2020-1 (periods
-from 1 January 2024); the caller states the right to defer either way.
+72, 75 to 87 and 153 to 156, with para 155's paras 56 to 98; AASB 101 paras
+69, 70, 72A and 75A), the AASB 119 table of amendments lists every change since
+the August 2015 standard: para 3 (AASB 2021-7, from 1 January 2022, removing a
+reference to AAS 25 beside AASB 1056; reporting by
+employee benefit plans stays outside AASB 119), para 8 (AASB 17, AASB 2022-8
+and AASB 2022-9, insurance definitions and footnote Aus1), and paras 57 and
+156 (AASB 2018-2, cross-references to para 122A, from periods beginning
+1 January 2019, before every period in scope). None changes a rule applied
+here, so the AASB 119 rules read the same for every reporting period ending
+from 1 July 2020 to 30 June 2027, whatever its reporting date. AASB 18 and
+AASB 2026-2 apply to periods beginning from 1 January 2027 and 1 July 2029,
+outside the scope.
+
+AASB 101 para 69 was amended only by AASB 2020-1, which AASB 2020-6 and
+AASB 2022-6 deferred to periods beginning on or after 1 January 2024 (para
+139U; early application with AASB 2022-6 allowed and disclosed). Before then
+para 69(d) needs an 'unconditional right' to defer settlement (the 2020 to
+2023 compilations); from then a right at the end of the reporting period, which
+must have substance (para 72A), whatever the entity expects (para 75A). The
+`year` is the financial year in which the reporting period ends, so every
+period ending in 2020-21 to 2023-24, and a 2024-25 period ending before
+31 December 2024, takes the earlier test; a 2024-25 period ending from
+31 December 2024, and every later one, takes the new one. The caller states
+`can_defer_settlement` under the test for its period; the calculation is the
+same.
+
+The probability is measurement (AASB 119 para 72, through para 155) and the
+right to defer is classification (AASB 101 para 69(d)), so a long-term line
+without a right to defer takes any probability: V7 below. A line expected to
+be settled within 12 months is short-term (para 8), so a long-term line takes 1
+to 50 whole years. `hourly_rate` is the rate expected to be paid on a
+short-term line (para 16) and the rate at the reporting date on a long-term
+line, which salary growth projects (para 87(b)).
 
 AASB 119 has no numeric example for annual or long service leave. V1 to V6
 are made-up figures worked independently in Python's `decimal`. P68 applies
@@ -4368,11 +4400,12 @@ the cents dropped.
 | V3 | Long service, 120 h x $38.00, 5 years, growth 3.5%, discount 4.25%, probability 0.4, right to defer | projected $5,415.85, **$1,759.33** non-current |
 | V4 | Annual, long-term, 300 h x $40.00, 1 year, growth 3%, discount 4% | **$11,884.62** current |
 | V6 | Annual, short-term, 80 h x $30.00, probability 0.85 | **$2,040.00** current |
+| V7 | Long service, 400 h x $52.00, 2 years, growth 3%, discount 4.5%, probability 0.9, no right to defer | projected $22,066.72, **$18,186.44** current |
 | V1, V2, V3, V4 and V6 together | | annual **$20,840.62**, long service **$21,966.49**, total **$42,807.11**, current **$41,047.78**, non-current **$1,759.33** |
 | P68 | 1 to 4 years' benefit at rates $100.00, $107.00, $114.49 and $122.50, 4 to 1 years | **$89.53**, **$196.96**, **$324.99**, **$476.64** |
 
 `tests/leave_provisions.rs` also covers each year, the year boundaries, each
-assumption's bounds (0 to 50 years), and every refusal.
+assumption's bounds (1 to 50 years; 0 refused, with its short-term line accepted), and every refusal.
 
 ## Personal tax estimate
 

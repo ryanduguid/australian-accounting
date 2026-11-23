@@ -173,11 +173,6 @@ fn refusals() {
     let mut i = input(json!([v1()]));
     i["plan_assets"] = json!(true);
     assert_eq!(code(&i), "leave_provisions.plan_assets");
-    let unsure = long("long_service", ["1.00", "1.00", "0", "0", "0.9"], 1, false);
-    assert_eq!(
-        code(&input(json!([unsure]))),
-        "leave_provisions.fact_conflict"
-    );
     let mut i = input(json!([v1()]));
     i["extra"] = json!(1);
     assert_eq!(code(&i), "input.field_unknown");
@@ -205,9 +200,16 @@ fn invalid_lines() {
     let mut extra = v1();
     extra["discount_rate"] = json!("0.04");
     cases.push(json!([extra]));
-    let mut missing = v3();
-    missing.as_object_mut().unwrap().remove("discount_rate");
-    cases.push(json!([missing]));
+    for key in [
+        "years_to_settlement",
+        "salary_growth",
+        "discount_rate",
+        "can_defer_settlement",
+    ] {
+        let mut missing = v3();
+        missing.as_object_mut().unwrap().remove(key);
+        cases.push(json!([missing]));
+    }
     let mut unknown = v1();
     unknown["on_costs"] = json!("0.1");
     cases.push(json!([unknown]));
@@ -220,23 +222,49 @@ fn invalid_lines() {
     }
 }
 
-/// The boundaries of each assumption are accepted: 0 and 1, 0 and 50 years.
-/// A long-term portion expected within 6 months rounds to 0 years: grown and
-/// discounted for no year, it is undiscounted (fresh-context finding 1).
+/// A line expected to be settled within 12 months is short-term (AASB 119
+/// para 8), so a long-term line takes 1 to 50 whole years and a portion due
+/// within months goes on a short-term line (Alcuin r1b S2).
 #[test]
-fn a_long_term_portion_due_within_months_takes_0_years() {
+fn a_long_term_line_takes_at_least_1_year() {
     let l = long(
         "long_service",
         ["100.00", "50.00", "0.03", "0.05", "1"],
         0,
         false,
     );
-    let r = run(&input(json!([l])));
+    assert_eq!(code(&input(json!([l]))), "leave_provisions.line_invalid");
+    let r = run(&input(json!([short(
+        "long_service",
+        "100.00",
+        "50.00",
+        "1"
+    )])));
     assert_eq!(amount(&r, "total_provision"), "5000.00");
     assert_eq!(amount(&r, "current_provision"), "5000.00");
-    assert_eq!(line(&r, 0, "projected_value"), "5000.00");
+    assert_eq!(line(&r, 0, "category"), "short_term");
 }
 
+/// Probability is measurement (AASB 119 para 72 through para 155) and the
+/// right to defer is classification (AASB 101 para 69(d)): a long-term line
+/// with no right to defer still takes a probability under 1 (Alcuin r1b S1).
+#[test]
+fn a_long_term_line_without_a_right_to_defer_takes_a_probability_under_1() {
+    let l = long(
+        "long_service",
+        ["400.00", "52.00", "0.03", "0.045", "0.9"],
+        2,
+        false,
+    );
+    let r = run(&input(json!([l])));
+    assert_eq!(line(&r, 0, "projected_value"), "22066.72");
+    assert_eq!(line(&r, 0, "provision"), "18186.44");
+    assert_eq!(line(&r, 0, "classification"), "current");
+    assert_eq!(amount(&r, "current_provision"), "18186.44");
+}
+
+/// The boundaries of each assumption are accepted: rates 0 and 1, 1 and 50
+/// years.
 #[test]
 fn assumption_boundaries() {
     let l = long("long_service", ["10.00", "10.00", "0", "0", "0"], 50, true);

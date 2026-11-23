@@ -408,7 +408,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "leave_provisions",
-        "One entity's annual leave and long service leave provisions under AASB 119 at a reporting date ending in a financial year from 2020-21 to 2026-27, from lines of accumulated unused leave the preparer has established. A line is short-term if the preparer expects it to be settled wholly before 12 months after the reporting date, and other long-term otherwise (para 8; paras 9 and 153). A short-term line's provision is its hours times the hourly rate expected to be paid times the probability of payment, undiscounted (paras 11, 13(a), 15 and 16). An other long-term line's is the same amount grown by the stated salary growth rate for its whole years to settlement, times the probability of vesting or payment, and discounted at the stated discount rate for those years (paras 155, 67, 68, 70, 72 and 83 to 87). Each amount is rounded half up to the cent. A short-term line is current (AASB 101 paras 69(a) and 70); a long-term line is current when the entity has no right at the reporting date to defer settling it for 12 months (para 69(d)), whatever it expects (para 75A), and non-current otherwise. The preparer establishes the hours, rates, the expectation of settlement, the right to defer and every actuarial assumption: the discount rate from market yields on high quality corporate bonds (government bonds where there is no deep market, and for a not-for-profit public sector entity, Aus83.1) at the reporting date for the term (para 83), and unbiased, mutually compatible salary growth and probabilities (paras 75 to 80); none is defaulted. Excludes on-costs (payroll tax, workers compensation and superannuation on leave), the profit or loss split into service cost, interest and remeasurements (para 156), the year's movement, fractional years to settlement and AASB 18. Refuses defined benefit plans and other post-employment benefits (paras 26 to 152), plan assets and reimbursement rights (paras 113 to 119), leave other than annual and long service leave (sick, parental, jury and military service leave, long-term disability and termination benefits), and a long-term line the entity cannot defer with a probability other than 1.",
+        "One entity's annual leave and long service leave provisions under AASB 119 at a reporting date ending in a financial year from 2020-21 to 2026-27, from lines of accumulated unused leave the preparer has established. A line is short-term if the preparer expects it to be settled wholly before 12 months after the reporting date, and other long-term otherwise (para 8; paras 9 and 153). A short-term line's provision is its hours times the hourly rate the entity expects to pay for them times the probability of payment, undiscounted (paras 11, 13(a), 15 and 16). An other long-term line's is its hours times the hourly rate at the reporting date, grown by the stated salary growth rate for its whole years to settlement (1 to 50), times the probability of vesting or payment, and discounted at the stated discount rate for those years (paras 155, 67, 68, 70, 72 and 83 to 87). Each amount is rounded half up to the cent. A short-term line is current (AASB 101 paras 69(a) and 70); a long-term line is current when the entity has no right at the reporting date to defer settling it for 12 months (para 69(d)), and non-current otherwise. For periods beginning before 1 January 2024 that right must be unconditional; from 1 January 2024 (AASB 2020-1 and AASB 2022-6) it must have substance and exist at the reporting date (para 72A), whatever the entity expects (para 75A). The probability measures a line and the right to defer classifies it, so a line without a right to defer takes any probability. The preparer establishes the hours, rates, the expectation of settlement, the right to defer and every actuarial assumption: the discount rate from market yields on high quality corporate bonds (government bonds where there is no deep market, and for a not-for-profit public sector entity, Aus83.1) at the reporting date for the term (para 83), and unbiased, mutually compatible salary growth and probabilities (paras 75 to 80); none is defaulted. Excludes on-costs (payroll tax, workers compensation and superannuation on leave), the profit or loss split into service cost, interest and remeasurements (para 156), the year's movement, fractional years to settlement and AASB 18. Refuses defined benefit plans and other post-employment benefits (paras 26 to 152), plan assets and reimbursement rights (paras 113 to 119), leave other than annual and long service leave (sick, parental, jury and military service leave, long-term disability and termination benefits), and a long-term line under 1 year to settlement, which is a short-term line (para 8).",
     ),
     (
         "income_tests",
@@ -1808,8 +1808,10 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
         "leave_provisions",
         &[
+            "https://standards.aasb.gov.au/sites/default/files/2026-11/AASB119_08-15_COMPdec22_07-26.pdf",
             "https://aasb.gov.au/admin/file/content105/c9/AASB2022-9_12-22.pdf",
             "https://www.aasb.gov.au/admin/file/content105/c9/AASB101_07-15_COMPdec22_01-24.pdf",
+            "https://www.aasb.gov.au/admin/file/content105/c9/AASB101_07-15_ACOMPdec22_01-23.pdf",
         ],
     ),
     (
@@ -3419,12 +3421,8 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A defined benefit plan or other post-employment benefit was stated (AASB 119 paras 26 to 152).",
     ),
     (
-        "leave_provisions.fact_conflict",
-        "A long-term line the entity has no right to defer settling has a probability other than 1 (AASB 101 para 69(d)).",
-    ),
-    (
         "leave_provisions.line_invalid",
-        "lines is not a list of 1 to 500 objects, each annual or long service leave with its hours, rate, probability and, for a line not settled wholly within 12 months, whole years to settlement, salary growth, discount rate and right to defer, and no other field.",
+        "lines is not a list of 1 to 500 objects, each annual or long service leave with its hours, rate, probability and, for a line not settled wholly within 12 months, 1 to 50 whole years to settlement, salary growth, discount rate and right to defer, and no other field.",
     ),
     (
         "leave_provisions.plan_assets",

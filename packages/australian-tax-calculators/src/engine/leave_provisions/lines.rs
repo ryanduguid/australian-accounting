@@ -12,8 +12,9 @@ use crate::decimal::Decimal;
 
 /// The most lines one worksheet takes.
 const MOST: usize = 500;
-/// The most whole years to settlement a long-term line takes; 0 is a portion
-/// expected within 6 months, which is neither grown nor discounted.
+/// The most whole years to settlement a long-term line takes. The least is 1:
+/// a line expected to be settled within 12 months is short-term (AASB 119
+/// para 8).
 const MOST_YEARS: u64 = 50;
 const SHORT: [&str; 6] = [
     "label",
@@ -123,10 +124,10 @@ fn kind(fields: &Map<String, Value>, n: usize) -> Result<bool> {
 
 fn long_term(fields: &Map<String, Value>, n: usize) -> Result<LongTerm> {
     let years = match fields.get("years_to_settlement").and_then(Value::as_u64) {
-        Some(y) if y <= MOST_YEARS => y,
+        Some(y) if (1..=MOST_YEARS).contains(&y) => y,
         _ => {
             return invalid(format!(
-                "line {n}: years_to_settlement must be a whole number from 0 to {MOST_YEARS}."
+                "line {n}: years_to_settlement must be a whole number from 1 to {MOST_YEARS}; a portion expected to be settled within 12 months is a short-term line (AASB 119 para 8)."
             ));
         }
     };

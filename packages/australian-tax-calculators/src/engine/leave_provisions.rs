@@ -7,9 +7,12 @@
 //! projected unit credit method with salary growth, the probability of
 //! payment and discounting (paras 67, 68, 72, 83 to 87 and 155), and the
 //! current and non-current split of AASB 101 para 69. The paragraphs are those
-//! of the AASB 119 compilation of December 2022 (with AASB 2022-9) and the
-//! AASB 101 compilation of December 2022, read on 22 November 2026. The
-//! standards' wording is not reproduced.
+//! of the AASB 119 compilations of December 2022 (for periods beginning from
+//! 1 January 2023, and from 1 July 2026 with AASB 2022-9) and the AASB 101
+//! compilations of March 2020 to December 2022, read on 23 November 2026.
+//! Probability is measurement and the right to defer is classification, so a
+//! line without a right to defer takes any probability. The standards' wording
+//! is not reproduced.
 
 use serde_json::{Map, Value, json};
 
@@ -31,7 +34,6 @@ pub struct LeaveProvisionsArgs<'a> {
 
 const DEFINED_BENEFIT: &str = "A defined benefit plan or other post-employment benefit is measured under AASB 119 paras 26 to 152, which this worksheet does not apply.";
 const PLAN_ASSETS: &str = "Plan assets and reimbursement rights for other long-term benefits follow AASB 119 paras 113 to 119 (through para 155), which this worksheet does not apply.";
-const CERTAIN: &str = "has no right to defer settlement, so the employee can take or be paid it now: its probability must be 1";
 
 /// One line's measured amounts, rounded to the cent.
 struct Measured {
@@ -78,22 +80,6 @@ fn measure(line: &lines::Line) -> Calc<Measured> {
     })
 }
 
-fn checked(all: &[lines::Line]) -> Result<()> {
-    for (n, line) in all.iter().enumerate() {
-        let certain = line.probability.equals(&int(1))?;
-        if line.long_term.as_ref().is_some_and(|lt| !lt.can_defer) && !certain {
-            return refuse(
-                "leave_provisions.fact_conflict",
-                format!(
-                    "line {}: the entity {CERTAIN} (AASB 101 para 69(d)).",
-                    n + 1
-                ),
-            );
-        }
-    }
-    Ok(())
-}
-
 /// A step summing `terms`, shown as the numbers added.
 fn sum(id: &'static str, authority: &'static str, terms: &[&Decimal]) -> Calc<Step> {
     let mut total = d0();
@@ -116,8 +102,8 @@ fn d0() -> Decimal {
 const ANNUAL: &str = "AASB 119 paras 11, 13(a) and 16 (short-term, undiscounted) and 155 (other long-term): the annual leave lines' provisions";
 const LONG_SERVICE: &str = "AASB 119 paras 11 and 16 (short-term) and 153(a), 155, 67, 68, 72 and 83 to 87 (other long-term): the long service leave lines' provisions";
 const TOTAL: &str = "AASB 119 paras 11 and 155: the leave provisions recognised as a liability";
-const CURRENT: &str = "AASB 101 para 69: short-term lines (para 69(a) and para 70) and long-term lines the entity has no right to defer settling for 12 months (para 69(d))";
-const NON_CURRENT: &str = "AASB 101 para 69: every other liability is non-current, whatever settlement is expected (para 75A)";
+const CURRENT: &str = "AASB 101 para 69: short-term lines (para 69(a) and para 70) and long-term lines the entity has no right to defer settling for 12 months (para 69(d): an unconditional right for periods beginning before 1 January 2024, a right at the end of the reporting period from then)";
+const NON_CURRENT: &str = "AASB 101 para 69: every other liability is non-current (for periods beginning from 1 January 2024, whatever settlement is expected, para 75A)";
 
 fn totals(all: &[lines::Line], measured: &[Measured]) -> Calc<Vec<Step>> {
     let pick = |f: &dyn Fn(usize) -> bool| -> Vec<&Decimal> {
@@ -196,7 +182,6 @@ pub fn leave_provisions(a: &LeaveProvisionsArgs) -> Result<Value> {
         return refuse("leave_provisions.plan_assets", PLAN_ASSETS);
     }
     let all = lines::read(a.lines)?;
-    checked(&all)?;
     let (measured, steps) = precise(|| {
         let measured = all.iter().map(measure).collect::<Calc<Vec<_>>>()?;
         let steps = totals(&all, &measured)?;
