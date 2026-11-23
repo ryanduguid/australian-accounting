@@ -41,9 +41,9 @@ use std::process::{Command, Stdio};
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
-/// `tests/minors_income.rs` and `tests/smsf_tax.rs` cover them, as `tests/transfer_balance.rs` covers
+/// `tests/minors_income.rs`, `tests/smsf_tax.rs` and `tests/fbt_instalment.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 97] = [
+const NEW_KINDS: [(&str, &str); 98] = [
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
@@ -59,6 +59,7 @@ const NEW_KINDS: [(&str, &str); 97] = [
     ("fbt-car-statutory", "fbt_car_statutory"),
     ("fbt-car-operating-cost", "fbt_car_operating_cost"),
     ("fbt-ev-exemption-check", "fbt_ev_exemption_check"),
+    ("fbt-instalment", "fbt_instalment"),
     ("fbt-loan", "fbt_loan"),
     ("fbt-meal-entertainment", "fbt_meal_entertainment"),
     ("fbt-car-parking", "fbt_car_parking"),
