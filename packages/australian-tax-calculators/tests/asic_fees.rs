@@ -9,7 +9,7 @@
 //! the regulations' items. Sources were read on 24 November 2026
 //! (docs/calculation-evidence.md#asic-fees). Every date is fabricated.
 use australian_tax_calculators::api;
-use serde_json::{Map, Value, json};
+use serde_json::{Value, json};
 
 fn run(input: &Value) -> Result<Value, &'static str> {
     api::evaluate_coded("asic-fees", input).map_err(|e| e.code)
@@ -81,13 +81,19 @@ fn the_site_cases_agree() {
 
 /// The sweep's outcome letters: n not late, w within one month, b more than
 /// one month, y outside 2026-27, d refused as a weekend could move a date.
+/// A worked tier must carry its own amount and code.
 fn letter(got: &Result<Value, &str>) -> char {
     match got {
-        Ok(out) => match out["tier"].as_str().unwrap() {
-            "not late" => 'n',
-            "within one month" => 'w',
-            _ => 'b',
-        },
+        Ok(out) => {
+            let (letter, fee, code) = match out["tier"].as_str().unwrap() {
+                "not late" => ('n', "0.00", Value::Null),
+                "within one month" => ('w', "102.00", json!("LPF1_ETM")),
+                "more than one month" => ('b', "428.00", json!("LPF2_ETM")),
+                tier => panic!("{tier}"),
+            };
+            assert_eq!([&out["amounts"]["fee"], &out["code"]], [&json!(fee), &code]);
+            letter
+        }
         Err("asic_fees.dates_outside_year") => 'y',
         Err("asic_fees.weekend_undecided") => 'd',
         Err(code) => panic!("{code}"),
@@ -330,5 +336,4 @@ fn refuses_what_a_weekend_or_a_new_year_could_change() {
     assert!(message.message.contains("may end later"));
     let beyond = run(&late("late_review_payment", "2027-02-27", "2027-04-08")).unwrap();
     assert_eq!(beyond["amounts"]["fee"], "428.00");
-    let _ = Map::<String, Value>::new();
 }
