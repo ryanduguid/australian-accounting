@@ -1725,8 +1725,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
         ),
         "payg_instalment" => (
-            "2026-11-22",
-            "TAA 1953 Sch 1 ss 45-110, 45-112, 45-205, 45-215, 45-410 and 45-420, compilation 227 (C2026C00468, 1 October 2026), against compilation 219 (C2025C00404, 1 July 2025), which reads the same for them; the ATO's 'How to vary your PAYG instalments' (last updated 23 June 2026) and 'PAYG instalments: how to complete your activity statement' (last updated 9 January 2023) pages; the site's PAYG instalments page and its 11 cases (checked 15 November 2026)",
+            "2026-11-23",
+            "TAA 1953 Sch 1 ss 45-110, 45-112, 45-205, 45-215, 45-410 and 45-420, compilation 227 (C2026C00468, 1 October 2026; ss 45-110, 45-205 and 45-215 read again on 23 November 2026), against compilation 219 (C2025C00404, 1 July 2025), which reads the same for them; the ATO's 'How to vary your PAYG instalments' (last updated 23 June 2026) and 'PAYG instalments: how to complete your activity statement' (last updated 9 January 2023) pages; the site's PAYG instalments page and its 11 cases (checked 15 November 2026)",
         ),
         "rental_property" => (
             "2026-11-22",
@@ -2829,7 +2829,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "instalment_rate",
-                "per cent, 0 to 100 at most 2 decimal places, methods rate and varied_rate only, and then required: the rate at T2, the Commissioner's or your most recent varied rate (s 45-110(2))",
+                "per cent, 0 to 100 at most 2 decimal places, method rate only, and then required: the rate at T2, the Commissioner's or your most recent varied rate (s 45-110(2))",
             ),
             (
                 "estimated_instalment_income",
@@ -2842,6 +2842,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "credits_entitled",
                 "AUD, method varied_amount only, and then required: each s 45-420 credit you were entitled to claim for the year's earlier quarters, claimed at 5B or not (s 45-410(4) and (5), step 2); nil before the third instalment",
+            ),
+            (
+                "previous_rate",
+                "per cent, 0 to 100 at most 2 decimal places, method varied_rate only, and then required: the instalment rate you used for the year's previous instalment quarter (s 45-215(1)(b)); usually the T2 rate, but not where the Commissioner gave a new rate after that quarter; in the year's first quarter give T2, as no credit arises without earlier instalments",
             ),
         ],
         "balancing_adjustment" => vec![(
@@ -5950,7 +5954,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("year", Text("2026-27")),
             ("method", Text("varied_rate")),
             ("instalment_income", Text("20620.00")),
-            ("instalment_rate", Text("16.84")),
+            ("previous_rate", Text("16.84")),
             ("estimated_tax", Text("10125.00")),
             ("estimated_instalment_income", Text("82480.00")),
             ("earlier_instalments", Text("6944.00")),

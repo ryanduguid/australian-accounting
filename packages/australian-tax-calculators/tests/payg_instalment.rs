@@ -3,7 +3,7 @@
 // Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! One quarterly PAYG instalment (Schedule 1 to the TAA 1953, Division 45,
-//! compilations 219 and 227, read on 22 November 2026) against the ATO's
+//! compilations 219 and 227, read on 22 and 23 November 2026) against the ATO's
 //! examples on 'How to vary your PAYG instalments' and 'PAYG instalments: how
 //! to complete your activity statement', the site's 11 PAYG instalment cases
 //! (`_data/calculator_cases.json`, checked 15 November 2026) and hand-worked
@@ -45,11 +45,12 @@ fn varied_amount(number: i64, tax: &str, earlier: &str, credits: &str) -> Value 
     )
 }
 
-/// T1, T2, estimated tax and income, earlier instalments, credits and earlier income.
+/// T1, the previous quarter's rate, estimated tax and income, earlier
+/// instalments, credits and earlier income.
 fn varied_rate(figures: [&str; 7]) -> Value {
     let [
         income,
-        t2,
+        previous,
         tax,
         year_income,
         earlier,
@@ -58,7 +59,7 @@ fn varied_rate(figures: [&str; 7]) -> Value {
     ] = figures;
     facts(
         "varied_rate",
-        json!({"instalment_income": income, "instalment_rate": t2, "estimated_tax": tax,
+        json!({"instalment_income": income, "previous_rate": previous, "estimated_tax": tax,
                "estimated_instalment_income": year_income, "earlier_instalments": earlier,
                "credits_claimed": credits, "earlier_instalment_income": earlier_income}),
     )
@@ -120,10 +121,10 @@ fn a_varied_amount_below_nil_is_a_credit_and_is_added_back_later() {
 }
 
 #[test]
-fn each_quarter_takes_its_share_half_up_to_the_cent() {
-    // $1,000.02 x 25% = $250.005, half up to $250.01; the instalment drops the cent.
+fn each_quarter_takes_its_share_unrounded() {
+    // $1,000.02 x 25% = $250.005, shown as $250.00; the instalment drops the cents.
     let first = run(&varied_amount(1, "1000.02", "0", "0"));
-    assert_eq!(amounts(&first), ["250.01", "250.01", "250.00", "0.00"]);
+    assert_eq!(amounts(&first), ["250.00", "250.00", "250.00", "0.00"]);
     let second = run(&varied_amount(2, "1000.02", "250", "0"));
     assert_eq!(amounts(&second), ["500.01", "250.01", "250.00", "0.00"]);
     // A credit of $0.99 drops to nil at 5B.
@@ -139,8 +140,9 @@ fn harmander_varied_rate_is_cut_to_2_places_with_a_credit() {
         "20620", "16.84", "10125", "82480", "6944", "0", "41240",
     ]));
     assert_eq!(applied(&out), "12.27");
-    assert_eq!(out["rates"]["t2_rate"], "16.84");
-    // $41,240 x 12.27% = $5,060.148, so $5,060.15; $6,944 less that is $1,883.85.
+    assert_eq!(out["rates"]["previous_rate"], "16.84");
+    assert!(out["rates"].get("t2_rate").is_none());
+    // $41,240 x 12.27% = $5,060.148; $6,944 less that is $1,883.852.
     assert_eq!(amounts(&out), ["-", "2530.07", "2530.00", "1883.00"]);
 }
 
@@ -155,7 +157,7 @@ fn bill_claims_a_credit_at_the_lower_rate() {
 }
 
 #[test]
-fn a_rate_no_lower_than_t2_gives_no_credit() {
+fn a_rate_no_lower_than_the_previous_rate_gives_no_credit() {
     let higher = run(&varied_rate([
         "10000", "10", "1200", "10000", "2000", "0", "10000",
     ]));
@@ -187,11 +189,11 @@ fn nil_estimated_income_varies_the_rate_to_nil_and_all_income_to_100() {
 }
 
 #[test]
-fn the_rate_amount_rounds_half_up_to_the_cent() {
-    // $0.50 x 1% = $0.005, half up to $0.01.
+fn the_rate_amount_is_shown_to_the_cent_toward_nil() {
+    // $0.50 x 1% = $0.005, shown as $0.00.
     assert_eq!(
         amounts(&run(&rate("0.50", "1"))),
-        ["-", "0.01", "0.00", "0.00"]
+        ["-", "0.00", "0.00", "0.00"]
     );
     assert_eq!(
         amounts(&run(&rate("1000000", "100"))),
@@ -267,6 +269,8 @@ fn the_site_refusals_hold() {
     }
     for t2 in ["100.01", "1.234", "-1"] {
         assert_eq!(code(&rate("1", t2)), "payg_instalment.rate_invalid");
+        let previous = varied_rate(["1", t2, "1", "100", "0", "0", "0"]);
+        assert_eq!(code(&previous), "payg_instalment.rate_invalid");
     }
 }
 
@@ -292,6 +296,13 @@ fn each_method_takes_only_its_own_facts() {
     let mut unknown = rate("1", "1");
     unknown["quarter"] = json!(1);
     assert_eq!(code(&unknown), "input.field_unknown");
+    // The varied rate compares with the previous quarter's rate, not T2.
+    let mut t2 = varied_rate(["1", "1", "1", "100", "0", "0", "0"]);
+    t2["instalment_rate"] = json!("1");
+    assert_eq!(code(&t2), "input.field_unknown");
+    let mut previous = rate("1", "1");
+    previous["previous_rate"] = json!("1");
+    assert_eq!(code(&previous), "input.field_unknown");
     assert_eq!(code(&rate("-1", "1")), "input.amount_invalid");
 }
 
@@ -340,4 +351,68 @@ fn nil_estimated_income_needs_no_tax_estimate() {
     let nil = run(&varied_rate(["5000", "8", "100", "0", "0", "0", "0"]));
     assert_eq!(applied(&nil), "0.00");
     assert_eq!(amounts(&nil), ["-", "0.00", "0.00", "0.00"]);
+}
+
+/// Alcuin r2 S1: $2 less $10,001 x 0.01% ($1.0001) is $0.9999, which drops to
+/// a nil credit; rounding the product to $1.00 first gave a $1 credit.
+#[test]
+fn the_lower_rate_credit_rounds_only_the_result() {
+    let out = run(&varied_rate(["1", "0.02", "1", "6000", "2", "0", "10001"]));
+    assert_eq!(applied(&out), "0.01");
+    assert_eq!(amounts(&out)[3], "0.00");
+    let steps = out["steps"].as_array().unwrap();
+    assert_eq!(steps[1]["step"], "earlier_income_at_varied_rate");
+    assert_eq!(steps[1]["value"], "1.0001");
+}
+
+/// Alcuin r2 G1: s 45-215(1)(b) compares the varied rate with the rate used
+/// for the previous quarter. Q1 at 12% on $20,000 and Q2 at 10% on $10,000 make
+/// $3,400; the Commissioner's new T2 is 14% and the payer varies to 11%.
+#[test]
+fn the_credit_compares_with_the_previous_quarters_rate() {
+    // 11% is not lower than Q2's 10%: no credit, though $30,000 x 11% is $3,300.
+    let out = run(&varied_rate([
+        "10000", "10", "1100", "10000", "3400", "0", "30000",
+    ]));
+    assert_eq!(applied(&out), "11.00");
+    assert_eq!(out["rates"]["previous_rate"], "10.00");
+    assert_eq!(amounts(&out), ["-", "1100.00", "1100.00", "0.00"]);
+    // Had Q2 used 12%, 11% is lower: $3,400 less $3,300.
+    let lower = run(&varied_rate([
+        "10000", "12", "1100", "10000", "3400", "0", "30000",
+    ]));
+    assert_eq!(amounts(&lower), ["-", "1100.00", "1100.00", "100.00"]);
+}
+
+/// No step rounds up into a whole dollar: 25% of $399.99 is $99.9975 and
+/// $3,333.33 x 3% is $99.9999, each an instalment of $99.
+#[test]
+fn no_step_rounds_up_into_the_next_dollar() {
+    let share = run(&varied_amount(1, "399.99", "0", "0"));
+    assert_eq!(amounts(&share), ["99.99", "99.99", "99.00", "0.00"]);
+    let product = run(&rate("3333.33", "3"));
+    assert_eq!(amounts(&product), ["-", "99.99", "99.00", "0.00"]);
+}
+
+/// Alcuin r2 I1: a negative second instalment is a $1,000 credit, added back
+/// in the third and fourth (s 45-410(4) and (5)).
+#[test]
+fn a_negative_second_instalment_is_added_back_in_the_third() {
+    let second = run(&varied_amount(2, "8000", "5000", "0"));
+    assert_eq!(amounts(&second), ["4000.00", "-1000.00", "0.00", "1000.00"]);
+    let third = run(&varied_amount(3, "8000", "5000", "1000"));
+    assert_eq!(amounts(&third), ["6000.00", "2000.00", "2000.00", "0.00"]);
+    let fourth = run(&varied_amount(4, "8000", "7000", "1000"));
+    assert_eq!(amounts(&fourth), ["8000.00", "2000.00", "2000.00", "0.00"]);
+}
+
+/// Alcuin r2 I2: nil estimated income gives a nil rate, so the credit is the
+/// earlier instalments less credits claimed: $3,000 less $500.
+#[test]
+fn a_nil_rate_credits_the_earlier_instalments_net_of_credits() {
+    let out = run(&varied_rate([
+        "5000", "8", "100", "0", "3000", "500", "20000",
+    ]));
+    assert_eq!(applied(&out), "0.00");
+    assert_eq!(amounts(&out), ["-", "0.00", "0.00", "2500.00"]);
 }

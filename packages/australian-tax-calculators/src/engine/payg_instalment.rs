@@ -11,7 +11,11 @@
 //! 2026), read on 22 November 2026; Division 45 reads the same for these
 //! sections in compilation 219 (1 July 2025). The steps and rounding follow the
 //! ATO's 'How to vary your PAYG instalments' and 'PAYG instalments: how to
-//! complete your activity statement' pages, read the same day.
+//! complete your activity statement' pages, read the same day; ss 45-110,
+//! 45-205 and 45-215 and both pages were read again on 23 November 2026.
+//! Neither the Act nor the ATO rounds a step, so each works unrounded and
+//! only the instalment and credit drop their cents, as the activity statement
+//! takes them.
 
 use serde_json::{Value, json};
 
@@ -22,7 +26,7 @@ const KIND: &str = "payg_instalment";
 
 /// The facts each method takes beside `method`, `year` and
 /// `scope_confirmed`, in [`PaygInstalmentArgs::optional`].
-pub const PAYG_INSTALMENT_OPTIONAL: [&str; 10] = [
+pub const PAYG_INSTALMENT_OPTIONAL: [&str; 11] = [
     "notified_amount",
     "instalment_number",
     "estimated_tax",
@@ -33,6 +37,7 @@ pub const PAYG_INSTALMENT_OPTIONAL: [&str; 10] = [
     "estimated_instalment_income",
     "earlier_instalment_income",
     "credits_entitled",
+    "previous_rate",
 ];
 
 /// The facts as the command passes them; see the README for each.
@@ -40,7 +45,7 @@ pub struct PaygInstalmentArgs<'a> {
     pub method: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
-    pub optional: [Option<&'a Arg>; 10],
+    pub optional: [Option<&'a Arg>; 11],
 }
 
 /// The indices into [`PAYG_INSTALMENT_OPTIONAL`] each method takes.
@@ -49,13 +54,13 @@ fn fields(method: &str) -> Option<&'static [usize]> {
         "amount" => &[0],
         "varied_amount" => &[1, 2, 3, 9],
         "rate" => &[5, 6],
-        "varied_rate" => &[2, 3, 4, 5, 6, 7, 8],
+        "varied_rate" => &[2, 3, 4, 5, 7, 8, 10],
         _ => return None,
     })
 }
 
 /// Each of the method's facts given, and no other.
-fn checked<'a>(args: &PaygInstalmentArgs<'a>, wanted: &[usize]) -> Result<[Option<&'a Arg>; 10]> {
+fn checked<'a>(args: &PaygInstalmentArgs<'a>, wanted: &[usize]) -> Result<[Option<&'a Arg>; 11]> {
     for (i, (key, given)) in PAYG_INSTALMENT_OPTIONAL
         .iter()
         .zip(args.optional)
@@ -81,7 +86,7 @@ fn checked<'a>(args: &PaygInstalmentArgs<'a>, wanted: &[usize]) -> Result<[Optio
 }
 
 /// The method's facts, each present once [`checked`] has passed.
-struct Facts<'a>([Option<&'a Arg>; 10]);
+struct Facts<'a>([Option<&'a Arg>; 11]);
 
 impl<'a> Facts<'a> {
     fn get(&self, i: usize) -> &'a Arg {
@@ -126,8 +131,10 @@ fn whole(amount: &Decimal) -> Result<Decimal> {
     Ok(amount.quantize(0, Rounding::Down)?)
 }
 
-fn cents(amount: &Decimal) -> Result<Decimal> {
-    Ok(amount.quantize(-2, Rounding::HalfUp)?)
+/// An unrounded amount shown to the cent toward nil, so it never exceeds the
+/// instalment or credit taken from it.
+fn shown(amount: &Decimal) -> Result<Decimal> {
+    Ok(amount.quantize(-2, Rounding::Down)?)
 }
 
 /// The instalment and the credit from an amount that may be negative.
@@ -199,7 +206,7 @@ fn varied_amount(given: &Facts) -> Result<Worked> {
             "No credit can exist before the second instalment: the first instalment is never negative (s 45-410(2)) and s 45-215(1)(b) needs an earlier quarter.",
         );
     }
-    let due = cents(&tax.mul(&int(number))?.div(&int(4))?)?;
+    let due = tax.mul(&int(number))?.div(&int(4))?;
     let amount = due.sub(&net)?;
     let (instalment, credit) = split(&amount)?;
     Ok(Worked {
@@ -211,8 +218,8 @@ fn varied_amount(given: &Facts) -> Result<Worked> {
             step("credit", AMOUNT_CREDIT_RULE, &credit),
         ],
         amounts: vec![
-            ("due", due),
-            ("amount", amount),
+            ("due", shown(&due)?),
+            ("amount", shown(&amount)?),
             ("instalment", instalment),
             ("credit", credit),
         ],
@@ -220,12 +227,12 @@ fn varied_amount(given: &Facts) -> Result<Worked> {
     })
 }
 
-/// A rate in per cent: 0 to 100, at most 2 decimal places.
-fn percent(given: &Arg) -> Result<Decimal> {
+/// A rate in per cent named `key`: 0 to 100, at most 2 decimal places.
+fn percent(given: &Arg, key: &str) -> Result<Decimal> {
     let bad = || {
         refuse(
             "payg_instalment.rate_invalid",
-            "instalment_rate must be a per cent from 0 to 100, at most 2 decimal places.",
+            format!("{key} must be a per cent from 0 to 100, at most 2 decimal places."),
         )
     };
     let Arg::Decimal(r) = given else {
@@ -258,14 +265,15 @@ fn varied_rate(tax: &Decimal, income: &Decimal) -> Result<Decimal> {
 }
 
 /// s 45-215(1): earlier instalments less credits claimed, less earlier
-/// instalment income times the lower varied rate; a positive result.
+/// instalment income times the lower varied rate, unrounded; a positive
+/// result, cents dropped.
 fn lower_rate_credit(given: &Facts, varied: &Decimal) -> Result<(Decimal, Decimal)> {
     let net = net_earlier(
         &money(given.get(3))?,
         &money(given.get(4))?,
         "credits_claimed",
     )?;
-    let at_rate = cents(&money(given.get(8))?.mul(varied)?.div(&int(100))?)?;
+    let at_rate = money(given.get(8))?.mul(varied)?.div(&int(100))?;
     let left = net.sub(&at_rate)?;
     Ok((
         at_rate,
@@ -278,15 +286,16 @@ fn lower_rate_credit(given: &Facts, varied: &Decimal) -> Result<(Decimal, Decima
 }
 
 /// Option 2: instalment income at T1 times the applicable rate (s 45-110),
-/// the T2 rate or a varied one with any credit for earlier quarters.
+/// the T2 rate or a varied one with any credit for earlier quarters where it
+/// is lower than the previous quarter's rate (s 45-215(1)(b)).
 fn by_rate(varied: bool, given: &Facts) -> Result<Worked> {
     let income = money(given.get(5))?;
-    let t2 = percent(given.get(6))?;
     let mut steps = Vec::new();
-    let (applied, credit) = if varied {
+    let (applied, credit, compared) = if varied {
+        let previous = percent(given.get(10), "previous_rate")?;
         let rate = varied_rate(&money(given.get(2))?, &money(given.get(7))?)?;
         steps.push(step("varied_rate", VARIED_RATE_RULE, &rate));
-        let credit = if rate.lt(&t2)? {
+        let credit = if rate.lt(&previous)? {
             let (at_rate, credit) = lower_rate_credit(given, &rate)?;
             steps.push(step("earlier_income_at_varied_rate", CREDIT_RULE, &at_rate));
             credit
@@ -294,24 +303,25 @@ fn by_rate(varied: bool, given: &Facts) -> Result<Worked> {
             int(0)
         };
         steps.push(step("credit", CREDIT_RULE, &credit));
-        (rate, credit)
+        (rate, credit, ("previous_rate", previous))
     } else {
-        (t2.clone(), int(0))
+        let t2 = percent(given.get(6), "instalment_rate")?;
+        (t2.clone(), int(0), ("t2_rate", t2))
     };
-    let amount = cents(&income.mul(&applied)?.div(&int(100))?)?;
+    let amount = income.mul(&applied)?.div(&int(100))?;
     let instalment = whole(&amount)?;
     steps.push(step("amount", RATE_RULE, &amount));
     steps.push(step("instalment", WHOLE_DOLLARS_RULE, &instalment));
     Ok(Worked {
         steps,
         amounts: vec![
-            ("amount", amount),
+            ("amount", shown(&amount)?),
             ("instalment", instalment),
             ("credit", credit),
         ],
         rates: vec![
             rate("instalment_rate", applied.quantize(-2, Rounding::HalfUp)?),
-            rate("t2_rate", t2.quantize(-2, Rounding::HalfUp)?),
+            rate(compared.0, compared.1.quantize(-2, Rounding::HalfUp)?),
         ],
     })
 }
@@ -320,16 +330,16 @@ const NOTIFIED_RULE: &str = "TAA 1953 Sch 1 s 45-112(1)(a) and (c): the instalme
 
 const WHOLE_DOLLARS_RULE: &str = "ATO, Complete your BAS: activity statement amounts round down to whole dollars; the ATO's T1 x T2 example enters $341.70 as 341 at T11 and 5A";
 
-const SHARE_RULE: &str = "TAA 1953 Sch 1 s 45-410(2) to (5): 25%, 50%, 75% or 100% of the estimate of benchmark tax (T8) for the first, second, third or fourth instalment of the year for which you are liable, half up to the cent";
+const SHARE_RULE: &str = "TAA 1953 Sch 1 s 45-410(2) to (5): 25%, 50%, 75% or 100% of the estimate of benchmark tax (T8) for the first, second, third or fourth instalment of the year for which you are liable, unrounded";
 
 const EARLIER_RULE: &str = "TAA 1953 Sch 1 s 45-410(3) to (5): the earlier instalments of the year are subtracted and each s 45-420 credit the payer was entitled to claim for them is added back, claimed at 5B or not";
 
-const AMOUNT_RULE: &str = "TAA 1953 Sch 1 s 45-410(1): the amount due by this instalment less earlier instalments net of credits; nil if negative";
+const AMOUNT_RULE: &str = "TAA 1953 Sch 1 s 45-410(1): the amount due by this instalment less earlier instalments net of credits, unrounded; nil if negative";
 
 const AMOUNT_CREDIT_RULE: &str = "TAA 1953 Sch 1 s 45-420(1): a negative amount is a credit of that amount as a positive figure, claimed at 5B, cents dropped";
 
-const RATE_RULE: &str = "TAA 1953 Sch 1 s 45-110: instalment income for the quarter (T1) times the applicable instalment rate, half up to the cent";
+const RATE_RULE: &str = "TAA 1953 Sch 1 s 45-110: instalment income for the quarter (T1) times the applicable instalment rate, unrounded";
 
 const VARIED_RATE_RULE: &str = "TAA 1953 Sch 1 s 45-205; ATO, How to vary your PAYG instalments, step 4: estimated tax / estimated instalment income x 100, cut to 2 decimal places as the ATO's example 2 gives 12.27%; nil income gives a nil rate";
 
-const CREDIT_RULE: &str = "TAA 1953 Sch 1 s 45-215(1): where the varied rate is lower than the rate used last quarter (T2), earlier instalments less credits claimed, less earlier instalment income times the varied rate, if positive, cents dropped";
+const CREDIT_RULE: &str = "TAA 1953 Sch 1 s 45-215(1): where the varied rate is lower than the rate used for the previous instalment quarter of the year (s 45-215(1)(b)), earlier instalments less credits claimed, less earlier instalment income times the varied rate, unrounded; if positive, cents dropped";

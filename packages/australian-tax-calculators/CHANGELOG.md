@@ -16,8 +16,11 @@
   `payg_instalment.first_has_earlier`,
   `payg_instalment.instalment_number_invalid`,
   `payg_instalment.method_invalid`, `payg_instalment.rate_invalid` and
-  `payg_instalment.tax_exceeds_income`. `tests/payg_instalment.rs` holds it
-  to the ATO's examples and the site's cases.
+  `payg_instalment.tax_exceeds_income`. No step rounds before the instalment
+  and credit drop their cents, and a varied rate's credit compares it with
+  `previous_rate`, the rate used for the previous quarter
+  (s 45-215(1)(b)). `tests/payg_instalment.rs` holds it to the ATO's
+  examples and the site's cases.
 
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the

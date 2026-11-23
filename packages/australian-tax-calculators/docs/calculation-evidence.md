@@ -4039,6 +4039,13 @@ left out of the Commissioner's notional tax, which this worksheet does not
 work out. The ATO's 'How to vary your PAYG instalments' (last updated 23 June
 2026), 'PAYG instalments: how to complete your activity statement' (last
 updated 9 January 2023) and 'Complete your BAS' pages were read the same day.
+On 23 November 2026 ss 45-110, 45-205 and 45-215 in compilation 227 and both
+PAYG instalment pages (last updated as before) were read again: no step of the
+Act or the pages rounds an amount, and s 45-215(1)(b) compares the varied rate
+with 'the instalment rate you used to work out the amount of your instalment
+for the previous instalment quarter (if any)'. Under ss 45-110(2)(a) and
+45-15 that rate can differ from T2 when the Commissioner gives a new rate
+after that quarter, so the worksheet takes it as `previous_rate`.
 
 The worksheet follows ryanduguid.github.io's PAYG instalments page
 (`paygInstalment` in `assets/business-calculators.mjs`, checked 15 November
@@ -4050,8 +4057,13 @@ credit can exist then (s 45-410(2) never gives a negative first amount, and
 s 45-215(1)(b) needs an earlier quarter), so the worksheet refuses it. Its
 other choices:
 
-- money rounds half up to the cent, and the instalment and credit drop their
-  cents ('round down to whole dollars' on Complete your BAS);
+- no step rounds; only the instalment and credit drop their cents ('round
+  down to whole dollars' on Complete your BAS), so a sub-cent remainder never
+  rounds up into a whole dollar (25% of $399.99 is $99.9975, an instalment of
+  $99), and other amounts show to the cent toward nil. The page rounds each
+  step half up to the cent first;
+- a varied rate's credit compares it with `previous_rate`, the rate used for
+  the previous quarter (s 45-215(1)(b)), where the page compares it with T2;
 - a varied rate keeps 2 decimal places and drops the rest, as the ATO's
   example 2 gives 12.27% for $10,125 / $82,480; the Act prescribes no
   rounding;
@@ -4070,6 +4082,14 @@ other choices:
 | Cari: $14,000, third quarter after $10,000 | How to vary, example 1 | $500, then $3,500 |
 | Harmander: $10,125 / $82,480 | How to vary, example 2 | 12.27% |
 | Bill: 10% then 5% on $10,000 | Activity statement page | $500 at 5B |
+
+On 23 November 2026 the page's current `paygInstalment` (main at 1aa0a6cb),
+its 12 cases and 400 seeded random inputs were run again, with T2 given as
+`previous_rate`: 40 are refused by both, and each of the other 372 equals an
+independent reading of the steps, unrounded for the worksheet and rounded
+half up to the cent at each step for the page. They differ in the instalment
+or credit on 14, each by $1 where the page's rounding carries a sub-cent
+remainder into a whole dollar.
 
 ## Government super amounts
 
