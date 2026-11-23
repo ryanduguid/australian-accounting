@@ -1112,6 +1112,7 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[
             "https://coallsl.com.au/employer/administer-lsl/levy",
             "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/bci-long-service-payments-scheme/long-service-levy",
+            "https://longservice.my.site.com/bci/s/levy-calculator",
             "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/cci-long-service-leave-scheme/managing-employer-returns-and-paying-levies",
             "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/csi-long-service-leave-scheme/making-levy-contributions",
             "https://leaveplus.com.au/employers/charges/",
@@ -2350,7 +2351,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "portable_lsl_levy",
         &[
             "Each administering board and statute defines eligible workers, covered work, ordinary pay inclusions and exclusions, apprentice or trainee exemptions and project cost inclusions; this worksheet takes the supplied pay or project cost figures as established.",
-            "Except where statute prescribes nearest-dollar rounding with 50 cents rounded downwards (Queensland BCI Act 1991 s 72(2) and NT Act 2005 s 33(2)), levy amounts are rounded half up to the cent once at the final step; reconcile against the board's return portal before payment.",
+            "NSW construction rounds down to the whole dollar (verified on the LSC Building Levy Calculator) and Queensland construction (s 72(2)) and NT construction (s 33(2)) round to the nearest dollar with 50 cents downwards; other schemes round half up to the cent once at the final step. Reconcile against the board's return portal before payment.",
         ],
     ),
     (

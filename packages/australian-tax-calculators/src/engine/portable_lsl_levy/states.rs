@@ -13,7 +13,7 @@ use super::super::{
     Result, Step, cents, d, derived_result, flag, int, precise, rate, refuse, step,
 };
 use super::{KIND, PortableLslLevyArgs, dollars_half_down, reject_present, required_money};
-use crate::decimal::Decimal;
+use crate::decimal::{Decimal, Rounding};
 
 struct PayrollRule {
     board: &'static str,
@@ -282,11 +282,11 @@ fn calculate_nsw_construction(args: &PortableLslLevyArgs, year: &str) -> Result<
                 int(0),
             )
         } else {
-            let levy = cents(cost.mul(&applied)?)?;
+            let levy = cost.mul(&applied)?.quantize(0, Rounding::Down)?;
             step(
                 "levy",
-                "Building and Construction Industry Long Service Payments Act 1986 (NSW) and NSW Long Service Corporation 'About the long service levy for the building and construction industry' (read 24 November 2026): 0.25% of the cost of works of $250,000 or more (including GST), rounded half up to the cent",
-                "cents(project_cost x rate)",
+                "Building and Construction Industry Long Service Payments Act 1986 (NSW) and NSW Long Service Corporation 'About the long service levy for the building and construction industry' and Building Levy Calculator (verified 24 November 2026): 0.25% of the cost of works of $250,000 or more (including GST), rounded down to the whole dollar",
+                "floor(project_cost x rate)",
                 &[&cost, &applied],
                 levy,
             )

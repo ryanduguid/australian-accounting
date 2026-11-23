@@ -406,12 +406,16 @@ fn work_casual_pre_2024(
     pay: &CasualPay,
     ctx: &CoalContext,
 ) -> Result<CoalWorked> {
-    if let Some(v) = args.instrument_specifies_loading {
-        let _ = flag(v, "instrument_specifies_loading")?;
-    }
-    if let Some(v) = args.loading_quantifiable {
-        let _ = flag(v, "loading_quantifiable")?;
-    }
+    reject_present(
+        &[
+            (
+                "instrument_specifies_loading",
+                args.instrument_specifies_loading,
+            ),
+            ("loading_quantifiable", args.loading_quantifiable),
+        ],
+        "Coal LSL pre-2024 casual branch",
+    )?;
     let zero = int(0);
     if pay.loading.0.gt(&zero)? {
         return refuse(

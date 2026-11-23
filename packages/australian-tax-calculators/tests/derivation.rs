@@ -543,6 +543,10 @@ fn cases() -> Vec<(&'static str, Value)> {
         ),
         (
             "portable-lsl-levy",
+            json!({"jurisdiction": "nsw", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "250399.00"}),
+        ),
+        (
+            "portable-lsl-levy",
             json!({"jurisdiction": "qld", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "150000.00"}),
         ),
         (

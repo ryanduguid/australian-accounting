@@ -83,8 +83,6 @@ fn coal_lsl_pre_2024_casual_supports_base_rate_and_sacrifice() {
         "reporting_month": "2023-12",
         "branch": "casual",
         "eligible_employee": true,
-        "instrument_specifies_loading": true,
-        "loading_quantifiable": true,
         "base_rate_of_pay": "1800.00"
     }));
     assert_eq!(base["coal_branch"], "pre-2024");
@@ -216,7 +214,35 @@ fn coal_lsl_refusals_match_service_contract() {
         })),
         "portable_lsl_levy.branch_field_mismatch"
     );
-    // Pre-2024 casual with non-zero casual_loading or both pay fields
+    // Pre-2024 casual with non-zero casual_loading, both pay fields, or post-2024 loading flags
+    assert_eq!(
+        refused(&json!({
+            "jurisdiction": "cth",
+            "scheme": "coal",
+            "year": "2023-24",
+            "scope_confirmed": true,
+            "reporting_month": "2023-12",
+            "branch": "casual",
+            "eligible_employee": true,
+            "base_rate_of_pay": "1800.00",
+            "instrument_specifies_loading": true
+        })),
+        "portable_lsl_levy.branch_field_mismatch"
+    );
+    assert_eq!(
+        refused(&json!({
+            "jurisdiction": "cth",
+            "scheme": "coal",
+            "year": "2023-24",
+            "scope_confirmed": true,
+            "reporting_month": "2023-12",
+            "branch": "casual",
+            "eligible_employee": true,
+            "base_rate_of_pay": "1800.00",
+            "loading_quantifiable": false
+        })),
+        "portable_lsl_levy.branch_field_mismatch"
+    );
     assert_eq!(
         refused(&json!({
             "jurisdiction": "cth",
@@ -625,6 +651,35 @@ fn project_cost_schemes_enforce_thresholds_and_statutory_rounding() {
         "partial_exemption": false
     }));
     assert_eq!(nsw_at["amounts"]["levy"], "625.00");
+
+    // NSW LSC Building Levy Calculator rounds down to the whole dollar:
+    // $250,399 x 0.25% = $625.9975 -> $625.00; $250,400 -> $626.00; $300,200 -> $750.00
+    let nsw_floor = run(&json!({
+        "jurisdiction": "nsw",
+        "scheme": "construction",
+        "year": "2026-27",
+        "scope_confirmed": true,
+        "project_cost": "250399.00"
+    }));
+    assert_eq!(nsw_floor["amounts"]["levy"], "625.00");
+
+    let nsw_next_dollar = run(&json!({
+        "jurisdiction": "nsw",
+        "scheme": "construction",
+        "year": "2026-27",
+        "scope_confirmed": true,
+        "project_cost": "250400.00"
+    }));
+    assert_eq!(nsw_next_dollar["amounts"]["levy"], "626.00");
+
+    let nsw_half = run(&json!({
+        "jurisdiction": "nsw",
+        "scheme": "construction",
+        "year": "2026-27",
+        "scope_confirmed": true,
+        "project_cost": "300200.00"
+    }));
+    assert_eq!(nsw_half["amounts"]["levy"], "750.00");
 
     // Qld: threshold $150,000 excl. GST; s 72(2) nearest dollar, 50c rounded downwards
     let qld_below = run(&json!({

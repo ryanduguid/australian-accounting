@@ -11,9 +11,10 @@
   verified Australian state and territory portable LSL schemes across
   construction, community services, contract cleaning and security (NSW LSC,
   Vic LeavePlus and PLSA, Qld QLeave, SA Portable Long Service Leave, WA
-  MyLeave, ACT Leave, Tas TasBuild and NT Build), including statutory
-  nearest-dollar rounding with 50 cents downwards under Qld s 72(2) and NT
-  s 33(2). New codes: `portable_lsl_levy.bonus_invalid`,
+  MyLeave, ACT Leave, Tas TasBuild and NT Build), including NSW whole-dollar
+  rounding downwards (verified on the LSC Building Levy Calculator) and
+  statutory nearest-dollar rounding with 50 cents downwards under Qld s 72(2)
+  and NT s 33(2). New codes: `portable_lsl_levy.bonus_invalid`,
   `portable_lsl_levy.branch_field_mismatch`, `portable_lsl_levy.branch_invalid`,
   `portable_lsl_levy.employee_ineligible`,
   `portable_lsl_levy.exemption_unsupported`,

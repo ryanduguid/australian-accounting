@@ -2478,9 +2478,10 @@ mirroring `tools/coal-lsl-levy` under s 3B of the Payroll Levy Collection Act
 state and territory construction, community services, contract cleaning and
 security schemes (NSW Long Service Corporation, Victoria LeavePlus and PLSA,
 Queensland QLeave, SA Portable Long Service Leave, WA MyLeave, ACT Leave,
-Tasmania TasBuild and NT Build). Queensland construction (s 72(2)) and Northern
-Territory construction (s 33(2)) round each statutory levy to the nearest whole
-dollar with 50 cents rounded downwards. Unavailable jurisdiction-scheme pairs,
+Tasmania TasBuild and NT Build). NSW construction rounds down to the whole
+dollar (verified on the LSC Building Levy Calculator); Queensland construction
+(s 72(2)) and Northern Territory construction (s 33(2)) round each statutory
+levy to the nearest whole dollar with 50 cents rounded downwards. Unavailable jurisdiction-scheme pairs,
 unverified historical periods, NT projects above $5 billion, partial project
 exemptions, ineligible Coal LSL employees, unconfirmed reimbursement exclusions
 on positive Coal LSL allowances and mismatched or unread branch fields are

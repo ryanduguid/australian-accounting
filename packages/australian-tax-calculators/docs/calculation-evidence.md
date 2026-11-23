@@ -2197,10 +2197,13 @@ in-force legislation were read on 24 November 2026:
 - **New South Wales (Long Service Corporation)**: `nsw.gov.au` pages for BCI
   (0.25% on works of $250,000 or more including GST from 1 January 2023), CCI
   (1% of gross ordinary wages from 1 July 2021) and CSI (1.3% for 2025-26 and
-  1.7% from 1 July 2026). Note: `legislation.nsw.gov.au` returned a Cloudflare
-  challenge (HTTP 403), so the NSW Acts and regulations were not read directly
-  and NSW BCI rounding is half up to the cent with a portal reconciliation
-  warning.
+  1.7% from 1 July 2026). NSW BCI whole-dollar rounding downwards was verified
+  directly on 24 November 2026 against the official LSC Building Levy
+  Calculator (`longservice.my.site.com/bci/s/levy-calculator`): `$249,999` ->
+  `$0`, `$250,000` -> `$625`, `$250,399` (exact `$625.9975`) -> `$625`,
+  `$250,400` -> `$626` and `$300,200` (exact `$750.50`) -> `$750`. Note:
+  `legislation.nsw.gov.au` and `classic.austlii.edu.au` returned Cloudflare
+  challenges (HTTP 403), so the NSW statutory text itself was not read directly.
 - **Victoria**: LeavePlus `leaveplus.com.au/employers/charges/` (2.7% of gross
   reportable ordinary pay) and Portable Long Service Authority
   `plsa.vic.gov.au/employer-information/about-the-portable-long-service-benefits-scheme`
@@ -2243,7 +2246,7 @@ in-force legislation were read on 24 November 2026:
 | --- | --- | --- |
 | Coal LSL base rate $6,000 + $3,000 OT + $500 allowances | s 3B(1) Formula B = 0.75 x $9,500 = $7,125; 2.7% = $192.375 | $192.38 |
 | Coal LSL base rate $100.03 + $300 OT | Formula B = $300.0225 exact; 2.7% = $8.1006075 | $8.10 |
-| NSW construction $250,000 incl. GST | 0.25% from $250,000 threshold | $625.00 |
+| NSW construction $250,399 incl. GST | 0.25% = $625.9975, rounded down to whole dollar (LSC calculator) | $625.00 |
 | Qld construction $150,000 excl. GST | s 72(2): LSL $525, training $150, WHS $187.50 -> $187 | $862.00 |
 | NT construction $1,000,500 incl. GST | s 33(2): $1,000.50 -> 50c rounded down | $1,000.00 |
 | Tas construction $50,000 on time vs standard | 1.8% vs 2.5% | $900.00 / $1,250.00 |
