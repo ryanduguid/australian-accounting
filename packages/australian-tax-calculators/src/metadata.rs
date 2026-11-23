@@ -1457,6 +1457,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "rd_tax_offset" => vec![
             "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Subdivision 360-A applies to shares issued from 1 July 2016; its
+        // text was read to 2026-27 on 24 November 2026.
+        "esic" => vec![
+            "2016-17", "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24",
+            "2024-25", "2025-26", "2026-27",
+        ],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         // The question's end date. GIC days run back to 1 July 1999 and SIC
         // days to 1 April 2005; the penalty unit holds at $364 until the next
@@ -1914,6 +1920,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "voluntary_agreement_withholding" => (
             "2026-11-22",
             "Schedule 10 (voluntary agreements) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, how to work out the withholding amount, the CIR and GST rules, Francesca's example and rounding; TAA 1953 Sch 1 s 12-55 (ATO legal database)",
+        ),
+        "esic" => (
+            "2026-11-24",
+            "ITAA 1997 ss 360-10 to 360-50 with their history notes (ATO legal database): Act No. 54 of 2016 Sch 1 item 1, Act No. 8 of 2020 Sch 2 items 5 to 8, 12 and 13, Act No. 92 of 2020 Sch 5 item 37; Income Tax Assessment (1997 Act) Regulations 2021 compilation C16 (27 June 2026) and Income Tax Assessment Regulations 1997 (1 April 2020): nothing prescribed for Division 360; the ATO's early stage investor pages (16 August and 9 September 2024)",
         ),
         "rd_tax_offset" => (
             "2026-11-22",
@@ -2576,6 +2586,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Francesca's CIR of 16.44% applied by agreement, otherwise 20%",
             "2026-06-17",
             "2026-11-22",
+        ),
+        "esic" => (
+            "ATO Calculating the early stage investor tax offset; Qualifying as an early stage innovation company; Limits for investors who don't meet the sophisticated investor test",
+            "Thomas's $20,000; Savannah's $200,000 of $800,000; Georgia Co's affiliate cap; Jason's $150,000 of $190,000 with $50,000 carried forward; Tim's $10,000 and his $60,000",
+            "2024-09-09",
+            "2026-11-24",
         ),
         "rd_tax_offset" => (
             "ATO Calculate the clawback adjustment",
@@ -3487,6 +3503,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "exempt_benefit_before_1_april_2025",
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
+            ),
+        ],
+        "esic" => vec![
+            (
+                "amount_receivable",
+                "AUD, optional, nil if absent: money the company is entitled to receive for issuing the shares to the investor in the year but has not been paid, such as an unpaid call on partly paid shares; counted from 2018-19 (s 360-25(1)(a)) and not before (the total amount paid); where counting it as paid decides the $50,000 limit, refused",
+            ),
+            (
+                "other_companies_exempt",
+                "boolean, with other_companies_paid: s 708(8), (10) or (11) of the Corporations Act 2001 removed the need for a disclosure document for an offer of another ESIC's shares to the investor in the year, which the ATO reads as lifting the $50,000 limit (s 360-20(1)(a) looks at this company's offers only); where the readings differ, refused",
+            ),
+            (
+                "other_companies_paid",
+                "AUD, required when disclosure_exemption is false and refused otherwise: the total paid in the income year for shares other companies issued to the investor, for the ATO's reading that the $50,000 limit counts investments in all ESICs (s 360-20(1)(b) counts this company's); where the readings differ the case is refused",
             ),
         ],
         "land_tax" => vec![
@@ -5768,6 +5798,28 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("abn_quoted", "boolean: the payee has an ABN in force and it is quoted in the agreement; false is refused"),
             ("agreement_applies_instalment_rate", "boolean: the agreement says the payee's Commissioner's instalment rate applies; true needs instalment_rate"),
         ],
+        "esic" => vec![
+            ("investor", "individual, company, widely_held_company (a widely held company or a 100% subsidiary of one), esvclp, trust or partnership; trust and partnership, and esvclp before 2018-19, are refused (ITAA 1997 s 360-15(1)(a))"),
+            ("affiliate_of_company", "boolean: the investor and the company are affiliates of each other when the shares are issued (s 360-15(1)(d)); true means not entitled"),
+            ("ess_interests", "boolean: the issue is an acquisition of ESS interests under an employee share scheme (s 360-15(1)(e)); true means not entitled"),
+            ("more_than_30_percent", "boolean: immediately after the issue the investor holds equity interests in the company or a connected entity carrying more than 30% of income, capital or voting rights (s 360-15(1)(f)); before 2018-19, more than 30% of the equity interests; true means not entitled"),
+            ("amount_paid", "AUD: the money paid to the company for issuing the shares to the investor in the year (s 360-25(1)(a); before 2018-19, 'the total amount paid'); money the company is entitled to but has not received goes in amount_receivable"),
+            ("non_cash_benefit", "AUD: the market value, when the shares were issued, of any non-cash benefit the company received or is entitled to receive for the issue (s 360-25(1)(b)); above nil is refused before 2018-19"),
+            ("disclosure_exemption", "boolean: s 708(8), (10) or (11) of the Corporations Act 2001 removed the need for a disclosure document for at least one offer of the company's shares issued to the investor in the year; false applies the $50,000 limit (s 360-20)"),
+            ("incorporated_year", "the income year the company was incorporated in Australia, such as 2024-25, or none (s 360-40(1)(a)(i), (ii))"),
+            ("abr_registered_year", "the income year the company was registered in the Australian Business Register, such as 2024-25, or none (s 360-40(1)(a)(iii))"),
+            ("expenses_three_prior_years", "AUD: total expenses of the company and its 100% subsidiaries across the 3 income years before the current year, used only for s 360-40(1)(a)(ii); 0.00 if not needed"),
+            ("total_expenses_previous_year", "AUD: total expenses of the company and its 100% subsidiaries in the previous income year (s 360-40(1)(b))"),
+            ("assessable_income_previous_year", "AUD: total assessable income of the company and its 100% subsidiaries in the previous income year, including any grant and clawback amount below (s 360-40(1)(c))"),
+            ("accelerating_commercialisation_grant", "AUD: the part of assessable_income_previous_year that is an Accelerating Commercialisation Grant, disregarded (s 360-40(2)(a)); 0.00 if none"),
+            ("rd_clawback_income", "AUD: the part of assessable_income_previous_year included in the company's own assessable income under s 355-450(1), not a 100% subsidiary's, disregarded from 2022-23 (s 360-40(2)(b)); above nil is refused for 2021-22; 0.00 if none"),
+            ("listed", "boolean: at the test time an equity interest of the company is listed for quotation on a stock exchange in Australia or a foreign country (s 360-40(1)(d))"),
+            ("foreign_company", "boolean: at the test time the company is a foreign company within the meaning of the Corporations Act 2001 (s 360-40(1)(f), from 2018-19; not a test before)"),
+            ("innovation_items", "list of the s 360-45(1) table items, whole numbers from 1 to 8, that apply to the company at the test time, as stated facts; items 1 and 3 together are refused, and item 7 scores nothing beside item 6"),
+            ("principles_test", "boolean: the company meets s 360-40(1)(e)(i) to (v), the principles-based innovation test, at the test time, as established (for example by an ATO private ruling); stated, not evaluated"),
+            ("other_offsets", "AUD: the early stage investor tax offsets for the income year to which the investor and its affiliates are entitled, other than this one (s 360-25(2)(a)); 0.00 if none"),
+            ("carried_forward_offsets", "AUD: the early stage investor tax offsets the investor and its affiliates carry forward to the income year (s 360-25(2)(b)); 0.00 if none"),
+        ],
         "rd_tax_offset" => vec![
             ("notional_deductions", "AUD: the total of the amounts the R&D entity can deduct for the year under ITAA 1997 ss 355-205, 355-305, 355-480, 355-520 and 355-580 (s 355-100(1)), as established"),
             ("rsp_crc_expenditure", "AUD: the part of notional_deductions s 355-100(2) keeps when the total is under $20,000: s 355-205 expenditure incurred to a research service provider that is not an associate, for services within a research field it is registered for and applicable to the R&D activities, and s 355-580 CRC contributions; at most notional_deductions"),
@@ -7146,6 +7198,32 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("agreement_in_force", Flag(true)),
             ("abn_quoted", Flag(true)),
             ("agreement_applies_instalment_rate", Flag(false)),
+        ],
+        // Calculating the early stage investor tax offset, Jason: $950,000 in
+        // 2017-18 with $50,000 carried forward; the company facts are
+        // fabricated.
+        "esic" => vec![
+            ("year", Text("2017-18")),
+            ("investor", Text("individual")),
+            ("affiliate_of_company", Flag(false)),
+            ("ess_interests", Flag(false)),
+            ("more_than_30_percent", Flag(false)),
+            ("amount_paid", Text("950000.00")),
+            ("non_cash_benefit", Text("0.00")),
+            ("disclosure_exemption", Flag(true)),
+            ("incorporated_year", Text("2016-17")),
+            ("abr_registered_year", Text("2016-17")),
+            ("expenses_three_prior_years", Text("0.00")),
+            ("total_expenses_previous_year", Text("400000.00")),
+            ("assessable_income_previous_year", Text("50000.00")),
+            ("accelerating_commercialisation_grant", Text("0.00")),
+            ("rd_clawback_income", Text("0.00")),
+            ("listed", Flag(false)),
+            ("foreign_company", Flag(false)),
+            ("innovation_items", Json("[1, 8]")),
+            ("principles_test", Flag(false)),
+            ("other_offsets", Text("0.00")),
+            ("carried_forward_offsets", Text("50000.00")),
         ],
         // Calculate the clawback adjustment, Company F; its turnover, given
         // only as under $20 million, is fabricated.

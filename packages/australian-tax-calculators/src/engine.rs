@@ -6408,6 +6408,8 @@ mod lodgment_required;
 pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
 mod rd_tax_offset;
 pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
+mod esic;
+pub use esic::{EsicArgs, esic};
 mod gst_adjustments;
 pub use gst_adjustments::{
     AnnualApportionmentArgs, BadDebtArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
@@ -6448,7 +6450,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 134] = [
+const KINDS: [&str; 135] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6558,6 +6560,7 @@ const KINDS: [&str; 134] = [
     "residency_tests",
     "lodgment_required",
     "rd_tax_offset",
+    "esic",
     "gst_creditable_purpose_change",
     "gst_annual_apportionment",
     "gst_financial_acquisitions_threshold",
@@ -6650,6 +6653,7 @@ fn evidence_heading(kind: &str) -> String {
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         "ato_interest_penalties" => "ato-penalties-and-interest".into(),
         "pcg_2021_4" => "pcg-20214".into(),
+        "esic" => "early-stage-investor-tax-offset".into(),
         _ => kind.replace('_', "-"),
     }
 }
