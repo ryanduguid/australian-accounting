@@ -87,6 +87,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
     ),
     (
+        "transfer_duty",
+        "2026-27 transfer (stamp) duty on one dutiable transaction in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, occurring (the contract or agreement the Act charges, or the transfer where there is none) from 1 July 2026 to 30 June 2027, at the rates and concessions in force when read on 24 November 2026. The operator establishes the dutiable value (generally the greater of the consideration and the property's unencumbered or market value), whether the dutiable property is wholly residential land (in New South Wales one parcel of residential land under Duties Act 1997 (NSW) s 32A(3), no more than 2 hectares and not partly used for other purposes, s 32B and s 32C being outside this worksheet), and, for a first home buyer, that every condition of the jurisdiction's first home concession is met (citizenship or residency, never having owned a home, age, the residence requirement) and that the dutiable property is the home and its land alone. The general duty is the jurisdiction's general rate, with New South Wales' premium rate on residential land over $3,870,000 and its $20 minimum (s 273), and Victoria's duty to the nearest whole dollar, 50 cents down (Duties Act 2000 (Vic) s 28(1)). A first home buyer of a home pays: in New South Wales nil to $800,000 and below $1,000,000 the s 78A amount, the bracket rounded to the cent as Revenue NSW's calculator does; in Victoria nil to $600,000 and to $750,000 the s 57JA share; in Queensland, for an established home, the s 91 home concession duty less the Sch 4A amount, and nil for a new home (s 92A); in Western Australia nil to $600,000 and to $800,000 $16.15 for every $100 or part over $600,000 (Duties Act 2008 (WA) Sch 2 Div 2); in South Australia nil for a new home (Stamp Duties Act 1923 (SA) s 71DD) and the general rate for an established one; in the ACT nil under the Home Buyer Concession Scheme (DI2026-157), which is open to buyers without an interest in land for 5 years; and in Tasmania and the Northern Territory the general rate, as neither has a first home concession for 2026-27. Other amounts are worked exactly and shown to the cent, half up, before any rounding a revenue office applies to the amount it collects. Refuses land that is not wholly residential in South Australia (qualifying land) and the ACT (commercial rates), and for a first home buyer. Excludes whether a transaction is dutiable, its dutiable value and who is liable; eligibility for a concession; every other concession, exemption and surcharge (Victoria's principal place of residence, off-the-plan and pensioner concessions, Queensland's home concession for a buyer who is not a first home buyer, Western Australia's concessional rate to $200,000, the ACT's owner occupier rates, the Northern Territory's house and land package exemption, first home buyers of vacant land, shared equity and every foreign purchaser surcharge); landholder, corporate trustee and trust acquisition duty; partial interests, joint tenants and aggregation; and any change made after 24 November 2026 to a rate or concession for later transactions in 2026-27.",
+    ),
+    (
         "balancing_adjustment",
         "The balancing adjustment for one depreciating asset when a balancing adjustment event occurs for it in an income year from 2024-25 to 2026-27, under ITAA 1997 Subdivision 40-D as compiled on 1 October 2026, for a taxpayer with an income year from 1 July to 30 June whose decline in value was worked out under Subdivision 40-B. The operator establishes that a balancing adjustment event occurred (s 40-295); the termination value under ss 40-300 to 40-320, after Subdivision 27-B; the cost (both elements, after Subdivision 27-B and, for a car, the car limit of s 40-230); whether the asset is a car (s 995-1), a motor cycle or similar vehicle, or another asset; and, for each income year it was held from its start time to the event's year, the decline in value (s 40-25(1)) and the deduction after the reductions s 40-25(2) to (4) required. A car states each year's car expense method (log book or cents per kilometre, from 2015-16) and days held; for a cents per kilometre year the decline is the notional decline s 40-370(3) assumes, worked on the same basis as the other years; and, where s 40-230 reduced its cost, the car limit for the financial year it was first used, the second element of cost and its total cost ignoring the car limit after Subdivision 27-B (s 40-325). The adjustable value just before the event is cost less the years' declines (s 40-85). The balancing adjustment amount is the termination value less the adjustable value: assessable if positive, deductible if negative (s 40-285), reduced by itself times the sum of the s 40-25 reductions over the total decline (s 40-290(2)). A car whose car expenses were claimed by the log book method in some years and the cents per kilometre method in others is worked under s 40-370 instead: the cents per kilometre years count 80% of their notional decline as reductions (s 40-370(4)), and the reduced amount is scaled by the days the decline was deducted over the days held. A car claimed only by the cents per kilometre method has nothing assessable or deductible (s 40-370(1) Note 2). A car's termination value is first multiplied by the s 40-325 fraction where s 40-230 reduced its cost. The capital gain or loss of CGT event K7 is (termination value less cost, or cost less termination value) times the same fraction (s 104-240), disregarded for a car, motor cycle or similar vehicle (s 118-5); it is before any other exemption, the CGT discount and the changes from 1 July 2027. Amounts are worked exactly with each fraction divided once, last; the result's amounts are shown to the cent, half up. Refuses a year after the event's year, a year before 2001-02, a car year before 2015-16 (when the one-third of actual expenses and 12% of original value methods could apply, which s 40-370 as compiled now does not count), a year given twice, years that skip one or stop before the event's, a deduction above its year's decline, declines totalling more than cost or nil, car limit facts that show s 40-230 did not reduce the cost, and a car's cost other than the car limit plus the second element (as for a car first used in a later financial year than the one it was acquired in, or held with another entity). Excludes deciding whether an event occurred and the termination value, cost, decline, use and method; assets in a low-value pool, a software development pool, a project pool or a small business pool, and assets written off under s 328-180 or temporary full expensing (Subdivision 328-D and the rules for those pools apply instead, and K7 is disregarded for a Division 328 asset, s 104-235(4)(b)); the fixed 50% reduction chosen under s 40-291A from 2026-27; second-hand assets in residential rental property (s 40-291); R&D use (ss 40-292 and 40-293); split or merged assets (s 40-290(3) and (4)); roll-over relief (s 40-340) and an asset held as a legal personal representative, whose earlier holder's reductions count; involuntary disposal roll-over (s 40-365); the deferral for vessels (s 40-285(5)); a car acquired at a discount (s 40-225, which s 40-320 adds back to the termination value); misappropriation (s 25-47); pre-CGT assets and assets acquired before 21 September 1999 or 1 July 2001 whose cost base exceeds cost; other CGT exemptions, such as collectables and personal use assets (ss 108-20 and 118-10); substituted accounting periods; and the tax payable on either amount.",
     ),
@@ -556,6 +560,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "payroll_tax",
         "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/payroll-tax/lodge-and-pay-returns/thresholds-and-rates",
+    ),
+    (
+        "transfer_duty",
+        "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/transfer-duty/understanding-transfer-duty/calculate-transfer-duty",
     ),
     (
         "gst_margin_scheme",
@@ -1124,6 +1132,33 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://treasury.nt.gov.au/dtf/territory-revenue-office/payroll-tax/payroll-tax-rates-and-thresholds",
             "https://treasury.nt.gov.au/dtf/territory-revenue-office/payroll-tax/payroll-changes-from-1-july-2026",
             "https://legislation.nt.gov.au/en/Legislation/PAYROLL-TAX-ACT-2009",
+        ],
+    ),
+    (
+        "transfer_duty",
+        &[
+            "https://classic.austlii.edu.au/au/legis/nsw/consol_act/da199793/",
+            "https://www.revenue.nsw.gov.au/grants-schemes/assistance-scheme",
+            "https://www.nsw.gov.au/housing-and-construction/buying-and-selling-property/home-buying-assistance/first-home-buyers-assistance-scheme",
+            "https://www.legislation.vic.gov.au/in-force/acts/duties-act-2000/141",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/land-transfer-duty-non-principal-place-residence-current-rates",
+            "https://www.sro.vic.gov.au/buying-property/land-transfer-stamp-duty/concessions-exemptions-and-waivers/first-home-buyers/first-home-buyer-duty-exemption-or-concession",
+            "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-2001-071",
+            "https://qro.qld.gov.au/duties/transfer-duty/calculate/rates/",
+            "https://qro.qld.gov.au/duties/transfer-duty/calculate/concession-rates/",
+            "https://classic.austlii.edu.au/au/legis/wa/consol_act/da200893/sch2.html",
+            "https://www.wa.gov.au/organisation/department-of-treasury-and-finance/transfer-duty-assessment",
+            "https://www.wa.gov.au/government/publications/duties-fact-sheet-first-home-owner-rate",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/stamp-duties-act-1923/current/1923.1569.auth.pdf",
+            "https://revenuesa.sa.gov.au/stamp-duty/rate-of-stamp-duty",
+            "https://www.revenuesa.sa.gov.au/stamp-duty/first-home-buyer-relief/relief-available",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2001-015",
+            "https://www.sro.tas.gov.au/property-transfer-duties/concessions-exemptions/first-home-buyers-of-established-homes-duty-relief",
+            "https://www.legislation.act.gov.au/View/di/2026-155/current/html/2026-155.html",
+            "https://www.legislation.act.gov.au/View/di/2026-157/current/html/2026-157.html",
+            "https://www.revenue.act.gov.au/home-buyer-assistance/home-buyer-concession-scheme/about-the-home-buyer-concession-scheme",
+            "https://legislation.nt.gov.au/en/Legislation/STAMP-DUTY-ACT-1978",
+            "https://nt.gov.au/property/home-owner-assistance/stamp-duty-exemption",
         ],
     ),
     (
@@ -2317,6 +2352,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
             "The annual liability is reconciled against the payroll tax and any surcharge or levy already paid in periodic returns; this worksheet does not make that reconciliation.",
+        ],
+    ),
+    (
+        "transfer_duty",
+        &[
+            "Each revenue office decides whether a transaction is dutiable, its dutiable value and whether a buyer meets a first home concession's conditions; this worksheet takes them as established.",
+            "Only the first home concession asked for is applied; a buyer may be entitled to another concession or exemption, or liable to a foreign purchaser surcharge, which this worksheet does not apply.",
         ],
     ),
     (
@@ -3851,7 +3893,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4579,6 +4621,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "transfer_balance.year_mismatch",
         "The year is not the financial year of the last day worked.",
+    ),
+    (
+        "transfer_duty.buyer_invalid",
+        "buyer is not general, first_home_established or first_home_new.",
+    ),
+    (
+        "transfer_duty.dutiable_value_nil",
+        "The dutiable value is nil.",
+    ),
+    (
+        "transfer_duty.first_home_not_residential",
+        "A first home buyer was given for land that is not wholly residential; the concessions apply to a home.",
+    ),
+    (
+        "transfer_duty.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "transfer_duty.non_residential_unsupported",
+        "Land that is not wholly residential was given in sa or act, whose rates for it this worksheet does not hold.",
     ),
     (
         "voluntary_agreement_withholding.abn_not_quoted",

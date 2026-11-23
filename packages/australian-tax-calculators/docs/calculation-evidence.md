@@ -2246,6 +2246,78 @@ and refusals beside them.
 | $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
 | $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
+## Transfer duty
+
+This worksheet was added on 24 November 2026. Each source was read that day:
+
+- Duties Act 1997 (NSW) ss 32, 32A, 32B, 32C, 33AC, 33AD, 33AF, 74, 78A and
+  273 on AustLII (as at 29 June 2026; s 78A's formula is an image there), as
+  legislation.nsw.gov.au served a challenge; Revenue NSW, 'How to calculate
+  transfer duty' (last updated 6 October 2026: the 2026-27 rates, the premium
+  threshold of $3,870,000 and the $55,537, $203,237 and $14,437 examples) and
+  'First Home Buyers Assistance Scheme'; the NSW Government's table of reduced
+  rates for 1 July 2026 to 30 June 2027. The s 33AF notice for 2026-27 was not
+  read: the figures are Revenue NSW's, and their base amounts check against
+  s 33AD.
+- Duties Act 2000 (Vic), authorised version 141 (24 June 2026), ss 28, 57JA
+  and 57JB; the State Revenue Office's non-principal place of residence rates
+  (updated 29 September 2026) and first home buyer page (updated 20 November
+  2026).
+- Duties Act 2001 (Qld), current as at 22 October 2026, ss 24, 91, 92 and 92A
+  and Schs 3 and 4A; the Queensland Revenue Office's transfer duty rates
+  (updated 25 June 2026) and home concession rates (updated 31 July 2026).
+- Duties Act 2008 (WA) Sch 2 on AustLII, with No. 18 of 2026; the Department
+  of Treasury and Finance's 'Transfer duty assessment' and first home owner
+  rate fact sheet (agreements from 7 May 2026).
+- Stamp Duties Act 1923 (SA), version 15.9.2026, s 71DD and Sch 2; RevenueSA's
+  rate of stamp duty and first home buyer relief pages.
+- Duties Act 2001 (Tas) ss 29, 57C and 57G; the State Revenue Office's page on
+  relief for first home buyers of established homes (not available after 30
+  June 2026).
+- DI2026-155 and DI2026-157 (ACT, from 1 July 2026); the ACT Revenue Office's
+  Home Buyer Concession Scheme page.
+- Stamp Duty Act 1978 (NT), reprint REPS013 (in force at 1 July 2025), s 88A
+  and Sch 1 cl 1(2); NT.GOV.AU's home owner assistance pages.
+
+The site's transfer duty calculator (ryanduguid.github.io, main at dcc7ecbe)
+was run through its own `transferDuty` and `firstHomeDuty` on its 21 cases,
+its Node tests' figures, the 44 worked figures in its Rust oracle, every band
+and first home threshold edge (each edge less 1, the edge and the edge plus 1,
+for the 3 buyers) and 240 seeded values: 925 rows in
+`tests/data/transfer_duty_site_cases.json`. The worksheet gives the same duty,
+general duty and concession on 850 rows and refuses the 1 row the page
+refuses (cents). The other 74, all Victorian, differ only where the Act
+differs from the page:
+
+| Rule | Act | Rows |
+| --- | --- | --- |
+| Victoria's duty is chargeable to the nearest whole dollar, 50 cents down; the page shows the percentage in cents, and s 57JA's share is then of the rounded duty | Duties Act 2000 (Vic) s 28(1) | 74 moved, each by under $1 |
+
+Of the page's own figures, its 21 cases and the oracle's 44 agree; 3 of its
+Node tests' figures move ($350.02 to $350 on $25,001, and the general duty
+beside the first home figures on $600,001 and $750,001).
+
+Other amounts are worked exactly and shown to the cent, half up; the Northern
+Territory's formula is the only scale with fractions of a cent. New South
+Wales' first home bracket is rounded to the cent before it comes off, as
+Revenue NSW's calculator does; s 78A prescribes no rounding.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,350,000 in New South Wales | Revenue NSW: $55,537 | $55,537.00 |
+| $4,000,000 of residential land in New South Wales | Revenue NSW: $203,237 at the premium rate | $203,237.00; $201,287.00 for other land |
+| A first home at $900,000 in New South Wales | NSW Government: $19,593.50 | $19,593.50, with $30,187.00 on $800,000 |
+| $550,000 in Victoria | SRO Victoria: $28,070 | $28,070.00 |
+| A first home at $700,000 in Victoria | Worked by hand from s 57JA: $100,000 / $150,000 x $37,070 | $24,713.33 |
+| $850,000 in Queensland, and a first home at $730,000 and $850,000 | QRO: $31,275, $6,555 and $24,100 | The same |
+| $600,000 in South Australia | RevenueSA: $26,830 | $26,830.00 |
+| $800,000 in Western Australia, and a first home at $700,000 | Worked by hand from Sch 2 | $32,315.50 and $16,150.00 |
+| $1,500,000 in the ACT | Worked by hand: 4.54% of the whole value | $68,100.00 |
+| $500,000 in the Northern Territory | Worked by hand: 0.06571441 x 500^2 + 15 x 500 | $23,928.60 |
+
+`tests/transfer_duty.rs` holds these cases, Victoria's rounding at $3.50,
+$10.50 and $52,805.50, and the refusals.
+
 ## Depreciation
 
 Paragraph ¶6-000 supplies the first-year prime cost and diminishing value

@@ -376,6 +376,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "transfer-duty",
+        &[
+            ("jurisdiction", Raw),
+            ("dutiable_value", Dec),
+            ("buyer", Raw),
+            ("residential", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "payroll-tax",
         &[
             ("jurisdiction", Raw),
@@ -1398,7 +1409,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1468,6 +1479,7 @@ const DERIVED: [&str; 82] = [
     "super-benefit-tax",
     "super-withholding",
     "gst-margin-scheme",
+    "transfer-duty",
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
@@ -1938,6 +1950,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-instalment"
             | "dasp-tax"
             | "super-benefit-tax"
+            | "transfer-duty"
             | "super-withholding"
             | "payroll-tax"
             | "gst-margin-scheme"
@@ -2275,6 +2288,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[6],
             })
         }
+        "transfer-duty" => engine::transfer_duty(&engine::TransferDutyArgs {
+            jurisdiction: &a[0],
+            dutiable_value: &a[1],
+            buyer: &a[2],
+            residential: &a[3],
+            year: &a[4],
+            scope_confirmed: &a[5],
+        }),
         "gst-margin-scheme" => {
             // Optional: each method's base, its valuation facts and a
             // subdivided lot's share.

@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 81] = [
+const DERIVED: [&str; 82] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -88,6 +88,7 @@ const DERIVED: [&str; 81] = [
     "super-benefit-tax",
     "super-withholding",
     "gst-margin-scheme",
+    "transfer-duty",
     "etp-tax-free-component",
     "payroll-tax",
     "cgt-parcels",
@@ -524,6 +525,34 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "date_of_birth": "1980-01-01", "terminal_medical_condition": false,
                    "disability_superannuation_benefit": false, "tfn_provided": false,
                    "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Transfer duty: the NSW Government's first home figure on $900,000,
+        // Victoria's s 28(1) rounding on $25,001, a Queensland first home on
+        // $730,000 (the QRO's $6,555) and the Northern Territory's formula on
+        // $500,000.
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "nsw", "dutiable_value": "900000",
+                   "buyer": "first_home_established", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "vic", "dutiable_value": "25001",
+                   "buyer": "general", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "qld", "dutiable_value": "730000",
+                   "buyer": "first_home_established", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "nt", "dutiable_value": "500000",
+                   "buyer": "first_home_new", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
         ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
@@ -2467,7 +2496,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
     );
 }
 

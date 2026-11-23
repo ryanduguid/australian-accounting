@@ -4901,6 +4901,8 @@ pub use super_benefit_tax::{
     SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs, super_benefit_tax,
     super_withholding,
 };
+mod transfer_duty;
+pub use transfer_duty::{TransferDutyArgs, transfer_duty};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod luxury_car_tax;
@@ -6292,7 +6294,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 117] = [
+const KINDS: [&str; 118] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6312,6 +6314,7 @@ const KINDS: [&str; 117] = [
     "franking_account",
     "dasp_tax",
     "super_benefit_tax",
+    "transfer_duty",
     "super_withholding",
     "payroll_tax",
     "fbt",

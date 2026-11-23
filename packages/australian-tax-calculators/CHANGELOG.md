@@ -4,6 +4,16 @@
 
 ### Added
 
+- `transfer-duty`: transfer duty on one dutiable transaction in 2026-27 in each
+  of the 8 states and territories, at the general rate or with an eligible
+  first home buyer's concession for an established or new home. It mirrors
+  the site's transfer duty calculator and agrees with it on every case except
+  Victoria's, which Duties Act 2000 (Vic) s 28(1) charges to the nearest
+  dollar. New codes: `transfer_duty.buyer_invalid`,
+  `transfer_duty.dutiable_value_nil`,
+  `transfer_duty.first_home_not_residential`,
+  `transfer_duty.jurisdiction_invalid` and
+  `transfer_duty.non_residential_unsupported`. `derive` takes it.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an
