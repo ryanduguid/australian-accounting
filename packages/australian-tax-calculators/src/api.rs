@@ -380,6 +380,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "foreign-purchaser-surcharge",
+        &[
+            ("jurisdiction", Raw),
+            ("property_use", Raw),
+            ("dutiable_value", Dec),
+            ("foreign_purchaser", Raw),
+            ("land_value", Dec),
+            ("foreign_owner", Raw),
+            ("owner", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "dasp-tax",
         &[
             ("tax_free_component", Dec),
@@ -1566,7 +1580,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 91] = [
+const DERIVED: [&str; 92] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1633,6 +1647,7 @@ const DERIVED: [&str; 91] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "foreign-purchaser-surcharge",
     "dasp-tax",
     "super-benefit-tax",
     "super-withholding",
@@ -2135,6 +2150,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "trade-in"
             | "fbt-ev-exemption-check"
             | "fbt-instalment"
+            | "foreign-purchaser-surcharge"
             | "dasp-tax"
             | "super-benefit-tax"
             | "transfer-duty"
@@ -2496,6 +2512,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 tfn_provided: &a[6],
                 foreign_resident: &a[7],
                 stream: stream.each_ref().map(Option::as_ref),
+            })
+        }
+        "foreign-purchaser-surcharge" => {
+            engine::foreign_purchaser_surcharge(&engine::ForeignPurchaserSurchargeArgs {
+                jurisdiction: &a[0],
+                property_use: &a[1],
+                dutiable_value: &a[2],
+                foreign_purchaser: &a[3],
+                land_value: &a[4],
+                foreign_owner: &a[5],
+                owner: &a[6],
+                year: &a[7],
+                scope_confirmed: &a[8],
             })
         }
         "dasp-tax" => engine::dasp_tax(&engine::DaspTaxArgs {
