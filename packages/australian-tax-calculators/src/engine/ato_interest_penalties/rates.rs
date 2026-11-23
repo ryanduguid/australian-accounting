@@ -8,7 +8,7 @@
 use crate::dates;
 
 /// The last day of the last quarter the ATO has published (both tables).
-pub(super) const TABLE_END: &str = "2026-12-31";
+pub(in crate::engine) const TABLE_END: &str = "2026-12-31";
 
 /// The base interest rate is the GIC rate less 7 points (TAA 1953
 /// s 8AAD(1)), in hundredths of 1%.
@@ -251,7 +251,7 @@ fn on(table: &[(&str, u32)], day: i64, end: Option<i64>) -> Option<u32> {
         .map(|(_, value)| *value)
 }
 
-pub(super) fn table_end() -> i64 {
+pub(in crate::engine) fn table_end() -> i64 {
     dates::parse(TABLE_END).expect("table end")
 }
 
@@ -260,15 +260,15 @@ pub(super) fn first_day(table: &[(&str, u32)]) -> i64 {
 }
 
 /// The annual rate in hundredths of 1% for `day`, if published.
-pub(super) fn gic(day: i64) -> Option<u32> {
+pub(in crate::engine) fn gic(day: i64) -> Option<u32> {
     on(&GIC, day, Some(table_end()))
 }
 
-pub(super) fn sic(day: i64) -> Option<u32> {
+pub(in crate::engine) fn sic(day: i64) -> Option<u32> {
     on(&SIC, day, Some(table_end()))
 }
 
-pub(super) fn base(day: i64) -> Option<u32> {
+pub(in crate::engine) fn base(day: i64) -> Option<u32> {
     gic(day).map(|rate| rate - GIC_UPLIFT)
 }
 

@@ -462,12 +462,14 @@ class ApplicationGateTests(unittest.TestCase):
             selector = ci.SELECTORS.get(app, "changes")
             for selection, result in (("true", "success"), ("false", "skipped")):
                 success = {name: {"result": result} for name in app_jobs}
+                if app == "aus-accounting-mcp":
+                    success["test"] = {"result": "success"}
                 success.update({selector: {"result": "success", "outputs": {"run": selection}}},
                                packages={"result": "success"}, future={"result": "success"})
                 ci.check_results(success, "pull_request", app)
                 for name in success:
                     for bad in ("failure", "cancelled", "skipped", "success", "unknown", None):
-                        expected = result if name in app_jobs else "success"
+                        expected = success[name]["result"]
                         if bad == expected:
                             continue
                         with self.subTest(selection=selection, name=name, bad=bad):
@@ -505,6 +507,7 @@ class ApplicationGateTests(unittest.TestCase):
         app_jobs, crate_jobs = ci.SELECTED_JOBS["aus-accounting-mcp"], ci.SELECTED_JOBS["crates"]
         for app_run, crates_run in (("true", "false"), ("false", "true"), ("false", "false")):
             results = {name: {"result": "success" if app_run == "true" else "skipped"} for name in app_jobs}
+            results["test"] = {"result": "success"}
             results |= {name: {"result": "success" if crates_run == "true" else "skipped"} for name in crate_jobs}
             results |= {"changes": {"result": "success", "outputs": {"run": app_run}},
                         "crates": {"result": "success", "outputs": {"run": crates_run}},
@@ -528,6 +531,8 @@ class ApplicationGateTests(unittest.TestCase):
             shutil.copytree(CHECK.parent, root / ".github/ci", ignore=shutil.ignore_patterns("__pycache__"))
             for app, app_jobs in application_ci().SELECTED_JOBS.items():
                 results = {name: {"result": "skipped"} for name in app_jobs}
+                if app == "aus-accounting-mcp":
+                    results["test"] = {"result": "success"}
                 results[application_ci().SELECTORS.get(app, "changes")] = {"result": "success", "outputs": {"run": "false"}}
                 for raw, gate, expected in ((json.dumps(results), [app], 0), ("{invalid", [app], 1),
                                             ("null", [app], 1), (json.dumps(results), [], 2),
@@ -551,6 +556,7 @@ class GateWiringTests(unittest.TestCase):
         self.assertIn("python-matrix: ${{ steps.python-matrix.outputs.matrix }}", selection)
         self.assertIn('run: python3 .github/ci/app_ci.py mcp-python-matrix >> "$GITHUB_OUTPUT"', selection)
         self.assertIn("matrix: ${{ fromJSON(needs.changes.outputs.python-matrix) }}", test)
+        self.assertIn("CI_APP_SELECTED: ${{ steps.select.outputs.run }}", selection)
         self.assertIn("matrix.python == '3.14' && '--cov-report=xml:coverage-codecov.xml'", test)
         upload = test.split("      - name: keep the coverage report", 1)[1]
         self.assertIn("if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'", upload)
@@ -577,6 +583,26 @@ class GateWiringTests(unittest.TestCase):
                 self.assertTrue(done.stdout.startswith("matrix="))
                 self.assertEqual(json.loads(done.stdout.removeprefix("matrix=")), {"include": expected})
 
+    def test_unrelated_pull_request_keeps_both_python_coverage_uploads(self) -> None:
+        done = subprocess.run(
+            [sys.executable, str(CHECK.parent / "app_ci.py"), "mcp-python-matrix"],
+            env={**os.environ, "GITHUB_EVENT_NAME": "pull_request", "CI_APP_SELECTED": "false"},
+            check=True, capture_output=True, text=True,
+        )
+        self.assertEqual(json.loads(done.stdout.removeprefix("matrix=")), {
+            "include": [{"os": "ubuntu-latest", "python": "3.14"}],
+        })
+        package = (WORKFLOWS / "ci-package.yml").read_text(encoding="utf-8")
+        test = job_block(package, "test")
+        self.assertNotIn("    if:", test.split("    steps:", 1)[0])
+        self.assertIn("needs.test.result != 'success'", job_block(package, "gates"))
+        for name in ("ci.yml", "ci-package.yml"):
+            workflow = (WORKFLOWS / name).read_text(encoding="utf-8")
+            upload = job_block(workflow, "codecov")
+            self.assertIn("needs: test", upload)
+            self.assertIn("github.event_name == 'pull_request'", upload)
+            self.assertIn("fail_ci_if_error: true", upload)
+
     def test_engine_diff_uses_nul_paths_and_root_retains_its_component_suites(self) -> None:
         package = (WORKFLOWS / "ci-package.yml").read_text(encoding="utf-8")
         self.assertIn('git diff --name-only --no-renames -z "$BASE" "$HEAD" --', package)
@@ -598,7 +624,10 @@ class GateWiringTests(unittest.TestCase):
             for name in application_ci().SELECTED_JOBS[app]:
                 job = job_block(text, name)
                 self.assertIn("needs: changes\n", job)
-                self.assertIn("if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'", job)
+                condition = "if: needs.changes.result == 'success'"
+                if (app, name) != ("aus-accounting-mcp", "test"):
+                    condition += " && needs.changes.outputs.run == 'true'"
+                self.assertIn(condition + "\n", job)
                 self.assertNotIn("continue-on-error", job)
             gate = gate_job(workflow, GATES[workflow])
             selections = f"{app} crates" if workflow == "ci.yml" else app

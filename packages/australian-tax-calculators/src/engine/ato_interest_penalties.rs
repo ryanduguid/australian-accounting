@@ -20,7 +20,7 @@ use serde_json::{Map, Value, json};
 mod charges;
 mod credit;
 mod penalties;
-mod rates;
+pub(super) mod rates;
 
 use super::{Arg, Result, d, refuse, scope, stated};
 use crate::dates;

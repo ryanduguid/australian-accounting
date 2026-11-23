@@ -3735,6 +3735,7 @@ pub fn contribution_caps(
     under_75_in_year: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    determination_date: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "contribution_caps")?;
     let balance = money(total_super_balance)?;
@@ -3759,6 +3760,7 @@ pub fn contribution_caps(
         steps,
         (&non_concessional, *under_75),
         Vec::new(),
+        determination_date,
     )
 }
 
@@ -3770,25 +3772,14 @@ fn caps_result(
     mut steps: Vec<Step>,
     (non_concessional, under_75): (&Decimal, bool),
     more_rates: Vec<(String, String)>,
+    determination_date: Option<&Arg>,
 ) -> Result<Value> {
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
+    let mut release_warning = None;
     let rates = precise(|| {
         let (cap, transfer) = (d(cap), d(transfer));
         let annual = cap.mul(&int(4))?;
-        // s 292-85: nil at or above the transfer balance cap; otherwise the
-        // balance band sets how many annual caps the first year can bring forward.
-        let multiple: i64 = if balance.compare(&transfer)?.is_ge() {
-            0
-        } else if !under_75 || balance.compare(&transfer.sub(&annual)?)?.is_ge() {
-            1
-        } else if balance
-            .compare(&transfer.sub(&annual.mul(&int(2))?)?)?
-            .is_ge()
-        {
-            2
-        } else {
-            3
-        };
+        let multiple = bring_forward_multiple(balance, &transfer, &annual, under_75)?;
         let triggered = multiple > 1 && non_concessional.gt(&annual)?;
         steps.extend(non_concessional_steps(
             non_concessional,
@@ -3811,9 +3802,53 @@ fn caps_result(
             ),
         ];
         rates.extend(more_rates);
+        if let Some(date) = determination_date {
+            release_warning = Some(add_release(&mut steps, &mut rates, year, date)?);
+        }
         Ok(rates)
     })?;
-    derived_result("contribution_caps", year, steps, rates)
+    let mut out = derived_result("contribution_caps", year, steps, rates)?;
+    if let Some(warning) = release_warning {
+        ato_interest_penalties::warn(&mut out, warning);
+    }
+    Ok(out)
+}
+
+/// s 292-85: nil at or above the transfer balance cap; otherwise the balance
+/// band sets how many annual caps the first year can bring forward.
+fn bring_forward_multiple(
+    balance: &Decimal,
+    transfer: &Decimal,
+    annual: &Decimal,
+    under_75: bool,
+) -> Result<i64> {
+    Ok(if balance.compare(transfer)?.is_ge() {
+        0
+    } else if !under_75 || balance.compare(&transfer.sub(annual)?)?.is_ge() {
+        1
+    } else if balance
+        .compare(&transfer.sub(&annual.mul(&int(2))?)?)?
+        .is_ge()
+    {
+        2
+    } else {
+        3
+    })
+}
+
+/// Appends the release of the excess non-concessional contributions (the
+/// last step) to `determination_date`, returning the ATO-figures warning.
+fn add_release(
+    steps: &mut Vec<Step>,
+    rates: &mut Vec<(String, String)>,
+    year: &str,
+    date: &Arg,
+) -> Result<String> {
+    let excess = steps.last().expect("the excess").value.clone();
+    let (more, release_rates, warning) = excess_contributions::release_steps(&excess, year, date)?;
+    steps.extend(more);
+    rates.extend(release_rates);
+    Ok(warning)
 }
 
 /// The concessional amounts. s 291-20(3)-(4): the unused cap raises this
@@ -4542,12 +4577,7 @@ fn income_year_start(first: i64) -> i64 {
 /// loan first drawn on 29 February 2024 has its 5 years end on 28 February
 /// 2029, as they would by the anniversary.
 fn five_years_end(start: i64) -> i64 {
-    let same_day = dates::add_months(start, 60);
-    if dates::to_civil(same_day).2 == dates::to_civil(start).2 {
-        same_day - 1
-    } else {
-        same_day
-    }
+    dates::months_end(start, 60)
 }
 
 /// One income year of the spread under s 25-25(4).
@@ -6165,6 +6195,8 @@ mod government_super_amounts;
 pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod alcohol_excise;
+pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
@@ -6184,6 +6216,10 @@ mod work_expenses;
 pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
+mod excess_contributions;
+pub use excess_contributions::excess_contributions;
+mod transfer_balance;
+pub use transfer_balance::transfer_balance;
 
 mod private_health_insurance_rebate;
 pub use private_health_insurance_rebate::{PhiRebateArgs, private_health_insurance_rebate};
@@ -6196,6 +6232,10 @@ mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
 };
+mod trading_stock;
+pub use trading_stock::{TradingStockArgs, trading_stock};
+mod prepayments;
+pub use prepayments::{PrepaymentsArgs, prepayments};
 mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
@@ -6227,10 +6267,20 @@ pub use gst_adjustments::{
 };
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod foreign_income_conversion;
+pub use foreign_income_conversion::foreign_income_conversion;
+mod foreign_income_tax_offset;
+pub use foreign_income_tax_offset::{
+    FITO_OPTIONAL, ForeignIncomeTaxOffsetArgs, foreign_income_tax_offset,
+};
+mod minors_income;
+pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
+mod smsf_tax;
+pub use smsf_tax::smsf_tax;
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 103] = [
+const KINDS: [&str; 112] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6302,9 +6352,12 @@ const KINDS: [&str; 103] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "alcohol_excise",
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",
+    "transfer_balance",
+    "excess_contributions",
     "private_health_insurance_rebate",
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
@@ -6333,6 +6386,12 @@ const KINDS: [&str; 103] = [
     "gst_bad_debt",
     "deferred_tax",
     "cgt_cost_base_adjustments",
+    "foreign_income_conversion",
+    "foreign_income_tax_offset",
+    "trading_stock",
+    "prepayments",
+    "minors_income",
+    "smsf_tax",
     "help_indexation",
 ];
 

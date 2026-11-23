@@ -29,7 +29,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/income_tests.rs`,
-/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`,
+/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/alcohol_excise.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/private_health_insurance_rebate.rs`, `tests/depreciation_pools.rs`,
 /// `tests/withholding_schedules.rs`, `tests/payment_withholding.rs`,
@@ -39,13 +39,21 @@ use std::process::{Command, Stdio};
 /// `tests/psi_test.rs`, `tests/rental_property.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`,
-/// `tests/cgt_cost_base_adjustments.rs` and `tests/help_indexation.rs` cover them.
-const NEW_KINDS: [(&str, &str); 89] = [
+/// `tests/cgt_cost_base_adjustments.rs`, `tests/foreign_income_conversion.rs`,
+/// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
+/// `tests/minors_income.rs`, `tests/smsf_tax.rs` and
+/// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
+/// `transfer-balance` and `excess-contributions`.
+const NEW_KINDS: [(&str, &str); 98] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
     ("fhss", "fhss"),
+    ("trading-stock", "trading_stock"),
+    ("prepayments", "prepayments"),
     ("ato-interest-penalties", "ato_interest_penalties"),
+    ("transfer-balance", "transfer_balance"),
+    ("excess-contributions", "excess_contributions"),
     ("ppsr-timing", "ppsr_timing"),
     ("dasp-tax", "dasp_tax"),
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
@@ -74,6 +82,7 @@ const NEW_KINDS: [(&str, &str); 89] = [
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
+    ("alcohol-excise", "alcohol_excise"),
     ("cgt-parcels", "cgt_parcels"),
     ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
@@ -94,6 +103,8 @@ const NEW_KINDS: [(&str, &str); 89] = [
     ),
     ("non-commercial-losses", "non_commercial_losses"),
     ("psi-test", "psi_test"),
+    ("minors-income", "minors_income"),
+    ("smsf-tax", "smsf_tax"),
     ("beneficiary-tax-offset", "beneficiary_tax_offset"),
     ("invalid-carer-tax-offset", "invalid_carer_tax_offset"),
     ("zone-tax-offset", "zone_tax_offset"),
@@ -136,6 +147,8 @@ const NEW_KINDS: [(&str, &str); 89] = [
     ("gst-second-hand-goods", "gst_second_hand_goods"),
     ("gst-bad-debt", "gst_bad_debt"),
     ("deferred-tax", "deferred_tax"),
+    ("foreign-income-conversion", "foreign_income_conversion"),
+    ("foreign-income-tax-offset", "foreign_income_tax_offset"),
     ("division-296", "division_296"),
     ("termination-payment", "termination_payment"),
     ("etp-tax-free-component", "etp_tax_free_component"),
