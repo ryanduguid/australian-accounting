@@ -4606,6 +4606,102 @@ Choices the Act leaves to the reader:
 | 2024-25, a $1,000 debt in September 2024 less $200 repaid | s 140-26(2) | $640 |
 | 2 debts of $0.60 in one group, then in 2 | s 140-25(1A) | $1, then nil; without groups, refused |
 
+## Defined benefit income cap
+
+This command was added on 24 November 2026. ITAA 1997 Subdivision 303-A and
+ss 301-100 and 302-85 were read that day in the ATO's legal database, and
+against compilation 170 (1 July 2017) for 2017-18. LCR 2017/1 (28 April 2017)
+works the same text in its Examples 2 to 6, and the tests reproduce each. The
+general transfer balance cap for each year is the ATO's 'Transfer balance cap'
+page: $1.6 million to 2020-21, $1.7 million for 2021-22 and 2022-23, $1.9
+million for 2023-24 and 2024-25, $2 million for 2025-26 and $2.1 million for
+2026-27. 2027-28 is refused: its cap is not published.
+
+- s 303-4(2) counts the days remaining in the year after the first day, then
+  adds 1; LCR 2017/1 Example 2 gives $49,590 for 1 January 2018.
+- s 303-4(3) reduces the cap by defined benefit income that gets no
+  concessional treatment, but not below nil (LCR 2017/1 paragraph 61).
+- The amounts are to the cent; the cap is in whole dollars, rounded up.
+
+## Foreign pension UPP
+
+This command was added on 24 November 2026. ITAA 1936 s 27H was read that day
+in the ATO's legal database and in the 11 May 2007 compilation, which holds the
+same text for 2007-08. The Income Tax Assessment (1936 Act) Regulations 2025
+s 7 prescribes the Life Tables for the life expectation factor. The shortcuts
+are the ATO's individual supplementary tax return instructions 2026, D11.
+
+Choices the Act leaves to the reader:
+
+- The ATO publishes no calculator and no numeric example for a foreign
+  pension: it determines the amount by private ruling (NAT 16543). The command
+  works s 27H(2) from the operator's figures and warns of this.
+- The command does not hold the Life Tables or translate currency: the factor
+  and the Australian dollar amounts are inputs.
+- s 27H(2) gives an amount for a year of income with no rule for part of a
+  year; part years are refused. A commuted annuity (s 27H(3A)) and any
+  relevant number other than a term of years or one life are the
+  Commissioner's and are refused.
+- The D11 shortcuts were found for 2025-26 only; earlier years use `formula`.
+- The amount is kept to the cent; the Act gives no rounding rule.
+
+## Scholarship exemption
+
+This command was added on 24 November 2026. ITAA 1997 s 51-10 item 2.1A and
+s 51-35 were read that day in compilation 268 and in compilation 170 (1 July
+2017): the text is the same. The ATO's 'Scholarship payments' page gives 6
+examples, and the tests reproduce each: Jenny (exempt), Henry (an employment
+condition), Kirra (part time), AAA University's vet students (work experience
+in the course, exempt), Megan (exempt) and Diego (not principally educational).
+
+- The Commonwealth payments s 51-35(a), (b) and (f) name fall outside item
+  2.1A and may be exempt under item 2.1B or Subdivisions 52-E and 52-F; they
+  are refused, as the ATO's tool leaves them out. Commonwealth funding alone
+  is not one of them: a scholarship the Commonwealth funds or pays takes
+  `commonwealth_payment: none` and is tested like any other.
+- Friendly society scholarship plans are refused: the ATO says some of their
+  benefits are taxable, and its tool does not test them.
+
+## Super crystallisation
+
+This command was added on 24 November 2026. ITTPA 1997 s 307-225 was read that
+day in the ATO's legal database, and former ITAA 1936 ss 27A and 27AA in the 19
+February 2007 compilation, the law just before 1 July 2007. The pre-July 83
+component is s 27AA(1)(d): the lesser of (ETP - C - IC - NQ - EC - CGT) x
+pre-July 83 days over all days, and that amount less undeducted
+contributions.
+
+- The ATO's 'Calculating components of a super benefit' example 9 counts both
+  the first and last days (2,191 days from 1 July 1977 to 30 June 1983); the
+  command counts the same way to 30 June 2007.
+- NQ (an immediate annuity's non-qualifying component) and EC (the excessive
+  component under the reasonable benefit limits) are taken as nil, as the
+  ATO's crystallisation calculator takes neither.
+- The ATO publishes no numeric crystallisation example; the tests use
+  hand-worked cases of the formula. The page rounds $37,037.34 to $37,038
+  and says the law gives no rounding rule; the command keeps cents.
+- A defined benefit interest's value comes from the regulations' method; it is
+  an input.
+
+## Endorsement review
+
+This command was added on 24 November 2026. The worksheets are the ATO's NAT
+74110-02.2021, NAT 11685-02.2021 and NAT 11686-02.2021. Each question is tied
+to the provision it tests as the ATO's legal database gave it that day: ITAA
+1997 ss 30-15 item 1, 30-125, 30-130, 30-228, 50-5, 50-47, 50-50 and 50-110,
+and TAA 1953 Sch 1 ss 426-45 and 426-55.
+
+- The worksheet tells an entity without a winding up clause to amend its
+  documents. s 30-125(1)(c) makes the clause a condition of entitlement, so a
+  'No' gives `not_entitled`, with the notice s 426-45(1) requires and the
+  amendment. An entity established by an Act that does not provide for its
+  winding up meets the condition without a clause and answers yes.
+- A cancelled ABN ends the endorsement without notice from the entity (s
+  426-45(3)); every other 'No' that ends entitlement needs written notice.
+- Act No. 58 of 2026 repealed s 30-15 item 1 condition (b), the $2 minimum
+  gift, a donor-side rule the worksheets do not ask about.
+- Only 2026-27 is supported: the provisions were read as at 24 November 2026.
+
 ## Non-commercial losses
 
 This worksheet was added on 22 November 2026. ITAA 1997 Division 35 was read

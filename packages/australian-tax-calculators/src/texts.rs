@@ -494,6 +494,26 @@ pub const SCOPES: &[(&str, &str)] = &[
         "help_indexation",
         "One person's accumulated HELP debt under HESA Division 140 for 1 June 2020 to 1 June 2026 (financial years 2019-20 to 2025-26): the preceding accumulated debt, debts incurred in the last 6 months of the preceding year, voluntary and compulsory repayments and amended assessments in the period, indexation at the ATO's published factor, the 20% reduction of ss 137-19A and 140-26 for 2025, debts incurred in the first 6 months of the year and the s 140-30 rounding; and what a voluntary repayment's timing does to the result. The operator supplies the balance, debts, repayments and compulsory repayment amounts; the command never estimates them. It does not take a location-preferred HELP debtor's reduced indexation or reduction, other study and training loans (VET Student Loans Act, SSL, ABSTUDY SSL, AASL, SFSS), payment processing time or HELP balance re-credits.",
     ),
+    (
+        "defined_benefit_income_cap",
+        "The defined benefit income cap of one person for an income year from 2017-18 to 2026-27 (ITAA 1997 s 303-4), the 50% of the excess that is assessable (s 303-2) and the untaxed element offset after its reduction (s 303-3, with ss 301-100(2) and 302-85(2)). Which benefits are defined benefit income, and which get concessional treatment, are the operator's statements in the amounts given; the person's other income, tax and the transfer balance cap are not worked out.",
+    ),
+    (
+        "foreign_pension_upp",
+        "The deductible amount of the undeducted purchase price of one foreign pension or annuity for an income year: ITAA 1936 s 27H(2) from the stated purchase price, residual capital value and relevant number (2007-08 to 2026-27), or the ATO's 2026 D11 shortcuts for a UK State Pension or a Dutch SVB pension (2025-26 only), with the amount excluded and the assessable rest. It does not hold the Life Tables, apportion a part year, translate currency or make the Commissioner's determination under s 27H(3) or (3A).",
+    ),
+    (
+        "scholarship_exemption",
+        "Whether one scholarship, bursary, educational allowance or educational assistance paid to or for a student in an income year from 2017-18 to 2026-27 is exempt under ITAA 1997 s 51-10 item 2.1A, given the student's stated facts against s 51-35(c) to (e). The Commonwealth education and training payments s 51-35(a), (b) and (f) exclude, and friendly society plans, are refused, as the ATO's tool leaves them out; a scholarship the Commonwealth funds or pays is otherwise tested like any other.",
+    ),
+    (
+        "super_crystallisation",
+        "The crystallised segment of one taxed superannuation interest just before 1 July 2007 (ITTPA 1997 s 307-225): the stated concessional, post-June 1994 invalidity and CGT exempt components and undeducted contributions, with the pre-July 83 component worked out under former ITAA 1936 s 27AA(1)(d), and the taxable component left. Interests from an untaxed source and income streams first paid before 1 July 2007 are refused; the components are the fund's records, not worked out.",
+    ),
+    (
+        "endorsement_review",
+        "One of the ATO's 3 endorsement review worksheets (income tax exempt charities, Worksheet 1 for a DGR endorsed as a whole, Worksheet 2 for a DGR endorsed for a fund, authority or institution) from the entity's own yes or no answers, each tied to the provision it tests as read on 24 November 2026, with what each 'No' means and what to do. It checks no register; use dgr-check for a recipient's listed DGR status.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -973,6 +993,26 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "help_indexation",
         "https://www.ato.gov.au/tax-rates-and-codes/study-and-training-loan-indexation-rates",
+    ),
+    (
+        "defined_benefit_income_cap",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/303-4",
+    ),
+    (
+        "foreign_pension_upp",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19360027/27H",
+    ),
+    (
+        "scholarship_exemption",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/pdf/2",
+    ),
+    (
+        "super_crystallisation",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/307-225",
+    ),
+    (
+        "endorsement_review",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/30-125",
     ),
 ];
 
@@ -2239,6 +2279,49 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/individuals-and-families/study-and-training-support-loans/voluntary-repayments",
         ],
     ),
+    (
+        "defined_benefit_income_cap",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/303-2",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/303-3",
+            "https://www.ato.gov.au/law/view/document?DocID=COG/LCR20171/NAT/ATO/00001",
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/transfer-balance-cap",
+        ],
+    ),
+    (
+        "foreign_pension_upp",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2007-05-11/2007-05-11/text/original/pdf/1",
+            "https://www.legislation.gov.au/F2025L01060/asmade/2025-09-09/text/original/pdf",
+            "https://www.ato.gov.au/forms-and-instructions/individual-supplementary-tax-return-2026-instructions/deduction-questions-d11-d15-supplementary-tax-return-2026/d11-deductible-amount-of-upp-of-a-foreign-pension-or-annuity-2026",
+        ],
+    ),
+    (
+        "scholarship_exemption",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2017-07-01/2017-07-01/text/original/pdf/2",
+            "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/scholarships-prizes-and-awards/scholarship-payments",
+            "https://www.ato.gov.au/calculators-and-tools/is-my-scholarship-taxable",
+        ],
+    ),
+    (
+        "super_crystallisation",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/2007-02-19/2007-02-19/text/original/pdf/1",
+            "https://www.ato.gov.au/tax-and-super-professionals/for-superannuation-professionals/apra-regulated-funds/managing-member-benefits/managing-and-calculating-member-benefits/calculating-components-of-a-super-benefit",
+            "https://www.ato.gov.au/calculators-and-tools/super-crystallisation-calculator",
+        ],
+    ),
+    (
+        "endorsement_review",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/50-50",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/Sch1-426-45",
+            "https://www.ato.gov.au/calculators-and-tools/charities-income-tax-exempt-charities-endorsement-review-worksheet",
+            "https://www.ato.gov.au/calculators-and-tools/charities-review-of-a-dgr-endorsed-as-a-whole-worksheet-1",
+            "https://www.ato.gov.au/calculators-and-tools/charities-review-of-a-dgr-endorsed-as-a-part-of-an-organisation-worksheet-2",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -2616,6 +2699,36 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "A repayment counts from the day the ATO receives and processes it: the ATO says electronic and Australia Post payments can take up to 4 business days, and indexation applies if a payment is not received and processed before 1 June. This command takes the dates as given.",
             "The factors are the ATO's published rates plus one; the CPI and WPI factors behind them were not recomputed from ABS index numbers here.",
+        ],
+    ),
+    (
+        "defined_benefit_income_cap",
+        &[
+            "Whether an income stream is a capped defined benefit income stream, and whether each benefit gets concessional treatment, are your statements; ask the fund, which reports them on the PAYG payment summary.",
+        ],
+    ),
+    (
+        "foreign_pension_upp",
+        &[
+            "The ATO decides a foreign pension's deductible amount by private ruling on a request for a determination (NAT 16543); the formula's amount rests on the purchase price and relevant number you give, and the Commissioner may find it inappropriate (s 27H(3)).",
+        ],
+    ),
+    (
+        "scholarship_exemption",
+        &[
+            "Whether the student is full-time, the payment's conditions and its educational purpose are your judgements on the scholarship agreement; the ATO's examples show how it reads work experience.",
+        ],
+    ),
+    (
+        "super_crystallisation",
+        &[
+            "The non-qualifying and excessive components are taken as nil, as the ATO's calculator takes neither; the pre-July 83 component is shown to the cent, the law giving no rounding rule.",
+        ],
+    ),
+    (
+        "endorsement_review",
+        &[
+            "The worksheets date from 2021; each answer is tied to the provision as read on 24 November 2026, and conditions they do not ask about are listed under not_asked.",
         ],
     ),
 ];
@@ -3247,6 +3360,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "unrecognised_used is more than opening_unrecognised_deductible.",
     ),
     (
+        "defined_benefit_income_cap.first_day_outside_year",
+        "first_day is not in the income year.",
+    ),
+    (
         "depreciation.precision_exceeded",
         "An effective life's significant digits and the taxable use's decimal places total more than 22.",
     ),
@@ -3257,6 +3374,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "derivation.unsupported",
         "derive was asked to explain a command whose amounts it does not derive.",
+    ),
+    (
+        "endorsement_review.answers_invalid",
+        "answers is not an object of exactly the worksheet's booleans.",
+    ),
+    (
+        "endorsement_review.worksheet_invalid",
+        "worksheet is not one of the 3 endorsement review worksheets.",
     ),
     (
         "entertainer_withholding.foreign_resident_tfn",
@@ -3625,6 +3750,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "foreign_income_tax_offset.worked_year",
         "The worked limit was asked for a year resident-tax has no rates for.",
+    ),
+    (
+        "foreign_pension_upp.commuted",
+        "Part of the annuity has been commuted (ITAA 1936 s 27H(3A)).",
+    ),
+    (
+        "foreign_pension_upp.method_invalid",
+        "method is not formula, uk_state_pension or dutch_svb_fallback.",
+    ),
+    (
+        "foreign_pension_upp.method_year_unsupported",
+        "A shortcut method was asked for a year other than 2025-26.",
+    ),
+    (
+        "foreign_pension_upp.part_year",
+        "The annuity was not derived for the whole income year, which s 27H(2) does not apportion.",
+    ),
+    (
+        "foreign_pension_upp.relevant_number_invalid",
+        "relevant_number is not a term of years or a life expectation factor above 0.",
+    ),
+    (
+        "foreign_pension_upp.residual_exceeds_price",
+        "The residual capital value exceeds the undeducted purchase price.",
+    ),
+    (
+        "foreign_pension_upp.share_invalid",
+        "total_annuity_derived is less than annuity_derived or under $1.",
+    ),
+    (
+        "foreign_pension_upp.uk_category_invalid",
+        "uk_category is not a, b_widow, c or d.",
     ),
     (
         "foreign_resident_withholding.asset_unsupported",
@@ -4040,7 +4197,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4718,6 +4875,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The asset is a share in a company or an interest in a trust, whose additional basic conditions the worksheet does not work out.",
     ),
     (
+        "scholarship_exemption.commonwealth_payment",
+        "The payment is one of the Commonwealth payments ITAA 1997 s 51-35(a), (b) or (f) excludes from item 2.1A.",
+    ),
+    (
+        "scholarship_exemption.commonwealth_payment_invalid",
+        "commonwealth_payment is not one of its 4 values.",
+    ),
+    (
+        "scholarship_exemption.friendly_society_plan",
+        "The payment is an education benefit under a friendly society scholarship plan.",
+    ),
+    (
+        "scholarship_exemption.payment_type_invalid",
+        "payment_type is not a payment item 2.1A covers.",
+    ),
+    (
         "scope.not_confirmed",
         "The stated scope conditions were not confirmed.",
     ),
@@ -4776,6 +4949,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_benefit_tax.recipient_invalid",
         "recipient is not member, death_benefits_dependant or non_dependant.",
+    ),
+    (
+        "super_crystallisation.components_exceed_value",
+        "The stated components and undeducted contributions add to more than the interest's value.",
+    ),
+    (
+        "super_crystallisation.dates_invalid",
+        "eligible_service_start is after 30 June 2007.",
+    ),
+    (
+        "super_crystallisation.income_stream_before_july_2007",
+        "The interest supports an income stream first paid before 1 July 2007 (ITTPA 1997 s 307-125).",
+    ),
+    (
+        "super_crystallisation.untaxed_source",
+        "The interest is from an untaxed source (ITTPA 1997 s 307-225(3)).",
     ),
     (
         "super_withholding.capped_defined_benefit",
