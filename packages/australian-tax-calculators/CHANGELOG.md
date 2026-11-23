@@ -169,12 +169,6 @@
   `help_indexation.repayments_exceed_debt`. `tests/help_indexation.rs` holds
   it to the ATO's rates and its 2 reduction examples.
 
-## 1.2.0
-
-- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
-
-### Added
-
 - `payg-instalment` works out one quarterly PAYG instalment for 2025-26 or
   2026-27 under Division 45 of Schedule 1 to the TAA 1953: the T7 amount
   (s 45-112), an amount varied from estimated tax with its credit (ss 45-410
@@ -190,6 +184,12 @@
   `previous_rate`, the rate used for the previous quarter
   (s 45-215(1)(b)). `tests/payg_instalment.rs` holds it to the ATO's
   examples and the site's cases.
+
+## 1.2.0
+
+- Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
+
+### Added
 
 - `work-expenses` works out an employee's working from home, car or
   self-education deduction for 2020-21 to 2026-27, one `method` a call: the
