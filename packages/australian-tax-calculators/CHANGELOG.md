@@ -122,8 +122,9 @@
   estimate (F2) with the relevant fraction (FBTAA ss 109 to 112A) to F3, 6A
   and a 6B credit, with the F4 reason code. New codes:
   `fbt_instalment.ato_instalment_missing`, `fbt_instalment.quarter_invalid`
-  and `fbt_instalment.variation_invalid`. `tests/fbt_instalment.rs` holds it
-  to the ATO's and the employer's guide's examples.
+  and `fbt_instalment.variation_invalid`. `derive` explains its amounts.
+  `tests/fbt_instalment.rs` holds it to the ATO's and the employer's guide's
+  examples.
 
 ## 1.2.0
 
