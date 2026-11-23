@@ -3221,34 +3221,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "determination_date is not in the financial year given as year.",
     ),
     (
-        "foreign_resident_withholding.asset_unsupported",
-        "The asset is not taxable Australian real property or a company title interest.",
-    ),
-    (
-        "foreign_resident_withholding.date_outside_year",
-        "acquisition_date is outside the income year given.",
-    ),
-    (
-        "foreign_resident_withholding.exclusion_invalid",
-        "exclusion is not null or one of the s 14-215 paragraphs the command names.",
-    ),
-    (
-        "foreign_resident_withholding.option_exceeds_price",
-        "option_payments exceed the first element of the cost base.",
-    ),
-    (
-        "foreign_resident_withholding.payment_unsupported",
-        "The payment is not capital_gains: the s 14-205 earnout amount, Subdivisions 12-F and 12-H and s 12-315 withholding are not built.",
-    ),
-    (
-        "foreign_resident_withholding.variation_invalid",
-        "A varied rate exceeds the full rate for the acquisition date.",
-    ),
-    (
-        "foreign_resident_withholding.vendors_invalid",
-        "vendors is not a list of 1 to 50 vendor objects with an interest above nil and a known document.",
-    ),
-    (
         "foreign_income_conversion.average_period",
         "An average rate's period is longer than 12 months, runs backwards or does not contain the day the amount is translated on.",
     ),
@@ -3287,6 +3259,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "foreign_income_tax_offset.worked_year",
         "The worked limit was asked for a year resident-tax has no rates for.",
+    ),
+    (
+        "foreign_resident_withholding.asset_unsupported",
+        "The asset is not taxable Australian real property or a company title interest.",
+    ),
+    (
+        "foreign_resident_withholding.date_outside_year",
+        "acquisition_date is outside the income year given.",
+    ),
+    (
+        "foreign_resident_withholding.exclusion_invalid",
+        "exclusion is not null or one of the s 14-215 paragraphs the command names.",
+    ),
+    (
+        "foreign_resident_withholding.option_exceeds_price",
+        "option_payments exceed the first element of the cost base.",
+    ),
+    (
+        "foreign_resident_withholding.payment_unsupported",
+        "The payment is not capital_gains: the s 14-205 earnout amount, Subdivisions 12-F and 12-H and s 12-315 withholding are not built.",
+    ),
+    (
+        "foreign_resident_withholding.variation_invalid",
+        "A varied rate exceeds the full rate for the acquisition date.",
+    ),
+    (
+        "foreign_resident_withholding.vendors_invalid",
+        "vendors is not a list of 1 to 50 vendor objects with an interest above nil and a known document.",
     ),
     (
         "franking_account.distribution_invalid",
