@@ -12,10 +12,11 @@ disclaimer's worksheet section and the data freshness datasets. The oracle
 holds a placeholder for the engine version.
 
 The changes are recorded in packages/australian-tax-calculators/CHANGELOG.md.
-DIVERGED lists newer sources, source dates and evidence for 7 kinds. The amount
+DIVERGED lists newer sources, source dates and evidence for 8 kinds. The amount
 checks below account for carry_forward_applied and the statutory FBT gross-up.
 The tool now serves the executable's whole catalogue, so the 6 NARROWED kinds
-state the engine's scope, and every kind may offer more periods and inputs
+state the engine's scope, as does resident_tax (WIDENED_SCOPE), whose scope now
+takes a part-year resident, and every kind may offer more periods and inputs
 (WIDENED). The facade also refuses a number in exponent or other non-plain
 notation in any field, where 0.2.0 refused it only in money, and leaves an
 unreadable decimal to the executable's refusal. Every other refusal, every other
@@ -47,6 +48,10 @@ NARROWED = {"contribution_caps", "depreciation", "fbt", "medicare_levy", "payg_w
             "study_loan_withholding"}
 DIVERGED = {kind: METADATA | ({"scope"} if kind in NARROWED else set())
             for kind in [*NARROWED, "study_loan_repayment"]}
+# The kinds whose engine scope grew, on the same sources: resident_tax takes a
+# part-year resident.
+WIDENED_SCOPE = {"resident_tax"}
+DIVERGED |= {kind: {"scope", "source_checked"} for kind in WIDENED_SCOPE}
 # Catalogue fields that now state the engine's whole entry: a superset of the oracle's.
 WIDENED = {"supported_periods", "optional_inputs", "required_inputs"}
 # Catalogue fields a kind may change, beyond its result metadata.
@@ -56,6 +61,7 @@ CATALOGUE_DIVERGED = {
     "fbt": {"source_passage"},
     "medicare_levy": {"source_passage", "example_evidence"},
     "payg_withholding": {"source_passage", "example_evidence"},
+    "resident_tax": {"source_passage"},
     "study_loan_repayment": {"source_passage", "example_evidence", "source"},
     "study_loan_withholding": {"source_passage", "example_evidence"},
 }
@@ -182,7 +188,8 @@ def test_the_disclaimer_states_the_served_worksheet_scopes() -> None:
     section = "\n".join(f"{kind}: {entry['scope']}" for kind, entry in _catalogue().items())
     assert f"# australian-tax-calculators\n\n{section}\n\n# gst-review" in resources.disclaimer()
     old = dict(line.split(": ", 1) for line in ORACLE["disclaimer_section"].splitlines())
-    assert {kind for kind, scope in old.items() if _catalogue()[kind]["scope"] != scope} == NARROWED
+    changed = {kind for kind, scope in old.items() if _catalogue()[kind]["scope"] != scope}
+    assert changed == NARROWED | WIDENED_SCOPE
 
 
 def test_the_freshness_datasets_change_only_with_the_catalogue() -> None:

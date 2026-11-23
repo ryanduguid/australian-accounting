@@ -38,13 +38,38 @@ fn steps(rules: &[Rule], rows: Vec<(Vec<&Decimal>, Decimal)>) -> Vec<Step> {
 }
 
 /// `out` with `note` added to its warnings in a temporary full expensing year.
-fn full_expensing_warning(mut out: Value, year: &str, note: &str) -> Value {
+pub(super) fn full_expensing_warning(mut out: Value, year: &str, note: &str) -> Value {
     if FULL_EXPENSING_YEARS.contains(&year)
         && let Some(warnings) = out["warnings"].as_array_mut()
     {
         warnings.push(json!(note));
     }
     out
+}
+
+const DEPRECIATION_FULL_EXPENSING: &str = "2020-21 to 2022-23 are temporary full expensing years: IT(TP)A 1997 Subdivision 40-BB may apply to an asset held, and first used or installed ready for use, by 30 June 2023 (s 40-150), subject to the entity tests in ss 40-155 and 40-157, the exclusions in ss 40-165 and 40-167 and any choice under s 40-190, and where it applies it works out the decline in value instead of this worksheet (ss 40-145, 40-160 and 40-170); this worksheet does not decide whether it applied.";
+
+const BACKING_BUSINESS: &str = "Backing business investment (IT(TP)A 1997 Subdivision 40-BA) may apply to an asset held, and first used or installed ready for use, from 12 March 2020 to 30 June 2021, subject to ss 40-120 and 40-125 (including s 40-125(7)'s exclusion of an asset another entity held when it was first used) and any choice under s 40-137, and where it applies it changes the start year decline in value (s 40-130); this worksheet does not model it.";
+
+const ADJUSTED_PRIME_COST: &str = "Where backing business investment or temporary full expensing worked out the asset's decline in value for an earlier year, a later prime cost year needs the adjusted formula of ITAA 1997 s 40-75(3) (IT(TP)A 1997 ss 40-135(3) and 40-180(2)), which this worksheet does not apply.";
+
+/// The single-asset `depreciation` worksheet's flags: backing business
+/// investment in a 2020-21 start year, the adjusted prime cost formula a later
+/// year may need, and the temporary full expensing years.
+pub(super) fn depreciation_flags(
+    mut out: Value,
+    year: &str,
+    prime_cost: bool,
+    later_year: bool,
+) -> Value {
+    let warnings = out["warnings"].as_array_mut().expect("warnings");
+    if year == "2020-21" && !later_year {
+        warnings.push(json!(BACKING_BUSINESS));
+    }
+    if prime_cost && later_year {
+        warnings.push(json!(ADJUSTED_PRIME_COST));
+    }
+    full_expensing_warning(out, year, DEPRECIATION_FULL_EXPENSING)
 }
 
 const LVP_FULL_EXPENSING: &str = "2020-21 to 2022-23 are temporary full expensing years: this worksheet does not decide whether temporary full expensing applied to an asset, and only amounts allocated to the low-value pool belong in its inputs.";

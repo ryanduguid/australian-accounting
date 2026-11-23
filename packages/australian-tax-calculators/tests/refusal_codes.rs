@@ -55,9 +55,11 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/gst_adjustments",
         "engine/deferred_tax",
         "engine/leave_provisions",
+        "engine/long_service_leave",
         "engine/foreign_income_conversion",
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
+        "engine/workers_compensation_premium",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -185,6 +187,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
+    // first-home-owner-grant,
     // fbt-instalment, private-health-insurance-rebate, rental-property, super-benefit-tax and
     // foreign-resident-withholding,
     // horticulture-shearing-withholding, upward-variation-withholding,
@@ -197,9 +200,13 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
-    // smsf-tax, ess-discount and help-indexation.
-    // With transfer-balance, excess-contributions, vic-property-taxes and land-tax.
-    assert_eq!(checked, 105);
+    // smsf-tax, ess-discount, help-indexation,
+    // instant-asset-write-off, defined-benefit-income-cap,
+    // foreign-pension-upp, scholarship-exemption, super-crystallisation and
+    // endorsement-review.
+    // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4 and
+    // workers-compensation-premium.
+    assert_eq!(checked, 118);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
