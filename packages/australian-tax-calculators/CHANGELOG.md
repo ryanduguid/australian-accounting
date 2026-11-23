@@ -117,6 +117,87 @@
   `transfer_balance.year_mismatch`. `tests/transfer_balance.rs` holds them to
   the ATO's examples and to an exact-fraction oracle over the ATO's rates.
 
+- `fbt-return` takes `employer_kind`: a rebatable employer's items 17 to 19
+  (FBTAA s 65J, the $30,000 cap and `rebatable_days`), and a public benevolent
+  institution's or health promotion charity's ($30,000) or a public hospital's,
+  not-for-profit hospital's or public ambulance service's ($17,000) aggregate
+  non-exempt amount at items 14C to 19 (s 5B(1D) to (1M), s 57A), with the
+  $5,000 salary packaged entertainment cap marked by a benefit's
+  `entertainment`; and `instalments_reported` for items 20 to 22. A taxable
+  employer's return is unchanged. New codes:
+  `fbt_return.employer_kind_unsupported`, `fbt_return.entertainment_invalid`,
+  `fbt_return.nfp_exempt_car_unsupported` and
+  `fbt_return.rebatable_days_invalid`. `tests/fbt_return_nfp.rs` holds it to
+  the ATO's not-for-profit worked examples 1 to 3.
+
+- `fbt-instalment` works out one quarter's FBT instalment for the years ended
+  31 March 2026 and 2027: F1 copied to 6A, or a variation on the year's
+  estimate (F2) with the relevant fraction (FBTAA ss 109 to 112A) to F3, 6A
+  and a 6B credit, with the F4 reason code. New codes:
+  `fbt_instalment.ato_instalment_missing`, `fbt_instalment.quarter_invalid`
+  and `fbt_instalment.variation_invalid`. `derive` explains its amounts.
+  `tests/fbt_instalment.rs` holds it to the ATO's and the employer's guide's
+  examples.
+
+- `ess-discount` works out the employee share scheme amounts ITAA 1997
+  Division 83A includes for an income year from 2020-21 to 2026-27 for
+  interests acquired from 1 July 2015: the discount, the start-up concession,
+  deferral to the taxing point (with cessation of employment before 1 July
+  2022 and the 30-day rule), the $1,000 reduction and its $180,000 income
+  test, the regulations' value of an unlisted right and the s 83A-310
+  forfeiture exclusion. New codes: `ess_discount.acquired_before_2015`,
+  `ess_discount.dates_inconsistent`, `ess_discount.employment_end_not_stated`,
+  `ess_discount.foreign_employment`, `ess_discount.income_test_invalid`,
+  `ess_discount.interests_invalid`, `ess_discount.salary_sacrifice_unclear`,
+  `ess_discount.taxing_point_value` and `ess_discount.valuation_unavailable`.
+  `tests/ess_discount.rs` holds it to the ATO's examples and every table entry.
+
+- `foreign-resident-withholding` works out the foreign resident capital gains
+  withholding amount under TAA 1953 Sch 1 s 14-200 for taxable Australian real
+  property or a company title interest acquired from 1 July 2017 to 30 June
+  2027: 12.5% with the $750,000 market value exclusion before 1 January 2025,
+  15% with none from then, the option payment reduction, clearance
+  certificates, notices of variation (applied up to their maximum sale price,
+  compared with `sale_price`), class variations to nil and s 14-215
+  exclusions as stated facts, and each vendor's interest share. New codes:
+  `foreign_resident_withholding.asset_unsupported`,
+  `foreign_resident_withholding.date_outside_year`,
+  `foreign_resident_withholding.exclusion_invalid`,
+  `foreign_resident_withholding.option_exceeds_price`,
+  `foreign_resident_withholding.payment_unsupported`,
+  `foreign_resident_withholding.variation_invalid`,
+  `foreign_resident_withholding.variation_maximum_unsettled` and
+  `foreign_resident_withholding.vendors_invalid`.
+  `tests/foreign_resident_withholding.rs` holds it to the ATO's examples.
+
+- `help-indexation` works out a HELP debt on each 1 June from 2020 to 2026
+  under HESA Division 140: the preceding balance, debts, repayments and
+  compulsory repayment amounts, indexation at the ATO's published factor (the
+  lower of CPI and WPI from 2022-23), the 2025 20% reduction of ss 137-19A
+  and 140-26 and the s 140-30 rounding, and a voluntary repayment's effect
+  made before 1 June or on or after it. New codes:
+  `help_indexation.date_outside_period`, `help_indexation.debt_missing`,
+  `help_indexation.entries_invalid`, `help_indexation.location_preferred`,
+  `help_indexation.reduction_already_applied` and
+  `help_indexation.repayments_exceed_debt`. `tests/help_indexation.rs` holds
+  it to the ATO's rates and its 2 reduction examples.
+
+- `payg-instalment` works out one quarterly PAYG instalment for 2025-26 or
+  2026-27 under Division 45 of Schedule 1 to the TAA 1953: the T7 amount
+  (s 45-112), an amount varied from estimated tax with its credit (ss 45-410
+  and 45-420), T1 x T2 (s 45-110) and a varied rate with its credit
+  (ss 45-205 and 45-215), mirroring the site's PAYG instalments page. New
+  codes: `payg_instalment.credits_before_third`,
+  `payg_instalment.credits_exceed_earlier`,
+  `payg_instalment.first_has_earlier`,
+  `payg_instalment.instalment_number_invalid`,
+  `payg_instalment.method_invalid`, `payg_instalment.rate_invalid` and
+  `payg_instalment.tax_exceeds_income`. No step rounds before the instalment
+  and credit drop their cents, and a varied rate's credit compares it with
+  `previous_rate`, the rate used for the previous quarter
+  (s 45-215(1)(b)). `tests/payg_instalment.rs` holds it to the ATO's
+  examples and the site's cases.
+
 ## 1.2.0
 
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
