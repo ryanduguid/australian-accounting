@@ -661,13 +661,41 @@ fn assert_reports(reports: &[Report]) {
     );
 }
 
+fn selected_engines(
+    raw: Option<&str>,
+) -> Result<Vec<(&'static str, &'static str, &'static str)>, String> {
+    let Some(raw) = raw.filter(|value| !value.is_empty()) else {
+        return Ok(ENGINES.to_vec());
+    };
+    let mut requested = std::collections::BTreeSet::new();
+    for entry in raw.split(',') {
+        if entry.is_empty() {
+            return Err("AU_ACCOUNTING_PARITY_ENGINES contains an empty package name".into());
+        }
+        if !ENGINES.iter().any(|engine| engine.1 == entry) {
+            return Err(format!("unknown parity engine package: {entry}"));
+        }
+        requested.insert(entry);
+    }
+    Ok(ENGINES
+        .into_iter()
+        .filter(|engine| requested.contains(engine.1))
+        .collect())
+}
+
 #[test]
 #[ignore = "needs AU_ACCOUNTING_PARITY_BIN, a folder of au-accounting and the engine commands"]
 fn au_accounting_matches_each_engine() {
     let bin = &bin_dir();
     let cap = std::env::var("AU_ACCOUNTING_PARITY_CAP").map_or(0, |cap| cap.parse().unwrap());
+    let engines = selected_engines(
+        std::env::var("AU_ACCOUNTING_PARITY_ENGINES")
+            .ok()
+            .as_deref(),
+    )
+    .unwrap();
     let reports: Vec<Report> = std::thread::scope(|scope| {
-        let running: Vec<_> = ENGINES
+        let running: Vec<_> = engines
             .into_iter()
             .map(|engine| scope.spawn(move || check(engine, bin, cap)))
             .collect();
@@ -683,7 +711,51 @@ fn au_accounting_matches_each_engine() {
 #[ignore = "needs AU_ACCOUNTING_PARITY_BIN, a folder of au-accounting and the engine commands"]
 fn au_accounting_matches_saved_derivations() {
     let bin = bin_dir();
-    assert_reports(&["div7a", "payday-super"].map(|name| derivation_check(name, &bin)));
+    let engines = selected_engines(
+        std::env::var("AU_ACCOUNTING_PARITY_ENGINES")
+            .ok()
+            .as_deref(),
+    )
+    .unwrap();
+    let reports: Vec<Report> = ["div7a", "payday-super"]
+        .into_iter()
+        .filter(|name| engines.iter().any(|engine| engine.0 == *name))
+        .map(|name| derivation_check(name, &bin))
+        .collect();
+    if reports.is_empty() {
+        println!("no derivation engines selected");
+        return;
+    }
+    assert_reports(&reports);
+}
+
+#[test]
+fn parity_engine_filter_parses_subset_and_rejects_unknown_names() {
+    assert_eq!(selected_engines(None).unwrap().len(), ENGINES.len());
+    assert_eq!(selected_engines(Some("")).unwrap().len(), ENGINES.len());
+    let single = selected_engines(Some("australian-tax-calculators")).unwrap();
+    assert_eq!(
+        single,
+        vec![(
+            "tax",
+            "australian-tax-calculators",
+            "australian-tax-calculators"
+        )]
+    );
+    let pair = selected_engines(Some(
+        "payday-super-checker,div7a-loan-review,div7a-loan-review",
+    ))
+    .unwrap();
+    assert_eq!(
+        pair,
+        vec![
+            ("div7a", "div7a-loan-review", "div7a-loan-review"),
+            ("payday-super", "payday-super-checker", "payday-super-check"),
+        ]
+    );
+    assert!(selected_engines(Some("unknown-engine")).is_err());
+    assert!(selected_engines(Some("div7a-loan-review,")).is_err());
+    assert!(selected_engines(Some(",div7a-loan-review")).is_err());
 }
 
 // Temporary path aliases must not hide real command-output differences.
