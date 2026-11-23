@@ -285,6 +285,14 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "help-indexation",
+        &[
+            ("location_preferred", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "balancing-adjustment",
         &[
             ("cost", Dec),
@@ -417,6 +425,14 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("employee_contribution", Dec),
             ("statutory_formula_taxable_value", Dec),
             ("electric_car_exempt", Raw),
+            ("year_ended", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "fbt-instalment",
+        &[
+            ("quarter", Raw),
             ("year_ended", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -932,6 +948,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "foreign-resident-withholding",
+        &[
+            ("payment", Raw),
+            ("acquisition_date", Raw),
+            ("asset", Raw),
+            ("market_value", Dec),
+            ("cost_base_first_element", Dec),
+            ("option_payments", Dec),
+            ("sale_price", Dec),
+            ("vendors", Json),
+            ("exclusion", Raw),
+            ("class_variation_to_nil", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "sb-cgt-concessions",
         &[
             ("entity", Raw),
@@ -1036,6 +1069,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
+    ),
+    (
+        "payg-instalment",
+        &[("method", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
         "smsf-tax",
@@ -1204,6 +1241,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "leave-provisions",
+        &[
+            ("lines", Json),
+            ("defined_benefit_plan", Raw),
+            ("plan_assets", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "deferred-tax",
         &[
             ("items", Json),
@@ -1262,6 +1309,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("assessable_income", Dec),
             ("business_deductions", Dec),
             ("residency", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "ess-discount",
+        &[
+            ("interests", Json),
+            ("income_test", Json),
+            ("foreign_employment", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -1353,7 +1410,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 81] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1400,6 +1457,7 @@ const DERIVED: [&str; 81] = [
     "capital-works",
     "instant-asset-write-off",
     "deferred-tax",
+    "leave-provisions",
     "horticulture-shearing-withholding",
     "upward-variation-withholding",
     "daily-casual-withholding",
@@ -1435,6 +1493,7 @@ const DERIVED: [&str; 81] = [
     "gst-bad-debt",
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
+    "fbt-instalment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -1858,9 +1917,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "prepayments"
             | "non-commercial-losses"
             | "psi-test"
+            | "payg-instalment"
             | "smsf-tax"
+            | "ess-discount"
             | "government-super-amounts"
             | "rental-property"
+            | "foreign-resident-withholding"
             | "horticulture-shearing-withholding"
             | "upward-variation-withholding"
             | "daily-casual-withholding"
@@ -1879,6 +1941,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-second-hand-goods"
             | "gst-bad-debt"
             | "deferred-tax"
+            | "leave-provisions"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
             | "minors-income"
@@ -1886,6 +1949,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "balancing-adjustment"
             | "trade-in"
             | "fbt-ev-exemption-check"
+            | "fbt-instalment"
             | "dasp-tax"
             | "super-benefit-tax"
             | "super-withholding"
@@ -1894,6 +1958,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "franking-account"
             | "cgt-parcels"
             | "cgt-cost-base-adjustments"
+            | "help-indexation"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -2053,6 +2118,27 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 events: &a[2],
                 year: &a[3],
                 scope_confirmed: &a[4],
+            })
+        }
+        "help-indexation" => {
+            // Optional: the balance (refused with its own code when absent),
+            // the dated debts and repayments, and the other step amounts.
+            let given = engine::HELP_INDEXATION_OPTIONAL
+                .iter()
+                .map(|key| {
+                    let kind = match *key {
+                        "earlier_debts" | "current_debts" | "voluntary_repayments" => Json,
+                        "debts_already_reduced" => Raw,
+                        _ => Dec,
+                    };
+                    optional(v, key, kind)
+                })
+                .collect::<Result<Vec<_>>>()?;
+            engine::help_indexation(&engine::HelpIndexationArgs {
+                location_preferred: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+                optional: std::array::from_fn(|i| given[i].as_ref()),
             })
         }
         "balancing-adjustment" => {
@@ -2282,6 +2368,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 hybrid: hybrid.each_ref().map(Option::as_ref),
                 year_ended: &a[7],
                 scope_confirmed: &a[8],
+            })
+        }
+        "fbt-instalment" => {
+            // Optional: F1, or the variation's facts.
+            let given = engine::FBT_INSTALMENT_OPTIONAL.map(|key| {
+                let kind = if key == "reason_code" { Raw } else { Dec };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?];
+            engine::fbt_instalment(&engine::FbtInstalmentArgs {
+                quarter: &a[0],
+                year_ended: &a[1],
+                scope_confirmed: &a[2],
+                optional: given.each_ref().map(Option::as_ref),
             })
         }
         "fbt-loan" => engine::fbt_loan(&benefit_inputs(v, params)?, &a[0], &a[1]),
@@ -2816,6 +2917,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[13],
             })
         }
+        "foreign-resident-withholding" => {
+            engine::foreign_resident_withholding(&engine::ForeignResidentWithholdingArgs {
+                payment: &a[0],
+                acquisition_date: &a[1],
+                asset: &a[2],
+                market_value: &a[3],
+                cost_base_first_element: &a[4],
+                option_payments: &a[5],
+                sale_price: &a[6],
+                vendors: &a[7],
+                exclusion: &a[8],
+                class_variation_to_nil: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
+            })
+        }
         "sb-cgt-concessions" => {
             // Optional: the facts only some answers call for.
             let given = engine::SB_CGT_OPTIONAL.map(|key| {
@@ -2979,6 +3096,21 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
+        "payg-instalment" => {
+            // Optional: the facts of the chosen method, and only those.
+            let given = engine::PAYG_INSTALMENT_OPTIONAL.map(|key| {
+                let kind = if key == "instalment_number" { Raw } else { Dec };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?, a6?, a7?, a8?, a9?, a10?];
+            engine::payg_instalment(&engine::PaygInstalmentArgs {
+                method: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
         "minors-income" => {
             // Optional: the facts some excepted person grounds call for.
             let [full_time, dependent] = engine::MINORS_OPTIONAL.map(|key| {
@@ -3010,6 +3142,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
+        "ess-discount" => engine::ess_discount(&engine::EssDiscountArgs {
+            interests: &a[0],
+            income_test: &a[1],
+            foreign_employment: &a[2],
+            year: &a[3],
+            scope_confirmed: &a[4],
+        }),
         "government-super-amounts" => {
             // Optional: the spouse inputs, all or none.
             let spouse = engine::SPOUSE_INPUTS
@@ -3192,6 +3331,13 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             outside_profit_or_loss: &a[17],
             year: &a[18],
             scope_confirmed: &a[19],
+        }),
+        "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {
+            lines: &a[0],
+            defined_benefit_plan: &a[1],
+            plan_assets: &a[2],
+            year: &a[3],
+            scope_confirmed: &a[4],
         }),
         "foreign-income-conversion" => engine::foreign_income_conversion(&a[0], &a[1], &a[2]),
         "foreign-income-tax-offset" => {

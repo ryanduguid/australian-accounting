@@ -4900,7 +4900,9 @@ pub use franking_account::{FrankingArgs, franking_year};
 mod trade_in;
 pub use trade_in::{TradeInArgs, trade_in};
 mod fbt_ev_exemption;
+mod fbt_instalment;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
+pub use fbt_instalment::{FBT_INSTALMENT_OPTIONAL, FbtInstalmentArgs, fbt_instalment};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
@@ -6251,8 +6253,14 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod payg_instalment;
+pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
+mod foreign_resident_withholding;
+pub use foreign_resident_withholding::{
+    ForeignResidentWithholdingArgs, foreign_resident_withholding,
+};
 mod withholding_schedules;
 pub use withholding_schedules::{
     daily_casual_withholding, horticulture_shearing_withholding, no_abn_withholding,
@@ -6278,6 +6286,8 @@ pub use gst_adjustments::{
 };
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod leave_provisions;
+pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
 mod foreign_income_conversion;
 pub use foreign_income_conversion::foreign_income_conversion;
 mod foreign_income_tax_offset;
@@ -6288,8 +6298,12 @@ mod minors_income;
 pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
 mod smsf_tax;
 pub use smsf_tax::smsf_tax;
+mod ess_discount;
+pub use ess_discount::{EssDiscountArgs, ess_discount};
+mod help_indexation;
+pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 112] = [
+const KINDS: [&str; 118] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6315,6 +6329,7 @@ const KINDS: [&str; 112] = [
     "fbt_car_statutory",
     "fbt_car_operating_cost",
     "fbt_ev_exemption_check",
+    "fbt_instalment",
     "fbt_loan",
     "fbt_meal_entertainment",
     "fbt_meal_entertainment_register",
@@ -6377,6 +6392,7 @@ const KINDS: [&str; 112] = [
     "psi_test",
     "government_super_amounts",
     "rental_property",
+    "foreign_resident_withholding",
     "horticulture_shearing_withholding",
     "upward_variation_withholding",
     "daily_casual_withholding",
@@ -6396,12 +6412,16 @@ const KINDS: [&str; 112] = [
     "gst_bad_debt",
     "deferred_tax",
     "cgt_cost_base_adjustments",
+    "payg_instalment",
+    "leave_provisions",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
     "trading_stock",
     "prepayments",
     "minors_income",
     "smsf_tax",
+    "ess_discount",
+    "help_indexation",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
