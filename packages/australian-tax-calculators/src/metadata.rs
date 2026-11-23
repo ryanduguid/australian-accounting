@@ -1201,6 +1201,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Duty dates in 2026-27, under the scales in force or made on 24
         // November 2026 (the ACT's changing on 1 February 2027).
         "motor_vehicle_duty" => vec!["2026-27"],
+        // Contracts effected or renewed in 2026-27, at the rates in force on
+        // 24 November 2026.
+        "insurance_duty" => vec!["2026-27"],
         "payroll_tax" => vec!["2026-27"],
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
@@ -1588,6 +1591,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "motor_vehicle_duty" => (
             "2026-11-24",
             "Duties Act 2000 (Vic) ss 3(1), 218 and 219 (authorised version 141, 24 June 2026); Duties Act 2001 (Qld) ss 377 to 383 and Sch 4C (current as at 22 October 2026); Duties Act 2008 (WA) ss 228 to 236 (03-z0-00); Stamp Duties Act 1923 (SA) ss 42A and 42B and Sch 2 cl 2(1) (version 15.9.2026); Duties Act 2001 (Tas) s 197 (in force 24 November 2026); Duties Act 1999 (ACT) ss 203 to 208 (republication 79) with DI2025-152 and DI2026-154; Stamp Duty Act 1978 (NT) ss 57, 59 and 92A and Sch 1 (as in force at 1 July 2025); Revenue NSW's and Service NSW's motor vehicle duty pages (the NSW Act was not readable); and each revenue office's rates page",
+        ),
+        "insurance_duty" => (
+            "2026-11-24",
+            "Duties Act 2000 (Vic) ss 3(1) and 179 (authorised version 141); Duties Act 2001 (Qld) s 362 (current as at 22 October 2026); Duties Act 2008 (WA) s 215 (03-z0-00); Stamp Duties Act 1923 (SA) s 34 (version 15.9.2026); Duties Act 2001 (Tas) s 166 (in force 24 November 2026); Duties Act 1999 (ACT) republication 79 endnotes (ch 8 omitted by A2017-11 from 1 July 2017); Stamp Duty Act 1978 (NT) Sch 1 cl 6(3) (as in force at 1 July 2025); Revenue NSW's 'Types of insurance' (the NSW Act was not readable); and each revenue office's insurance duty page",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -2123,6 +2130,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Revenue office motor vehicle duty pages: Revenue NSW and Service NSW; SRO Victoria current rates and drive-away deals 2026-27; TMR vehicle registration duty rates and help; RevenueWA vehicle licence duty; RevenueSA stamp duty on vehicles; SRO Tasmania rates of duty; ACT Revenue Office motor vehicle duty and circular DAA005.9; TRO stamp duty",
             "TMR's 8 light vehicle examples ($35,600 and $135,600 for each engine row)",
             "2026-11-13",
+            "2026-11-24",
+        ),
+        "insurance_duty" => (
+            "Revenue office insurance duty pages: Revenue NSW types of insurance; SRO Victoria insurance policies current rates; QRO insurance duty rates; RevenueWA self-assess and pay insurance duty; RevenueSA stamp duty on insurance; SRO Tasmania rates of duty; TRO stamp duty",
+            "No revenue office publishes a worked general insurance example with figures; each rate is applied to hand-worked premiums",
+            "2026-11-24",
             "2026-11-24",
         ),
         "payroll_tax" => (
@@ -3487,6 +3500,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, in nt only and then required: true for an electric motor vehicle under Stamp Duty Act 1978 (NT) s 92A(5) (an electric motor, charged from an external source, no hydrogen fuel cell; plug-in hybrids included)",
             ),
         ],
+        "insurance_duty" => vec![
+            (
+                "term_over_one_year",
+                "boolean, in nt only and then required: true for a policy issued or renewed for more than one year, which is refused (Stamp Duty Act 1978 (NT) Sch 1 cl 6(3)(b)(ii))",
+            ),
+            (
+                "policy_taken_out",
+                "YYYY-MM-DD, for nsw type_c only and then required: the day the policy was taken out, as Revenue NSW uses the term (2.5% on or before 31 December 2017, exempt from 1 January 2018); whether a renewal took out a new policy is for the operator to establish",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -4692,6 +4715,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "duty_date",
                 "YYYY-MM-DD in the year: the date the duty arises, the application to register or transfer or, in the ACT, the registration",
+            ),
+        ],
+        "insurance_duty" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "class",
+                "nsw type_a, type_b or type_c; vic general or business (s 3(1) 'business insurance'); qld class_1, class_2 (including a life insurance rider) or ctp; general elsewhere (in sa any insurance other than life insurance, personal accident included; in the act, nil since chapter 8's repeal on 1 July 2017)",
+            ),
+            (
+                "premium",
+                "AUD, cents allowed: the premium the jurisdiction's Act charges, already apportioned to the jurisdiction and the class (generally including GST and any fire or emergency services levy, excluding the duty)",
+            ),
+            (
+                "effected_date",
+                "YYYY-MM-DD in the year: the day the contract of insurance was effected or renewed",
             ),
         ],
         "payroll_tax" => vec![
@@ -6236,6 +6274,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("vehicle_class", Text("passenger")),
             ("dutiable_value", Text("52000")),
             ("duty_date", Text("2026-09-15")),
+        ],
+        "insurance_duty" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("vic")),
+            ("class", Text("business")),
+            ("premium", Text("1234.56")),
+            ("effected_date", Text("2026-09-15")),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),

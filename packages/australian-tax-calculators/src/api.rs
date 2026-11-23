@@ -482,6 +482,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "insurance-duty",
+        &[
+            ("jurisdiction", Raw),
+            ("class", Raw),
+            ("premium", Dec),
+            ("effected_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1518,7 +1529,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 89] = [
+const DERIVED: [&str; 90] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1593,6 +1604,7 @@ const DERIVED: [&str; 89] = [
     "payroll-tax",
     "land-tax",
     "motor-vehicle-duty",
+    "insurance-duty",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -2090,6 +2102,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "land-tax"
             | "workers-compensation-premium"
             | "motor-vehicle-duty"
+            | "insurance-duty"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2560,6 +2573,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 new_vehicle: new.as_ref(),
                 fleet_discount: fleet.as_ref(),
                 electric: electric.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
+            })
+        }
+        "insurance-duty" => {
+            // Optional: the Northern Territory's policy term and New South
+            // Wales Type C's taken-out date, each required there only.
+            let term = optional(v, "term_over_one_year", Raw)?;
+            let taken_out = optional(v, "policy_taken_out", Raw)?;
+            engine::insurance_duty(&engine::InsuranceDutyArgs {
+                jurisdiction: &a[0],
+                class: &a[1],
+                premium: &a[2],
+                effected_date: &a[3],
+                term_over_one_year: term.as_ref(),
+                policy_taken_out: taken_out.as_ref(),
                 year: &a[4],
                 scope_confirmed: &a[5],
             })

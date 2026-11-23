@@ -11,6 +11,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The duty on an application to register, or to transfer the registration of, one passenger vehicle in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, for a duty date in 2026-27 (1 July 2026 to 30 June 2027). The operator establishes the vehicle's dutiable value under the jurisdiction's Act and that it is a passenger vehicle there, and, where they set the rate, its Queensland engine row (Duties Act 2001 (Qld) Sch 4C), whether it is a Victorian green car or primary producer passenger car, its ACT emissions category and whether it is new, a Tasmanian manufacturer's fleet discount, and whether it is a Northern Territory electric motor vehicle (Stamp Duty Act 1978 (NT) s 92A). Each scale is the Act's or determination's in force or made on 24 November 2026 (the ACT's DI2025-152 to 31 January 2027 and DI2026-154 from 1 February 2027; New South Wales from Revenue NSW's and Service NSW's pages), charged per $100 (Victoria $200) or part, with South Australia's $5 minimum, Tasmania's $20 for a vehicle of $600 or less, and Western Australia's sliding rate rounded down to 5 cents (Duties Act 2008 (WA) s 236). Excludes motorcycles, goods and commercial vehicles, buses, heavy vehicles, trailers and special vehicles; deciding the dutiable value, class or category; exemptions, concessions and refunds other than the rates named (family and dealer transfers, disability, veterans and Victoria's s 218(2) modification reduction); Queensland's s 384 reduction; South Australia's component for a compulsory third party policy on registration (Stamp Duties Act 1923 (SA) Sch 2 cl 2(3)) and concessional transfers; ACT deemed emissions and the Commissioner's discretion; and penalty tax and interest.",
     ),
     (
+        "insurance_duty",
+        "The duty on one premium for general insurance in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, for a contract effected or renewed in 2026-27 (1 July 2026 to 30 June 2027), at the rate each Act sets for the class the operator states: New South Wales Types A, B and C (from Revenue NSW's pages; Type C 2.5% for a policy taken out before 1 January 2018 and exempt from then), Victoria's general and business insurance (Duties Act 2000 (Vic) s 179), Queensland's class 1, class 2 and CTP insurance (Duties Act 2001 (Qld) s 362), and general insurance elsewhere (in South Australia any insurance other than life insurance, personal accident insurance included; the ACT's duty repealed from 1 July 2017). The operator establishes the class, that the premium is dutiable and not exempt, and the premium as the Act defines it, apportioned to the jurisdiction and the class. Each rate is the one in force on 24 November 2026; the duty is shown to the cent with the exact figure beside it. Excludes life insurance, Queensland accident insurance (Duties Act 2001 (Qld) s 362(3)), CTP insurance outside Queensland, a Northern Territory policy for more than one year, exemptions, apportionment, who is liable, returns and refunds, and penalty tax and interest.",
+    ),
+    (
         "alcohol_excise",
         "Excise duty on beer, spirits and other excisable beverages manufactured in Australia and entered for home consumption from 1 July 2022 to 31 January 2027, in one financial year from 2022-23 to 2026-27, at the substituted rate the Commissioner published for the day (Excise Tariff Act 1921 Schedule items 1 to 3, s 6A), with the remission for alcohol manufacturers under its yearly cap and the refund of duty paid where it was available (Excise Regulation 2015 Sch 1 cl 2(1) item 10). The operator establishes each line's product, dutiable volume and strength at 20 degrees Celsius under the measurement determinations, container and entry day, and the remission conditions other than the cap. Excludes licences, approvals and the free subitems 3.5 to 3.8, quotas in a declared period, other remissions, refunds and drawbacks, imported goods (customs duty), wine (wine equalisation tax), tobacco and fuel.",
     ),
@@ -527,6 +531,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "motor_vehicle_duty",
+        "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2001-071",
+    ),
+    (
+        "insurance_duty",
         "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-2001-071",
     ),
     (
@@ -1082,6 +1090,22 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.revenue.act.gov.au/motor-vehicle-duty",
             "https://legislation.nt.gov.au/en/Legislation/STAMP-DUTY-ACT-1978",
             "https://treasury.nt.gov.au/dtf/territory-revenue-office/stamp-duty",
+        ],
+    ),
+    (
+        "insurance_duty",
+        &[
+            "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/insurance-duty/types-of-insurance",
+            "https://content.legislation.vic.gov.au/sites/default/files/2026-06/00-79aa141-authorised.pdf",
+            "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/insurance-policies-current-rates",
+            "https://qro.qld.gov.au/duties/insurance-duty/rates/",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/RedirectURL?OpenAgent&query=mrdoc_49928.pdf",
+            "https://www.wa.gov.au/government/publications/self-assess-and-pay-insurance-duty",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/stamp-duties-act-1923/current/1923.1569.auth.pdf",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2001-015",
+            "https://www.sro.tas.gov.au/insurance-duty/rates-of-duty",
+            "https://www.legislation.act.gov.au/DownloadFile/a/1999-7/current/PDF/1999-7.PDF",
+            "https://legislation.nt.gov.au/en/Legislation/STAMP-DUTY-ACT-1978",
         ],
     ),
     (
@@ -2371,6 +2395,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Each revenue office or registration authority decides the dutiable value, the vehicle's class and any exemption or concession; this worksheet takes the value and class as established.",
             "The scales are those in force or made on 24 November 2026; an amendment for a later duty date is not reflected.",
+        ],
+    ),
+    (
+        "insurance_duty",
+        &[
+            "Each revenue office decides the class, any exemption and how a premium is apportioned between jurisdictions and classes; this worksheet takes the class and the apportioned premium as established.",
+            "No Act sets a rounding rule for one premium's duty: each is paid on a return of total premiums. amounts.duty is rates.exact_duty to the cent, for display; add exact figures when totalling a return.",
+            "The rates are those in force on 24 November 2026; an amendment for a later effected date is not reflected.",
         ],
     ),
     (
@@ -4235,7 +4267,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -4329,6 +4361,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "instant_asset_write_off.temporary_full_expensing",
         "Temporary full expensing (IT(TP)A 1997 Subdivision 40-BB) may take the asset, which displaces s 40-82, and the command does not decide whether it does.",
+    ),
+    (
+        "insurance_duty.class_invalid",
+        "class is not one the jurisdiction's insurance duty has (nsw type_a, type_b or type_c; vic general or business; qld class_1, class_2 or ctp; general elsewhere).",
+    ),
+    (
+        "insurance_duty.date_outside_year",
+        "effected_date is not in the year asked for.",
+    ),
+    (
+        "insurance_duty.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "insurance_duty.term_unsettled",
+        "A Northern Territory policy issued or renewed for more than one year, whose duty under Sch 1 cl 6(3)(b)(ii) is unsettled for a premium for the whole term.",
     ),
     (
         "invalid_carer_tax_offset.dependant_invalid",
