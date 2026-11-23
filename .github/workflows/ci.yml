@@ -5,8 +5,8 @@ name: tests
 # leg, and a dependency audit, the same set ci-package.yml gives the engines),
 # one call of the reusable ci-package.yml for each Python engine under packages/,
 # and one call of ci-rust.yml for each Rust crate. Each ci-package.yml call applies
-# its own package's path filter, so a change to one engine runs that engine's
-# gates and skips the rest. A pull request runs the crate calls and the parity
+# its own package's path filter to optional gates and always runs Linux tests.
+# A pull request runs the crate calls and the parity
 # check only when app_ci.py selects them: a change to a crate, a shared file or
 # an unknown path.
 
@@ -51,6 +51,8 @@ jobs:
       - id: select
         run: python3 .github/ci/app_ci.py select aus-accounting-mcp >> "$GITHUB_OUTPUT"
       - id: python-matrix
+        env:
+          CI_APP_SELECTED: ${{ steps.select.outputs.run }}
         run: python3 .github/ci/app_ci.py mcp-python-matrix >> "$GITHUB_OUTPUT"
 
   packages:
@@ -204,7 +206,7 @@ jobs:
 
   test:
     needs: changes
-    if: needs.changes.result == 'success' && needs.changes.outputs.run == 'true'
+    if: needs.changes.result == 'success'
     permissions:
       contents: read
     timeout-minutes: 25
@@ -312,13 +314,12 @@ jobs:
       - run: uv run --locked --extra dev pyright aus_accounting_mcp  # NOSONAR: unprivileged job; uv installs the hash-locked set
         working-directory: apps/aus-accounting-mcp
 
-  # The upload runs apart from the tests so the OIDC token is never available
-  # while test code runs. It is exempt from tests-gates: a Codecov outage must not
-  # block merges.
+  # Keep upload permissions separate from the tests. Codecov posts the project
+  # result separately from tests-gates.
   codecov:
     name: upload coverage to Codecov
     needs: test
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
