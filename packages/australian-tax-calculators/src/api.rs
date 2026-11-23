@@ -388,6 +388,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "motor-vehicle-duty",
+        &[
+            ("jurisdiction", Raw),
+            ("vehicle_class", Raw),
+            ("dutiable_value", Dec),
+            ("duty_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1398,7 +1409,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1470,6 +1481,7 @@ const DERIVED: [&str; 82] = [
     "gst-margin-scheme",
     "etp-tax-free-component",
     "payroll-tax",
+    "motor-vehicle-duty",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -1940,6 +1952,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "super-benefit-tax"
             | "super-withholding"
             | "payroll-tax"
+            | "motor-vehicle-duty"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2259,6 +2272,31 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 involuntary_disposal: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "motor-vehicle-duty" => {
+            // Optional: each jurisdiction's own facts, required there only.
+            let engine_row = optional(v, "engine", Raw)?;
+            let green = optional(v, "green_car", Raw)?;
+            let primary = optional(v, "primary_producer", Raw)?;
+            let category = optional(v, "emissions_category", Raw)?;
+            let new = optional(v, "new_vehicle", Raw)?;
+            let fleet = optional(v, "fleet_discount", Raw)?;
+            let electric = optional(v, "electric", Raw)?;
+            engine::motor_vehicle_duty(&engine::MotorVehicleDutyArgs {
+                jurisdiction: &a[0],
+                vehicle_class: &a[1],
+                dutiable_value: &a[2],
+                duty_date: &a[3],
+                engine: engine_row.as_ref(),
+                green_car: green.as_ref(),
+                primary_producer: primary.as_ref(),
+                emissions_category: category.as_ref(),
+                new_vehicle: new.as_ref(),
+                fleet_discount: fleet.as_ref(),
+                electric: electric.as_ref(),
+                year: &a[4],
+                scope_confirmed: &a[5],
             })
         }
         "payroll-tax" => {
