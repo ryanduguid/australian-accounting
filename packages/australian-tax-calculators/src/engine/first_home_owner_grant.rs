@@ -117,7 +117,7 @@ static SCHEMES: [Scheme; 8] = [
     Scheme {
         code: "nsw",
         name: "New South Wales",
-        residence: "each applicant lives in the home for 12 continuous months, starting within 12 months",
+        residence: "each applicant occupies the home as their principal place of residence for at least 12 continuous months, starting within 12 months of the purchase or construction",
         lesser: false,
         rules: &[rule(
             "2016-01-01",
@@ -129,7 +129,7 @@ static SCHEMES: [Scheme; 8] = [
     Scheme {
         code: "vic",
         name: "Victoria",
-        residence: "at least one applicant lives in the home for 12 months, starting within 12 months",
+        residence: "at least one applicant occupies the home as their principal place of residence for at least 12 months, starting within 12 months of settlement or of the build finishing",
         lesser: true,
         rules: &[rule(
             "2013-07-01",
@@ -141,7 +141,7 @@ static SCHEMES: [Scheme; 8] = [
     Scheme {
         code: "qld",
         name: "Queensland",
-        residence: "each applicant lives in the home for 6 continuous months, starting within 1 year",
+        residence: "each applicant occupies the home as their principal place of residence for a continuous period of at least 6 months, starting within 1 year after completion of the transaction (s 15)",
         lesser: true,
         rules: &[rule(
             "2023-11-20",
@@ -153,7 +153,7 @@ static SCHEMES: [Scheme; 8] = [
     Scheme {
         code: "wa",
         name: "Western Australia",
-        residence: "each applicant lives in the home for 6 continuous months, starting within 12 months",
+        residence: "each applicant occupies the home as their principal place of residence for a continuous period of at least 6 months, starting within 12 months of completion of the transaction",
         lesser: true,
         rules: &[
             rule(
@@ -173,7 +173,7 @@ static SCHEMES: [Scheme; 8] = [
     Scheme {
         code: "sa",
         name: "South Australia",
-        residence: "all applicants live in the home for 6 continuous months, starting within 12 months",
+        residence: "all applicants occupy the home as their principal place of residence for a continuous period of at least 6 months, starting within 12 months after completion of the transaction",
         lesser: true,
         rules: &[rule(
             "2024-06-06",
@@ -185,7 +185,7 @@ static SCHEMES: [Scheme; 8] = [
     Scheme {
         code: "tas",
         name: "Tasmania",
-        residence: "each applicant lives in the home for 6 continuous months, starting within 12 months",
+        residence: "each applicant occupies the home as their principal place of residence for a continuous period of at least 6 months, starting within 12 months of completion of the transaction",
         lesser: true,
         rules: &[
             rule(
@@ -217,7 +217,7 @@ static SCHEMES: [Scheme; 8] = [
     Scheme {
         code: "nt",
         name: "Northern Territory",
-        residence: "the applicants live in the home for at least 12 months after taking possession or completion",
+        residence: "each applicant occupies the home as their principal place of residence for a continuous period of at least 12 months, starting within 12 months after completion of the transaction (s 12(2))",
         lesser: true,
         rules: &[
             Rule {

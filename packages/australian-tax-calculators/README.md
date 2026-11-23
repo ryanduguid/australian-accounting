@@ -3457,7 +3457,11 @@ building work alone, s 13(1A) and (7)(b)), a Northern Territory or
 Tasmanian contract without its conditions, and a Western Australian home
 without its location. Owner-builders, substantially renovated homes,
 exemptions, the Commissioner's discretions and transfer duty are outside it.
-The tests hold it to the site page's 26 cases; see
+`total_value` is the value the jurisdiction tests against its cap: for a home bought,
+the price, but in Queensland and Western Australia the greater of the price and the
+unencumbered value of the home and land at the contract date (Qld s 5(6) and (7), WA
+s 14AC); for a home built, the land and the building contract with its variations. A
+value below the grant is taken as the consideration. The tests hold it to the site page's 26 cases; see
 [calculation evidence](docs/calculation-evidence.md#first-home-owner-grant).
 
 ## PSI test

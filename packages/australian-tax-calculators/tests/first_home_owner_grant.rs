@@ -321,7 +321,7 @@ fn the_result_names_its_rule_and_residence() {
     assert_eq!(out["contract_date"], "2026-08-01");
     assert_eq!(
         out["residence_requirement"],
-        "each applicant lives in the home for 12 continuous months, starting within 12 months"
+        "each applicant occupies the home as their principal place of residence for at least 12 continuous months, starting within 12 months of the purchase or construction"
     );
     assert!(out["rule"].as_str().unwrap().starts_with("Revenue NSW"));
     let act = run(&case("act", "2025-07-01", "bought", 600_000, &[]));
@@ -573,4 +573,65 @@ fn every_edge_agrees_with_the_oracle() {
         }
     }
     assert_eq!(checked, 9 * 3 * 10 * 32);
+}
+
+/// Each residence requirement as its source states it: principal place of
+/// residence, how long and from when.
+#[test]
+fn residence_requirements_are_stated_in_full() {
+    for (place, period, start) in [
+        (
+            "nsw",
+            "at least 12 continuous months",
+            "within 12 months of the purchase or construction",
+        ),
+        (
+            "vic",
+            "at least 12 months",
+            "within 12 months of settlement or of the build finishing",
+        ),
+        (
+            "qld",
+            "a continuous period of at least 6 months",
+            "within 1 year after completion",
+        ),
+        (
+            "wa",
+            "a continuous period of at least 6 months",
+            "within 12 months of completion",
+        ),
+        (
+            "sa",
+            "a continuous period of at least 6 months",
+            "within 12 months after completion",
+        ),
+        (
+            "tas",
+            "a continuous period of at least 6 months",
+            "within 12 months of completion",
+        ),
+        (
+            "nt",
+            "a continuous period of at least 12 months",
+            "within 12 months after completion",
+        ),
+    ] {
+        let mut input = case(
+            place,
+            "2026-08-01",
+            "bought",
+            500_000,
+            &["nt_no_replacement", "tas_conditions"],
+        );
+        if place == "wa" {
+            input["north_of_26th"] = json!(false);
+        }
+        let text = run(&input)["residence_requirement"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        for part in ["as their principal place of residence", period, start] {
+            assert!(text.contains(part), "{place}: {text}");
+        }
+    }
 }

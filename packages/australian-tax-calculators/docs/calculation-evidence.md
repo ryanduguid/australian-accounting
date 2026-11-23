@@ -4265,6 +4265,12 @@ differs, the Act is followed:
   the consideration for the building work (s 13(1A) and (7)(b)); the page
   pays nil.
 
+The value tested is the one each source names: the price for a home bought,
+but in Queensland the unencumbered value of the home and land as well as the
+consideration (s 5(6) and (7)) and in Western Australia the greater of the
+consideration and the value (s 14AC), so there `total_value` is the greater
+of the price and the unencumbered value. Each residence requirement is stated
+with its principal place of residence condition, period and starting event.
 The page's transfer duty rows are not part of the worksheet.
 `tests/first_home_owner_grant.rs` runs the page's cases and every
 jurisdiction, home and edge date at each amount and cap against an oracle
