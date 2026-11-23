@@ -347,6 +347,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
     ),
     (
+        "non_resident_withholding",
+        "PAYG withholding from monetary payments to foreign residents for 2024-25 to 2026-27 under TAA 1953 Sch 1 Subdivision 12-F (dividends at 30%, interest at 10% and royalties at 30% under IT(DIRWHT)A 1974 s 7 and TAR 2017 ss 39 to 42, or a stated treaty rate, with franked dividends and conduit foreign income excluded, TAR 2017 s 26 whole-dollar truncation and the s 12-300 ceiling), Subdivision 12-H (withholding MIT fund payments under ss 12-385 and 12-390 and IT(MITWHT)A 2008 s 4 at 15% standard, 10% clean building MIT and 30% non-concessional MIT income for an information exchange country, or 30% otherwise, with the s 12-390(10)(a) exception for a company not acting as agent) and Subdivision 12-FB / s 12-315 (casino gaming junkets at 3%, construction and related activities under contracts entered into after 30 June 2004 at 5%, and entertainment or sports activities at the ordinary company rate of 25% or 30% or foreign resident individual marginal rates under TAR 2017 ss 26, 31 to 33 and 48 to 51 and ITRA 1986 s 23(2) and Sch 7 Pt II, with s 12-319 exemptions, s 15-15 variations and s 48 prior-withholding reductions). Residency, treaty entitlement, permanent establishment attribution, information exchange country status, NCMI and active build to rent classification (s 12-450(5) from 1 January 2025), exemptions and variations are stated facts. Excludes non-cash benefits (Div 14), foreign resident capital gains withholding (foreign-resident-withholding), DASP (dasp-tax), no-ABN withholding (no-abn-withholding), labour mobility (Subdiv 12-FC), mining and natural resource payments (Subdiv 12-G), special company classes (ITRA 1986 s 23(3) to (7) and s 23A), trusts or partnerships for entertainment or sports activities, and 2027-28 (TAR 2017 sunsets 1 October 2027).",
+    ),
+    (
         "foreign_resident_withholding",
         "Foreign resident capital gains withholding only: the amount a purchaser pays the Commissioner under TAA 1953 Sch 1 s 14-200 on acquiring taxable Australian real property or a company title interest from one or more vendors, the acquisition (contract) date from 1 July 2017 to 30 June 2027, at 12.5% with the $750,000 market value exclusion before 1 January 2025 and 15% with none from then; clearance certificates, notices of variation (varied rate and maximum price), class variations to nil and s 14-215 exclusions are stated facts. Excludes other indirect Australian real property interests, options or rights as the asset, look-through earnouts (s 14-205), and interest, dividend, royalty, managed investment trust and s 12-315 withholding.",
     ),
@@ -945,6 +949,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "rental_property",
         "https://www.ato.gov.au/forms-and-instructions/rental-properties-2026",
+    ),
+    (
+        "non_resident_withholding",
+        "https://www.legislation.gov.au/C1953A00001/latest/text",
     ),
     (
         "foreign_resident_withholding",
@@ -2057,6 +2065,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "non_resident_withholding",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/latest/text",
+            "https://www.legislation.gov.au/C2004A00086/latest/text",
+            "https://www.legislation.gov.au/C2008A00031/latest/text",
+            "https://www.legislation.gov.au/F2017L01227/latest/text",
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+        ],
+    ),
+    (
         "foreign_resident_withholding",
         &[
             "https://www.legislation.gov.au/C2017A00057/asmade/text",
@@ -2615,6 +2633,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         &[
             "Each line is the operator's classification: an expense that is capital, an initial repair or an improvement is not deductible under s 8-1 and goes to the cost base or capital works instead.",
             "The amounts are to the cent; a return shows whole dollars, and the ATO's examples round the same figures to the dollar.",
+        ],
+    ),
+    (
+        "non_resident_withholding",
+        &[
+            "Subdivision 12-F (ITAA 1936 s 128D) and Subdivision 12-H (ITAA 1997 s 840-815) withholding taxes are generally final taxes; Subdivision 12-FB (s 12-315) withholding is not a final tax and the payee claims a credit on assessment (TAA Sch 1 s 18-15).",
+            "For dividends, TAR 2017 s 40(3) disapplies the double tax agreement rate where a dividend is paid to a US resident and is exempt from tax under US law; pass treaty_rate null unless a statutory or treaty exemption eliminates liability under s 12-300(a).",
+            "Subdivision 12-H has no statutory rounding rule (s 15-10(3) does not engage TAR 2017 s 26); each rate part is rounded half up to the cent here, whilst activity statements and annual reports take whole Australian dollars.",
         ],
     ),
     (
@@ -4602,7 +4628,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5065,6 +5091,42 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "non_commercial_losses.earlier_years_invalid",
         "earlier_years is not a list of 4 entries, each null or an object with assessable_income and deductions.",
+    ),
+    (
+        "non_resident_withholding.already_withheld_exceeds_payment",
+        "already_withheld exceeds payment.",
+    ),
+    (
+        "non_resident_withholding.base_rate_entity_invalid",
+        "base_rate_entity is not a JSON boolean for a company payee or not null for an individual payee under entertainment_or_sports.",
+    ),
+    (
+        "non_resident_withholding.construction_contract_before_cutoff",
+        "contract_date for construction is on or before 30 June 2004 (TAR 2017 s 33(1) prescribes contracts entered into after 30 June 2004).",
+    ),
+    (
+        "non_resident_withholding.exempt_exceeds_payment",
+        "franked_amount plus conduit_foreign_income exceeds payment for a dividend.",
+    ),
+    (
+        "non_resident_withholding.mit_parts_exceed_payment",
+        "clean_building_mit_amount plus non_concessional_mit_income exceeds payment for a MIT fund payment.",
+    ),
+    (
+        "non_resident_withholding.payee_entity_unsupported",
+        "payee_entity is not individual or company for entertainment_or_sports (TAR 2017 s 50(2)).",
+    ),
+    (
+        "non_resident_withholding.payment_type_invalid",
+        "payment_type is not dividend, interest, royalty, mit_fund_payment, gaming_junket, entertainment_or_sports or construction.",
+    ),
+    (
+        "non_resident_withholding.treaty_rate_invalid",
+        "treaty_rate is not null or a decimal string from 0 to the domestic rate (0.30 for dividend or royalty, 0.10 for interest).",
+    ),
+    (
+        "non_resident_withholding.variation_rate_invalid",
+        "variation_rate is not null or a decimal string from 0 to 1 (TAA Sch 1 s 15-15).",
     ),
     (
         "payg.extra_pays_not_weekly_or_fortnightly",

@@ -1126,6 +1126,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "non-resident-withholding",
+        &[
+            ("payment_type", Raw),
+            ("payment", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "sb-cgt-concessions",
         &[
             ("entity", Raw),
@@ -2174,6 +2183,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "government-super-amounts"
             | "rental-property"
             | "foreign-resident-withholding"
+            | "non-resident-withholding"
             | "horticulture-shearing-withholding"
             | "upward-variation-withholding"
             | "daily-casual-withholding"
@@ -3474,6 +3484,31 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 class_variation_to_nil: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "non-resident-withholding" => {
+            // Optional: the facts of the chosen payment_type, and only those.
+            let given = engine::NON_RESIDENT_WITHHOLDING_OPTIONAL.map(|key| {
+                let kind = match key {
+                    "franked_amount"
+                    | "conduit_foreign_income"
+                    | "clean_building_mit_amount"
+                    | "non_concessional_mit_income"
+                    | "already_withheld" => Dec,
+                    _ => Raw,
+                };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12] = given;
+            let given = [
+                a0?, a1?, a2?, a3?, a4?, a5?, a6?, a7?, a8?, a9?, a10?, a11?, a12?,
+            ];
+            engine::non_resident_withholding(&engine::NonResidentWithholdingArgs {
+                payment_type: &a[0],
+                payment: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                optional: given.each_ref().map(Option::as_ref),
             })
         }
         "sb-cgt-concessions" => {

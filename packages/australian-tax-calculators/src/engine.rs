@@ -6451,6 +6451,10 @@ mod foreign_resident_withholding;
 pub use foreign_resident_withholding::{
     ForeignResidentWithholdingArgs, foreign_resident_withholding,
 };
+mod non_resident_withholding;
+pub use non_resident_withholding::{
+    NON_RESIDENT_WITHHOLDING_OPTIONAL, NonResidentWithholdingArgs, non_resident_withholding,
+};
 mod withholding_schedules;
 pub use withholding_schedules::{
     daily_casual_withholding, horticulture_shearing_withholding, no_abn_withholding,
@@ -6509,7 +6513,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 135] = [
+const KINDS: [&str; 136] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6608,6 +6612,7 @@ const KINDS: [&str; 135] = [
     "government_super_amounts",
     "rental_property",
     "foreign_resident_withholding",
+    "non_resident_withholding",
     "horticulture_shearing_withholding",
     "upward_variation_withholding",
     "daily_casual_withholding",

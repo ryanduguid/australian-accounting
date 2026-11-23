@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-135 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, ASIC's 2026-27 fees with the late fee for a due and received date, resident and foreign
+136 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, ASIC's 2026-27 fees with the late fee for a due and received date, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the foreign resident capital gains withholding a purchaser pays on Australian real property, the small business income tax offset, a HELP debt on each 1 June from 2020 to 2026 with a voluntary repayment's timing, the defined benefit income cap with its assessable excess and reduced untaxed offset, the deductible amount of a foreign pension's undeducted purchase price, whether a scholarship is exempt, the crystallised segment of a super interest at 30 June 2007, the ATO's endorsement review worksheets for charities and DGRs, a company's deferred tax under AASB 112 with its tax expense and rate reconciliation, annual and long service leave provisions under AASB 119 with their current and non-current split, one employee's long service leave under each state and territory's Act, whether an individual must lodge a return under each year's lodgment instrument, the 4 residency tests for an individual, the change in value of trading stock with each item's valuation and the small business choice, when a prepaid expense is deductible, whether Division 35 defers a business activity loss, whether the personal services income rules apply, the employee share scheme discount with its taxing points, reductions and forfeiture exclusion, one quarterly PAYG instalment by the amount, a varied amount, the rate or a varied rate, the ATO's risk zone for an allocation of professional firm profits under PCG 2021/4, a complying SMSF's annual return tax, levy and amount due, the tax on a minor's unearned income at the Division 6AA rates, an employee's working from home, car and self-education deductions, foreign currency amounts in Australian dollars, the foreign income tax offset with a part-year resident's tax-free threshold, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years from 2020-21, the instant asset write-off, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, foreign purchaser duty and land tax surcharges in each state and territory, whether an electric car's fringe benefits are exempt, transfer duty with first home buyer concessions in each state and territory, one employer's payroll tax in each state and territory, Victoria's vacant residential land tax, commercial and industrial property tax and windfall gains tax, an owner's land tax for a full year in each of the 7 jurisdictions that levy it, one employer's workers compensation premium for 2026-27 in each scheme, the duty on a passenger vehicle in each, the duty on a general insurance premium in each, the first home owner grant in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, an R&D entity's refundable or non-refundable R&D tax offset with the amount a recoupment or feedstock clawback adds to assessable income, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, Schedule 2 withholding for horticulture and shearing, Schedule 14 additional amounts, daily and casual withholding, withholding where no ABN is quoted, Schedule 3 withholding for entertainers, Schedule 4 return to work payments, Schedule 6 annuities, Schedule 10 voluntary agreements, super contribution caps, the super co-contribution, the low income super tax offset and the spouse contribution tax offset,
@@ -252,6 +252,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
 | `foreign-resident-withholding` | `payment`, `acquisition_date`, `asset`, `market_value`, `cost_base_first_element`, `option_payments`, `sale_price`, `vendors`, `exclusion`, `class_variation_to_nil`, `year`, `scope_confirmed`; see [Foreign resident withholding](#foreign-resident-withholding) |
+| `non-resident-withholding` | `payment_type`, `payment`, `year`, `scope_confirmed` plus the payment type's own facts (`franked_amount`, `conduit_foreign_income`, `treaty_rate`, `information_exchange_country`, `clean_building_mit_amount`, `non_concessional_mit_income`, `company_not_acting_as_agent`, `payee_entity`, `base_rate_entity`, `contract_date`, `variation_rate`, `exempt`, `already_withheld`); see [Non-resident withholding](#non-resident-withholding) |
 | `residency-tests` | `resides`, `domicile_in_australia`, `permanent_place_of_abode_outside`, `presence`, `usual_place_of_abode_outside`, `intends_to_take_up_residence`, `commonwealth_super`, `resident_elsewhere`, `year`, `scope_confirmed`; see [Residency tests](#residency-tests) |
 | `lodgment-required` | `residency`, `taxable_income`, `dividends_and_franking_credits`, `under_18`, `triggers`, `study_loan`, `working_holiday_maker`, `listed_payment`, `sapto`, `child_support_parent`, `year`, `scope_confirmed`; see [Lodgment required](#lodgment-required) |
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
@@ -3777,10 +3778,57 @@ interest, for an acquisition date (the contract date, ITAA 1997 s 109-5) from
 
 It refuses other indirect Australian real property interests, options or
 rights as the asset, look-through earnouts (s 14-205), and interest,
-dividend, royalty, managed investment trust and s 12-315 withholding, which
-are not built. `tests/foreign_resident_withholding.rs` holds it to the ATO's
-foreign resident capital gains withholding examples; see
+dividend, royalty, managed investment trust and s 12-315 withholding (which
+`non-resident-withholding` covers). `tests/foreign_resident_withholding.rs`
+holds it to the ATO's foreign resident capital gains withholding examples; see
 [calculation evidence](docs/calculation-evidence.md#foreign-resident-withholding).
+
+## Non-resident withholding
+
+`non_resident_withholding` works out PAYG withholding on monetary payments to
+foreign residents for 2024-25 to 2026-27 across 3 Subdivisions of Schedule 1
+to the Taxation Administration Act 1953:
+
+- **Subdivision 12-F (`dividend`, `interest`, `royalty`):** ITAA 1936 s 128B,
+  IT(DIRWHT)A 1974 s 7 and Taxation Administration Regulations 2017 ss 26 and
+  39 to 42. Domestic rates are 30% on the unfranked non-conduit-foreign-income
+  part of a dividend (`payment` less `franked_amount` and
+  `conduit_foreign_income`), 10% on interest and 30% on royalties; a stated
+  `treaty_rate` reduces the rate. TAR 2017 s 26 disregards cents in the
+  payment and in the regulation withholding amount (and disregards amounts
+  under $1). TAA Sch 1 s 12-300 caps withholding at the withholding tax
+  payable less `already_withheld` (floored to whole cents so the statutory
+  limit is never exceeded), and gives nil when `exempt` is `true`.
+- **Subdivision 12-H (`mit_fund_payment`):** TAA Sch 1 ss 12-385, 12-390,
+  12-425, 12-435 and 12-450 and IT(MITWHT)A 2008 s 4. For a recipient in an
+  information exchange country (`information_exchange_country: true`, TAR 2017
+  s 34), the rates are 15% on the standard fund payment, 10% on
+  `clean_building_mit_amount` and 30% on `non_concessional_mit_income` (with
+  active build to rent income excluded from NCMI under s 12-450(5) from
+  1 January 2025 as an operator fact); otherwise 30% applies to the whole fund
+  payment. Under s 12-390(10)(a), `company_not_acting_as_agent: true` gives
+  nil where a company withholding under s 12-390 is not acting as agent for
+  the recipient. Subdivision 12-H does not engage TAR 2017 s 26 (s 15-10(3)),
+  so each statutory rate part is rounded half up to the cent.
+- **Subdivision 12-FB (`gaming_junket`, `entertainment_or_sports`,
+  `construction`):** TAA Sch 1 ss 12-315, 12-317, 12-319 and 15-15 and TAR
+  2017 ss 26, 31 to 33 and 48 to 51. Rates are 3% for casino gaming junkets,
+  5% for construction and related activities under contracts entered into
+  after 30 June 2004 (`contract_date` on or before 30 June 2004 is refused,
+  TAR 2017 s 33(1)), and for entertainment or sports
+  activities either the ordinary company rate (25% if `base_rate_entity` is
+  `true`, 30% if `false`, ITRA 1986 s 23(2)) or foreign resident individual
+  marginal rates (ITRA 1986 Sch 7 Pt II: 30% to $135,000, 37% to $190,000,
+  45% above $190,000). A Commissioner's `variation_rate` (s 15-15) replaces
+  the statutory rate; `exempt: true` (s 12-319) gives nil; `already_withheld`
+  reduces withholding under TAR 2017 s 48(2); TAR 2017 s 26 disregards cents
+  and amounts under $1.
+
+It refuses `capital_gains` (pointing to `foreign-resident-withholding`),
+non-company non-individual payees under `entertainment_or_sports`, invalid
+rates, parts exceeding `payment`, and 2027-28 (TAR 2017 sunsets on 1 October
+2027). See
+[calculation evidence](docs/calculation-evidence.md#non-resident-withholding).
 
 ## Small business CGT concessions
 
