@@ -6275,6 +6275,8 @@ pub use gst_adjustments::{
 };
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod leave_provisions;
+pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
 mod foreign_income_conversion;
 pub use foreign_income_conversion::foreign_income_conversion;
 mod foreign_income_tax_offset;
@@ -6290,7 +6292,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 116] = [
+const KINDS: [&str; 117] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6399,6 +6401,7 @@ const KINDS: [&str; 116] = [
     "deferred_tax",
     "cgt_cost_base_adjustments",
     "payg_instalment",
+    "leave_provisions",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
     "trading_stock",

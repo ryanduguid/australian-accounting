@@ -54,6 +54,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/super_benefit_tax",
         "engine/gst_adjustments",
         "engine/deferred_tax",
+        "engine/leave_provisions",
         "engine/foreign_income_conversion",
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
@@ -192,13 +193,13 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // voluntary-agreement-withholding, residency-tests, lodgment-required,
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
-    // gst-second-hand-goods, gst-bad-debt, deferred-tax,
+    // gst-second-hand-goods, gst-bad-debt, deferred-tax, leave-provisions,
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
     // smsf-tax, ess-discount and help-indexation.
     // With transfer-balance and excess-contributions.
-    assert_eq!(checked, 102);
+    assert_eq!(checked, 103);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

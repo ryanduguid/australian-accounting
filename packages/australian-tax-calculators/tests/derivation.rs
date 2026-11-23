@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 80] = [
+const DERIVED: [&str; 81] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -73,6 +73,7 @@ const DERIVED: [&str; 80] = [
     "voluntary-agreement-withholding",
     "rd-tax-offset",
     "deferred-tax",
+    "leave-provisions",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -2459,7 +2460,7 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, deferred-tax, \
+         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, deferred-tax, leave-provisions, \
          horticulture-shearing-withholding, upward-variation-withholding, \
          daily-casual-withholding, no-abn-withholding, \
          entertainer-withholding, return-to-work-withholding, \

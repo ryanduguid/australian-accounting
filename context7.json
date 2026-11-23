@@ -15,6 +15,7 @@
     "Worksheets have distinct scopes, such as `study-loan-withholding` (Schedule 8), the 3 Schedule 5 commands for back payments, commissions and bonuses, and `termination-payment` (Schedule 11). The Medicare levy surcharge is `medicare-levy-surcharge`.",
     "Use fabricated fixtures for examples. Do not send TFNs, client data or other private financial inputs to public calculators, URLs or hosted checkers.",
     "Super caps: `contribution-caps` for the year's caps and excess, `excess-contributions` for the concessional charge or the non-concessional release, `transfer-balance` for the transfer balance account. Each gives estimates, not determinations.",
-    "A worksheet supports human review; it is not an assessment or lodgment. Distinguish a super accrual from evidence of receipt by a fund and distinguish a planning assumption from a statutory calculation."
+    "A worksheet supports human review; it is not an assessment or lodgment. Distinguish a super accrual from evidence of receipt by a fund and distinguish a planning assumption from a statutory calculation.",
+    "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities."
   ]
 }

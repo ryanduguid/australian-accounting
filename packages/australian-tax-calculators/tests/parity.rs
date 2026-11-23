@@ -39,14 +39,14 @@ use std::process::{Command, Stdio};
 /// `tests/psi_test.rs`, `tests/rental_property.rs` and
 /// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
-/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`,
+/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
 /// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 102] = [
+const NEW_KINDS: [(&str, &str); 103] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -155,6 +155,7 @@ const NEW_KINDS: [(&str, &str); 102] = [
     ("gst-second-hand-goods", "gst_second_hand_goods"),
     ("gst-bad-debt", "gst_bad_debt"),
     ("deferred-tax", "deferred_tax"),
+    ("leave-provisions", "leave_provisions"),
     ("foreign-income-conversion", "foreign_income_conversion"),
     ("foreign-income-tax-offset", "foreign_income_tax_offset"),
     ("division-296", "division_296"),

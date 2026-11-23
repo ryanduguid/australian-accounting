@@ -1353,6 +1353,16 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "gst_going_concern" | "gst_second_hand_goods" | "gst_bad_debt" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // AASB 119 paras 8, 9, 11, 13, 15, 16, 67, 68, 70, 72, 75 to 87 and 153 to 156
+        // read the same for every reporting period ending in these years: since
+        // 2016 only para 3 (AASB 2021-7, an editorial reference), para 8 (insurance
+        // definitions) and paras 57 and 156 (cross-references to para 122A, AASB
+        // 2018-2, periods from 1 January 2019) changed, and AASB 2022-9 changes
+        // footnote Aus1 alone. AASB 101 para 69(d) changed for periods beginning
+        // from 1 January 2024 (AASB 2020-1); the caller's right to defer follows it.
+        "leave_provisions" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // AASB 112's applied paragraphs read the same for every reporting
         // period these years cover (compilations of March 2020 and September
         // 2023, AASB 18 Appendix D), and the s 23(2) rates are on the ATO's
@@ -1878,6 +1888,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_bad_debt" => (
             "2026-11-22",
             "GST Act ss 21-5, 21-10, 21-15, 21-20, 136-5, 136-10 and 136-30 and the s 195-1 definition of overdue, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTR 2000/2 paras 49AA to 75",
+        ),
+        "leave_provisions" => (
+            "2026-11-23",
+            "AASB 119 compilations of December 2022 (COMPdec22_01-23, no. 5, and COMPdec22_07-26, F2026C01064) with their tables of standards and amendments, paras 3, 8, 9, 10, 11, 13, 15 to 18, 26, 57, 67, 68, 70, 72, 75 to 87, 113 to 119 and 153 to 157; AASB 2018-2, AASB 2021-7 and AASB 2022-9; AASB 101 compilations of December 2022 (COMPdec22_01-24, no. 6, and ACOMPdec22_01-23), December 2021, March 2020 and May 2019, paras 69, 70, 72A, 72B, 75A and 139U to 139W with the table of amendments; AASB 2020-1, AASB 2020-6 and AASB 2022-6",
         ),
         "deferred_tax" => (
             "2026-11-22",
@@ -5379,6 +5393,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("cash_basis", "boolean: you account on a cash basis (ss 21-5(2) and 21-15(2)); Division 159 on changing basis is not applied"),
             ("special_rule", "none, taxable_at_less_than_one_eleventh (Subdivision 136-B, such as the margin scheme), gambling_supply (Division 126), debt_assigned (GSTR 2000/2 para 47), transition_act_s15g (GST Transition Act s 15G) or incapacitated_entity_representative (Division 58): any but none is refused"),
         ],
+        "leave_provisions" => vec![
+            ("lines", "list of 1 to 500 objects, each {label, leave, hours, hourly_rate, probability, settled_within_12_months} and, when settled_within_12_months is false, {years_to_settlement, salary_growth, discount_rate, can_defer_settlement}: leave is annual or long_service; hours the unused entitlement accumulated at the reporting date (AASB 119 paras 13(a) and 15); hourly_rate in AUD: on a short-term line the rate the entity expects to pay for the leave (para 16), on a long-term line the rate at the reporting date before future salary growth, which salary_growth projects (para 87(b)); probability from 0 to 1 that the entitlement vests and is paid (paras 15 and 72); settled_within_12_months whether the benefit the line belongs to is expected to be settled wholly before 12 months after the reporting date (para 8): the part of a benefit that is not, due within 12 months, is false; years_to_settlement a whole number from 1 to 50 (the part of a long-term benefit due within 12 months takes 1, the nearest whole year); salary_growth and discount_rate decimal fractions from 0 to 1 a year (paras 83 to 87); can_defer_settlement whether the entity has the right at the reporting date to defer settlement for at least 12 months (AASB 101 para 69(d)): for a period beginning before 1 January 2024 only an unconditional right counts (the earlier para 69(d)), and from 1 January 2024 a right with substance that exists at the reporting date (paras 72A and 75A, AASB 2020-1 and AASB 2022-6), so for every period ending in 2020-21 to 2023-24, and a 2024-25 period ending before 31 December 2024, a conditional right is false unless AASB 2020-1 and AASB 2022-6 were applied early"),
+            ("defined_benefit_plan", "boolean: the obligation includes a defined benefit plan or other post-employment benefit (AASB 119 paras 26 to 152); true is refused"),
+            ("plan_assets", "boolean: assets fund the long-term benefits or a reimbursement right exists (paras 113 to 119 and 155); true is refused"),
+        ],
         "deferred_tax" => vec![
             ("items", "list of 1 to 500 objects, each {label, class, carrying_amount, tax_base, opening_carrying_amount, opening_tax_base}: class is asset or liability, amounts in AUD at the end and start of the year (0.00 when the item did not exist), the tax base the amount attributed for tax purposes (AASB 112 paras 7 and 8)"),
             ("unused_tax_losses", "AUD: tax losses carried forward at the end of the year (para 34)"),
@@ -6689,6 +6708,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("attributed", Flag(true)),
             ("overdue_from", Text("2021-04-16")),
             ("as_at", Text("2022-04-16")),
+        ],
+        // Fabricated: an annual leave line, and vested and unvested long service
+        // leave lines.
+        "leave_provisions" => vec![
+            ("year", Text("2025-26")),
+            (
+                "lines",
+                Json(
+                    r#"[{"label": "Annual leave", "leave": "annual", "hours": "152.00", "hourly_rate": "45.50", "probability": "1", "settled_within_12_months": true}, {"label": "Long service leave, vested", "leave": "long_service", "hours": "400.00", "hourly_rate": "52.00", "probability": "1", "settled_within_12_months": false, "years_to_settlement": 2, "salary_growth": "0.03", "discount_rate": "0.045", "can_defer_settlement": false}, {"label": "Long service leave, unvested", "leave": "long_service", "hours": "120.00", "hourly_rate": "38.00", "probability": "0.4", "settled_within_12_months": false, "years_to_settlement": 5, "salary_growth": "0.035", "discount_rate": "0.0425", "can_defer_settlement": true}]"#,
+                ),
+            ),
+            ("defined_benefit_plan", Flag(false)),
+            ("plan_assets", Flag(false)),
         ],
         // Fabricated: plant, a leave provision and a prepayment of a company
         // that is not a base rate entity.
