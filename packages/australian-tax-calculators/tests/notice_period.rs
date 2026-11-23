@@ -144,6 +144,29 @@ fn excluded_days_come_off_the_service() {
 }
 
 #[test]
+fn service_from_29_february_ends_its_years_on_28_february() {
+    // No 29 February in the last year: the period ends with 28 February
+    // (s 2G), so service to its end is exactly the years.
+    let from = |notice: &str| facts(notice, "2024-02-29", "1996-01-01");
+    assert_eq!(weeks(&from("2025-02-28")), "1");
+    assert_eq!(weeks(&from("2025-03-01")), "2");
+    assert_eq!(weeks(&from("2027-02-28")), "2");
+    assert_eq!(weeks(&from("2027-03-01")), "3");
+    let at_50 = |notice: &str| facts(notice, "2024-02-29", "1976-01-01");
+    assert_eq!(weeks(&at_50("2026-02-27")), "2");
+    assert_eq!(weeks(&at_50("2026-02-28")), "3");
+}
+
+#[test]
+fn a_transfer_counts_the_first_employers_service_but_not_the_gap() {
+    // s 22(5): service from 27 July 2023 with the first employer, 5 days
+    // between the employments, notice on 31 July 2026: exactly 3 years.
+    let transfer = facts("2026-07-31", "2023-07-27", "1996-01-01");
+    assert_eq!(weeks(&transfer), "3");
+    assert_eq!(weeks(&with(transfer, json!({"excluded_days": 5}))), "2");
+}
+
+#[test]
 fn payment_in_lieu_is_the_full_rate_for_the_weeks() {
     let input = with(
         facts("2026-08-01", "2022-08-01", "1996-01-01"),
@@ -152,12 +175,13 @@ fn payment_in_lieu_is_the_full_rate_for_the_weeks() {
     let result = run(&input);
     assert_eq!(result["rates"]["minimum_notice_weeks"], "3");
     assert_eq!(result["amounts"]["payment_in_lieu"], "4560.00");
-    // Half up to the cent: 1 week x 7.25 hours x $33.33 = $241.6425.
+    // Up to the cent, as it must be at least the amount: 1 week x 7.25
+    // hours x $33.33 = $241.6425.
     let odd = with(
         facts("2026-08-01", "2026-01-01", "1996-01-01"),
         json!({"full_rate_of_pay": "33.33", "weekly_hours": "7.25"}),
     );
-    assert_eq!(run(&odd)["amounts"]["payment_in_lieu"], "241.64");
+    assert_eq!(run(&odd)["amounts"]["payment_in_lieu"], "241.65");
     for hours in ["0", "168.01", "1.001", "-1"] {
         let bad = with(odd.clone(), json!({"weekly_hours": hours}));
         assert_eq!(code(&bad), "notice_period.hours_invalid", "{hours}");

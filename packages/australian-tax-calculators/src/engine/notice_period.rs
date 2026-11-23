@@ -12,9 +12,9 @@
 use serde_json::{Value, json};
 
 use super::trade_in::when;
-use super::{Arg, Result, date_arg, flag, int, money, precise, rate, refuse, result, scope};
+use super::{Arg, Result, d, date_arg, flag, int, money, precise, rate, refuse, result, scope};
 use crate::dates;
-use crate::decimal::Decimal;
+use crate::decimal::{Decimal, Rounding};
 
 const KIND: &str = "notice_period";
 
@@ -223,6 +223,16 @@ fn pay_given(args: &NoticePeriodArgs) -> Result<Option<(Decimal, Decimal)>> {
     }
 }
 
+/// `exact` rounded up to the cent: s 117(2)(b) requires at least the amount.
+fn at_least(exact: &Decimal) -> Result<Decimal> {
+    let cut = exact.quantize(-2, Rounding::Down)?;
+    if exact.gt(&cut)? {
+        Ok(cut.add(&d("0.01"))?)
+    } else {
+        Ok(cut)
+    }
+}
+
 pub fn notice_period(args: &NoticePeriodArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let (notice, start, born) = checked_dates(args, &year)?;
@@ -248,7 +258,7 @@ pub fn notice_period(args: &NoticePeriodArgs) -> Result<Value> {
         ),
     ];
     if let Some((rate_of_pay, hours)) = &pay {
-        let payment = precise(|| Ok(int(weeks).mul(hours)?.mul(rate_of_pay)?))?;
+        let payment = precise(|| at_least(&int(weeks).mul(hours)?.mul(rate_of_pay)?))?;
         amounts.push(("payment_in_lieu", payment));
         rates.push(rate("full_rate_of_pay", rate_of_pay));
         rates.push(rate("weekly_hours", hours));

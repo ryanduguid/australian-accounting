@@ -3758,11 +3758,17 @@ examples, PCG 2023/1's Gerry and Piruntha and TR 98/9's Con; see
 give under the National Employment Standards (Fair Work Act 2009 s 117), for
 written notice given (`notice_date`) from 27 March 2021, when s 117(4) took
 casual periods out of continuous service, to 30 June 2027; `year` is the
-financial year holding the notice day. Continuous service runs from
-`service_start` to the end of the notice day, less `excluded_days` (periods
-that do not count but do not break it: unauthorised absence and prescribed
-periods, s 22(4), and casual employment with the employer, s 117(4)); unpaid
-leave, such as unpaid parental leave, counts. The weeks (s 117(3)) are:
+financial year holding the notice day. 30 June 2027 is the last notice day
+it accepts, not a promise that the law stays the same to then: it applies the
+Act as compiled on 7 July 2026 and read on 24 November 2026, and a later
+amendment is not covered. Continuous service runs from `service_start` to the
+end of the notice day, less `excluded_days` (periods that do not count but do
+not break it: unauthorised absence and prescribed periods, s 22(4), casual
+employment with the employer, s 117(4), and on a transfer of employment the
+days between the 2 employments, s 22(5)(b)); unpaid leave, such as unpaid
+parental leave, counts. After a transfer of employment, `service_start` is the
+first day with the first employer, whose service counts (s 22(5)(a)). The
+weeks (s 117(3)) are:
 
 | Continuous service at the end of the notice day | Weeks |
 | --- | --- |
@@ -3796,8 +3802,10 @@ incentive payments, bonuses, loadings, monetary allowances, overtime and
 penalty rates) for the hours the employee would have worked to the end of the
 minimum period (s 117(2)(b)). Given `full_rate_of_pay` (an hour) and
 `weekly_hours`, the amount `payment_in_lieu` is the weeks times the hours
-times the rate, half up to the cent, the hours taken as the same each week.
-It does not work out the full rate of pay, longer notice under an award,
+times the rate, rounded up to the cent so that it is at least the amount
+owed, the hours taken as the same each week. It does not work out the full
+rate of pay (a pieceworker's, which s 18(2) defines separately, included),
+longer notice under an award,
 enterprise agreement or contract, notice by the employee (s 118) or
 redundancy pay. The tests hold it to the Fair Work Ombudsman's Gunter and
 Joan; see [calculation evidence](docs/calculation-evidence.md#notice-period).

@@ -7,8 +7,8 @@
 - `notice-period` works out the minimum notice of termination under the
   National Employment Standards (Fair Work Act 2009 s 117) for notice given
   from 27 March 2021 to 30 June 2027, with the over-45 week, the s 123
-  exclusions as stated, and the payment in lieu from a stated full rate of
-  pay and hours a week. New codes: `notice_period.age_unsettled`,
+  exclusions as stated, and the payment in lieu, rounded up to the cent,
+  from a stated full rate of pay and hours a week. New codes: `notice_period.age_unsettled`,
   `before_current_text`, `birth_after_start`, `excluded_invalid`,
   `exclusion_invalid`, `hours_invalid`, `start_after_notice` and
   `year_mismatch`.

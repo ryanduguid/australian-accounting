@@ -4757,7 +4757,11 @@ Choices the sources leave to the reader:
   the day before the anniversary, so service from 1 August 2025 to the end of
   31 July 2026 is exactly 1 year (1 week) and to 1 August is more (2 weeks).
 - Excluded days come off the end of the period, as they do not count towards
-  its length (s 22(4)(b)).
+  its length (s 22(4)(b)). The days between employments on a transfer of
+  employment are excluded days too (s 22(5)(b)); the first employer's service
+  counts (s 22(5)(a)), so `service_start` is its first day. The note to
+  s 22(5) and ss 91(1) and 122(1) let a second employer refuse that service
+  only for annual leave and redundancy pay, not for notice.
 - 'Over 45 years old' (s 117(3)(b)) is refused for an employee aged 45 in
   completed years at the end of the notice day: read as older than 45 years
   it includes them, read as aged above 45 it does not, and neither the Act nor
@@ -4770,7 +4774,11 @@ Choices the sources leave to the reader:
   (s 117(2)(a)), and the Fair Work Ombudsman starts the period on the day
   after notice is given.
 - The payment in lieu takes the hours a week as the same in each week; an
-  employee whose hours or full rate differ by week is outside it.
+  employee whose hours or full rate differ by week is outside it. It is
+  rounded up to the cent, as s 117(2)(b) requires at least the full rate for
+  the hours.
+- 30 June 2027 is the last notice day accepted, not a statement that the law
+  stays the same to then; a later amendment is not covered.
 
 `tests/notice_period.rs` holds these cases.
 
@@ -4783,7 +4791,9 @@ Choices the sources leave to the reader:
 | 50, exactly 2 years; a day short | s 117(3)(b) | 3 weeks; 2 weeks |
 | Notice the day before the 45th birthday, on it, the day before the 46th, on it | s 117(3)(b) | Not over 45; refused; refused; over 45 |
 | 1 year and 10 days with 10 days excluded | s 22(4) | 1 week |
-| 3 weeks at 38 hours and $40.00 | s 117(2)(b) | $4,560.00 |
+| Service from 29 February 2024: exactly 1 and 3 years, and a day more; 50, exactly 2 years | s 117(3), s 2G | 1, 2 weeks; 2, 3 weeks; 2 + 1 weeks |
+| Transfer: 3 years and 5 days with a 5-day gap between employers | s 22(5) | 2 weeks |
+| 3 weeks at 38 hours and $40.00; 1 week at 7.25 hours and $33.33 | s 117(2)(b) | $4,560.00; $241.65, rounded up |
 | Each s 123 exclusion; a specified period to avoid the Division | s 123(1) to (3) | No notice; notice as worked |
 
 ## Residency tests
