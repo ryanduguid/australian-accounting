@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 82] = [
+const DERIVED: [&str; 83] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -101,6 +101,7 @@ const DERIVED: [&str; 82] = [
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
+    "vic-property-taxes",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -769,6 +770,29 @@ fn cases() -> Vec<(&'static str, Value)> {
                               {"event": "tax_deferred", "security": "UT", "income_year": "2021-22",
                                "amount": "10.00", "tax_free": "2.00"}],
                    "year": "2021-22", "scope_confirmed": true}),
+        ),
+        // Victorian property taxes: vacant residential land tax at 3% after 2
+        // liable years, the commercial and industrial property tax's nil
+        // year and windfall gains tax on 2 titles, one of whose values fell.
+        (
+            "vic-property-taxes",
+            json!({"tax": "vacant_residential_land", "capital_improved_value": "800000",
+                   "residential_land": "vacant_home", "new_residential_concession": false,
+                   "liable_previous_tax_year": true, "liable_tax_year_before": true,
+                   "year": "2026", "scope_confirmed": true}),
+        ),
+        (
+            "vic-property-taxes",
+            json!({"tax": "commercial_industrial", "entry_date": "2024-07-01",
+                   "year": "2026", "scope_confirmed": true}),
+        ),
+        (
+            "vic-property-taxes",
+            json!({"tax": "windfall_gains",
+                   "parcels": [{"civ_before": "600000", "civ_after": "900000"},
+                               {"civ_before": "400000", "civ_after": "350000"},
+                               {"civ_before": "250000", "civ_after": "400000"}],
+                   "year": "2025", "scope_confirmed": true}),
         ),
     ];
     cases.extend(
@@ -2536,7 +2560,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, land-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, land-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, not \"payg-gross-up\""
     );
 }
 

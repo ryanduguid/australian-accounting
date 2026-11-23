@@ -6199,6 +6199,8 @@ mod government_super_amounts;
 pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod vic_property_taxes;
+pub use vic_property_taxes::{VicPropertyTaxesArgs, vic_property_taxes};
 mod alcohol_excise;
 pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
 mod fbt_minor_benefit;
@@ -6294,7 +6296,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 118] = [
+const KINDS: [&str; 119] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6368,6 +6370,7 @@ const KINDS: [&str; 118] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "vic_property_taxes",
     "alcohol_excise",
     "sb_cgt_concessions",
     "work_expenses",
