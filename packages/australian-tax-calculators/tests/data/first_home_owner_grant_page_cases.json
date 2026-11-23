@@ -1,0 +1,655 @@
+{
+  "source": "ryanduguid.github.io _data/calculator_cases.json, key first-home-owner-grant, at 1aa0a6cb (23 November 2026)",
+  "checked": "2026-11-23",
+  "function": "firstHomeOwnerGrant",
+  "rows": [
+    {
+      "case": "The opening example: a new home bought in New South Wales at the $600,000 cap",
+      "input": "New South Wales, contract 1 August 2026, new home bought, total value $600,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NSW",
+          "date": "2026-08-01",
+          "home": "bought",
+          "value": "600000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 10000
+      },
+      "output": "Grant $10,000.00"
+    },
+    {
+      "case": "One dollar over the New South Wales cap for a home bought",
+      "input": "New South Wales, contract 1 August 2026, new home bought, total value $600,001.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NSW",
+          "date": "2026-08-01",
+          "home": "bought",
+          "value": "600001",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 0,
+        "reason": "the value is over the New South Wales cap"
+      },
+      "output": "Grant $0.00, the value is over the New South Wales cap"
+    },
+    {
+      "case": "A home built in New South Wales takes the $750,000 cap",
+      "input": "New South Wales, contract 1 August 2025, new home built under a contract, total value $750,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NSW",
+          "date": "2025-08-01",
+          "home": "built",
+          "value": "750000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": true,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 10000
+      },
+      "output": "Grant $10,000.00"
+    },
+    {
+      "case": "Victoria pays on a home worth up to $750,000",
+      "input": "Victoria, contract 1 September 2025, new home bought, total value $750,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-VIC",
+          "date": "2025-09-01",
+          "home": "bought",
+          "value": "750000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 10000
+      },
+      "output": "Grant $10,000.00"
+    },
+    {
+      "case": "Victoria pays nothing a dollar above $750,000",
+      "input": "Victoria, contract 1 September 2025, new home bought, total value $750,001.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-VIC",
+          "date": "2025-09-01",
+          "home": "bought",
+          "value": "750001",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 0,
+        "reason": "the value is over the Victoria cap"
+      },
+      "output": "Grant $0.00, the value is over the Victoria cap"
+    },
+    {
+      "case": "Queensland pays $30,000 under $750,000 (section 20)",
+      "input": "Queensland, contract 1 October 2025, new home bought, total value $749,999.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-QLD",
+          "date": "2025-10-01",
+          "home": "bought",
+          "value": "749999",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 30000
+      },
+      "output": "Grant $30,000.00"
+    },
+    {
+      "case": "Queensland pays nothing at $750,000 or more (section 5(6))",
+      "input": "Queensland, contract 1 October 2025, new home bought, total value $750,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-QLD",
+          "date": "2025-10-01",
+          "home": "bought",
+          "value": "750000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 0,
+        "reason": "the value is $750,000 or more"
+      },
+      "output": "Grant $0.00, the value is $750,000 or more"
+    },
+    {
+      "case": "Queensland pays the consideration if it is less than $30,000 (section 20(1)(a))",
+      "input": "Queensland, contract 1 October 2025, new home bought, total value $20,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-QLD",
+          "date": "2025-10-01",
+          "home": "bought",
+          "value": "20000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 20000,
+        "reason": "the grant cannot be more than the consideration"
+      },
+      "output": "Grant $20,000.00, the grant cannot be more than the consideration"
+    },
+    {
+      "case": "No grant for an established home",
+      "input": "Queensland, contract 1 October 2025, established home, total value $730,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-QLD",
+          "date": "2025-10-01",
+          "home": "established",
+          "value": "730000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 0,
+        "reason": "the grant is for a new home only"
+      },
+      "output": "Grant $0.00, the grant is for a new home only"
+    },
+    {
+      "case": "Western Australia before 7 May 2026: the $750,000 cap",
+      "input": "Western Australia, contract 6 May 2026, new home bought, south of the 26th parallel, total value $780,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-WA",
+          "date": "2026-05-06",
+          "home": "bought",
+          "value": "780000",
+          "north": false,
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 0,
+        "reason": "the value is over the Western Australia cap"
+      },
+      "output": "Grant $0.00, the value is over the Western Australia cap"
+    },
+    {
+      "case": "Western Australia from 7 May 2026: the $800,000 cap",
+      "input": "Western Australia, contract 7 May 2026, new home bought, south of the 26th parallel, total value $780,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-WA",
+          "date": "2026-05-07",
+          "home": "bought",
+          "value": "780000",
+          "north": false,
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 10000
+      },
+      "output": "Grant $10,000.00"
+    },
+    {
+      "case": "Western Australia needs the home’s location",
+      "input": "Western Australia, contract 1 August 2026, new home bought, location not stated, total value $500,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-WA",
+          "date": "2026-08-01",
+          "home": "bought",
+          "value": "500000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "refused": "Not computed: choose where the Western Australian home is, south or north of the 26th parallel.",
+      "output": "Refused: not computed: choose where the Western Australian home is, south or north of the 26th parallel"
+    },
+    {
+      "case": "Western Australia north of the 26th parallel: the $1,000,000 cap",
+      "input": "Western Australia, contract 1 August 2026, new home bought, north of the 26th parallel, total value $950,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-WA",
+          "date": "2026-08-01",
+          "home": "bought",
+          "value": "950000",
+          "north": true,
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 10000
+      },
+      "output": "Grant $10,000.00"
+    },
+    {
+      "case": "South Australia has no cap from 6 June 2024",
+      "input": "South Australia, contract 1 November 2025, new home bought, total value $2,000,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-SA",
+          "date": "2025-11-01",
+          "home": "bought",
+          "value": "2000000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 15000
+      },
+      "output": "Grant $15,000.00"
+    },
+    {
+      "case": "RevenueSA’s example: a $10,000 purchase price gets a $10,000 grant",
+      "input": "South Australia, contract 1 November 2025, new home bought, total value $10,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-SA",
+          "date": "2025-11-01",
+          "home": "bought",
+          "value": "10000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 10000,
+        "reason": "the grant cannot be more than the consideration"
+      },
+      "output": "Grant $10,000.00, the grant cannot be more than the consideration"
+    },
+    {
+      "case": "A home built needs its building contract price stated as at least the grant",
+      "input": "Queensland, contract 1 October 2025, new home built under a contract, total value $120,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-QLD",
+          "date": "2025-10-01",
+          "home": "built",
+          "value": "120000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "refused": "Not computed: the Queensland grant for this home needs another fact stated: the building contract price is at least the grant.",
+      "output": "Refused: not computed: the Queensland grant for this home needs another fact stated: the building contract price is at least the grant"
+    },
+    {
+      "case": "Tasmania pays $30,000 to 30 June 2026 (section 18L)",
+      "input": "Tasmania, contract 30 June 2026, new home built under a contract, total value $500,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-TAS",
+          "date": "2026-06-30",
+          "home": "built",
+          "value": "500000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": true,
+            "nt": false,
+            "tas": true
+          }
+        }
+      ],
+      "result": {
+        "grant": 30000
+      },
+      "output": "Grant $30,000.00"
+    },
+    {
+      "case": "Tasmania pays $20,000 from 1 July 2026 (section 18M)",
+      "input": "Tasmania, contract 1 July 2026, new home built under a contract, total value $500,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-TAS",
+          "date": "2026-07-01",
+          "home": "built",
+          "value": "500000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": true,
+            "nt": false,
+            "tas": true
+          }
+        }
+      ],
+      "result": {
+        "grant": 20000
+      },
+      "output": "Grant $20,000.00"
+    },
+    {
+      "case": "Tasmania pays the consideration if it is less (section 18(1))",
+      "input": "Tasmania, contract 1 July 2026, new home bought, total value $15,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-TAS",
+          "date": "2026-07-01",
+          "home": "bought",
+          "value": "15000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": true
+          }
+        }
+      ],
+      "result": {
+        "grant": 15000,
+        "reason": "the grant cannot be more than the consideration"
+      },
+      "output": "Grant $15,000.00, the grant cannot be more than the consideration"
+    },
+    {
+      "case": "The Northern Territory’s HomeGrown Territory Grant has no cap",
+      "input": "Northern Territory, contract 1 September 2026, new home bought, total value $1,200,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NT",
+          "date": "2026-09-01",
+          "home": "bought",
+          "value": "1200000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": true,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 50000
+      },
+      "output": "Grant $50,000.00"
+    },
+    {
+      "case": "A Northern Territory contract must be stated not to replace an earlier one",
+      "input": "Northern Territory, contract 1 September 2026, new home bought, total value $600,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NT",
+          "date": "2026-09-01",
+          "home": "bought",
+          "value": "600000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "refused": "Not computed: the Northern Territory grant for this home needs another fact stated: the contract replaces none signed before 1 October 2024.",
+      "output": "Refused: not computed: the Northern Territory grant for this home needs another fact stated: the contract replaces none signed before 1 October 2024"
+    },
+    {
+      "case": "The Australian Capital Territory has paid no grant since 1 July 2019",
+      "input": "Australian Capital Territory, contract 1 September 2026, new home bought, total value $600,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-ACT",
+          "date": "2026-09-01",
+          "home": "bought",
+          "value": "600000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "result": {
+        "grant": 0,
+        "reason": "the Australian Capital Territory has paid none since 1 July 2019"
+      },
+      "output": "Grant $0.00, the Australian Capital Territory has paid none since 1 July 2019"
+    },
+    {
+      "case": "A contract before 1 July 2025 is not covered",
+      "input": "New South Wales, contract 30 June 2025, new home bought, total value $500,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NSW",
+          "date": "2025-06-30",
+          "home": "bought",
+          "value": "500000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "refused": "Not computed: choose a contract date from 1 July 2025 to 22 November 2026, the day the grant rules were read.",
+      "output": "Refused: not computed: choose a contract date from 1 July 2025 to 22 November 2026, the day the grant rules were read"
+    },
+    {
+      "case": "A contract after the day the rules were read is not covered",
+      "input": "New South Wales, contract 23 November 2026, new home bought, total value $500,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NSW",
+          "date": "2026-11-23",
+          "home": "bought",
+          "value": "500000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "refused": "Not computed: choose a contract date from 1 July 2025 to 22 November 2026, the day the grant rules were read.",
+      "output": "Refused: not computed: choose a contract date from 1 July 2025 to 22 November 2026, the day the grant rules were read"
+    },
+    {
+      "case": "A value below the grant outside Queensland, South Australia and Tasmania is refused",
+      "input": "New South Wales, contract 1 August 2026, new home bought, total value $5,000.00, every eligibility fact stated",
+      "call": [
+        {
+          "place": "AU-NSW",
+          "date": "2026-08-01",
+          "home": "bought",
+          "value": "5000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": true,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "refused": "Not computed: a value below the $10,000 grant; the New South Wales rule for that case was not confirmed.",
+      "output": "Refused: not computed: a value below the $10,000 grant; the New South Wales rule for that case was not confirmed"
+    },
+    {
+      "case": "An eligibility fact not stated is refused",
+      "input": "New South Wales, contract 1 August 2026, new home bought, total value $500,000.00, not stated: the residence requirement will be met",
+      "call": [
+        {
+          "place": "AU-NSW",
+          "date": "2026-08-01",
+          "home": "bought",
+          "value": "500000",
+          "facts": {
+            "person": true,
+            "citizen": true,
+            "first": true,
+            "residence": false,
+            "contract": false,
+            "nt": false,
+            "tas": false
+          }
+        }
+      ],
+      "refused": "Not computed: the grant and the first home buyer duty need every eligibility fact stated; not stated: the residence requirement will be met.",
+      "output": "Refused: not computed: the grant and the first home buyer duty need every eligibility fact stated; not stated: the residence requirement will be met"
+    }
+  ]
+}

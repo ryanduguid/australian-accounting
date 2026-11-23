@@ -45,9 +45,9 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
-/// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
+/// `tests/help_indexation.rs` and `tests/first_home_owner_grant.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 104] = [
+const NEW_KINDS: [(&str, &str); 105] = [
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -109,6 +109,7 @@ const NEW_KINDS: [(&str, &str); 104] = [
     ("non-commercial-losses", "non_commercial_losses"),
     ("psi-test", "psi_test"),
     ("payg-instalment", "payg_instalment"),
+    ("first-home-owner-grant", "first_home_owner_grant"),
     ("minors-income", "minors_income"),
     ("smsf-tax", "smsf_tax"),
     ("beneficiary-tax-offset", "beneficiary_tax_offset"),

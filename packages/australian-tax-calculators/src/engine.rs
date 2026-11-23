@@ -6246,6 +6246,8 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
+mod first_home_owner_grant;
+pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 mod foreign_resident_withholding;
@@ -6294,7 +6296,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 118] = [
+const KINDS: [&str; 119] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6413,6 +6415,7 @@ const KINDS: [&str; 118] = [
     "smsf_tax",
     "ess_discount",
     "help_indexation",
+    "first_home_owner_grant",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

@@ -185,6 +185,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
+    // first-home-owner-grant,
     // fbt-instalment, private-health-insurance-rebate, rental-property, super-benefit-tax and
     // foreign-resident-withholding,
     // horticulture-shearing-withholding, upward-variation-withholding,
@@ -199,7 +200,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
     // smsf-tax, ess-discount and help-indexation.
     // With transfer-balance, excess-contributions and land-tax.
-    assert_eq!(checked, 104);
+    assert_eq!(checked, 105);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
