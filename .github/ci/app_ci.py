@@ -82,86 +82,84 @@ class CrateSelection:
     all_parity: bool
 
 
-def select_crates(paths: list[str], root: Path = ROOT) -> CrateSelection:
-    """Select the Rust crates and parity engines a pull request must check."""
-    all_crates = crates(root, ci_yml=False)
-    ci_crates = crates(root, ci_yml=True)
-    by_name = {crate["package"]: crate for crate in ci_crates}
-    umbrella_name = Path(UMBRELLA).name
-    linked_engines = linked(root)
-    linked_set = set(linked_engines)
-
-    def select_all() -> CrateSelection:
-        return CrateSelection(
-            crates=ci_crates,
-            run=True,
-            parity_run=True,
-            parity_engines=linked_engines,
-            all_parity=True,
-        )
-
-    if not paths:
-        return select_all()
-    deps = crate_dependencies(root, ci_yml=True)
-    if deps is None:
-        return select_all()
-
-    crate_prefixes = tuple((f"{c['root']}/{c['package']}/", c["package"]) for c in ci_crates)
-    own_workflow_prefixes = tuple(
-        f"{c['root']}/{c['package']}/" for c in all_crates if c["package"] not in by_name
-    )
-    unrelated_prefixes = own_workflow_prefixes + CRATE_UNRELATED_PREFIXES
-
+def _direct_crates(
+    paths: list[str],
+    crate_prefixes: tuple[tuple[str, str], ...],
+    unrelated_prefixes: tuple[str, ...],
+) -> set[str] | None:
+    """Return directly changed crate names, or None when paths fail closed."""
     direct: set[str] = set()
     for path in paths:
-        if not path or any(part in {"", ".", ".."} for part in path.split("/")):
-            return select_all()
-        if is_shared(path):
-            return select_all()
+        if not path or any(part in {"", ".", ".."} for part in path.split("/")) or is_shared(path):
+            return None
         matched = next((pkg for prefix, pkg in crate_prefixes if path.startswith(prefix)), None)
         if matched is not None:
             direct.add(matched)
         elif not path.startswith(unrelated_prefixes):
-            return select_all()
+            return None
+    return direct
 
-    if not direct:
-        return CrateSelection(
-            crates=[],
-            run=False,
-            parity_run=False,
-            parity_engines=[],
-            all_parity=False,
-        )
 
-    reverse: dict[str, set[str]] = {name: set() for name in by_name}
+def _reverse_closure(direct: set[str], deps: dict[str, set[str]]) -> set[str]:
+    """Expand directly changed crates to all reverse transitive dependents."""
+    reverse: dict[str, set[str]] = {name: set() for name in deps}
     for pkg, pkg_deps in deps.items():
         for dep in pkg_deps:
             reverse[dep].add(pkg)
-
     selected = set(direct)
     queue = list(direct)
     while queue:
-        current = queue.pop()
-        for dependent in reverse[current]:
+        for dependent in reverse[queue.pop()]:
             if dependent not in selected:
                 selected.add(dependent)
                 queue.append(dependent)
+    return selected
 
+
+def _parity_scope(
+    direct: set[str],
+    selected: set[str],
+    umbrella_name: str,
+    linked_engines: list[str],
+) -> tuple[bool, list[str], bool]:
+    """Determine parity run flag, engine list and full-parity marker."""
+    linked_set = set(linked_engines)
     if umbrella_name in direct:
         # au-accounting itself changed: rebuild and parity-test every linked engine.
         selected.update(linked_set)
-        parity_engines = linked_engines
-        parity_run = True
-        all_parity = True
-    elif selected & linked_set:
-        parity_engines = sorted(selected & linked_set)
-        parity_run = True
-        all_parity = len(parity_engines) == len(linked_engines)
-    else:
-        parity_engines = []
-        parity_run = False
-        all_parity = False
+        return True, linked_engines, True
+    affected = sorted(selected & linked_set)
+    if affected:
+        return True, affected, len(affected) == len(linked_engines)
+    return False, [], False
 
+
+def select_crates(paths: list[str], root: Path = ROOT) -> CrateSelection:
+    """Select the Rust crates and parity engines a pull request must check."""
+    all_crates = crates(root, ci_yml=False)
+    ci_crates = crates(root, ci_yml=True)
+    linked_engines = linked(root)
+    full = CrateSelection(ci_crates, True, True, linked_engines, True)
+
+    deps = crate_dependencies(root, ci_yml=True) if paths else None
+    if deps is None:
+        return full
+
+    by_name = {crate["package"]: crate for crate in ci_crates}
+    crate_prefixes = tuple((f"{c['root']}/{c['package']}/", c["package"]) for c in ci_crates)
+    own_workflow_prefixes = tuple(
+        f"{c['root']}/{c['package']}/" for c in all_crates if c["package"] not in by_name
+    )
+    direct = _direct_crates(paths, crate_prefixes, own_workflow_prefixes + CRATE_UNRELATED_PREFIXES)
+    if direct is None:
+        return full
+    if not direct:
+        return CrateSelection([], False, False, [], False)
+
+    selected = _reverse_closure(direct, deps)
+    parity_run, parity_engines, all_parity = _parity_scope(
+        direct, selected, Path(UMBRELLA).name, linked_engines
+    )
     return CrateSelection(
         crates=[crate for crate in ci_crates if crate["package"] in selected],
         run=True,
