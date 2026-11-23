@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Added `partnership-net-income` (ITAA 1936 ss 90 to 92), `trustee-assessment`
+  (ss 97, 98, 99, 99A with the Income Tax Rates Act 1986 rates) and
+  `trust-loss-tests` (Schedule 2F tests for a prior-year tax loss) for 2024-25
+  to 2026-27.
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
 ## 1.0.0 (unreleased)
