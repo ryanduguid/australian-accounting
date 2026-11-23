@@ -1409,6 +1409,33 @@ the cent; the ATO's example shows whole dollars.
 | A licence from 30 October 2026 | QC65935 | Cap $267,397.26 |
 | Remission lines over the cap in 2025-26 and 2026-27 | Excise Regulation 2015 item 10(c)(i) | $350,000; $400,000 |
 
+## ASIC fees
+
+This worksheet was added on 24 November 2026, when its sources were read.
+The amounts are ASIC's fee data (`fees-data-current.json`, YEARFEE 2026,
+SHA-256 03281f57…866da), which fills INFO 30 'Fees for commonly lodged
+documents' and 'Fee indexation' ('From 1 July 2026'). Each was recomputed
+from the regulations: the Corporations (Fees) Regulations 2001, Compilation
+No. 41 (1 January 2025), Schedule 2 items 1(a)(i) and (ii) (registration), 8
+(name reservation) and 14 (late lodgement), indexed under reg 3(3) to (7),
+50 cents rounding up; the Corporations (Review Fees) Regulations 2003,
+Compilation No. 11 (12 March 2025), Schedule 1 Part 1 items 1, 2, 4 and 5 and
+Part 3 items 1 and 2, indexed under reg 4(6) to (10) from 2024-25, 50 cents
+rounding down; and the Business Names Registration (Fees) Regulations 2022
+s 6 items 1 to 4, indexed under s 6(2) to (7) with the factor to 3 places,
+50 cents rounding down. The factors use the ABS CPI March quarters 2018 to
+2026 (97.70 and 101.70 for 2025 and 2026 on the new reference base).
+
+The first month after the due date follows the Acts Interpretation Act 1901
+(compilation of 28 March 2026) s 2G(1) and s 36(1) item 6, and the
+Corporations Act 2001 (compilation 149, 19 September 2026) s 105(1). INFO 30
+and ASIC's 'Late fees' page tier by the day ASIC receives the payment or
+document. Section 36(2) of the Acts Interpretation Act and s 105(3) of the
+Corporations Act can move a deadline that falls on a weekend; the worksheet
+refuses a received date such a move could change. The site page cites
+company registration to Schedule 1 item 1(a); Compilation No. 41 puts it in
+Schedule 2 item 1(a), and Schedule 1 item 1 is an AFS licence application.
+
 ## Beneficiary tax offset
 
 Added on 22 November 2026. ITAA 1936 s 160AAA was read in compilation 193

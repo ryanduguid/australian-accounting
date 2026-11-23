@@ -11,6 +11,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Excise duty on beer, spirits and other excisable beverages manufactured in Australia and entered for home consumption from 1 July 2022 to 31 January 2027, in one financial year from 2022-23 to 2026-27, at the substituted rate the Commissioner published for the day (Excise Tariff Act 1921 Schedule items 1 to 3, s 6A), with the remission for alcohol manufacturers under its yearly cap and the refund of duty paid where it was available (Excise Regulation 2015 Sch 1 cl 2(1) item 10). The operator establishes each line's product, dutiable volume and strength at 20 degrees Celsius under the measurement determinations, container and entry day, and the remission conditions other than the cap. Excludes licences, approvals and the free subitems 3.5 to 3.8, quotas in a declared period, other remissions, refunds and drawbacks, imported goods (customs duty), wine (wine equalisation tax), tobacco and fuel.",
     ),
     (
+        "asic_fees",
+        "ASIC's standard fee in 2026-27 for registering a company with or without share capital, reserving a company name, a company's annual review (public, proprietary, or special purpose public or proprietary) or registering or renewing a business name for 1 or 3 years, as indexed from 1 July 2026; and for a late payment of an annual review fee or a late lodgement of a document, the late fee for the tier the day ASIC received it falls in: on or before the due date nil, within one month after it $102, more than one month after it $428. The month starts the day after the due date (Acts Interpretation Act 1901 s 2G(1) and s 36(1) item 6). The operator gives the due date: the worksheet never works it out from a review date, and refuses a received date that a move of the due date, or of the month's end, past a weekend could change (AIA s 36(2), Corporations Act s 105(3)). Excludes other ASIC fees, public holidays, fee waivers and refunds, and dates outside 2026-27.",
+    ),
+    (
         "fuel_tax_credits",
         "Fuel tax credits for taxable fuel acquired from 1 July 2022 to 31 January 2027, in one income year from 2022-23 to 2026-27, by an entity registered or required to be registered for GST, for use in carrying on its enterprise (Fuel Tax Act 2006 s 41-5). The operator establishes each line: the fuel (diesel, petrol, B5, B20, E10, E85, LPG, LNG or CNG, or B100), the day it was acquired, its quantity in litres (LNG and CNG in kilograms) and its use: in a heavy vehicle (gross vehicle mass above 4.5 tonnes) travelling on a public road, including fuel to power a bus's or coach's passenger air-conditioning (QC107638 note 1); in all other business uses, including a heavy vehicle's other auxiliary equipment, travel off public roads and a heavy vehicle whose public road travel is incidental to its main use (s 43-10(4)); or in a vehicle of 4.5 tonnes GVM or less on a public road, which gets no credit (s 41-20). Each line takes the ATO's published rate for the day it was acquired (s 43-5(2) and (2A) item 1; for a heavy vehicle on a public road the rate net of the road user charge, s 43-10(3) and (6)), from the 16 rate periods bundled with this command, each with its ATO page and the day it was read; its credit is the quantity times the rate in cents, divided by 100 and rounded half up to the cent, and the lines' credits are added and the whole dollars, cents dropped, are the amount for BAS label 7D. A small claimant (credits of $10,000 or less in the previous 12 months and expected to be so in the current 12 months) may use the basic method for heavy vehicles for diesel (PCG 2021/2: public road litres are the public road kilometres, actual or 98.4% of the total, times the diesel consumption rate, from the ATO's rigid truck table by gross weight or the engine's diagnostic report; the rest of the diesel takes the other rate), PCG 2016/2 Method 1 (a liquid fuel's litres are its GST inclusive cost divided by the average GST inclusive price the operator reads for its fuel type, area and tax period from the Australian Institute of Petroleum's weekly retail prices) and Method 2 (every liquid fuel line at the rate on the last day of a tax period in which the rate changed only because of indexation). Given the day the return is given, lines acquired more than 4 years before it are flagged under s 47-5(2). Refuses a year outside 2022-23 to 2026-27, an acquisition outside the income year or after 31 January 2027 (the rates change at the February 2027 indexation), a basic method line for a fuel other than diesel, a Method 1 line for LPG, LNG or CNG, a rigid truck of 4.5 tonnes or less, public road litres above the diesel, Method 2 across a change other than indexation alone (29 September 2022, 1 April 2026 and 3 August 2026, and each 1 July) or for LPG, LNG or CNG, and a simplified method without the small claimant statement. Excludes deciding entitlement and registration, who acquired the fuel in a hire or supply chain, whether a road is public or travel incidental, the environmental criteria (s 41-25), apportioning fuel between uses (PCG 2016/8, FTD 2010/1), the auxiliary equipment percentages (PCG 2016/11) and the list of heavy vehicles used mainly off public roads, consumption rates for articulated combinations (give litres_per_km from the engine's report), the average price itself, converting LPG kilograms to litres, aviation fuel, fuel for packaging or supply, domestic heating, electricity generation and non-business claims, fuel manufactured or imported (s 43-5(2A) item 2), fuel tax adjustments (Division 44), attributing credits to a tax period (s 65-5), the s 47-5(1) limit and the s 47-10 exception, and substituted accounting periods.",
     ),
@@ -492,6 +496,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "alcohol_excise",
         "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/excise-on-alcohol/excise-duty-rates-for-alcohol",
+    ),
+    (
+        "asic_fees",
+        "https://www.asic.gov.au/for-business-and-companies/forms-and-fees/all-fees/fees-for-commonly-lodged-documents",
     ),
     (
         "fuel_tax_credits",
@@ -999,6 +1007,18 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C1901A00009/2026-08-27/2026-08-27/text/original/epub/OEBPS/document_1/document_1.html",
             "https://www.legislation.gov.au/F2015L00355/2025-11-29/2025-11-29/text/original/epub/OEBPS/document_1/document_1.html",
             "https://data.gov.au/data/dataset/excise-data",
+        ],
+    ),
+    (
+        "asic_fees",
+        &[
+            "https://download.asic.gov.au/asic-nga/data/fees-data-current.json",
+            "https://www.asic.gov.au/for-business-and-companies/forms-and-fees/all-fees/fee-indexation",
+            "https://www.asic.gov.au/for-business-and-companies/forms-and-fees/late-fees",
+            "https://www.legislation.gov.au/F2001B00275/latest/text",
+            "https://www.legislation.gov.au/F2003B00173/latest/text",
+            "https://www.legislation.gov.au/F2022L00349/latest/text",
+            "https://www.legislation.gov.au/C1901A00002/latest/text",
         ],
     ),
     (
@@ -2200,6 +2220,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "asic_fees",
+        &[
+            "Public holidays are not checked: if the due date or the last day of the first month after it is one where the payment or document reaches ASIC, check ASIC's invoice. A late fee is on top of the fee itself. GST does not apply to ASIC fees.",
+        ],
+    ),
+    (
         "fuel_tax_credits",
         &[
             "Each line's rate is the one the ATO publishes for its acquisition day; the ATO's fuel tax credit calculator remains the authority for an amount claimed.",
@@ -2614,6 +2640,10 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
         "The excise duty rates for goods entered from 1 February 2027 had not been published when this worksheet was checked, so no 2027-28 rate is held.",
     ),
     (
+        "asic_fees",
+        "ASIC's fees from 1 July 2027 are indexed on the March 2027 quarter CPI and had not been published when this worksheet was checked on 24 November 2026.",
+    ),
+    (
         "work_expenses",
         "No cents per kilometre rate for 2027-28 had been determined under ITAA 1997 s 28-25(4) when this worksheet was checked.",
     ),
@@ -2751,6 +2781,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "annuity_withholding.income_not_whole_cents",
         "The annuity payment less the deductible amount divided by the instalments does not come to whole cents, which Schedule 6 does not round.",
+    ),
+    (
+        "asic_fees.dates_outside_year",
+        "A due date or received date falls outside 2026-27, whose amounts the worksheet holds.",
+    ),
+    (
+        "asic_fees.fee_unknown",
+        "fee is not one of the ASIC fees the worksheet holds.",
+    ),
+    (
+        "asic_fees.weekend_undecided",
+        "A move of the due date, or of the end of the month after it, past a weekend could change the late fee tier, which the worksheet does not decide.",
     ),
     (
         "ato_interest_penalties.date_order",
@@ -3943,7 +3985,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, leave-provisions, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

@@ -6203,6 +6203,8 @@ mod vic_property_taxes;
 pub use vic_property_taxes::{VicPropertyTaxesArgs, vic_property_taxes};
 mod alcohol_excise;
 pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
+mod asic_fees;
+pub use asic_fees::{AsicFeesArgs, asic_fees};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
@@ -6298,7 +6300,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 120] = [
+const KINDS: [&str; 121] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6374,6 +6376,7 @@ const KINDS: [&str; 120] = [
     "wine_equalisation_tax",
     "vic_property_taxes",
     "alcohol_excise",
+    "asic_fees",
     "sb_cgt_concessions",
     "work_expenses",
     "ato_interest_penalties",
