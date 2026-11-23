@@ -127,7 +127,7 @@ fn tim() {
     let tim = |paid: &str, elsewhere: &str| {
         input(json!({"year": "2016-17", "incorporated_year": "2016-17",
             "amount_paid": paid, "disclosure_exemption": false,
-            "other_companies_paid": elsewhere}))
+            "other_companies_paid": elsewhere, "other_companies_exempt": false}))
     };
     let result = run(&tim("50000.00", "0.00"));
     assert_eq!(offset(&result), ["10000.00", "200000.00", "10000.00"]);
@@ -149,7 +149,8 @@ fn tim() {
 fn the_retail_limit_at_and_over_50000() {
     let call = |paid: &str, non_cash: &str| {
         input(json!({"amount_paid": paid, "non_cash_benefit": non_cash,
-            "disclosure_exemption": false, "other_companies_paid": "0.00"}))
+            "disclosure_exemption": false, "other_companies_paid": "0.00",
+            "other_companies_exempt": false}))
     };
     assert_eq!(
         met(&run(&call("50000.00", "0.00")), "retail_limit"),
@@ -281,10 +282,15 @@ fn the_incorporation_refusals() {
         input(json!({"incorporated_year": inc, "abr_registered_year": abr,
             "expenses_three_prior_years": spent}))
     };
-    assert_eq!(
-        code(&call("none", "none", "0.00")),
-        "esic.no_incorporation_or_registration"
-    );
+    // Neither incorporated in Australia nor registered: no route is met.
+    let result = run(&input(
+        json!({"year": "2017-18", "incorporated_year": "none",
+        "abr_registered_year": "none"}),
+    ));
+    assert_eq!(met(&result, "incorporation"), Some(false));
+    assert_eq!(result["esic"], false);
+    assert!(!entitled(&result));
+    assert_eq!(offset(&result), ["0.00", "200000.00", "0.00"]);
     assert_eq!(
         code(&call("2026-27", "none", "0.00")),
         "esic.incorporation_after_year"
@@ -521,4 +527,86 @@ fn each_input_is_checked() {
     let mut missing = input(json!({}));
     missing.as_object_mut().unwrap().remove("innovation_items");
     assert_eq!(code(&missing), "input.missing_field");
+}
+
+/// Money paid and money receivable: before 2018-19 the total amount paid
+/// ($40,000 paid of $60,000 gives $8,000); from 2018-19 money received or
+/// entitled to be received ($12,000). Where counting the receivable as paid
+/// decides the $50,000 limit, the result is refused.
+#[test]
+fn money_paid_and_receivable() {
+    let call = |year: &str, inc: &str| {
+        input(json!({"year": year, "incorporated_year": inc,
+            "amount_paid": "40000.00", "amount_receivable": "20000.00"}))
+    };
+    let result = run(&call("2017-18", "2016-17"));
+    assert_eq!(amount(&result, "offset_base"), "40000.00");
+    assert_eq!(offset(&result)[2], "8000.00");
+    let result = run(&call("2018-19", "2017-18"));
+    assert_eq!(amount(&result, "offset_base"), "60000.00");
+    assert_eq!(offset(&result)[2], "12000.00");
+    let mut retail = call("2025-26", "2024-25");
+    retail["disclosure_exemption"] = json!(false);
+    retail["other_companies_paid"] = json!("0.00");
+    retail["other_companies_exempt"] = json!(false);
+    assert_eq!(code(&retail), "esic.retail_limit_unsettled");
+    retail["amount_receivable"] = json!("10000.00");
+    assert_eq!(offset(&run(&retail))[2], "10000.00");
+    retail["amount_receivable"] = json!("-1.00");
+    assert_eq!(code(&retail), "input.amount_invalid");
+}
+
+/// The ATO lifts the $50,000 limit for an exempt offer by another ESIC;
+/// s 360-20(1)(a) looks at this company's offers only.
+#[test]
+fn an_exempt_offer_by_another_company() {
+    let call = |paid: &str, exempt: bool| {
+        input(json!({"amount_paid": paid, "disclosure_exemption": false,
+            "other_companies_paid": "10000.00", "other_companies_exempt": exempt}))
+    };
+    assert_eq!(code(&call("60000.00", true)), "esic.retail_limit_unsettled");
+    assert!(!entitled(&run(&call("60000.00", false))));
+    let result = run(&call("40000.00", true));
+    assert_eq!(met(&result, "retail_limit"), Some(true));
+    assert_eq!(offset(&result)[2], "8000.00");
+    let mut partial = call("40000.00", true);
+    partial
+        .as_object_mut()
+        .unwrap()
+        .remove("other_companies_exempt");
+    assert_eq!(code(&partial), "input.missing_field");
+    let mut extra = input(json!({}));
+    extra["other_companies_exempt"] = json!(false);
+    assert_eq!(code(&extra), "input.field_unknown");
+    let mut bad = call("40000.00", true);
+    bad["other_companies_exempt"] = json!("yes");
+    assert_eq!(code(&bad), "input.flag_invalid");
+}
+
+/// The 2018-19 switch for a foreign company and an ESVCLP investor.
+#[test]
+fn foreign_company_and_esvclp_either_side_of_2018_19() {
+    let call = |year: &str, inc: &str, extra: Value| {
+        let mut given = input(json!({"year": year, "incorporated_year": inc}));
+        for (k, v) in extra.as_object().unwrap() {
+            given[k] = v.clone();
+        }
+        given
+    };
+    let foreign = json!({"foreign_company": true});
+    let before = run(&call("2017-18", "2016-17", foreign.clone()));
+    assert_eq!(met(&before, "not_foreign_company"), None);
+    assert!(entitled(&before));
+    let after = run(&call("2018-19", "2017-18", foreign));
+    assert_eq!(met(&after, "not_foreign_company"), Some(false));
+    assert!(!entitled(&after));
+    let esvclp = json!({"investor": "esvclp"});
+    assert_eq!(
+        code(&call("2017-18", "2016-17", esvclp.clone())),
+        "esic.trust_or_partnership_unsupported"
+    );
+    let after = run(&call("2018-19", "2017-18", esvclp));
+    assert_eq!(met(&after, "investor"), Some(false));
+    assert_eq!(after["esic"], true);
+    assert!(!entitled(&after));
 }

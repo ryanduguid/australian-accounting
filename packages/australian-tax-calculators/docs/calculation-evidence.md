@@ -983,8 +983,18 @@ Tim's further $10,000 goes to 'an ESIC or shares in any other company'. Section
 further $10,000 to another company leaves $50,000 for this one; the command
 refuses that case (`esic.retail_limit_unsettled`) and the test holds Tim's
 loss with the $10,000 paid to the same company. It refuses, too, a case where a
-non-cash benefit alone takes the amount over $50,000, as s 360-20 counts what
-was 'paid'. `tests/esic.rs` also covers each incorporation route and year
+non-cash benefit or money still receivable alone takes the amount over
+$50,000, as s 360-20 counts what was 'paid', and a case where an exempt offer
+by another ESIC would lift the limit on the ATO's reading ('unless he is a
+sophisticated investor in relation to a later ESIC share offer') but not under
+s 360-20(1)(a), which looks at this company's offers. Before 2018-19 the offset
+is 20% of 'the total amount paid for the shares', so $40,000 paid of a
+$60,000 issue gives $8,000; from 2018-19, money 'received, or entitled to be
+received', $12,000. A company neither incorporated in Australia nor
+registered in the Australian Business Register meets no route of
+s 360-40(1)(a) and is not an ESIC. Section 360-40(2)(b) disregards an amount
+in 'the company's assessable income', so a 100% subsidiary's s 355-450(1)
+amount stays counted. `tests/esic.rs` also covers each incorporation route and year
 boundary, the $1 million, $200,000 and $50,000 limits at and a cent over, the
 grant and clawback disregard by year, each points combination crossing 100,
 the cap with affiliates and carried forward offsets, each investor kind and

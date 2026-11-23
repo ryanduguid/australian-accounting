@@ -13,7 +13,7 @@
   `esic.amount_above_income`, `esic.clawback_year_unsettled`,
   `esic.incorporation_after_year`, `esic.innovation_items_conflict`,
   `esic.innovation_items_invalid`, `esic.investor_invalid`,
-  `esic.no_incorporation_or_registration`, `esic.non_cash_before_2018_19`,
+  `esic.non_cash_before_2018_19`,
   `esic.retail_limit_unsettled`, `esic.six_year_route_before_2018_19`,
   `esic.trust_or_partnership_unsupported` and `esic.year_invalid`.
 

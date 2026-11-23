@@ -544,13 +544,15 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "year": "2026-27", "scope_confirmed": true}),
         ),
         // Calculating the early stage investor tax offset: Savannah's
-        // $4 million capped at $200,000, with a non-cash benefit from 2018-19;
+        // $4 million, $10,000 of it receivable, capped at $200,000, with a
+        // non-cash benefit from 2018-19;
         // and a company over the previous year's income limit before 2021-22.
         (
             "esic",
             json!({"investor": "individual", "affiliate_of_company": false,
                    "ess_interests": false, "more_than_30_percent": false,
-                   "amount_paid": "3999000.00", "non_cash_benefit": "1000.00",
+                   "amount_paid": "3989000.00", "amount_receivable": "10000.00",
+                   "non_cash_benefit": "1000.00",
                    "disclosure_exemption": true, "incorporated_year": "2023-24",
                    "abr_registered_year": "none", "expenses_three_prior_years": "0.00",
                    "total_expenses_previous_year": "900000.00",
@@ -567,7 +569,7 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"investor": "company", "affiliate_of_company": false,
                    "ess_interests": false, "more_than_30_percent": false,
                    "amount_paid": "40000.00", "non_cash_benefit": "0.00",
-                   "disclosure_exemption": false, "other_companies_paid": "0.00",
+                   "disclosure_exemption": false, "other_companies_paid": "0.00", "other_companies_exempt": false,
                    "incorporated_year": "2015-16", "abr_registered_year": "none",
                    "expenses_three_prior_years": "800000.00",
                    "total_expenses_previous_year": "300000.00",

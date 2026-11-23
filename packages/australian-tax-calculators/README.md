@@ -199,7 +199,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `annuity-withholding` | `payment`, `deductible_amount`, `instalments`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional as `payg-withholding` |
 | `voluntary-agreement-withholding` | `payment`, `gst_included`, `agreement_in_force`, `abn_quoted`, `agreement_applies_instalment_rate`, `year`, `scope_confirmed`; optional `instalment_rate` |
 | `rd-tax-offset` | `notional_deductions`, `rsp_crc_expenditure`, `aggregated_turnover`, `exempt_entity_controlled`, `base_rate_entity`, `total_expenses`, `recoupment_clawback`, `feedstock_revenue`, `feedstock_expenditure`, `present_year_base_rate_entity`, `year`, `scope_confirmed`; see [R&D tax offset](#rd-tax-offset) |
-| `esic` | `investor`, `affiliate_of_company`, `ess_interests`, `more_than_30_percent`, `amount_paid`, `non_cash_benefit`, `disclosure_exemption`, `incorporated_year`, `abr_registered_year`, `expenses_three_prior_years`, `total_expenses_previous_year`, `assessable_income_previous_year`, `accelerating_commercialisation_grant`, `rd_clawback_income`, `listed`, `foreign_company`, `innovation_items`, `principles_test`, `other_offsets`, `carried_forward_offsets`, `year`, `scope_confirmed`; optional `other_companies_paid`; see [Early stage investor tax offset](#early-stage-investor-tax-offset) |
+| `esic` | `investor`, `affiliate_of_company`, `ess_interests`, `more_than_30_percent`, `amount_paid`, `non_cash_benefit`, `disclosure_exemption`, `incorporated_year`, `abr_registered_year`, `expenses_three_prior_years`, `total_expenses_previous_year`, `assessable_income_previous_year`, `accelerating_commercialisation_grant`, `rd_clawback_income`, `listed`, `foreign_company`, `innovation_items`, `principles_test`, `other_offsets`, `carried_forward_offsets`, `year`, `scope_confirmed`; optional `amount_receivable`; without `disclosure_exemption`, `other_companies_paid` and `other_companies_exempt`; see [Early stage investor tax offset](#early-stage-investor-tax-offset) |
 | `quarterly-sg` | `ordinary_time_earnings`, `qualifying_contributions`, `year`, `quarter`, `scope_confirmed` |
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
 | `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
@@ -2862,7 +2862,7 @@ innovation      100 points from the stated s 360-45(1) items, or the
 investor        individual or company not widely held; not an affiliate;
                 not ESS interests; not over 30%                          s 360-15(1)
 retail limit    no more than $50,000 paid without a disclosure exemption s 360-20
-offset_base     = amount_paid + non_cash_benefit                         s 360-25(1)
+offset_base     = amount_paid + amount_receivable + non_cash_benefit     s 360-25(1)
 gross_offset    = offset_base x 0.20 where entitled, else 0
 cap_room        = max(200000 - other_offsets - carried_forward_offsets, 0)   s 360-25(2)
 tax_offset      = min(gross_offset, cap_room)
@@ -2872,14 +2872,19 @@ The result also says whether the company is an ESIC, its points, whether the
 investor is entitled and whether the modified CGT treatment of s 360-50
 applies, which it does whenever the investor is entitled, however much the cap
 reduces the offset. Act No. 8 of 2020 changed the text for income years from
-2018-19: before then the offset is 20% of the amount paid, so a non-cash
-benefit is refused; there is no foreign company test; and the 6-year route,
+2018-19: before then the offset is 20% of the amount paid, so money still
+receivable is left out and a non-cash benefit is refused; there is no foreign
+company test; and the 6-year route,
 whose expenses then included the current year, is refused where it decides.
-A s 355-450(1) amount is disregarded from 2022-23 and refused for 2021-22,
-where whether Act No. 92 of 2020 reaches it is unsettled. Without a disclosure
-exemption, s 360-20 counts more than $50,000 paid for this company's shares
-and the ATO counts investments in all ESICs; a case where the readings differ
-is refused. Trusts and partnerships, whose members and trustee take ss
+A s 355-450(1) amount in the company's own assessable income is disregarded
+from 2022-23 and refused for 2021-22, which this command does not decide.
+Without a disclosure exemption for an offer of this company's shares, s 360-20
+counts more than $50,000 paid for them; the ATO counts investments in all
+ESICs and lifts the limit for an exempt offer by any of them; and money still
+receivable or a non-cash benefit may or may not be 'paid'. A case where the
+readings differ is refused. The shares must be equity interests, and every
+issue by the company to the investor in the year is taken to meet the same
+tests. Trusts and partnerships, whose members and trustee take ss
 360-15(2), (3), 360-30 and 360-35, are refused. The caller establishes every
 fact, including the points items and the principles-based test. See
 [calculation evidence](docs/calculation-evidence.md#early-stage-investor-tax-offset).

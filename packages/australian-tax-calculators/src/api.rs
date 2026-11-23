@@ -2637,8 +2637,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             scope_confirmed: &a[11],
         }),
         "esic" => {
-            // Optional: what other companies were paid, for the $50,000 limit.
+            // Optional: money receivable, and what other companies were paid
+            // and whether an offer of theirs was exempt, for the $50,000 limit.
             let elsewhere = optional(v, "other_companies_paid", Dec)?;
+            let receivable = optional(v, "amount_receivable", Dec)?;
+            let other_exempt = optional(v, "other_companies_exempt", Raw)?;
             engine::esic(&engine::EsicArgs {
                 investor: &a[0],
                 affiliate_of_company: &a[1],
@@ -2663,6 +2666,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 year: &a[20],
                 scope_confirmed: &a[21],
                 other_companies_paid: elsewhere.as_ref(),
+                amount_receivable: receivable.as_ref(),
+                other_companies_exempt: other_exempt.as_ref(),
             })
         }
         "quarterly-sg" => engine::quarterly_sg(&a[0], &a[1], &a[2], &a[3], &a[4]),

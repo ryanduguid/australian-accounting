@@ -3185,10 +3185,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
             ),
         ],
-        "esic" => vec![(
-            "other_companies_paid",
-            "AUD, required when disclosure_exemption is false and refused otherwise: the total paid in the income year for shares other companies issued to the investor, for the ATO's reading that the $50,000 limit counts investments in all ESICs (s 360-20(1)(b) counts this company's); where the readings differ the case is refused",
-        )],
+        "esic" => vec![
+            (
+                "amount_receivable",
+                "AUD, optional, nil if absent: money the company is entitled to receive for issuing the shares to the investor in the year but has not been paid, such as an unpaid call on partly paid shares; counted from 2018-19 (s 360-25(1)(a)) and not before (the total amount paid); where counting it as paid decides the $50,000 limit, refused",
+            ),
+            (
+                "other_companies_exempt",
+                "boolean, with other_companies_paid: s 708(8), (10) or (11) of the Corporations Act 2001 removed the need for a disclosure document for an offer of another ESIC's shares to the investor in the year, which the ATO reads as lifting the $50,000 limit (s 360-20(1)(a) looks at this company's offers only); where the readings differ, refused",
+            ),
+            (
+                "other_companies_paid",
+                "AUD, required when disclosure_exemption is false and refused otherwise: the total paid in the income year for shares other companies issued to the investor, for the ATO's reading that the $50,000 limit counts investments in all ESICs (s 360-20(1)(b) counts this company's); where the readings differ the case is refused",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -5193,7 +5203,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("affiliate_of_company", "boolean: the investor and the company are affiliates of each other when the shares are issued (s 360-15(1)(d)); true means not entitled"),
             ("ess_interests", "boolean: the issue is an acquisition of ESS interests under an employee share scheme (s 360-15(1)(e)); true means not entitled"),
             ("more_than_30_percent", "boolean: immediately after the issue the investor holds equity interests in the company or a connected entity carrying more than 30% of income, capital or voting rights (s 360-15(1)(f)); before 2018-19, more than 30% of the equity interests; true means not entitled"),
-            ("amount_paid", "AUD: the money the company received or is entitled to receive for issuing the shares to the investor in the year, not amounts still to be called on partly paid shares (s 360-25(1)(a))"),
+            ("amount_paid", "AUD: the money paid to the company for issuing the shares to the investor in the year (s 360-25(1)(a); before 2018-19, 'the total amount paid'); money the company is entitled to but has not received goes in amount_receivable"),
             ("non_cash_benefit", "AUD: the market value, when the shares were issued, of any non-cash benefit the company received or is entitled to receive for the issue (s 360-25(1)(b)); above nil is refused before 2018-19"),
             ("disclosure_exemption", "boolean: s 708(8), (10) or (11) of the Corporations Act 2001 removed the need for a disclosure document for at least one offer of the company's shares issued to the investor in the year; false applies the $50,000 limit (s 360-20)"),
             ("incorporated_year", "the income year the company was incorporated in Australia, such as 2024-25, or none (s 360-40(1)(a)(i), (ii))"),
@@ -5202,7 +5212,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("total_expenses_previous_year", "AUD: total expenses of the company and its 100% subsidiaries in the previous income year (s 360-40(1)(b))"),
             ("assessable_income_previous_year", "AUD: total assessable income of the company and its 100% subsidiaries in the previous income year, including any grant and clawback amount below (s 360-40(1)(c))"),
             ("accelerating_commercialisation_grant", "AUD: the part of assessable_income_previous_year that is an Accelerating Commercialisation Grant, disregarded (s 360-40(2)(a)); 0.00 if none"),
-            ("rd_clawback_income", "AUD: the part of assessable_income_previous_year included under s 355-450(1), disregarded from 2022-23 (s 360-40(2)(b)); above nil is refused for 2021-22; 0.00 if none"),
+            ("rd_clawback_income", "AUD: the part of assessable_income_previous_year included in the company's own assessable income under s 355-450(1), not a 100% subsidiary's, disregarded from 2022-23 (s 360-40(2)(b)); above nil is refused for 2021-22; 0.00 if none"),
             ("listed", "boolean: at the test time an equity interest of the company is listed for quotation on a stock exchange in Australia or a foreign country (s 360-40(1)(d))"),
             ("foreign_company", "boolean: at the test time the company is a foreign company within the meaning of the Corporations Act 2001 (s 360-40(1)(f), from 2018-19; not a test before)"),
             ("innovation_items", "list of the s 360-45(1) table items, whole numbers from 1 to 8, that apply to the company at the test time, as stated facts; items 1 and 3 together are refused, and item 7 scores nothing beside item 6"),

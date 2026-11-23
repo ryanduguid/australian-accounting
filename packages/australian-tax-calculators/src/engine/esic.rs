@@ -32,7 +32,7 @@ const AMENDED_2020: i64 = 2018;
 const POINTS: [i64; 8] = [75, 75, 50, 50, 50, 50, 25, 25];
 
 /// The command's inputs, in the order of its catalogue entry; then the
-/// optional total paid to other companies.
+/// optional amount receivable and the other companies' amount and exemption.
 pub struct EsicArgs<'a> {
     pub investor: &'a Arg,
     pub affiliate_of_company: &'a Arg,
@@ -57,6 +57,8 @@ pub struct EsicArgs<'a> {
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
     pub other_companies_paid: Option<&'a Arg>,
+    pub amount_receivable: Option<&'a Arg>,
+    pub other_companies_exempt: Option<&'a Arg>,
 }
 
 /// The tests' rows, in the order they are worked.
@@ -121,12 +123,6 @@ fn year_or_none(given: &Arg, key: &str, current: i64) -> Result<Option<i64>> {
 fn age_test(args: &EsicArgs, current: i64, tests: &mut Tests) -> Result<()> {
     let incorporated = year_or_none(args.incorporated_year, "incorporated_year", current)?;
     let registered = year_or_none(args.abr_registered_year, "abr_registered_year", current)?;
-    if incorporated.is_none() && registered.is_none() {
-        return refuse(
-            "esic.no_incorporation_or_registration",
-            "Give the income year the company was incorporated in Australia or registered in the Australian Business Register.",
-        );
-    }
     let within = |year: Option<i64>, span: i64| year.is_some_and(|y| current - y < span);
     let (authority, met, finding) = if within(incorporated, 3) {
         (
@@ -183,7 +179,7 @@ fn counted_income(args: &EsicArgs, current: i64) -> Result<Step> {
     if current == 2021 && !clawback.is_zero() {
         return refuse(
             "esic.clawback_year_unsettled",
-            "s 360-40(2)(b) applies to assessments for income years commencing on or after 1 July 2021 (Act No. 92 of 2020 Sch 5 item 37); whether it reaches a 2020-21 clawback amount tested in 2021-22 is unsettled.",
+            "s 360-40(2)(b) applies to assessments for income years commencing on or after 1 July 2021 (Act No. 92 of 2020 Sch 5 item 37) and refers to s 355-450(1) as that Act amended it; a 2020-21 amount tested in 2021-22 is not decided here.",
         );
     }
     Ok(if current >= 2022 {
@@ -363,21 +359,27 @@ fn investor_tests(args: &EsicArgs, current: i64, tests: &mut Tests) -> Result<()
     Ok(())
 }
 
-/// The amount paid to other companies: given exactly when there is no
-/// disclosure exemption.
-fn paid_elsewhere(args: &EsicArgs) -> Result<Option<Decimal>> {
+/// The amount paid to other companies and whether an offer of theirs had a
+/// disclosure exemption: given exactly when this company's offers had none.
+fn paid_elsewhere(args: &EsicArgs) -> Result<Option<(Decimal, bool)>> {
     let exempt = flag(args.disclosure_exemption, "disclosure_exemption")?;
-    match (exempt, args.other_companies_paid) {
-        (true, None) => Ok(None),
-        (true, Some(_)) => refuse(
+    match (
+        exempt,
+        args.other_companies_paid,
+        args.other_companies_exempt,
+    ) {
+        (true, None, None) => Ok(None),
+        (true, ..) => refuse(
             "input.field_unknown",
-            "other_companies_paid is an input only when disclosure_exemption is false",
+            "other_companies_paid and other_companies_exempt are inputs only when disclosure_exemption is false",
         ),
-        (false, None) => refuse(
+        (false, Some(paid), Some(other)) => {
+            Ok(Some((money(paid)?, flag(other, "other_companies_exempt")?)))
+        }
+        (false, ..) => refuse(
             "input.missing_field",
-            "other_companies_paid is required when disclosure_exemption is false.",
+            "other_companies_paid and other_companies_exempt are required when disclosure_exemption is false.",
         ),
-        (false, Some(given)) => Ok(Some(money(given)?)),
     }
 }
 
@@ -388,15 +390,18 @@ fn retail_limit(
     base: &Decimal,
     tests: &mut Tests,
 ) -> Result<()> {
-    let Some(elsewhere) = paid_elsewhere(args)? else {
+    let Some((elsewhere, other_exempt)) = paid_elsewhere(args)? else {
         tests.add("retail_limit", "ITAA 1997 s 360-20(1)(a)", None, "s 708(8), (10) or (11) of the Corporations Act 2001 removed the need for a disclosure document for an offer: no $50,000 limit");
         return Ok(());
     };
     let limit = int(50_000);
+    // s 360-20(1)(b) on money paid; on money receivable and a non-cash
+    // benefit too; and the ATO's count across all ESICs, which an exempt offer
+    // by another ESIC lifts.
     let readings = [
         money_paid.gt(&limit)?,
         base.gt(&limit)?,
-        base.add(&elsewhere)?.gt(&limit)?,
+        !other_exempt && base.add(&elsewhere)?.gt(&limit)?,
     ];
     let unsettled = readings.iter().any(|r| *r != readings[0]);
     if unsettled && !tests.all_met() {
@@ -411,7 +416,7 @@ fn retail_limit(
     if unsettled {
         return refuse(
             "esic.retail_limit_unsettled",
-            "s 360-20(1)(b) counts more than $50,000 paid for this company's shares; the ATO counts investments in all ESICs, and a non-cash benefit may or may not be 'paid'. On these amounts the readings differ.",
+            "s 360-20(1)(b) counts more than $50,000 paid for this company's shares where none of its offers had a disclosure exemption; the ATO counts investments in all ESICs and lifts the limit for an exempt offer by any of them, and money still receivable or a non-cash benefit may or may not be 'paid'. On these amounts the readings differ.",
         );
     }
     let over = readings[0];
@@ -449,18 +454,49 @@ fn gross_step(base: &Decimal, entitled: bool) -> Result<Step> {
     })
 }
 
+/// s 360-25(1): the amount for the issue of the shares; `receivable` where
+/// the input was given.
+fn base_step(
+    [paid, non_cash]: [&Decimal; 2],
+    receivable: Option<&Decimal>,
+    current: i64,
+) -> Result<Step> {
+    if current < AMENDED_2020 {
+        return Ok(step(
+            "offset_base",
+            "ITAA 1997 s 360-25(1) before Act No. 8 of 2020: the total amount paid for the shares",
+            "amount_paid",
+            &[paid],
+            paid.clone(),
+        ));
+    }
+    let authority = "ITAA 1997 s 360-25(1)(a) and (b): money received or entitled to be received for the issue, and the market value of any non-cash benefit";
+    let Some(receivable) = receivable else {
+        let base = precise(|| Ok(paid.add(non_cash)?))?;
+        let formula = "amount_paid + non_cash_benefit";
+        return Ok(step(
+            "offset_base",
+            authority,
+            formula,
+            &[paid, non_cash],
+            base,
+        ));
+    };
+    Ok(step(
+        "offset_base",
+        authority,
+        "amount_paid + amount_receivable + non_cash_benefit",
+        &[paid, receivable, non_cash],
+        precise(|| Ok(paid.add(receivable)?.add(non_cash)?))?,
+    ))
+}
+
 /// s 360-25: the offset's base, the 20%, the cap room and the offset.
-fn offset_steps(
-    args: &EsicArgs,
-    paid: &Decimal,
-    non_cash: &Decimal,
-    entitled: bool,
-) -> Result<Vec<Step>> {
+fn offset_steps(args: &EsicArgs, first: Step, entitled: bool) -> Result<Vec<Step>> {
     let other = money(args.other_offsets)?;
     let carried = money(args.carried_forward_offsets)?;
     precise(|| {
-        let base = paid.add(non_cash)?;
-        let gross = gross_step(&base, entitled)?;
+        let gross = gross_step(&first.value, entitled)?;
         let room = py_max(int(200_000).sub(&other)?.sub(&carried)?, int(0))?;
         let offset = py_min(gross.value.clone(), room.clone())?;
         let cap = step(
@@ -477,20 +513,14 @@ fn offset_steps(
             &[&gross.value, &room],
             offset,
         );
-        let first = step(
-            "offset_base",
-            "ITAA 1997 s 360-25(1)(a) and (b): money received or receivable for the issue, and the market value of any non-cash benefit",
-            "amount_paid + non_cash_benefit",
-            &[paid, non_cash],
-            base,
-        );
         Ok(vec![first, gross, cap, last])
     })
 }
 
 /// The amounts for the issue, refusing a non-cash benefit before 2018-19.
-fn amounts(args: &EsicArgs, current: i64) -> Result<(Decimal, Decimal)> {
+fn amounts(args: &EsicArgs, current: i64) -> Result<[Decimal; 3]> {
     let paid = money(args.amount_paid)?;
+    let receivable = args.amount_receivable.map_or(Ok(int(0)), money)?;
     let non_cash = money(args.non_cash_benefit)?;
     if current < AMENDED_2020 && !non_cash.is_zero() {
         return refuse(
@@ -498,7 +528,7 @@ fn amounts(args: &EsicArgs, current: i64) -> Result<(Decimal, Decimal)> {
             "Before 2018-19, s 360-25(1) took 20% of 'the total amount paid for the shares'; Act No. 8 of 2020 Sch 2 item 8 added the market value of non-cash benefits. This worksheet does not decide what the earlier text counted.",
         );
     }
-    Ok((paid, non_cash))
+    Ok([paid, receivable, non_cash])
 }
 
 /// ITAA 1997 Subdivision 360-A: one investor's early stage investor tax offset
@@ -507,7 +537,7 @@ pub fn esic(args: &EsicArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let current = year_first(&year).expect("a supported year");
     let not_entitled = investor_kind(args.investor, current)?;
-    let (paid, non_cash) = amounts(args, current)?;
+    let [paid, receivable, non_cash] = amounts(args, current)?;
     let mut tests = Tests { rows: Vec::new() };
     age_test(args, current, &mut tests)?;
     let income = counted_income(args, current)?;
@@ -521,10 +551,13 @@ pub fn esic(args: &EsicArgs) -> Result<Value> {
         not_entitled.unwrap_or("an individual or a company that is not widely held"),
     );
     investor_tests(args, current, &mut tests)?;
-    retail_limit(args, &paid, &paid.add(&non_cash)?, &mut tests)?;
+    let whole = paid.add(&receivable)?.add(&non_cash)?;
+    retail_limit(args, &paid, &whole, &mut tests)?;
     let entitled = tests.all_met();
+    let given = args.amount_receivable.map(|_| &receivable);
+    let first = base_step([&paid, &non_cash], given, current)?;
     let mut steps = vec![income];
-    steps.extend(offset_steps(args, &paid, &non_cash, entitled)?);
+    steps.extend(offset_steps(args, first, entitled)?);
     let mut out = derived_result(KIND, &year, steps, Vec::new())?;
     out["esic"] = json!(is_esic);
     out["innovation_points"] = json!(points);
