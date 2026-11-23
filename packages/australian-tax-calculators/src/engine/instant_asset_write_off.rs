@@ -40,9 +40,9 @@ const NONE_OTHER: &str = "ITAA 1997 ss 328-180(1)(a) and (ab) and 40-82(4A): the
 
 /// The cost the asset must be less than, and the rule that sets it.
 enum Limit {
-    Under(&'static str, &'static str),
-    NoLimit(&'static str),
-    NoRule(&'static str),
+    Below(&'static str, &'static str),
+    Unlimited(&'static str),
+    Inapplicable(&'static str),
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -74,10 +74,10 @@ fn held_from(acquired: i64, budget: &str) -> Result<bool> {
 /// and IT(TP)A 1997 ss 328-180(4) and (4A) and 328-181(2)).
 fn small_business_limit(acquired: i64, used: i64) -> Result<Limit> {
     if used >= day("2026-07-01") {
-        return Ok(Limit::Under("20000", RULE_2026));
+        return Ok(Limit::Below("20000", RULE_2026));
     }
     if used <= day("2023-06-30") && held_from(acquired, BUDGET_2020)? {
-        return Ok(Limit::NoLimit(RULE_FULL_EXPENSING));
+        return Ok(Limit::Unlimited(RULE_FULL_EXPENSING));
     }
     let increased = if used <= day("2021-06-30") {
         Some(("150000", RULE_4A))
@@ -87,8 +87,8 @@ fn small_business_limit(acquired: i64, used: i64) -> Result<Limit> {
         None
     };
     match increased {
-        Some((limit, rule)) if held_from(acquired, BUDGET_2015)? => Ok(Limit::Under(limit, rule)),
-        _ => Ok(Limit::Under("1000", RULE_BASE)),
+        Some((limit, rule)) if held_from(acquired, BUDGET_2015)? => Ok(Limit::Below(limit, rule)),
+        _ => Ok(Limit::Below("1000", RULE_BASE)),
     }
 }
 
@@ -104,15 +104,15 @@ fn other_limit(entity: Entity, acquired: i64, used: i64) -> Result<Limit> {
         );
     }
     if entity == Entity::Other {
-        return Ok(Limit::NoRule(NONE_OTHER));
+        return Ok(Limit::Inapplicable(NONE_OTHER));
     }
     if used > day("2021-06-30") {
-        return Ok(Limit::NoRule(NONE_AFTER_2021));
+        return Ok(Limit::Inapplicable(NONE_AFTER_2021));
     }
     if held_from(acquired, BUDGET_2019)? {
-        return Ok(Limit::Under("150000", RULE_40_82));
+        return Ok(Limit::Below("150000", RULE_40_82));
     }
-    Ok(Limit::NoRule(NONE_BEFORE_2019))
+    Ok(Limit::Inapplicable(NONE_BEFORE_2019))
 }
 
 fn entity_arg(entity: &Arg) -> Result<Entity> {
@@ -121,7 +121,7 @@ fn entity_arg(entity: &Arg) -> Result<Entity> {
         Some("medium_business") => Ok(Entity::Medium),
         Some("other") => Ok(Entity::Other),
         _ => refuse(
-            "input.entity_invalid",
+            "instant_asset_write_off.entity_invalid",
             "entity must be small_business_simplified, medium_business or other.",
         ),
     }
@@ -244,13 +244,13 @@ pub fn instant_asset_write_off(
         _ => other_limit(entity, acquired, used)?,
     };
     let (limit_text, rule, written_off) = match limit {
-        Limit::Under(amount, rule) => (
+        Limit::Below(amount, rule) => (
             amount,
             rule,
             cost.lt(&Decimal::parse(amount).expect("limit"))?,
         ),
-        Limit::NoLimit(rule) => ("none", rule, true),
-        Limit::NoRule(rule) => ("not_applicable", rule, false),
+        Limit::Unlimited(rule) => ("none", rule, true),
+        Limit::Inapplicable(rule) => ("not_applicable", rule, false),
     };
     let steps = write_off_steps(entity, &cost, &use_, written_off.then_some(rule))?;
     let rates = vec![

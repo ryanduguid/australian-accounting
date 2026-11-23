@@ -3607,10 +3607,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An effective life is outside 0.01 to 1000 years.",
     ),
     (
-        "input.entity_invalid",
-        "The entity is not one of the kinds the command takes.",
-    ),
-    (
         "input.fbt_method_invalid",
         "An FBT benefit worksheet's method is not one it offers.",
     ),
@@ -3694,6 +3690,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "instant_asset_write_off.budget_time_day",
         "The asset was acquired on the day of a 7.30 pm budget time the result turns on, and the command takes dates only.",
+    ),
+    (
+        "instant_asset_write_off.entity_invalid",
+        "entity is not small_business_simplified, medium_business or other.",
     ),
     (
         "instant_asset_write_off.first_use_outside_year",

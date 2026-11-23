@@ -334,8 +334,14 @@ fn the_dates_must_fit_the_year() {
 
 #[test]
 fn the_inputs_are_checked() {
-    assert_eq!(code(json!({"entity": "large"})), "input.entity_invalid");
-    assert_eq!(code(json!({"entity": 1})), "input.entity_invalid");
+    assert_eq!(
+        code(json!({"entity": "large"})),
+        "instant_asset_write_off.entity_invalid"
+    );
+    assert_eq!(
+        code(json!({"entity": 1})),
+        "instant_asset_write_off.entity_invalid"
+    );
     assert_eq!(code(json!({"cost": "-1.00"})), "input.amount_invalid");
     assert_eq!(
         code(json!({"taxable_use": "1.01"})),
