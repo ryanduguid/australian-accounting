@@ -4,6 +4,14 @@
 
 ### Added
 
+- `insurance-duty` works out the duty on one general insurance premium in each
+  state and territory for a contract effected or renewed in 2026-27, at each
+  Act's rate for the class stated: New South Wales Types A, B and C,
+  Victoria's general and business insurance, Queensland's class 1, class 2
+  and CTP insurance, and general insurance elsewhere, with the ACT's duty and
+  New South Wales Type C nil from the dates they went. New codes:
+  `insurance_duty.class_invalid`, `insurance_duty.date_outside_year`,
+  `insurance_duty.jurisdiction_invalid` and `insurance_duty.term_unsettled`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

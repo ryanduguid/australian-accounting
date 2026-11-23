@@ -209,10 +209,10 @@ fn term(place: &str, given: Option<&Arg>) -> Result<()> {
 
 fn worked(class: &Class, premium: &Decimal) -> Result<(Step, Vec<(String, String)>)> {
     let percent = |r: &str| -> Result<Decimal> {
-        premium
+        Ok(premium
             .mul(&d(r))?
             .div(&d("100"))?
-            .quantize(-2, Rounding::HalfUp)
+            .quantize(-2, Rounding::HalfUp)?)
     };
     let formula = "cents(premium x rate_percent / 100)";
     Ok(match class.duty {

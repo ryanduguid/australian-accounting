@@ -543,6 +543,20 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "group_member": false, "employed_all_year": true,
                    "year": "2026-27", "scope_confirmed": true}),
         ),
+        // Victoria's business insurance at 7% for 2026-27 (s 179(4)) and
+        // Queensland's 10 cents on a CTP premium (s 362(2)).
+        (
+            "insurance-duty",
+            json!({"jurisdiction": "vic", "class": "business", "premium": "1234.56",
+                   "effected_date": "2026-09-15", "year": "2026-27",
+                   "scope_confirmed": true}),
+        ),
+        (
+            "insurance-duty",
+            json!({"jurisdiction": "qld", "class": "ctp", "premium": "400.00",
+                   "effected_date": "2027-03-01", "year": "2026-27",
+                   "scope_confirmed": true}),
+        ),
         // A strata unit's share of land bought with some consideration unpaid
         // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
         // margin scheme: the margin is shown beside the full GST.
