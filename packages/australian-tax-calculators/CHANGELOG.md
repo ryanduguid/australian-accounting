@@ -9,7 +9,8 @@
   Act's rate for the class stated: New South Wales Types A, B and C,
   Victoria's general and business insurance, Queensland's class 1, class 2
   and CTP insurance, and general insurance elsewhere, with the ACT's duty and
-  New South Wales Type C nil from the dates they went. New codes:
+  New South Wales Type C (for a policy taken out from 1 January 2018) nil.
+  `rates.exact_duty` gives the unrounded duty. New codes:
   `insurance_duty.class_invalid`, `insurance_duty.date_outside_year`,
   `insurance_duty.jurisdiction_invalid` and `insurance_duty.term_unsettled`.
 - `trading-stock` works out the change in value of trading stock under ITAA

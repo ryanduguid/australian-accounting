@@ -4,10 +4,11 @@
 
 //! Insurance duty on one general insurance premium in each state and
 //! territory for 2026-27: figures worked by hand from each Act's rate, and an
-//! independent oracle's 598 cases (`data/insurance_duty_cases.json`: every
+//! independent oracle's 644 cases (`data/insurance_duty_cases.json`: every
 //! class at 23 premiums, including half-cent ties and the largest amount the
-//! crate takes, on the first and last day of the year), written from the
-//! spec, not the code. No revenue office publishes a worked general
+//! crate takes, on the first and last day of the year, New South Wales Type C
+//! for policies taken out either side of 1 January 2018, each with its exact
+//! duty), written from the spec, not the code. No revenue office publishes a worked general
 //! insurance example with figures. Every source was read on 24 November 2026
 //! (docs/calculation-evidence.md#insurance-duty). Every premium here is
 //! fabricated.
@@ -22,7 +23,19 @@ fn input(place: &str, class: &str, premium: &str) -> Value {
     if place == "nt" {
         v["term_over_one_year"] = json!(false);
     }
+    if class == "type_c" {
+        v["policy_taken_out"] = json!("2018-03-01");
+    }
     v
+}
+
+/// A decimal string without trailing zeros, so 90.00 and 90 compare alike.
+fn plain(text: &str) -> &str {
+    if text.contains('.') {
+        text.trim_end_matches('0').trim_end_matches('.')
+    } else {
+        text
+    }
 }
 
 fn with(mut v: Value, changes: Value) -> Value {
@@ -62,6 +75,7 @@ fn each_rate_applies_to_the_premium() {
     let cases = [
         ("nsw", "type_a", "1000.00", "90.00"),
         ("nsw", "type_b", "1000.00", "50.00"),
+        // A Type C policy taken out after 2017 is exempt.
         ("nsw", "type_c", "1000.00", "0.00"),
         // 123.456 and 86.4192.
         ("vic", "general", "1234.56", "123.46"),
@@ -92,15 +106,40 @@ fn each_rate_applies_to_the_premium() {
     }
 }
 
-/// An abolished duty is nil and says when it went.
+/// A repealed duty is nil and says when it went; New South Wales Type C
+/// turns on the day the policy was taken out.
 #[test]
-fn an_abolished_duty_gives_its_date() {
+fn a_repealed_or_exempt_duty_gives_its_date() {
     let act = run(&input("act", "general", "5000.00"));
     assert_eq!(act["rates"]["abolished_from"], "2017-07-01");
     let nsw = run(&input("nsw", "type_c", "800.00"));
-    assert_eq!(nsw["rates"]["abolished_from"], "2018-01-01");
+    assert_eq!(nsw["amounts"]["duty"], "0.00");
+    assert_eq!(nsw["rates"]["exempt_from"], "2018-01-01");
+    let taken = |day: &str| {
+        let facts = with(
+            input("nsw", "type_c", "1000.00"),
+            json!({"policy_taken_out": day}),
+        );
+        run(&facts)["amounts"]["duty"].as_str().unwrap().to_string()
+    };
+    assert_eq!(taken("2017-12-31"), "25.00");
+    assert_eq!(taken("2018-01-01"), "0.00");
     let wa = run(&input("wa", "general", "800.00"));
     assert!(wa["rates"].get("abolished_from").is_none());
+}
+
+/// The exact duty sits beside the cents, since no Act rounds one premium's
+/// duty.
+#[test]
+fn the_exact_duty_is_given() {
+    let exact = |place: &str, class: &str, premium: &str| {
+        let result = run(&input(place, class, premium));
+        result["rates"]["exact_duty"].as_str().unwrap().to_string()
+    };
+    assert_eq!(plain(&exact("vic", "business", "1234.56")), "86.4192");
+    assert_eq!(plain(&exact("sa", "general", "0.05")), "0.0055");
+    assert_eq!(plain(&exact("qld", "class_1", "555.55")), "49.9995");
+    assert_eq!(exact("qld", "ctp", "400.00"), "0.10");
 }
 
 /// The oracle's cases, each through `derive` as well.
@@ -108,11 +147,17 @@ fn an_abolished_duty_gives_its_date() {
 fn every_oracle_case_agrees() {
     let text = include_str!("data/insurance_duty_cases.json");
     let rows: Vec<Value> = serde_json::from_str(text).unwrap();
-    assert_eq!(rows.len(), 598);
+    assert_eq!(rows.len(), 644);
     for row in &rows {
         let facts = with(input("wa", "general", "0"), row["input"].clone());
-        let got = run(&facts)["amounts"]["duty"].as_str().unwrap().to_string();
-        assert_eq!(got, row["duty"].as_str().unwrap(), "{facts}");
+        let result = run(&facts);
+        assert_eq!(result["amounts"]["duty"], row["duty"], "{facts}");
+        let exact = result["rates"]["exact_duty"].as_str().unwrap();
+        assert_eq!(
+            plain(exact),
+            plain(row["exact"].as_str().unwrap()),
+            "{facts}"
+        );
     }
 }
 
@@ -229,6 +274,24 @@ fn what_the_acts_do_not_settle_is_refused() {
             "tas",
             "general",
             json!({"term_over_one_year": false}),
+            "input.field_unknown",
+        ),
+        (
+            "nsw",
+            "type_c",
+            json!({"policy_taken_out": null}),
+            "input.missing_field",
+        ),
+        (
+            "nsw",
+            "type_c",
+            json!({"policy_taken_out": "31/12/2017"}),
+            "input.date_invalid",
+        ),
+        (
+            "nsw",
+            "type_a",
+            json!({"policy_taken_out": "2017-12-31"}),
             "input.field_unknown",
         ),
     ]);

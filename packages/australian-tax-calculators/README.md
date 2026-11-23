@@ -2539,27 +2539,31 @@ state or territory, for a contract effected or renewed in 2026-27. It takes:
 - `effected_date`, the day the contract was effected or renewed, within
   `year`;
 - in the Northern Territory, `term_over_one_year`, a flag that must be
-  `false`.
+  `false`;
+- for New South Wales Type C, `policy_taken_out`, the day the policy was
+  taken out.
 
 | Jurisdiction | Class and rate |
 |---|---|
-| New South Wales | Type A 9%; Type B 5%; Type C nil (exempt for policies taken out from 1 January 2018) |
+| New South Wales | Type A 9%; Type B 5%; Type C 2.5% for a policy taken out on or before 31 December 2017, nil for one taken out from 1 January 2018 |
 | Victoria | general 10%; business 7% for a contract effected or renewed in 2026-27 (s 179(4)) |
-| Queensland | class 1 and class 2 9%; CTP 10 cents a premium (Duties Act 2001 (Qld) s 362) |
+| Queensland | class 1 and class 2 (a life insurance rider is class 2) 9%; CTP 10 cents a premium (Duties Act 2001 (Qld) s 362) |
 | Western Australia | 10% (Duties Act 2008 (WA) s 215) |
-| South Australia | 11% (Stamp Duties Act 1923 (SA) s 34(1)(b)) |
+| South Australia | 11% on any insurance other than life insurance, personal accident included (Stamp Duties Act 1923 (SA) s 34(1)(b)) |
 | Tasmania | 10% (Duties Act 2001 (Tas) s 166) |
-| ACT | nil: the duty was abolished from 1 July 2017 |
+| ACT | nil: chapter 8 of the Duties Act 1999 was repealed from 1 July 2017 |
 | Northern Territory | 10% for a policy for one year or less (Stamp Duty Act 1978 (NT) Sch 1 cl 6(3)) |
 
-The duty is rounded to the cent; an abolished class gives `abolished_from`.
-It refuses another class (life, accident and workers compensation insurance,
-and CTP insurance outside Queensland), an effected date outside the year and
+`duty` is shown to the cent and `rates.exact_duty` gives the exact figure:
+no Act sets a rounding rule for one premium, each being paid on a return of
+total premiums. A repealed class gives `abolished_from` and New South Wales
+Type C gives `exempt_from`. It refuses another class (life insurance,
+Queensland accident insurance and CTP insurance outside Queensland), an effected date outside the year and
 a Northern Territory policy for more than one year, whose duty on a premium
 for the whole term the Act does not settle. It leaves out which class a
 policy falls in, exemptions, apportioning a premium between jurisdictions or
 classes, who is liable, returns and refunds. The tests hold it to figures
-worked by hand from each rate and to 598 cases from an oracle written from
+worked by hand from each rate and to 644 cases from an oracle written from
 the Acts; see [calculation evidence](docs/calculation-evidence.md#insurance-duty).
 
 ## GST margin scheme

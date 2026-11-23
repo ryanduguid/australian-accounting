@@ -2275,14 +2275,17 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             })
         }
         "insurance-duty" => {
-            // Optional: the Northern Territory's policy term, required there only.
+            // Optional: the Northern Territory's policy term and New South
+            // Wales Type C's taken-out date, each required there only.
             let term = optional(v, "term_over_one_year", Raw)?;
+            let taken_out = optional(v, "policy_taken_out", Raw)?;
             engine::insurance_duty(&engine::InsuranceDutyArgs {
                 jurisdiction: &a[0],
                 class: &a[1],
                 premium: &a[2],
                 effected_date: &a[3],
                 term_over_one_year: term.as_ref(),
+                policy_taken_out: taken_out.as_ref(),
                 year: &a[4],
                 scope_confirmed: &a[5],
             })

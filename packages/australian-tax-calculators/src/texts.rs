@@ -4,7 +4,7 @@
 pub const SCOPES: &[(&str, &str)] = &[
     (
         "insurance_duty",
-        "The duty on one premium for general insurance in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, for a contract effected or renewed in 2026-27 (1 July 2026 to 30 June 2027), at the rate each Act sets for the class the operator states: New South Wales Types A, B and C (from Revenue NSW's pages; Type C exempt for policies taken out from 1 January 2018), Victoria's general and business insurance (Duties Act 2000 (Vic) s 179), Queensland's class 1, class 2 and CTP insurance (Duties Act 2001 (Qld) s 362), and general insurance elsewhere (the ACT's duty abolished from 1 July 2017). The operator establishes the class, that the premium is dutiable and not exempt, and the premium as the Act defines it, apportioned to the jurisdiction and the class. Each rate is the one in force on 24 November 2026; the duty is rounded to the cent. Excludes life insurance, accident and workers compensation insurance, CTP insurance outside Queensland, a Northern Territory policy for more than one year, exemptions, apportionment, who is liable, returns and refunds, and penalty tax and interest.",
+        "The duty on one premium for general insurance in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, for a contract effected or renewed in 2026-27 (1 July 2026 to 30 June 2027), at the rate each Act sets for the class the operator states: New South Wales Types A, B and C (from Revenue NSW's pages; Type C 2.5% for a policy taken out before 1 January 2018 and exempt from then), Victoria's general and business insurance (Duties Act 2000 (Vic) s 179), Queensland's class 1, class 2 and CTP insurance (Duties Act 2001 (Qld) s 362), and general insurance elsewhere (in South Australia any insurance other than life insurance, personal accident insurance included; the ACT's duty repealed from 1 July 2017). The operator establishes the class, that the premium is dutiable and not exempt, and the premium as the Act defines it, apportioned to the jurisdiction and the class. Each rate is the one in force on 24 November 2026; the duty is shown to the cent with the exact figure beside it. Excludes life insurance, Queensland accident insurance (Duties Act 2001 (Qld) s 362(3)), CTP insurance outside Queensland, a Northern Territory policy for more than one year, exemptions, apportionment, who is liable, returns and refunds, and penalty tax and interest.",
     ),
     (
         "alcohol_excise",
@@ -2142,7 +2142,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "insurance_duty",
         &[
             "Each revenue office decides the class, any exemption and how a premium is apportioned between jurisdictions and classes; this worksheet takes the class and the apportioned premium as established.",
-            "No Act sets a rounding rule for one premium's duty (each is paid on a return of total premiums); this worksheet rounds it to the cent.",
+            "No Act sets a rounding rule for one premium's duty: each is paid on a return of total premiums. amounts.duty is rates.exact_duty to the cent, for display; add exact figures when totalling a return.",
             "The rates are those in force on 24 November 2026; an amendment for a later effected date is not reflected.",
         ],
     ),

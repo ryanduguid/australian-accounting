@@ -557,6 +557,12 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "effected_date": "2027-03-01", "year": "2026-27",
                    "scope_confirmed": true}),
         ),
+        (
+            "insurance-duty",
+            json!({"jurisdiction": "nsw", "class": "type_c", "premium": "1000.00",
+                   "effected_date": "2026-08-01", "policy_taken_out": "2017-12-31",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // A strata unit's share of land bought with some consideration unpaid
         // (GST Act ss 75-12 and 75-15), for a supply that cannot use the
         // margin scheme: the margin is shown beside the full GST.

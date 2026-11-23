@@ -22,6 +22,8 @@ use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 
 const KIND: &str = "insurance_duty";
+type Rates = Vec<(String, String)>;
+
 const PLACES: [&str; 8] = ["nsw", "vic", "qld", "wa", "sa", "tas", "act", "nt"];
 
 /// The facts as the command passes them; see the README for each.
@@ -31,17 +33,20 @@ pub struct InsuranceDutyArgs<'a> {
     pub premium: &'a Arg,
     pub effected_date: &'a Arg,
     pub term_over_one_year: Option<&'a Arg>,
+    pub policy_taken_out: Option<&'a Arg>,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
 
 /// How a class is charged: a percentage of the premium, a fixed amount on
-/// each premium, or nil from the date the duty went.
+/// each premium, nil from the date the duty went, or a percentage for a
+/// policy taken out before a date and nil for one taken out from it.
 #[derive(Clone, Copy)]
 enum Duty {
     Percent(&'static str),
     PerPremium(&'static str),
     Abolished(&'static str),
+    ExemptFrom(&'static str, &'static str),
 }
 
 struct Class {
@@ -81,8 +86,8 @@ const CLASSES: [Class; 13] = [
     class(
         "nsw",
         "type_c",
-        Duty::Abolished("2018-01-01"),
-        "Revenue NSW, 'Types of insurance': Type C, including crop and livestock insurance, exempt for all policies taken out on or after 1 January 2018; read on 24 November 2026",
+        Duty::ExemptFrom("2018-01-01", "2.5"),
+        "Revenue NSW, 'Types of insurance': Type C, including crop and livestock insurance, 2.5 per cent of the premium for policies taken out on or before 31 December 2017 and exempt for all policies taken out on or after 1 January 2018; read on 24 November 2026",
     ),
     class(
         "vic",
@@ -124,7 +129,7 @@ const CLASSES: [Class; 13] = [
         "sa",
         "general",
         Duty::Percent("11"),
-        "Stamp Duties Act 1923 (SA) s 34(1)(b) (version 15.9.2026): 11% of premiums for insurance of any kind other than life insurance; read on 24 November 2026",
+        "Stamp Duties Act 1923 (SA) s 34(1)(b) (version 15.9.2026): 11% of premiums for insurance of any kind other than life insurance, personal accident insurance included; read on 24 November 2026",
     ),
     class(
         "tas",
@@ -136,7 +141,7 @@ const CLASSES: [Class; 13] = [
         "act",
         "general",
         Duty::Abolished("2017-07-01"),
-        "Duties Act 1999 (ACT) ch 8 (insurance), omitted by the Revenue Legislation Amendment Act 2017 (No 2) A2017-11 s 4, commenced 1 July 2017 (republication 79 endnotes); read on 24 November 2026",
+        "Duties Act 1999 (ACT) ch 8 (insurance), omitted by the Revenue Legislation Amendment Act 2017 (No 2) A2017-11 s 4, commenced 1 July 2017 (republication 79 endnotes): the duty's repeal; whether its rate reached nil before then is not shown by the source read; read on 24 November 2026",
     ),
     class(
         "nt",
@@ -166,7 +171,7 @@ fn class_in(place: &str, code: &Arg) -> Result<&'static Class> {
     refuse(
         "insurance_duty.class_invalid",
         format!(
-            "class in {place} must be one of {}; life, accident and workers compensation insurance are not worked.",
+            "class in {place} must be one of {}; life insurance, Queensland accident insurance and CTP insurance outside Queensland are not worked.",
             names.join(", ")
         ),
     )
@@ -207,35 +212,20 @@ fn term(place: &str, given: Option<&Arg>) -> Result<()> {
     Ok(())
 }
 
-fn worked(class: &Class, premium: &Decimal) -> Result<(Step, Vec<(String, String)>)> {
-    let percent = |r: &str| -> Result<Decimal> {
-        Ok(premium
-            .mul(&d(r))?
-            .div(&d("100"))?
-            .quantize(-2, Rounding::HalfUp)?)
-    };
+/// A percentage of the premium, with the exact figure beside the cents.
+fn percent(authority: &'static str, r: &str, premium: &Decimal) -> Result<(Step, Rates)> {
+    let exact = premium.mul(&d(r))?.div(&d("100"))?;
+    let cents = exact.quantize(-2, Rounding::HalfUp)?;
     let formula = "cents(premium x rate_percent / 100)";
-    Ok(match class.duty {
-        Duty::Percent(r) => (
-            step(
-                "duty",
-                class.authority,
-                formula,
-                &[premium, &d(r)],
-                percent(r)?,
-            ),
-            vec![rate("rate_percent", r)],
-        ),
-        Duty::Abolished(from) => (
-            step(
-                "duty",
-                class.authority,
-                formula,
-                &[premium, &d("0")],
-                percent("0")?,
-            ),
-            vec![rate("rate_percent", "0"), rate("abolished_from", from)],
-        ),
+    Ok((
+        step("duty", authority, formula, &[premium, &d(r)], cents),
+        vec![rate("rate_percent", r), rate("exact_duty", &exact)],
+    ))
+}
+
+fn worked(class: &Class, premium: &Decimal, taken_out: Option<i64>) -> Result<(Step, Rates)> {
+    let (step, mut rates) = match class.duty {
+        Duty::Percent(r) => percent(class.authority, r, premium)?,
         Duty::PerPremium(amount) => (
             step(
                 "duty",
@@ -244,9 +234,33 @@ fn worked(class: &Class, premium: &Decimal) -> Result<(Step, Vec<(String, String
                 &[&d(amount)],
                 d(amount),
             ),
-            vec![rate("duty_per_premium", amount)],
+            vec![rate("duty_per_premium", amount), rate("exact_duty", amount)],
         ),
-    })
+        Duty::Abolished(from) => {
+            let (step, mut rates) = percent(class.authority, "0", premium)?;
+            rates.push(rate("abolished_from", from));
+            return Ok((step, rates));
+        }
+        Duty::ExemptFrom(from, before) => {
+            let cut = dates::parse(from).expect("a date");
+            let earlier = taken_out.expect("required for this class") < cut;
+            percent(class.authority, if earlier { before } else { "0" }, premium)?
+        }
+    };
+    if let Duty::ExemptFrom(from, _) = class.duty {
+        rates.push(rate("exempt_from", from));
+    }
+    Ok((step, rates))
+}
+
+/// The day a New South Wales Type C policy was taken out, asked for that
+/// class only.
+fn taken_out(class: &Class, given: Option<&Arg>) -> Result<Option<i64>> {
+    let needed = matches!(class.duty, Duty::ExemptFrom(..));
+    let why = "for New South Wales Type C insurance (Revenue NSW: exempt for policies taken out on or after 1 January 2018)";
+    when(needed, given, "policy_taken_out", why)?
+        .map(|value| date_arg(value, "policy_taken_out"))
+        .transpose()
 }
 
 pub fn insurance_duty(args: &InsuranceDutyArgs) -> Result<Value> {
@@ -255,7 +269,8 @@ pub fn insurance_duty(args: &InsuranceDutyArgs) -> Result<Value> {
     let class = class_in(place, args.class)?;
     effected(args.effected_date, &year)?;
     term(place, args.term_over_one_year)?;
+    let taken_out = taken_out(class, args.policy_taken_out)?;
     let premium = money(args.premium)?;
-    let (step, rates) = precise(|| worked(class, &premium))?;
+    let (step, rates) = precise(|| worked(class, &premium, taken_out))?;
     derived_result(KIND, &year, vec![step], rates)
 }

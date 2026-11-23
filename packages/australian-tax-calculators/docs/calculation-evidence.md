@@ -2185,8 +2185,10 @@ This worksheet was added on 24 November 2026. The Acts were read that day:
 - New South Wales: the Duties Act 1997 (NSW) could not be read (NSW
   Legislation returned a Cloudflare challenge and AustLII refused the
   request). The rates rest on Revenue NSW, 'Types of insurance': Type A 9 per
-  cent, Type B 5 per cent and Type C exempt for policies taken out on or after
-  1 January 2018.
+  cent, Type B 5 per cent and Type C 2.5 per cent for policies taken out on or
+  before 31 December 2017 and exempt for those taken out on or after 1 January
+  2018. Whether a renewal takes out a new policy is not stated, so the
+  worksheet asks for the day the policy was taken out.
 - Victoria: the Duties Act 2000 (Vic) ss 3(1) ('business insurance') and 179
   (authorised version 141), whose s 179(4) Table steps the business rate down
   by 1% each year to nil from 1 July 2033, and the State Revenue Office's
@@ -2196,19 +2198,24 @@ This worksheet was added on 24 November 2026. The Acts were read that day:
 - Western Australia: the Duties Act 2008 (WA) s 215 (03-z0-00) and
   RevenueWA, 'Self-assess and pay insurance duty'.
 - South Australia: the Stamp Duties Act 1923 (SA) s 34(1)(b) (version
-  15.9.2026).
+  15.9.2026), which charges premiums for insurance of any kind other than life
+  insurance; s 34(5)(b)(ii) and (iii) show personal accident insurance is
+  among them.
 - Tasmania: the Duties Act 2001 (Tas) s 166 (in force 24 November 2026) and
   the State Revenue Office, 'Rates of duty' (10% from 1 October 2012).
 - ACT: the Duties Act 1999 (ACT) republication 79, whose endnotes record
   chapter 8 (insurance) omitted by the Revenue Legislation Amendment Act 2017
-  (No 2) A2017-11 s 4, part 2 commencing on 1 July 2017.
+  (No 2) A2017-11 s 4, part 2 commencing on 1 July 2017. That is the repeal;
+  the endnotes do not show whether the rate reached nil earlier, and the
+  worksheet claims only the repeal date.
 - Northern Territory: the Stamp Duty Act 1978 (NT) Sch 1 cl 6(3) (as in force
   at 1 July 2025, the current version).
 
 No revenue office publishes a worked general insurance example with figures,
 so every figure was worked by hand from the rate, and an oracle written in
-Python from the spec, not the code, gives 598 cases: each class at 23
-premiums, including half-cent ties and the largest amount the crate takes, on
+Python from the spec, not the code, gives 644 cases: each class at 23
+premiums (New South Wales Type C for policies taken out on 31 December 2017
+and 1 January 2018), including half-cent ties and the largest amount the crate takes, on
 the first and last day of the year.
 
 | Case | Source | Duty |
@@ -2218,7 +2225,12 @@ the first and last day of the year.
 | Queensland class 1, $555.55 | s 362(1)(a): 9%, 49.9995 | $50.00 |
 | Queensland CTP, any premium | s 362(2) | $0.10 |
 | South Australia, $0.05 | s 34(1)(b): 11%, 0.0055 | $0.01 |
+| New South Wales Type C, $1,000.00, policy taken out 31 December 2017 | Revenue NSW: 2.5 per cent | $25.00 |
 | ACT, $5,000.00 | ch 8 omitted from 1 July 2017 | nil |
+
+No Act sets a rounding rule for one premium's duty: insurers pay on a return
+of total premiums. The worksheet shows `duty` to the cent, as every amount in
+this crate is, and gives the exact figure in `rates.exact_duty`.
 
 ## Payroll tax
 

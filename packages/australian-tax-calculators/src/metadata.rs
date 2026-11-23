@@ -3182,10 +3182,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
             ),
         ],
-        "insurance_duty" => vec![(
-            "term_over_one_year",
-            "boolean, in nt only and then required: true for a policy issued or renewed for more than one year, which is refused (Stamp Duty Act 1978 (NT) Sch 1 cl 6(3)(b)(ii))",
-        )],
+        "insurance_duty" => vec![
+            (
+                "term_over_one_year",
+                "boolean, in nt only and then required: true for a policy issued or renewed for more than one year, which is refused (Stamp Duty Act 1978 (NT) Sch 1 cl 6(3)(b)(ii))",
+            ),
+            (
+                "policy_taken_out",
+                "YYYY-MM-DD, for nsw type_c only and then required: the day the policy was taken out, as Revenue NSW uses the term (2.5% on or before 31 December 2017, exempt from 1 January 2018); whether a renewal took out a new policy is for the operator to establish",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -4281,7 +4287,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             (
                 "class",
-                "nsw type_a, type_b or type_c; vic general or business (s 3(1) 'business insurance'); qld class_1, class_2 or ctp; general elsewhere (in the act, nil since 1 July 2017)",
+                "nsw type_a, type_b or type_c; vic general or business (s 3(1) 'business insurance'); qld class_1, class_2 (including a life insurance rider) or ctp; general elsewhere (in sa any insurance other than life insurance, personal accident included; in the act, nil since chapter 8's repeal on 1 July 2017)",
             ),
             (
                 "premium",
