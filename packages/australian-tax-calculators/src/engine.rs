@@ -4898,11 +4898,13 @@ mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
 pub use super_benefit_tax::{
-    SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs, super_benefit_tax,
-    super_withholding,
+    STREAM_OPTIONAL, SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs,
+    super_benefit_tax, super_withholding,
 };
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
+mod land_tax;
+pub use land_tax::{LandTaxArgs, land_tax};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6197,6 +6199,8 @@ mod government_super_amounts;
 pub use government_super_amounts::{SPOUSE_INPUTS, government_super_amounts};
 mod wine_equalisation_tax;
 pub use wine_equalisation_tax::{WetArgs, wine_equalisation_tax};
+mod vic_property_taxes;
+pub use vic_property_taxes::{VicPropertyTaxesArgs, vic_property_taxes};
 mod alcohol_excise;
 pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
 mod fbt_minor_benefit;
@@ -6292,7 +6296,7 @@ pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
 
-const KINDS: [&str; 117] = [
+const KINDS: [&str; 119] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6314,6 +6318,7 @@ const KINDS: [&str; 117] = [
     "super_benefit_tax",
     "super_withholding",
     "payroll_tax",
+    "land_tax",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
@@ -6365,6 +6370,7 @@ const KINDS: [&str; 117] = [
     "income_tests",
     "ppsr_timing",
     "wine_equalisation_tax",
+    "vic_property_taxes",
     "alcohol_excise",
     "sb_cgt_concessions",
     "work_expenses",
