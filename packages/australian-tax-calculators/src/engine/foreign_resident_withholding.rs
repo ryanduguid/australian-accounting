@@ -346,6 +346,30 @@ const STEPS: [(&str, &str); 4] = [
     ),
 ];
 
+/// The amount payable, rounding the rows to the cent: nil when the whole
+/// acquisition is; with no document (no class variation applies) the one
+/// s 14-200(3)(a) figure, its cents shared by the rows; otherwise the sum of
+/// the rows each rounded half up.
+fn payable(facts: &Facts, rows: &mut [Row], full_amount: &Decimal, nil: bool) -> Result<Decimal> {
+    if nil {
+        return Ok(int(0));
+    }
+    if facts
+        .vendors
+        .iter()
+        .all(|v| matches!(v.document, Document::None))
+    {
+        let single = cents(full_amount.clone())?;
+        allocate(rows, &single)?;
+        return Ok(single);
+    }
+    for row in rows.iter_mut() {
+        row.1 = cents(row.1.clone())?;
+    }
+    rows.iter()
+        .try_fold(int(0), |sum, row| Ok(sum.add(&row.1)?))
+}
+
 pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let facts = facts(args, &year)?;
@@ -366,26 +390,7 @@ pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Re
     let nil = whole_nil(&facts, threshold)?;
     let mut rows = vendor_rows(&facts, &full)?;
     let full_amount = precise(|| Ok(full.mul(&facts.base)?))?;
-    // No document: no class variation applies, so one s 14-200(3)(a) figure.
-    let undocumented = facts
-        .vendors
-        .iter()
-        .all(|v| matches!(v.document, Document::None));
-    let payable = precise(|| {
-        if nil.is_some() {
-            return Ok(int(0));
-        }
-        if undocumented {
-            let single = cents(full_amount.clone())?;
-            allocate(&mut rows, &single)?;
-            return Ok(single);
-        }
-        for row in &mut rows {
-            row.1 = cents(row.1.clone())?;
-        }
-        rows.iter()
-            .try_fold(int(0), |sum, row| Ok(sum.add(&row.1)?))
-    })?;
+    let payable = precise(|| payable(&facts, &mut rows, &full_amount, nil.is_some()))?;
     let mut rates = vec![rate("rate", full_rate)];
     rates.push(rate("threshold", threshold.unwrap_or("none")));
     let mut out = result(
