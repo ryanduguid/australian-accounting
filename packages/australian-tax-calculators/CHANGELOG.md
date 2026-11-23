@@ -4,6 +4,15 @@
 
 ### Added
 
+- `asic-fees` gives ASIC's 2026-27 fee for a company registration, name
+  reservation, annual review or business name, and the late fee tier for a
+  late review fee payment or lodgement from its due and received dates. It
+  mirrors the site's ASIC fees page and agrees with it on its 29 cases, the 32
+  vectors of its tests and all 181,476 due and received date pairs from
+  1 June 2026 to 31 July 2027. It cites company registration to Schedule 2
+  item 1(a) of the Corporations (Fees) Regulations 2001. New codes:
+  `asic_fees.dates_outside_year`, `asic_fees.fee_unknown` and
+  `asic_fees.weekend_undecided`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

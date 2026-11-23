@@ -161,6 +161,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("lines", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "asic-fees",
+        &[("fee", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "gst-margin-scheme",
         &[
             ("interest", Raw),
@@ -1787,6 +1791,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "depreciation"
             | "fuel-tax-credits"
             | "alcohol-excise"
+            | "asic-fees"
             | "medicare-levy"
             | "medicare-levy-surcharge"
             | "payg-withholding"
@@ -1927,6 +1932,18 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 duty_paid: paid.as_ref(),
                 year: &a[1],
                 scope_confirmed: &a[2],
+            })
+        }
+        "asic-fees" => {
+            // Optional: the dates, taken with a late fee only.
+            let due = optional(v, "due_date", Raw)?;
+            let received = optional(v, "received_date", Raw)?;
+            engine::asic_fees(&engine::AsicFeesArgs {
+                fee: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+                due_date: due.as_ref(),
+                received_date: received.as_ref(),
             })
         }
         "resident-tax" => engine::resident_tax(&a[0], &a[1], &a[2]),

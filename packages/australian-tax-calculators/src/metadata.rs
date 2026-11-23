@@ -1129,6 +1129,8 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The financial years holding the substituted rates bundled in
         // data/alcohol-excise-rates.json, 1 July 2022 to 31 January 2027.
         "alcohol_excise" => vec!["2022-23", "2023-24", "2024-25", "2025-26", "2026-27"],
+        // The page holds ASIC's amounts indexed from 1 July 2026 only.
+        "asic_fees" => vec!["2026-27"],
         "capital_gains" | "depreciation" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
         "resident_tax" => keys(RESIDENT_TAX_SCALES),
@@ -1433,6 +1435,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "alcohol_excise" => (
             "2026-11-22",
             "Excise Tariff Act 1921 ss 6A and 6L and the Schedule (definitions, the note on non-commercial liquor, items 1 to 3), compilation 58 (1 July 2026), the Schedule's items 1 to 3 compared with compilations 54, 55 and 56; Excise Act 1901 ss 77FA and 78, compilation 69 (27 August 2026); Excise Regulation 2015 ss 8, 62 and 64 and Sch 1 cl 1(1) item 3 and cl 2(1) item 10, (2) to (4), compilation 6 (29 November 2025), compared with compilations 4 and 5; the Commissioner's Notices of Substituted Rates of Excise Duty No. 1 and 3 of 2022 to 2025 and No. 1 and 3 of 2026; the ATO's Historical Excise Rates workbook (data.gov.au, 1 September 2026); the ATO's Excise duty rates for alcohol (QC63605, 29 July 2026), Calculating alcohol excise duty (QC63603, 15 May 2023), Remission scheme for alcohol manufacturers (QC65935, 18 November 2026) and Excise guidelines for the alcohol industry chapter 6",
+        ),
+        "asic_fees" => (
+            "2026-11-24",
+            "ASIC's fee data (fees-data-current.json, YEARFEE 2026), INFO 30 'Fees for commonly lodged documents', 'Fee indexation' and 'Late fees'; Corporations (Fees) Regulations 2001 (Compilation No. 41) Schedule 2 items 1, 8 and 14 and reg 3; Corporations (Review Fees) Regulations 2003 (Compilation No. 11) Schedule 1 Parts 1 and 3 and reg 4; Business Names Registration (Fees) Regulations 2022 s 6; ABS CPI March quarters 2018 to 2026; Acts Interpretation Act 1901 (28 March 2026) ss 2G and 36; Corporations Act 2001 (Compilation 149) s 105",
         ),
         "fuel_tax_credits" => (
             "2026-11-19",
@@ -2638,6 +2644,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, with a line marked remission: true when the duty on those goods was paid, so the amount is a refund (Sch 1 cl 1(1) item 3 and cl 2(2), refund code ERRO) counted towards the same cap",
             ),
         ],
+        "asic_fees" => vec![
+            (
+                "due_date",
+                "YYYY-MM-DD, with late_review_payment or late_lodgement only, and then required: the day the review fee became due and payable or the document's prescribed time ended, from 2026-07-01 to 2027-06-30; ignored with any other fee",
+            ),
+            (
+                "received_date",
+                "YYYY-MM-DD, with late_review_payment or late_lodgement only, and then required: the day ASIC received the payment or document, from 2026-07-01 to 2027-06-30; ignored with any other fee",
+            ),
+        ],
         "fuel_tax_credits" => vec![
             (
                 "small_claimant",
@@ -3755,6 +3771,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "alcohol_excise" => vec![(
             "lines",
             "list of 1 to 1,000 objects, each with date (YYYY-MM-DD, the day the goods are entered for home consumption: the day of delivery under a periodic settlement permission, otherwise the day of payment; inside the financial year and from 1 July 2022 to 31 January 2027), product (beer, brandy, spirit for spirits not elsewhere included, or other_excisable_beverage, which includes a spirit beverage or RTD; wine, tobacco, fuel, concessional_spirit and non_commercial are refused), volume_litres (decimal string above 0, at most 4 decimal places, the dutiable volume at 20 degrees Celsius) and strength_percent (decimal string above 0 to 100, at most 3 decimal places, the alcoholic strength by volume at 20 degrees Celsius); for beer, container_litres (the individual container) with pressurised_system (boolean, required for a container of 8 to 48 litres: designed to connect to a pressurised gas or pump delivery system) unless brew_on_premises is true (produced for non-commercial purposes using commercial facilities, subitems 1.15 and 1.16); optionally labelled_strength_percent (Excise Act 1901 s 77FA: duty on it where higher; for goods entered unlabelled, the labelled strength of the same kind the manufacturer enters labelled, s 77FA(2)), remission (boolean: the goods meet Excise Regulation 2015 Sch 1 cl 2(1) item 10 (a), (b), (d) and (e)) and imported (boolean; true is refused)",
+        )],
+        "asic_fees" => vec![(
+            "fee",
+            "company_share_capital (I02), company_no_share_capital (I01), name_reservation (R01), review_public (A51), review_proprietary (A52), review_special_public (A53), review_special_proprietary (A58), business_name_1 (BZA or BZC), business_name_3 (BZB or BZD), late_review_payment or late_lodgement (LPF1_ETM or LPF2_ETM)",
         )],
         "fuel_tax_credits" => vec![(
             "lines",
@@ -5247,6 +5267,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                     r#"[{"date": "2026-09-15", "product": "beer", "volume_litres": "90", "strength_percent": "4.8", "container_litres": "0.375"}, {"date": "2026-09-15", "product": "beer", "volume_litres": "50", "strength_percent": "4.8", "container_litres": "50"}]"#,
                 ),
             ),
+        ],
+        // An annual review fee due 15 September 2026 paid on 15 October:
+        // the last day of the first month, so $102.
+        "asic_fees" => vec![
+            ("year", Text("2026-27")),
+            ("fee", Text("late_review_payment")),
+            ("due_date", Text("2026-09-15")),
+            ("received_date", Text("2026-10-15")),
         ],
         // 10,000 litres of diesel in a heavy vehicle on public roads and
         // 2,000 litres off road, acquired from 3 August 2026: $2,130 + $1,074.
