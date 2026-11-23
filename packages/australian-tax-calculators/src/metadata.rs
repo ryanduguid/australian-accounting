@@ -1317,6 +1317,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // The years the site's allocation form offers: 2020-21 for the
+        // guideline's examples (paragraph 122) and 2022-23 onwards, as it
+        // applies from 1 July 2022 (paragraph 17).
+        "pcg_2021_4" => vec![
+            "2020-21", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // ITAA 1936 s 6(1) 'resident' reads the same in compilations 169
         // (1 July 2020) and 193 (1 October 2026).
         "residency_tests" => vec![
@@ -1801,6 +1807,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "psi_test" => (
             "2026-11-22",
             "ITAA 1997 Part 2-42 (ss 84-5, 85-30, 85-35, 87-15 to 87-40, 87-60 and 87-65), compilation 268 (1 October 2026), against compilations 210 (1 July 2020) and 223 (1 July 2021), which read the same; TR 2022/3, examples 20, 29, 30 and 40 and paragraph 118; the site's PSI page and its 19 cases (checked 17 November 2026)",
+        ),
+        "pcg_2021_4" => (
+            "2026-11-24",
+            "PCG 2021/4 (updated guideline of 19 June 2024) paragraphs 10 to 12, 17, 28, 71 to 73, 76 to 101 and 122, footnotes 6 and 7 and case studies 1 to 12, on the ATO legal database; the ATO's 'Tax rates – Australian resident' (last updated 13 August 2026) and company tax rates for 2020-21 and 2022-23 to 2025-26; Income Tax Rates Act 1986 s 23(2) (Compilation No. 66, 1 July 2026)",
         ),
         "rental_property" => (
             "2026-11-22",
@@ -2363,6 +2373,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Example 20 (Joe's ducts, the results test), 29 (Tom's 23.07%), 30 (Ian's 18.57%) and 40 (Chris, an agent on 70% commission)",
             "2022-08-10",
             "2026-11-22",
+        ),
+        "pcg_2021_4" => (
+            "PCG 2021/4",
+            "Case studies 1 to 12 with their scores and zones; examples 4, 5 and 6 (paragraphs 87 to 99)",
+            "2024-06-19",
+            "2026-11-24",
         ),
         "residency_tests" => (
             "TR 2023/1",
@@ -2954,6 +2970,32 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "principal_payments",
                 "AUD, with agent true only, and then required: the principal's payments to you for services to its customers (s 87-40(2)(b))",
+            ),
+        ],
+        "pcg_2021_4" => vec![
+            (
+                "recipients",
+                "list of 1 to 6 objects, the IPP first and then each associated entity, for the allocation, in place of entitlement, returned and tax: kind (individual, an Australian resident aged 18 or over all year, the IPP's kind; base_rate_company; or company), firm_income (AUD, what it is entitled to from the whole of firm group, a franked dividend with its franking credit), firm_deductions (AUD, firm-related deductions) and other_income (AUD, other income less other deductions, negative for a loss)",
+            ),
+            (
+                "entitlement",
+                "AUD, for the scorer, with returned and tax: the income the IPP and associated entities are collectively entitled to from the whole of firm group (paragraphs 82 and 83)",
+            ),
+            (
+                "returned",
+                "AUD, for the scorer: the profit entitlement included in the IPP's assessable income (paragraph 82)",
+            ),
+            (
+                "tax",
+                "AUD, for the scorer: the total tax paragraph 85 counts for the IPP and associated entities on that firm income",
+            ),
+            (
+                "remuneration",
+                "AUD, for the scorer with factor_3 true only, and then required: the remuneration returned in the IPP's hands (paragraphs 100 and 101)",
+            ),
+            (
+                "benchmark",
+                "AUD, with factor_3 true only, and then required: the commercial benchmark for the IPP's services (paragraph 101)",
             ),
         ],
         "foreign_income_tax_offset" => vec![
@@ -5078,6 +5120,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("apprentice", "boolean: the individual or entity had one or more apprentices for at least half the year (s 87-25(3))"),
             ("premises", "object of 5 booleans for the business premises test (s 87-30): at_all_times (maintained and used at all times in the year), mainly_for_psi, exclusive_use, separate_from_private and separate_from_clients"),
         ],
+        "pcg_2021_4" => vec![
+            ("gateway_1", "boolean: the arrangement is commercially driven (Gateway 1, paragraphs 39 to 46); false is refused"),
+            ("gateway_2", "boolean: the arrangement has no high-risk features (Gateway 2, paragraphs 47 to 63); false is refused"),
+            ("factor_3", "boolean: score risk assessment factor 3 against a commercial benchmark too (paragraphs 77 to 80)"),
+        ],
         "government_super_amounts" => {
             let mut units = input_units("income_tests");
             units.extend([
@@ -6276,6 +6323,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "premises",
                 Json(
                     r#"{"at_all_times": false, "mainly_for_psi": false, "exclusive_use": false, "separate_from_private": false, "separate_from_clients": false}"#,
+                ),
+            ),
+        ],
+        // Case study 1: Nicolas returns $330,000 of $600,000 and his
+        // company pays $70,200 at 26%: 31.56%, scores 4 and 3, green.
+        "pcg_2021_4" => vec![
+            ("year", Text("2020-21")),
+            ("gateway_1", Flag(true)),
+            ("gateway_2", Flag(true)),
+            ("factor_3", Flag(false)),
+            (
+                "recipients",
+                Json(
+                    r#"[{"kind": "individual", "firm_income": "330000", "firm_deductions": "0", "other_income": "0"}, {"kind": "base_rate_company", "firm_income": "270000", "firm_deductions": "0", "other_income": "0"}]"#,
                 ),
             ),
         ],

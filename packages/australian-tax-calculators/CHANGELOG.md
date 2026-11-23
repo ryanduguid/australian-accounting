@@ -4,6 +4,16 @@
 
 ### Added
 
+- `pcg-2021-4` gives the ATO's risk zone under PCG 2021/4 for one IPP's
+  allocation of professional firm profits, from stated totals or from up to 6
+  recipients with the tax paragraph 85 counts on the year's resident scale or
+  company rate, for 2020-21 and 2022-23 to 2026-27. It mirrors the site's PCG
+  2021/4 risk scorer and allocation calculator and agrees with them on all 432
+  rows of their cases, tests and a seeded sweep. New codes:
+  `pcg_2021_4.benchmark_nil`, `pcg_2021_4.entitlement_nil`,
+  `pcg_2021_4.gateway_failed`, `pcg_2021_4.recipient_kind_unsupported`,
+  `pcg_2021_4.recipients_invalid`, `pcg_2021_4.returned_above_entitlement`
+  and `pcg_2021_4.tax_above_entitlement`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

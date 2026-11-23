@@ -359,6 +359,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
     (
+        "pcg_2021_4",
+        "The ATO's risk zone under PCG 2021/4 for one individual professional practitioner's (IPP's) allocation of professional firm profits, in 2020-21 (the rates of the guideline's examples) or 2022-23 to 2026-27 (it applies from 1 July 2022, paragraph 17), for an arrangement the operator has established passes Gateways 1 and 2 (paragraphs 10 to 12). Either the operator states the income the IPP and its associated entities are entitled to from the whole of firm group, the IPP's share and the total tax paragraph 85 counts, or gives the IPP and up to 5 associates, each an Australian resident individual aged 18 or over all year, a base rate entity company or another company, with its firm income, firm-related deductions and other income less other deductions; each one's tax is then the larger of the tax on its firm income less firm-related deductions alone and its tax on all income less the tax without them (paragraph 85), on the year's resident scale or company rate, with no offset or levy (footnote 6). Factors 1 and 2, and factor 3 against the operator's commercial benchmark when chosen, are scored on Table 1 (paragraph 76) and zoned on Table 2 (paragraph 78); an IPP that returns all of it is low risk (paragraph 81). Excludes testing the gateways and whether the guideline applies (paragraph 28), full-time equivalents for a part-time IPP (paragraph 71), superannuation contributions and fringe benefits (paragraphs 72, 73 and 95 to 99), tax offsets, trustees taxed under ITAA 1936 s 98 or 99A, minors under Division 6AA, non-residents and super funds as recipients, the benchmark itself, and Part IVA (paragraphs 36 and 37).",
+    ),
+    (
         "government_super_amounts",
         "The super co-contribution (Superannuation (Government Co-contribution for Low Income Earners) Act 2003, the Co-contribution Act, Part 2), the low income superannuation tax offset (LISTO, Part 2A, s 12C(1) only) and the spouse contribution tax offset (ITAA 1997 Subdivision 290-D) for one individual who was an Australian resident for the whole income year, in 2020-21 to 2026-27. Total income (Co-contribution Act s 8) and adjusted taxable income (A New Tax System (Family Assistance) Act 1999 Sch 3, disregarding cls 3 and 3A) are income-tests' measures, from the same established and classified components. The operator establishes the eligible income for the 10% test (s 6(1)(b), (2) and s 8(3)), the eligible personal contributions the fund received in the year (s 7; not deducted, not a downsizer contribution), the concessional contributions for the financial year (a person with contributions or amounts Co-contribution Act s 12E(3) disregards, for constitutionally protected funds or under ITAA 1997 s 291-165(1)(c), is out of scope, as s 12C(1)(a) counts them and s 12E(2)(a) does not), whether a return is lodged, the age, temporary visa, non-concessional cap and total super balance facts, and for a spouse the contributions s 290-230 counts (made whilst spouses, both resident and not living apart, to a complying fund the spouse could contribute to, not deductible and not a Family Law Act payment) and the spouse's income components and cap and balance facts. Thresholds are the ATO's published ones (Table 25). The payable co-contribution and LISTO are increased to a multiple of 5 cents (Regulations 2022 reg 15(2), 2004 reg 24(2)). Refuses a temporary visa held in the year, as the New Zealand citizen and prescribed visa exceptions are not worked out, a balance or cap fact not established where it decides an amount, and nil total income where a contribution makes the 10% test decide. Excludes contributions not yet received by the fund, LISTO the Commissioner estimates without a return (s 12C(2)), a deceased person's annualised income, interest on late payments (ss 12, 21 and 22), the co-contribution for an earlier year, the order and timing of payment, and 2027-28, when Act No. 8 of 2026 Schedule 4 changes LISTO.",
     ),
@@ -792,6 +796,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "psi_test",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
+    ),
+    (
+        "pcg_2021_4",
+        "https://www.ato.gov.au/law/view/document?docid=COG/PCG20214/NAT/ATO/00001",
     ),
     (
         "rental_property",
@@ -1912,6 +1920,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "pcg_2021_4",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents",
+            "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-201112-to-202021",
+            "https://www.ato.gov.au/tax-rates-and-codes/company-tax-rates/tax-rates-2025-26",
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+        ],
+    ),
+    (
         "government_super_amounts",
         &[
             "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/government-contributions",
@@ -2103,6 +2120,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "psi_test",
         &[
             "A personal services business is still subject to Part IVA of the ITAA 1936 on splitting the income (TR 2022/3 paragraphs 25 and 160); the PSI is still reported in the tax return.",
+        ],
+    ),
+    (
+        "pcg_2021_4",
+        &[
+            "A green zone is not a ruling: Part IVA can still apply (PCG 2021/4 paragraphs 36 and 37). Whether the gateways are passed is the operator's answer.",
         ],
     ),
     (
@@ -3592,7 +3615,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, payroll-tax, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, sb-cgt-concessions, small-business-income-offset, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, non-commercial-losses, psi-test, minors-income, smsf-tax, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, deferred-tax, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -3955,6 +3978,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax.wages_conflict",
         "australian_wages is less than taxable_wages, which it includes.",
+    ),
+    (
+        "pcg_2021_4.benchmark_nil",
+        "Factor 3 was chosen with a nil commercial benchmark.",
+    ),
+    (
+        "pcg_2021_4.entitlement_nil",
+        "The profit entitlement of the IPP and associates from the whole of firm group is nil.",
+    ),
+    (
+        "pcg_2021_4.gateway_failed",
+        "The arrangement fails Gateway 1 or 2, so PCG 2021/4 gives it no risk score (paragraphs 10 to 12).",
+    ),
+    (
+        "pcg_2021_4.recipient_kind_unsupported",
+        "A recipient is not an individual, a base rate entity company or another company, whose tax the worksheet works out.",
+    ),
+    (
+        "pcg_2021_4.recipients_invalid",
+        "recipients is not a list of 1 to 6 objects with the IPP, an individual, first.",
+    ),
+    (
+        "pcg_2021_4.returned_above_entitlement",
+        "The amount the IPP returns is more than the profit entitlement.",
+    ),
+    (
+        "pcg_2021_4.tax_above_entitlement",
+        "The tax counted is more than the profit entitlement it is paid on.",
     ),
     (
         "period.unsupported",

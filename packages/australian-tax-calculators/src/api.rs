@@ -1026,6 +1026,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "pcg-2021-4",
+        &[
+            ("gateway_1", Raw),
+            ("gateway_2", Raw),
+            ("factor_3", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "smsf-tax",
         &[
             ("complying_fund", Raw),
@@ -1844,6 +1854,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "prepayments"
             | "non-commercial-losses"
             | "psi-test"
+            | "pcg-2021-4"
             | "smsf-tax"
             | "government-super-amounts"
             | "rental-property"
@@ -2959,6 +2970,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 premises: &a[7],
                 year: &a[8],
                 scope_confirmed: &a[9],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
+        "pcg-2021-4" => {
+            // Optional: the scorer's totals or the allocation's recipients,
+            // and factor 3's remuneration and benchmark.
+            let read = |key: &str| optional(v, key, if key == "recipients" { Json } else { Dec });
+            let given = engine::PCG_OPTIONAL.map(read);
+            let [a0, a1, a2, a3, a4, a5] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?, a5?];
+            engine::pcg_2021_4(&engine::PcgArgs {
+                gateway_1: &a[0],
+                gateway_2: &a[1],
+                factor_3: &a[2],
+                year: &a[3],
+                scope_confirmed: &a[4],
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
