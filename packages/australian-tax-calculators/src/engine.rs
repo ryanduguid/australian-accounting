@@ -232,17 +232,6 @@ fn result(
         rendered.insert(key.to_string(), json!(cents.to_string()));
     }
     let rates: Map<String, Value> = rates.into_iter().map(|(k, v)| (k, json!(v))).collect();
-    let mut out = Map::new();
-    out.insert("ok".into(), json!(true));
-    out.insert("engine".into(), json!("australian-tax-calculators"));
-    out.insert("engine_version".into(), json!(VERSION));
-    out.insert("calculation".into(), json!(kind));
-    out.insert("period".into(), json!(period));
-    out.insert("amounts".into(), Value::Object(rendered));
-    out.insert("rates".into(), Value::Object(rates));
-    out.insert("scope".into(), json!(lookup(texts::SCOPES, kind)));
-    out.insert("sources".into(), json!(sources(kind)));
-    out.insert("source_checked".into(), json!(meta::source_review(kind).0));
     let mut warnings = vec![
         "Operator-confirmed facts and scope; eligibility is not independently verified.",
         "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
@@ -250,8 +239,19 @@ fn result(
     if let Some((_, extra)) = texts::EXTRA_WARNINGS.iter().find(|(k, _)| *k == kind) {
         warnings.extend(extra.iter().copied());
     }
-    out.insert("warnings".into(), json!(warnings));
-    Ok(Value::Object(out))
+    Ok(json!({
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": VERSION,
+        "calculation": kind,
+        "period": period,
+        "amounts": rendered,
+        "rates": rates,
+        "scope": lookup(texts::SCOPES, kind),
+        "sources": sources(kind),
+        "source_checked": meta::source_review(kind).0,
+        "warnings": warnings,
+    }))
 }
 
 /// One amount and how it was worked out: the provision or ATO page that sets
@@ -6422,40 +6422,40 @@ const KINDS: [&str; 119] = [
 pub fn periods(kind: &str) -> Value {
     let mut out = Vec::new();
     for year in meta::supported_periods(kind) {
-        let mut period = Map::new();
         if kind.starts_with("fbt") {
             let ended: i64 = year.parse().expect("FBT year");
-            period.insert("id".into(), json!(year));
-            period.insert("basis".into(), json!("FBT year"));
-            period.insert("start".into(), json!(format!("{}-04-01", ended - 1)));
-            period.insert("end".into(), json!(format!("{year}-03-31")));
-            period.insert("arguments".into(), json!({ "year_ended": ended }));
-        } else {
-            let start: i64 = year[..4].parse().expect("income year");
-            period.insert("id".into(), json!(year));
-            period.insert("basis".into(), json!("income year"));
-            period.insert("start".into(), json!(format!("{start}-07-01")));
-            period.insert("end".into(), json!(format!("{}-06-30", start + 1)));
-            period.insert("arguments".into(), json!({ "year": year }));
-            if kind == "study_loan_withholding" {
-                let from = lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
-                period.insert("start".into(), json!(from));
-            }
-            if kind == "quarterly_sg" {
-                period.insert("basis".into(), json!("complete quarter within income year"));
-                let next = start + 1;
-                period.insert(
-                    "quarters".into(),
-                    json!([
-                        {"quarter": 1, "start": format!("{start}-07-01"), "end": format!("{start}-09-30")},
-                        {"quarter": 2, "start": format!("{start}-10-01"), "end": format!("{start}-12-31")},
-                        {"quarter": 3, "start": format!("{next}-01-01"), "end": format!("{next}-03-31")},
-                        {"quarter": 4, "start": format!("{next}-04-01"), "end": format!("{next}-06-30")},
-                    ]),
-                );
-            }
+            out.push(json!({
+                "id": year,
+                "basis": "FBT year",
+                "start": format!("{}-04-01", ended - 1),
+                "end": format!("{year}-03-31"),
+                "arguments": { "year_ended": ended },
+            }));
+            continue;
         }
-        out.push(Value::Object(period));
+        let start: i64 = year[..4].parse().expect("income year");
+        // Overwriting a key keeps its position (`preserve_order`).
+        let mut period = json!({
+            "id": year,
+            "basis": "income year",
+            "start": format!("{start}-07-01"),
+            "end": format!("{}-06-30", start + 1),
+            "arguments": { "year": year },
+        });
+        if kind == "study_loan_withholding" {
+            period["start"] = json!(lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year));
+        }
+        if kind == "quarterly_sg" {
+            period["basis"] = json!("complete quarter within income year");
+            let next = start + 1;
+            period["quarters"] = json!([
+                {"quarter": 1, "start": format!("{start}-07-01"), "end": format!("{start}-09-30")},
+                {"quarter": 2, "start": format!("{start}-10-01"), "end": format!("{start}-12-31")},
+                {"quarter": 3, "start": format!("{next}-01-01"), "end": format!("{next}-03-31")},
+                {"quarter": 4, "start": format!("{next}-04-01"), "end": format!("{next}-06-30")},
+            ]);
+        }
+        out.push(period);
     }
     Value::Array(out)
 }
