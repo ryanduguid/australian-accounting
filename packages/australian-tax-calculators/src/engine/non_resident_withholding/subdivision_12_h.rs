@@ -30,7 +30,7 @@ fn mit_component(
         "component": name,
         "amount": cents(amount.clone())?.to_string(),
         "rate": rate_str,
-        "withholding": wh.to_string(),
+        "withholding": cents(wh.clone())?.to_string(),
         "authority": authority
     }))
 }

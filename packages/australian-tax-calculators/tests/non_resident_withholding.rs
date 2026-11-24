@@ -307,11 +307,14 @@ fn mit_fund_payments_eoi_clean_building_ncmi_non_eoi_and_company_agent() {
         co_exc["components"][0]["component"],
         "company_not_acting_as_agent_exception"
     );
+    assert_eq!(co_exc["components"][0]["withholding"], "0.00");
 
     // Exempt under ss 12-385(5) / 12-390(10)(b).
     let ex = eval(&mit("50000.00", false, "0.00", "0.00", false, true));
     assert_eq!(ex["amounts"]["withholding"], "0.00");
     assert_eq!(ex["amounts"]["net_payment"], "50000.00");
+    assert_eq!(ex["components"][0]["component"], "exempt_fund_payment");
+    assert_eq!(ex["components"][0]["withholding"], "0.00");
 }
 
 #[test]
