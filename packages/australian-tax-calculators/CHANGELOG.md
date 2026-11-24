@@ -4,6 +4,17 @@
 
 ### Added
 
+- `gst-food-retailer-sam` works out, for one tax period from 28 September
+  2017 to 30 June 2027, the GST-free share of trading sales and trading stock
+  purchases under the food retailers' simplified accounting methods: the
+  business norms, stock purchases and snapshot methods of F2017L01274, the
+  supermarket and convenience store method of F2025L01055 and the restaurant,
+  cafe and caterer method of F2026L01275, with trading stock input tax
+  credits for the last 2. New codes: `gst_food_retailer_sam.amount_exceeds_total`,
+  `components_unbalanced`, `method_invalid`, `method_not_in_force`,
+  `not_eligible`, `retailer_type_invalid`, `sample_invalid`,
+  `stock_role_invalid`, `tax_period_invalid`, `tax_period_spans_halves` and
+  `total_nil`.
 - `super-withholding` takes one superannuation income stream payment with
   `income_stream_period`: Schedule 13 Part A withholding in 2024-25 to
   2026-27 for an account-based stream, or a capped defined benefit stream to

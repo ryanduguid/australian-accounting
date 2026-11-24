@@ -6411,6 +6411,10 @@ pub use gst_adjustments::{
     gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
     gst_second_hand_goods,
 };
+mod gst_food_retailer_sam;
+pub use gst_food_retailer_sam::{
+    GST_FOOD_RETAILER_SAM_OPTIONAL, GstFoodRetailerSamArgs, gst_food_retailer_sam,
+};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 mod leave_provisions;
@@ -6444,9 +6448,10 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 132] = [
+const KINDS: [&str; 133] = [
     "gst",
     "gst_margin_scheme",
+    "gst_food_retailer_sam",
     "fuel_tax_credits",
     "resident_tax",
     "foreign_resident_tax",
