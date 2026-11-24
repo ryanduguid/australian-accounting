@@ -3272,6 +3272,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional(v, "dependent_children", Raw)?,
                 optional(v, "medicare_levy_exemption_full_days", Raw)?,
                 optional(v, "medicare_levy_exemption_half_days", Raw)?,
+                optional(v, "non_resident_days", Raw)?,
             ];
             let family = engine::MedicareFamily {
                 sapto_entitled: o[0].as_ref(),
@@ -3283,6 +3284,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let exemption = engine::MedicareExemption {
                 full_days: o[5].as_ref(),
                 half_days: o[6].as_ref(),
+                non_resident_days: o[7].as_ref(),
             };
             engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family, exemption)
         }

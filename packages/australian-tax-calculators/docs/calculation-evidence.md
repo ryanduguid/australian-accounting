@@ -64,7 +64,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, ITAA 1936 ss 251T and 251U, the ATO's single and family thresholds, its Ashton example and its Priya exemption example | 30 June 2026 (threshold pages); 22 June 2026 (exemption pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds, the s 8 family reduction and the s 9 exemption days for 2024-25 to 2026-27, on established SAPTO, spouse, dependant and exemption facts |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, ITAA 1936 ss 251T and 251U, the ATO's single and family thresholds, its Ashton example and its Priya exemption example | 30 June 2026 (threshold pages); 22 June 2026 (exemption pages); 24 November 2026 (non-resident days) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds, the s 8 family reduction and the s 9 exemption days for 2024-25 to 2026-27, on established SAPTO, spouse, dependant and exemption facts, including a part-year resident's non-resident days (ITAA 1936 s 251U(1)(d) and (2)) |
 | Medicare levy surcharge | Not a Library document: Medicare Levy Act 1986 ss 8B and 8D (compilations 52 and 53), the Medicare Levy Surcharge - Fringe Benefits Act 1999 (compilations 41 and 42), the ATO's thresholds page with its Tom example and its M2 2026 instructions with the Josh, Jacinta and Jill and Kevin examples | 22 June 2026 (thresholds page); 30 May 2026 (M2) | The tier, rate and share of the year for 2024-25 to 2026-27, for a person single without dependants or married all year, on established income for surcharge purposes, days without cover and spouse's income |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Seniors and pensioners tax offset | Not a Library document: ITAA 1936 s 160AAAA (compilation 193, 1 October 2026), the Income Tax Assessment (1936 Act) Regulations 2025 and Regulation 2015 (compilation 8) ss 9 to 12, and the ATO's examples and thresholds | 2 October 2026 (ATO page) | One eligible individual's offset amount for 2024-25 to 2026-27 from established rebate income, status and spouse facts; not applied against tax payable |
@@ -281,11 +281,9 @@ The Act states no rounding, so the threshold stays exact.
 | Eligible pensioner | s 18(2)(a) | 3 | $18,200 | as given | the full-year result |
 
 The ATO's John page says the thresholds for the other rates do not change, so
-only the first band's lower limit moves. `personal-tax-estimate` still refuses
-a part-year resident: under ITAA 1936 s 251U(1)(d) the days of non-residence
-can make the person a prescribed person for the Medicare levy, unless a
-dependant who is not one prevents it (s 251U(2)), which `medicare-levy` and
-`medicare-levy-surcharge` do not take. Tests: `tests/part_year_resident.rs`.
+only the first band's lower limit moves. `personal-tax-estimate` composes a part-year
+resident with `medicare-levy`'s non-resident days
+([Exemptions](#exemptions)). Tests: `tests/part_year_resident.rs`.
 
 ## Foreign resident tax
 
@@ -3123,12 +3121,31 @@ example gives an amount for a half or part-year exemption, or for one combined
 with the low-income or family reduction; those cases in
 `tests/medicare_exemptions.rs` are worked from the Act. The worksheet takes
 the days as established facts and does not test entitlement: the categories,
-the dependants and any family agreement are the operator's. Foreign residents,
-whom s 251U(1)(d) also exempts, are outside a worksheet for full-year
-residents, and a spouse must still not be entitled to any exemption, since
+the dependants and any family agreement are the operator's. A person not resident at any
+time pays no levy (s 251S(1)(a)) and is outside the worksheet, and a spouse must still not be entitled to any exemption, since
 s 8(3) then turns on the spouse's own exemption. `tests/properties.rs` checks
 that another exemption day never raises the levy and that a full day never
 leaves more than a half one.
+
+Non-resident days, read on 24 November 2026: ITAA 1936 ss 251S(1)(a) and
+251U(1)(d), (2) and (3) on the ATO's Legal Database; Medicare Levy Act 1986
+s 9(1), compilation 53; and "M1 Medicare levy reduction or exemption 2026",
+category 2, which lets a part-year foreign resident claim a full exemption for
+the time not resident 'if either: you don't have any dependants for that
+period; all your dependants are in an exemption category for that period',
+counted at label V. A part-year resident gives those days as
+`non_resident_days`, at most the days in the year less 1, each counted once
+and not also as a full or half day. Each is a whole prescribed day, since
+s 251U(3) gives a half period only under paras (a), (b), (ca), (caa) and (cb):
+
+```text
+levy after s 9 = levy after s 8 x (2 x days in year
+                 - 2 x (full days + non-resident days) - half days)
+                 / (2 x days in year)
+```
+
+No ATO example gives an amount for one; the cases in
+`tests/medicare_exemptions.rs` are worked from the Act.
 
 ## Medicare levy surcharge
 
@@ -6323,6 +6340,29 @@ $19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
 $260.80 and then nothing after the low income tax offset, and $250,000 gives
 $87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
 
+
+A part-year resident (read on 24 November 2026) is composed before 2027-28
+from `resident-tax` with the pro-rated tax-free threshold (Income Tax Rates Act
+1986 s 20(1), [Part-year tax-free threshold](#part-year-tax-free-threshold)),
+the low income tax offset in full (ITAA 1997 s 61-110(1)(a): 'an Australian
+resident at any time during the income year'; s 61-115 does not apportion it)
+and `medicare-levy` with its non-resident days ([Exemptions](#exemptions)).
+The estimate refuses more non-resident days than the year less the residency
+months, as the person was resident on at least 1 day of each month counted
+(s 18(1)). It refuses for a part-year resident the surcharge, whose worksheet
+is for a full-year resident; the seniors and pensioners tax offset, the
+private health insurance rebate and a study loan repayment, composed for a
+full-year resident only; tax withheld worked out from one regular pay, as the
+pays can fall under resident and foreign resident scales; and every year from
+2027-28, as s 61-155(1)(b) compares net labour income with 'the tax-free
+threshold (within the meaning of the Income Tax Rates Act 1986)', which s 3(1)
+sets at $18,200, whilst s 20(1) applies the pro-rated threshold to the
+person's year through the Schedule 7 table; the text points to the pro-rated
+threshold for the s 61-160 tax on net labour income alone, but no ATO guidance
+read on 24 November 2026 confirms it, so the estimate refuses rather than
+choose. The worked example (arrived 15 October 2025, 9 months, 106
+days, $60,000) gives basic tax $8,977.44, the offset $100, the levy $851.51
+and $9,728.95 in all. Tests: `tests/part_year_estimate.rs`.
 ## FBT return
 
 `fbt-return` adds one threshold, the $2,000 of FBTAA s 135P(1); every other
