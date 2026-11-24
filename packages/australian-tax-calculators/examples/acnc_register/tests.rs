@@ -80,9 +80,16 @@ fn keeps_a_line_break_inside_quotes_and_a_leap_day() {
     assert_eq!(read.read, 1);
 }
 
+fn assert_stops(bad: Vec<(String, &str)>) {
+    for (text, why) in bad {
+        let error = rows(&text).unwrap_err();
+        assert!(error.contains(why), "{why}: {error}");
+    }
+}
+
 #[test]
-fn stops_on_anything_it_cannot_read() {
-    let bad = [
+fn stops_on_a_value_it_cannot_read() {
+    assert_stops(vec![
         (
             file(&[row("23000000004", "A", "2012-12-03", &[])]),
             "DD/MM/YYYY",
@@ -102,6 +109,22 @@ fn stops_on_anything_it_cannot_read() {
             "appears twice",
         ),
         (
+            file(&[row("23000000004", "A", "31/02/2026", &[])]),
+            "DD/MM/YYYY",
+        ),
+        // A row dropped for its ABN still stops the build when malformed.
+        (file(&[row("", "A", "2012-12-03", &[])]), "DD/MM/YYYY"),
+        (
+            file(&[row("42000000004", "A", "", &[2]).replace(",Y", ",N")]),
+            "not Y or blank",
+        ),
+    ]);
+}
+
+#[test]
+fn stops_on_a_layout_it_cannot_read() {
+    assert_stops(vec![
+        (
             file(&[row("23000000004", "\"A", "", &[])]),
             "unclosed quote",
         ),
@@ -118,21 +141,7 @@ fn stops_on_anything_it_cannot_read() {
             file(&[row("23000000004", "A\"B\"", "", &[])]),
             "inside an unquoted field",
         ),
-        (
-            file(&[row("23000000004", "A", "31/02/2026", &[])]),
-            "DD/MM/YYYY",
-        ),
-        // A row dropped for its ABN still stops the build when malformed.
-        (file(&[row("", "A", "2012-12-03", &[])]), "DD/MM/YYYY"),
-        (
-            file(&[row("42000000004", "A", "", &[2]).replace(",Y", ",N")]),
-            "not Y or blank",
-        ),
-    ];
-    for (text, why) in bad {
-        let error = rows(&text).unwrap_err();
-        assert!(error.contains(why), "{why}: {error}");
-    }
+    ]);
 }
 
 #[test]
