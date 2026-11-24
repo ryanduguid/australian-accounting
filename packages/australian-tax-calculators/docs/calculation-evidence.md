@@ -2730,6 +2730,35 @@ Revenue NSW's calculator does; s 78A prescribes no rounding.
 `tests/transfer_duty.rs` holds these cases, Victoria's rounding at $3.50,
 $10.50 and $52,805.50, and the refusals.
 
+## Quoted source passages
+
+`transfer-duty`, `foreign-purchaser-surcharge`, `land-tax` and
+`first-home-owner-grant` add `source_quotes` to each result: for the
+jurisdiction given, the passage of the Act, determination or revenue office
+page that states the scale, rate or grant applied, with its provision, the
+document's title, its URL and `verified`, the day it was read. Their
+catalogue entries hold every jurisdiction's passages. Each passage was read
+at the official site on 24 November 2026 and is quoted word for word: line
+and table row breaks are newlines, table cells are joined by a tab,
+non-breaking spaces are spaces and zero-width characters are left out.
+
+The passage quotes the page; where a page and the Act differ the command
+follows the Act, as its steps say. Queensland's absentee surcharge page
+gives (taxable value - $350,000) x 3%, and the Act's 3.0 cents for each $1
+more than $349,999 is applied. The Northern Territory's passage is the
+NT Government's statement that the Territory levies no land tax; no passage
+stating that it charges no foreign purchaser duty was read, so the
+Northern Territory's nil duty surcharge rests on the Act's silence, as its
+step cites. The ACT's first home owner grant passage states that no grant is
+paid for a commencement date from 1 July 2019, which the command refuses.
+New South Wales's and Western Australia's surcharge passages come from the
+revenue office pages because AustLII refused the request that day.
+
+`tests/source_quotes.rs` checks that every jurisdiction of the 4 commands
+has a passage with a provision, an official URL and its date, that each
+result carries its jurisdiction's passages, and that no other worksheet
+gains them.
+
 ## Depreciation
 
 Paragraph ¶6-000 supplies the first-year prime cost and diminishing value

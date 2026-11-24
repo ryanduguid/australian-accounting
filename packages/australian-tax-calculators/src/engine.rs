@@ -5084,6 +5084,8 @@ pub use super_benefit_tax::{
 };
 mod transfer_duty;
 pub use transfer_duty::{TransferDutyArgs, transfer_duty};
+mod source_quotes;
+pub(crate) use source_quotes::attach as attach_source_quotes;
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod land_tax;
@@ -6768,6 +6770,9 @@ pub fn worksheet_catalogue() -> Value {
         entry.insert("sources".into(), json!(sources(kind)));
         entry.insert("source_checked".into(), json!(checked));
         entry.insert("source_passage".into(), json!(passage));
+        if let Some(quotes) = source_quotes::catalogue(kind) {
+            entry.insert("source_quotes".into(), quotes);
+        }
         entry.insert("example_evidence".into(), Value::Object(evidence));
         entry.insert("supported_periods".into(), supported.clone());
         entry.insert("required_inputs".into(), Value::Object(inputs));
