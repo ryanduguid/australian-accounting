@@ -14,6 +14,7 @@
 
 use serde_json::{Value, json};
 
+use super::gst_adjustments::{condition, failing};
 use super::{
     Arg, Result, Step, d, date_arg, derived_result, flag, int, precise, rate, refuse, scope, step,
 };
@@ -31,10 +32,11 @@ const FIRST_DEPARTURE: &str = "2025-11-01";
 pub struct TouristRefundArgs<'a> {
     pub departure_date: &'a Arg,
     pub departing_by: &'a Arg,
-    pub departing_as: &'a Arg,
+    pub crew_or_in_charge_in_employment: &'a Arg,
     pub trs_port: &'a Arg,
     pub accompanied_baggage: &'a Arg,
     pub minutes_before_departure: &'a Arg,
+    pub verification_complied: &'a Arg,
     pub acquired_by_traveller: &'a Arg,
     pub supplier_registered: &'a Arg,
     pub items: &'a Arg,
@@ -48,29 +50,16 @@ const REGISTERED: &str =
 const DEPARTING_AS: &str = "GST Regulations reg 168-5.06: the traveller leaves other than in the course of employment as the person in charge or command of, or a member of the crew of, an aircraft or ship";
 const PORT: &str = "GST Regulations reg 168-5.07: the traveller leaves at an airport or seaport at which the tourist refund scheme is administered";
 const BAGGAGE: &str = "GST Act s 168-5(1)(c) and GST Regulations reg 168-5.08: the goods are exported as accompanied baggage";
-const IN_TIME: &str = "GST Regulations reg 168-5.10(3): the traveller presents at, or lodges the claim at, the TRS verification facility at least 30 minutes (aircraft) or 60 minutes (ship) before the scheduled departure";
-const THRESHOLD: &str = "GST Regulations reg 168-5.04: the purchase price of one item, or the total for 2 or more items from the same registered entity, is at least $300; only qualifying items count";
-const TAXABLE: &str =
-    "GST Act s 168-5(1)(a): the supply is a taxable supply, shown by GST on the tax invoice";
+const IN_TIME: &str = "GST Regulations reg 168-5.10(3): the traveller completes compliance with reg 168-5.10(1) or (2) at least 30 minutes (aircraft) or 60 minutes (ship) before the scheduled departure";
+const VERIFIED: &str = "GST Regulations reg 168-5.10(1), (2), (4) and (5): the traveller presented the tax invoice and what an officer requested, or lodged a completed claim with the tax invoice where the facility allows it, and for checked goods holds the tax invoice endorsed as checked in, requested before presenting";
+const THRESHOLD: &str = "GST Regulations reg 168-5.04: the purchase price of one item, or the total for 2 or more items from the same registered entity, is at least $300; items failing a Subdivision 168-A condition do not count, and a total reached only with items exported too late is refused as unsettled";
+const TAXABLE: &str = "GST Act s 168-5(1)(a) and GST Regulations reg 168-5.02: the supply is a taxable supply (a stated fact; its GST can round to nil under s 9-90)";
 const GOODS_KIND: &str = "GST Regulations reg 168-5.02(a) to (c): not tobacco or tobacco products, and not an alcoholic beverage other than wine on which wine tax is taken to have been borne (WET Act s 31-10)";
 const NOT_CONSUMED: &str =
     "GST Regulations reg 168-5.02(d): the goods are not partly consumed when the traveller leaves";
 const INVOICE: &str =
     "GST Regulations reg 168-5.05(2): the acquisition is accompanied by a tax invoice";
 const SIXTY_DAYS: &str = "GST Regulations reg 168-5.09: the goods are exported within 60 days after the day on which they were acquired";
-
-/// One condition row.
-fn condition(id: &str, authority: &str, met: bool) -> Value {
-    json!({"condition": id, "authority": authority, "met": met})
-}
-
-/// The ids of the rows not met.
-fn failing(rows: &[Value]) -> Vec<Value> {
-    rows.iter()
-        .filter(|row| row["met"] == false)
-        .map(|row| row["condition"].clone())
-        .collect()
-}
 
 /// One of `allowed`, or a refusal naming them.
 fn choice(arg: &Arg, key: &str, allowed: &[&'static str]) -> Result<&'static str> {
@@ -117,7 +106,7 @@ fn departure(arg: &Arg, year: &str) -> Result<i64> {
     Ok(day)
 }
 
-/// The 5 conditions each item must meet.
+/// The 4 Subdivision 168-A conditions each item must meet, then reg 168-5.09.
 fn item_conditions(item: &Item, departure: i64) -> Vec<Value> {
     let goods_ok = match item.goods {
         "general" => true,
@@ -125,7 +114,7 @@ fn item_conditions(item: &Item, departure: i64) -> Vec<Value> {
         _ => false,
     };
     vec![
-        condition("taxable_supply", TAXABLE, !item.gst.is_zero()),
+        condition("taxable_supply", TAXABLE, item.taxable_supply),
         condition("goods_kind", GOODS_KIND, goods_ok),
         condition("not_partly_consumed", NOT_CONSUMED, !item.partly_consumed),
         condition("tax_invoice", INVOICE, item.tax_invoice),
@@ -144,26 +133,56 @@ fn wine_tax(item: &Item) -> Result<Decimal> {
     Ok(d("0.29").mul(&item.price.div(&int(2))?)?)
 }
 
-/// Each item's row, and the items that qualify.
-fn assess(items: &[Item], departure: i64) -> Result<(Vec<Value>, Vec<Qualifying<'_>>)> {
-    let mut rows = Vec::with_capacity(items.len());
-    let mut qualifying = Vec::new();
+/// The items assessed: each row, the items that qualify, and the price of
+/// the items meeting Subdivision 168-A whatever their export date.
+struct Assessed<'a> {
+    rows: Vec<Value>,
+    qualifying: Vec<Qualifying<'a>>,
+    acquisition_price: Decimal,
+}
+
+fn assess(items: &[Item], departure: i64) -> Result<Assessed<'_>> {
+    let mut out = Assessed {
+        rows: Vec::with_capacity(items.len()),
+        qualifying: Vec::new(),
+        acquisition_price: int(0),
+    };
     for (i, item) in items.iter().enumerate() {
         let conditions = item_conditions(item, departure);
         let failing = failing(&conditions);
+        if failing.iter().all(|f| f == "within_60_days") {
+            out.acquisition_price = out.acquisition_price.add(&item.price)?;
+        }
         let qualifies = failing.is_empty();
-        let wet = if qualifies { wine_tax(item)? } else { int(0) };
-        rows.push(json!({
+        let borne = wine_tax(item)?;
+        out.rows.push(json!({
             "item": i + 1,
             "qualifies": qualifies,
             "failing_conditions": failing,
-            "wine_tax_borne": wet.to_string(),
+            "wine_tax_borne": borne.to_string(),
         }));
         if qualifies {
-            qualifying.push((i + 1, item, wet));
+            out.qualifying.push((i + 1, item, borne));
         }
     }
-    Ok((rows, qualifying))
+    Ok(out)
+}
+
+/// Reg 168-5.04's total: the qualifying items' prices, refused when only the
+/// items exported too late would bring it to $300.
+fn threshold_met(a: &Assessed) -> Result<bool> {
+    let mut price = int(0);
+    for (_, item, _) in &a.qualifying {
+        price = price.add(&item.price)?;
+    }
+    let met = !price.lt(&d("300"))?;
+    if !met && !a.acquisition_price.lt(&d("300"))? {
+        return refuse(
+            "tourist_refund.threshold_unsettled",
+            "The items meeting Subdivision 168-A reach $300 only with items exported more than 60 days after acquisition; whether those count towards reg 168-5.04's $300 is not settled by the sources read, so the command does not decide it.",
+        );
+    }
+    Ok(met)
 }
 
 /// A step adding `terms`, written as numbers; `0` when there are none.
@@ -214,14 +233,9 @@ fn steps(qualifying: &[Qualifying], eligible: bool) -> Result<Vec<Step>> {
     ])
 }
 
-/// The 7 conditions of the claim as a whole.
+/// The 8 conditions of the claim as a whole.
 fn claim_conditions(args: &TouristRefundArgs, threshold_met: bool) -> Result<Vec<Value>> {
     let by = choice(args.departing_by, "departing_by", &["aircraft", "ship"])?;
-    let role = choice(
-        args.departing_as,
-        "departing_as",
-        &["passenger", "crew", "in_charge"],
-    )?;
     let needed = if by == "aircraft" { 30 } else { 60 };
     let minutes = minutes(args.minutes_before_departure)?;
     Ok(vec![
@@ -235,19 +249,31 @@ fn claim_conditions(args: &TouristRefundArgs, threshold_met: bool) -> Result<Vec
             REGISTERED,
             flag(args.supplier_registered, "supplier_registered")?,
         ),
-        condition("departing_as_passenger", DEPARTING_AS, role == "passenger"),
+        condition(
+            "not_crew_or_in_charge",
+            DEPARTING_AS,
+            !flag(
+                args.crew_or_in_charge_in_employment,
+                "crew_or_in_charge_in_employment",
+            )?,
+        ),
         condition("trs_port", PORT, flag(args.trs_port, "trs_port")?),
         condition(
             "accompanied_baggage",
             BAGGAGE,
             flag(args.accompanied_baggage, "accompanied_baggage")?,
         ),
+        condition(
+            "verification_complied",
+            VERIFIED,
+            flag(args.verification_complied, "verification_complied")?,
+        ),
         condition("presented_in_time", IN_TIME, minutes >= needed),
         condition("purchase_threshold", THRESHOLD, threshold_met),
     ])
 }
 
-const CASH: &str = "The refund is shown to the cent and not rounded for cash: regs 168-5.11 and 25-5.04 round a cash payment to the nearest 5 cents, reg 168-5.14 allows cash only at an airport facility for $200 or less including wine tax, and the ABF states that it does not pay TRS refunds in cash.";
+const CASH: &str = "The refund is the unrounded statutory amount displayed to the cent under this worksheet's presentation policy, not a verified ABF settlement amount, and is not rounded for cash: regs 168-5.11 and 25-5.04 round a cash payment to the nearest 5 cents, reg 168-5.14 allows cash only at an airport facility for $200 or less including wine tax, and the ABF states that it does not pay TRS refunds in cash.";
 
 /// GST Act s 168-5(1) and WET Act s 25-5(1): the conditions and the refund.
 pub fn tourist_refund(args: &TouristRefundArgs) -> Result<Value> {
@@ -255,23 +281,19 @@ pub fn tourist_refund(args: &TouristRefundArgs) -> Result<Value> {
         let year = scope(args.scope_confirmed, args.year, KIND)?;
         let departure = departure(args.departure_date, &year)?;
         let items = items::items(args.items, departure)?;
-        let (item_rows, qualifying) = assess(&items, departure)?;
-        let mut price = int(0);
-        for (_, item, _) in &qualifying {
-            price = price.add(&item.price)?;
-        }
-        let rows = claim_conditions(args, !price.lt(&d("300"))?)?;
+        let assessed = assess(&items, departure)?;
+        let rows = claim_conditions(args, threshold_met(&assessed)?)?;
         let failing = failing(&rows);
         let eligible = failing.is_empty();
         let rates = vec![
             rate("purchase_threshold", "300"),
             rate("wine_tax_share_of_half_price", "0.29"),
         ];
-        let mut out = derived_result(KIND, &year, steps(&qualifying, eligible)?, rates)?;
+        let mut out = derived_result(KIND, &year, steps(&assessed.qualifying, eligible)?, rates)?;
         out["eligible"] = json!(eligible);
         out["failing_conditions"] = Value::Array(failing);
         out["conditions"] = Value::Array(rows);
-        out["items"] = Value::Array(item_rows);
+        out["items"] = Value::Array(assessed.rows);
         out["notes"] = json!([CASH]);
         Ok(out)
     })

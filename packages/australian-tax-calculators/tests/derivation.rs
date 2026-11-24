@@ -885,14 +885,17 @@ fn cases() -> Vec<(&'static str, Value)> {
         (
             "tourist-refund",
             json!({"departure_date": "2026-03-20", "departing_by": "aircraft",
-                   "departing_as": "passenger", "trs_port": true, "accompanied_baggage": true,
-                   "minutes_before_departure": 45, "acquired_by_traveller": true,
+                   "crew_or_in_charge_in_employment": false, "trs_port": true,
+                   "accompanied_baggage": true, "minutes_before_departure": 45,
+                   "verification_complied": true, "acquired_by_traveller": true,
                    "supplier_registered": true, "year": "2025-26", "scope_confirmed": true,
                    "items": [
                        {"date": "2026-03-10", "price": "330.00", "gst": "30.00", "goods": "general",
-                        "tax_invoice": true, "partly_consumed": false},
+                        "taxable_supply": true, "tax_invoice": true, "partly_consumed": false},
                        {"date": "2026-03-10", "price": "100.00", "gst": "9.09", "goods": "wine",
-                        "wine_tax_borne": true, "tax_invoice": true, "partly_consumed": false}]}),
+                        "taxable_supply": true, "wine_tax_borne": true,
+                        "wine_tax_refunded_or_credited": false, "tax_invoice": true,
+                        "partly_consumed": false}]}),
         ),
         // GSTR 2003/9's Cedar, Examples 1A and 2A.
         (

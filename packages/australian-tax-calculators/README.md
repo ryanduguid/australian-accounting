@@ -230,7 +230,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `gst-financial-acquisitions-threshold` | `current_financial_credits`, `current_total_credits`, `future_financial_credits`, `future_total_credits`, `gst_group`, `year`, `scope_confirmed` |
 | `gst-going-concern` | `for_consideration`, `recipient_registration`, `written_agreement`, `all_things_necessary`, `carried_on_until_supply`, `farm_land`, `part_outside_arrangement`, `year`, `scope_confirmed`; see [GST special rules](#gst-special-rules) |
 | `gst-second-hand-goods` | `consideration`, `acquired_for_sale_or_exchange`, `animals_or_plants`, `supply_to_you`, `imported`, `by_way_of_hire`, `resupply_taxable`, `divided_for_resupply`, `valuable_metal`, `leased_before_sale`, `year`, `scope_confirmed`; `resupply_gst` when `consideration` is more than $300 |
-| `tourist-refund` | `departure_date`, `departing_by`, `departing_as`, `trs_port`, `accompanied_baggage`, `minutes_before_departure`, `acquired_by_traveller`, `supplier_registered`, `items`, `year`, `scope_confirmed`; see [Tourist refund scheme](#tourist-refund-scheme) |
+| `tourist-refund` | `departure_date`, `departing_by`, `crew_or_in_charge_in_employment`, `trs_port`, `accompanied_baggage`, `minutes_before_departure`, `verification_complied`, `acquired_by_traveller`, `supplier_registered`, `items`, `year`, `scope_confirmed`; see [Tourist refund scheme](#tourist-refund-scheme) |
 | `gst-bad-debt` | `party`, `event`, `amount`, `taxable_or_creditable`, `cash_basis`, `special_rule`, `year`, `scope_confirmed`; `attributed` with `written_off` or `overdue_12_months`, `overdue_from` and `as_at` with `overdue_12_months`, `prior_adjustment` with `recovered`, and for a recipient `reduced_credit_acquisition` and `annual_apportionment`; optional `taxable_proportion` (supplier), `creditable_purpose` and `consideration_extent` (recipient) |
 | `small-business-income-offset` | `taxable_income`, `basic_income_tax_liability`, `offsets_applied_first`, `net_small_business_income`, `shares`, `prescribed_person`, `year`, `scope_confirmed`; with net small business income of your own, `business` and the 4 turnovers; see [Small business income offset](#small-business-income-offset) |
 | `trading-stock` | `entity`, `opening_value`, `items`, `estimated_closing_value`, `simplified_choice`, `year`, `scope_confirmed`; see [Trading stock](#trading-stock) |
@@ -4721,16 +4721,19 @@ refused. See
 against GST Act s 168-5(1) and Subdivisions 168-A to 168-C of the GST
 Regulations 2019 (compilation 5, from 1 November 2025), for a departure from
 1 November 2025 to 30 June 2027 with the goods as accompanied baggage. Each
-item qualifies when it is a taxable supply with GST on its tax invoice, is
+item qualifies when it is a taxable supply (a stated fact: its GST can round
+to nil), is
 not tobacco, a tobacco product or alcohol other than wine bearing wine tax
 (reg 168-5.02), is not partly consumed, has a tax invoice (reg 168-5.05) and
 leaves within 60 days after the day it was acquired (reg 168-5.09). The claim
 needs every one of: the traveller made the acquisition (s 168-5(1)(a)), a
-registered supplier (reg 168-5.03), a passenger rather than crew or the person
-in charge (reg 168-5.06), a port where the scheme runs (reg 168-5.07),
-accompanied baggage (reg 168-5.08), presentation at least 30 minutes before
-a flight or 60 minutes before a ship (reg 168-5.10(3)), and qualifying items
-totalling at least $300 (reg 168-5.04).
+registered supplier (reg 168-5.03), not leaving in employment as crew or the
+person in charge (reg 168-5.06), a port where the scheme runs (reg 168-5.07),
+accompanied baggage (reg 168-5.08), the verification of reg 168-5.10(1) or
+(2), with the checked-in endorsement of (4) and (5), completed at least 30
+minutes before a flight or 60 minutes before a ship (reg 168-5.10(3)), and
+qualifying items totalling at least $300 (reg 168-5.04). `departure_date` is
+the actual day the goods leave.
 
 ```text
 gst_refund       = sum of the qualifying items' gst          s 168-5(1)(d)
@@ -4738,9 +4741,12 @@ wine_tax_refund  = sum of 0.29 x price / 2 for qualifying wine  WET Act s 25-5(1
 total_refund     = gst_refund + wine_tax_refund
 ```
 
-Both refunds are nil unless every condition holds. An item that fails, such
-as one bought 61 days before departure, does not count towards $300. The
-refund is shown to the cent and not rounded for cash: regs 168-5.11 and
+Both refunds are nil unless every condition holds. An item failing a
+Subdivision 168-A condition does not count towards $300; where the total
+reaches $300 only with items exported after 60 days, the command refuses
+(`tourist_refund.threshold_unsettled`), as the sources read do not settle it.
+Wine tax refunded or credited earlier is refused. The refund is the unrounded
+amount displayed to the cent and not rounded for cash: regs 168-5.11 and
 25-5.04 round a cash payment to 5 cents, and the ABF states that it pays no
 cash refunds. The External Territory route (s 168-5(1A)) and the ABF's own
 requirements (such as the traveller's name on an invoice of $1,000 or more)

@@ -13,9 +13,10 @@ const TR: &str = "tourist-refund";
 
 fn item(date: &str, price: &str, gst: &str, goods: &str) -> Value {
     let mut out = json!({"date": date, "price": price, "gst": gst, "goods": goods,
-                         "tax_invoice": true, "partly_consumed": false});
+                         "taxable_supply": true, "tax_invoice": true, "partly_consumed": false});
     if goods == "wine" {
         out["wine_tax_borne"] = json!(true);
+        out["wine_tax_refunded_or_credited"] = json!(false);
     }
     out
 }
@@ -23,8 +24,9 @@ fn item(date: &str, price: &str, gst: &str, goods: &str) -> Value {
 fn claim(items: Value, overrides: Value) -> Value {
     let mut input = json!({
         "departure_date": "2026-03-20", "departing_by": "aircraft",
-        "departing_as": "passenger", "trs_port": true, "accompanied_baggage": true,
-        "minutes_before_departure": 45, "acquired_by_traveller": true,
+        "crew_or_in_charge_in_employment": false, "trs_port": true,
+        "accompanied_baggage": true, "minutes_before_departure": 45,
+        "verification_complied": true, "acquired_by_traveller": true,
         "supplier_registered": true, "items": items, "year": "2025-26",
         "scope_confirmed": true,
     });
@@ -69,7 +71,7 @@ fn one_item_over_the_threshold_refunds_its_gst() {
     ));
     assert_eq!(r["eligible"], true);
     assert_eq!(r["failing_conditions"], json!([]));
-    assert_eq!(r["conditions"].as_array().unwrap().len(), 7);
+    assert_eq!(r["conditions"].as_array().unwrap().len(), 8);
     assert_eq!(amounts(&r), ["330.00", "30.00", "0.00", "30.00"]);
 }
 
@@ -115,22 +117,35 @@ fn the_threshold_is_300_dollars_from_one_supplier() {
     assert_eq!(amounts(&run(&claim(exact, json!({}))))[1], "27.28");
 }
 
-/// Case D: 60 days after acquisition qualifies, 61 does not, and the late
-/// item does not count towards $300.
+/// Case D: 60 days after acquisition qualifies, 61 does not; where the late
+/// item alone would bring the total to $300, the command refuses.
 #[test]
 fn goods_leave_within_60_days_after_acquisition() {
     let items = json!([
         item("2026-01-19", "200.00", "18.18", "general"),
         item("2026-01-18", "200.00", "18.18", "general")
     ]);
-    let r = run(&claim(items, json!({})));
+    assert_eq!(
+        code(&claim(items, json!({}))),
+        "tourist_refund.threshold_unsettled"
+    );
+    let enough = json!([
+        item("2026-01-19", "300.00", "27.27", "general"),
+        item("2026-01-18", "200.00", "18.18", "general")
+    ]);
+    let r = run(&claim(enough, json!({})));
     assert_eq!(r["items"][0]["qualifies"], true);
     assert_eq!(
         r["items"][1]["failing_conditions"],
         json!(["within_60_days"])
     );
+    assert_eq!(amounts(&r), ["300.00", "27.27", "0.00", "27.27"]);
+    let short = json!([
+        item("2026-01-19", "100.00", "9.09", "general"),
+        item("2026-01-18", "100.00", "9.09", "general")
+    ]);
+    let r = run(&claim(short, json!({})));
     assert_eq!(r["failing_conditions"], json!(["purchase_threshold"]));
-    assert_eq!(amounts(&r)[0], "200.00");
     let both = json!([
         item("2026-01-19", "200.00", "18.18", "general"),
         item("2026-03-20", "200.00", "18.18", "general")
@@ -164,10 +179,13 @@ fn the_claim_is_made_30_or_60_minutes_before_departure() {
 fn each_claim_condition_can_fail() {
     let items = json!([item("2026-03-10", "330.00", "30.00", "general")]);
     for (overrides, failing) in [
-        (json!({"departing_as": "crew"}), "departing_as_passenger"),
         (
-            json!({"departing_as": "in_charge"}),
-            "departing_as_passenger",
+            json!({"crew_or_in_charge_in_employment": true}),
+            "not_crew_or_in_charge",
+        ),
+        (
+            json!({"verification_complied": false}),
+            "verification_complied",
         ),
         (
             json!({"acquired_by_traveller": false}),
@@ -191,6 +209,8 @@ fn each_item_condition_can_fail() {
     no_wet["wine_tax_borne"] = json!(false);
     let mut no_invoice = item("2026-03-10", "100.00", "9.09", "general");
     no_invoice["tax_invoice"] = json!(false);
+    let mut gst_free = item("2026-03-10", "400.00", "0.00", "general");
+    gst_free["taxable_supply"] = json!(false);
     let mut consumed = item("2026-03-10", "100.00", "9.09", "general");
     consumed["partly_consumed"] = json!(true);
     for (bad, failing) in [
@@ -203,10 +223,7 @@ fn each_item_condition_can_fail() {
             "goods_kind",
         ),
         (no_wet, "goods_kind"),
-        (
-            item("2026-03-10", "400.00", "0.00", "general"),
-            "taxable_supply",
-        ),
+        (gst_free, "taxable_supply"),
         (no_invoice, "tax_invoice"),
         (consumed, "not_partly_consumed"),
     ] {
@@ -229,6 +246,12 @@ fn the_refusals() {
     let ok = json!([item("2026-03-10", "330.00", "30.00", "general")]);
     let mut wine_flag = item("2026-03-10", "330.00", "30.00", "general");
     wine_flag["wine_tax_borne"] = json!(true);
+    let mut not_taxable = item("2026-03-10", "330.00", "30.00", "general");
+    not_taxable["taxable_supply"] = json!(false);
+    let mut reduced = item("2026-03-10", "330.00", "30.00", "wine");
+    reduced["wine_tax_refunded_or_credited"] = json!(true);
+    let mut refunded_on_general = item("2026-03-10", "330.00", "30.00", "general");
+    refunded_on_general["wine_tax_refunded_or_credited"] = json!(false);
     let mut extra = item("2026-03-10", "330.00", "30.00", "general");
     extra["abn"] = json!("1");
     for (input, expected) in [
@@ -255,8 +278,8 @@ fn the_refusals() {
             "tourist_refund.fact_invalid",
         ),
         (
-            claim(ok.clone(), json!({"departing_as": "pilot"})),
-            "tourist_refund.fact_invalid",
+            claim(ok.clone(), json!({"crew_or_in_charge_in_employment": "no"})),
+            "input.flag_invalid",
         ),
         (
             claim(ok.clone(), json!({"minutes_before_departure": -1})),
@@ -292,6 +315,18 @@ fn the_refusals() {
         (
             claim(json!([wine_flag]), json!({})),
             "tourist_refund.item_invalid",
+        ),
+        (
+            claim(json!([not_taxable]), json!({})),
+            "tourist_refund.item_invalid",
+        ),
+        (
+            claim(json!([refunded_on_general]), json!({})),
+            "tourist_refund.item_invalid",
+        ),
+        (
+            claim(json!([reduced]), json!({})),
+            "tourist_refund.wine_tax_reduced",
         ),
         (claim(json!([extra]), json!({})), "input.field_unknown"),
         (
@@ -372,4 +407,62 @@ fn the_catalogue_example_runs() {
     facts.as_object_mut().unwrap().remove("kind");
     facts["scope_confirmed"] = json!(true);
     assert_eq!(amounts(&run(&facts))[3], "53.59");
+}
+
+/// GST Act s 9-90: a taxable 5-cent item whose GST rounds to nil still counts
+/// towards $300; a GST-free one does not.
+#[test]
+fn a_taxable_item_with_gst_rounded_to_nil_counts() {
+    let items = json!([
+        item("2026-03-10", "299.95", "27.27", "general"),
+        item("2026-03-10", "0.05", "0.00", "general")
+    ]);
+    let r = run(&claim(items.clone(), json!({})));
+    assert_eq!(amounts(&r), ["300.00", "27.27", "0.00", "27.27"]);
+    let mut free = items;
+    free[1]["taxable_supply"] = json!(false);
+    let r = run(&claim(free, json!({})));
+    assert_eq!(r["failing_conditions"], json!(["purchase_threshold"]));
+}
+
+/// Wine tax is summed before display: 2 x $0.145 is $0.29, not $0.30; a
+/// refund above $200 is not capped.
+#[test]
+fn wine_tax_is_summed_before_display_and_not_capped() {
+    let items = json!([
+        item("2026-03-10", "300.00", "27.27", "general"),
+        item("2026-03-10", "1.00", "0.09", "wine"),
+        item("2026-03-10", "1.00", "0.09", "wine")
+    ]);
+    assert_eq!(amounts(&run(&claim(items, json!({}))))[2], "0.29");
+    let big = json!([item("2026-03-10", "2500.00", "227.27", "general")]);
+    assert_eq!(amounts(&run(&claim(big, json!({}))))[3], "227.27");
+}
+
+/// Late wine still bears wine tax, though none is refunded; a failing claim
+/// condition with wine gives nil of both.
+#[test]
+fn late_wine_bears_wine_tax_without_a_refund() {
+    let items = json!([
+        item("2026-03-10", "330.00", "30.00", "general"),
+        item("2026-01-01", "100.00", "9.09", "wine")
+    ]);
+    let r = run(&claim(items.clone(), json!({})));
+    assert_eq!(r["items"][1]["qualifies"], false);
+    assert_eq!(r["items"][1]["wine_tax_borne"], "14.5000");
+    assert_eq!(amounts(&r)[2], "0.00");
+    let mut fresh = items;
+    fresh[1]["date"] = json!("2026-03-10");
+    let r = run(&claim(fresh, json!({"trs_port": false})));
+    assert_eq!(amounts(&r)[1..], ["0.00", "0.00", "0.00"]);
+}
+
+/// A covered departure on 1 November 2025 takes goods bought in October.
+#[test]
+fn acquisitions_before_the_first_covered_departure_count() {
+    let r = run(&claim(
+        json!([item("2025-10-01", "330.00", "30.00", "general")]),
+        json!({"departure_date": "2025-11-01"}),
+    ));
+    assert_eq!(r["eligible"], true);
 }

@@ -10,8 +10,10 @@ use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 use crate::engine::{Arg, Result, int, refuse, stated};
 
-const FIELDS: [&str; 7] = [
+const FIELDS: [&str; 9] = [
     "date",
+    "taxable_supply",
+    "wine_tax_refunded_or_credited",
     "price",
     "gst",
     "goods",
@@ -27,6 +29,7 @@ pub(super) struct Item {
     pub(super) date: i64,
     pub(super) price: Decimal,
     pub(super) gst: Decimal,
+    pub(super) taxable_supply: bool,
     pub(super) goods: &'static str,
     pub(super) wine_tax_borne: bool,
     pub(super) tax_invoice: bool,
@@ -71,32 +74,42 @@ fn date(fields: &Map<String, Value>, item: &str) -> Result<i64> {
     }
 }
 
-/// The GST on a taxable supply is 10% of its value, the price less the GST
-/// (GST Act ss 9-70 and 9-75), so at most one eleventh of the price.
+/// On the supported basis, the GST payable on an ordinary taxable supply is
+/// 10% of its value, the price less the GST (GST Act ss 9-70 and 9-75),
+/// rounded to the cent (s 9-90), so at most one eleventh of the price.
 fn gst_within_price(price: &Decimal, gst: &Decimal, item: &str) -> Result<()> {
     let share = price.div(&int(11))?.quantize(-2, Rounding::HalfUp)?;
     if gst.gt(&share)? {
         return refuse(
             "tourist_refund.gst_exceeds_price_share",
             format!(
-                "{item}: gst {gst} is more than one eleventh of the price {price} ({share}), the most GST a taxable supply at that price bears (GST Act ss 9-70 and 9-75)."
+                "{item}: gst {gst} is more than one eleventh of the price {price} ({share}), outside the supported basis: an ordinary taxable supply at that price bears at most that (GST Act ss 9-70, 9-75 and 9-90); special valuation rules (s 9-99) and invoice-level allocations are not worked."
             ),
         );
     }
     Ok(())
 }
 
-/// `wine_tax_borne`: required with wine, refused with other goods.
+/// `wine_tax_borne`: required with wine, with no wine tax refunded or
+/// credited (WET Act s 31-10(2) and (3) would reduce it); both refused with
+/// other goods.
 fn wine_tax_borne(fields: &Map<String, Value>, item: &str, goods: &str) -> Result<bool> {
-    if goods == "wine" {
-        return boolean(fields, item, "wine_tax_borne");
+    const WINE: [&str; 2] = ["wine_tax_borne", "wine_tax_refunded_or_credited"];
+    if goods != "wine" {
+        if let Some(key) = WINE.iter().find(|k| fields.contains_key(**k)) {
+            return invalid(format!("{item}: {key} is taken only with goods wine."));
+        }
+        return Ok(false);
     }
-    if fields.contains_key("wine_tax_borne") {
-        return invalid(format!(
-            "{item}: wine_tax_borne is taken only with goods wine."
-        ));
+    if boolean(fields, item, "wine_tax_refunded_or_credited")? {
+        return refuse(
+            "tourist_refund.wine_tax_reduced",
+            format!(
+                "{item}: wine tax refunded or credited, or the basis of a wine tax credit entitlement, reduces the wine tax borne (WET Act s 31-10(2) and (3)); how that meets reg 25-5.03's amount is not settled by the sources read."
+            ),
+        );
     }
-    Ok(false)
+    boolean(fields, item, "wine_tax_borne")
 }
 
 fn item(value: &Value, n: usize, departure: i64) -> Result<Item> {
@@ -110,6 +123,7 @@ fn item(value: &Value, n: usize, departure: i64) -> Result<Item> {
         date: date(fields, &name)?,
         price: stated::amount(fields, &name, "price")?,
         gst: stated::amount(fields, &name, "gst")?,
+        taxable_supply: boolean(fields, &name, "taxable_supply")?,
         goods,
         wine_tax_borne: wine_tax_borne(fields, &name, goods)?,
         tax_invoice: boolean(fields, &name, "tax_invoice")?,
@@ -120,6 +134,11 @@ fn item(value: &Value, n: usize, departure: i64) -> Result<Item> {
             "tourist_refund.date_invalid",
             format!("{name}: date is after departure_date."),
         );
+    }
+    if !item.taxable_supply && !item.gst.is_zero() {
+        return invalid(format!(
+            "{name}: gst is above nil on a supply stated not to be taxable."
+        ));
     }
     gst_within_price(&item.price, &item.gst, &name)?;
     Ok(item)

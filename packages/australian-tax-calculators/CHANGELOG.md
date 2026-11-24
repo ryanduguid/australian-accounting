@@ -10,8 +10,8 @@
   30 June 2027, and works the refund of GST and of the wine tax borne
   (WET Act s 25-5(1), 29% of half the price). New codes:
   `tourist_refund.date_invalid`, `departure_not_covered`,
-  `departure_outside_year`, `fact_invalid`, `gst_exceeds_price_share` and
-  `item_invalid`.
+  `departure_outside_year`, `fact_invalid`, `gst_exceeds_price_share`,
+  `item_invalid`, `threshold_unsettled` and `wine_tax_reduced`.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and

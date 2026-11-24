@@ -496,7 +496,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "tourist_refund",
-        "One traveller's purchases from one registered supplier under the tourist refund scheme, leaving Australia with the goods as accompanied baggage on a departure from 1 November 2025 to 30 June 2027: whether each item and the claim meet GST Act s 168-5(1) and GST Regulations 2019 Subdivisions 168-A to 168-C, and the refund of the GST on the qualifying items and of the wine tax borne on qualifying wine (WET Act s 25-5(1), 29% of half the price under WET Regulations reg 25-5.03). The operator establishes each fact. Excludes the External Territory route (s 168-5(1A)), cash rounding, the ABF's administrative requirements and goods brought back into Australia.",
+        "One traveller's purchases from one registered supplier under the tourist refund scheme, leaving Australia with the goods as accompanied baggage on a departure from 1 November 2025 to 30 June 2027: whether each item and the claim meet GST Act s 168-5(1) and GST Regulations 2019 Subdivisions 168-A to 168-C, and the refund of the GST on the qualifying items and of the wine tax borne on qualifying wine (WET Act s 25-5(1), 29% of half the price under WET Regulations reg 25-5.03). The operator establishes each fact. Excludes the External Territory route (s 168-5(1A)), cash rounding, special valuation rules and invoice-level GST allocations, wine tax refunded or credited earlier, the ABF's administrative requirements and goods brought back into Australia. The 1 November 2025 start is the coverage of the law reviewed on 24 November 2026, not a commencement.",
     ),
     (
         "gst_bad_debt",
@@ -5586,7 +5586,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "tourist_refund.fact_invalid",
-        "departing_by, departing_as, an item's goods or minutes_before_departure is not one of the values the command takes.",
+        "departing_by, an item's goods or minutes_before_departure is not one of the values the command takes.",
     ),
     (
         "tourist_refund.gst_exceeds_price_share",
@@ -5594,7 +5594,15 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "tourist_refund.item_invalid",
-        "items is not a list of 1 to 1,000 objects, an item is not an object, or wine_tax_borne is given with goods other than wine.",
+        "items is not a list of 1 to 1,000 objects, an item is not an object, a wine input is given with goods other than wine, or gst is above nil on a supply stated not to be taxable.",
+    ),
+    (
+        "tourist_refund.threshold_unsettled",
+        "The items meeting Subdivision 168-A reach $300 only with items exported more than 60 days after acquisition, which the sources read do not settle.",
+    ),
+    (
+        "tourist_refund.wine_tax_reduced",
+        "Wine tax on a wine item was refunded, credited or the basis of a wine tax credit entitlement (WET Act s 31-10(2) and (3)).",
     ),
     (
         "trade_in.asset_invalid",
