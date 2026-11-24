@@ -859,7 +859,49 @@ class TermDefinition(LegislationSection):
 
 class TermDefinitions(ResultObject):
     term: str
+    defined: Annotated[
+        bool,
+        Field(description="true when a dictionary entry for the term itself was found; false "
+                          "when none was, which is not a finding that the law leaves the "
+                          "expression undefined."),
+    ]
+    nearest_terms: Annotated[
+        list[str],
+        Field(description="When defined is false, the longer defined expressions found that "
+                          "hold every word of the term, best ranked first; otherwise empty."),
+    ]
+    defined_note: Annotated[
+        str | None,
+        Field(description="Why defined is false and what it does not establish; null when "
+                          "defined is true."),
+    ]
     definitions: list[TermDefinition]
+    has_more: bool
+    corpus: CorpusProvenance
+    notice: str
+
+
+class CitingProvision(LegislationSection):
+    """A provision whose text cites the section, cut to the paragraph citing it."""
+
+    citations: Annotated[
+        list[str],
+        Field(description="Each distinct citation of the section in the provision's text, as "
+                          "written."),
+    ]
+
+
+class CitedProvision(ResultObject):
+    row_id: str | None
+    register_id: str | None
+    act: str | None
+    section: str | None
+    heading: str | None
+
+
+class CitingProvisions(ResultObject):
+    provision: CitedProvision
+    cited_by: list[CitingProvision]
     has_more: bool
     corpus: CorpusProvenance
     notice: str

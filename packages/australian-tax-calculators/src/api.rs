@@ -474,6 +474,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "payroll-tax-group",
+        &[
+            ("jurisdiction", Raw),
+            ("employer", Raw),
+            ("persons", Json),
+            ("employed_all_year", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "land-tax",
         &[
             ("jurisdiction", Raw),
@@ -520,6 +531,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
+        "tourist-refund",
+        &[
+            ("departure_date", Raw),
+            ("departing_by", Raw),
+            ("crew_or_in_charge_in_employment", Raw),
+            ("trs_port", Raw),
+            ("accompanied_baggage", Raw),
+            ("minutes_before_departure", Raw),
+            ("verification_complied", Raw),
+            ("acquired_by_traveller", Raw),
+            ("supplier_registered", Raw),
+            ("items", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
     ),
     (
         "vic-property-taxes",
@@ -1436,6 +1464,30 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "wip-lockup",
+        &[
+            ("entries", Json),
+            ("as_at", Raw),
+            ("fee_revenue", Dec),
+            ("receivables", Dec),
+            ("billings", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "impairment-test",
+        &[
+            ("cash_flows", Json),
+            ("discount_rate", Dec),
+            ("assets", Json),
+            ("revalued", Raw),
+            ("non_controlling_interest", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "leave-provisions",
         &[
             ("lines", Json),
@@ -1605,6 +1657,7 @@ pub fn commands() -> Vec<&'static str> {
     out.push("derive");
     out.push("personal-tax-estimate");
     out.push("dgr-check");
+    out.push("charity-check");
     out.push("fbt-return");
     out
 }
@@ -1619,7 +1672,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 93] = [
+const DERIVED: [&str; 95] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1695,6 +1748,7 @@ const DERIVED: [&str; 93] = [
     "transfer-duty",
     "etp-tax-free-component",
     "payroll-tax",
+    "payroll-tax-group",
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
@@ -1706,6 +1760,7 @@ const DERIVED: [&str; 93] = [
     "gst-financial-acquisitions-threshold",
     "gst-second-hand-goods",
     "gst-bad-debt",
+    "tourist-refund",
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
@@ -2069,6 +2124,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             return contribution_caps_by_year(v);
         }
         "dgr-check" => return crate::dgr::check(v),
+        "charity-check" => return crate::charity::check(v),
         "fbt-return" => return crate::fbt_return::compose(v),
         "periods" => {
             let kind = match v.get("kind") {
@@ -2143,6 +2199,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
             | "wine-equalisation-tax"
+            | "tourist-refund"
             | "vic-property-taxes"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
@@ -2207,6 +2264,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-bad-debt"
             | "deferred-tax"
             | "leave-provisions"
+            | "wip-lockup"
+            | "impairment-test"
             | "long-service-leave"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
@@ -2222,6 +2281,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "transfer-duty"
             | "super-withholding"
             | "payroll-tax"
+            | "payroll-tax-group"
             | "land-tax"
             | "workers-compensation-premium"
             | "motor-vehicle-duty"
@@ -2743,6 +2803,35 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[6],
             })
         }
+        "payroll-tax-group" => {
+            // Optional: each list of stated facts.
+            let o = |key| optional(v, key, Json);
+            let [related, employees, control, voting, exclusions, dges, order] = [
+                "related_bodies_corporate",
+                "common_employees",
+                "controlling_interests",
+                "voting_interests",
+                "exclusions",
+                "designated_group_employers",
+                "excess_deduction_order",
+            ]
+            .map(o);
+            engine::payroll_tax_group(&engine::PayrollTaxGroupArgs {
+                jurisdiction: &a[0],
+                employer: &a[1],
+                persons: &a[2],
+                related_bodies_corporate: related?.as_ref(),
+                common_employees: employees?.as_ref(),
+                controlling_interests: control?.as_ref(),
+                voting_interests: voting?.as_ref(),
+                exclusions: exclusions?.as_ref(),
+                designated_group_employers: dges?.as_ref(),
+                excess_deduction_order: order?.as_ref(),
+                employed_all_year: &a[3],
+                year: &a[4],
+                scope_confirmed: &a[5],
+            })
+        }
         "workers-compensation-premium" => {
             // Optional: apprentice and actual wages, and each scheme's own facts.
             let o = |key, kind| optional(v, key, kind);
@@ -3204,6 +3293,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional(v, "dependent_children", Raw)?,
                 optional(v, "medicare_levy_exemption_full_days", Raw)?,
                 optional(v, "medicare_levy_exemption_half_days", Raw)?,
+                optional(v, "non_resident_days", Raw)?,
             ];
             let family = engine::MedicareFamily {
                 sapto_entitled: o[0].as_ref(),
@@ -3215,6 +3305,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let exemption = engine::MedicareExemption {
                 full_days: o[5].as_ref(),
                 half_days: o[6].as_ref(),
+                non_resident_days: o[7].as_ref(),
             };
             engine::medicare_levy(&a[0], &a[1], &a[2], &a[3], family, exemption)
         }
@@ -3548,7 +3639,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             // The method's and the year's own inputs, by name.
             let mut given = Vec::new();
             for (key, decimal) in engine::WORK_EXPENSES_OPTIONAL {
-                if let Some(arg) = optional(v, key, if decimal { Dec } else { Raw })? {
+                let kind = if decimal {
+                    Dec
+                } else if engine::WORK_EXPENSES_RECORDS.contains(&key) {
+                    Json
+                } else {
+                    Raw
+                };
+                if let Some(arg) = optional(v, key, kind)? {
                     given.push((key.to_string(), arg));
                 }
             }
@@ -3653,10 +3751,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             })
         }
         "first-home-owner-grant" => {
-            // Optional: the Western Australian home's location, and the value
-            // Queensland and Western Australia test against their caps.
-            let [north, cap] = engine::FHOG_OPTIONAL;
-            let given = [optional(v, north, Raw)?, optional(v, cap, Dec)?];
+            // Optional: the Western Australian home's location, the value
+            // Queensland and Western Australia test against their caps, and a
+            // home built's contract price.
+            let [north, cap, price] = engine::FHOG_OPTIONAL;
+            let given = [
+                optional(v, north, Raw)?,
+                optional(v, cap, Dec)?,
+                optional(v, price, Dec)?,
+            ];
             engine::first_home_owner_grant(&engine::FirstHomeOwnerGrantArgs {
                 jurisdiction: &a[0],
                 contract_date: &a[1],
@@ -3877,6 +3980,20 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[11],
             })
         }
+        "tourist-refund" => engine::tourist_refund(&engine::TouristRefundArgs {
+            departure_date: &a[0],
+            departing_by: &a[1],
+            crew_or_in_charge_in_employment: &a[2],
+            trs_port: &a[3],
+            accompanied_baggage: &a[4],
+            minutes_before_departure: &a[5],
+            verification_complied: &a[6],
+            acquired_by_traveller: &a[7],
+            supplier_registered: &a[8],
+            items: &a[9],
+            year: &a[10],
+            scope_confirmed: &a[11],
+        }),
         "gst-bad-debt" => {
             // Optional: inputs used only for some parties and events.
             let raw = |key| optional(v, key, Raw);
@@ -3938,6 +4055,39 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[18],
             scope_confirmed: &a[19],
         }),
+        "wip-lockup" => {
+            // Optional: the ageing buckets and the days the flows cover.
+            let buckets = optional(v, "bucket_days", Json)?;
+            let days = optional(v, "days", Raw)?;
+            engine::wip_lockup(&engine::WipLockupArgs {
+                entries: &a[0],
+                as_at: &a[1],
+                bucket_days: buckets.as_ref(),
+                fee_revenue: &a[2],
+                receivables: &a[3],
+                billings: &a[4],
+                days: days.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
+            })
+        }
+        "impairment-test" => {
+            // Optional: the terminal value, and fair value less costs of
+            // disposal where it can be measured.
+            let terminal = optional(v, "terminal_value", Dec)?;
+            let fair = optional(v, "fair_value_less_costs_of_disposal", Dec)?;
+            engine::impairment_test(&engine::ImpairmentTestArgs {
+                cash_flows: &a[0],
+                terminal_value: terminal.as_ref(),
+                discount_rate: &a[1],
+                fair_value_less_costs_of_disposal: fair.as_ref(),
+                assets: &a[2],
+                revalued: &a[3],
+                non_controlling_interest: &a[4],
+                year: &a[5],
+                scope_confirmed: &a[6],
+            })
+        }
         "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {
             lines: &a[0],
             defined_benefit_plan: &a[1],

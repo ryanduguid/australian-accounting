@@ -139,6 +139,7 @@ BOUNDED_STRING_INPUTS = {
     ("read_tax_legislation_section", "as_at"): 10,
     ("define_tax_term", "term"): 200,
     ("define_tax_term", "act"): 200,
+    ("find_citing_provisions", "row_id"): 300,
     ("search_tax_rates", "query"): 200,
     ("search_tax_rates", "topic"): 100,
     ("search_ato_rulings", "query"): 200,

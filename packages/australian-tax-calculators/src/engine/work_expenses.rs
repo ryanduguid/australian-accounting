@@ -25,6 +25,8 @@ use crate::decimal::{Decimal, Rounding};
 
 mod car;
 mod home_office;
+mod journeys;
+mod rows;
 mod self_education;
 
 const KIND: &str = "work_expenses";
@@ -39,7 +41,7 @@ pub const METHODS: [&str; 4] = [
 ];
 
 /// Each input only some methods or years take, and whether it is a decimal.
-pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 30] = [
+pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 32] = [
     ("hours", true),
     ("energy", true),
     ("phone", true),
@@ -70,7 +72,12 @@ pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 30] = [
     ("assessable_labour_income", true),
     ("other_work_related_deductions", true),
     ("australian_resident", false),
+    ("hours_diary", false),
+    ("log_book", false),
 ];
+
+/// The optional inputs given as JSON lists or objects: the records rows.
+pub const WORK_EXPENSES_RECORDS: [&str; 2] = ["hours_diary", "log_book"];
 
 const WHOLE_DOLLARS: &str = "TAA 1953 Sch 1 s 388-85 as PCG 2023/1's footnotes and the ATO's examples apply it: the return amount is the total with cents disregarded, not rounded";
 

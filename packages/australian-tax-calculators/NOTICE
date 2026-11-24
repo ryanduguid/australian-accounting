@@ -29,9 +29,8 @@ The verdict is licensed under Creative Commons Attribution 4.0 International,
 https://creativecommons.org/licenses/by/4.0/, the default stated in the bounty's terms; neither
 the verdict nor its registry entry names another licence. Changes: edge cases
 paraphrased, split or merged, with new fabricated figures and this repository's
-findings added. The verdict reviewed LodgeiT's calculator, not this code, and
-neither the reviewer nor LodgeiT endorses this work. The licence's disclaimer
-of warranties applies.
+findings added. The verdict reviewed LodgeiT's calculator, not this code. The
+licence's disclaimer of warranties applies.
 
 data/dgr-register.jsonl contains deductible gift recipient entries from the
 ABN Bulk Extract of 11 November 2026, (c) Australian Business Register (ABR)
@@ -40,8 +39,15 @@ Register at https://data.gov.au/data/dataset/abn-bulk-extract and licensed
 under Creative Commons Attribution 3.0 Australia,
 https://creativecommons.org/licenses/by/3.0/au/. Changes: only ABNs with DGR
 entries are kept, with their ABN status, names and DGR entries, in another
-format. Their use here implies no endorsement by the Australian Business
-Register.
+format.
+
+data/acnc-register.jsonl contains data from the ACNC Register of Australian
+charities of 22 November 2026, (c) Commonwealth of Australia (Australian
+Charities and Not-for-profits Commission), published at
+https://data.gov.au/data/dataset/acnc-register and licensed under Creative
+Commons Attribution 3.0 Australia, https://creativecommons.org/licenses/by/3.0/au/.
+Changes: only the ABN, legal name, registration date and subtype columns of
+charities with an ABN are kept, in another format.
 
 Versions released before this change keep the licences they were released with,
 including any future grants under those terms.

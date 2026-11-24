@@ -16,6 +16,7 @@ use serde_json::{Map, Value, json};
 mod input;
 mod register;
 use input::{Donation, read_donation};
+pub(crate) use register::abn_digits;
 use register::{Entry, Register, name_words, register};
 
 const COMMAND: &str = "dgr-check";

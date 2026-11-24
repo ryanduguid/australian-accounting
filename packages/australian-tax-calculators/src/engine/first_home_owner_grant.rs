@@ -34,10 +34,10 @@ const LAST: &str = "2026-11-22";
 const NEW_ONLY: &str = "the grant is for a new home only";
 const LESSER: &str = "the grant cannot be more than the consideration";
 
-/// The inputs taken only in some jurisdictions: Western Australia's
-/// location, and the value Queensland and Western Australia test against
-/// their caps where it is not the consideration.
-pub const FHOG_OPTIONAL: [&str; 2] = ["north_of_26th", "cap_value"];
+/// The inputs taken only in some cases: Western Australia's location, the
+/// value Queensland and Western Australia test against their caps where it
+/// is not the consideration, and a home built's contract price.
+pub const FHOG_OPTIONAL: [&str; 3] = ["north_of_26th", "cap_value", "contract_price"];
 
 /// The 4 facts every grant needs, then the facts some transactions need.
 const FACTS: [(&str, &str); 4] = [
@@ -76,7 +76,7 @@ pub struct FirstHomeOwnerGrantArgs<'a> {
     pub facts: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
-    pub optional: [Option<&'a Arg>; 2],
+    pub optional: [Option<&'a Arg>; 3],
 }
 
 /// `n` dollars with thousands separators.
@@ -254,14 +254,64 @@ fn north(s: &Scheme, given: Option<&Arg>) -> Result<Option<bool>> {
     }
 }
 
-/// The facts the transaction needs beyond the 4.
-fn case_facts(s: &Scheme, house: Home, stated: &[&str]) -> Result<()> {
+/// A home built's contract price, the consideration for the building work
+/// (Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas
+/// s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b)): taken only for a home built,
+/// and never more than `total_value` or `cap_value`, which both include it.
+fn contract_price(
+    house: Home,
+    (total, cap): (&Decimal, Option<&Decimal>),
+    given: Option<&Arg>,
+) -> Result<Option<Decimal>> {
+    let Some(given) = given else {
+        return Ok(None);
+    };
+    if house != Home::Built {
+        return refuse(
+            "input.field_unknown",
+            "contract_price is an input only for a home built",
+        );
+    }
+    let price = value(given, "contract_price")?;
+    for (name, includes) in [("total_value", Some(total)), ("cap_value", cap)] {
+        if let Some(includes) = includes
+            && price.gt(includes)?
+        {
+            return refuse(
+                "first_home_owner_grant.value_invalid",
+                format!("contract_price cannot be more than {name}, which includes it."),
+            );
+        }
+    }
+    Ok(Some(price))
+}
+
+/// The facts the transaction needs beyond the 4. A stated contract price
+/// stands in for `building_contract`, and the 2 cannot disagree.
+fn case_facts(
+    s: &Scheme,
+    house: Home,
+    stated: &[&str],
+    price: Option<(&Decimal, i64)>,
+) -> Result<()> {
+    if let Some((price, amount)) = price
+        && stated.contains(&"building_contract")
+        && price.lt(&int(amount))?
+    {
+        return refuse(
+            "first_home_owner_grant.facts_invalid",
+            format!(
+                "facts: building_contract states the building contract price is at least the {} grant, but contract_price is below it.",
+                whole(amount)
+            ),
+        );
+    }
     let unstated: Vec<&str> = CASE_FACTS
         .iter()
         .filter(|(key, _)| {
             !stated.contains(key)
                 && match *key {
-                    "building_contract" => house == Home::Built,
+                    "building_contract" => house == Home::Built && price.is_none(),
                     "nt_no_replacement" => s.code == "nt",
                     _ => s.code == "tas",
                 }
@@ -304,14 +354,23 @@ pub fn first_home_owner_grant(args: &FirstHomeOwnerGrantArgs) -> Result<Value> {
     let stated = facts(args.facts)?;
     let dollars = value(args.total_value, "total_value")?;
     let north = north(s, args.optional[0])?;
-    let tested = tested(house, &dollars, cap_value(s, args.optional[1])?)?;
+    let cap = cap_value(s, args.optional[1])?;
+    let price = contract_price(house, (&dollars, cap.as_ref()), args.optional[2])?;
+    let tested = tested(s, house, (&dollars, price.as_ref()), cap)?;
     // Every scheme has a rule from 1 July 2025 or earlier.
     let r = s
         .rules
         .iter()
         .rfind(|r| r.from <= date.as_str())
         .unwrap_or(&s.rules[0]);
-    let worked = work(s, r, house, (&dollars, &tested), north, &stated)?;
+    let worked = work(
+        s,
+        r,
+        house,
+        (&dollars, &tested, price.as_ref()),
+        north,
+        &stated,
+    )?;
     let mut out = result(KIND, &year, vec![("grant", worked.grant)], Vec::new())?;
     out["jurisdiction"] = json!(s.name);
     out["contract_date"] = json!(date);
@@ -325,21 +384,30 @@ pub fn first_home_owner_grant(args: &FirstHomeOwnerGrantArgs) -> Result<Value> {
 /// The value tested against the cap: for a home bought, the greater of the
 /// consideration and `cap_value` (Qld s 5(6) and (7), WA s 14AC(2)); for a
 /// home built, `cap_value` in place of the land and contract total (Qld
-/// s 5(8), WA s 14AC(3)); otherwise `total_value`.
-fn tested(house: Home, dollars: &Decimal, cap: Option<Decimal>) -> Result<Decimal> {
-    Ok(match cap {
-        Some(cap) if house == Home::Built || cap.gt(dollars)? => cap,
+/// s 5(8), WA s 14AC(3)), or in Victoria the contract price, the
+/// consideration s 13(1A) caps (s 13(7)(b)); otherwise `total_value`.
+fn tested(
+    s: &Scheme,
+    house: Home,
+    (dollars, price): (&Decimal, Option<&Decimal>),
+    cap: Option<Decimal>,
+) -> Result<Decimal> {
+    Ok(match (cap, price) {
+        (_, Some(price)) if s.code == "vic" => price.clone(),
+        (Some(cap), _) if house == Home::Built || cap.gt(dollars)? => cap,
         _ => dollars.clone(),
     })
 }
 
-/// The pair is the consideration, which limits the grant, and the value
-/// tested against the cap.
+/// The values are `total_value`, which limits the grant only for a home
+/// bought; the value tested against the cap; and a home built's contract
+/// price, its consideration, which limits its grant (without it,
+/// `building_contract` states the price is at least the amount).
 fn work(
     s: &Scheme,
     r: &Rule,
     house: Home,
-    (dollars, tested): (&Decimal, &Decimal),
+    (dollars, tested, price): (&Decimal, &Decimal, Option<&Decimal>),
     north: Option<bool>,
     stated: &[&str],
 ) -> Result<Grant> {
@@ -355,7 +423,7 @@ fn work(
     if amount == 0 {
         return Ok(grant(int(0), "none", NEW_ONLY));
     }
-    case_facts(s, house, stated)?;
+    case_facts(s, house, stated, price.map(|p| (p, amount)))?;
     let limit = match (north, house) {
         (Some(true), _) => r.north,
         (_, Home::Built) => r.built,
@@ -369,13 +437,18 @@ fn work(
     if let Some(limit) = limit
         && tested.gt(&int(limit))?
     {
-        return over_cap(s, house, &cap);
+        return over_cap(s, house, price.is_some(), &cap);
     }
-    below_amount(s, house, dollars, amount, &cap)
+    // The consideration: a home built's contract price, which without
+    // `contract_price` is known only to be at least the amount.
+    match price {
+        Some(price) => below_amount(s, (price, false), amount, &cap),
+        None => below_amount(s, (dollars, house == Home::Built), amount, &cap),
+    }
 }
 
-fn over_cap(s: &Scheme, house: Home, cap: &str) -> Result<Grant> {
-    if s.code == "vic" && house == Home::Built {
+fn over_cap(s: &Scheme, house: Home, priced: bool, cap: &str) -> Result<Grant> {
+    if s.code == "vic" && house == Home::Built && !priced {
         return refuse(
             "first_home_owner_grant.value_basis",
             "Not computed: the Victorian cap applies to the consideration for the building work (First Home Owner Grant and Home Buyer Schemes Act 2000 (Vic) s 13(1A) and (7)(b)), not the land and building total entered.",
@@ -389,17 +462,18 @@ fn over_cap(s: &Scheme, house: Home, cap: &str) -> Result<Grant> {
     Ok(grant(int(0), cap, &why))
 }
 
+/// The pair is the consideration, or for a home built without its contract
+/// price the land and contract total, flagged true.
 fn below_amount(
     s: &Scheme,
-    house: Home,
-    dollars: &Decimal,
+    (dollars, unpriced): (&Decimal, bool),
     amount: i64,
     cap: &str,
 ) -> Result<Grant> {
     if !dollars.lt(&int(amount))? {
         return Ok(grant(int(amount), cap, ""));
     }
-    if house == Home::Built {
+    if unpriced {
         return refuse(
             "first_home_owner_grant.below_grant",
             format!(
