@@ -583,3 +583,17 @@ fn an_unfrankable_distribution_does_not_set_or_breach_the_benchmark() {
         "frankable must be a boolean"
     );
 }
+
+#[test]
+fn version_flag_prints_crate_name_and_version() {
+    let out = Command::new(env!("CARGO_BIN_EXE_the-exchequer-tally"))
+        .arg("--version")
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert!(out.stderr.is_empty());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap().replace("\r\n", "\n"),
+        format!("the-exchequer-tally {}\n", env!("CARGO_PKG_VERSION"))
+    );
+}

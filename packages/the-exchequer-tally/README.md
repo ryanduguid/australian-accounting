@@ -17,8 +17,8 @@ cargo test --locked
 The toolchain is pinned in `rust-toolchain.toml`. The executable is
 `target/release/the-exchequer-tally` (`.exe` on Windows). Add that directory to
 PATH or copy the executable to a directory on PATH. No Python runtime is needed.
-The current native version is unreleased. PyPI still provides the historical
-Python release; `pip install` does not install this binary.
+`--version` prints `the-exchequer-tally 1.0.0`. PyPI still provides the
+historical Python release; `pip install` does not install this binary.
 
 ## Original commands
 
@@ -186,9 +186,9 @@ and consume stdout, using the process exit status to distinguish refusal.
 Root `just test` and `just check` include Cargo. CI builds and tests on Ubuntu,
 Windows and macOS with read-only repository permissions; CodeQL includes Rust and
 Dependabot monitors this Cargo lock. CI retains native candidates. The former
-Python/PyPI publisher is retired. Native signing, release-policy integration and
-publication require a separate authorised release change; no publisher is
-configured for 1.0.0.
+Python/PyPI publisher is retired. `.github/workflows/release-the-exchequer-tally.yml`
+builds and publishes attested x86-64 Linux (static musl) and Windows
+executables through `release-policy` on GitHub Releases.
 
 The frozen Python corpus in `tests/data/` is replayed by Rust on all 3 platforms.
 [tests/BEHAVIOURS.md](tests/BEHAVIOURS.md) maps the original tests to these checks.
