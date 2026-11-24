@@ -166,24 +166,19 @@ fn assess(items: &[Item], departure: i64) -> Result<(Vec<Value>, Vec<Qualifying<
     Ok((rows, qualifying))
 }
 
-/// A step adding `terms`, each a name and its value; `0` when there are none.
-fn sum_step(
-    id: &'static str,
-    authority: &'static str,
-    terms: &[(String, &Decimal)],
-) -> Result<Step> {
+/// A step adding `terms`, written as numbers; `0` when there are none.
+fn sum_step(id: &'static str, authority: &'static str, terms: &[&Decimal]) -> Result<Step> {
     let mut value = int(0);
-    for (_, v) in terms {
+    for v in terms {
         value = value.add(v)?;
     }
-    let names: Vec<&str> = terms.iter().map(|(n, _)| n.as_str()).collect();
+    let names: Vec<String> = terms.iter().map(|v| v.to_string()).collect();
     let formula = if names.is_empty() {
         "0".to_string()
     } else {
         names.join(" + ")
     };
-    let operands: Vec<&Decimal> = terms.iter().map(|(_, v)| *v).collect();
-    Ok(step(id, authority, &formula, &operands, value))
+    Ok(step(id, authority, &formula, &[], value))
 }
 
 const PRICE_STEP: &str = "GST Regulations reg 168-5.04: the qualifying items' purchase prices";
@@ -193,19 +188,13 @@ const TOTAL_STEP: &str = "GST Act s 168-5(1) and WET Act s 25-5(1): the 2 refund
 
 /// The 4 steps: qualifying price, the GST and wine tax refunds and their total.
 fn steps(qualifying: &[Qualifying], eligible: bool) -> Result<Vec<Step>> {
-    let prices: Vec<(String, &Decimal)> = qualifying
-        .iter()
-        .map(|(n, item, _)| (format!("price_{n}"), &item.price))
-        .collect();
+    let prices: Vec<&Decimal> = qualifying.iter().map(|(_, item, _)| &item.price).collect();
     let paid = if eligible { qualifying } else { &[] };
-    let gst: Vec<(String, &Decimal)> = paid
-        .iter()
-        .map(|(n, item, _)| (format!("gst_{n}"), &item.gst))
-        .collect();
-    let wine: Vec<(String, &Decimal)> = paid
+    let gst: Vec<&Decimal> = paid.iter().map(|(_, item, _)| &item.gst).collect();
+    let wine: Vec<&Decimal> = paid
         .iter()
         .filter(|(_, item, _)| item.goods == "wine")
-        .map(|(n, _, wet)| (format!("wine_tax_{n}"), wet))
+        .map(|(_, _, wet)| wet)
         .collect();
     let gst_step = sum_step("gst_refund", GST_STEP, &gst)?;
     let wet_step = sum_step("wine_tax_refund", WET_STEP, &wine)?;
