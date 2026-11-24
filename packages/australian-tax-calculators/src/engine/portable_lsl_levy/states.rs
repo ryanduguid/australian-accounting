@@ -17,121 +17,78 @@ use crate::decimal::{Decimal, Rounding};
 
 struct PayrollRule {
     board: &'static str,
-    years: &'static [&'static str],
+    years: &'static str,
     rate_str: &'static str,
     authority: &'static str,
 }
 
-fn payroll_rule(jurisdiction: &str, scheme: &str, year: &str) -> Option<PayrollRule> {
-    let rule = match (jurisdiction, scheme) {
-        ("nsw", "contract_cleaning") => PayrollRule {
-            board: "Long Service Corporation (NSW)",
-            years: &["2023-24", "2024-25", "2025-26", "2026-27"],
-            rate_str: "0.01",
-            authority: "Contract Cleaning Industry (Portable Long Service Leave Scheme) Act 2010 (NSW) and NSW Long Service Corporation 'Managing employer returns and paying levies in the contract cleaning industry' (read 24 November 2026): 1% of gross ordinary wages from 1 July 2021, rounded half up to the cent",
-        },
-        ("nsw", "community_services") => PayrollRule {
-            board: "Long Service Corporation (NSW)",
-            years: &["2025-26", "2026-27"],
-            rate_str: if year == "2025-26" { "0.013" } else { "0.017" },
-            authority: if year == "2025-26" {
-                "Community Services Sector (Portable Long Service Leave) Act 2024 (NSW) and NSW Long Service Corporation 'Making levy contributions as a community services employer' (read 24 November 2026): 1.3% transitional levy rate on gross ordinary wages for 2025-26, rounded half up to the cent"
-            } else {
-                "Community Services Sector (Portable Long Service Leave) Act 2024 (NSW) and NSW Long Service Corporation 'Making levy contributions as a community services employer' (read 24 November 2026): 1.7% of gross ordinary wages from 1 July 2026, rounded half up to the cent"
-            },
-        },
-        ("vic", "construction") => PayrollRule {
-            board: "LeavePlus (Victoria)",
-            years: &["2026-27"],
-            rate_str: "0.027",
-            authority: "Construction Industry Long Service Leave Act 1997 (Vic) and LeavePlus 'Long service leave charges' (read 24 November 2026): 2.7% of gross reportable ordinary pay, rounded half up to the cent",
-        },
-        ("vic", "community_services") => PayrollRule {
-            board: "Portable Long Service Authority (Victoria)",
-            years: &["2026-27"],
-            rate_str: "0.0165",
-            authority: "Long Service Benefits Portability Act 2018 (Vic) and Portable Long Service Authority 'About the Portable Long Service Benefits Scheme' (read 24 November 2026): 1.65% of ordinary pay for community services, rounded half up to the cent",
-        },
-        ("vic", "contract_cleaning") => PayrollRule {
-            board: "Portable Long Service Authority (Victoria)",
-            years: &["2026-27"],
-            rate_str: "0.018",
-            authority: "Long Service Benefits Portability Act 2018 (Vic) and Portable Long Service Authority 'About the Portable Long Service Benefits Scheme' (read 24 November 2026): 1.80% of ordinary pay for contract cleaning, rounded half up to the cent",
-        },
-        ("vic", "security") => PayrollRule {
-            board: "Portable Long Service Authority (Victoria)",
-            years: &["2026-27"],
-            rate_str: "0.018",
-            authority: "Long Service Benefits Portability Act 2018 (Vic) and Portable Long Service Authority 'About the Portable Long Service Benefits Scheme' (read 24 November 2026): 1.80% of ordinary pay for security, rounded half up to the cent",
-        },
-        ("qld", "contract_cleaning") => PayrollRule {
-            board: "QLeave (Queensland)",
-            years: &["2026-27"],
-            rate_str: "0.005",
-            authority: "Contract Cleaning Industry (Portable Long Service Leave) Act 2005 (Qld) s 83 and QLeave 'Employer obligations' (read 24 November 2026): 0.5% of workers' ordinary wages, rounded half up to the cent",
-        },
-        ("qld", "community_services") => PayrollRule {
-            board: "QLeave (Queensland)",
-            years: &["2026-27"],
-            rate_str: "0.0135",
-            authority: "Community Services Industry (Portable Long Service Leave) Act 2020 (Qld) and QLeave 'Paying the levy' (read 24 November 2026): 1.35% of workers' ordinary wages, rounded half up to the cent",
-        },
-        ("sa", "construction") => PayrollRule {
-            board: "SA Portable Long Service Leave",
-            years: &["2026-27"],
-            rate_str: "0.02",
-            authority: "Construction Industry Long Service Leave Act 1987 (SA) s 26 and SA Portable Long Service Leave 'How to complete Employer Returns' (read 24 November 2026): 2.00% of declared gross remuneration (excluding levy-free apprentices), rounded half up to the cent",
-        },
-        ("sa", "community_services") => PayrollRule {
-            board: "SA Portable Long Service Leave",
-            years: &["2026-27"],
-            rate_str: "0.022",
-            authority: "Portable Long Service Leave Act 2024 (SA) and SA Portable Long Service Leave 'What do I have to do?' (read 24 November 2026): 2.2% of gross remuneration (excluding exempt trainees), rounded half up to the cent",
-        },
-        ("wa", "construction") => PayrollRule {
-            board: "MyLeave (Western Australia)",
-            years: &["2026-27"],
-            rate_str: "0.0075",
-            authority: "Construction Industry Portable Paid Long Service Leave Act 1985 (WA) s 34 and MyLeave public notice '2027 Employer Contribution Rate' (4 November 2026, read 24 November 2026): 0.75% of ordinary pay for the 2026 and 2027 calendar years (excluding apprentices), rounded half up to the cent",
-        },
-        ("act", "construction") => PayrollRule {
-            board: "ACT Leave",
-            years: &["2025-26", "2026-27"],
-            rate_str: "0.0275",
-            authority: "Long Service Leave (Portable Schemes) Act 2009 (ACT) s 51 and Building and Construction Industry Employer Levy Determination 2024 (DI2024-12, in force from 1 October 2024, read 24 November 2026): 2.75% of gross ordinary wages, rounded half up to the cent",
-        },
-        ("act", "community_services") => PayrollRule {
-            board: "ACT Leave",
-            years: &["2024-25", "2025-26", "2026-27"],
-            rate_str: "0.0185",
-            authority: "Long Service Leave (Portable Schemes) Act 2009 (ACT) s 56A and Community Sector Industry Employer Levy Determination 2024 (DI2024-16, in force from 1 July 2024, read 24 November 2026): 1.85% of gross ordinary wages, rounded half up to the cent",
-        },
-        ("act", "security") => PayrollRule {
-            board: "ACT Leave",
-            years: &["2024-25", "2025-26", "2026-27"],
-            rate_str: "0.0147",
-            authority: "Long Service Leave (Portable Schemes) Act 2009 (ACT) s 56A and Security Industry Employer Levy Determination 2024 (DI2024-15, in force from 1 July 2024, read 24 November 2026): 1.47% of gross ordinary wages, rounded half up to the cent",
-        },
-        ("act", "contract_cleaning") => PayrollRule {
-            board: "ACT Leave",
-            years: &["2025-26", "2026-27"],
-            rate_str: "0.0107",
-            authority: "Long Service Leave (Portable Schemes) Act 2009 (ACT) s 51 and Services Industry Employer Levy Determinations 2024 (DI2024-224, from 1 April 2025) and 2026 (DI2026-228, from 1 January 2027), read 24 November 2026: 1.07% of gross ordinary wages for contract cleaning under the Services Industry Scheme, rounded half up to the cent",
-        },
-        _ => return None,
-    };
-    Some(rule)
+struct StateMeta<'a> {
+    year: &'a str,
+    jurisdiction: &'a str,
+    scheme: &'a str,
+    basis: &'a str,
+    board: &'a str,
 }
 
-fn check_year(jurisdiction: &str, scheme: &str, year: &str, allowed: &[&str]) -> Result<()> {
-    if allowed.contains(&year) {
+const PAYROLL_ROWS: [&str; 14] = [
+    "nsw|contract_cleaning|Long Service Corporation (NSW)|2023-24, 2024-25, 2025-26, 2026-27|0.01|Contract Cleaning Industry (Portable Long Service Leave Scheme) Act 2010 (NSW) and NSW Long Service Corporation 'Managing employer returns and paying levies in the contract cleaning industry' (read 24 November 2026): 1% of gross ordinary wages from 1 July 2021, rounded half up to the cent",
+    "vic|construction|LeavePlus (Victoria)|2026-27|0.027|Construction Industry Long Service Leave Act 1997 (Vic) and LeavePlus 'Long service leave charges' (read 24 November 2026): 2.7% of gross reportable ordinary pay, rounded half up to the cent",
+    "vic|community_services|Portable Long Service Authority (Victoria)|2026-27|0.0165|Long Service Benefits Portability Act 2018 (Vic) and Portable Long Service Authority 'About the Portable Long Service Benefits Scheme' (read 24 November 2026): 1.65% of ordinary pay for community services, rounded half up to the cent",
+    "vic|contract_cleaning|Portable Long Service Authority (Victoria)|2026-27|0.018|Long Service Benefits Portability Act 2018 (Vic) and Portable Long Service Authority 'About the Portable Long Service Benefits Scheme' (read 24 November 2026): 1.80% of ordinary pay for contract cleaning, rounded half up to the cent",
+    "vic|security|Portable Long Service Authority (Victoria)|2026-27|0.018|Long Service Benefits Portability Act 2018 (Vic) and Portable Long Service Authority 'About the Portable Long Service Benefits Scheme' (read 24 November 2026): 1.80% of ordinary pay for security, rounded half up to the cent",
+    "qld|contract_cleaning|QLeave (Queensland)|2026-27|0.005|Contract Cleaning Industry (Portable Long Service Leave) Act 2005 (Qld) s 83 and QLeave 'Employer obligations' (read 24 November 2026): 0.5% of workers' ordinary wages, rounded half up to the cent",
+    "qld|community_services|QLeave (Queensland)|2026-27|0.0135|Community Services Industry (Portable Long Service Leave) Act 2020 (Qld) and QLeave 'Paying the levy' (read 24 November 2026): 1.35% of workers' ordinary wages, rounded half up to the cent",
+    "sa|construction|SA Portable Long Service Leave|2026-27|0.02|Construction Industry Long Service Leave Act 1987 (SA) s 26 and SA Portable Long Service Leave 'How to complete Employer Returns' (read 24 November 2026): 2.00% of declared gross remuneration (excluding levy-free apprentices), rounded half up to the cent",
+    "sa|community_services|SA Portable Long Service Leave|2026-27|0.022|Portable Long Service Leave Act 2024 (SA) and SA Portable Long Service Leave 'What do I have to do?' (read 24 November 2026): 2.2% of gross remuneration (excluding exempt trainees), rounded half up to the cent",
+    "wa|construction|MyLeave (Western Australia)|2026-27|0.0075|Construction Industry Portable Paid Long Service Leave Act 1985 (WA) s 34 and MyLeave public notice '2027 Employer Contribution Rate' (4 November 2026, read 24 November 2026): 0.75% of ordinary pay for the 2026 and 2027 calendar years (excluding apprentices), rounded half up to the cent",
+    "act|construction|ACT Leave|2025-26, 2026-27|0.0275|Long Service Leave (Portable Schemes) Act 2009 (ACT) s 51 and Building and Construction Industry Employer Levy Determination 2024 (DI2024-12, in force from 1 October 2024, read 24 November 2026): 2.75% of gross ordinary wages, rounded half up to the cent",
+    "act|community_services|ACT Leave|2024-25, 2025-26, 2026-27|0.0185|Long Service Leave (Portable Schemes) Act 2009 (ACT) s 56A and Community Sector Industry Employer Levy Determination 2024 (DI2024-16, in force from 1 July 2024, read 24 November 2026): 1.85% of gross ordinary wages, rounded half up to the cent",
+    "act|security|ACT Leave|2024-25, 2025-26, 2026-27|0.0147|Long Service Leave (Portable Schemes) Act 2009 (ACT) s 56A and Security Industry Employer Levy Determination 2024 (DI2024-15, in force from 1 July 2024, read 24 November 2026): 1.47% of gross ordinary wages, rounded half up to the cent",
+    "act|contract_cleaning|ACT Leave|2025-26, 2026-27|0.0107|Long Service Leave (Portable Schemes) Act 2009 (ACT) s 51 and Services Industry Employer Levy Determinations 2024 (DI2024-224, from 1 April 2025) and 2026 (DI2026-228, from 1 January 2027), read 24 November 2026: 1.07% of gross ordinary wages for contract cleaning under the Services Industry Scheme, rounded half up to the cent",
+];
+
+fn payroll_rule(jurisdiction: &str, scheme: &str, year: &str) -> Option<PayrollRule> {
+    if (jurisdiction, scheme) == ("nsw", "community_services") {
+        let (rate_str, authority) = if year == "2025-26" {
+            (
+                "0.013",
+                "Community Services Sector (Portable Long Service Leave) Act 2024 (NSW) and NSW Long Service Corporation 'Making levy contributions as a community services employer' (read 24 November 2026): 1.3% transitional levy rate on gross ordinary wages for 2025-26, rounded half up to the cent",
+            )
+        } else {
+            (
+                "0.017",
+                "Community Services Sector (Portable Long Service Leave) Act 2024 (NSW) and NSW Long Service Corporation 'Making levy contributions as a community services employer' (read 24 November 2026): 1.7% of gross ordinary wages from 1 July 2026, rounded half up to the cent",
+            )
+        };
+        return Some(PayrollRule {
+            board: "Long Service Corporation (NSW)",
+            years: "2025-26, 2026-27",
+            rate_str,
+            authority,
+        });
+    }
+    for row in PAYROLL_ROWS {
+        let mut parts = row.split('|');
+        if parts.next() == Some(jurisdiction) && parts.next() == Some(scheme) {
+            return Some(PayrollRule {
+                board: parts.next().expect("board"),
+                years: parts.next().expect("years"),
+                rate_str: parts.next().expect("rate"),
+                authority: parts.next().expect("authority"),
+            });
+        }
+    }
+    None
+}
+
+fn check_year(jurisdiction: &str, scheme: &str, year: &str, allowed: &str) -> Result<()> {
+    if allowed.split(", ").any(|y| y == year) {
         return Ok(());
     }
     refuse(
         "portable_lsl_levy.scheme_year_unsupported",
         format!(
-            "{jurisdiction} {scheme} portable LSL levy rates are verified for {}, not {year}.",
-            allowed.join(", ")
+            "{jurisdiction} {scheme} portable LSL levy rates are verified for {allowed}, not {year}."
         ),
     )
 }
@@ -168,46 +125,20 @@ fn reject_coal_fields(args: &PortableLslLevyArgs, context: &str) -> Result<()> {
 }
 
 fn finish_state(
-    year: &str,
-    jurisdiction: &str,
-    scheme: &str,
-    basis: &str,
-    board: &str,
+    meta: StateMeta<'_>,
     steps: Vec<Step>,
     rates: Vec<(String, String)>,
 ) -> Result<Value> {
-    let mut out = derived_result(KIND, year, steps, rates)?;
-    out["jurisdiction"] = json!(jurisdiction);
-    out["scheme"] = json!(scheme);
-    out["basis"] = json!(basis);
-    out["authority_board"] = json!(board);
+    let mut out = derived_result(KIND, meta.year, steps, rates)?;
+    out["jurisdiction"] = json!(meta.jurisdiction);
+    out["scheme"] = json!(meta.scheme);
+    out["basis"] = json!(meta.basis);
+    out["authority_board"] = json!(meta.board);
     Ok(out)
 }
 
-fn calculate_tas_construction(args: &PortableLslLevyArgs, year: &str) -> Result<Value> {
-    check_year("tas", "construction", year, &["2026-27"])?;
-    reject_present(
-        &[
-            ("project_cost", args.project_cost),
-            ("partial_exemption", args.partial_exemption),
-        ],
-        "Tasmania construction portable LSL levy",
-    )?;
-    let on_time = match args.paid_on_time {
-        Some(v) => flag(v, "paid_on_time")?,
-        None => {
-            return refuse(
-                "input.missing_field",
-                "paid_on_time is required for Tasmania construction (true for the 1.8% on-time discounted rate, false for the 2.5% standard rate).",
-            );
-        }
-    };
-    let wages = required_money(
-        args.ordinary_wages,
-        "ordinary_wages",
-        "Tasmania construction portable LSL levy",
-    )?;
-    let (rate_str, auth) = if on_time {
+fn tas_rate_and_auth(on_time: bool) -> (&'static str, &'static str) {
+    if on_time {
         (
             "0.018",
             "Construction Industry (Long Service) Act 1997 (Tas) s 7 and TasBuild 'Employers Information' FAQ (read 24 November 2026): 1.8% discounted rate on ordinary pay when returns and invoices are lodged and paid by the due dates, rounded half up to the cent",
@@ -217,7 +148,31 @@ fn calculate_tas_construction(args: &PortableLslLevyArgs, year: &str) -> Result<
             "0.025",
             "Construction Industry (Long Service) Act 1997 (Tas) s 7 and TasBuild 'Employers Information' FAQ (read 24 November 2026): 2.5% standard contribution rate on ordinary pay, rounded half up to the cent",
         )
+    }
+}
+
+fn calculate_tas_construction(args: &PortableLslLevyArgs, year: &str) -> Result<Value> {
+    check_year("tas", "construction", year, "2026-27")?;
+    reject_present(
+        &[
+            ("project_cost", args.project_cost),
+            ("partial_exemption", args.partial_exemption),
+        ],
+        "Tasmania construction portable LSL levy",
+    )?;
+    let Some(paid_arg) = args.paid_on_time else {
+        return refuse(
+            "input.missing_field",
+            "paid_on_time is required for Tasmania construction (true for the 1.8% on-time discounted rate, false for the 2.5% standard rate).",
+        );
     };
+    let on_time = flag(paid_arg, "paid_on_time")?;
+    let wages = required_money(
+        args.ordinary_wages,
+        "ordinary_wages",
+        "Tasmania construction portable LSL levy",
+    )?;
+    let (rate_str, auth) = tas_rate_and_auth(on_time);
     let (steps, rates) = precise(|| {
         let applied = d(rate_str);
         let levy = cents(wages.mul(&applied)?)?;
@@ -231,11 +186,13 @@ fn calculate_tas_construction(args: &PortableLslLevyArgs, year: &str) -> Result<
         Ok((vec![s], vec![rate("rate", &applied)]))
     })?;
     finish_state(
-        year,
-        "tas",
-        "construction",
-        "ordinary_wages",
-        "TasBuild (Tasmania)",
+        StateMeta {
+            year,
+            jurisdiction: "tas",
+            scheme: "construction",
+            basis: "ordinary_wages",
+            board: "TasBuild (Tasmania)",
+        },
         steps,
         rates,
     )
@@ -267,7 +224,7 @@ fn calculate_nsw_construction(args: &PortableLslLevyArgs, year: &str) -> Result<
         "nsw",
         "construction",
         year,
-        &["2023-24", "2024-25", "2025-26", "2026-27"],
+        "2023-24, 2024-25, 2025-26, 2026-27",
     )?;
     let cost = check_project_inputs(args, "NSW building and construction levy")?;
     let (steps, rates) = precise(|| {
@@ -297,18 +254,63 @@ fn calculate_nsw_construction(args: &PortableLslLevyArgs, year: &str) -> Result<
         ))
     })?;
     finish_state(
-        year,
-        "nsw",
-        "construction",
-        "project_cost",
-        "Long Service Corporation (NSW)",
+        StateMeta {
+            year,
+            jurisdiction: "nsw",
+            scheme: "construction",
+            basis: "project_cost",
+            board: "Long Service Corporation (NSW)",
+        },
         steps,
         rates,
     )
 }
 
+fn qld_component_steps(
+    cost: &Decimal,
+    threshold: &Decimal,
+    lsl_rate: &Decimal,
+    training_rate: &Decimal,
+    whs_rate: &Decimal,
+) -> Result<(Step, Step, Step)> {
+    if cost.lt(threshold)? {
+        let below = "Building and Construction Industry (Portable Long Service Leave) Regulation 2024 (Qld) ss 9 and 11 (SL No. 162 of 2024, read 24 November 2026): levy is not payable when the cost of work (excluding GST, s 73(1)) is less than $150,000";
+        return Ok((
+            step("lsl_levy", below, "0", &[], int(0)),
+            step("training_levy", below, "0", &[], int(0)),
+            step("whs_levy", below, "0", &[], int(0)),
+        ));
+    }
+    let lsl_val = dollars_half_down(&cost.mul(lsl_rate)?)?;
+    let training_val = dollars_half_down(&cost.mul(training_rate)?)?;
+    let whs_val = dollars_half_down(&cost.mul(whs_rate)?)?;
+    Ok((
+        step(
+            "lsl_levy",
+            "Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72(1)(b) and (2) and Regulation 2024 s 8(b): 0.35% of cost of work (excluding GST), rounded to the nearest dollar with 50c rounded downwards",
+            "dollars_half_down(project_cost x lsl_rate)",
+            &[cost, lsl_rate],
+            lsl_val,
+        ),
+        step(
+            "training_levy",
+            "Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72(1)(a) and (2) and Regulation 2024 s 8(a): 0.1% CSQ training levy on cost of work (excluding GST), rounded to the nearest dollar with 50c rounded downwards",
+            "dollars_half_down(project_cost x training_rate)",
+            &[cost, training_rate],
+            training_val,
+        ),
+        step(
+            "whs_levy",
+            "Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72(1)(c) and (2) and Regulation 2024 s 8(c): 0.125% WHSQ levy on cost of work (excluding GST), rounded to the nearest dollar with 50c rounded downwards",
+            "dollars_half_down(project_cost x whs_rate)",
+            &[cost, whs_rate],
+            whs_val,
+        ),
+    ))
+}
+
 fn calculate_qld_construction(args: &PortableLslLevyArgs, year: &str) -> Result<Value> {
-    check_year("qld", "construction", year, &["2025-26", "2026-27"])?;
+    check_year("qld", "construction", year, "2025-26, 2026-27")?;
     let cost = check_project_inputs(args, "Queensland building and construction levy")?;
     let (steps, rates) = precise(|| {
         let threshold = d("150000");
@@ -316,41 +318,8 @@ fn calculate_qld_construction(args: &PortableLslLevyArgs, year: &str) -> Result<
         let training_rate = d("0.001");
         let whs_rate = d("0.00125");
         let combined_rate = d("0.00575");
-        let (lsl, training, whs) = if cost.lt(&threshold)? {
-            let below = "Building and Construction Industry (Portable Long Service Leave) Regulation 2024 (Qld) ss 9 and 11 (SL No. 162 of 2024, read 24 November 2026): levy is not payable when the cost of work (excluding GST, s 73(1)) is less than $150,000";
-            (
-                step("lsl_levy", below, "0", &[], int(0)),
-                step("training_levy", below, "0", &[], int(0)),
-                step("whs_levy", below, "0", &[], int(0)),
-            )
-        } else {
-            let lsl_val = dollars_half_down(&cost.mul(&lsl_rate)?)?;
-            let training_val = dollars_half_down(&cost.mul(&training_rate)?)?;
-            let whs_val = dollars_half_down(&cost.mul(&whs_rate)?)?;
-            (
-                step(
-                    "lsl_levy",
-                    "Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72(1)(b) and (2) and Regulation 2024 s 8(b): 0.35% of cost of work (excluding GST), rounded to the nearest dollar with 50c rounded downwards",
-                    "dollars_half_down(project_cost x lsl_rate)",
-                    &[&cost, &lsl_rate],
-                    lsl_val,
-                ),
-                step(
-                    "training_levy",
-                    "Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72(1)(a) and (2) and Regulation 2024 s 8(a): 0.1% CSQ training levy on cost of work (excluding GST), rounded to the nearest dollar with 50c rounded downwards",
-                    "dollars_half_down(project_cost x training_rate)",
-                    &[&cost, &training_rate],
-                    training_val,
-                ),
-                step(
-                    "whs_levy",
-                    "Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72(1)(c) and (2) and Regulation 2024 s 8(c): 0.125% WHSQ levy on cost of work (excluding GST), rounded to the nearest dollar with 50c rounded downwards",
-                    "dollars_half_down(project_cost x whs_rate)",
-                    &[&cost, &whs_rate],
-                    whs_val,
-                ),
-            )
-        };
+        let (lsl, training, whs) =
+            qld_component_steps(&cost, &threshold, &lsl_rate, &training_rate, &whs_rate)?;
         let total_val = lsl.value.add(&training.value)?.add(&whs.value)?;
         let total = step(
             "levy",
@@ -371,18 +340,40 @@ fn calculate_qld_construction(args: &PortableLslLevyArgs, year: &str) -> Result<
         ))
     })?;
     finish_state(
-        year,
-        "qld",
-        "construction",
-        "project_cost",
-        "QLeave (Queensland)",
+        StateMeta {
+            year,
+            jurisdiction: "qld",
+            scheme: "construction",
+            basis: "project_cost",
+            board: "QLeave (Queensland)",
+        },
         steps,
         rates,
     )
 }
 
+fn nt_levy_step(cost: &Decimal, threshold: &Decimal, applied: &Decimal) -> Result<Step> {
+    if cost.lt(threshold)? {
+        return Ok(step(
+            "levy",
+            "Construction Industry Long Service Leave and Benefits Act 2005 (NT) and NT Build 'Levy Payers' (read 24 November 2026): no levy is payable on construction projects with a total contract price under $1,000,000 (including GST)",
+            "0",
+            &[],
+            int(0),
+        ));
+    }
+    let levy = dollars_half_down(&cost.mul(applied)?)?;
+    Ok(step(
+        "levy",
+        "Construction Industry Long Service Leave and Benefits Act 2005 (NT) s 33 and NT Build 'Levy Payers' (read 24 November 2026): 0.1% of total cost of construction work (including GST) from $1 million to $5 billion, rounded to the nearest dollar with 50c rounded downwards",
+        "dollars_half_down(project_cost x rate)",
+        &[cost, applied],
+        levy,
+    ))
+}
+
 fn calculate_nt_construction(args: &PortableLslLevyArgs, year: &str) -> Result<Value> {
-    check_year("nt", "construction", year, &["2026-27"])?;
+    check_year("nt", "construction", year, "2026-27")?;
     let cost = check_project_inputs(args, "Northern Territory construction levy")?;
     let upper = d("5000000000");
     if cost.gt(&upper)? {
@@ -394,24 +385,7 @@ fn calculate_nt_construction(args: &PortableLslLevyArgs, year: &str) -> Result<V
     let (steps, rates) = precise(|| {
         let threshold = d("1000000");
         let applied = d("0.001");
-        let s = if cost.lt(&threshold)? {
-            step(
-                "levy",
-                "Construction Industry Long Service Leave and Benefits Act 2005 (NT) and NT Build 'Levy Payers' (read 24 November 2026): no levy is payable on construction projects with a total contract price under $1,000,000 (including GST)",
-                "0",
-                &[],
-                int(0),
-            )
-        } else {
-            let levy = dollars_half_down(&cost.mul(&applied)?)?;
-            step(
-                "levy",
-                "Construction Industry Long Service Leave and Benefits Act 2005 (NT) s 33 and NT Build 'Levy Payers' (read 24 November 2026): 0.1% of total cost of construction work (including GST) from $1 million to $5 billion, rounded to the nearest dollar with 50c rounded downwards",
-                "dollars_half_down(project_cost x rate)",
-                &[&cost, &applied],
-                levy,
-            )
-        };
+        let s = nt_levy_step(&cost, &threshold, &applied)?;
         Ok((
             vec![s],
             vec![
@@ -422,31 +396,45 @@ fn calculate_nt_construction(args: &PortableLslLevyArgs, year: &str) -> Result<V
         ))
     })?;
     finish_state(
-        year,
-        "nt",
-        "construction",
-        "project_cost",
-        "NT Build (Northern Territory)",
+        StateMeta {
+            year,
+            jurisdiction: "nt",
+            scheme: "construction",
+            basis: "project_cost",
+            board: "NT Build (Northern Territory)",
+        },
         steps,
         rates,
     )
 }
 
-pub(super) fn calculate(
+fn finish_payroll_scheme(
+    meta: StateMeta<'_>,
+    rule: &PayrollRule,
+    wages: &Decimal,
+) -> Result<Value> {
+    let (steps, rates) = precise(|| {
+        let applied = d(rule.rate_str);
+        let levy = cents(wages.mul(&applied)?)?;
+        let s = step(
+            "levy",
+            rule.authority,
+            "cents(ordinary_wages x rate)",
+            &[wages, &applied],
+            levy,
+        );
+        Ok((vec![s], vec![rate("rate", &applied)]))
+    })?;
+    finish_state(meta, steps, rates)
+}
+
+fn calculate_payroll_scheme(
     jurisdiction: &str,
     scheme: &str,
     args: &PortableLslLevyArgs,
     year: &str,
+    context: &str,
 ) -> Result<Value> {
-    let context = format!("{jurisdiction} {scheme} portable LSL levy");
-    reject_coal_fields(args, &context)?;
-    match (jurisdiction, scheme) {
-        ("nsw", "construction") => return calculate_nsw_construction(args, year),
-        ("qld", "construction") => return calculate_qld_construction(args, year),
-        ("nt", "construction") => return calculate_nt_construction(args, year),
-        ("tas", "construction") => return calculate_tas_construction(args, year),
-        _ => {}
-    }
     let Some(rule) = payroll_rule(jurisdiction, scheme, year) else {
         return refuse(
             "portable_lsl_levy.scheme_unavailable",
@@ -462,28 +450,35 @@ pub(super) fn calculate(
             ("partial_exemption", args.partial_exemption),
             ("paid_on_time", args.paid_on_time),
         ],
-        &context,
+        context,
     )?;
-    let wages = required_money(args.ordinary_wages, "ordinary_wages", &context)?;
-    let (steps, rates) = precise(|| {
-        let applied = d(rule.rate_str);
-        let levy = cents(wages.mul(&applied)?)?;
-        let s = step(
-            "levy",
-            rule.authority,
-            "cents(ordinary_wages x rate)",
-            &[&wages, &applied],
-            levy,
-        );
-        Ok((vec![s], vec![rate("rate", &applied)]))
-    })?;
-    finish_state(
-        year,
-        jurisdiction,
-        scheme,
-        "ordinary_wages",
-        rule.board,
-        steps,
-        rates,
+    let wages = required_money(args.ordinary_wages, "ordinary_wages", context)?;
+    finish_payroll_scheme(
+        StateMeta {
+            year,
+            jurisdiction,
+            scheme,
+            basis: "ordinary_wages",
+            board: rule.board,
+        },
+        &rule,
+        &wages,
     )
+}
+
+pub(super) fn calculate(
+    jurisdiction: &str,
+    scheme: &str,
+    args: &PortableLslLevyArgs,
+    year: &str,
+) -> Result<Value> {
+    let context = format!("{jurisdiction} {scheme} portable LSL levy");
+    reject_coal_fields(args, &context)?;
+    match (jurisdiction, scheme) {
+        ("nsw", "construction") => calculate_nsw_construction(args, year),
+        ("qld", "construction") => calculate_qld_construction(args, year),
+        ("nt", "construction") => calculate_nt_construction(args, year),
+        ("tas", "construction") => calculate_tas_construction(args, year),
+        _ => calculate_payroll_scheme(jurisdiction, scheme, args, year, &context),
+    }
 }
