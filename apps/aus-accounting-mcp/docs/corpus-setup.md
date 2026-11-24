@@ -81,8 +81,8 @@ the figure, and one run is not a benchmark
 
 The folder `quick` builds holds these 9 Acts only, so a 'no match' says nothing about any
 other title. Unlike the snapshot, it has no rates index: `search_tax_rates` refuses it and, from 0.8.0,
-`aus-accounting-mcp doctor` reports the folder as broken for that reason and exits 1. `define_tax_term` and
-the 2 legislation tools work. The
+`aus-accounting-mcp doctor` reports the folder as broken for that reason and exits 1. `define_tax_term`,
+`find_citing_provisions` and the 2 legislation tools work. The
 [full build](https://github.com/ryanduguid/PaulGoodman/blob/main/BUILD.md)
 covers the rest of the corpus and the rates index.
 

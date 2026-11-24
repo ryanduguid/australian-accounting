@@ -404,6 +404,7 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
         BTreeSet::from([
             "account-number-format".to_owned(),
             "bsb-format".to_owned(),
+            "citing-provision".to_owned(),
             "union-fees-paper-question".to_owned()
         ])
     );
