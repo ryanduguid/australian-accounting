@@ -1400,6 +1400,17 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2018-2, periods from 1 January 2019) changed, and AASB 2022-9 changes
         // footnote Aus1 alone. AASB 101 para 69(d) changed for periods beginning
         // from 1 January 2024 (AASB 2020-1); the caller's right to defer follows it.
+        // A management measure with no statutory rate: the years the other
+        // AASB worksheets take.
+        "wip_lockup" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // AASB 136 paras 6, 18 to 20, 30 to 33, 39, 50 to 57, 59 to 62, 104 and
+        // 105 were not amended after 2015 (the compilation's tables of
+        // amendments, read on 24 November 2026).
+        "impairment_test" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "leave_provisions" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2030,6 +2041,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "long_service_leave" => (
             "2026-11-24",
             "Long Service Leave Act 1955 (NSW) s 4(2)(a) and (a3), in force from 25 March 2021 and from 1 July 2025 (legislation.nsw.gov.au's text in the Internet Archive's captures of 1 February 2022 and 16 December 2025), with NSW Industrial Relations' long service leave page and short guide (February 2026); Long Service Leave Act 2018 (Vic), authorised version 006, ss 6, 9 and 10; Industrial Relations Act 2016 (Qld) s 95, as amended by Act No. 19 of 2020 s 134 (assent 22 June 2020); Long Service Leave Act 1958 (WA) s 8, as amended by Act No. 30 of 2021 (from 20 June 2022); Long Service Leave Act 1987 (SA) s 5, version of 1 July 2017; Long Service Leave Act 1976 (Tas) ss 8, 9 and Schedule 3; Long Service Leave Act 1976 (ACT) R29 ss 3, 4, 11A and 11C, against R28, with WorkSafe ACT's calculation guidelines; Long Service Leave Act 1981 (NT) ss 8 and 10, as in force at 14 October 2015",
+        ),
+        "wip_lockup" => (
+            "2026-11-24",
+            "Ozzit function reference v3.7.0 (oz.WIPDaysλ, oz.ReceivableDaysλ and oz.CashConversionCycleλ, with their examples), on duguid.com.au; the site's tools/wip-schedule page (construction WIP, no lock-up)",
+        ),
+        "impairment_test" => (
+            "2026-11-24",
+            "AASB 136 compilations COMPjan26_07-26 (F2026C01108) and COMPdec22_01-23 with their tables of amendments, paras 6, 9 to 20, 30 to 33, 39 to 57, 59 to 62, 65 to 105, 109 to 125, A20, A21, Appendix C and Illustrative Example 2 (IE23 to IE32)",
         ),
         "leave_provisions" => (
             "2026-11-23",
@@ -3017,6 +3036,26 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "consideration_extent",
                 "fraction, decimal string above 0 and at most 1, default 1: the extent you provide, or are liable to provide, the consideration (ss 11-30(3) and 131-40(2))",
+            ),
+        ],
+        "wip_lockup" => vec![
+            (
+                "bucket_days",
+                "list of 1 to 6 strictly ascending whole numbers from 1 to 3,650: each ageing bucket's last day of age, the last bucket open; default [30, 60, 90]",
+            ),
+            (
+                "days",
+                "whole number from 1 to 3,660: the days fee_revenue and billings cover, 365 for a year, 90 for a rolling quarter; default 365",
+            ),
+        ],
+        "impairment_test" => vec![
+            (
+                "terminal_value",
+                "AUD that may be negative: the stated net cash flow at the end of year n, such as disposal at the end of useful life (paras 39(c) and 52) or the value of the years beyond n (para 33(c)); default nil",
+            ),
+            (
+                "fair_value_less_costs_of_disposal",
+                "AUD from 0: the stated fair value less costs of disposal of the asset or unit, omitted where it cannot be measured (para 20)",
             ),
         ],
         "alcohol_excise" => vec![
@@ -6167,6 +6206,20 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("status", "employed or ends: whether the employee is still employed at end or employment ends on it"),
             ("weekly_pay", "AUD, no more than 1,000,000: the ordinary pay for a week as the Act defines it, already averaged where the Act averages hours or pay"),
         ],
+        "wip_lockup" => vec![
+            ("entries", "list of 1 to 5,000 objects {label, date, amount}: unbilled work in progress, each dated when the work was done (on or before as_at), in AUD from 0 at the firm's valuation basis (charge-out value or cost)"),
+            ("as_at", "YYYY-MM-DD: the date the WIP is aged at, in the year"),
+            ("fee_revenue", "AUD above 0: fee revenue over the days, with WIP at charge-out value, or cost of sales with WIP at cost (oz.WIPDaysλ's RelatedFlow)"),
+            ("receivables", "AUD from 0: trade receivables, the closing balance or the average of opening and closing"),
+            ("billings", "AUD above 0: credit sales billed over the days, on the receivables' GST basis (oz.ReceivableDaysλ's Sales)"),
+        ],
+        "impairment_test" => vec![
+            ("cash_flows", "list of 1 to 50 decimal strings, AUD that may be negative: the stated pre-tax net cash flows of years 1 to n from continuing use, each at the end of its year (AASB 136 paras 33, 39(a) and (b), 50 and 51), excluding financing and tax"),
+            ("discount_rate", "decimal fraction above 0 and at most 1 (100%), at most 6 places, limits of this worksheet rather than AASB 136: the stated pre-tax rate (paras 55, 56 and A20)"),
+            ("assets", "list of 1 to 200 objects {label, carrying_amount, goodwill} and, other than on goodwill, optional floor: the asset tested, or the unit's assets with at most one goodwill line, which needs another asset beside it (para 81), carrying amounts in AUD from 0 (para 6); floor in AUD from 0, the higher of the asset's own fair value less costs of disposal and value in use where measurable (para 105(a) and (b)), default nil"),
+            ("revalued", "boolean: the asset is carried at a revalued amount (para 60); true is refused"),
+            ("non_controlling_interest", "boolean: the unit has a non-controlling interest; true with a goodwill line is refused, as Appendix C grosses the goodwill up"),
+        ],
         "leave_provisions" => vec![
             ("lines", "list of 1 to 500 objects, each {label, leave, hours, hourly_rate, probability, settled_within_12_months} and, when settled_within_12_months is false, {years_to_settlement, salary_growth, discount_rate, can_defer_settlement}: leave is annual or long_service; hours the unused entitlement accumulated at the reporting date (AASB 119 paras 13(a) and 15); hourly_rate in AUD: on a short-term line the rate the entity expects to pay for the leave (para 16), on a long-term line the rate at the reporting date before future salary growth, which salary_growth projects (para 87(b)); probability from 0 to 1 that the entitlement vests and is paid (paras 15 and 72); settled_within_12_months whether the benefit the line belongs to is expected to be settled wholly before 12 months after the reporting date (para 8): the part of a benefit that is not, due within 12 months, is false; years_to_settlement a whole number from 1 to 50 (the part of a long-term benefit due within 12 months takes 1, the nearest whole year); salary_growth and discount_rate decimal fractions from 0 to 1 a year (paras 83 to 87); can_defer_settlement whether the entity has the right at the reporting date to defer settlement for at least 12 months (AASB 101 para 69(d)): for a period beginning before 1 January 2024 only an unconditional right counts (the earlier para 69(d)), and from 1 January 2024 a right with substance that exists at the reporting date (paras 72A and 75A, AASB 2020-1 and AASB 2022-6), so for every period ending in 2020-21 to 2023-24, and a 2024-25 period ending before 31 December 2024, a conditional right is false unless AASB 2020-1 and AASB 2022-6 were applied early"),
             ("defined_benefit_plan", "boolean: the obligation includes a defined benefit plan or other post-employment benefit (AASB 119 paras 26 to 152); true is refused"),
@@ -7726,6 +7779,40 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("status", Text("ends")),
             ("reason", Text("redundancy")),
             ("weekly_pay", Text("1500.00")),
+        ],
+        // Fabricated: a practice's WIP at 30 June 2026.
+        "wip_lockup" => vec![
+            ("year", Text("2025-26")),
+            ("as_at", Text("2026-06-30")),
+            (
+                "entries",
+                Json(
+                    r#"[{"label": "Client A", "date": "2026-06-30", "amount": "5000.00"}, {"label": "Client B", "date": "2026-05-30", "amount": "2500.00"}, {"label": "Client C", "date": "2025-12-01", "amount": "1250.50"}]"#,
+                ),
+            ),
+            ("fee_revenue", Text("300000.00")),
+            ("receivables", Text("60000.00")),
+            ("billings", Text("320000.00")),
+        ],
+        // AASB 136 Illustrative Example 2's Country A unit at the start of 20X2,
+        // dated in 2025-26.
+        "impairment_test" => vec![
+            ("year", Text("2025-26")),
+            (
+                "cash_flows",
+                Json(
+                    r#"["230", "253", "273", "290", "304", "313", "307", "289", "245", "184", "61"]"#,
+                ),
+            ),
+            ("discount_rate", Text("0.15")),
+            (
+                "assets",
+                Json(
+                    r#"[{"label": "Goodwill", "carrying_amount": "1000", "goodwill": true}, {"label": "Identifiable assets", "carrying_amount": "1833", "goodwill": false}]"#,
+                ),
+            ),
+            ("revalued", Flag(false)),
+            ("non_controlling_interest", Flag(false)),
         ],
         "leave_provisions" => vec![
             ("year", Text("2025-26")),

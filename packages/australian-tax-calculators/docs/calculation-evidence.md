@@ -5865,6 +5865,71 @@ offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
 
+## WIP lock-up
+
+Added on 24 November 2026. The site's `tools/wip-schedule` page, read that day
+from the site's main branch, is the construction WIP page for The WIP Tally
+(AASB 15 cost-to-cost progress): it has no calculator script, no ageing and no
+lock-up, and its one worked example is The WIP Tally's own test. The
+definitions mirrored are Ozzit's, published on the site as
+`assets/ozzit-function-reference-v3.7.0.json`: `oz.WIPDaysλ(WIP,
+RelatedFlow, [Days])` and `oz.ReceivableDaysλ(Receivables, Sales, [Days])`,
+each balance / flow x Days with Days defaulting to 365, a nil flow giving
+#DIV/0! and Days of 0 or less #NUM!, and lock-up days as WIP days plus
+receivable days (the WIPDaysλ note). No Standard or Act defines lock-up or
+the ageing buckets.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| O1 | `=oz.WIPDaysλ(42000, 510000)` | **30.0588** |
+| O2 | `=oz.ReceivableDaysλ(125000, 1200000)` | **38.0208** |
+| O3 | `=oz.ReceivableDaysλ(125000, 330000, 90)` | **34.0909** |
+| O4 | O1 and O2 together | lock-up **68.0797** |
+| W1 | as at 30 Jun 2026: $5,000 (age 0), $7,500 (30), $2,500 (31), $4,000 (90), $3,000 (91), $1,250.50 (211); fees $300,000, receivables $60,000, billings $320,000 | buckets **$12,500.00**, **$2,500.00**, **$4,000.00**, **$4,250.50**; WIP days **28.29**, receivable days **68.44**, lock-up **96.73** |
+
+O1 to O3 are the reference's published examples; W1 is made up and worked in
+Python's `decimal`. `tests/wip_lockup.rs` also covers stated buckets, each
+bound on buckets, days and entries, the year boundaries and every refusal.
+
+## Impairment test
+
+Added on 24 November 2026, when the sources were read: AASB 136 compilation
+COMPjan26_07-26 (F2026C01108, periods beginning from 1 July 2026 to before
+1 January 2029) with its tables of amendments, and compilation COMPdec22_01-23
+for earlier periods. Since the August 2015 Standard the tables list changes to
+paras 2 and 140N (AASB 17), Aus2.1, Aus5.1, Aus6.1, Aus6.2, Aus32.1 and
+Aus32.2 (AASB 2016-4), Aus141.1, Appendix E (AASB 1060) and Illustrative
+Example 10 (AASB 2026-1) only; none of paras 6, 18 to 20, 30 to 33, 39, 50 to
+57, 59 to 62, 104 and 105 changed, so the rules applied read the same for
+every reporting period ending in 2020-21 to 2026-27.
+
+Illustrative Example 2 (IE23 to IE32) gives the Country A unit's cash flows
+for 20X2 to 20Y2 (230, 253, 273, 290, 304, 313, 307, 289, 245, 184 and 61) at
+15%, goodwill of 1,000 and identifiable assets of 1,833. Schedule 2 rounds
+each discounted flow to whole units (200, 191, 180, 166, 151, 135, 115, 94,
+70, 45 and 13) and totals 1,360; Schedule 3 recognises 1,473 (goodwill 1,000,
+identifiable assets 473). Unrounded, value in use is 1,361.20 and the loss
+1,471.80 (goodwill 1,000.00, identifiable assets 471.80): each year's present
+value rounds to Schedule 2's figure, and the totals differ only by Schedule
+2's rounding of each line. E2 so reconciles the 2 rounding conventions; it
+does not reproduce Schedule 3's 1,473. I2 to I7 are made up and worked in
+Python's `decimal`.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| E2 | Example 2 as above | value in use **$1,361.20**, loss **$1,471.80**: goodwill $1,000.00, other $471.80 |
+| I2 | goodwill 200, plant 600 with floor 550, building 400; fair value less costs of disposal 700 | loss **$500.00**: goodwill $200, plant $50 at its floor, building **$250** |
+| I3 | goodwill 100, A 500 floor 450, B 300 floor 280; recoverable nil | loss **$900.00**: goodwill $100, A $50, B $20, unallocated **$730** |
+| I4 | recoverable above carrying | no loss |
+| I5 | 12,000, 12,500, 13,000, 13,500, 14,000 and terminal 40,000 at 9.25% | value in use **$75,599.58** |
+| I6 | 3 assets of $100.00, loss $100.00 | **$33.33**, **$33.34**, **$33.33** |
+| I7 | A 300 floor 290, B 300 floor 295, nil, C 700, D 200; loss $100.00 | A and B reach their floors in one round (**$10.00**, **$5.00**); C **$66.11**, D **$18.89** |
+
+`tests/impairment_test.rs` also covers the year boundaries, negative cash
+flows and terminal values, an unmeasurable fair value, floors above carrying
+amount, losses a cent below goodwill and a cent above the carrying amount, a
+non-controlling interest without goodwill and every refusal.
+
 ## Leave provisions
 
 Added on 22 November 2026, when the sources were read: AASB 119 compilation
