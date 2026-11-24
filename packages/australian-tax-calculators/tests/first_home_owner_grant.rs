@@ -891,6 +891,36 @@ fn contract_price_refusals() {
             "{changes}"
         );
     }
+    // Review S2: cap_value includes the contract price, so it cannot be lower.
+    let qld = with(
+        built("qld", "2026-08-01", 900_000, 750_000),
+        json!({"cap_value": "749999"}),
+    );
+    assert_eq!(code(&qld), "first_home_owner_grant.value_invalid");
+    let wa = with(
+        built("wa", "2026-08-01", 900_000, 800_001),
+        json!({"cap_value": "800000"}),
+    );
+    assert_eq!(code(&wa), "first_home_owner_grant.value_invalid");
+    // Review I1: a total that is all contract price, and the same total
+    // without the price.
+    assert_eq!(
+        grant(&built("sa", "2026-08-01", 5_000, 5_000)),
+        (
+            "5000.00".into(),
+            "the grant cannot be more than the consideration".into()
+        )
+    );
+    assert_eq!(
+        code(&case(
+            "sa",
+            "2026-08-01",
+            "built",
+            5_000,
+            &["building_contract"]
+        )),
+        "first_home_owner_grant.below_grant"
+    );
     // The fact agrees with a contract price at or above the grant.
     let agreed = with(
         built("sa", "2026-08-01", 400_000, 15_000),

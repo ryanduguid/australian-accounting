@@ -4155,8 +4155,9 @@ with its variations, but the consideration is the building contract alone
 ACT s 13(6)(b), NT s 13(8)(b); the New South Wales Act could not be
 read); `contract_price` gives it, or `building_contract` states that it is at
 least the grant, so the land never limits a built home's grant.
-`total_value` is the value tested against the cap, except that in Queensland and
-Western Australia `cap_value` gives the value the Act tests where it differs:
+`total_value` is the value tested against the cap, except that in Victoria
+`contract_price` is, and in Queensland and
+Western Australia `cap_value` (at least `contract_price`) gives the value the Act tests where it differs:
 for a home bought, the unencumbered value of the home and land at the
 contract date, tested with the price (the greater of the 2; Qld s 5(6) and
 (7), WA s 14AC(2)); for a home built, the building contract plus the land's

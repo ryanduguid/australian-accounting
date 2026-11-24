@@ -257,8 +257,12 @@ fn north(s: &Scheme, given: Option<&Arg>) -> Result<Option<bool>> {
 /// A home built's contract price, the consideration for the building work
 /// (Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas
 /// s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b)): taken only for a home built,
-/// and never more than `total_value`, which includes it.
-fn contract_price(house: Home, total: &Decimal, given: Option<&Arg>) -> Result<Option<Decimal>> {
+/// and never more than `total_value` or `cap_value`, which both include it.
+fn contract_price(
+    house: Home,
+    (total, cap): (&Decimal, Option<&Decimal>),
+    given: Option<&Arg>,
+) -> Result<Option<Decimal>> {
     let Some(given) = given else {
         return Ok(None);
     };
@@ -269,11 +273,15 @@ fn contract_price(house: Home, total: &Decimal, given: Option<&Arg>) -> Result<O
         );
     }
     let price = value(given, "contract_price")?;
-    if price.gt(total)? {
-        return refuse(
-            "first_home_owner_grant.value_invalid",
-            "contract_price cannot be more than total_value, which includes it.",
-        );
+    for (name, includes) in [("total_value", Some(total)), ("cap_value", cap)] {
+        if let Some(includes) = includes
+            && price.gt(includes)?
+        {
+            return refuse(
+                "first_home_owner_grant.value_invalid",
+                format!("contract_price cannot be more than {name}, which includes it."),
+            );
+        }
     }
     Ok(Some(price))
 }
@@ -346,13 +354,9 @@ pub fn first_home_owner_grant(args: &FirstHomeOwnerGrantArgs) -> Result<Value> {
     let stated = facts(args.facts)?;
     let dollars = value(args.total_value, "total_value")?;
     let north = north(s, args.optional[0])?;
-    let price = contract_price(house, &dollars, args.optional[2])?;
-    let tested = tested(
-        s,
-        house,
-        (&dollars, price.as_ref()),
-        cap_value(s, args.optional[1])?,
-    )?;
+    let cap = cap_value(s, args.optional[1])?;
+    let price = contract_price(house, (&dollars, cap.as_ref()), args.optional[2])?;
+    let tested = tested(s, house, (&dollars, price.as_ref()), cap)?;
     // Every scheme has a rule from 1 July 2025 or earlier.
     let r = s
         .rules
