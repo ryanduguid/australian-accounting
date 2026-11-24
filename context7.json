@@ -16,6 +16,7 @@
     "Use fabricated fixtures for examples. Do not send TFNs, client data or other private financial inputs to public calculators, URLs or hosted checkers.",
     "Super caps: `contribution-caps` for the year's caps and excess, `excess-contributions` for the concessional charge or the non-concessional release, `transfer-balance` for the transfer balance account. Each gives estimates, not determinations.",
     "A worksheet supports human review; it is not an assessment or lodgment. Distinguish a super accrual from evidence of receipt by a fund and distinguish a planning assumption from a statutory calculation.",
-    "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities."
+    "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities.",
+    "`wip-lockup` ages a firm's unbilled WIP and gives WIP, receivable and lock-up days as Ozzit's WIPDays and ReceivableDays define them; lock-up is a management measure, not an accounting result."
   ]
 }

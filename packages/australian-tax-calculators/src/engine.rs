@@ -6414,7 +6414,9 @@ pub use gst_adjustments::{
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 mod leave_provisions;
+mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
+pub use wip_lockup::{WipLockupArgs, wip_lockup};
 mod long_service_leave;
 pub use long_service_leave::{LongServiceLeaveArgs, long_service_leave};
 mod foreign_income_conversion;
@@ -6444,7 +6446,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 132] = [
+const KINDS: [&str; 133] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6562,6 +6564,7 @@ const KINDS: [&str; 132] = [
     "cgt_cost_base_adjustments",
     "payg_instalment",
     "leave_provisions",
+    "wip_lockup",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
