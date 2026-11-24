@@ -68,12 +68,16 @@ fn fields(line: &str, at: usize) -> Result<Vec<String>> {
                     None => return Err(format!("line {at}: an unclosed quote")),
                 }
             }
+            if chars.peek().is_some_and(|&c| c != ',') {
+                return Err(format!("line {at}: text after a closing quote"));
+            }
         }
         while let Some(&c) = chars.peek() {
-            if c == ',' {
-                break;
+            match c {
+                ',' => break,
+                '"' => return Err(format!("line {at}: a quote inside an unquoted field")),
+                _ => field.push(c),
             }
-            field.push(c);
             chars.next();
         }
         out.push(field);
@@ -108,12 +112,45 @@ fn date(cell: &str, at: usize) -> Result<Option<String>> {
     let shaped = parts.len() == 3
         && [2, 2, 4] == [parts[0].len(), parts[1].len(), parts[2].len()]
         && parts.iter().all(|p| p.bytes().all(|b| b.is_ascii_digit()));
-    if !shaped {
+    if !shaped || !on_calendar(&parts) {
         return Err(format!(
             "line {at}: registration date {cell:?} is not DD/MM/YYYY"
         ));
     }
     Ok(Some(format!("{}-{}-{}", parts[2], parts[1], parts[0])))
+}
+
+/// Whether DD, MM and YYYY name a day that exists.
+fn on_calendar(parts: &[&str]) -> bool {
+    let [day, month, year] = [0, 1, 2].map(|i| parts[i].parse::<u32>().unwrap_or(0));
+    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let days = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => 0,
+    };
+    (1..=days).contains(&day)
+}
+
+/// The CSV's records with the line each ends on: a quoted field may hold a line break.
+fn records<'a>(lines: impl Iterator<Item = &'a str>) -> Result<Vec<(usize, String)>> {
+    let (mut out, mut pending) = (Vec::new(), String::new());
+    for (i, line) in lines.enumerate() {
+        if !pending.is_empty() {
+            pending.push('\n');
+        }
+        pending.push_str(line);
+        if pending.matches('"').count() % 2 == 0 {
+            out.push((i + 2, std::mem::take(&mut pending)));
+        }
+    }
+    if pending.is_empty() {
+        Ok(out)
+    } else {
+        Err("an unclosed quote at the end".into())
+    }
 }
 
 fn column(header: &[String], name: &str) -> Result<usize> {
@@ -162,9 +199,8 @@ fn rows(text: &str) -> Result<Counts> {
         .map(|c| column(&header, c))
         .collect::<Result<_>>()?;
     let (mut kept, mut withheld, mut invalid, mut read) = (Vec::new(), 0, 0, 0);
-    for (i, line) in lines.enumerate() {
-        let at = i + 2;
-        let cells = fields(line, at)?;
+    for (at, record) in records(lines)? {
+        let cells = fields(&record, at)?;
         if cells.len() != header.len() {
             return Err(format!(
                 "line {at}: {} fields, not {}",
@@ -173,6 +209,11 @@ fn rows(text: &str) -> Result<Counts> {
             ));
         }
         read += 1;
+        // Checked before a row is dropped, so a malformed row stops the build.
+        let (registered, items) = (
+            date(&cells[registered], at)?,
+            subtype_items(&cells, &subtypes, at)?,
+        );
         if cells[abn].is_empty() {
             withheld += 1;
             continue;
@@ -181,12 +222,7 @@ fn rows(text: &str) -> Result<Counts> {
             invalid += 1;
             continue;
         }
-        kept.push((
-            cells[abn].clone(),
-            cells[name].clone(),
-            date(&cells[registered], at)?,
-            subtype_items(&cells, &subtypes, at)?,
-        ));
+        kept.push((cells[abn].clone(), cells[name].clone(), registered, items));
     }
     kept.sort_by(|a, b| a.0.cmp(&b.0));
     if let Some(pair) = kept.windows(2).find(|p| p[0].0 == p[1].0) {
@@ -232,7 +268,8 @@ fn arguments() -> Result<(String, String)> {
     };
     let last_modified = value("--last-modified")?;
     let sha256 = value("--sha256")?;
-    let dated = last_modified.len() >= 10
+    let dated = last_modified.is_ascii()
+        && last_modified.len() >= 10
         && last_modified.get(4..5) == Some("-")
         && last_modified.get(7..8) == Some("-");
     if !dated || sha256.len() != 64 || !sha256.bytes().all(|b| b.is_ascii_hexdigit()) {

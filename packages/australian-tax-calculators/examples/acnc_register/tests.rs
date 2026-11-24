@@ -67,6 +67,20 @@ fn keeps_the_named_columns_sorted_and_drops_a_withheld_abn() {
 }
 
 #[test]
+fn keeps_a_line_break_inside_quotes_and_a_leap_day() {
+    let text = file(&[row(
+        "23000000004",
+        "\"Line one\r\nline two\"",
+        "29/02/2024",
+        &[],
+    )]);
+    let read = rows(&text).unwrap();
+    assert_eq!(read.kept[0].1, "Line one\nline two");
+    assert_eq!(read.kept[0].2.as_deref(), Some("2024-02-29"));
+    assert_eq!(read.read, 1);
+}
+
+#[test]
 fn stops_on_anything_it_cannot_read() {
     let bad = [
         (
@@ -96,6 +110,24 @@ fn stops_on_anything_it_cannot_read() {
             "fields, not",
         ),
         (file(&[]).replace("PBI", "Other"), "no PBI column"),
+        (
+            file(&[row("23000000004", "\"A\"tail", "", &[])]),
+            "after a closing quote",
+        ),
+        (
+            file(&[row("23000000004", "A\"B\"", "", &[])]),
+            "inside an unquoted field",
+        ),
+        (
+            file(&[row("23000000004", "A", "31/02/2026", &[])]),
+            "DD/MM/YYYY",
+        ),
+        // A row dropped for its ABN still stops the build when malformed.
+        (file(&[row("", "A", "2012-12-03", &[])]), "DD/MM/YYYY"),
+        (
+            file(&[row("42000000004", "A", "", &[2]).replace(",Y", ",N")]),
+            "not Y or blank",
+        ),
     ];
     for (text, why) in bad {
         let error = rows(&text).unwrap_err();
