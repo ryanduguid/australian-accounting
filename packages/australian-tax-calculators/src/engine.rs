@@ -6647,6 +6647,7 @@ fn evidence_heading(kind: &str) -> String {
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         "ato_interest_penalties" => "ato-penalties-and-interest".into(),
         "pcg_2021_4" => "pcg-20214".into(),
+        "wip_lockup" => "wip-lock-up".into(),
         _ => kind.replace('_', "-"),
     }
 }
