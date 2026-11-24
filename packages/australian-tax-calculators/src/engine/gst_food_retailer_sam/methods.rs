@@ -8,8 +8,8 @@ use serde_json::Value;
 
 use super::super::stated::{amount, known_keys};
 use super::super::{Arg, Result, Step, d, money, rate, refuse, step};
-use super::facts::{Given, Period, Sample, sample, started, window};
 use super::Method;
+use super::facts::{Given, Period, Sample, sample, started, window};
 use crate::decimal::Decimal;
 
 type Rates = Vec<(String, String)>;
@@ -21,7 +21,8 @@ const PHARMACY_SALES: &str = "F2017L01274 s 5(3)(a): PBS prescription sales, plu
 const PHARMACY_PURCHASES: &str = "F2017L01274 s 5(3)(b), as the ATO reads it ('Pharmacies that also sell food'): 0% of non-PBS prescription and 2% of over-the-counter trading stock purchases";
 const EVERY: &str = "F2017L01274 s 6(3) (and s 7(4)(a)): actual GST-free trading acquisitions; GST-free sales as their share of trading stock acquisitions times total trading sales";
 const PURCHASE_SAMPLE: &str = "F2017L01274 s 6(4) (and s 7(3)(a)): the 4-week sample period percentage of GST-free trading acquisitions";
-const SALES_SAMPLE: &str = "F2017L01274 s 7(3)(b): the 2-week sample period percentage of GST-free trading sales";
+const SALES_SAMPLE: &str =
+    "F2017L01274 s 7(3)(b): the 2-week sample period percentage of GST-free trading sales";
 const MARKUP: &str = "F2017L01274 s 6(6)(b) (and s 7(7)): each product line resold GST-free, its GST-free acquisitions with its mark-up";
 const SUPERMARKET: &str = "F2025L01055 s 7(1), input tax credits steps 1 to 7";
 const RESTAURANT: &str = "F2026L01275 s 7: the relevant 4-week sample period's proportion of GST-free trading stock acquisitions, then one-eleventh of the rest";
@@ -51,7 +52,12 @@ const NORM_TABLE: [(&str, &str, &str); 9] = [
     ("rural_convenience_store reseller", "30", "30"),
 ];
 
-pub(super) fn work(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Result<Worked> {
+pub(super) fn work(
+    m: Method,
+    given: &Given,
+    period: &Period,
+    purchases: &Decimal,
+) -> Result<Worked> {
     match m {
         Method::BusinessNorms => business_norms(given, purchases),
         Method::StockEvery | Method::SnapEvery => every(m, given, period, purchases),
@@ -63,16 +69,25 @@ pub(super) fn work(m: Method, given: &Given, period: &Period, purchases: &Decima
 }
 
 fn exceeds<T>(what: &str) -> Result<T> {
-    refuse("gst_food_retailer_sam.amount_exceeds_total", format!("{what}."))
+    refuse(
+        "gst_food_retailer_sam.amount_exceeds_total",
+        format!("{what}."),
+    )
 }
 
 fn nil<T>(what: &str) -> Result<T> {
-    refuse("gst_food_retailer_sam.total_nil", format!("{what} must be more than nil for this method."))
+    refuse(
+        "gst_food_retailer_sam.total_nil",
+        format!("{what} must be more than nil for this method."),
+    )
 }
 
 fn role(given: &Given, allowed: &[&str]) -> Result<&'static str> {
     let value = given.need("stock_role")?;
-    match ["converter", "reseller"].into_iter().find(|r| Some(*r) == value.text()) {
+    match ["converter", "reseller"]
+        .into_iter()
+        .find(|r| Some(*r) == value.text())
+    {
         Some(found) if allowed.contains(&found) => Ok(found),
         _ => refuse(
             "gst_food_retailer_sam.stock_role_invalid",
@@ -90,27 +105,60 @@ fn sales(given: &Given) -> Result<Decimal> {
 }
 
 fn rest(id: &'static str, total: &str, part: &str, a: &Decimal, b: &Decimal) -> Result<Step> {
-    Ok(step(id, REST, &format!("{total} - {part}"), &[a, b], a.sub(b)?))
+    Ok(step(
+        id,
+        REST,
+        &format!("{total} - {part}"),
+        &[a, b],
+        a.sub(b)?,
+    ))
 }
 
 /// `base x percent / 100`.
-fn percent(id: &'static str, auth: &'static str, names: (&str, &str), base: &Decimal, pct: &Decimal) -> Result<Step> {
+fn percent(
+    id: &'static str,
+    auth: &'static str,
+    names: (&str, &str),
+    base: &Decimal,
+    pct: &Decimal,
+) -> Result<Step> {
     let value = base.mul(pct)?.div(&d("100"))?;
-    Ok(step(id, auth, &format!("{} x {} / 100", names.0, names.1), &[base, pct], value))
+    Ok(step(
+        id,
+        auth,
+        &format!("{} x {} / 100", names.0, names.1),
+        &[base, pct],
+        value,
+    ))
 }
 
 /// `base x part / whole`.
-fn share(id: &'static str, auth: &'static str, names: [&str; 3], values: [&Decimal; 3]) -> Result<Step> {
+fn share(
+    id: &'static str,
+    auth: &'static str,
+    names: [&str; 3],
+    values: [&Decimal; 3],
+) -> Result<Step> {
     let value = values[0].mul(values[1])?.div(values[2])?;
     let formula = format!("{} x {} / {}", names[0], names[1], names[2]);
     Ok(step(id, auth, &formula, &values, value))
 }
 
 /// The sales pair then the purchases pair, from the GST-free steps given.
-fn pairs(sales: Option<(&Decimal, Step)>, purchases: &Decimal, gst_free: Step) -> Result<Vec<Step>> {
+fn pairs(
+    sales: Option<(&Decimal, Step)>,
+    purchases: &Decimal,
+    gst_free: Step,
+) -> Result<Vec<Step>> {
     let mut steps = Vec::new();
     if let Some((total, free)) = sales {
-        let other = rest("other_sales", "total_sales", "gst_free_sales", total, &free.value)?;
+        let other = rest(
+            "other_sales",
+            "total_sales",
+            "gst_free_sales",
+            total,
+            &free.value,
+        )?;
         steps.extend([free, other]);
     }
     let other = rest(
@@ -147,7 +195,13 @@ fn business_norms(given: &Given, purchases: &Decimal) -> Result<Worked> {
     given.done()?;
     let (_, s, p) = NORM_TABLE.iter().find(|row| row.0 == key).expect("a norm");
     let names = |n| ("total_sales", n);
-    let free_sales = percent("gst_free_sales", NORMS, names("sales_norm_percent"), &sales, &d(s))?;
+    let free_sales = percent(
+        "gst_free_sales",
+        NORMS,
+        names("sales_norm_percent"),
+        &sales,
+        &d(s),
+    )?;
     let free = percent(
         "gst_free_purchases",
         NORMS,
@@ -155,50 +209,89 @@ fn business_norms(given: &Given, purchases: &Decimal) -> Result<Worked> {
         purchases,
         &d(p),
     )?;
-    let rates = vec![rate("sales_norm_percent", s), rate("purchases_norm_percent", p)];
+    let rates = vec![
+        rate("sales_norm_percent", s),
+        rate("purchases_norm_percent", p),
+    ];
     Ok((pairs(Some((&sales, free_sales)), purchases, free)?, rates))
 }
 
-fn rural(given: &Given, key: &str, sales: &Decimal, purchases: &Decimal) -> Result<Worked> {
+/// `a x n / 100`.
+fn of(a: &Decimal, n: &str) -> Result<Decimal> {
+    Ok(a.mul(&d(n))?.div(&d("100"))?)
+}
+
+/// The fuel and Australia Post agency amounts, at most the totals.
+fn fuel_and_post(
+    given: &Given,
+    sales: &Decimal,
+    purchases: &Decimal,
+) -> Result<(Decimal, Decimal)> {
     let fuel_sales = money(given.need("fuel_and_post_sales")?)?;
     let fuel_purchases = money(given.need("fuel_and_post_purchases")?)?;
     given.done()?;
     if fuel_sales.gt(sales)? || fuel_purchases.gt(purchases)? {
-        return exceeds("fuel_and_post_sales and fuel_and_post_purchases cannot exceed total_sales and trading_stock_purchases");
+        return exceeds(
+            "fuel_and_post_sales and fuel_and_post_purchases cannot exceed total_sales and trading_stock_purchases",
+        );
     }
+    Ok((fuel_sales, fuel_purchases))
+}
+
+fn rural(given: &Given, key: &str, sales: &Decimal, purchases: &Decimal) -> Result<Worked> {
+    let (fuel_sales, fuel_purchases) = fuel_and_post(given, sales, purchases)?;
     let (_, s, p) = NORM_TABLE.iter().find(|row| row.0 == key).expect("a norm");
-    let net = |a: &Decimal, b: &Decimal, n: &str| -> Result<Decimal> { Ok(a.sub(b)?.mul(&d(n))?.div(&d("100"))?) };
     let free_sales = step(
         "gst_free_sales",
         RURAL,
         "(total_sales - fuel_and_post_sales) x sales_norm_percent / 100",
         &[sales, &fuel_sales, &d(s)],
-        net(sales, &fuel_sales, s)?,
+        of(&sales.sub(&fuel_sales)?, s)?,
     );
     let free = step(
         "gst_free_purchases",
         RURAL,
         "(trading_stock_purchases - fuel_and_post_purchases) x purchases_norm_percent / 100",
         &[purchases, &fuel_purchases, &d(p)],
-        net(purchases, &fuel_purchases, p)?,
+        of(&purchases.sub(&fuel_purchases)?, p)?,
     );
-    let rates = vec![rate("sales_norm_percent", s), rate("purchases_norm_percent", p)];
+    let rates = vec![
+        rate("sales_norm_percent", s),
+        rate("purchases_norm_percent", p),
+    ];
     Ok((pairs(Some((sales, free_sales)), purchases, free)?, rates))
 }
 
-fn pharmacy(given: &Given, purchases: &Decimal) -> Result<Worked> {
-    let sales = sales(given)?;
-    let read = |k| -> Result<Decimal> { money(given.need(k)?) };
-    let (pbs, non_pbs, otc) = (read("pbs_sales")?, read("non_pbs_sales")?, read("otc_sales")?);
-    let (non_pbs_p, otc_p) = (read("non_pbs_purchases")?, read("otc_purchases")?);
+/// A pharmacy's 3 sales and 2 purchase components, which must add up to the
+/// totals: PBS, non-PBS and over-the-counter sales, then non-PBS and
+/// over-the-counter purchases.
+fn pharmacy_parts(given: &Given, sales: &Decimal, purchases: &Decimal) -> Result<[Decimal; 5]> {
+    let mut parts = Vec::new();
+    for key in [
+        "pbs_sales",
+        "non_pbs_sales",
+        "otc_sales",
+        "non_pbs_purchases",
+        "otc_purchases",
+    ] {
+        parts.push(money(given.need(key)?)?);
+    }
     given.done()?;
-    if !pbs.add(&non_pbs)?.add(&otc)?.equals(&sales)? || !non_pbs_p.add(&otc_p)?.equals(purchases)? {
+    let sold = parts[0].add(&parts[1])?.add(&parts[2])?;
+    let bought = parts[3].add(&parts[4])?;
+    if !sold.equals(sales)? || !bought.equals(purchases)? {
         return refuse(
             "gst_food_retailer_sam.components_unbalanced",
             "pbs_sales, non_pbs_sales and otc_sales must add up to total_sales, and non_pbs_purchases and otc_purchases to trading_stock_purchases: s 5(3)(b) gives no norm for any other purchase.",
         );
     }
-    let value = pbs.add(&non_pbs.mul(&d("98"))?.div(&d("100"))?)?.add(&otc.mul(&d("47.5"))?.div(&d("100"))?)?;
+    Ok(parts.try_into().expect("5 parts"))
+}
+
+fn pharmacy(given: &Given, purchases: &Decimal) -> Result<Worked> {
+    let sales = sales(given)?;
+    let [pbs, non_pbs, otc, non_pbs_p, otc_p] = pharmacy_parts(given, &sales, purchases)?;
+    let value = pbs.add(&of(&non_pbs, "98")?)?.add(&of(&otc, "47.5")?)?;
     let free_sales = step(
         "gst_free_sales",
         PHARMACY_SALES,
@@ -211,7 +304,7 @@ fn pharmacy(given: &Given, purchases: &Decimal) -> Result<Worked> {
         PHARMACY_PURCHASES,
         "non_pbs_purchases x non_pbs_purchases_norm_percent / 100 + otc_purchases x otc_purchases_norm_percent / 100",
         &[&non_pbs_p, &d("0"), &otc_p, &d("2")],
-        otc_p.mul(&d("2"))?.div(&d("100"))?,
+        of(&otc_p, "2")?,
     );
     let rates = vec![
         rate("non_pbs_sales_norm_percent", "98"),
@@ -228,7 +321,13 @@ fn actual(given: &Given, purchases: &Decimal) -> Result<Step> {
     if free.gt(purchases)? {
         return exceeds("gst_free_purchases cannot exceed trading_stock_purchases");
     }
-    Ok(step("gst_free_purchases", EVERY, "gst_free_purchases", &[&free], free.clone()))
+    Ok(step(
+        "gst_free_purchases",
+        EVERY,
+        "gst_free_purchases",
+        &[&free],
+        free.clone(),
+    ))
 }
 
 /// The 2017 sample window for the tax period's half, or the first 2 months
@@ -244,7 +343,12 @@ fn half_window(given: &Given, period: &Period) -> Result<(i64, i64)> {
     Ok(window(period, july_half, started))
 }
 
-fn sales_from_sample(given: &Given, sales: &Decimal, win: (i64, i64), rates: &mut Rates) -> Result<Step> {
+fn sales_from_sample(
+    given: &Given,
+    sales: &Decimal,
+    win: (i64, i64),
+    rates: &mut Rates,
+) -> Result<Step> {
     let s = sample(given.need("sales_sample")?, "sales_sample", 14, win)?;
     rates.extend(sample_rates("sales_sample", &s));
     share(
@@ -275,7 +379,11 @@ fn every(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Resu
         share(
             "gst_free_sales",
             EVERY,
-            ["total_sales", "gst_free_purchases", "trading_stock_purchases"],
+            [
+                "total_sales",
+                "gst_free_purchases",
+                "trading_stock_purchases",
+            ],
             [&sales, &free.value, purchases],
         )?
     } else {
@@ -287,13 +395,22 @@ fn every(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Resu
     Ok((pairs(Some((&sales, free_sales)), purchases, free)?, rates))
 }
 
-fn purchases_from_sample(given: &Given, purchases: &Decimal, win: (i64, i64), rates: &mut Rates) -> Result<(Step, Sample)> {
+fn purchases_from_sample(
+    given: &Given,
+    purchases: &Decimal,
+    win: (i64, i64),
+    rates: &mut Rates,
+) -> Result<(Step, Sample)> {
     let s = sample(given.need("purchases_sample")?, "purchases_sample", 28, win)?;
     rates.extend(sample_rates("purchases_sample", &s));
     let free = share(
         "gst_free_purchases",
         PURCHASE_SAMPLE,
-        ["trading_stock_purchases", "purchases_sample_gst_free", "purchases_sample_total"],
+        [
+            "trading_stock_purchases",
+            "purchases_sample_gst_free",
+            "purchases_sample_total",
+        ],
         [purchases, &s.gst_free, &s.total],
     )?;
     Ok((free, s))
@@ -311,7 +428,11 @@ fn samples(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Re
         share(
             "gst_free_sales",
             PURCHASE_SAMPLE,
-            ["total_sales", "purchases_sample_gst_free", "purchases_sample_total"],
+            [
+                "total_sales",
+                "purchases_sample_gst_free",
+                "purchases_sample_total",
+            ],
             [&sales, &s.gst_free, &s.total],
         )?
     } else {
@@ -324,10 +445,16 @@ fn samples(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Re
 /// Each product line resold GST-free: its GST-free purchases and mark-up.
 fn lines(given: &Given, rates: &mut Rates) -> Result<(Step, Decimal)> {
     let Arg::Json(Value::Array(items)) = given.need("product_lines")? else {
-        return refuse("input.not_object", "product_lines must be a list of 1 to 50 product lines.");
+        return refuse(
+            "input.not_object",
+            "product_lines must be a list of 1 to 50 product lines.",
+        );
     };
     if items.is_empty() || items.len() > 50 {
-        return refuse("input.count_invalid", "product_lines must hold 1 to 50 product lines.");
+        return refuse(
+            "input.count_invalid",
+            "product_lines must hold 1 to 50 product lines.",
+        );
     }
     let (mut parts, mut operands, mut total, mut bought) = (Vec::new(), Vec::new(), d("0"), d("0"));
     for (i, item) in items.iter().enumerate() {
@@ -335,9 +462,20 @@ fn lines(given: &Given, rates: &mut Rates) -> Result<(Step, Decimal)> {
         let Value::Object(fields) = item else {
             return refuse("input.not_object", format!("{name} must be an object."));
         };
-        known_keys(fields, &name, "a product line", &["gst_free_purchases", "markup_percent"])?;
-        let (cost, markup) = (amount(fields, &name, "gst_free_purchases")?, amount(fields, &name, "markup_percent")?);
-        let (p, m) = (format!("line_{}_gst_free_purchases", i + 1), format!("line_{}_markup_percent", i + 1));
+        known_keys(
+            fields,
+            &name,
+            "a product line",
+            &["gst_free_purchases", "markup_percent"],
+        )?;
+        let (cost, markup) = (
+            amount(fields, &name, "gst_free_purchases")?,
+            amount(fields, &name, "markup_percent")?,
+        );
+        let (p, m) = (
+            format!("line_{}_gst_free_purchases", i + 1),
+            format!("line_{}_markup_percent", i + 1),
+        );
         parts.push(format!("{p} x (100 + {m}) / 100"));
         total = total.add(&cost.mul(&d("100").add(&markup)?)?.div(&d("100"))?)?;
         bought = bought.add(&cost)?;
@@ -345,7 +483,10 @@ fn lines(given: &Given, rates: &mut Rates) -> Result<(Step, Decimal)> {
         operands.extend([cost, markup]);
     }
     let refs: Vec<&Decimal> = operands.iter().collect();
-    Ok((step("gst_free_sales", MARKUP, &parts.join(" + "), &refs, total), bought))
+    Ok((
+        step("gst_free_sales", MARKUP, &parts.join(" + "), &refs, total),
+        bought,
+    ))
 }
 
 fn five(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Result<Worked> {
@@ -389,7 +530,13 @@ fn supermarket(given: &Given, purchases: &Decimal) -> Result<Worked> {
     if free.gt(&sales)? {
         return exceeds("gst_free_sales cannot exceed total_sales");
     }
-    let free_sales = step("gst_free_sales", SUPERMARKET, "gst_free_sales", &[&free], free.clone());
+    let free_sales = step(
+        "gst_free_sales",
+        SUPERMARKET,
+        "gst_free_sales",
+        &[&free],
+        free.clone(),
+    );
     let free_purchases = share(
         "gst_free_purchases",
         SUPERMARKET,
@@ -411,9 +558,17 @@ fn restaurant(given: &Given, period: &Period, purchases: &Decimal) -> Result<Wor
         );
     };
     let mut rates = Rates::new();
-    let (free, _) = purchases_from_sample(given, purchases, window(period, july_half, started), &mut rates)?;
+    let (free, _) = purchases_from_sample(
+        given,
+        purchases,
+        window(period, july_half, started),
+        &mut rates,
+    )?;
     given.done()?;
-    let free = Step { authority: RESTAURANT, ..free };
+    let free = Step {
+        authority: RESTAURANT,
+        ..free
+    };
     let mut steps = pairs(None, purchases, free)?;
     let other = steps.last().expect("other_purchases").value.clone();
     steps.push(credits(RESTAURANT, &other)?);

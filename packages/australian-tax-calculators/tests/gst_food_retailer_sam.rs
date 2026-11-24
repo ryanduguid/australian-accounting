@@ -286,7 +286,14 @@ fn restaurant_method_starts_on_24_september_2026() {
 
 #[test]
 fn eligibility_and_inputs_are_refused_by_name() {
-    let norms = || input("business_norms", "1.00", "1.00", json!({"retailer_type": "cake_shop"}));
+    let norms = || {
+        input(
+            "business_norms",
+            "1.00",
+            "1.00",
+            json!({"retailer_type": "cake_shop"}),
+        )
+    };
     let mut v = norms();
     v["eligibility"]["sam_turnover"] = json!("2000000.01");
     assert_eq!(code(&v), "gst_food_retailer_sam.not_eligible");
@@ -295,11 +302,23 @@ fn eligibility_and_inputs_are_refused_by_name() {
     v["eligibility"]["adequate_point_of_sale_equipment"] = json!(true);
     assert_eq!(code(&v), "gst_food_retailer_sam.not_eligible");
     let cases = [
-        (json!({"retailer_type": "bakery"}), "gst_food_retailer_sam.retailer_type_invalid"),
+        (
+            json!({"retailer_type": "bakery"}),
+            "gst_food_retailer_sam.retailer_type_invalid",
+        ),
         (json!({"gst_free_sales": "1.00"}), "input.field_unknown"),
-        (json!({"method": "prisons"}), "gst_food_retailer_sam.method_invalid"),
-        (json!({"tax_period_end": "2026-07-01"}), "gst_food_retailer_sam.tax_period_invalid"),
-        (json!({"retailer_type": "convenience_store"}), "input.missing_field"),
+        (
+            json!({"method": "prisons"}),
+            "gst_food_retailer_sam.method_invalid",
+        ),
+        (
+            json!({"tax_period_end": "2026-07-01"}),
+            "gst_food_retailer_sam.tax_period_invalid",
+        ),
+        (
+            json!({"retailer_type": "convenience_store"}),
+            "input.missing_field",
+        ),
     ];
     for (change, want) in cases {
         let mut v = norms();
@@ -327,7 +346,10 @@ fn what_the_determinations_do_not_allow_is_refused() {
                "purchases_sample": sample("2025-06-01", "2025-06-28", "1.00", "2.00")}),
     );
     across["tax_period_end"] = json!("2026-06-30");
-    assert_eq!(code(&across), "gst_food_retailer_sam.tax_period_spans_halves");
+    assert_eq!(
+        code(&across),
+        "gst_food_retailer_sam.tax_period_spans_halves"
+    );
     across["tax_period_end"] = json!("2025-09-30");
     across["purchases_sample"] = sample("2025-06-01", "2025-06-27", "1.00", "2.00");
     assert_eq!(code(&across), "gst_food_retailer_sam.sample_invalid");
@@ -338,7 +360,10 @@ fn what_the_determinations_do_not_allow_is_refused() {
         json!({"retailer_type": "pharmacy", "pbs_sales": "50.00", "non_pbs_sales": "10.00",
                "otc_sales": "30.00", "non_pbs_purchases": "50.00", "otc_purchases": "50.00"}),
     );
-    assert_eq!(code(&unbalanced), "gst_food_retailer_sam.components_unbalanced");
+    assert_eq!(
+        code(&unbalanced),
+        "gst_food_retailer_sam.components_unbalanced"
+    );
     let over = input(
         "stock_purchases_every_period",
         "10.00",

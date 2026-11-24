@@ -2846,7 +2846,7 @@ detention determination. It leaves out the choice and its notice, GST on
 sales, other acquisitions' credits, adjustments and which goods are GST-free
 or trading stock. The tests hold it to the ATO's examples (Carlo, Connie,
 Andrew, Valda, Lee, Anita and Anil); see
-[calculation evidence](docs/calculation-evidence.md#gst-food-retailer-simplified-accounting-methods).
+[calculation evidence](docs/calculation-evidence.md#gst-food-retailer-sam).
 
 ## GST margin scheme
 

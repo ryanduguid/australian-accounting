@@ -2487,7 +2487,7 @@ values, under every choice each jurisdiction asks.
 | ACT, new Category B, $80,000, 31 January and 1 February 2027 | Worked by hand from each determination | $3,177.00 and $3,419.00 |
 | Northern Territory, electric, $80,000 | Worked by hand: 300 lots of $100 above $50,000 | $900.00 |
 
-## GST food retailer simplified accounting methods
+## GST food retailer SAM
 
 This worksheet was added on 24 November 2026. These were read that day
 through the Federal Register of Legislation's API (EPUB of each register ID):

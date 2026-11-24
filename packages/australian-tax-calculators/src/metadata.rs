@@ -3566,22 +3566,67 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
         ],
         "gst_food_retailer_sam" => vec![
-            ("total_sales", "AUD: total trading sales for the tax period (F2017L01274 s 8 'trading sales'); for supermarket_sales_percentage the total consideration for all goods sold in the period; required except for restaurant_purchases_snapshot"),
-            ("retailer_type", "business_norms only: cake_shop, continental_delicatessen, convenience_store, fresh_fish_shop, health_food_shop, hot_bread_shop, rural_convenience_store or pharmacy, as F2017L01274 s 8 defines each"),
-            ("stock_role", "converter or reseller (F2017L01274 s 8): required for a convenience store or rural convenience store under business_norms and for the stock purchases methods, which take resellers only"),
-            ("fuel_and_post_sales", "AUD, rural_convenience_store only: trading sales for fuel and the Australia Post agency business, deducted first (s 5(2))"),
-            ("fuel_and_post_purchases", "AUD, rural_convenience_store only: trading stock acquisitions for fuel and the Australia Post agency business"),
+            (
+                "total_sales",
+                "AUD: total trading sales for the tax period (F2017L01274 s 8 'trading sales'); for supermarket_sales_percentage the total consideration for all goods sold in the period; required except for restaurant_purchases_snapshot",
+            ),
+            (
+                "retailer_type",
+                "business_norms only: cake_shop, continental_delicatessen, convenience_store, fresh_fish_shop, health_food_shop, hot_bread_shop, rural_convenience_store or pharmacy, as F2017L01274 s 8 defines each",
+            ),
+            (
+                "stock_role",
+                "converter or reseller (F2017L01274 s 8): required for a convenience store or rural convenience store under business_norms and for the stock purchases methods, which take resellers only",
+            ),
+            (
+                "fuel_and_post_sales",
+                "AUD, rural_convenience_store only: trading sales for fuel and the Australia Post agency business, deducted first (s 5(2))",
+            ),
+            (
+                "fuel_and_post_purchases",
+                "AUD, rural_convenience_store only: trading stock acquisitions for fuel and the Australia Post agency business",
+            ),
             ("pbs_sales", "AUD, pharmacy only: PBS prescription sales"),
-            ("non_pbs_sales", "AUD, pharmacy only: non-PBS prescription sales"),
-            ("otc_sales", "AUD, pharmacy only: over-the-counter sales; the 3 sales components add up to total_sales"),
-            ("non_pbs_purchases", "AUD, pharmacy only: non-PBS prescription trading stock purchases"),
-            ("otc_purchases", "AUD, pharmacy only: over-the-counter trading stock purchases; the 2 purchase components add up to trading_stock_purchases"),
-            ("gst_free_purchases", "AUD: actual GST-free trading stock acquisitions for the tax period, for the every tax period and 5% methods (for snapshot_five_percent, this or purchases_sample)"),
-            ("gst_free_sales", "AUD, supermarket_sales_percentage only: the total consideration for goods sold as GST-free supplies, from the point-of-sale equipment"),
-            ("purchases_sample", "object {start, end, gst_free, total}: a continuous 4-week (28-day) sample of trading stock acquisitions, total and GST-free, in 1 June to 31 July for a tax period in July to December or 1 December to 31 January for one in January to June"),
-            ("sales_sample", "object {start, end, gst_free, total}, snapshot_two_samples and snapshot_every_period only: a continuous 2-week (14-day) sample of trading sales in the same windows"),
-            ("product_lines", "list of 1 to 50 {gst_free_purchases, markup_percent}, the 5% methods only: each product line bought GST-free and resold GST-free in the tax period, with its mark-up as a percentage of cost"),
-            ("trading_started", "YYYY-MM-DD, for a business that started trading in the financial year: a sample then falls in the first 2 months of trading instead"),
+            (
+                "non_pbs_sales",
+                "AUD, pharmacy only: non-PBS prescription sales",
+            ),
+            (
+                "otc_sales",
+                "AUD, pharmacy only: over-the-counter sales; the 3 sales components add up to total_sales",
+            ),
+            (
+                "non_pbs_purchases",
+                "AUD, pharmacy only: non-PBS prescription trading stock purchases",
+            ),
+            (
+                "otc_purchases",
+                "AUD, pharmacy only: over-the-counter trading stock purchases; the 2 purchase components add up to trading_stock_purchases",
+            ),
+            (
+                "gst_free_purchases",
+                "AUD: actual GST-free trading stock acquisitions for the tax period, for the every tax period and 5% methods (for snapshot_five_percent, this or purchases_sample)",
+            ),
+            (
+                "gst_free_sales",
+                "AUD, supermarket_sales_percentage only: the total consideration for goods sold as GST-free supplies, from the point-of-sale equipment",
+            ),
+            (
+                "purchases_sample",
+                "object {start, end, gst_free, total}: a continuous 4-week (28-day) sample of trading stock acquisitions, total and GST-free, in 1 June to 31 July for a tax period in July to December or 1 December to 31 January for one in January to June",
+            ),
+            (
+                "sales_sample",
+                "object {start, end, gst_free, total}, snapshot_two_samples and snapshot_every_period only: a continuous 2-week (14-day) sample of trading sales in the same windows",
+            ),
+            (
+                "product_lines",
+                "list of 1 to 50 {gst_free_purchases, markup_percent}, the 5% methods only: each product line bought GST-free and resold GST-free in the tax period, with its mark-up as a percentage of cost",
+            ),
+            (
+                "trading_started",
+                "YYYY-MM-DD, for a business that started trading in the financial year: a sample then falls in the first 2 months of trading instead",
+            ),
         ],
         "insurance_duty" => vec![
             (
@@ -7451,11 +7496,15 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("stock_role", Text("reseller")),
             (
                 "purchases_sample",
-                Json(r#"{"start": "2025-06-01", "end": "2025-06-28", "gst_free": "29400.00", "total": "60000.00"}"#),
+                Json(
+                    r#"{"start": "2025-06-01", "end": "2025-06-28", "gst_free": "29400.00", "total": "60000.00"}"#,
+                ),
             ),
             (
                 "eligibility",
-                Json(r#"{"same_premises_taxable_and_gst_free_food": true, "sam_turnover": "850000.00", "adequate_point_of_sale_equipment": false}"#),
+                Json(
+                    r#"{"same_premises_taxable_and_gst_free_food": true, "sam_turnover": "850000.00", "adequate_point_of_sale_equipment": false}"#,
+                ),
             ),
         ],
         "gst_going_concern" => vec![

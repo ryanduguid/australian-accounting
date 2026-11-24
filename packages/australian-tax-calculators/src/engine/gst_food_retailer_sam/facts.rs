@@ -204,16 +204,32 @@ pub(super) fn window(period: &Period, july_half: bool, started: Option<i64>) -> 
     }
 }
 
-pub(super) fn sample(value: &Arg, name: &str, days: i64, (low, high): (i64, i64)) -> Result<Sample> {
+pub(super) fn sample(
+    value: &Arg,
+    name: &str,
+    days: i64,
+    (low, high): (i64, i64),
+) -> Result<Sample> {
     let fields = object(value, name)?;
-    known_keys(fields, name, "a sample", &["start", "end", "gst_free", "total"])?;
+    known_keys(
+        fields,
+        name,
+        "a sample",
+        &["start", "end", "gst_free", "total"],
+    )?;
     let date = |key: &str| -> Result<i64> {
         let text = required(fields, name, key)?;
-        date_arg(&Arg::Text(text.as_str().unwrap_or("").to_string()), &format!("{name}.{key}"))
+        date_arg(
+            &Arg::Text(text.as_str().unwrap_or("").to_string()),
+            &format!("{name}.{key}"),
+        )
     };
     let (start, end) = (date("start")?, date("end")?);
     if end - start + 1 != days {
-        return sample_invalid(name, format!("a sample is {days} consecutive days counting both ends"));
+        return sample_invalid(
+            name,
+            format!("a sample is {days} consecutive days counting both ends"),
+        );
     }
     if start < low || end > high {
         let range = format!("{} to {}", dates::format(low), dates::format(high));
