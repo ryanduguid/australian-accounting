@@ -2062,7 +2062,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "deferred_revenue" => (
             "2026-11-24",
-            "AASB 15 compilations of December 2022 (COMPdec22_07-26 and COMPdec22_01-23) with the table of amendments to the Standard, paras 18 to 21, 35 to 45, 47 to 90, 91 to 104, 105 to 108 and B14 to B19",
+            "AASB 15 compilations of December 2022 (COMPdec22_07-26 and COMPdec22_01-23) with the table of amendments to the Standard, paras 18 to 21, 35 to 45, 47 to 90, 91 to 104, 105 to 108 and B14 to B19; AASB 108 compilation no. 3 (F2023C00187), paras 36 to 38",
         ),
         "wip_lockup" => (
             "2026-11-24",
@@ -6316,6 +6316,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("received", "list of 0 to 500 objects {date, amount}: payments the customer made on that date, billed or not, in AUD above 0 totalling no more than contract_amount; receipts settle billings first"),
             ("variable_consideration", "boolean: the price includes variable consideration (paras 50 to 59); true is refused"),
             ("significant_financing_component", "boolean: the contract has a significant financing component (paras 60 to 65); true is refused"),
+            ("estimate_changed", "boolean: the measure of progress or an estimate in it changed over the periods shown (AASB 15 para 43; AASB 108 paras 36 to 38); true is refused"),
         ],
         "wip_lockup" => vec![
             ("entries", "list of 1 to 5,000 objects {label, date, amount}: unbilled work in progress, each dated when the work was done (on or before as_at), in AUD from 0 at the firm's valuation basis (charge-out value or cost)"),
@@ -7947,6 +7948,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ),
             ("variable_consideration", Flag(false)),
             ("significant_financing_component", Flag(false)),
+            ("estimate_changed", Flag(false)),
         ],
         // Fabricated: a practice's WIP at 30 June 2026.
         "wip_lockup" => vec![

@@ -8,9 +8,13 @@
 //! elapsed by day or by whole month (AASB 15 paras 39, 40, B14 and B18) or
 //! milestones reached (para B15). Amounts billed (unconditionally due) less
 //! receipts give the receivable; consideration paid or due against revenue
-//! gives the contract liability or the contract asset (paras 105 to 108). The paragraphs are those of the AASB 15 compilations of
-//! December 2022 (COMPdec22_01-23 and COMPdec22_07-26), read on 24 November
-//! 2026; none of them was amended after 2014. Whether the obligation is
+//! gives the contract liability or the contract asset (paras 105 to 108).
+//! The schedule assumes the measure of progress and its estimates do not
+//! change over the periods shown (AASB 15 para 43; AASB 108 paras 36 to 38).
+//! The paragraphs are those of the AASB 15 compilations of
+//! December 2022 (COMPdec22_01-23 and COMPdec22_07-26) and AASB 108 compilation
+//! no. 3 (F2023C00187), read on 24 November 2026; none of those AASB 15
+//! paragraphs was amended after 2014. Whether the obligation is
 //! satisfied over time and which measure of progress is faithful are the
 //! operator's judgements. The Standard's wording is not reproduced.
 
@@ -38,6 +42,7 @@ pub struct DeferredRevenueArgs<'a> {
     pub received: &'a Arg,
     pub variable_consideration: &'a Arg,
     pub significant_financing_component: &'a Arg,
+    pub estimate_changed: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
@@ -296,8 +301,8 @@ fn schedule(
     Ok(rows)
 }
 
-/// The facts outside the worksheet: variable consideration and a significant
-/// financing component.
+/// The facts outside the worksheet: variable consideration, a significant
+/// financing component and a changed estimate.
 fn excluded(a: &DeferredRevenueArgs) -> Result<()> {
     if flag(a.variable_consideration, "variable_consideration")? {
         return refuse(
@@ -312,6 +317,12 @@ fn excluded(a: &DeferredRevenueArgs) -> Result<()> {
         return refuse(
             "deferred_revenue.financing_component",
             "A significant financing component adjusts the price under AASB 15 paras 60 to 65, which this worksheet does not apply.",
+        );
+    }
+    if flag(a.estimate_changed, "estimate_changed")? {
+        return refuse(
+            "deferred_revenue.estimate_changed",
+            "A change in the measure of progress or its estimates is accounted for prospectively in the period of the change and future periods (AASB 15 para 43; AASB 108 paras 36 to 38), which this worksheet does not model.",
         );
     }
     Ok(())

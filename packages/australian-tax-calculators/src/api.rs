@@ -1475,6 +1475,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("received", Json),
             ("variable_consideration", Raw),
             ("significant_financing_component", Raw),
+            ("estimate_changed", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -4086,8 +4087,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 received: &a[6],
                 variable_consideration: &a[7],
                 significant_financing_component: &a[8],
-                year: &a[9],
-                scope_confirmed: &a[10],
+                estimate_changed: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
             })
         }
         "wip-lockup" => {

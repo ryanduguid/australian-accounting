@@ -255,7 +255,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `residency-tests` | `resides`, `domicile_in_australia`, `permanent_place_of_abode_outside`, `presence`, `usual_place_of_abode_outside`, `intends_to_take_up_residence`, `commonwealth_super`, `resident_elsewhere`, `year`, `scope_confirmed`; see [Residency tests](#residency-tests) |
 | `lodgment-required` | `residency`, `taxable_income`, `dividends_and_franking_credits`, `under_18`, `triggers`, `study_loan`, `working_holiday_maker`, `listed_payment`, `sapto`, `child_support_parent`, `year`, `scope_confirmed`; see [Lodgment required](#lodgment-required) |
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
-| `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `billed`, `received`, `variable_consideration`, `significant_financing_component`, `year`, `scope_confirmed`, and `milestones` when `pattern` is `milestones`; see [Deferred revenue](#deferred-revenue) |
+| `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `billed`, `received`, `variable_consideration`, `significant_financing_component`, `estimate_changed`, `year`, `scope_confirmed`, and `milestones` when `pattern` is `milestones`; see [Deferred revenue](#deferred-revenue) |
 | `wip-lockup` | `entries`, `as_at`, `fee_revenue`, `receivables`, `billings`, `year`, `scope_confirmed`; optional `bucket_days` and `days`; see [WIP lock-up](#wip-lock-up) |
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
@@ -505,7 +505,7 @@ DI2026-157).
 | Residency tests | 2020-21 to 2026-27; one individual's stated judgements on residing, domicile, places of abode, intention and Commonwealth fund membership, and the dates in Australia; no treaty tie-breakers, no part-year dates |
 | Lodgment required | 2020-21 to 2025-26; one individual's own return, not as trustee, partner or agent, no substituted accounting period; residency, stated conditions and exception facts as answered; no child support instrument |
 | Deferred tax | 2020-21 to 2026-27; one company at the s 23(2) rates, Australian income tax only; established carrying amounts, tax bases, losses, recognition judgement and taxable income; no business combinations, uncertain tax treatments, tax-consolidated group members or tax outside profit or loss |
-| Deferred revenue | Performance periods starting in 2020-21 to 2026-27 and of at most 120 months; one performance obligation satisfied over time, its price, allocation and pattern of progress (by day, by whole month or by milestone) established; no variable consideration, financing component or refund liability |
+| Deferred revenue | Performance periods starting in 2020-21 to 2026-27 and of at most 120 months; one performance obligation satisfied over time, its price, allocation and pattern of progress (by day, by whole month or by milestone) established; no variable consideration, financing component, refund liability or changed estimate |
 | WIP lock-up | A date in 2020-21 to 2026-27; the firm's entries, valuation basis, receivables and flows as stated; a management measure, not an accounting or tax result; no recoverability or write-downs |
 | Impairment test | Reporting periods ending in 2020-21 to 2026-27; one asset or cash-generating unit with stated pre-tax cash flows, terminal value, pre-tax rate, fair value less costs of disposal, carrying amounts and floors; no revalued assets, goodwill with a non-controlling interest, reversals or deferred tax |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
@@ -4881,14 +4881,18 @@ needs whole calendar months. Milestone amounts are the operator's measure of
 the progress each depicts. `billed` lists amounts that became unconditionally
 due (an invoice, para 108) and `received` the customer's payments, each by
 date; receipts settle billings first, so a payment before any billing is an
-advance. The schedule assumes the measure of progress does not change over
-the periods shown (para 43). `periods` in the result gives each period end's
+advance. The schedule assumes the measure of progress and its estimates do not
+change over the periods shown (AASB 15 para 43; a change is recognised
+prospectively in the period of the change and future periods under AASB 108
+paras 36 to 38, without restating earlier periods, and is outside this
+schedule). `periods` in the result gives each period end's
 revenue in the period and to date, billings and receipts to date and the
 balances; `amounts` gives those at the last period end.
 
 It refuses variable consideration (paras 50 to 59), a significant financing
 component (paras 60 to 65), consideration above the price (a refund
-liability, para 55), and a performance period starting outside 2020-21 to
+liability, para 55), a changed measure of progress or estimate
+(`estimate_changed`), and a performance period starting outside 2020-21 to
 2026-27 or lasting more than 120 months. See
 [calculation evidence](docs/calculation-evidence.md#deferred-revenue).
 

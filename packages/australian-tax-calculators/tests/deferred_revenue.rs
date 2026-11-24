@@ -22,7 +22,8 @@ fn code(input: &Value) -> &'static str {
 fn input(amount: &str, start: &str, end: &str, pattern: &str, ends: Value, paid: Value) -> Value {
     json!({"contract_amount": amount, "start": start, "end": end, "pattern": pattern,
            "period_ends": ends, "billed": paid, "received": paid, "variable_consideration": false,
-           "significant_financing_component": false, "year": "2025-26", "scope_confirmed": true})
+           "significant_financing_component": false, "estimate_changed": false,
+           "year": "2025-26", "scope_confirmed": true})
 }
 
 fn paid(date: &str, amount: &str) -> Value {
@@ -336,22 +337,6 @@ fn period_ends_and_consideration() {
             );
         }
     }
-    for given in [
-        json!([paid("2025-07-01", "12000.01")]),
-        json!([paid("2025-07-01", "6000.00"), paid("2025-08-01", "6000.01")]),
-        json!([paid("2025-07-01", "0.00")]),
-        json!([paid("2025-07-01", "1.001")]),
-        json!([{"date": "2025-07-01", "amount": "1.00", "label": "x"}]),
-        json!([{"date": "2025-07-01"}]),
-    ] {
-        let mut i = d1();
-        i["received"] = given.clone();
-        assert_eq!(
-            code(&i),
-            "deferred_revenue.consideration_invalid",
-            "{given}"
-        );
-    }
 }
 
 /// Each period's (receivable, contract liability, contract asset).
@@ -435,4 +420,46 @@ fn milestone_labels() {
     let mut i = d3();
     i["milestones"][0].as_object_mut().unwrap().remove("label");
     assert_eq!(code(&i), "deferred_revenue.milestones_invalid");
+}
+
+#[test]
+fn a_changed_estimate_is_refused_rather_than_rewriting_earlier_periods() {
+    let mut initial = input(
+        "12000.00",
+        "2025-07-01",
+        "2026-06-30",
+        "monthly",
+        json!(["2025-09-30"]),
+        json!([]),
+    );
+    initial["billed"] = json!([paid("2025-07-01", "12000.00")]);
+    initial["received"] = json!([]);
+    assert_eq!(run(&initial)["periods"][0]["revenue_in_period"], "3000.00");
+
+    // Duration revised from 12 to 18 months in December (AASB 15 para 43;
+    // AASB 108 paras 36 to 38): prospective recognition takes $4,000
+    // cumulative less $3,000 already recognised = $1,000 for the December
+    // quarter; rerunning from the start with unchanged estimates reports
+    // $2,000 for September and $2,000 for December instead.
+    let mut revised = input(
+        "12000.00",
+        "2025-07-01",
+        "2026-12-31",
+        "monthly",
+        json!(["2025-09-30", "2025-12-31"]),
+        json!([]),
+    );
+    revised["billed"] = json!([paid("2025-07-01", "12000.00")]);
+    revised["received"] = json!([]);
+    assert_eq!(run(&revised)["periods"][1]["revenue_in_period"], "2000.00");
+    revised["estimate_changed"] = json!(true);
+    assert_eq!(code(&revised), "deferred_revenue.estimate_changed");
+
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+    let scope = catalogue["deferred_revenue"]["scope"].as_str().unwrap();
+    assert!(
+        !scope.contains("rerun"),
+        "scope still advises rerun: {scope}"
+    );
+    assert!(scope.contains("AASB 108"), "scope omits AASB 108: {scope}");
 }

@@ -6005,12 +6005,21 @@ rounding remainder and every refusal.
 
 Added on 24 November 2026, when the sources were read: AASB 15 compilation
 COMPdec22_07-26 (periods beginning from 1 July 2026 to before 1 January 2027)
-with its table of amendments to the Standard, and compilation COMPdec22_01-23
-for earlier periods. The table lists no amendment to paras 35 to 45, 105 to
+with its table of amendments to the Standard, compilation COMPdec22_01-23
+for earlier periods, and AASB 108 compilation no. 3 (F2023C00187, paras 36 to
+38). The AASB 15 table lists no amendment to paras 35 to 45, 105 to
 108 or B14 to B19 since the December 2014 Standard (its amended paragraphs are
 5, 26, 27, 29, 97, B1, B34 to B38, B52, B53, B57, B58, B66, B70, Australian
 paragraphs and transition), so the rules applied read the same for every
 period from 2020-21.
+
+Under AASB 15 para 43 and AASB 108 paras 36 to 38, a change in the measure of
+progress or its estimates is recognised prospectively from the change without
+rewriting earlier periods (so a $12,000.00 monthly contract from 1 July 2025
+with $3,000.00 recognised in the September quarter and duration revised from
+12 to 18 months in December takes $4,000.00 cumulative less $3,000.00 already
+recognised = $1,000.00 for December, not $2,000.00 from restarting at 1 July);
+changed estimates are excluded and refused (`estimate_changed`).
 
 Para B18 allows revenue on a straight-line basis where the entity's efforts
 are expended evenly over the performance period; para B15 names milestones
