@@ -1313,6 +1313,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // read is in force from 14 October 2024 (PPSA), and the Corporations
         // Act's ss 9 and 588FL to 588FN read the same from 1 July 2025 with no
         // enacted amendment; critical times are taken within the same years.
+        "aml_cdd_review" => vec!["2026-27"],
         "ppsr_timing" => vec!["2025-26", "2026-27"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
@@ -1847,6 +1848,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
         ),
+        "aml_cdd_review" => (
+            "2026-11-24",
+            "Anti-Money Laundering and Counter-Terrorism Financing Act 2006 ss 5, 11, 26C, 28, 30, 31 and 32, compilation 63 (1 October 2026); Anti-Money Laundering and Counter-Terrorism Financing Rules 2025 ss 5-2, 6-7, 6-8 and 6-20 to 6-24, compilation 1 (31 March 2026); AUSTRAC Step 2: Identify and assess your risks (country risk Basel AML Index bands and FATF/sanctions overrides); AUSTRAC Accountant program starter kit: Step 2 - Use your accounting program; AUSTRAC Determining ownership and control structures; AUSTRAC Reviewing and updating customers' ML/TF risk and KYC information (29 October 2026)",
+        ),
         "ppsr_timing" => (
             "2026-11-20",
             "Personal Property Securities Act 2009 ss 10 ('business day'), 62, 153 and 294, compilation 22 (14 October 2024); Personal Property Securities Regulations 2010, compilation 6 (1 July 2022), which prescribe no day for the s 10 definition; Personal Property Securities (Fees) Determination 2018 ss 2, 4, 5 and 6, as made (from 1 August 2018); Corporations Act 2001 ss 9 ('business day'), 588FL and 588FM, compilation 149 (19 September 2026), the same text in compilation 142 (1 July 2025) and unamended by the Acts listed for its versions from 1 December 2026 to 1 July 2027 (Nos. 61, 35, 38 and 57 of 2026 and 72 of 2025); the Registrar's 'Fees for using the PPSR' page",
@@ -2147,6 +2152,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-11-16",
         ),
         // No Library volume covers the PPSR; the Acts themselves were read.
+        "aml_cdd_review" => (
+            "AML/CTF Act 2006 compilation 63; AML/CTF Rules 2025 compilation 1; AUSTRAC Step 2 country risk and Accountant program starter kit",
+            "AUSTRAC Country A (Basel 5.75 medium), Country B (Basel 5.25 + override high), 25% indirect ownership chain, statutory ECDD and starter-kit vs statutory cadence",
+            "2026-10-29",
+            "2026-11-24",
+        ),
         "ppsr_timing" => (
             "Personal Property Securities Act 2009, compilation 22; Corporations Act 2001, compilation 149",
             "PPSA ss 10, 62 and 153; Corporations Act ss 9 and 588FL",
@@ -4343,6 +4354,104 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
             ),
         ],
+        "aml_cdd_review" => vec![
+            (
+                "basel_aml_score",
+                "decimal string 0.00 to 10.00 (at most 2 decimal places), country_risk only and required: the jurisdiction's Basel AML Index score",
+            ),
+            (
+                "fatf_call_for_action",
+                "boolean, country_risk only and required: true if the jurisdiction is on the FATF Call-for-Action list (blacklist; statutory ECDD under s 32(d))",
+            ),
+            (
+                "fatf_increased_monitoring",
+                "boolean, country_risk only and required: true if the jurisdiction is on the FATF increased monitoring list (grey list; AUSTRAC guidance high-risk override)",
+            ),
+            (
+                "australian_sanctioned_jurisdiction",
+                "boolean, country_risk only and required: true if the jurisdiction is subject to an Australian sanctions regime (country/regime sanctions only, never individual screening)",
+            ),
+            (
+                "entity_kind",
+                "beneficial_ownership only and required: body_corporate or non_body_corporate (AML/CTF Act 2006 s 11(1) vs s 11(2))",
+            ),
+            (
+                "customer_exemption",
+                "beneficial_ownership only and required: none, listed_public_company (Rules s 6-7(1), body_corporate only) or government_body (Rules s 6-7(1A))",
+            ),
+            (
+                "ownership_chains",
+                "JSON list of up to 16 chains, beneficial_ownership only and required: each chain is a list of 1 to 8 percentage strings (>0 to 100, at most 4 decimal places) from one natural person down to the customer",
+            ),
+            (
+                "board_control",
+                "boolean, beneficial_ownership only and required: capacity to control board or governing body composition (s 11(1)(c) or s 11(2)(a))",
+            ),
+            (
+                "financial_operating_policy_control",
+                "boolean, beneficial_ownership only and required: capacity to determine financial and operating policy decisions (s 11(1)(d) or s 11(2)(b))",
+            ),
+            (
+                "voting_power_over_50",
+                "boolean, beneficial_ownership with entity_kind body_corporate only and required: capacity to cast or control more than 50% of votes (s 11(1)(a))",
+            ),
+            (
+                "issued_share_capital_over_50",
+                "boolean, beneficial_ownership with entity_kind body_corporate only and required: directly or indirectly holds more than 50% of qualifying issued share capital (s 11(1)(b))",
+            ),
+            (
+                "last_cdd_date",
+                "YYYY-MM-DD in 2026-07-01 to 2027-06-30, cdd_review only and required: date of initial CDD or the last periodic review",
+            ),
+            (
+                "customer_risk",
+                "cdd_review only and required: low, medium or high (customer ML/TF risk rating under ss 28(3)(b) and 30(1))",
+            ),
+            (
+                "pep_status",
+                "cdd_review only and required: none, foreign, domestic or international_organisation",
+            ),
+            (
+                "smr_continue_relationship",
+                "boolean, cdd_review only and required: true if a suspicious matter reporting obligation arose and designated services continue (s 32(b))",
+            ),
+            (
+                "fatf_call_for_action_jurisdiction",
+                "boolean, cdd_review only and required: true if the customer, beneficial owner or acting/behalf person is present or formed in a FATF Call-for-Action jurisdiction (s 32(d))",
+            ),
+            (
+                "nested_services_relationship",
+                "boolean, cdd_review only and required: true if the designated service is provided as part of a nested services relationship (s 32(e))",
+            ),
+            (
+                "unusual_service_request",
+                "boolean, cdd_review only and required: true if the requested service has no apparent economic or legal purpose or involves unusually complex, large or patterned transactions (s 32(f) and Rules s 6-20)",
+            ),
+            (
+                "virtual_asset_physical_currency",
+                "boolean, cdd_review only and required: true if physical currency is deposited or received in an item 50A virtual asset service (s 32(f) and Rules s 6-22)",
+            ),
+            (
+                "kyc_veracity_doubt",
+                "boolean, cdd_review only and required: true if there are doubts about the adequacy or veracity of previously collected KYC information (s 30(2)(c)(i))",
+            ),
+            (
+                "significant_risk_change",
+                "boolean, cdd_review only and required: true if there is a significant change to the s 28(4) risk matters (s 30(2)(b)(i))",
+            ),
+            (
+                "new_pep_status_change",
+                "boolean, cdd_review only and required: true if the PEP status was newly acquired during the ongoing relationship (Rules s 6-24(1))",
+            ),
+            (
+                "cadence_basis",
+                "cdd_review only and required: austrac_accountant_starter_kit (12/24/36-month guidance defaults), custom_policy (requires policy_review_months) or statutory_only (no fixed interval)",
+            ),
+            (
+                "policy_review_months",
+                "integer 1 to 60, cdd_review with cadence_basis custom_policy only and required: periodic review interval set by the reporting entity's AML/CTF policies",
+            ),
+        ],
         "ppsr_timing" => vec![
             (
                 "registration_time",
@@ -5734,6 +5843,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "aml_cdd_review" => vec![(
+            "question",
+            "country_risk (Basel AML Index band and FATF/sanctions override), beneficial_ownership (25% indirect chain and s 11 control test) or cdd_review (statutory CDD tier, ECDD/SoW-SoF/immediate triggers and periodic review cadence)",
+        )],
         "ppsr_timing" => vec![(
             "question",
             "registration (end time and fee), pmsi (registration deadline for super-priority) or company_grantor (Corporations Act s 588FL time)",
@@ -7092,6 +7205,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // bouquet on the employee's birthday, a property benefit.
         // Constructed: consumer goods described by serial number, registered
         // on 2 March 2026 with no end date asked for.
+        "aml_cdd_review" => vec![
+            ("question", Text("country_risk")),
+            ("basel_aml_score", Text("5.75")),
+            ("fatf_call_for_action", Flag(false)),
+            ("fatf_increased_monitoring", Flag(false)),
+            ("australian_sanctioned_jurisdiction", Flag(false)),
+        ],
         "ppsr_timing" => vec![
             ("question", Text("registration")),
             ("registration_time", Text("2026-03-02T10:30")),

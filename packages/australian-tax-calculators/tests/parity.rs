@@ -29,7 +29,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
-/// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
+/// `tests/fhss.rs`, `tests/aml_cdd_review.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
 /// `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/vic_property_taxes.rs`, `tests/alcohol_excise.rs`, `tests/asic_fees.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
@@ -51,7 +51,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 122] = [
+const NEW_KINDS: [(&str, &str); 123] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -66,6 +66,7 @@ const NEW_KINDS: [(&str, &str); 122] = [
     ("ato-interest-penalties", "ato_interest_penalties"),
     ("transfer-balance", "transfer_balance"),
     ("excess-contributions", "excess_contributions"),
+    ("aml-cdd-review", "aml_cdd_review"),
     ("ppsr-timing", "ppsr_timing"),
     ("foreign-purchaser-surcharge", "foreign_purchaser_surcharge"),
     ("dasp-tax", "dasp_tax"),

@@ -6400,6 +6400,8 @@ mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 mod fhss;
 pub use fhss::{FhssArgs, fhss};
+mod aml_cdd_review;
+pub use aml_cdd_review::aml_cdd_review;
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod individual_offsets;
@@ -6511,7 +6513,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 136] = [
+const KINDS: [&str; 137] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6588,6 +6590,7 @@ const KINDS: [&str; 136] = [
     "fbt_minor_benefit_check",
     "fhss",
     "income_tests",
+    "aml_cdd_review",
     "ppsr_timing",
     "wine_equalisation_tax",
     "vic_property_taxes",

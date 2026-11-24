@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-136 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, ASIC's 2026-27 fees with the late fee for a due and received date, resident and foreign
+137 calculation worksheets for established facts: ordinary GST, fuel tax credits at the ATO's rate for each day from 1 July 2022 with the simplified methods for small claimants, alcohol excise duty at the rate for each day from 1 July 2022 with the manufacturers' remission cap, ASIC's 2026-27 fees with the late fee for a due and received date, resident and foreign
 resident basic income tax, CGT losses and discount, the gains and losses from parcels of shares or units, their cost base after returns of capital, trust and AMIT adjustments and 2 demergers, the small business CGT concessions open for a gain, the foreign resident capital gains withholding a purchaser pays on Australian real property, the small business income tax offset, a HELP debt on each 1 June from 2020 to 2026 with a voluntary repayment's timing, the defined benefit income cap with its assessable excess and reduced untaxed offset, the deductible amount of a foreign pension's undeducted purchase price, whether a scholarship is exempt, the crystallised segment of a super interest at 30 June 2007, the ATO's endorsement review worksheets for charities and DGRs, a company's deferred tax under AASB 112 with its tax expense and rate reconciliation, annual and long service leave provisions under AASB 119 with their current and non-current split, one employee's long service leave under each state and territory's Act, whether an individual must lodge a return under each year's lodgment instrument, the 4 residency tests for an individual, the change in value of trading stock with each item's valuation and the small business choice, when a prepaid expense is deductible, whether Division 35 defers a business activity loss, whether the personal services income rules apply, the employee share scheme discount with its taxing points, reductions and forfeiture exclusion, one quarterly PAYG instalment by the amount, a varied amount, the rate or a varied rate, the ATO's risk zone for an allocation of professional firm profits under PCG 2021/4, a complying SMSF's annual return tax, levy and amount due, the tax on a minor's unearned income at the Division 6AA rates, an employee's working from home, car and self-education deductions, the minimum notice of termination under the National Employment Standards, foreign currency amounts in Australian dollars, the foreign income tax offset with a part-year resident's tax-free threshold, the main residence exemption's taxable share of a gain or loss, one loan's borrowing expenses deduction and a schedule of several loans' deductions over every year, a residential rental property's income, deductions by category and net rent with its effect on tax, a hire purchase agreement's notional interest, a chattel mortgage's interest schedule and input tax credit, a loan's statement with daily interest at changing rates, business capital expenditure (black hole and start-up costs) under s 40-880, ordinary employer FBT, car fringe benefit taxable values
 under the statutory formula and operating cost methods, loan, meal entertainment, car parking, debt waiver, expense payment, property, residual, housing, living-away-from-home allowance, board and tax-exempt body entertainment fringe benefit taxable values, the FBT, deduction and GST credit treatment of entertainment expense lines, whether a 12 week meal entertainment register is valid, depreciation in the start year and later years from 2020-21, the instant asset write-off, a depreciating asset's balancing adjustment with its reduction for private use and CGT event K7, a trade-in's GST on both sides with the old asset's balancing adjustment and the replacement's cost, foreign purchaser duty and land tax surcharges in each state and territory, whether an electric car's fringe benefits are exempt, transfer duty with first home buyer concessions in each state and territory, one employer's payroll tax in each state and territory, Victoria's vacant residential land tax, commercial and industrial property tax and windfall gains tax, an owner's land tax for a full year in each of the 7 jurisdictions that levy it, one employer's workers compensation premium for 2026-27 in each scheme, the duty on a passenger vehicle in each, the duty on a general insurance premium in each, the first home owner grant in each state and territory, a company's franking account with franking deficit tax, its offset and the benchmark rule, an R&D entity's refundable or non-refundable R&D tax offset with the amount a recoupment or feedstock clawback adds to assessable income, wine equalisation tax with the producer rebate under its yearly cap and BAS labels 1C and 1D, luxury car tax on sales and importations with its adjustments, refunds and BAS labels 1E and 1F, the general and shortfall interest charges, failure to lodge and statement penalties before remission and the interest the ATO pays on early payments and overpayments,
 quarterly super guarantee, Schedule 1 PAYG withholding and the gross pay that leaves a stated net, Schedule 5 withholding from back payments, commissions and bonuses by Methods A, B(i) and B(ii), Schedule 15 withholding for working holiday makers, Schedule 9 withholding for seniors and pensioners, Schedule 2 withholding for horticulture and shearing, Schedule 14 additional amounts, daily and casual withholding, withholding where no ABN is quoted, Schedule 3 withholding for entertainers, Schedule 4 return to work payments, Schedule 6 annuities, Schedule 10 voluntary agreements, super contribution caps, the super co-contribution, the low income super tax offset and the spouse contribution tax offset,
@@ -249,6 +249,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `super-crystallisation` | `eligible_service_start`, `interest_value`, `concessional_component`, `post_june_1994_invalidity_component`, `cgt_exempt_component`, `undeducted_contributions`, `untaxed_source`, `income_stream_before_july_2007`, `year`, `scope_confirmed`; see [Super crystallisation](#super-crystallisation) |
 | `endorsement-review` | `worksheet`, `answers`, `year`, `scope_confirmed`; see [Endorsement review](#endorsement-review) |
 | `government-super-amounts` | `income-tests`' 16 components and `residency`, `eligible_income`, `personal_contributions`, `concessional_contributions`, `return_lodged`, `under_71`, `temporary_visa_held`, `non_concessional_within_cap`, `total_super_balance_below_cap`, `year`, `scope_confirmed`; for a spouse contribution all of `spouse_contributions`, `spouse_assessable_income`, `spouse_assessable_fhss_released_amount`, `spouse_reportable_fringe_benefits_total`, `spouse_reportable_employer_super_contributions`, `spouse_excess_concessional_contributions`, `spouse_non_concessional_within_cap` and `spouse_total_super_balance_below_cap`; see [Government super amounts](#government-super-amounts) |
+| `aml-cdd-review` | `question` (`country_risk`, `beneficial_ownership` or `cdd_review`), `year`, `scope_confirmed`, and the inputs for that question; see [AML/CTF CDD review](#amlctf-cdd-review) |
 | `notice-period` | `notice_date`, `service_start`, `excluded_days`, `date_of_birth`, `exclusion`, `year`, `scope_confirmed`; with `exclusion` `specified_period`, `to_avoid_division`; optionally `full_rate_of_pay` and `weekly_hours` together; see [Notice period](#notice-period) |
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
@@ -4465,6 +4466,38 @@ over relying on the standard deduction, not the tax it saves. Given before 2026-
 hold it to the explanatory memorandum's examples 4.1 to 4.4 and the ATO's
 Simon and Yui. `personal-tax-estimate` applies the same deduction to a whole
 year's labour income.
+
+## AML/CTF CDD review
+
+`aml-cdd-review` provides deterministic, zero-personal-data checks for Australian
+AML/CTF Tranche 2 customer due diligence (CDD) in `2026-27` (designated services
+provided at or through a permanent establishment in Australia, AML/CTF Act 2006
+s 30(2)), using 3 questions:
+
+- `country_risk`: maps a jurisdiction's Basel AML Index score (`0.00` to `10.00`,
+  up to 2 decimal places) to AUSTRAC's published bands (`0.00` to `5.00` low,
+  `5.01` to `6.00` medium, `6.01` to `10.00` high), applies AUSTRAC's high-risk
+  override for FATF grey/blacklists and Australian country-sanctions regimes,
+  and flags statutory enhanced CDD (`s 32(d)`) and source of wealth/funds
+  (`AML/CTF Rules 2025 s 6-21`) when `fatf_call_for_action` is `true`.
+- `beneficial_ownership`: computes exact combined effective ownership across up
+  to 16 indirect chains (up to 8 layers each) for one natural person against the
+  25% statutory threshold (`AML/CTF Act 2006 s 5`), evaluates the `s 11(1)`
+  (body corporate) or `s 11(2)` (non-body corporate) control limbs, applies
+  `AML/CTF Rules 2025 s 6-7(1)` and `s 6-7(1A)` exemptions (`listed_public_company`
+  and `government_body`), and notes the `s 6-8` CEO fallback.
+- `cdd_review`: determines the statutory CDD tier (`simplified_permitted` under
+  `s 31`, `standard` under `ss 28` and `30`, or `enhanced_mandatory` under
+  `s 32` and `Rules ss 6-20` and `6-22`), mandatory source of wealth and funds
+  triggers (`Rules ss 6-21` to `6-23`), immediate event-driven review triggers
+  (`s 30(2)(b)-(c)` and `Rules s 6-24`), and the next periodic review date under
+  `cadence_basis`: `austrac_accountant_starter_kit` (12, 24 or 36 months,
+  explicitly labelled as non-statutory AUSTRAC starter-kit guidance; refuses low
+  or medium starter-kit cadence when statutory ECDD is triggered),
+  `custom_policy` (`policy_review_months` 1 to 60), or `statutory_only` (no
+  fixed statutory calendar interval).
+
+See [calculation evidence](docs/calculation-evidence.md#aml-cdd-review).
 
 ## Notice period
 

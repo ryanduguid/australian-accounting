@@ -307,6 +307,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An ordinary taxable employer's board fringe benefits (FBTAA s 35) in the FBT year ended 31 March 2026 or 2027: meals provided to employees, or their associates, that are board meals (s 136(1)), such as meals an employee entitled to accommodation and at least 2 meals a day is given, cooked and supplied on the employer's premises and not at a party, reception or other social function. Each meal is valued at $2.00 for a recipient who was 12 or older before the year began and $1.00 for another (s 36), less the recipients contribution for it, which the operator establishes in total, counting each meal's only up to its value; the contributions cannot take the value below nil, and an unused excess is shown. The otherwise deductible rule (s 37) then takes off the gross deduction, the share of the value before contributions that would have been deductible to the employee under ITAA 1997 s 8-1, rounded to cents, less the deduction for the contribution, never below nil and never taking the value below nil; it applies only to meals provided to the employee. Excludes deciding what is a board meal, exempt meals, such as those for an employee in a primary production business in a remote area (the employer's guide, 13.6), food or drink exempt under s 54, gross-up and FBT payable. Board fringe benefits are type 2 (the employer's guide, 13.2).",
     ),
     (
+        "aml_cdd_review",
+        "Deterministic Australian AML/CTF Tranche 2 customer due diligence (CDD) checks for 2026-27 (designated services provided at or through a permanent establishment in Australia, AML/CTF Act 2006 s 30(2)), using zero personal data. question country_risk applies AUSTRAC's Basel AML Index country-risk bands (0-5 low, 5.01-6 medium, 6.01-10.00 high) and FATF grey/blacklist and Australian country-sanctions high-risk overrides, separating AUSTRAC guidance from statutory enhanced CDD under s 32(d) (FATF Call for Action). question beneficial_ownership applies AML/CTF Act 2006 ss 5, 11 and 28(2)(d) and AML/CTF Rules 2025 ss 6-7 and 6-8 to one natural person's indirect ownership chains (25% threshold) and control limbs. question cdd_review evaluates statutory CDD tier (ss 31 and 32), mandatory source of wealth and source of funds triggers (Rules ss 6-21 to 6-23), mandatory immediate review triggers (s 30(2)(b)-(c) and Rules s 6-24), and periodic review dates under either AUSTRAC's Accountant Program Starter Kit defaults (12, 24 or 36 months, non-statutory guidance), a firm's custom policy interval, or statutory_only (no fixed statutory calendar interval). Excludes pre-commencement customers (s 36), delayed initial CDD (s 29), foreign permanent establishments (Rules ss 6-23(3) and 6-24(2)), third-party reliance (ss 37A to 38), individual DFAT sanctions or PEP name screening, and assigning a customer's inherent ML/TF risk rating.",
+    ),
+    (
         "ppsr_timing",
         "What the Personal Property Securities Register's law decides without a search, for a registration, possession or attachment, or security agreement in the 2025-26 or 2026-27 income year, in ACT legal time (PPSA s 294). question registration gives a financing statement's latest end time under PPSA s 153 item 5 (consumer property or property described by serial number: the end of the day 7 years after the registration time; other collateral: no stated end time, or the end of the day 25 years after), the end time s 153(2) and (3) apply (a requested end time later than that, earlier than the registration time, or missing where one is required is taken to be the default time), and the registration fee of the Personal Property Securities (Fees) Determination 2018 s 4 items 1 to 3. question pmsi gives the time by which a purchase money security interest must be perfected by registration for priority under PPSA s 62: for inventory, by the time the grantor obtains possession of goods or the interest attaches to other property (s 62(2)(b)); otherwise before the end of 15 business days after that day (s 62(3)(b)), with a stated registration tested against it and the s 153 item 7 statement. question company_grantor gives the end of 20 business days, in the place concerned (Corporations Act s 9), after a company's security agreement came into force (s 588FL(2)(b)(ii)), and, with a critical time from 1 July 2025 to 30 June 2027, the latest of the s 588FL(2)(b) times and whether a stated registration time is after it, so that the interest vests in the company (s 588FL(4)); a registration after the critical time is left undecided, as s 588FL(2)(a) then turns on when the interest arose. Business days exclude weekends, the days the caller lists, and for the PPSA the days between Christmas Day and New Year's Day; the regulations prescribe no other day. The operator establishes that the arrangement is a security interest and, for pmsi, a purchase money security interest (PPSA s 14), the collateral's class and description, the possession or attachment time, the critical time, and that every public holiday the count spans is listed. Excludes searches and anything only the register holds, priority between interests that are not purchase money security interests, perfection by possession or control, transitional registrations, amendments and their fees, ending a registration (ss 151, 167 and 179), a foreign-law agreement's 56 day time (s 588FL(2)(b)(iii)), s 588FN's exceptions and court extensions under PPSA s 293.",
     ),
@@ -849,6 +853,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "fhss",
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-40",
+    ),
+    (
+        "aml_cdd_review",
+        "https://www.legislation.gov.au/C2006A00169/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
         "ppsr_timing",
@@ -1875,6 +1883,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     (
         "fbt_tax_exempt_body_entertainment",
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
+    ),
+    (
+        "aml_cdd_review",
+        &[
+            "https://www.legislation.gov.au/F2025L01026/2026-03-31/2026-03-31/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/your-amlctf-program/develop-your-amlctf-programs/step-2-identify-and-assess-your-risks",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/program-starter-kits/accountant-program-starter-kit/step-2-use-your-accounting-program",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/additional-guidance/determining-ownership-and-control-structures",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/your-amlctf-program/customer-due-diligence/ongoing-customer-due-diligence/reviewing-and-updating-customers-mltf-risk-and-kyc-information",
+        ],
     ),
     (
         "ppsr_timing",
@@ -2932,6 +2950,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "aml_cdd_review",
+        &[
+            "AML/CTF Act 2006 s 30(2)(c) sets no fixed calendar interval for periodic KYC reviews; the 12, 24 and 36 month intervals are AUSTRAC Accountant Program Starter Kit defaults for small accounting practices, not statutory mandates.",
+            "This worksheet processes no personal names and performs no individual DFAT sanctions, PEP or adverse-media screening; carry out screening separately through current authoritative lists.",
+        ],
+    ),
+    (
         "ppsr_timing",
         &[
             "For PPSA s 10, list public holidays for the whole of any State, the ACT or the NT and dates of Registrar suspensions under s 147(5). For Corporations Act s 9, list public and bank holidays in the place concerned. Omitting an excluded date can make the calculated deadline too early. Listing a date that should count can make it too late.",
@@ -3068,6 +3093,10 @@ pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, 
 /// `period.unsupported` message: the figures not yet published, or the change
 /// in the law it does not apply.
 pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
+    (
+        "aml_cdd_review",
+        "The AML/CTF Act 2006, AML/CTF Rules 2025 and AUSTRAC guidance were read for 2026-27 on 24 November 2026; 2027-28 amendments and guidance updates are not yet read.",
+    ),
     (
         "alcohol_excise",
         "The excise duty rates for goods entered from 1 February 2027 had not been published when this worksheet was checked, so no 2027-28 rate is held.",
@@ -3248,6 +3277,62 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "alcohol_excise.rate_unpublished",
         "A line is on or after 1 February 2027, when the next substituted rates apply and none is held.",
+    ),
+    (
+        "aml_cdd_review.basel_score_invalid",
+        "basel_aml_score is not a decimal string from 0.00 to 10.00 with at most 2 decimal places.",
+    ),
+    (
+        "aml_cdd_review.cadence_basis_invalid",
+        "cadence_basis is not austrac_accountant_starter_kit, custom_policy or statutory_only.",
+    ),
+    (
+        "aml_cdd_review.chains_invalid",
+        "ownership_chains is not a list of up to 16 chains, each holding 1 to 8 percentage strings above 0 to 100 with at most 4 decimal places.",
+    ),
+    (
+        "aml_cdd_review.date_outside_year",
+        "last_cdd_date does not fall within 2026-07-01 to 2027-06-30 for period 2026-27.",
+    ),
+    (
+        "aml_cdd_review.entity_kind_invalid",
+        "entity_kind is not body_corporate or non_body_corporate.",
+    ),
+    (
+        "aml_cdd_review.exemption_inconsistent",
+        "listed_public_company exemption was supplied for a non_body_corporate customer.",
+    ),
+    (
+        "aml_cdd_review.exemption_invalid",
+        "customer_exemption is not none, listed_public_company or government_body.",
+    ),
+    (
+        "aml_cdd_review.months_invalid",
+        "policy_review_months is not an integer from 1 to 60.",
+    ),
+    (
+        "aml_cdd_review.ownership_above_100",
+        "Combined effective ownership across ownership_chains exceeds 100%.",
+    ),
+    (
+        "aml_cdd_review.pep_change_inconsistent",
+        "new_pep_status_change is true whilst pep_status is none.",
+    ),
+    (
+        "aml_cdd_review.pep_invalid",
+        "pep_status is not none, foreign, domestic or international_organisation.",
+    ),
+    (
+        "aml_cdd_review.question_invalid",
+        "question is not country_risk, beneficial_ownership or cdd_review.",
+    ),
+    (
+        "aml_cdd_review.risk_invalid",
+        "customer_risk is not low, medium or high.",
+    ),
+    (
+        "aml_cdd_review.starter_kit_risk_inconsistent",
+        "austrac_accountant_starter_kit was chosen with a mandatory enhanced CDD trigger whilst customer_risk is not high.",
     ),
     (
         "annuity_withholding.deductible_above_payment",
@@ -4628,7 +4713,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
