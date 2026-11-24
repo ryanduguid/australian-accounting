@@ -1390,6 +1390,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // GST Act s 38-325, Subdivision 66-A, Division 21 and Subdivision
         // 136-A read the same in compilations 82 and 96.
+        // Tax periods from 28 September 2017, when the 2017 food retailer
+        // determination (F2017L01274) commenced; the supermarket (F2025L01055)
+        // and restaurant (F2026L01275) methods from their own commencement.
+        "gst_food_retailer_sam" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27",
+        ],
         "gst_going_concern" | "gst_second_hand_goods" | "gst_bad_debt" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2014,6 +2021,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_financial_acquisitions_threshold" => (
             "2026-11-22",
             "GST Act ss 11-15(4), 129-5(2), 189-5, 189-10 and 189-15, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GST Regulations 2019 compilation 5 (F2025C01015), which specify no other amount; GSTR 2003/9 paras 12 to 20C and 103 to 118",
+        ),
+        "gst_food_retailer_sam" => (
+            "2026-11-24",
+            "GST Act Div 123 (ss 123-5, 123-7, 123-10 and 123-15), compilation 96 (C2026C00081, from 1 January 2026); Simplified Accounting Methods Determination 2017 for Retailers who sell Food (F2017L01274, as made); Simplified Accounting Methods - Supermarket and Convenience Stores Determination 2025 (F2025L01055); Simplified Accounting Method for Restaurants, Cafes and Caterers Determination 2026 (F2026L01275), each from the Federal Register of Legislation",
         ),
         "gst_going_concern" => (
             "2026-11-22",
@@ -2716,6 +2727,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Cedar's current and future tests (Examples 1A and 2A: $104,550 of $1,100,000, then $131,000 of $1,220,000) and the ABC group (Examples 13 and 14: $3,600 of $69,000, then $10,200 of $99,000)",
             "2003-05-14",
             "2026-11-22",
+        ),
+        "gst_food_retailer_sam" => (
+            "ATO 'GST for food retailers - simplified accounting methods'",
+            "Carlo (business norms), Connie (every tax period), Andrew (two 4-week samples), Valda and Lee (5% basis), Anita (sales percentage) and Anil (purchases snapshot)",
+            "2019-10-23",
+            "2026-11-24",
         ),
         "gst_going_concern" => (
             "GSTR 2002/5",
@@ -3653,6 +3670,69 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "electric",
                 "boolean, in nt only and then required: true for an electric motor vehicle under Stamp Duty Act 1978 (NT) s 92A(5) (an electric motor, charged from an external source, no hydrogen fuel cell; plug-in hybrids included)",
+            ),
+        ],
+        "gst_food_retailer_sam" => vec![
+            (
+                "total_sales",
+                "AUD: total trading sales for the tax period (F2017L01274 s 8 'trading sales'); for supermarket_sales_percentage the total consideration for all goods sold in the period; required except for restaurant_purchases_snapshot",
+            ),
+            (
+                "retailer_type",
+                "business_norms only: cake_shop, continental_delicatessen, convenience_store, fresh_fish_shop, health_food_shop, hot_bread_shop, rural_convenience_store or pharmacy, as F2017L01274 s 8 defines each",
+            ),
+            (
+                "stock_role",
+                "converter or reseller (F2017L01274 s 8): required for a convenience store or rural convenience store under business_norms and for the stock purchases methods, which take resellers only",
+            ),
+            (
+                "fuel_and_post_sales",
+                "AUD, rural_convenience_store only: trading sales for fuel and the Australia Post agency business, deducted first (s 5(2))",
+            ),
+            (
+                "fuel_and_post_purchases",
+                "AUD, rural_convenience_store only: trading stock acquisitions for fuel and the Australia Post agency business",
+            ),
+            ("pbs_sales", "AUD, pharmacy only: PBS prescription sales"),
+            (
+                "non_pbs_sales",
+                "AUD, pharmacy only: non-PBS prescription sales",
+            ),
+            (
+                "otc_sales",
+                "AUD, pharmacy only: over-the-counter sales; the 3 sales components add up to total_sales",
+            ),
+            (
+                "non_pbs_purchases",
+                "AUD, pharmacy only: non-PBS prescription trading stock purchases",
+            ),
+            (
+                "otc_purchases",
+                "AUD, pharmacy only: over-the-counter trading stock purchases; the 2 purchase components add up to trading_stock_purchases",
+            ),
+            (
+                "gst_free_purchases",
+                "AUD: actual GST-free trading stock acquisitions for the tax period, for the every tax period and 5% methods (for snapshot_five_percent, this or purchases_sample)",
+            ),
+            (
+                "gst_free_sales",
+                "AUD, supermarket_sales_percentage only: the total consideration for goods sold as GST-free supplies, from the point-of-sale equipment",
+            ),
+            (
+                "purchases_sample",
+                "object {start, end, gst_free, total}: a continuous 4-week (28-day) sample of trading stock acquisitions, total and GST-free, in 1 June to 31 July for a tax period in July to December or 1 December to 31 January for one in January to June",
+            ),
+            (
+                "sales_sample",
+                "object {start, end, gst_free, total}, snapshot_two_samples and snapshot_every_period only: a continuous 2-week (14-day) sample of trading sales in the same windows",
+            ),
+            (
+                "product_lines",
+                "list of 1 to 50 {gst_free_purchases, markup_percent}, the 5% methods only: each product line bought GST-free and resold GST-free in the tax period, with its mark-up as a percentage of cost",
+            ),
+            (
+                "trading_started",
+                "YYYY-MM-DD, for a business that started trading in the financial year: a sample then falls in the first 2 months of trading instead",
             ),
         ],
         "insurance_duty" => vec![
@@ -6129,6 +6209,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("future_total_credits", "AUD: the input tax credits for all acquisitions and importations of those 12 months, the financial acquisitions included"),
             ("gst_group", "boolean: you are a GST group member and the 4 amounts are every member's, counting only acquisitions made, or likely to be made, whilst each was a member (ss 189-5(2) and 189-10(2); GSTR 2003/9 para 108)"),
         ],
+        "gst_food_retailer_sam" => vec![
+            ("method", "business_norms, stock_purchases_every_period, stock_purchases_two_samples, stock_purchases_five_percent, snapshot_every_period, snapshot_two_samples, snapshot_five_percent (F2017L01274), supermarket_sales_percentage (F2025L01055) or restaurant_purchases_snapshot (F2026L01275): the method the retailer has chosen under GST Act s 123-10"),
+            ("tax_period_start", "YYYY-MM-DD in the year: the first day of the tax period"),
+            ("tax_period_end", "YYYY-MM-DD in the year: the last day of the tax period"),
+            ("trading_stock_purchases", "AUD: total trading stock acquisitions for the tax period (on a cash basis, the consideration provided; otherwise, as each determination counts them)"),
+            ("eligibility", "object of stated facts: the 2017 methods take same_premises_taxable_and_gst_free_food, sam_turnover and adequate_point_of_sale_equipment, plus projected_gst_free_at_most_5_percent for the 5% methods and retailer_type_definition_met for business_norms; supermarket_sales_percentage takes registered_throughout, mainly_supermarket_or_convenience_range, converted_taxable_sales_under_5_percent, gst_turnover, adequate_point_of_sale_equipment, mainly_sells_fuel and section_7_3_goods_left_out; restaurant_purchases_snapshot takes registered_throughout, restaurant_cafe_or_catering and gst_turnover"),
+        ],
         "gst_going_concern" => vec![
             ("for_consideration", "boolean: the supply is for consideration (GST Act s 38-325(1)(a))"),
             ("recipient_registration", "registered, required_to_be_registered or neither: the recipient's GST registration status (s 38-325(1)(b))"),
@@ -7675,6 +7762,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("gst_group", Flag(false)),
         ],
         // The 5 conditions of GST Act s 38-325 all met.
+        // The ATO's Andrew: a September quarter with a sample from 1 to 28 June.
+        "gst_food_retailer_sam" => vec![
+            ("year", Text("2025-26")),
+            ("method", Text("stock_purchases_two_samples")),
+            ("tax_period_start", Text("2025-07-01")),
+            ("tax_period_end", Text("2025-09-30")),
+            ("total_sales", Text("219000.00")),
+            ("trading_stock_purchases", Text("203000.00")),
+            ("stock_role", Text("reseller")),
+            (
+                "purchases_sample",
+                Json(
+                    r#"{"start": "2025-06-01", "end": "2025-06-28", "gst_free": "29400.00", "total": "60000.00"}"#,
+                ),
+            ),
+            (
+                "eligibility",
+                Json(
+                    r#"{"same_premises_taxable_and_gst_free_food": true, "sam_turnover": "850000.00", "adequate_point_of_sale_equipment": false}"#,
+                ),
+            ),
+        ],
         "gst_going_concern" => vec![
             ("year", Text("2025-26")),
             ("for_consideration", Flag(true)),

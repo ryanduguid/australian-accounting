@@ -165,6 +165,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("fee", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "gst-food-retailer-sam",
+        &[
+            ("method", Raw),
+            ("tax_period_start", Raw),
+            ("tax_period_end", Raw),
+            ("trading_stock_purchases", Dec),
+            ("eligibility", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "gst-margin-scheme",
         &[
             ("interest", Raw),
@@ -1619,7 +1631,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 93] = [
+const DERIVED: [&str; 94] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1698,6 +1710,7 @@ const DERIVED: [&str; 93] = [
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
+    "gst-food-retailer-sam",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -2226,6 +2239,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "workers-compensation-premium"
             | "motor-vehicle-duty"
             | "insurance-duty"
+            | "gst-food-retailer-sam"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2791,6 +2805,33 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 claims_costs: claims.as_ref(),
                 year: &a[4],
                 scope_confirmed: &a[5],
+            })
+        }
+        "gst-food-retailer-sam" => {
+            // Optional: each method's own inputs, which the method reads or
+            // refuses.
+            let given = engine::GST_FOOD_RETAILER_SAM_OPTIONAL
+                .iter()
+                .filter_map(|key| {
+                    let kind = match *key {
+                        "retailer_type" | "stock_role" | "trading_started" => Raw,
+                        k if k.ends_with("sample") || k == "product_lines" => Json,
+                        _ => Dec,
+                    };
+                    optional(v, key, kind)
+                        .map(|found| found.map(|arg| (*key, arg)))
+                        .transpose()
+                })
+                .collect::<Result<Vec<_>>>()?;
+            engine::gst_food_retailer_sam(&engine::GstFoodRetailerSamArgs {
+                method: &a[0],
+                tax_period_start: &a[1],
+                tax_period_end: &a[2],
+                trading_stock_purchases: &a[3],
+                eligibility: &a[4],
+                given: &given,
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "transfer-duty" => engine::transfer_duty(&engine::TransferDutyArgs {

@@ -53,6 +53,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/rental_property",
         "engine/super_benefit_tax",
         "engine/gst_adjustments",
+        "engine/gst_food_retailer_sam",
+        "engine/gst_food_retailer_sam/methods",
         "engine/deferred_tax",
         "engine/leave_provisions",
         "engine/long_service_leave",
@@ -205,8 +207,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // foreign-pension-upp, scholarship-exemption, super-crystallisation and
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
-    // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 122);
+    // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
+    // gst-food-retailer-sam.
+    assert_eq!(checked, 123);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

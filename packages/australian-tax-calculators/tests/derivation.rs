@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 92] = [
+const DERIVED: [&str; 93] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -97,6 +97,7 @@ const DERIVED: [&str; 92] = [
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
+    "gst-food-retailer-sam",
     "cgt-parcels",
     "work-expenses",
     "gst-creditable-purpose-change",
@@ -735,6 +736,45 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"jurisdiction": "act", "vehicle_class": "passenger",
                    "dutiable_value": "90000", "duty_date": "2027-03-01",
                    "emissions_category": "b", "new_vehicle": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // F2017L01274 s 6(4), the ATO's Andrew; F2025L01055 s 7, the ATO's
+        // Anita; and F2026L01275 s 7, the ATO's Anil.
+        (
+            "gst-food-retailer-sam",
+            json!({"method": "stock_purchases_two_samples", "tax_period_start": "2025-07-01",
+                   "tax_period_end": "2025-09-30", "total_sales": "219000.00",
+                   "trading_stock_purchases": "203000.00", "stock_role": "reseller",
+                   "purchases_sample": {"start": "2025-06-01", "end": "2025-06-28",
+                                        "gst_free": "29400.00", "total": "60000.00"},
+                   "eligibility": {"same_premises_taxable_and_gst_free_food": true,
+                                   "sam_turnover": "850000.00",
+                                   "adequate_point_of_sale_equipment": false},
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "gst-food-retailer-sam",
+            json!({"method": "supermarket_sales_percentage", "tax_period_start": "2025-10-01",
+                   "tax_period_end": "2025-12-31", "total_sales": "200000.00",
+                   "gst_free_sales": "60000.00", "trading_stock_purchases": "100000.00",
+                   "eligibility": {"registered_throughout": true,
+                                   "mainly_supermarket_or_convenience_range": true,
+                                   "converted_taxable_sales_under_5_percent": true,
+                                   "gst_turnover": "1800000.00",
+                                   "adequate_point_of_sale_equipment": true,
+                                   "mainly_sells_fuel": false,
+                                   "section_7_3_goods_left_out": true},
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "gst-food-retailer-sam",
+            json!({"method": "restaurant_purchases_snapshot", "tax_period_start": "2026-10-01",
+                   "tax_period_end": "2026-12-31", "trading_stock_purchases": "65000.00",
+                   "purchases_sample": {"start": "2026-07-03", "end": "2026-07-30",
+                                        "gst_free": "10500.00", "total": "15000.00"},
+                   "eligibility": {"registered_throughout": true,
+                                   "restaurant_cafe_or_catering": true,
+                                   "gst_turnover": "900000.00"},
                    "year": "2026-27", "scope_confirmed": true}),
         ),
         // Victoria's business insurance at 7% for 2026-27 (s 179(4)) and
@@ -2760,7 +2800,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, land-tax, motor-vehicle-duty, insurance-duty, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
          foreign-pension-upp, super-crystallisation, not \"payg-gross-up\""
     );
 }

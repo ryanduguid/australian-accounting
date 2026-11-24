@@ -2536,6 +2536,47 @@ values, under every choice each jurisdiction asks.
 | ACT, new Category B, $80,000, 31 January and 1 February 2027 | Worked by hand from each determination | $3,177.00 and $3,419.00 |
 | Northern Territory, electric, $80,000 | Worked by hand: 300 lots of $100 above $50,000 | $900.00 |
 
+## GST food retailer SAM
+
+This worksheet was added on 24 November 2026. These were read that day
+through the Federal Register of Legislation's API (EPUB of each register ID):
+
+- A New Tax System (Goods and Services Tax) Act 1999 Div 123 (ss 123-5,
+  123-7, 123-10 and 123-15), compilation 96 (C2026C00081, from 1 January
+  2026).
+- Goods and Services Tax: Simplified Accounting Methods Determination 2017
+  for Retailers who sell Food (F2017L01274), as made: registered 27 September
+  2017, unamended, in force.
+- Simplified Accounting Methods - Supermarket and Convenience Stores
+  Determination 2025 (F2025L01055), registered 8 September 2025.
+- Simplified Accounting Method for Restaurants, Cafes and Caterers
+  Determination 2026 (F2026L01275), registered 23 September 2026; it repealed
+  the 2016 purchases snapshot determination, which is not worked.
+- The prisons and detention determination (F2025L00997) was read only to
+  leave it out.
+
+The ATO's 'GST for food retailers - simplified accounting methods' (pages
+last updated 23 October 2019) gives the examples the tests use: Carlo's hot
+bread shop ($60,000 and $71,250), Connie ($107,555), Andrew ($107,310 and
+$99,470), Valda ($1,005), Lee ($1,840), Anita ($30,000 of purchases GST-free)
+and Anil ($45,500 GST-free and credits of $1,772.73, which the ATO rounds to
+$1,773). Anita's and Anil's examples were written for the repealed
+determinations; the current ones repeat their arithmetic. For a pharmacy, s
+5(3)(b) applies 0% and 2% 'to total trading stock acquisitions'; the
+worksheet follows the ATO's reading, each norm to that component's
+purchases. Requiring the 2 components to make up all trading stock purchases,
+and so refusing a pharmacy with other purchases such as PBS stock, is the
+worksheet's own limit, not a requirement of s 5(3)(b).
+
+For a business that starts in the year, ss 6(4) and 7(3) of the 2017
+determination replace only the first sample period, the one for July to
+December, with a sample from the first 2 months of trading; a later half
+uses its ordinary window, and a business that starts in January to June is
+refused. F2026L01275 s 7 para (c) gives the first 2 months only where trading
+starts during a tax period and paras (a) and (b) cannot be applied; the
+worksheet applies it to the half in which trading starts, when a 28-day
+sample after the start cannot fit in the ordinary window.
+
 ## Insurance duty
 
 This worksheet was added on 24 November 2026. The Acts were read that day:
