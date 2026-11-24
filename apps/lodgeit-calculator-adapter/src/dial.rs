@@ -362,6 +362,9 @@ mod tests {
     /// A peer that sends a handshake record a byte at a time, each byte
     /// well inside the timeout. CPython 3.15 gives up on the handshake after
     /// the timeout as a whole (1.04 to 1.1 s for 1 s, Windows and Linux).
+    /// The peer dribbles for 10 s so a per-read timeout alone runs until 10 s;
+    /// the 3 s bound for a 0.5 s timeout leaves room for a loaded runner (a run
+    /// under load once took 1.79 s) and still fails such a handshake.
     #[test]
     fn a_dribbled_tls_handshake_times_out_as_a_whole() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -371,7 +374,7 @@ mod tests {
             let mut hello = [0u8; 4096];
             let _ = peer.read(&mut hello);
             let _ = peer.write_all(&[0x16, 0x03, 0x03, 0x40, 0x00]);
-            for _ in 0..30 {
+            for _ in 0..100 {
                 std::thread::sleep(Duration::from_millis(100));
                 if peer.write_all(&[0]).is_err() {
                     break;
@@ -381,7 +384,7 @@ mod tests {
         let start = Instant::now();
         assert!(Net.dial("127.0.0.1", port, true, 0.5).is_err());
         let elapsed = start.elapsed();
-        assert!(elapsed < Duration::from_millis(1500), "{elapsed:?}");
+        assert!(elapsed < Duration::from_secs(3), "{elapsed:?}");
         server.join().unwrap();
     }
 

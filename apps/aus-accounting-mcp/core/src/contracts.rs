@@ -7,10 +7,39 @@ use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
+const WORKSHEET_COUNT_PLACEHOLDER: &str = "{worksheet_count}";
+
 pub static CATALOGUE: LazyLock<Value> = LazyLock::new(|| {
-    serde_json::from_str(include_str!("../data/catalogue.v1.json"))
-        .expect("reviewed embedded catalogue must be JSON")
+    let mut catalogue: Value = serde_json::from_str(include_str!("../data/catalogue.v1.json"))
+        .expect("reviewed embedded catalogue must be JSON");
+    let engine = australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))
+        .expect("embedded worksheet catalogue");
+    derive_worksheet_counts(&mut catalogue, engine.as_object().expect("catalogue map"));
+    catalogue
 });
+
+fn derive_worksheet_counts(catalogue: &mut Value, engine_kinds: &serde_json::Map<String, Value>) {
+    let tool = catalogue["tools"]
+        .as_array_mut()
+        .and_then(|tools| {
+            tools
+                .iter_mut()
+                .find(|t| t["name"] == "calculate_tax_worksheet")
+        })
+        .expect("calculate_tax_worksheet tool");
+    let count = tool["inputSchema"]["properties"]["facts"]["discriminator"]["mapping"]
+        .as_object()
+        .expect("calculate_tax_worksheet discriminator mapping")
+        .keys()
+        .filter(|kind| engine_kinds.contains_key(*kind))
+        .count()
+        .to_string();
+    let description = tool["description"]
+        .as_str()
+        .expect("calculate_tax_worksheet description");
+    debug_assert!(description.contains(WORKSHEET_COUNT_PLACEHOLDER));
+    tool["description"] = Value::String(description.replace(WORKSHEET_COUNT_PLACEHOLDER, &count));
+}
 
 pub fn tool(name: &str) -> Option<&'static Value> {
     CATALOGUE["tools"]
@@ -67,4 +96,58 @@ pub fn success(result: Value) -> Value {
 
 pub fn error(message: String) -> Value {
     json!({"content":[{"type":"text","text":message}],"isError":true,"resultType":"complete"})
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn worksheet_count_is_derived_from_advertised_catalogue() {
+        let served = crate::adapters::tax::advertised_worksheets()
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .len();
+        let description = tool("calculate_tax_worksheet").unwrap()["description"]
+            .as_str()
+            .unwrap();
+        assert!(description.contains(&format!(
+            "Calculate one of {served} bounded tax and super worksheets"
+        )));
+        assert!(!description.contains("fourteen"));
+        assert!(!description.contains(WORKSHEET_COUNT_PLACEHOLDER));
+    }
+
+    #[test]
+    fn derive_worksheet_counts_tracks_catalogue_changes() {
+        let mut mapping = serde_json::Map::new();
+        let mut engine_kinds = serde_json::Map::new();
+        for i in 0..70 {
+            let kind = format!("kind_{i}");
+            mapping.insert(kind.clone(), json!(format!("#/$defs/Kind{i}")));
+            engine_kinds.insert(kind, json!({}));
+        }
+        engine_kinds.insert("unadvertised_kind".into(), json!({}));
+        let mut catalogue = json!({
+            "tools": [{
+                "name": "calculate_tax_worksheet",
+                "description": "Calculate one of {worksheet_count} bounded tax and super worksheets.",
+                "inputSchema": {
+                    "properties": {
+                        "facts": {
+                            "discriminator": {
+                                "mapping": mapping
+                            }
+                        }
+                    }
+                }
+            }]
+        });
+        derive_worksheet_counts(&mut catalogue, &engine_kinds);
+        assert_eq!(
+            catalogue["tools"][0]["description"],
+            "Calculate one of 70 bounded tax and super worksheets."
+        );
+    }
 }

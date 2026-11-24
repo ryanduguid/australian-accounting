@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 81] = [
+const DERIVED: [&str; 92] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -63,6 +63,7 @@ const DERIVED: [&str; 81] = [
     "depreciation-low-value-pool",
     "depreciation-small-business-pool",
     "capital-works",
+    "instant-asset-write-off",
     "horticulture-shearing-withholding",
     "upward-variation-withholding",
     "daily-casual-withholding",
@@ -72,6 +73,7 @@ const DERIVED: [&str; 81] = [
     "annuity-withholding",
     "voluntary-agreement-withholding",
     "rd-tax-offset",
+    "esic",
     "deferred-tax",
     "leave-provisions",
     "hire-purchase-schedule",
@@ -84,12 +86,17 @@ const DERIVED: [&str; 81] = [
     "business-capital-expenditure",
     "balancing-adjustment",
     "trade-in",
+    "foreign-purchaser-surcharge",
     "dasp-tax",
     "super-benefit-tax",
     "super-withholding",
     "gst-margin-scheme",
+    "transfer-duty",
     "etp-tax-free-component",
     "payroll-tax",
+    "land-tax",
+    "motor-vehicle-duty",
+    "insurance-duty",
     "cgt-parcels",
     "work-expenses",
     "gst-creditable-purpose-change",
@@ -100,6 +107,10 @@ const DERIVED: [&str; 81] = [
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
+    "vic-property-taxes",
+    "defined-benefit-income-cap",
+    "foreign-pension-upp",
+    "super-crystallisation",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -429,6 +440,30 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "arms_length": true, "involuntary_disposal": false,
                    "year": "2025-26", "scope_confirmed": true}),
         ),
+        // Foreign purchaser surcharges: Revenue NSW's 9% and 5%, Queensland's
+        // land tax surcharge from $349,999 and Tasmania's 2% rounded to 10
+        // cents (Land Tax Rating Act 2000 (Tas) s 7).
+        (
+            "foreign-purchaser-surcharge",
+            json!({"jurisdiction": "nsw", "property_use": "residential",
+                   "dutiable_value": "1000000", "foreign_purchaser": true,
+                   "land_value": "1200000", "foreign_owner": true, "owner": "individual",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "foreign-purchaser-surcharge",
+            json!({"jurisdiction": "qld", "property_use": "residential",
+                   "dutiable_value": "400000", "foreign_purchaser": true,
+                   "land_value": "400000", "foreign_owner": true, "owner": "company",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "foreign-purchaser-surcharge",
+            json!({"jurisdiction": "tas", "property_use": "residential",
+                   "dutiable_value": "400001", "foreign_purchaser": true,
+                   "land_value": "400003", "foreign_owner": true, "owner": "individual",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // A former working holiday maker's payment with both elements, each
         // at 65% (DASP Tax Act s 5(3)).
         (
@@ -515,6 +550,41 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "tfn_provided": true, "foreign_resident": false,
                    "year": "2026-27", "scope_confirmed": true}),
         ),
+        // Schedule 13 Part A, Veronica (2026-27): a fortnightly disability
+        // stream, the table amount less a 15% offset, and the adjustment.
+        (
+            "super-withholding",
+            json!({"benefit": "1400.00", "interest_value": "1400.00",
+                   "interest_tax_free_component": "300.00", "untaxed_element": "0.00",
+                   "recipient": "member", "payment_date": "2026-09-01",
+                   "date_of_birth": "1968-01-15", "disability_superannuation_benefit": true,
+                   "income_stream_period": "fortnightly", "tax_free_threshold_claimed": true,
+                   "capped_defined_benefit": false, "tfn_provided": true,
+                   "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Schedule 13 Part A at 66, monthly: 10% of the untaxed element and
+        // the 2% adjustment converted from the weekly equivalent.
+        (
+            "super-withholding",
+            json!({"benefit": "5000.00", "interest_value": "5000.00",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "4000.33",
+                   "recipient": "member", "payment_date": "2026-09-01",
+                   "date_of_birth": "1960-01-01", "disability_superannuation_benefit": false,
+                   "income_stream_period": "monthly", "tax_free_threshold_claimed": true,
+                   "capped_defined_benefit": false, "tfn_provided": true,
+                   "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Schedule 13 without a TFN: 47% of a dependant's taxable component.
+        (
+            "super-withholding",
+            json!({"benefit": "1100.75", "interest_value": "1100.75",
+                   "interest_tax_free_component": "0.00", "untaxed_element": "0.00",
+                   "recipient": "death_benefits_dependant", "payment_date": "2026-09-01",
+                   "date_of_birth": "1990-01-01", "deceased_aged_60_or_over": false,
+                   "income_stream_period": "quarterly", "capped_defined_benefit": false,
+                   "tfn_provided": false, "foreign_resident": false,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // No TFN: 47% of a member's taxable component under 60, cents ignored.
         (
             "super-withholding",
@@ -524,6 +594,34 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "date_of_birth": "1980-01-01", "terminal_medical_condition": false,
                    "disability_superannuation_benefit": false, "tfn_provided": false,
                    "foreign_resident": false, "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Transfer duty: the NSW Government's first home figure on $900,000,
+        // Victoria's s 28(1) rounding on $25,001, a Queensland first home on
+        // $730,000 (the QRO's $6,555) and the Northern Territory's formula on
+        // $500,000.
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "nsw", "dutiable_value": "900000",
+                   "buyer": "first_home_established", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "vic", "dutiable_value": "25001",
+                   "buyer": "general", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "qld", "dutiable_value": "730000",
+                   "buyer": "first_home_established", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "transfer-duty",
+            json!({"jurisdiction": "nt", "dutiable_value": "500000",
+                   "buyer": "first_home_new", "residential": true,
+                   "year": "2026-27", "scope_confirmed": true}),
         ),
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
@@ -540,6 +638,123 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"jurisdiction": "tas", "taxable_wages": "2400000.00",
                    "australian_wages": "3000000.00",
                    "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Calculating the early stage investor tax offset: Savannah's
+        // $4 million, $10,000 of it receivable, capped at $200,000, with a
+        // non-cash benefit from 2018-19;
+        // and a company over the previous year's income limit before 2021-22.
+        (
+            "esic",
+            json!({"investor": "individual", "affiliate_of_company": false,
+                   "ess_interests": false, "more_than_30_percent": false,
+                   "amount_paid": "3989000.00", "amount_receivable": "10000.00",
+                   "non_cash_benefit": "1000.00",
+                   "disclosure_exemption": true, "incorporated_year": "2023-24",
+                   "abr_registered_year": "none", "expenses_three_prior_years": "0.00",
+                   "total_expenses_previous_year": "900000.00",
+                   "assessable_income_previous_year": "260000.00",
+                   "accelerating_commercialisation_grant": "10000.00",
+                   "rd_clawback_income": "50000.00", "listed": false,
+                   "foreign_company": false, "innovation_items": [2, 7],
+                   "principles_test": false, "other_offsets": "0.00",
+                   "carried_forward_offsets": "0.00", "year": "2025-26",
+                   "scope_confirmed": true}),
+        ),
+        (
+            "esic",
+            json!({"investor": "company", "affiliate_of_company": false,
+                   "ess_interests": false, "more_than_30_percent": false,
+                   "amount_paid": "40000.00", "non_cash_benefit": "0.00",
+                   "disclosure_exemption": false, "other_companies_paid": "0.00", "other_companies_exempt": false,
+                   "incorporated_year": "2015-16", "abr_registered_year": "none",
+                   "expenses_three_prior_years": "800000.00",
+                   "total_expenses_previous_year": "300000.00",
+                   "assessable_income_previous_year": "260000.00",
+                   "accelerating_commercialisation_grant": "10000.00",
+                   "rd_clawback_income": "50000.00", "listed": false,
+                   "foreign_company": false, "innovation_items": [],
+                   "principles_test": true, "other_offsets": "150000.00",
+                   "carried_forward_offsets": "10000.00", "year": "2019-20",
+                   "scope_confirmed": true}),
+        ),
+        // A downsizer contribution above the proceeds left (Bruce, from the
+        // ATO's 'Downsizer super contributions'), and a transition to
+        // retirement income stream's maximum in a first part year.
+        (
+            "contribution-caps",
+            json!({"total_super_balance": "450000.00", "concessional_contributions": "20000.00",
+                   "unused_concessional_cap": "0.00", "non_concessional_contributions": "0.00",
+                   "under_75_in_year": true, "year": "2025-26", "scope_confirmed": true,
+                   "downsizer_contribution": "100000.01", "downsizer_contribution_date": "2025-10-31",
+                   "downsizer_age": 70, "downsizer_contract_date": "2025-08-01",
+                   "downsizer_settlement_date": "2025-10-01", "downsizer_longer_period_allowed": false,
+                   "downsizer_capital_proceeds": "400000.00", "downsizer_earlier_own": "0.00",
+                   "downsizer_earlier_from_proceeds": "300000.00", "downsizer_conditions_met": true}),
+        ),
+        (
+            "contribution-caps",
+            json!({"total_super_balance": "450000.00", "concessional_contributions": "20000.00",
+                   "unused_concessional_cap": "0.00", "non_concessional_contributions": "0.00",
+                   "under_75_in_year": true, "year": "2025-26", "scope_confirmed": true,
+                   "downsizer_contribution": "50000.00", "downsizer_contribution_date": "2026-03-01",
+                   "downsizer_age": 54, "downsizer_contract_date": "2025-08-01",
+                   "downsizer_settlement_date": "2025-10-01", "downsizer_longer_period_allowed": true,
+                   "downsizer_capital_proceeds": "400000.00", "downsizer_earlier_own": "0.00",
+                   "downsizer_earlier_from_proceeds": "0.00", "downsizer_conditions_met": true}),
+        ),
+        (
+            "pension-minimum",
+            json!({"account_balance": "400000.00", "age": 62, "days": 181,
+                   "transition_to_retirement": true, "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // Revenue NSW's surcharge land tax example 1 and Victoria's absentee
+        // owner surcharge on $1,000,000 (the State Revenue Office's table).
+        (
+            "land-tax",
+            json!({"jurisdiction": "nsw", "taxable_value": "1200000",
+                   "trust_rates": false, "foreign_owner": true,
+                   "surcharge_value": "1200000", "year": "2026", "scope_confirmed": true}),
+        ),
+        (
+            "land-tax",
+            json!({"jurisdiction": "vic", "taxable_value": "1000000",
+                   "trust_rates": false, "foreign_owner": true,
+                   "year": "2026", "scope_confirmed": true}),
+        ),
+        // Western Australia's sliding rate at $37,500 (R = 4.63) and the ACT's
+        // Table 3 for a new Category B vehicle after 1 February 2027.
+        (
+            "motor-vehicle-duty",
+            json!({"jurisdiction": "wa", "vehicle_class": "passenger",
+                   "dutiable_value": "37500", "duty_date": "2026-09-15",
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "motor-vehicle-duty",
+            json!({"jurisdiction": "act", "vehicle_class": "passenger",
+                   "dutiable_value": "90000", "duty_date": "2027-03-01",
+                   "emissions_category": "b", "new_vehicle": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        // Victoria's business insurance at 7% for 2026-27 (s 179(4)) and
+        // Queensland's 10 cents on a CTP premium (s 362(2)).
+        (
+            "insurance-duty",
+            json!({"jurisdiction": "vic", "class": "business", "premium": "1234.56",
+                   "effected_date": "2026-09-15", "year": "2026-27",
+                   "scope_confirmed": true}),
+        ),
+        (
+            "insurance-duty",
+            json!({"jurisdiction": "qld", "class": "ctp", "premium": "400.00",
+                   "effected_date": "2027-03-01", "year": "2026-27",
+                   "scope_confirmed": true}),
+        ),
+        (
+            "insurance-duty",
+            json!({"jurisdiction": "nsw", "class": "type_c", "premium": "1000.00",
+                   "effected_date": "2026-08-01", "policy_taken_out": "2017-12-31",
                    "year": "2026-27", "scope_confirmed": true}),
         ),
         // A strata unit's share of land bought with some consideration unpaid
@@ -720,6 +935,29 @@ fn cases() -> Vec<(&'static str, Value)> {
                                "amount": "10.00", "tax_free": "2.00"}],
                    "year": "2021-22", "scope_confirmed": true}),
         ),
+        // Victorian property taxes: vacant residential land tax at 3% after 2
+        // liable years, the commercial and industrial property tax's nil
+        // year and windfall gains tax on 2 titles, one of whose values fell.
+        (
+            "vic-property-taxes",
+            json!({"tax": "vacant_residential_land", "capital_improved_value": "800000",
+                   "residential_land": "vacant_home", "new_residential_concession": false,
+                   "liable_previous_tax_year": true, "liable_tax_year_before": true,
+                   "year": "2026", "scope_confirmed": true}),
+        ),
+        (
+            "vic-property-taxes",
+            json!({"tax": "commercial_industrial", "entry_date": "2024-07-01",
+                   "year": "2026", "scope_confirmed": true}),
+        ),
+        (
+            "vic-property-taxes",
+            json!({"tax": "windfall_gains",
+                   "parcels": [{"civ_before": "600000", "civ_after": "900000"},
+                               {"civ_before": "400000", "civ_after": "350000"},
+                               {"civ_before": "250000", "civ_after": "400000"}],
+                   "year": "2025", "scope_confirmed": true}),
+        ),
     ];
     cases.extend(
         PAYG.iter()
@@ -758,6 +996,41 @@ fn cases() -> Vec<(&'static str, Value)> {
             .extend(facts.as_object().unwrap().clone());
         cases.push(("fbt-instalment", input));
     }
+    // Defined benefit income cap: a full year at the 2026-27 cap, over it
+    // with untaxed income; LCR 2017/1 Example 6 (Ann, other income first).
+    for facts in [
+        json!({"year": "2026-27", "tax_free_and_taxed": "150000.00", "untaxed": "20000.00",
+               "other_defined_benefit_income": "0.00"}),
+        json!({"year": "2017-18", "tax_free_and_taxed": "60000.00", "untaxed": "0.00",
+               "other_defined_benefit_income": "40000.00", "first_day": "2017-07-01"}),
+    ] {
+        let mut input = json!({"scope_confirmed": true});
+        merge(&mut input, facts);
+        cases.push(("defined-benefit-income-cap", input));
+    }
+    // Foreign pension UPP: the s 27H(2) formula on a shared annuity, and the
+    // Dutch SVB fallback.
+    for facts in [
+        json!({"year": "2025-26", "method": "formula", "annuity_derived": "6000.00",
+               "undeducted_purchase_price": "120000.00", "residual_capital_value": "20000.00",
+               "relevant_number": {"basis": "life_expectation_factor", "years": "22.65"},
+               "total_annuity_derived": "12000.00", "commuted": false, "whole_year": true}),
+        json!({"year": "2025-26", "method": "dutch_svb_fallback", "annuity_derived": "9000.00"}),
+    ] {
+        let mut input = json!({"scope_confirmed": true});
+        merge(&mut input, facts);
+        cases.push(("foreign-pension-upp", input));
+    }
+    // Crystallisation: service from 1 July 1977, its pre-July 83 share the
+    // lesser amount.
+    cases.push((
+        "super-crystallisation",
+        json!({"year": "2006-07", "scope_confirmed": true, "eligible_service_start": "1977-07-01",
+               "interest_value": "230000.00", "concessional_component": "0.00",
+               "post_june_1994_invalidity_component": "0.00", "cgt_exempt_component": "0.00",
+               "undeducted_contributions": "0.00", "untaxed_source": false,
+               "income_stream_before_july_2007": false}),
+    ));
     cases
 }
 
@@ -1230,6 +1503,7 @@ impl Evaluator<'_> {
                     ("min", [a, b]) => if b.lt(a).unwrap() { b } else { a }.clone(),
                     ("max", [a, b]) => if b.gt(a).unwrap() { b } else { a }.clone(),
                     ("cents", [a]) => a.quantize(-2, Rounding::HalfUp).unwrap(),
+                    ("cents_down", [a]) => a.quantize(-2, Rounding::Down).unwrap(),
                     ("dollars", [a]) => a.quantize(0, Rounding::HalfUp).unwrap(),
                     ("floor", [a]) => a.quantize(0, Rounding::Down).unwrap(),
                     ("dollars_up", [a]) => {
@@ -1238,6 +1512,25 @@ impl Evaluator<'_> {
                             down.add(&Decimal::from_int(1)).unwrap()
                         } else {
                             down
+                        }
+                    }
+                    // Land Tax Rating Act 2000 (Tas) s 7: to 10 cents, up
+                    // when more than 5 cents remain.
+                    ("tens", [a]) => {
+                        let cents = a.mul(&Decimal::from_int(100)).unwrap();
+                        let rest = cents.rem(&Decimal::from_int(10)).unwrap();
+                        let mut kept = cents.sub(&rest).unwrap();
+                        if rest.gt(&Decimal::from_int(5)).unwrap() {
+                            kept = kept.add(&Decimal::from_int(10)).unwrap();
+                        }
+                        kept.div(&Decimal::from_int(100)).unwrap()
+                    }
+                    // Land Tax Act 1936 (SA) s 6: nil under $20.
+                    ("nil_below_20", [a]) => {
+                        if a.lt(&Decimal::from_int(20)).unwrap() {
+                            Decimal::from_int(0)
+                        } else {
+                            a.clone()
                         }
                     }
                     other => panic!("unknown function {other:?}"),
@@ -2460,14 +2753,15 @@ fn derive_refuses_what_it_does_not_explain() {
          medicare-levy, medicare-levy-surcharge, division-296, contribution-caps, \
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
-         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, deferred-tax, leave-provisions, \
+         depreciation-low-value-pool, depreciation-small-business-pool, capital-works, instant-asset-write-off, deferred-tax, leave-provisions, \
          horticulture-shearing-withholding, upward-variation-withholding, \
          daily-casual-withholding, no-abn-withholding, \
          entertainer-withholding, return-to-work-withholding, \
          annuity-withholding, voluntary-agreement-withholding, \
-         rd-tax-offset, \
+         rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, etp-tax-free-component, payroll-tax, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, land-tax, motor-vehicle-duty, insurance-duty, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
+         foreign-pension-upp, super-crystallisation, not \"payg-gross-up\""
     );
 }
 

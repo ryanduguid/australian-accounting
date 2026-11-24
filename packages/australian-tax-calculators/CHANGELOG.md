@@ -4,6 +4,114 @@
 
 ### Added
 
+- `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
+  buyer's share in 2026-27 and the foreign or absentee owner land tax
+  surcharge for a full land tax year, in each of the 8 states and
+  territories, with foreign status taken as established. It mirrors the
+  site's foreign surcharge calculator and agrees with it on every case except
+  where the Act differs: Queensland's surcharge from $349,999 and Tasmania's
+  rounding to 10 cents. New codes:
+  `foreign_purchaser_surcharge.absentee_trust_unsupported`,
+  `foreign_purchaser_surcharge.dutiable_value_nil`,
+  `foreign_purchaser_surcharge.jurisdiction_invalid`,
+  `foreign_purchaser_surcharge.owner_invalid` and
+  `foreign_purchaser_surcharge.use_invalid`. `derive` takes it.
+- `esic` works out an investor's early stage investor tax offset under ITAA
+  1997 Subdivision 360-A for 2016-17 to 2026-27: the early stage innovation
+  company tests at the time of issue (s 360-40), the 100-point test from the
+  stated items (s 360-45), the investor tests and the $50,000 limit (ss 360-15
+  and 360-20), 20% of the amount (s 360-25(1)) and the $200,000 cap with
+  affiliates and carried forward offsets (s 360-25(2)). New codes:
+  `esic.amount_above_income`, `esic.clawback_year_unsettled`,
+  `esic.incorporation_after_year`, `esic.innovation_items_conflict`,
+  `esic.innovation_items_invalid`, `esic.investor_invalid`,
+  `esic.non_cash_before_2018_19`,
+  `esic.retail_limit_unsettled`, `esic.six_year_route_before_2018_19`,
+  `esic.trust_or_partnership_unsupported` and `esic.year_invalid`.
+
+- `contribution-caps` takes 10 optional downsizer inputs, all or none, and
+  tests one downsizer contribution under ITAA 1997 s 292-102: age 55, a
+  contract from 1 July 2018, 90 days after the change of ownership and the
+  $300,000 and capital proceeds limits, with the other criteria stated.
+  `pension-minimum` takes an optional `transition_to_retirement` and adds the
+  10% maximum of SISR reg 6.01(2). Without the new inputs both commands answer
+  as before. New codes: `downsizer.contribution_before_settlement`,
+  `downsizer.date_outside_year` and `downsizer.settlement_before_contract`.
+- `super-withholding` takes one superannuation income stream payment with
+  `income_stream_period`: Schedule 13 Part A withholding in 2024-25 to
+  2026-27 for an account-based stream, or a capped defined benefit stream to
+  a payee under 60, paid to a member or a death benefits dependant, with
+  `tax_free_threshold_claimed`, `capped_defined_benefit` and
+  `deceased_aged_60_or_over`. Lump sums are unchanged. New codes:
+  `super_withholding.capped_defined_benefit`,
+  `super_withholding.deceased_60_recipient_under_60`,
+  `super_withholding.income_stream_foreign_resident`,
+  `super_withholding.income_stream_period_invalid` and
+  `super_withholding.income_stream_year`. `tests/super_income_stream.rs` runs
+  each schedule's Veronica example and each rule.
+- `land-tax`: one owner's land tax for a full land tax year in New South
+  Wales and Victoria (2026) and Queensland, Western Australia, South
+  Australia, Tasmania and the ACT (2026-27), at the general or trust rates,
+  with each jurisdiction's foreign or absentee owner surcharge and Western
+  Australia's metropolitan region improvement tax. It mirrors the site's land
+  tax calculator and agrees with it on every case except where the Act
+  differs: Queensland's surcharge over $349,999, South Australia's $20
+  minimum and Tasmania's rounding to 10 cents. New codes:
+  `land_tax.absentee_trust_unsupported`, `land_tax.jurisdiction_invalid`,
+  `land_tax.metropolitan_region_invalid`, `land_tax.metropolitan_region_part`,
+  `land_tax.rounding_unsettled`, `land_tax.surcharge_unavailable`,
+  `land_tax.surcharge_value_above_taxable_value` and
+  `land_tax.trust_rates_unavailable`. `derive` takes it.
+- `vic-property-taxes`: Victoria's vacant residential land tax (1%, 2% or
+  3% of capital improved value by the land's liable years, 1% for
+  undeveloped land and the s 88EB concession), the commercial and
+  industrial property tax (nil in 2025 and 2026, with the land's earliest
+  possible tax year) and windfall gains tax on a rezoning's aggregated uplift, for the
+  2025 and 2026 tax years. New codes:
+  `vic_property_taxes.concession_unavailable`,
+  `vic_property_taxes.entry_date_before_reform`,
+  `vic_property_taxes.parcels_invalid`,
+  `vic_property_taxes.residential_land_invalid`,
+  `vic_property_taxes.tax_invalid`,
+  `vic_property_taxes.transition_end_unsettled` and
+  `vic_property_taxes.undeveloped_before_2026`. `derive` takes it.
+- `pcg-2021-4` gives the ATO's risk zone under PCG 2021/4 for one IPP's
+  allocation of professional firm profits, from stated totals or from up to 6
+  recipients with the tax paragraph 85 counts on the year's resident scale or
+  company rate, for 2020-21 and 2022-23 to 2026-27. It mirrors the site's PCG
+  2021/4 risk scorer and allocation calculator and agrees with them on all 432
+  rows of their cases, tests and a seeded sweep. New codes:
+  `pcg_2021_4.benchmark_nil`, `pcg_2021_4.entitlement_nil`,
+  `pcg_2021_4.gateway_failed`, `pcg_2021_4.recipient_kind_unsupported`,
+  `pcg_2021_4.recipients_invalid`, `pcg_2021_4.returned_above_entitlement`
+  and `pcg_2021_4.tax_above_entitlement`.
+- `asic-fees` gives ASIC's 2026-27 fee for a company registration, name
+  reservation, annual review or business name, and the late fee tier for a
+  late review fee payment or lodgement from its due and received dates. It
+  mirrors the site's ASIC fees page and agrees with it on its 29 cases, the 32
+  vectors of its tests and all 181,476 due and received date pairs from
+  1 June 2026 to 31 July 2027. It cites company registration to Schedule 2
+  item 1(a) of the Corporations (Fees) Regulations 2001. New codes:
+  `asic_fees.dates_outside_year`, `asic_fees.fee_unknown` and
+  `asic_fees.weekend_undecided`.
+- `instant-asset-write-off` works out one asset's instant asset write-off for
+  2020-21 to 2026-27: a small business entity's under ITAA 1997 s 328-180 with
+  the limit for its dates (IT(TP)A 1997 ss 328-180(4) and (4A) and 328-181(2),
+  Act No. 71 of 2026 Sch 2), or a medium sized business's under s 40-82(2A).
+  It refuses assets temporary full expensing may take for other entities. New
+  codes: `instant_asset_write_off.acquired_after_first_use`,
+  `instant_asset_write_off.budget_time_day`,
+  `instant_asset_write_off.entity_invalid`,
+  `instant_asset_write_off.first_use_outside_year`,
+  `instant_asset_write_off.precision_exceeded` and
+  `instant_asset_write_off.temporary_full_expensing`.
+- `depreciation` also accepts 2020-21 to 2024-25, with up to 366 days held in
+  2023-24, and flags temporary full expensing for 2020-21 to 2022-23, backing
+  business investment for a 2020-21 start year and the adjusted prime cost
+  formula a later year may need. 3 frozen 2023-24 inputs refused as an
+  unsupported period now meet their day count or effective life refusals, and
+  the catalogue's `days` text, source date and passage change with the years
+  (`tests/parity.rs`). 2027-28 stays refused, with a reworded reason.
 - `resident-tax` takes a part-year resident: with `part_year_residency_months`
   (1 to 12) and `eligible_pensioner` it pro-rates the tax-free threshold to
   $13,464 plus $4,736 x the months / 12 under Income Tax Rates Act 1986
@@ -19,6 +127,135 @@
   offset, the private health insurance rebate, a study loan repayment, worked
   tax withheld and every year from 2027-28. Full-year and foreign resident
   results do not change.
+- `workers-compensation-premium`: one employer's workers compensation premium
+  for a 2026-27 policy in each state and territory, with the adjustment on
+  actual wages: icare's small employer formula, the Victorian Premiums Order
+  (No. 34) for a new or small employer, WorkCover Queensland's notice for a
+  policy commencing in 2026-27 with insurance duty, ReturnToWorkSA's formula,
+  and the insurer's rate elsewhere. It mirrors the site's workers
+  compensation calculator and agrees with it on every page case, refusing
+  where a source does not settle a case: a South Australian base premium
+  just under a band's bound, a New South Wales apprentice incentive, a
+  Queensland premium that rounding order would move and Queensland actual
+  wages. New
+  codes: `workers_compensation_premium.adjustment_unsettled`,
+  `apprentice_above_wages`, `apprentice_unavailable`,
+  `apprentice_unsettled`, `band_edge_unsettled`, `below_minimum`,
+  `days_invalid`, `employer_invalid`, `experience_rated`, `group_rated`,
+  `jurisdiction_invalid`, `policy_after_year`, `policy_before_year`,
+  `rate_invalid`, `remuneration_nil` and `rounding_unsettled`.
+- `defined-benefit-income-cap` works out the defined benefit income cap for
+  2017-18 to 2026-27 (ITAA 1997 s 303-4), with a part year from `first_day`,
+  half the excess as assessable income (s 303-2) and the reduced untaxed
+  offset (s 303-3), held to LCR 2017/1 Examples 2 to 6. New code:
+  `defined_benefit_income_cap.first_day_outside_year`.
+- `foreign-pension-upp` works out the deductible amount of a foreign
+  pension's undeducted purchase price under ITAA 1936 s 27H(2), or the ATO's
+  2026 D11 shortcuts for UK and Dutch pensions, with the excluded and
+  assessable amounts. New codes: `foreign_pension_upp.commuted`,
+  `method_invalid`, `method_year_unsupported`, `part_year`,
+  `relevant_number_invalid`, `residual_exceeds_price`, `share_invalid` and
+  `uk_category_invalid`.
+- `scholarship-exemption` tests a scholarship against ITAA 1997 s 51-10 item
+  2.1A and s 51-35, held to the ATO's 6 examples. New codes:
+  `scholarship_exemption.commonwealth_payment`,
+  `commonwealth_payment_invalid`, `friendly_society_plan` and
+  `payment_type_invalid`.
+- `super-crystallisation` works out a taxed super interest's crystallised
+  segment at 30 June 2007 (ITTPA 1997 s 307-225), with the pre-July 83
+  component under former ITAA 1936 s 27AA(1)(d). New codes:
+  `super_crystallisation.components_exceed_value`, `dates_invalid`,
+  `income_stream_before_july_2007` and `untaxed_source`.
+- `endorsement-review` works through the ATO's 3 endorsement review
+  worksheets for charities and DGRs, each answer tied to its provision,
+  complementing `dgr-check`. New codes: `endorsement_review.answers_invalid`
+  and `worksheet_invalid`.
+- `derive` explains `defined-benefit-income-cap`, `foreign-pension-upp` and
+  `super-crystallisation`.
+- `motor-vehicle-duty` works out the duty on one passenger vehicle in each
+  state and territory on a date in 2026-27 from each Act's scale, with
+  Queensland's engine rows, Victoria's green car and primary producer rate,
+  the ACT's emissions categories under the determination in force on the day,
+  Tasmania's fleet discount and the Northern Territory's electric vehicle
+  exemption. New codes: `motor_vehicle_duty.date_outside_year`,
+  `motor_vehicle_duty.emissions_category_invalid`,
+  `motor_vehicle_duty.engine_invalid`,
+  `motor_vehicle_duty.jurisdiction_invalid` and
+  `motor_vehicle_duty.vehicle_class_unsupported`.
+- `insurance-duty` works out the duty on one general insurance premium in each
+  state and territory for a contract effected or renewed in 2026-27, at each
+  Act's rate for the class stated: New South Wales Types A, B and C,
+  Victoria's general and business insurance, Queensland's class 1, class 2
+  and CTP insurance, and general insurance elsewhere, with the ACT's duty and
+  New South Wales Type C (for a policy taken out from 1 January 2018) nil.
+  `rates.exact_duty` gives the unrounded duty. New codes:
+  `insurance_duty.class_invalid`, `insurance_duty.date_outside_year`,
+  `insurance_duty.jurisdiction_invalid` and `insurance_duty.term_unsettled`.
+- `first-home-owner-grant` gives the first home owner grant in each state
+  and territory for a new home bought or built under a contract made from
+  1 July 2025 to 22 November 2026, as the site's grant page works it, with
+  each First Home Owner Grant Act read on 23 November 2026: the amount on
+  the contract date, the value cap (with an optional `cap_value` where
+  Queensland and Western Australia test a value other than the
+  consideration) and the lesser-of-consideration rule, from eligibility
+  facts the operator states. New codes:
+  `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
+  `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
+  `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,
+  `first_home_owner_grant.home_invalid`, `first_home_owner_grant.jurisdiction_invalid`,
+  `first_home_owner_grant.location_needed`, `first_home_owner_grant.value_basis`
+  and `first_home_owner_grant.value_invalid`. `tests/first_home_owner_grant.rs`
+  holds it to the page's 26 cases.
+- `long-service-leave`: one employee's long service leave under the general
+  Act of each state and territory, as weeks to take or pay and their value,
+  with the hours a `leave-provisions` line takes. It mirrors the site's long
+  service leave calculator, except that Queensland uses the 8.6667 weeks the
+  Industrial Relations Act 2016 s 95 states and the last day must fall from
+  1 July 2020 to 30 June 2027 and within each Act's text as read, and it
+  refuses endings the Acts leave to facts the page does not ask (a Queensland
+  fixed term before 10 years, a South Australian departure without notice,
+  Tasmanian leave taken across the 2012 transition). New codes:
+  `long_service_leave.before_current_text`, `end_before_start`,
+  `excluded_invalid`, `hours_invalid`, `jurisdiction_invalid`,
+  `pay_invalid`, `reason_invalid`, `start_too_early`, `status_invalid`,
+  `taken_above_weeks`, `taken_invalid`, `unsettled` and `year_mismatch`.
+- `transfer-duty`: transfer duty on one dutiable transaction in 2026-27 in each
+  of the 8 states and territories, at the general rate or with an eligible
+  first home buyer's concession for an established or new home. It mirrors
+  the site's transfer duty calculator and agrees with it on every case except
+  Victoria's, which Duties Act 2000 (Vic) s 28(1) charges to the nearest
+  dollar. New codes: `transfer_duty.buyer_invalid`,
+  `transfer_duty.dutiable_value_nil`,
+  `transfer_duty.first_home_not_residential`,
+  `transfer_duty.jurisdiction_invalid` and
+  `transfer_duty.non_residential_unsupported`. `derive` takes it.
+- `work-expenses` reads the records themselves. For `home_office` from
+  2022-23, `hours_diary` (dated rows of hours) stands in for `hours`; for
+  `car_log_book`, `log_book` (the period, its odometer readings and each
+  journey with its purpose) stands in for `log_book_weeks` and
+  `business_kilometres`, checks the 12 week period, that it includes part of
+  its year and that the journeys fit inside it, and applies its percentage to
+  the year's kilometres. Both methods now list the records PCG 2023/1 and
+  Division 28 require in `records_to_confirm`, as facts for the operator to
+  confirm. Other results are unchanged. New codes:
+  `work_expenses.diary_year_unsupported`,
+  `work_expenses.log_book_entry_incomplete` and
+  `work_expenses.log_book_outside_year`.
+- `work-expenses` works out the standard deduction for work-related expenses
+  (ITAA 1997 s 25-130, Act No. 49 of 2026) in 2026-27 when given
+  `assessable_labour_income`, `other_work_related_deductions` and
+  `australian_resident`: the $1,000 limit, what is left beside the covered
+  deductions claimed, and what claiming this method adds over relying on
+  the standard deduction. Results without these inputs are unchanged. New
+  code: `work_expenses.standard_deduction_unavailable`.
+- `notice-period` works out the minimum notice of termination under the
+  National Employment Standards (Fair Work Act 2009 s 117) for notice given
+  from 27 March 2021 to 30 June 2027, with the over-45 week, the s 123
+  exclusions as stated, and the payment in lieu, rounded up to the cent,
+  from a stated full rate of pay and hours a week. New codes: `notice_period.age_unsettled`,
+  `before_current_text`, `birth_after_start`, `excluded_invalid`,
+  `exclusion_invalid`, `hours_invalid`, `start_after_notice` and
+  `year_mismatch`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an

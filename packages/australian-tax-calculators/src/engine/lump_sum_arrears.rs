@@ -208,7 +208,7 @@ fn accrual_years(value: &Arg, receipt: &str) -> Result<Vec<AccrualYear>> {
 type Scale = &'static [(i64, Option<i64>, &'static str)];
 
 /// A year's resident rates, if the worksheet holds them.
-fn scale(year: &str) -> Option<Scale> {
+pub(super) fn scale(year: &str) -> Option<Scale> {
     meta::PRIOR_RESIDENT_TAX_SCALES
         .iter()
         .chain(meta::RESIDENT_TAX_SCALES)
