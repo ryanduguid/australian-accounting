@@ -5244,7 +5244,13 @@ differs, the Act is followed:
   pays nil.
 
 The value tested against the cap is the one each source names, kept apart
-from the consideration that limits the grant (`total_value`). In Queensland
+from the consideration that limits the grant. For a home bought that is
+`total_value`, the price. For a home built every Act read on 24 November
+2026 makes it the building work alone (Qld schedule 'consideration' (b),
+WA s 14AB(b), Vic, SA and Tas s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b);
+the New South Wales Act could not be read), not the land and contract total: the command pays the amount only when
+`building_contract` states the contract is at least the grant, refuses
+without it, and never limits a built home's grant by `total_value`. In Queensland
 and Western Australia the optional `cap_value` carries the value the Act
 tests where it differs: for a home bought, the unencumbered value of the home
 and land at the contract date, tested with the price as the greater of the 2

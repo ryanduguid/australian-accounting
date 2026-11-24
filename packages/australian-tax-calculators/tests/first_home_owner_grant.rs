@@ -729,3 +729,26 @@ fn residence_requirements_are_stated_in_full() {
         }
     }
 }
+
+/// For a home built, every Act read on 24 November 2026 makes the
+/// consideration the building work alone (Qld schedule 'consideration' (b),
+/// WA s 14AB(b), Vic, SA and Tas s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b)),
+/// so the help must not call the land and contract total the consideration
+/// that limits the grant.
+#[test]
+fn total_value_help_keeps_the_land_out_of_a_built_homes_consideration() {
+    let units = australian_tax_calculators::metadata::input_units("first_home_owner_grant");
+    let total = units
+        .iter()
+        .find(|(name, _)| *name == "total_value")
+        .unwrap()
+        .1;
+    assert!(
+        !total.contains("the consideration, which limits the grant"),
+        "{total}"
+    );
+    assert!(
+        total.contains("the consideration is the building contract alone"),
+        "{total}"
+    );
+}
