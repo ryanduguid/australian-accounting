@@ -4142,9 +4142,13 @@ building work alone, s 13(1A) and (7)(b)), a Northern Territory or
 Tasmanian contract without its conditions, and a Western Australian home
 without its location. Owner-builders, substantially renovated homes,
 exemptions, the Commissioner's discretions and transfer duty are outside it.
-`total_value` is the consideration: for a home bought, the price; for a home
-built, the land and the building contract with its variations. It limits the
-grant and is the value tested against the cap, except that in Queensland and
+`total_value` is, for a home bought, the price: the consideration, which
+limits the grant. For a home built it is the land and the building contract
+with its variations, but the consideration is the building contract alone
+(Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas s 13(7)(b),
+ACT s 13(6)(b), NT s 13(8)(b)); `building_contract` states that it is at
+least the grant, so the land never limits a built home's grant.
+`total_value` is the value tested against the cap, except that in Queensland and
 Western Australia `cap_value` gives the value the Act tests where it differs:
 for a home bought, the unencumbered value of the home and land at the
 contract date, tested with the price (the greater of the 2; Qld s 5(6) and
