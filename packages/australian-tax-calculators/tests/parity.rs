@@ -29,7 +29,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
-/// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
+/// `tests/fhss.rs`, `tests/aml_cdd_review.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
 /// `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/vic_property_taxes.rs`, `tests/alcohol_excise.rs`, `tests/asic_fees.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
@@ -40,7 +40,7 @@ use std::process::{Command, Stdio};
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
 /// `tests/psi_test.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
-/// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
+/// `tests/foreign_resident_withholding.rs`, `tests/non_resident_withholding.rs`, `tests/residential_vacancy_fee.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`, `tests/wip_lockup.rs`, `tests/impairment_test.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
@@ -51,7 +51,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 126] = [
+const NEW_KINDS: [(&str, &str); 130] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -66,6 +66,7 @@ const NEW_KINDS: [(&str, &str); 126] = [
     ("ato-interest-penalties", "ato_interest_penalties"),
     ("transfer-balance", "transfer_balance"),
     ("excess-contributions", "excess_contributions"),
+    ("aml-cdd-review", "aml_cdd_review"),
     ("ppsr-timing", "ppsr_timing"),
     ("foreign-purchaser-surcharge", "foreign_purchaser_surcharge"),
     ("dasp-tax", "dasp_tax"),
@@ -104,6 +105,7 @@ const NEW_KINDS: [(&str, &str); 126] = [
     ),
     ("motor-vehicle-duty", "motor_vehicle_duty"),
     ("insurance-duty", "insurance_duty"),
+    ("portable-lsl-levy", "portable_lsl_levy"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("vic-property-taxes", "vic_property_taxes"),
     ("alcohol-excise", "alcohol_excise"),
@@ -148,6 +150,8 @@ const NEW_KINDS: [(&str, &str); 126] = [
         "foreign-resident-withholding",
         "foreign_resident_withholding",
     ),
+    ("non-resident-withholding", "non_resident_withholding"),
+    ("residential-vacancy-fee", "residential_vacancy_fee"),
     (
         "horticulture-shearing-withholding",
         "horticulture_shearing_withholding",

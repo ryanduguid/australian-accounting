@@ -1216,6 +1216,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Each Act, determination and revenue office's rates for transactions
         // in 2026-27, read on 24 November 2026.
         "transfer_duty" => vec!["2026-27"],
+        // Coal LSL 2.7% applies from 1 July 2023 (F2023L00772); individual
+        // state and territory schemes gate their own verified financial years.
+        "portable_lsl_levy" => vec!["2023-24", "2024-25", "2025-26", "2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1314,6 +1317,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // read is in force from 14 October 2024 (PPSA), and the Corporations
         // Act's ss 9 and 588FL to 588FN read the same from 1 July 2025 with no
         // enacted amendment; critical times are taken within the same years.
+        "aml_cdd_review" => vec!["2026-27"],
         "ppsr_timing" => vec!["2025-26", "2026-27"],
         "fbt_entertainment_classifier" => vec!["2026", "2027"],
         "fbt_housing" => keys(FBT_HOUSING_INDEXATION),
@@ -1514,10 +1518,23 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // TAA Sch 1 s 14-200 from 1 July 2017 (Act No. 57 of 2017) to 30 June
         // 2027; 15% and no threshold from 1 January 2025 (Act No. 135 of 2024).
+        // FATA 1975 Part 6A (ss 115A to 115T) and Fees Imposition Regulations
+        // 2020 Part 3 (commenced 1 January 2021, s 62): vacancy years starting
+        // in 2020-21 to 2026-27 (each ending on or after 30 June 2021), with
+        // doubled fees for vacancy years starting on or after 9 April 2024
+        // (Act No. 17 of 2024 Sch 2, Regs s 67(2)).
+        "residential_vacancy_fee" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "foreign_resident_withholding" => vec![
             "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
             "2025-26", "2026-27",
         ],
+        // TAA Sch 1 Subdivs 12-F, 12-H and 12-FB, IT(DIRWHT)A 1974 s 7,
+        // IT(MITWHT)A 2008 s 4, TAR 2017 ss 26, 31 to 34, 39 to 45 and 48 to 51
+        // (sunsets 1 October 2027) and ITRA 1986 s 23(2) and Sch 7 Pt II cl 1
+        // (table for 2024-25 onwards) share the same rates across these years.
+        "non_resident_withholding" => vec!["2024-25", "2025-26", "2026-27"],
         // The years payg_withholding's Schedule 1 holds: Schedules 6 and 14 and
         // the daily and casual table use it, and Schedules 2, 3, 4 and 10 and
         // s 12-190 were read for the same years only.
@@ -1641,6 +1658,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "insurance_duty" => (
             "2026-11-24",
             "Duties Act 2000 (Vic) ss 3(1) and 179 (authorised version 141); Duties Act 2001 (Qld) s 362 (current as at 22 October 2026); Duties Act 2008 (WA) s 215 (03-z0-00); Stamp Duties Act 1923 (SA) s 34 (version 15.9.2026); Duties Act 2001 (Tas) s 166 (in force 24 November 2026); Duties Act 1999 (ACT) republication 79 endnotes (ch 8 omitted by A2017-11 from 1 July 2017); Stamp Duty Act 1978 (NT) Sch 1 cl 6(3) (as in force at 1 July 2025); Revenue NSW's 'Types of insurance' (the NSW Act was not readable); and each revenue office's insurance duty page",
+        ),
+        "portable_lsl_levy" => (
+            "2026-11-24",
+            "Coal Mining Industry (Long Service Leave) Payroll Levy Collection Act 1992 s 3B (C2026C00364) and Payroll Levy Regulations 2018 s 6 (F2023C00557); NSW Long Service Corporation (BCI, CCI and CSI pages); LeavePlus (Vic) and Portable Long Service Authority (Vic); Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72 and Regulation 2024 ss 8, 9 and 11, Contract Cleaning Industry (Portable Long Service Leave) Act 2005 (Qld) s 83 and QLeave pages; SA Portable Long Service Leave (Construction and Community Services pages); MyLeave (WA) 2027 Employer Contribution Rate notice (4 November 2026); ACT Disallowable Instruments DI2024-12, DI2024-15, DI2024-16, DI2024-224 and DI2026-228; TasBuild Employers Information FAQ; NT Build Levy Payers guide and Construction Industry Long Service Leave and Benefits Act 2005 (NT) s 33",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -1866,6 +1887,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-15",
             "FBTAA ss 38 and 39 and s 136(1), non-deductible exempt entertainment expenditure, compilation 97 (1 July 2026); Fringe benefits tax - a guide for employers, chapter 15, 15.9 and its per head example; FBT return 2026 instructions, item 23L and example 15",
         ),
+        "aml_cdd_review" => (
+            "2026-11-24",
+            "Anti-Money Laundering and Counter-Terrorism Financing Act 2006 ss 5, 11, 26C, 28, 30, 31 and 32, compilation 63 (1 October 2026); Anti-Money Laundering and Counter-Terrorism Financing Rules 2025 ss 5-2, 6-7(1)-(1C), 6-8, 6-16 and 6-20 to 6-24, compilation 1 (31 March 2026); AUSTRAC Step 2: Identify and assess your risks (country risk Basel AML Index bands and FATF/sanctions overrides); AUSTRAC Accountant program starter kit: Step 2 - Use your accounting program; AUSTRAC Determining ownership and control structures; AUSTRAC Reviewing and updating customers' ML/TF risk and KYC information (29 October 2026)",
+        ),
         "ppsr_timing" => (
             "2026-11-20",
             "Personal Property Securities Act 2009 ss 10 ('business day'), 62, 153 and 294, compilation 22 (14 October 2024); Personal Property Securities Regulations 2010, compilation 6 (1 July 2022), which prescribe no day for the s 10 definition; Personal Property Securities (Fees) Determination 2018 ss 2, 4, 5 and 6, as made (from 1 August 2018); Corporations Act 2001 ss 9 ('business day'), 588FL and 588FM, compilation 149 (19 September 2026), the same text in compilation 142 (1 July 2025) and unamended by the Acts listed for its versions from 1 December 2026 to 1 July 2027 (Nos. 61, 35, 38 and 57 of 2026 and 72 of 2025); the Registrar's 'Fees for using the PPSR' page",
@@ -2010,9 +2035,17 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-22",
             "ITAA 1997 ss 6-5, 8-1, 26-31, 26-102, 40-27, 43-10, 43-15, 43-20, 43-25, 43-80, 43-140, 43-145, 43-210, 43-215, 43-220, 43-230, 43-235 and 43-240 on the ATO's legal database, with the amendment history of compilation 264 (21 May 2026); Treasury Laws Amendment (Housing Tax Integrity) Act 2017 (No. 126, 2017) Schedule 1 and Schedule 2 item 13; TR 2000/2 paragraphs 13 to 26; TR 93/32 paragraphs 6 and 11 to 13; ATO Rental properties guide 2026 (NAT 1729-06.2026, current at 1 June 2026): the time-based method, Tables 1 and 2 and Examples 1, 2, 12, 20 to 23, 29, 33, 34 and 40; s 25-25 through borrowing-expenses-schedule (checked 19 November 2026) and the resident scale through resident-tax",
         ),
+        "residential_vacancy_fee" => (
+            "2026-11-24",
+            "FATA 1975 Part 6A (ss 115A to 115T), compilation 35 (C2025C00672, 5 December 2025); FATR 2015 Div 4A (ss 43C and 43D), compilation 20 (F2025C01038, 1 November 2025); Fees Imposition Act 2015 ss 5 to 9, compilations 4 to 6 (C2021C00021, C2022C00334, C2024C00141); Fees Imposition Amendment Act 2024 (No. 17, 2024, C2024A00017); Fees Imposition Regulations 2020 Part 2 Div 2, Part 3 (ss 42 to 46), ss 53, 57, 59 to 61A and 67, compilations 1, 2 and 4 (F2021C00683, F2022C00757, F2024C01252); ATO Vacancy fee return for foreign owners and Residential fees for a foreign person pages; Treasury Guidance Note 6 (v5, 1 July 2026), Guidance Note 10 (v12, 18 September 2026) and Schedule of Fees (v8, June 2026)",
+        ),
         "foreign_resident_withholding" => (
             "2026-11-22",
             "TAA 1953 Sch 1 ss 14-200, 14-210, 14-215, 14-220 and 14-235, compilation 227 (1 October 2026), against compilations 148 (1 July 2017) and 215 (11 December 2024) and the compilation of 1 January 2025; Acts No. 57 of 2017 and No. 135 of 2024 Sch 1; ITAA 1997 ss 108-7 and 109-5; F2016L01123 and LI 2026/38 (F2026L01231); the ATO's foreign resident capital gains withholding pages (last updated 22 June to 9 October 2026)",
+        ),
+        "non_resident_withholding" => (
+            "2026-11-24",
+            "TAA 1953 Sch 1 Subdivs 12-F (ss 12-210 to 12-300), 12-FB (ss 12-315 to 12-319), 12-H (ss 12-383 to 12-450) and ss 12-1, 15-10 and 15-15, compilation 227 (C2026C00468, 1 October 2026); ITAA 1936 Div 11A ss 128B to 128D, compilation 193 (C2026C00454, 1 October 2026); Income Tax (Dividends, Interest and Royalties Withholding Tax) Act 1974 s 7 (C2007C00596, 24 September 2007); Income Tax (Managed Investment Trust Withholding Tax) Act 2008 s 4, compilation 3 (C2019C00219, 1 July 2019); Taxation Administration Regulations 2017 ss 26, 31 to 34, 39 to 45 and 48 to 51, compilation 18 (F2026C01210, 14 November 2026); Income Tax Rates Act 1986 s 23(2) and Sch 7 Pt II cl 1, compilation 66 (C2026C00300, 1 July 2026); Act No. 138 of 2024 Sch 1 (active build to rent exclusion in s 12-450(5) from 1 January 2025)",
         ),
         "residency_tests" => (
             "2026-11-22",
@@ -2178,6 +2211,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-11-16",
         ),
         // No Library volume covers the PPSR; the Acts themselves were read.
+        "aml_cdd_review" => (
+            "AML/CTF Act 2006 compilation 63; AML/CTF Rules 2025 compilation 1; AUSTRAC Step 2 country risk and Accountant program starter kit",
+            "AUSTRAC Country A (Basel 5.75 medium), Country B (Basel 5.25 + override high), 25% indirect ownership chain, statutory ECDD and starter-kit vs statutory cadence",
+            "2026-10-29",
+            "2026-11-24",
+        ),
         "ppsr_timing" => (
             "Personal Property Securities Act 2009, compilation 22; Corporations Act 2001, compilation 149",
             "PPSA ss 10, 62 and 153; Corporations Act ss 9 and 588FL",
@@ -2229,6 +2268,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         "insurance_duty" => (
             "Revenue office insurance duty pages: Revenue NSW types of insurance; SRO Victoria insurance policies current rates; QRO insurance duty rates; RevenueWA self-assess and pay insurance duty; RevenueSA stamp duty on insurance; SRO Tasmania rates of duty; TRO stamp duty",
             "No revenue office publishes a worked general insurance example with figures; each rate is applied to hand-worked premiums",
+            "2026-11-24",
+            "2026-11-24",
+        ),
+        "portable_lsl_levy" => (
+            "Coal LSL eligible wages parity vectors (duguid.com.au/tools/coal-lsl-levy); NSW LSC, LeavePlus, PLSA, QLeave, SA Portable Long Service Leave, MyLeave, ACT Leave, TasBuild and NT Build levy pages and in-force legislation",
+            "Coal LSL D1 to D12 and F1 to F8 vectors; statutory threshold and rounding checks across NSW, Vic, Qld, SA, WA, ACT, Tas and NT",
             "2026-11-24",
             "2026-11-24",
         ),
@@ -2586,11 +2631,23 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-05-30",
             "2026-11-22",
         ),
+        "residential_vacancy_fee" => (
+            "ATO Vacancy fee return for foreign owners and Residential fees for a foreign person pages; Treasury Guidance Notes 6 (v5) and 10 (v12)",
+            "Myeong ($13,200 pre-9 April 2024, $26,400 from 1 August 2024), Edmond (vacancy year and 30-day due date), Rishi ($62,600 for 2026-27 exemption certificate), Sara (25% tenant in common), GN10 Example 34 ($88,500 to $177,000 established dwelling) and GN6 Examples 23 to 27 (short-stay exclusion and late-return deemed liability)",
+            "2026-09-18",
+            "2026-11-24",
+        ),
         "foreign_resident_withholding" => (
             "ATO foreign resident capital gains withholding pages",
             "the rate examples (Jane and Toni), the clearance certificate examples (Willow and Stanley, Maisie and Max) and the multiple vendor examples (Zac and Jen, Kim)",
             "2026-10-09",
             "2026-11-22",
+        ),
+        "non_resident_withholding" => (
+            "TAA 1953 Sch 1, ITAA 1936 s 128B, IT(DIRWHT)A 1974, IT(MITWHT)A 2008, TAR 2017 and ITRA 1986",
+            "statutory rate schedules across Subdivisions 12-F, 12-H and 12-FB, TAR 2017 s 26 whole-dollar truncation and s 12-300(b) ceiling cases",
+            "2026-11-14",
+            "2026-11-24",
         ),
         "horticulture_shearing_withholding" => (
             "ATO Schedule 2 tax table for the horticultural or shearing industry (NAT 1013)",
@@ -3472,6 +3529,60 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, with agent true only, and then required: the principal's payments to you for services to its customers (s 87-40(2)(b))",
             ),
         ],
+        "non_resident_withholding" => vec![
+            (
+                "franked_amount",
+                "AUD, payment_type dividend only, and then required: the franked part of the dividend exempt from withholding tax under ITAA 1936 s 128B(3)(ga)(i)",
+            ),
+            (
+                "conduit_foreign_income",
+                "AUD, payment_type dividend only, and then required: the unfranked part declared to be conduit foreign income (ITAA 1997 ss 802-15 and 802-17)",
+            ),
+            (
+                "treaty_rate",
+                "null or decimal string from 0 to the domestic rate (0.30 for dividend or royalty, 0.10 for interest), Subdivision 12-F types only, and then required: the maximum rate under an applicable double tax agreement or international tax sharing treaty (TAR 2017 ss 40 and 42; TAA Sch 1 s 12-300); pass null where domestic rates apply or TAR 2017 s 40(3) excludes the treaty rate for a US tax-exempt dividend",
+            ),
+            (
+                "information_exchange_country",
+                "boolean, payment_type mit_fund_payment only, and then required: whether the recipient's address or place for payment (ss 12-385(3)(a) and 12-390(3)(a)), or residency for a non-custodian intermediary (s 12-390(6)(a)), is in an information exchange country listed in TAR 2017 s 34",
+            ),
+            (
+                "clean_building_mit_amount",
+                "AUD, payment_type mit_fund_payment only, and then required: the part of payment attributable to a clean building MIT (s 12-425) and not non-concessional MIT income (s 12-385(3)(a)(ii))",
+            ),
+            (
+                "non_concessional_mit_income",
+                "AUD, payment_type mit_fund_payment only, and then required: the part of payment attributable to non-concessional MIT income (s 12-435, excluding affordable housing under s 12-450(3) and active build to rent income under s 12-450(5) from 1 January 2025)",
+            ),
+            (
+                "company_not_acting_as_agent",
+                "boolean, payment_type mit_fund_payment only, and then required: true where the entity withholding under s 12-390 is a company not acting in the capacity as agent for the recipient (apart from s 12-420), which s 12-390(10)(a) exempts from withholding; false for a withholding MIT under s 12-385, a non-company entity, or a company acting as agent",
+            ),
+            (
+                "payee_entity",
+                "individual or company, payment_type entertainment_or_sports only, and then required (TAR 2017 s 50(2)); trusts, partnerships and other entities are refused",
+            ),
+            (
+                "base_rate_entity",
+                "boolean when payee_entity is company (25% if true, 30% if false, ITRA 1986 s 23(2)), or null when payee_entity is individual; payment_type entertainment_or_sports only, and then required",
+            ),
+            (
+                "contract_date",
+                "YYYY-MM-DD, payment_type construction only, and then required: date the contract for works or related activities was entered into; contracts on or before 30 June 2004 are refused (TAR 2017 s 33(1))",
+            ),
+            (
+                "variation_rate",
+                "null or decimal string from 0 to 1, Subdivision 12-FB types only, and then required: a Commissioner's varied withholding rate under TAA Sch 1 s 15-15 (individual written notice or class variation)",
+            ),
+            (
+                "exempt",
+                "boolean, all payment types, required: whether a statutory exemption makes no withholding tax payable (s 12-300(a) for Subdivision 12-F; ss 12-385(5) and 12-390(10)(b) for Subdivision 12-H) or a Commissioner's written exemption under s 12-319(1) is in force for Subdivision 12-FB",
+            ),
+            (
+                "already_withheld",
+                "AUD, Subdivisions 12-F and 12-FB only, and then required: amounts already withheld from this payment under the same Subdivision (TAA Sch 1 s 12-300(b); TAR 2017 s 48(2)); 0.00 for none",
+            ),
+        ],
         "payg_instalment" => vec![
             (
                 "notified_amount",
@@ -3730,6 +3841,80 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "policy_taken_out",
                 "YYYY-MM-DD, for nsw type_c only and then required: the day the policy was taken out, as Revenue NSW uses the term (2.5% on or before 31 December 2017, exempt from 1 January 2018); whether a renewal took out a new policy is for the operator to establish",
+            ),
+        ],
+        "portable_lsl_levy" => vec![
+            (
+                "ordinary_wages",
+                "AUD, required for payroll-based state and territory schemes: reportable gross ordinary wages, ordinary pay or remuneration for the return period (excluding levy-free apprentices and trainees where exempt)",
+            ),
+            (
+                "paid_on_time",
+                "boolean, required for Tasmania construction (TasBuild) only: true for the 1.8% on-time discounted rate, false for the 2.5% standard rate",
+            ),
+            (
+                "project_cost",
+                "AUD, required for NSW, Queensland and Northern Territory building and construction project-cost levies (inclusive of GST in NSW and NT; exclusive of GST in Queensland under s 73(1))",
+            ),
+            (
+                "partial_exemption",
+                "boolean, optional for NSW, Queensland and Northern Territory project-cost schemes: true is refused because owner-builder, non-profit, church, Crown and local government reductions are outside this worksheet",
+            ),
+            (
+                "reporting_month",
+                "YYYY-MM string, required for Coal LSL: reporting month from 2023-07 onwards falling inside the supplied financial year",
+            ),
+            (
+                "branch",
+                "base_rate, annual_salary or casual, required for Coal LSL: selects the s 3B(1), s 3B(2) or s 3B(3) eligible wages method",
+            ),
+            (
+                "eligible_employee",
+                "boolean, required for Coal LSL: true asserts the worker is an eligible employee under s 4 of the Administration Act; false is refused",
+            ),
+            (
+                "base_rate_of_pay",
+                "AUD, Coal LSL base_rate (required) or casual (s 3B(3)(a) and pre-2024)",
+            ),
+            (
+                "annual_salary_paid",
+                "AUD, Coal LSL annual_salary branch (required)",
+            ),
+            (
+                "casual_loading",
+                "AUD, Coal LSL casual s 3B(3)(a) branch from January 2024",
+            ),
+            (
+                "ordinary_rate_of_pay",
+                "AUD, Coal LSL casual s 3B(3)(b) branch and pre-2024 legacy casual",
+            ),
+            (
+                "salary_sacrificed",
+                "AUD, Coal LSL optional amount grossed up onto base rate, ordinary rate or annual salary under s 3B(4)(a), (aa) and (b)",
+            ),
+            (
+                "overtime_and_penalty_rates",
+                "AUD, Coal LSL base_rate branch Formula B input",
+            ),
+            (
+                "allowances",
+                "AUD, Coal LSL base_rate branch Formula B input (excluding expense reimbursements under s 3B(1)(b)(iii))",
+            ),
+            (
+                "allowances_exclude_expense_reimbursements",
+                "boolean, required to be true on Coal LSL base_rate whenever allowances are positive",
+            ),
+            (
+                "bonuses",
+                "list of {amount, frequency} objects for Coal LSL: weekly, fortnightly and monthly count; quarterly, half_yearly (or halfYearly) and annually are excluded",
+            ),
+            (
+                "instrument_specifies_loading",
+                "boolean, required for Coal LSL casual from January 2024: true when the industrial instrument specifies a casual loading",
+            ),
+            (
+                "loading_quantifiable",
+                "boolean, required for Coal LSL casual from January 2024: true when the casual loading can be quantified separately",
             ),
         ],
         "payroll_tax" => vec![(
@@ -4444,6 +4629,116 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "integer from 1, per_head only and required there: everyone entertained at the function, employees, their associates and others",
             ),
         ],
+        "aml_cdd_review" => vec![
+            (
+                "basel_aml_score",
+                "decimal string 0.00 to 10.00 (at most 2 decimal places), country_risk only and required: the jurisdiction's Basel AML Index score",
+            ),
+            (
+                "fatf_call_for_action",
+                "boolean, country_risk only and required: true if the jurisdiction is on the FATF Call-for-Action list (blacklist; statutory ECDD under s 32(d))",
+            ),
+            (
+                "fatf_increased_monitoring",
+                "boolean, country_risk only and required: true if the jurisdiction is on the FATF increased monitoring list (grey list; AUSTRAC guidance high-risk override)",
+            ),
+            (
+                "australian_sanctioned_jurisdiction",
+                "boolean, country_risk only and required: true if the jurisdiction is subject to an Australian sanctions regime (country/regime sanctions only, never individual screening)",
+            ),
+            (
+                "entity_kind",
+                "beneficial_ownership only and required: body_corporate or non_body_corporate (AML/CTF Act 2006 s 11(1) vs s 11(2))",
+            ),
+            (
+                "customer_exemption",
+                "beneficial_ownership only and required: none, listed_public_company (Rules s 6-7(1), body_corporate only), government_body (Rules s 6-7(1A)), controlled_by_listed_or_government (Rules s 6-7(1B)) or owned_through_listed_or_government_only (Rules s 6-7(1C))",
+            ),
+            (
+                "ownership_chains",
+                "JSON list of up to 16 chains, beneficial_ownership only and required: each chain is a list of 1 to 8 percentage strings (>0 to 100, at most 4 decimal places) from one natural person down to the customer",
+            ),
+            (
+                "board_control",
+                "boolean, beneficial_ownership only and required: capacity to control board or governing body composition (s 11(1)(c) or s 11(2)(a))",
+            ),
+            (
+                "financial_operating_policy_control",
+                "boolean, beneficial_ownership only and required: capacity to determine financial and operating policy decisions (s 11(1)(d) or s 11(2)(b))",
+            ),
+            (
+                "voting_power_over_50",
+                "boolean, beneficial_ownership with entity_kind body_corporate only and required: capacity to cast or control more than 50% of votes (s 11(1)(a))",
+            ),
+            (
+                "issued_share_capital_over_50",
+                "boolean, beneficial_ownership with entity_kind body_corporate only and required: directly or indirectly holds more than 50% of qualifying issued share capital (s 11(1)(b))",
+            ),
+            (
+                "last_cdd_date",
+                "YYYY-MM-DD in 2026-07-01 to 2027-06-30, cdd_review only and required: date of initial CDD or the last periodic review",
+            ),
+            (
+                "customer_risk",
+                "cdd_review only and required: low, medium or high (customer ML/TF risk rating under ss 28(3)(b) and 30(1))",
+            ),
+            (
+                "simplified_cdd_policy_in_place",
+                "boolean, cdd_review only and required: true if the reporting entity's AML/CTF policies deal with simplified CDD measures (s 31(c) and Rules s 6-16)",
+            ),
+            (
+                "pep_status",
+                "cdd_review only and required: none, foreign, domestic or international_organisation (for the customer, a beneficial owner or a person on whose behalf the service is received; Rules ss 6-23 and 6-24)",
+            ),
+            (
+                "acting_representative_foreign_pep",
+                "boolean, cdd_review only and required: true if a person acting on behalf of the customer is a foreign PEP (triggers ECDD under s 32(c) only, not Rules ss 6-23 or 6-24)",
+            ),
+            (
+                "smr_continue_relationship",
+                "boolean, cdd_review only and required: true if a suspicious matter reporting obligation arose and designated services continue (s 32(b))",
+            ),
+            (
+                "unusual_smr_behaviour",
+                "boolean, cdd_review only and required: true if unusual transactions or behaviours may give rise to a suspicious matter reporting obligation even before an obligation arises or continuation is decided (s 30(2)(b)(ii))",
+            ),
+            (
+                "fatf_call_for_action_jurisdiction",
+                "boolean, cdd_review only and required: true if the customer, beneficial owner or acting/behalf person is present or formed in a FATF Call-for-Action jurisdiction (s 32(d))",
+            ),
+            (
+                "nested_services_relationship",
+                "boolean, cdd_review only and required: true if the designated service is provided as part of a nested services relationship (s 32(e))",
+            ),
+            (
+                "unusual_service_request",
+                "boolean, cdd_review only and required: true if the requested service has no apparent economic or legal purpose or involves unusually complex, large or patterned transactions (s 32(f) and Rules s 6-20)",
+            ),
+            (
+                "virtual_asset_physical_currency",
+                "boolean, cdd_review only and required: true if physical currency is deposited or received in an item 50A virtual asset service (s 32(f) and Rules s 6-22)",
+            ),
+            (
+                "kyc_veracity_doubt",
+                "boolean, cdd_review only and required: true if there are doubts about the adequacy or veracity of previously collected KYC information (s 30(2)(c)(i))",
+            ),
+            (
+                "significant_risk_change",
+                "boolean, cdd_review only and required: true if there is a significant change to the s 28(4) risk matters (s 30(2)(b)(i))",
+            ),
+            (
+                "new_pep_status_change",
+                "boolean, cdd_review only and required: true if the PEP status was newly acquired during the ongoing relationship (Rules s 6-24(1))",
+            ),
+            (
+                "cadence_basis",
+                "cdd_review only and required: austrac_accountant_starter_kit (12/24/36-month guidance defaults), custom_policy (requires policy_review_months) or statutory_only (no fixed interval)",
+            ),
+            (
+                "policy_review_months",
+                "integer 1 to 60, cdd_review with cadence_basis custom_policy only and required: periodic review interval set by the reporting entity's AML/CTF policies",
+            ),
+        ],
         "ppsr_timing" => vec![
             (
                 "registration_time",
@@ -4632,6 +4927,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "a, b_widow, c or d, uk_state_pension only and required there: the UK State Pension category",
             ),
         ],
+        "residential_vacancy_fee" => vec![
+            (
+                "application_fee_payable",
+                "AUD above nil: the original foreign investment application fee payable by this owner (Fees Regulations ss 43(a), 45(a) or 46(a), already apportioned if tenants_in_common); omit when deriving from consideration or when application_fee_waiver is full",
+            ),
+            (
+                "consideration",
+                "AUD above nil: consideration for acquiring the residential land interest, used with dwelling_kind and application_date to derive the statutory application fee under Fees Regulations Part 2 Div 2 and s 53 (required for developer_exemption_certificate; omit with application_fee_payable or full waiver)",
+            ),
+            (
+                "dwelling_kind",
+                "new_or_near_new or established (required when deriving from consideration or for a post-9 April 2024 full waiver; established is refused for developer_exemption_certificate)",
+            ),
+            (
+                "application_date",
+                "YYYY-MM-DD from 2021-01-01 to 2027-06-30: date the notice or application was given (or date of acquisition for developer_exemption_certificate); required when deriving from consideration or for a post-9 April 2024 full waiver",
+            ),
+            (
+                "ownership_share",
+                "decimal string strictly between 0 and 1: this tenant in common's share of the interest (Fees Regulations s 57(2)); required for tenants_in_common when deriving from the schedule or under a full waiver, omitted otherwise",
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4756,6 +5073,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("borrowing_loans", "list of objects as borrowing-expenses-schedule takes loans, your own borrowing expenses only; empty for none"),
             ("capital_works", "list of objects, the whole property's, each with construction_expenditure (AUD, given, never derived), kind (building or structural_improvement), began and first_used (YYYY-MM-DD) and taken_to_begin_before_16_september_1987 (boolean, s 43-220(1)(a) or (b); required for a building begun after 15 September 1987)"),
             ("depreciating_assets", "list of objects, the whole property's, each with decline_in_value (AUD from its start time to the end of the days held, before any private use reduction), acquired (YYYY-MM-DD, when you acquired it or entered into the contract under which you did, if earlier: Act No. 126 of 2017 Schedule 2 item 13), first_used (YYYY-MM-DD, its start time, first used or installed ready for use), held_when_first_used, residence_or_private_use and low_value_pool (booleans), and new_premises_exception (boolean, for an asset not held when first used) and deductible_in_2016_17 (boolean, for an asset acquired before 9 May 2017) where needed (s 40-27)"),
+        ],
+        "non_resident_withholding" => vec![
+            ("payment_type", "dividend, interest, royalty (Subdivision 12-F), mit_fund_payment (Subdivision 12-H), gaming_junket, entertainment_or_sports or construction (Subdivision 12-FB / s 12-315); capital_gains is refused (use foreign-resident-withholding)"),
+            ("payment", "AUD: the gross monetary payment dealt with under the Subdivision (excluding non-cash benefits under Division 14 and LAFHA or expense payment benefits disregarded under TAA Sch 1 s 12-1(2) and (3))"),
+        ],
+        "residential_vacancy_fee" => vec![
+            ("vacancy_year_start", "YYYY-MM-DD inside the stated financial year: the first day of this 12-month vacancy year (occupation day or its anniversary, FATA 1975 s 115C(2) and (3))"),
+            ("held_full_vacancy_year", "boolean: whether the owner continuously held the residential land interest as a foreign person for the entire 12-month vacancy year (false if sold, transferred, deceased or ceased to be a foreign person during the year)"),
+            ("residentially_occupied_days", "JSON integer from 0 to days in the vacancy year (365 or 366): distinct days the dwelling was residentially occupied by the owner or a relative, occupied under a lease or licence of at least 30 days, or genuinely available on the rental market for terms of at least 30 days (FATA s 115C(4); excludes short-term stays under 30 days)"),
+            ("return_lodged_on_time", "boolean: whether the annual vacancy fee return was lodged within 30 days after the end of the vacancy year (FATA s 115D(1); false deems liability under s 115D(3) and overrides FATR s 43D exemptions)"),
+            ("exemption", "null, or the FATR 2015 s 43D(2) exemption ground supported by evidence: damaged_unsafe_or_unsuitable, substantial_repairs_or_renovations, legal_restriction_or_court_order or medical_or_residential_care"),
+            ("acquisition_basis", "notifiable_action (Fees Regulations s 43), developer_exemption_certificate (s 44), other_exemption_certificate (s 45), no_notice_order (s 46) or build_to_rent (refused)"),
+            ("ownership", "sole, joint_tenants (FATA s 115D(4), Fees Regulations s 57(1)) or tenants_in_common (s 57(2))"),
+            ("application_fee_waiver", "none, full (Fees Regulations ss 43(b) and 46(b)) or partial (refused)"),
+            ("vacancy_fee_waiver_or_remission", "boolean: true if relying on a discretionary Treasurer or Commissioner waiver or remission under FATA s 115H (refused)"),
         ],
         "foreign_resident_withholding" => vec![
             ("payment", "capital_gains: foreign resident capital gains withholding (TAA Sch 1 s 14-200); any other payment is refused"),
@@ -5057,6 +5389,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "effected_date",
                 "YYYY-MM-DD in the year: the day the contract of insurance was effected or renewed",
+            ),
+        ],
+        "portable_lsl_levy" => vec![
+            ("jurisdiction", "cth, nsw, vic, qld, sa, wa, act, tas or nt"),
+            (
+                "scheme",
+                "coal, construction, community_services, contract_cleaning or security",
             ),
         ],
         "payroll_tax" => vec![
@@ -5847,6 +6186,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "AUD, non-deductible exempt entertainment expenditure (FBTAA s 136(1)): under actual, the part incurred in entertaining employees and their associates; under per_head, the whole function's",
             ),
         ],
+        "aml_cdd_review" => vec![(
+            "question",
+            "country_risk (Basel AML Index band and FATF/sanctions override), beneficial_ownership (25% indirect chain and s 11 control test) or cdd_review (statutory CDD tier, ECDD/SoW-SoF/immediate triggers and periodic review cadence)",
+        )],
         "ppsr_timing" => vec![(
             "question",
             "registration (end time and fee), pmsi (registration deadline for super-priority) or company_grantor (Corporations Act s 588FL time)",
@@ -6560,9 +6903,38 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("capital_works", Json("[]")),
             ("depreciating_assets", Json("[]")),
         ],
+        // An unfranked dividend of $10,000.00 ($4,000.00 franked, $1,000.00
+        // conduit foreign income, $5,000.00 unfranked non-CFI) paid to a
+        // resident of a 15% treaty country: $750.00 withheld.
+        "non_resident_withholding" => vec![
+            ("year", Text("2025-26")),
+            ("payment_type", Text("dividend")),
+            ("payment", Text("10000.00")),
+            ("franked_amount", Text("4000.00")),
+            ("conduit_foreign_income", Text("1000.00")),
+            ("treaty_rate", Text("0.15")),
+            ("exempt", Flag(false)),
+            ("already_withheld", Text("0.00")),
+        ],
         // The ATO's multiple vendor example: Zac (foreign resident, no
         // document) and Jen (clearance certificate) sell a $1 million property
         // in equal shares under a contract of 1 February 2025.
+        // The ATO's Myeong example (Vacancy fee return for foreign owners):
+        // $850,000 new townhouse settled 1 August 2022, $13,200 application fee,
+        // vacancy year 1 August 2024 to 31 July 2025 -> doubled fee $26,400.
+        "residential_vacancy_fee" => vec![
+            ("year", Text("2024-25")),
+            ("vacancy_year_start", Text("2024-08-01")),
+            ("held_full_vacancy_year", Flag(true)),
+            ("residentially_occupied_days", Whole(120)),
+            ("return_lodged_on_time", Flag(true)),
+            ("exemption", Json("null")),
+            ("acquisition_basis", Text("notifiable_action")),
+            ("ownership", Text("sole")),
+            ("application_fee_waiver", Text("none")),
+            ("vacancy_fee_waiver_or_remission", Flag(false)),
+            ("application_fee_payable", Text("13200.00")),
+        ],
         "foreign_resident_withholding" => vec![
             ("year", Text("2024-25")),
             ("payment", Text("capital_gains")),
@@ -6717,6 +7089,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("class", Text("business")),
             ("premium", Text("1234.56")),
             ("effected_date", Text("2026-09-15")),
+        ],
+        "portable_lsl_levy" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("cth")),
+            ("scheme", Text("coal")),
+            ("reporting_month", Text("2026-10")),
+            ("branch", Text("base_rate")),
+            ("eligible_employee", Flag(true)),
+            ("base_rate_of_pay", Text("6000.00")),
+            ("overtime_and_penalty_rates", Text("3000.00")),
+            ("allowances", Text("500.00")),
+            ("allowances_exclude_expense_reimbursements", Flag(true)),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),
@@ -7246,6 +7630,13 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // bouquet on the employee's birthday, a property benefit.
         // Constructed: consumer goods described by serial number, registered
         // on 2 March 2026 with no end date asked for.
+        "aml_cdd_review" => vec![
+            ("question", Text("country_risk")),
+            ("basel_aml_score", Text("5.75")),
+            ("fatf_call_for_action", Flag(false)),
+            ("fatf_increased_monitoring", Flag(false)),
+            ("australian_sanctioned_jurisdiction", Flag(false)),
+        ],
         "ppsr_timing" => vec![
             ("question", Text("registration")),
             ("registration_time", Text("2026-03-02T10:30")),
