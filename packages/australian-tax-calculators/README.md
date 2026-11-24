@@ -213,7 +213,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `payg-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `tax_offsets`, `medicare_adjustment_children`, `extra_pay_withholding` |
 | `payg-gross-up` | `net_pay`, `pay_period`, `scale`, `year`, `scope_confirmed`; optional `foreign_resident` (scale 4), `study_loan`; `pay_date` with `study_loan`, required for 2025-26 |
 | `study-loan-withholding` | `earnings`, `pay_period`, `scale`, `year`, `scope_confirmed`; `pay_date`, required for 2025-26 |
-| `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children`, `medicare_levy_exemption_full_days`, `medicare_levy_exemption_half_days` |
+| `medicare-levy` | `taxable_income`, `section_9a_adjustment_applies`, `year`, `scope_confirmed`; optional `sapto_entitled`, `spouse_taxable_income`, `spouse_sapto_entitled`, `dependant_offset_entitled`, `dependent_children`, `medicare_levy_exemption_full_days`, `medicare_levy_exemption_half_days`, `non_resident_days` |
 | `private-health-insurance-rebate` | `income_for_surcharge_purposes`, `lines`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `maintained_dependent_person`, `dependent_children`; see [Private health insurance rebate](#private-health-insurance-rebate) |
 | `medicare-levy-surcharge` | `taxable_income`, `reportable_fringe_benefits`, `income_for_surcharge_purposes`, `days_without_cover`, `year`, `scope_confirmed`; optional `spouse_income_for_surcharge_purposes`, `dependent_children` |
 | `low-income-tax-offset` | `taxable_income`, `year`, `scope_confirmed` |
@@ -276,7 +276,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
-| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
+| `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), for a full-year resident `medicare-levy` and `medicare-levy-surcharge`, and for a part-year resident before 2027-28 `part_year_residency_months`, `eligible_pensioner` and `medicare-levy`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp` and `super-crystallisation`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
@@ -886,7 +886,10 @@ which the person qualified for a full exemption
 (`medicare_levy_exemption_full_days`) and half the share for a half exemption
 (`medicare_levy_exemption_half_days`), the 2 counts the tax return asks for: a
 full exemption for the whole year leaves no levy, and a half one halves it.
-Foreign residents are outside it. The caller establishes each of those facts;
+A part-year resident also gives `non_resident_days`: the days not resident on
+which every dependant was also a prescribed person (ITAA 1936 s 251U(1)(d) and
+(2)), each a whole day. A person not resident at any time pays no levy
+(s 251S(1)(a)) and is outside it. The caller establishes each of those facts;
 omitting them means a person without SAPTO, spouse, dependants or exemption. The caller also states whether s 9A
 (lump sum payments in arrears) applies, and the worksheet refuses when it does.
 It covers 2024-25 to 2027-28; 2026-27 and 2027-28 use the 2025-26 thresholds,
@@ -4932,7 +4935,7 @@ allows, CFC attributed tax and applying the offset are the operator's; see
 
 ## Personal tax estimate
 
-`personal-tax-estimate` composes one full-year resident's or full-year foreign
+`personal-tax-estimate` composes one full-year or part-year resident's or full-year foreign
 resident's income tax and levies for a year from the worksheets above, without working any part out itself. It
 takes `year`, `scope_confirmed`, `residency` and whole-dollar `taxable_income`
 once, and one object of each part's own inputs under the part's command name:
@@ -5054,11 +5057,15 @@ whole year and no study loan.
 A refusal from a part keeps the part's code, and its message starts with the
 part's command, such as a sole parent's `medicare-levy-surcharge:
 dependent_children is not an input ...`: there is no partial total. The
-estimate itself refuses a part-year resident, whose days of non-residence can
-make them a prescribed person for the Medicare levy (ITAA 1936 s 251U(1)(d),
-subject to s 251U(2) for dependants), which `medicare-levy`
-and `medicare-levy-surcharge` cannot yet take (`resident-tax` alone pro-rates
-the threshold), and a working holiday maker, whose rates no worksheet here
+estimate composes a part-year resident before 2027-28 from `resident-tax` with
+`part_year_residency_months` and `eligible_pensioner`, the low income tax
+offset in full and `medicare-levy` with `non_resident_days`, and refuses for one
+the surcharge, the seniors and pensioners tax offset, the private health
+insurance rebate, a study loan repayment and worked tax withheld (give
+`tax_withheld`), and every year from 2027-28, as
+`estimate.residency_unsupported`; more `non_resident_days` than the year less
+the residency months as `input.day_count_invalid`; and part-year inputs for
+another residency as `input.field_unknown`. It refuses a working holiday maker, whose rates no worksheet here
 works out, as
 `estimate.residency_unsupported`, an unknown residency as `input.residency_invalid`, Medicare levy
 exemption days beside the surcharge, whose scope excludes them, as

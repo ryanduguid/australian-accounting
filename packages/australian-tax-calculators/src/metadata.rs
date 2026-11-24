@@ -1757,7 +1757,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "medicare_levy" => (
             "2026-11-14",
-            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B",
+            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B; non-resident days (read 24 November 2026): ITAA 1936 ss 251S(1)(a) and 251U(1)(d), (2) and (3), and M1 2026, category 2",
         ),
         "private_health_insurance_rebate" => (
             "2026-11-22",
@@ -3899,6 +3899,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "medicare_levy_exemption_half_days",
                 "integer from 0 to the days in the year, the days the person qualified for a half exemption (label M1 W): in the medical category, but with a dependant outside the exemption categories (s 251U(3)); a day in both counts once, as a full day; omit for none",
+            ),
+            (
+                "non_resident_days",
+                "integer from 0 to the days in the year less 1, for a part-year resident: the days the person was not an Australian resident and so a prescribed person (ITAA 1936 s 251U(1)(d); ATO M1 category 2, counted at label V), only those on which every dependant was also a prescribed person (s 251U(2)); each a whole day (s 251U(3) gives no half), counted once and not also as a full or half exemption day; omit for none",
             ),
         ],
         "contribution_caps" => vec![
