@@ -164,7 +164,7 @@ UNDEFINED_NOTE = (
 SECTION_LABEL = r"\d[0-9A-Za-z]*(?:[-.]\d+(?:[A-Za-z][0-9A-Za-z]*)?)*"
 LABEL_ONLY = re.compile(SECTION_LABEL)
 CITED_LABEL = SECTION_LABEL + r"(?:\([0-9A-Za-z]{1,6}\))*"
-ONE_CITED_LABEL = re.compile(CITED_LABEL)
+SUBSECTIONS = re.compile(r"\([^()]*\)")
 # "section 5-10", "subsections 8-1(1) and (2)", "ss 26-55 or 26-60", optionally
 # followed by the title they belong to: "of this Act", "of the Income Tax Assessment
 # Act 1997" or "in Schedule 1 to the Taxation Administration Act 1953".
@@ -1376,8 +1376,7 @@ def _cited_labels(text: str, label: str, act: str, internal: bool) -> Iterator[r
     """
     plain = text.translate(CITE_PLAIN)
     for found in CITATION.finditer(plain):
-        labels = ONE_CITED_LABEL.findall(found.group("labels"))
-        items = [item.split("(", 1)[0] for item in labels]
+        items = LABEL_ONLY.findall(SUBSECTIONS.sub(" ", found.group("labels")))
         if label not in items:
             continue
         named = found.group("act")
