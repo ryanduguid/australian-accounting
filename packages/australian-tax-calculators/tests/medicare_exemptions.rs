@@ -299,3 +299,90 @@ fn non_resident_days_the_worksheet_cannot_settle_are_refused() {
         "1.37"
     );
 }
+
+/// s 8 before s 9 with non-resident days, on the family cases above: a
+/// non-resident day is a whole prescribed day, so 73 of them give what 73 full
+/// exemption days give. The s 8(3) case: 557.0285... x 292 / 365 = 445.6228...;
+/// the s 8(4) case: 393.70 x 292 / 365 = 314.96.
+#[test]
+fn non_resident_days_follow_the_family_reduction() {
+    let shared = json!({"spouse_taxable_income": "30000", "spouse_sapto_entitled": false,
+                        "dependent_children": 3, NON_RESIDENT: 73});
+    let result = evaluate("40000", "2025-26", shared);
+    assert_eq!(result["amounts"]["family_reduction"], "242.97");
+    assert_eq!(result["amounts"]["exemption_reduction"], "111.41");
+    assert_eq!(result["amounts"]["medicare_levy"], "445.62");
+    let excess = json!({"spouse_taxable_income": "29000", "spouse_sapto_entitled": false,
+                        "dependent_children": 3, NON_RESIDENT: 73});
+    let result = evaluate("40000", "2025-26", excess);
+    assert_eq!(result["amounts"]["exemption_reduction"], "78.74");
+    assert_eq!(result["amounts"]["medicare_levy"], "314.96");
+}
+
+/// Every amount a non-resident day gives equals a full exemption day's; only
+/// the working names it.
+#[test]
+fn a_non_resident_day_counts_as_a_full_day() {
+    for income in ["30000", "50000", "123457"] {
+        for days in [1, 73, 364] {
+            let non_resident = evaluate(income, "2025-26", json!({NON_RESIDENT: days}));
+            let full = evaluate(income, "2025-26", json!({FULL: days}));
+            assert_eq!(non_resident["amounts"], full["amounts"], "{income} {days}");
+        }
+    }
+}
+
+/// The working without non-resident days is the one the worksheet has always
+/// given: the same formula, authority and rates, in the same order.
+#[test]
+fn exemption_working_without_non_resident_days_is_unchanged() {
+    let input = input("50000", "2025-26", json!({FULL: 73}));
+    let doc = api::evaluate("derive", &json!({"command": COMMAND, "input": input})).unwrap();
+    let step = doc["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["id"] == "exemption_reduction")
+        .unwrap();
+    assert_eq!(
+        step["authority"],
+        "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day"
+    );
+    assert!(
+        step["working"].as_str().unwrap().starts_with(
+            "levy_at_full_rate - low_income_reduction - (levy_at_full_rate - low_income_reduction) x (2 x days_in_year - (2 x exemption_full_days + exemption_half_days)) / (2 x days_in_year) = "
+        ),
+        "{}",
+        step["working"]
+    );
+    let days: Vec<&str> = doc["result"]["rates"]
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .filter(|k| k.contains("days"))
+        .collect();
+    assert_eq!(
+        days,
+        ["exemption_full_days", "exemption_half_days", "days_in_year"]
+    );
+}
+
+/// 2027-28 holds 29 February 2028: 365 non-resident days are the most, and 366
+/// is the whole year. 1,600 x (732 - 730) / 732 = 4.371... .
+#[test]
+fn the_leap_year_bound_on_non_resident_days() {
+    let result = evaluate("80000", "2027-28", json!({NON_RESIDENT: 365}));
+    assert_eq!(result["amounts"]["medicare_levy"], "4.37");
+    let refused = api::evaluate_coded(
+        COMMAND,
+        &input("80000", "2027-28", json!({NON_RESIDENT: 366})),
+    )
+    .unwrap_err();
+    assert_eq!(refused.code, "input.day_count_invalid");
+    assert!(
+        refused.message.contains("s 251S(1)(a)"),
+        "{}",
+        refused.message
+    );
+}

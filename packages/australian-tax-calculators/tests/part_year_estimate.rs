@@ -150,6 +150,7 @@ fn parts_not_composed_for_a_part_year_resident_are_refused() {
         "study-loan-withholding",
         "seniors-pensioners-withholding",
         "payg-withholding",
+        "schedule-5-method-a",
     ] {
         let r = refusal(&input("2025-26", "60000", json!({part: {}})));
         assert_eq!(r.code, "estimate.residency_unsupported", "{part}");
@@ -225,5 +226,62 @@ fn part_year_inputs_are_refused_where_they_do_not_fit() {
     assert_eq!(
         amounts(&input("2025-26", "60000", most))["medicare_levy"],
         "29.59"
+    );
+}
+
+/// One residency month (arrived 20 June 2026): threshold 13,464 + 4,736 / 12
+/// = 13,858.666...; basic tax (30,000 - 13,858.666...) x 16% = 2,582.613...;
+/// the low income tax offset in full, $700, for a resident at any time in the
+/// year (s 61-110(1)(a)); the levy 198.90 x (730 - 708) / 730 = 5.994...
+/// on 354 non-resident days; total 2,582.61 - 700 + 5.99 = 1,888.60.
+#[test]
+fn one_residency_month_keeps_the_full_low_income_offset() {
+    let facts = input(
+        "2025-26",
+        "30000",
+        json!({"part_year_residency_months": 1,
+            "medicare-levy": {"section_9a_adjustment_applies": false, "non_resident_days": 354}}),
+    );
+    check(
+        &amounts(&facts),
+        &[
+            ("basic_income_tax", "2582.61"),
+            ("low_income_tax_offset_applied", "700.00"),
+            ("medicare_levy", "5.99"),
+            ("total_before_credits", "1888.60"),
+        ],
+    );
+    // 364 is the most: resident on at least 1 day of the month.
+    let most = input(
+        "2025-26",
+        "30000",
+        json!({"part_year_residency_months": 1,
+            "medicare-levy": {"section_9a_adjustment_applies": false, "non_resident_days": 365}}),
+    );
+    assert_eq!(refusal(&most).code, "input.day_count_invalid");
+}
+
+/// 12 residency months (arrived 3 July 2025, or 2 periods that between them
+/// touch every month): the threshold is the full $18,200, (45,000 - 18,200) x
+/// 16% + 4,500 = 8,788; 2 non-resident days, 1,200 x 726 / 730 = 1,193.424...;
+/// total 8,788 - 100 + 1,193.42 = 9,881.42. At most 365 - 12 = 353 days.
+#[test]
+fn twelve_residency_months_keep_the_full_threshold() {
+    let levy = |days: i64| {
+        json!({"part_year_residency_months": 12,
+            "medicare-levy": {"section_9a_adjustment_applies": false, "non_resident_days": days}})
+    };
+    check(
+        &amounts(&input("2025-26", "60000", levy(2))),
+        &[
+            ("basic_income_tax", "8788.00"),
+            ("medicare_levy", "1193.42"),
+            ("total_before_credits", "9881.42"),
+        ],
+    );
+    assert!(api::evaluate(COMMAND, &input("2025-26", "60000", levy(353))).is_ok());
+    assert_eq!(
+        refusal(&input("2025-26", "60000", levy(354))).code,
+        "input.day_count_invalid"
     );
 }

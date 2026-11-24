@@ -5202,9 +5202,11 @@ full-year resident only; tax withheld worked out from one regular pay, as the
 pays can fall under resident and foreign resident scales; and every year from
 2027-28, as s 61-155(1)(b) compares net labour income with 'the tax-free
 threshold (within the meaning of the Income Tax Rates Act 1986)', which s 3(1)
-sets at $18,200, whilst s 20(1) changes only the Schedule 7 table, so whether
-the pro-rated threshold applies to the s 61-160 tax on net labour income is
-not settled here. The worked example (arrived 15 October 2025, 9 months, 106
+sets at $18,200, whilst s 20(1) applies the pro-rated threshold to the
+person's year through the Schedule 7 table; the text points to the pro-rated
+threshold for the s 61-160 tax on net labour income alone, but no ATO guidance
+read on 24 November 2026 confirms it, so the estimate refuses rather than
+choose. The worked example (arrived 15 October 2025, 9 months, 106
 days, $60,000) gives basic tax $8,977.44, the offset $100, the levy $851.51
 and $9,728.95 in all. Tests: `tests/part_year_estimate.rs`.
 ## FBT return
