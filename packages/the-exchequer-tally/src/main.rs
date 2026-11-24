@@ -52,12 +52,6 @@ fn main() {
             ),
             String::new(),
         )
-    } else if args == ["--version"] {
-        (
-            0,
-            format!("the-exchequer-tally {}\n", env!("CARGO_PKG_VERSION")),
-            String::new(),
-        )
     } else {
         cli::run(&args)
     };
