@@ -2658,6 +2658,35 @@ and refusals beside them.
 | $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
 | $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
+## Payroll tax group
+
+This worksheet was added on 24 November 2026. Each Act was read that day,
+from 12:10 to 12:50 AEDT, at its official legislation site: the Payroll Tax
+Act 2007 (Vic) Pt 5 and Sch 1 Pts 3 and 4 (authorised version 041, in force
+from 1 May 2026); the Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and
+Pt 4 (current reprint); the Pay-roll Tax Assessment Act 2002 (WA) s 17 and
+Pt 4 (version 04-d0-03, current from 1 July 2019); the Payroll Tax Act 2009
+(SA) Pt 5 and Sch 1 Pt 3 (version 31.3.2026); the Payroll Tax Act 2011 (ACT)
+Pt 5 and Sch 1 Pts 1.3 and 1.4; and the Payroll Tax Act 2008 (Tas) and
+Payroll Tax Act 2009 (NT) Pt 5. legislation.nsw.gov.au answered with a
+Cloudflare challenge, so New South Wales is refused; the Tasmanian (Sch 1
+cl 8 to 9B) and Northern Territory (Sch 1 cl 7) group formulas are images
+the text does not carry, so both are refused. SRO Victoria's 'Grouping' and
+QRO's 'Payroll tax deductions' were read the same day.
+
+| Case | Source | Result |
+|---|---|---|
+| 80% x 70% = 56% groups; x 40% = 22.4% does not | Payroll Tax Act 2007 (Vic) s 77(5) | B grouped, C not |
+| 40% + 25% x 60% = 55% | s 78(3) (here 40% + 30% x 50%) | grouped; 50% exactly is not |
+| Ian controls A, A controls Partnership B | SRO Victoria, 'Grouping' | A, B (and C) grouped; Ian not |
+| Lucy, object of a discretionary trust whose trustee holds 80% of Trading Co | SRO Victoria, 'Grouping' | Trading Co and Lucy's café grouped |
+| $2,000,000, $4,000,000 and $2,000,000 of $4,000,000 in Victoria | Sch 1 cl 7A | $1,000,000; $500,000; $250,000 |
+| $1,000,000 (DGE) and $400,000 in Queensland | s 33, ss 45 and 48(2); QRO | $1,285,714.29; DGE $1,000,000; B $285,714.29 |
+| $800,000 and $700,000 in Western Australia | s 17(3A) | $923,076.92, with or without a DGE |
+| $1,800,000 in South Australia; $2,500,000 in the ACT | SA Sch 1 cl 9(2); ACT Sch 1 s 1.9(2) | $600,000; $1,750,000 |
+
+`tests/payroll_tax_group.rs` holds these cases.
+
 ## Transfer duty
 
 This worksheet was added on 24 November 2026. Each source was read that day:
