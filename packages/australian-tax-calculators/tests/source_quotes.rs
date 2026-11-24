@@ -101,6 +101,9 @@ fn example(kind: &str, place: &str) -> Value {
             "2026-27"
         };
         fields.insert("year".into(), json!(year));
+        if place == "wa" {
+            fields.insert("metropolitan_region".into(), json!("none"));
+        }
     }
     facts
 }
@@ -193,7 +196,10 @@ fn an_upper_case_jurisdiction_is_refused() {
 /// A command outside the four, with a jurisdiction input, gains nothing.
 #[test]
 fn other_commands_gain_no_quotes() {
-    let result =
-        api::evaluate("motor-vehicle-duty", &example("motor_vehicle_duty", "vic")).unwrap();
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+    let mut facts = catalogue["motor_vehicle_duty"]["example"]["facts"].clone();
+    facts.as_object_mut().unwrap().remove("kind");
+    assert!(facts.get("jurisdiction").is_some());
+    let result = api::evaluate("motor-vehicle-duty", &facts).unwrap();
     assert!(result.get("source_quotes").is_none());
 }
