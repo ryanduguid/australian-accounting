@@ -5330,9 +5330,9 @@ and the sources read are in the calculation evidence.
 
 ## Worksheet discovery
 
-The `worksheet-catalogue` command, `worksheet_catalogue()` from the 0.1.4 wheel,
-returns supported periods with inclusive dates, required and optional inputs with units,
-available methods, scope exclusions and a fabricated example for each worksheet.
+The `worksheet-catalogue` command returns supported periods with inclusive dates,
+required and optional inputs with units, available methods, scope exclusions and
+a fabricated example for each worksheet.
 Money in the catalogue uses decimal strings, as the commands take them; MCP
 clients can send `example.facts` to `calculate_tax_worksheet`.
 
