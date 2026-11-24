@@ -2732,9 +2732,10 @@ $10.50 and $52,805.50, and the refusals.
 
 ## Quoted source passages
 
-`transfer-duty`, `foreign-purchaser-surcharge`, `land-tax` and
-`first-home-owner-grant` add `source_quotes` to each result: for the
-jurisdiction given, the passage of the Act, determination or revenue office
+`transfer-duty`, `foreign-purchaser-surcharge`, `land-tax`,
+`first-home-owner-grant`, `motor-vehicle-duty`, `insurance-duty` and
+`vic-property-taxes` add `source_quotes` to each result: for the
+jurisdiction given (for `vic-property-taxes`, the tax given), the passage of the Act, determination or revenue office
 page that states the scale, rate or grant applied, with its provision, the
 document's title, its URL and `verified`, the day it was read. Their
 catalogue entries hold every jurisdiction's passages, which
@@ -2760,8 +2761,19 @@ land tax; no passage states in terms that it charges no foreign purchaser
 duty. The ACT's first home owner grant passage states that no grant is paid
 for a commencement date from 1 July 2019, which the command refuses.
 
-`tests/source_quotes.rs` checks that every jurisdiction of the 4 commands
-has a passage with a provision, an official URL and its date, that each
+For motor vehicle duty, the ACT's result carries the Category D row of both
+determinations, DI2025-152 for duty dates to 31 January 2027 and DI2026-154
+from 1 February 2027; the command applies the one in force on the duty date.
+Revenue NSW's motor vehicle and insurance pages stand for the Duties Act 1997
+(NSW), which could not be read that day. Queensland's motor vehicle passage
+is the Queensland Government's rate table for light vehicles, and the
+Victorian property tax passages are the State Revenue Office's. The ACT
+Revenue Office says insurance duty was abolished on 1 July 2016; the command
+gives 1 July 2017, when A2017-11 omitted the Duties Act's insurance chapter,
+as the date the duty went. Both are nil for every year the command takes.
+
+`tests/source_quotes.rs` checks that every jurisdiction of the 6 commands
+that take one, and each of the 3 Victorian property taxes, has a passage with a provision, an official URL and its date, that each
 passage states the figure the command applies, that each result carries
 its jurisdiction's passages, and that no other worksheet or command gains
 them.

@@ -286,5 +286,176 @@
     "source": "NT Government, 'Buy or build a new home'",
     "url": "https://nt.gov.au/property/home-owner-assistance/buy-build-new-home",
     "passage": "The HomeGrown Territory Grant offers $50,000 for first-home buyers to put towards building or buying their first home."
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "nsw",
+    "provision": "Duties Act 1997 (NSW) Ch 9, as Revenue NSW states it (the Act could not be read on 24 November 2026)",
+    "source": "Revenue NSW, 'Motor vehicle duty'",
+    "url": "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/motor-vehicle-duty",
+    "passage": "Motor vehicle value\tDuty payable\nUp to $44,999\n$3 for every $100\n$45,000 or more*\n$1,350, plus $5 for every $100\n* Excludes motorcycles, buses for more than nine people, hearses and disability vehicles."
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "vic",
+    "provision": "Duties Act 2000 (Vic) s 218(1) Table and (5)",
+    "source": "SRO Victoria, 'Motor vehicle duty (current rates)', rates from 1 July 2026",
+    "url": "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/motor-vehicle-duty-current-rates",
+    "passage": "Type of vehicle/value\tValue\tDuty rate\nGreen passenger car✝\tAll values\t$8.40 per $200 or part thereof\nPrimary producer passenger car☨\tAll values\t$8.40 per $200 or part thereof\nNew non-passenger motor vehicles*\n(i.e. not previously registered in Victoria or elsewhere)\tAll values\t$5.40 per $200 or part thereof\nNon-passenger motor vehicles* previously registered in Victoria or elsewhere\n(i.e. being re-registered to a new owner)\tAll values\t$8.40 per $200 or part thereof\nUsed non-passenger motor vehicle*\n(i.e. the transfer of a used vehicle)\tAll values\t$8.40 per $200 or part thereof\nOther passenger car\t$0-$80,809\t$8.40 per $200 or part thereof\n$80,809.01-$100,000\t$10.40 per $200 or part thereof\n$100,000.01-$150,000\t$14.00 per $200 or part thereof\nMore than $150,000\t$18.00 per $200 or part thereof"
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "qld",
+    "provision": "Duties Act 2001 (Qld) s 383(1) and Sch 4C",
+    "source": "Queensland Government, 'Vehicle registration duty rates', light vehicles",
+    "url": "https://www.qld.gov.au/transport/registration/fees/duty/rates",
+    "passage": "Light vehicles have a gross vehicle mass of no more than 4.5 tonnes.\nType of vehicle\tRate\nhybrid—any number of cylinders\nelectric\nUp to $100,000—$2 for each $100, or part of $100\nMore than $100,000—$4 for each $100, or part of $100\n1 to 4 cylinders\n2 rotors\nsteam powered\nUp to $100,000—$3 for each $100, or part of $100\nMore than $100,000—$5 for each $100, or part of $100\n5 or 6 cylinders\n3 rotors\nUp to $100,000—$3.50 for each $100, or part of $100\nMore than $100,000—$5.50 for each $100, or part of $100\n7 or more cylinders\nUp to $100,000—$4 for each $100, or part of $100\nMore than $100,000—$6 for each $100, or part of $100"
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "wa",
+    "provision": "Duties Act 2008 (WA) s 236(1) and (2)",
+    "source": "Department of Treasury and Finance, 'Vehicle licence duty'",
+    "url": "https://www.wa.gov.au/organisation/department-of-treasury-and-finance/vehicle-licence-duty",
+    "passage": "Up to $25,000\t2.75% of dutiable value\n$25,000 - $50,000\tR% of the dutiable value, where R = [2.75 + ((dutiable value - 25,000)/ 6,666.66)] rounded to 2 decimal places\nOver $50,000\t6.5% of dutiable value"
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "sa",
+    "provision": "Stamp Duties Act 1923 (SA) Sch 2 cl 2(1)(a) and (c)",
+    "source": "RevenueSA, 'Stamp duty on vehicles: rates', non-commercial vehicle",
+    "url": "https://revenuesa.sa.gov.au/stamp-duty-vehicles/rates",
+    "passage": "Does not exceed $1,000\n$1 for every $100 or part of $100 with a minimum of $5 payable in all cases\nExceeds $1,000 but not $2,000\n$10 plus $2 for every $100 or part of $100 over $1,000\nExceeds $2,000 but not $3,000\n$30 plus $3 for every $100 or part of $100 over $2,000\nExceeds $3,000\n$60 plus $4 for every $100 or part of $100 over $3,000"
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "tas",
+    "provision": "Duties Act 2001 (Tas) s 197(1) to (3A)",
+    "source": "Duties Act 2001 (Tas), current version, s 197",
+    "url": "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2001-015",
+    "passage": "(1)  The rate of duty is $3 per $100, or part, of the dutiable value of the motor vehicle, except as provided by subsections (2) , (3) , (3A) and (3B) .\n(2)  The rate of duty for a motor vehicle that is a passenger vehicle is as follows:\n(a) if the dutiable value of the passenger vehicle does not exceed $35 000, $3 per $100, or part;\n(b) if the dutiable value of the passenger vehicle exceeds $35 000 but does not exceed $40 000, $1 050 plus $11 for every $100 or part of $100 of the dutiable value of the passenger vehicle that exceeds $35 000;\n(c) if the dutiable value of the passenger vehicle exceeds $40 000, for every $100 or part of $100 of that dutiable value, $4.\n(3)  The rate of duty applicable to a heavy vehicle the dutiable value of which does not exceed $2 000 or to a motor vehicle the dutiable value of which does not exceed $600 is $20.\n(3A)  Despite subsection (2) , the rate of duty for a new motor vehicle, other than a heavy vehicle, for which a manufacturer's fleet discount has been provided is $3.50 per $100, or part, of the dutiable value of the new motor vehicle."
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "act",
+    "provision": "Duties Act 1999 (ACT) s 208; DI2025-152 s 6 Table 1",
+    "source": "Taxation Administration (Amounts Payable—Motor Vehicle Duty) Determination 2025 (DI2025-152), for duty dates to 31 January 2027",
+    "url": "https://www.legislation.act.gov.au/View/di/2025-152/current/html/2025-152.html",
+    "passage": "New Category D motor vehicle\n$4.53 for every $100, or part of $100, of the dutiable value"
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "act",
+    "provision": "Duties Act 1999 (ACT) s 208; DI2026-154 s 6 Table 1",
+    "source": "Taxation Administration (Amounts Payable—Motor Vehicle Duty) Determination 2026 (DI2026-154), for duty dates from 1 February 2027",
+    "url": "https://www.legislation.act.gov.au/View/di/2026-154/current/html/2026-154.html",
+    "passage": "New Category D motor vehicle\n$4.83 for every $100, or part of $100, of the dutiable value"
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "nt",
+    "provision": "Stamp Duty Act 1978 (NT) Sch 1 cl 6",
+    "source": "Stamp Duty Act 1978 (NT), as in force at 1 July 2025",
+    "url": "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11906",
+    "passage": "The duty payable on a motor vehicle certificate of registration is $3 for every $100 or fractional part of $100 of the dutiable value of the motor vehicle."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "nsw",
+    "provision": "Duties Act 1997 (NSW) Ch 8, as Revenue NSW states it (the Act could not be read on 24 November 2026)",
+    "source": "Revenue NSW, 'Types of insurance'",
+    "url": "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/insurance-duty/types-of-insurance",
+    "passage": "Type\tDescription\tRate of duty\nA\nAny general insurance other than type B or type C.\n9 per cent of the premium\nB\nIncludes:\nmotor vehicle insurance\naviation insurance\ndisability income insurance\noccupational indemnity insurance\nhospital and ancillary health benefits insurance\n5 per cent of the premium\nC\nIncludes:\ncrop insurance\nlivestock insurance\n2.5 per cent of the premium, for policies taken out on or before 31 December 2017. Exempt for all policies taken out on or after 1 January 2018."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "vic",
+    "provision": "Duties Act 2000 (Vic) s 179(1), (2) and (4)",
+    "source": "SRO Victoria, 'Insurance policies (current rates)'",
+    "url": "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/insurance-policies-current-rates",
+    "passage": "General insurance policies\n10% of the gross premium received is payable by the insurance company.\nBusiness insurance contracts\nDuty on premiums paid in relation to contracts of business insurance is 7% from 1 July 2026 to 30 June 2027.\nThe rate of duty for a contract of business insurance is determined by reference to the date the contract of business insurance is effected or renewed, not the date when the premium in relation to the contract is paid.\nThere will be a reduction of 1% per annum to the rate of insurance duty from 1 July each year until it is abolished from 1 July 2033."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "qld",
+    "provision": "Duties Act 2001 (Qld) s 362(1)",
+    "source": "Queensland Revenue Office, 'Insurance duty rates'",
+    "url": "https://qro.qld.gov.au/duties/insurance-duty/rates/",
+    "passage": "General insurance includes car, home and contents insurance. The insurance duty rate for both class 1 and class 2 general insurance is 9% of the premium paid (including GST)."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "qld",
+    "provision": "Duties Act 2001 (Qld) s 362(2)",
+    "source": "Queensland Revenue Office, 'Insurance duty rates'",
+    "url": "https://qro.qld.gov.au/duties/insurance-duty/rates/",
+    "passage": "Insurance duty of 10 cents is imposed on a premium for CTP insurance."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "wa",
+    "provision": "Duties Act 2008 (WA) s 215",
+    "source": "Department of Treasury and Finance, 'Self-assess and pay insurance duty'",
+    "url": "https://www.wa.gov.au/service/financial-management/taxation-and-duty/self-assess-and-pay-insurance-duty",
+    "passage": "Duty is calculated at a rate of 10% on the total premium for a policy. This is the consideration paid to an insurer, including any GST that applies."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "sa",
+    "provision": "Stamp Duties Act 1923 (SA) s 34(1)(b)",
+    "source": "RevenueSA, 'Stamp duty on insurance: rates'",
+    "url": "https://revenuesa.sa.gov.au/stamp-duty-insurance/rates",
+    "passage": "Insurance type\nRate of stamp duty\nLife Insurance\n1.5% of premium subject to duty\nGeneral Insurance (property/risk insured inside South Australia)\n11% of premium subject to duty"
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "tas",
+    "provision": "Duties Act 2001 (Tas) s 166",
+    "source": "Duties Act 2001 (Tas), current version, s 166",
+    "url": "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2001-015",
+    "passage": "The amount of duty chargeable on the premium paid in relation to a contract of insurance is 10% of the amount of the premium."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "act",
+    "provision": "Duties Act 1999 (ACT) ch 8, omitted by A2017-11 s 4 from 1 July 2017",
+    "source": "ACT Revenue Office, 'Tax reform', insurance duty",
+    "url": "https://www.revenue.act.gov.au/tax-reform",
+    "passage": "Insurance duty was abolished in the ACT on 1 July 2016 as part of the ACT Government’s tax reform agenda. The ACT is the only State or Territory to have completely abolished this tax. Before this important reform, 10 per cent duty applied to general insurance premiums and 5 per cent applied to life insurance."
+  },
+  {
+    "kind": "insurance_duty",
+    "jurisdiction": "nt",
+    "provision": "Stamp Duty Act 1978 (NT) Sch 1 cl 6(3)",
+    "source": "Stamp Duty Act 1978 (NT), as in force at 1 July 2025",
+    "url": "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11906",
+    "passage": "(i) for a policy issued, or renewed, for one year or less – 10% of the amount of the premium; and (ii) for a policy issued or renewed for a term of more than one year – 10% of the amount of the premium for each year and any fractional part of a year in the term."
+  },
+  {
+    "kind": "vic_property_taxes",
+    "jurisdiction": "vic",
+    "tax": "vacant_residential_land",
+    "provision": "Land Tax Act 2005 (Vic) ss 34A and 35(3)",
+    "source": "SRO Victoria, 'Vacant residential land tax (current rates)'",
+    "url": "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/vacant-residential-land-tax-current-rates",
+    "passage": "1% of capital improved value\nThe following lands will be assessed at the rate of 1% of its capital improved value:\nLand in metropolitan Melbourne that has remained undeveloped for a continuous period of 5 years or more and is capable of residential development.\nNew residential land unused, unoccupied and unsold for more than 3 years.\nAll other land\nNumber of consecutive years the land has been liable for VRLT\nRate of VRLT\nOne year\n1% of capital improved value\nTwo years\n2% of capital improved value\nThree or more years\n3% of capital improved value\nBefore 2025, VRLT was 1% of capital improved value for all properties."
+  },
+  {
+    "kind": "vic_property_taxes",
+    "jurisdiction": "vic",
+    "tax": "commercial_industrial",
+    "provision": "Commercial and Industrial Property Tax Reform Act 2024 (Vic) ss 3, 17 and 19",
+    "source": "SRO Victoria, 'Understanding commercial and industrial property tax'",
+    "url": "https://www.sro.vic.gov.au/businesses-and-organisations/commercial-and-industrial-property-tax/understanding-commercial-and-industrial-property-tax",
+    "passage": "The tax begins in the first calendar year after the 10-year period has finished. For example, if an entry transaction occurs on 1 July 2024, the first year CIPT will apply is the 2035 tax year. If the entry transaction occurs on 1 August 2034, the tax will start in the 2045 tax year.\nCIPT is assessed on a calendar year basis. CIPT generally applies at a flat rate of 1% of the property’s site (unimproved) value each year, provided the property continues to have a qualifying use. A reduced rate of 0.5% applies to eligible build-to-rent properties."
+  },
+  {
+    "kind": "vic_property_taxes",
+    "jurisdiction": "vic",
+    "tax": "windfall_gains",
+    "provision": "Windfall Gains Tax Act 2021 (Vic) s 9",
+    "source": "SRO Victoria, 'Understanding windfall gains tax'",
+    "url": "https://www.sro.vic.gov.au/owning-property/windfall-gains-tax/understanding-windfall-gains-tax",
+    "passage": "62.5% applies to uplifts between $100,000 and $500,000 but only the amount above $100,000 is taxed.\n50% applies to uplifts of $500,000 or more and the full amount is taxed.\nFor example:\nA $400,000 uplift results in $187,500 tax. We tax $300,000 (the amount above $100,000) at 62.5%.\nA $600,000 uplift results in $300,000 tax (50%). We tax the full amount at 50%."
   }
 ]
