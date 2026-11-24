@@ -2737,7 +2737,8 @@ $10.50 and $52,805.50, and the refusals.
 jurisdiction given, the passage of the Act, determination or revenue office
 page that states the scale, rate or grant applied, with its provision, the
 document's title, its URL and `verified`, the day it was read. Their
-catalogue entries hold every jurisdiction's passages. Both are added fields:
+catalogue entries hold every jurisdiction's passages, which
+`data/source-quotes.json` keeps. Both are added fields:
 a consumer that refuses unknown fields must allow `source_quotes`. Each
 passage was read at the official site on 24 November 2026 and extracted
 from the page's text, not retyped: line and table row breaks are newlines,
