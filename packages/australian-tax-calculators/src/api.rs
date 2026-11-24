@@ -1372,6 +1372,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "deferred-revenue",
+        &[
+            ("contract_amount", Dec),
+            ("start", Raw),
+            ("end", Raw),
+            ("pattern", Raw),
+            ("period_ends", Json),
+            ("consideration", Json),
+            ("variable_consideration", Raw),
+            ("significant_financing_component", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "leave-provisions",
         &[
             ("lines", Json),
@@ -2114,6 +2129,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-bad-debt"
             | "deferred-tax"
             | "leave-provisions"
+            | "deferred-revenue"
             | "long-service-leave"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
@@ -3760,6 +3776,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[18],
             scope_confirmed: &a[19],
         }),
+        "deferred-revenue" => {
+            // Optional: the milestones, taken only with pattern milestones.
+            let milestones = optional(v, "milestones", Json)?;
+            engine::deferred_revenue(&engine::DeferredRevenueArgs {
+                contract_amount: &a[0],
+                start: &a[1],
+                end: &a[2],
+                pattern: &a[3],
+                milestones: milestones.as_ref(),
+                period_ends: &a[4],
+                consideration: &a[5],
+                variable_consideration: &a[6],
+                significant_financing_component: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
+            })
+        }
         "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {
             lines: &a[0],
             defined_benefit_plan: &a[1],
