@@ -630,7 +630,7 @@ fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
         .as_array_mut()
         .unwrap()
         .extend(added.map(|url| json!(url)));
-    record["source_checked"] = json!("2026-11-14");
+    record["source_checked"] = json!("2026-11-24");
     if command == "worksheet-catalogue" {
         record["source_passage"] = json!(passage);
         let evidence = &mut record["example_evidence"];

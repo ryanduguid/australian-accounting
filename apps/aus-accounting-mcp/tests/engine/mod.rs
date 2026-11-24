@@ -85,7 +85,7 @@ fn review(kind: &str) -> Option<Review> {
         },
         "medicare_levy" => Review {
             pages: &MEDICARE_PAGES,
-            checked: "2026-11-14",
+            checked: "2026-11-24",
             passage: MEDICARE_PASSAGE,
         },
         "depreciation" => Review {

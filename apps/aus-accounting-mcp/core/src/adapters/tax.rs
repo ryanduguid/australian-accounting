@@ -41,8 +41,8 @@ const NARROWED_SCOPE: [(&str, &str, &str); 7] = [
     ),
     (
         "medicare_levy",
-        ", at SAPTO thresholds for a person entitled to SAPTO. With a spouse or one of those offsets the family reduction (s 8) follows: no levy when family taxable income is at or below the family income threshold, which rises for each dependent child; above it the levy is reduced by 2% of the threshold less 8% of the excess, in the person's share of family taxable income when the spouse's own income is above the spouse's threshold amount, and any part of the spouse's reduction above the spouse's levy also reduces this levy (s 8(4)). The levy after ss 7 and 8 is then reduced by the share of the year's days for which the person was a prescribed person (s 9(1)): each full exemption day, and half of each half exemption day; a full exemption for the whole year leaves no levy (s 251T). Excludes foreign residents,",
-        ". Excludes exemptions,",
+        ", at SAPTO thresholds for a person entitled to SAPTO. With a spouse or one of those offsets the family reduction (s 8) follows: no levy when family taxable income is at or below the family income threshold, which rises for each dependent child; above it the levy is reduced by 2% of the threshold less 8% of the excess, in the person's share of family taxable income when the spouse's own income is above the spouse's threshold amount, and any part of the spouse's reduction above the spouse's levy also reduces this levy (s 8(4)). The levy after ss 7 and 8 is then reduced by the share of the year's days for which the person was a prescribed person (s 9(1)): each full exemption day, and half of each half exemption day; a full exemption for the whole year leaves no levy (s 251T). Excludes foreign residents, the Medicare levy surcharge and trustees.",
+        ". Excludes exemptions, the Medicare levy surcharge, trustees and part-year residence.",
     ),
     (
         "study_loan_withholding",
@@ -326,6 +326,27 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// The served Medicare levy scope excludes part-year residence exactly when the
+    /// published facts cannot give a part-year resident's `non_resident_days`, and the
+    /// engine's own scope, which takes them, no longer does: each narrowing matches.
+    #[test]
+    fn the_medicare_levy_scope_excludes_part_year_residence_only_without_its_days() {
+        let engine =
+            australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+        let served = super::advertised_worksheets().unwrap();
+        for catalogue in [&engine, &served] {
+            let entry = &catalogue["medicare_levy"];
+            let takes_days = entry["optional_inputs"].get("non_resident_days").is_some();
+            let scope = entry["scope"].as_str().unwrap();
+            assert_eq!(
+                scope.contains("part-year residence."),
+                !takes_days,
+                "{scope}"
+            );
+        }
+        assert!(engine["medicare_levy"]["optional_inputs"]["non_resident_days"].is_string());
     }
 
     /// Each narrowing still finds its words in the engine's scope, so an engine change

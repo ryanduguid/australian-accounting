@@ -285,3 +285,49 @@ fn twelve_residency_months_keep_the_full_threshold() {
         "input.day_count_invalid"
     );
 }
+
+/// The sentences of a scope that start 'Excludes', which must not name a case
+/// the command takes.
+fn exclusions(scope: &str) -> Vec<&str> {
+    scope
+        .split(". ")
+        .filter(|sentence| sentence.starts_with("Excludes"))
+        .collect()
+}
+
+/// Every worksheet that takes a part-year resident's input, and the estimate
+/// that composes one, states no exclusion of part-year residence: a scope that
+/// still said 'Excludes ... part-year residence' beside `non_resident_days`
+/// would tell a caller the case is unsupported.
+#[test]
+fn no_scope_excludes_the_part_year_residence_it_takes() {
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+    let mut checked = Vec::new();
+    for (kind, entry) in catalogue.as_object().unwrap() {
+        let optional = &entry["optional_inputs"];
+        if ["non_resident_days", "part_year_residency_months"]
+            .iter()
+            .any(|name| optional.get(name).is_some())
+        {
+            let scope = entry["scope"].as_str().unwrap();
+            assert!(scope.contains("part-year resident"), "{kind}: {scope}");
+            for sentence in exclusions(scope) {
+                assert!(!sentence.contains("part-year"), "{kind}: {sentence}");
+            }
+            checked.push(kind.as_str());
+        }
+    }
+    assert!(checked.contains(&"medicare_levy"), "{checked:?}");
+    let levy = api::evaluate(
+        "medicare-levy",
+        &json!({"taxable_income": "60000", "section_9a_adjustment_applies": false,
+                "year": "2025-26", "scope_confirmed": true, "non_resident_days": 106}),
+    )
+    .unwrap();
+    let estimate = api::evaluate(COMMAND, &input("2025-26", "60000", json!({}))).unwrap();
+    for scope in [&levy["scope"], &estimate["scope"]] {
+        for sentence in exclusions(scope.as_str().unwrap()) {
+            assert!(!sentence.contains("part-year"), "{sentence}");
+        }
+    }
+}
