@@ -2351,14 +2351,14 @@ fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Optio
 }
 
 /// s 9(1): `levy` (times `scale`, see `family_reductions`) less the share of it
-/// for the days the person was a prescribed person: each full exemption day,
-/// and half of each half exemption day (ITAA 1936 s 251U(3)). It applies to the
-/// levy after ss 7 and 8, which each work out the levy 'but for' s 9.
+/// for the days the person was a prescribed person: each full exemption day and
+/// non-resident day, and half of each half exemption day (ITAA 1936 s 251U(3)).
+/// It applies to the levy after ss 7 and 8, which each work out the levy 'but
+/// for' s 9.
 fn levy_after_exemption(levy: &Decimal, scale: &Decimal, exemption: &Exemption) -> Calc<Decimal> {
     let halves = int(2 * exemption.days_in_year);
-    let kept = halves.sub(&int(
-        2 * (exemption.full + exemption.non_resident) + exemption.half
-    ))?;
+    let prescribed_halves = 2 * (exemption.full + exemption.non_resident) + exemption.half;
+    let kept = halves.sub(&int(prescribed_halves))?;
     levy.mul(&kept)?.div(&scale.mul(&halves)?)
 }
 
