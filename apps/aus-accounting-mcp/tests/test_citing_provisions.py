@@ -115,6 +115,13 @@ def test_a_term_defined_only_in_a_superseded_compilation_is_not_defined_in_force
     # "the Act" as a defined short title may name another Act.
     ("The rate in section 5-10 of the Act applies.", False),
     ("Section 5-10 of Schedule 1 applies.", False),
+    ("Apply section 5-10 in Australia.", True),
+    ("Apply section 5-10 of this Act in Australia.", True),
+    ("Apply section 5-10 in Part 2.", True),
+    ("See sections 5-5, 5-10 and 5-15.", True),
+    ("See section 5-5 or 5-10.", True),
+    # A further digit, here U+0663, makes it another section.
+    ("The rate in section 5-10٣ applies.", False),
 ])
 def test_ordinary_forms_are_read_and_a_title_it_cannot_name_is_not(corpus, wording, cited):
     synthetic_corpus.write(

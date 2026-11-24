@@ -161,7 +161,7 @@ UNDEFINED_NOTE = (
     "hold every word of it."
 )
 # A section number as a title prints it: "8-1", "40-880", "82KZM", "6".
-SECTION_LABEL = r"\d[0-9A-Za-z]*(?:[-.]\d[0-9A-Za-z]*)*"
+SECTION_LABEL = r"\d[0-9A-Za-z]*(?:[-.]\d+(?:[A-Za-z][0-9A-Za-z]*)?)*"
 LABEL_ONLY = re.compile(SECTION_LABEL)
 CITED_LABEL = SECTION_LABEL + r"(?:\([0-9A-Za-z]{1,6}\))*"
 ONE_CITED_LABEL = re.compile(CITED_LABEL)
@@ -172,11 +172,14 @@ CITATION = re.compile(
     rf"\b(?i:(?:sub)?(?:sections?|ss?\.?))\s+(?P<labels>{CITED_LABEL}"
     rf"(?:(?:\s*,\s*|\s+(?:and|or)\s+){CITED_LABEL})*)(?![0-9A-Za-z])"
     r"(?:,?\s+(?:of|in)\s+(?:(?:Schedule|Part)\s+\w+\s+(?:to|of)\s+)?"
-    r"(?:this\s+Act\b|(?:the\s+)?(?P<act>\*?[A-Z][^.;:\n]{0,150}?\bAct\s+\d{4})))?"
+    r"(?:(?P<this>this\s+Act\b)|(?:the\s+)?(?P<act>\*?[A-Z][^.;:\n]{0,150}?\bAct\s+\d{4})))?"
 )
 # A title the pattern cannot name ("of the Act" as a defined short title, "of
 # Schedule 1"): such a citation is not read as one of the citing title's own sections.
-OTHER_TITLE = re.compile(r",?\s+(?:of|in)\s+(?:the\s+)?\*?[A-Z]")
+OTHER_TITLE = re.compile(
+    r",?\s+(?:of|in)\s+(?:Schedule\b|(?:the\s+)?\*?"
+    r"(?:[A-Z][\w'-]*\s+){0,8}?(?:Act|Regulations?|Rules|Code|Ordinance)\b)"
+)
 # Only 1-for-1 replacements, so a citation's offsets stay valid in the stored text.
 CITE_PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " "})
 CITING_TEXT_CHARS = 600
@@ -1379,7 +1382,7 @@ def _cited_labels(text: str, label: str, act: str, internal: bool) -> Iterator[r
             continue
         named = found.group("act")
         if named is None:
-            if internal and not OTHER_TITLE.match(plain, found.end()):
+            if internal and (found.group("this") or not OTHER_TITLE.match(plain, found.end())):
                 yield found
         elif _act_name(named) == act:
             yield found
