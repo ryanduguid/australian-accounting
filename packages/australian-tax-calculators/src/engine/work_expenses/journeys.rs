@@ -28,7 +28,8 @@ const LOG_PERCENTAGE: &str = "ITAA 1997 s 28-125(4)(e) and the ATO's 'Logbook me
 const ESTIMATE: &str = "ITAA 1997 s 28-90(5)(a): business kilometres for the year, a reasonable estimate taking the log book into account, as the year's total kilometres (s 28-100(3) odometer records) x the log book percentage";
 
 /// Division 28's record conditions for the log book method.
-pub(super) const RECORDS: [&str; 7] = [
+pub(super) const RECORDS: [&str; 9] = [
+    "ITAA 1997 s 28-90(4): confirm each journey counted as business travel was made in the course of producing assessable income or was travel between workplaces; leave any other journey out of the log book's journeys.",
     "ITAA 1997 s 28-100(1): confirm each car expense is substantiated under Subdivision 900-C.",
     "ITAA 1997 s 28-100(3) and s 28-140: confirm there are odometer records for the period the car was held in the year, with its make, model, registration number and engine capacity.",
     "ITAA 1997 s 28-100(4): confirm the business kilometres estimate and the business use percentage are recorded in writing before the return is lodged.",
@@ -36,6 +37,7 @@ pub(super) const RECORDS: [&str; 7] = [
     "ITAA 1997 s 28-120(1): confirm the car was held throughout the log book period.",
     "ITAA 1997 s 28-120(3): where the log book method is used for 2 or more cars this year, confirm their log book periods are concurrent.",
     "ITAA 1997 s 28-125(2), (4) and (5): confirm each journey was recorded at its end or as soon as possible after, the period's entries at its start and end, and every entry in English.",
+    "ITAA 1997 s 28-100(5), s 28-150 and s 28-155: confirm the log book and odometer records will be kept until the end of the latest year whose business use percentage relies on the log book and then for 5 years from that year's return due date (or later lodgment), longer during a dispute; without them the deduction is lost.",
 ];
 
 /// One recorded journey.

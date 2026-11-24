@@ -4674,7 +4674,7 @@ read.
 The hours diary and log book inputs were added on 24 November 2026, when
 PCG 2023/1 (16 April 2025, still the latest version in its history table),
 paras 16, 18, 23 to 34, 56 to 62 and 68 to 72 and Table 1; ITAA 1997
-ss 28-90, 28-95, 28-100, 28-110 to 28-130 and 28-140 in compilation
+ss 28-90, 28-95, 28-100, 28-110 to 28-130, 28-140, 28-150 and 28-155 in compilation
 C2026C00471 (No. 268, 1 October 2026) on the Federal Register of
 Legislation; and the ATO's 'Logbook method' (12 June 2026) were read again.
 A diary is read only from 2022-23 (para 16), since the record rules for the

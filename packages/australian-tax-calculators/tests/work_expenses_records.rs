@@ -308,6 +308,8 @@ fn a_log_book_gives_lanas_69_per_cent() {
         "s 28-115(3)",
         "s 28-120(3)",
         "s 28-125(2)",
+        "s 28-90(4)",
+        "s 28-150",
     ] {
         assert!(records.contains(cited), "{cited}");
         assert!(stated["records_to_confirm"].to_string().contains(cited));
