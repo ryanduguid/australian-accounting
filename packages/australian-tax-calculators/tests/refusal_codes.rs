@@ -63,6 +63,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/ess_discount",
         "engine/aml_cdd_review",
         "engine/workers_compensation_premium",
+        "engine/gst_corrections",
         "engine/payroll_tax",
         "engine/payroll_tax/group",
         "engine/tourist_refund",
@@ -208,7 +209,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // voluntary-agreement-withholding, residency-tests, lodgment-required,
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
-    // gst-second-hand-goods, gst-bad-debt, tourist-refund, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test,
+    // gst-second-hand-goods, gst-bad-debt, gst-error-correction,
+    // gst-credit-time-limit, tourist-refund, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test,
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
@@ -219,7 +221,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
     // gst-food-retailer-sam.
-    assert_eq!(checked, 132);
+    assert_eq!(checked, 134);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

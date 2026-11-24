@@ -6582,6 +6582,10 @@ mod gst_food_retailer_sam;
 pub use gst_food_retailer_sam::{
     GST_FOOD_RETAILER_SAM_OPTIONAL, GstFoodRetailerSamArgs, gst_food_retailer_sam,
 };
+mod gst_corrections;
+pub use gst_corrections::{
+    CreditTimeLimitArgs, ErrorCorrectionArgs, gst_credit_time_limit, gst_error_correction,
+};
 mod tourist_refund;
 pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
@@ -6623,7 +6627,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 146] = [
+const KINDS: [&str; 148] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6747,6 +6751,8 @@ const KINDS: [&str; 146] = [
     "gst_going_concern",
     "gst_second_hand_goods",
     "gst_bad_debt",
+    "gst_error_correction",
+    "gst_credit_time_limit",
     "tourist_refund",
     "deferred_tax",
     "cgt_cost_base_adjustments",

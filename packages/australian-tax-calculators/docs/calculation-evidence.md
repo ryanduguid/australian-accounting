@@ -195,6 +195,39 @@ See [GST going concern](#gst-going-concern).
 
 See [GST going concern](#gst-going-concern).
 
+## GST error correction
+
+Added on 24 November 2026. Its sources were read that day through the Federal
+Register of Legislation: the A New Tax System (Goods and Services Tax)
+(Correcting GST Errors) Determination 2023 (F2023L01284, dated 6 September
+2023) ss 4 and 6 to 8, the GST Act compilation 96 (C2026C00081) ss 29-10,
+29-80, 93-5, 93-10 and 93-15, the GST Regulations 2019 compilation 5 reg
+29-80.01 and the Taxation Administration Act 1953 Sch 1 ss 105-65 (as referenced
+in F2023L01284 s 4(b)) and 155-35. No ATO example was read; the tests take each
+turnover band at its boundary, the last day of each time limit and $75.
+
+The debit error time limit is 'within' a number of months 'after the due
+date', so its last day counts: 18 months after 28 February 2025 is 28 August
+2026. The value limit is 'less than', so a net sum equal to it fails (and
+`net_debit_errors`, being debit error amounts less credit error amounts under s 4,
+may be negative). Section
+93-5(1)'s 4 years run from the day after the return's due day and end on the
+anniversary of it. Under s 29-10(1) to (5), `earlier_attributable_return_given`
+and `section_29_10_5_election` ensure an intervening return given whilst
+holding the invoice blocks claiming in a later return unless a valid s 29-10(5)
+election moved attribution to it. Section 93-15 takes `none`, `partial` or
+`full`: `full` preserves entitlement, `none` bars it when the supplier's review
+ended without a tax invoice, and `partial` in that case is refused because
+s 93-15 ceases entitlement only to the shortfall; s 93-10(1), (4)
+and (5) exceptions are refused explicitly. F2023L01284 s 8 provides only that
+an error cannot be corrected by amending a later period's assessment.
+
+`tests/gst_corrections.rs` holds each case, each boundary and each refusal.
+
+## GST credit time limit
+
+See [GST error correction](#gst-error-correction).
+
 ## Tourist refund
 
 Added on 24 November 2026. Its sources were read that day through the Federal

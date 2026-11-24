@@ -141,6 +141,19 @@ const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
     ("scope_confirmed", Raw),
 ];
 
+/// Builds a static slice of `(name, Kind)` pairs, defaulting `Kind` to [`Raw`].
+macro_rules! cmd_args {
+    (@arg ($field:ident : $kind:ident)) => {
+        (stringify!($field), $kind)
+    };
+    (@arg $field:ident) => {
+        (stringify!($field), Raw)
+    };
+    ($($item:tt)+) => {
+        &[$(cmd_args!(@arg $item)),*]
+    };
+}
+
 /// Command, the worksheet's parameters in the original order.
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
@@ -552,6 +565,25 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
+        "gst-error-correction",
+        cmd_args! {
+            error_kind earlier_period_start earlier_return_due lodged
+            (current_gst_turnover: Dec) (net_debit_errors: Dec) within_period_of_review
+            compliance_activity commissioner_permits already_corrected
+            reckless_or_intentional credit_ceased_under_division_93
+            unrefundable_under_section_105_65 year scope_confirmed
+        },
+    ),
+    (
+        "gst-credit-time-limit",
+        cmd_args! {
+            (supply_value: Dec) return_due tax_invoice_held_from return_given
+            assessment_date earlier_attributable_return_given section_29_10_5_election
+            supplier_review_ended_without_invoice supplier_gst_accounted_for
+            special_attribution section_93_10_exception year scope_confirmed
+        },
     ),
     (
         "tourist-refund",
@@ -2269,6 +2301,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
             | "wine-equalisation-tax"
+            | "gst-error-correction"
+            | "gst-credit-time-limit"
             | "tourist-refund"
             | "vic-property-taxes"
             | "fbt-debt-waiver"
@@ -2383,9 +2417,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             format!("{key} is not an input of {command}"),
         );
     }
+    let skip_debit_dec = command == "gst-error-correction"
+        && v.get("error_kind").and_then(Value::as_str) == Some("credit");
     let a: Vec<Arg> = params
         .iter()
-        .map(|(key, kind)| argument(v, key, *kind))
+        .map(|(key, kind)| {
+            let kind =
+                if skip_debit_dec && matches!(*key, "current_gst_turnover" | "net_debit_errors") {
+                    Raw
+                } else {
+                    *kind
+                };
+            argument(v, key, kind)
+        })
         .collect::<Result<_>>()?;
     // Optional: the study loan component's pay date, which selects the Schedule 8 coefficients.
     let pay_date = v.get("pay_date").map(arg);
@@ -4198,6 +4242,38 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[11],
             })
         }
+        "gst-error-correction" => engine::gst_error_correction(&engine::ErrorCorrectionArgs {
+            error_kind: &a[0],
+            earlier_period_start: &a[1],
+            earlier_return_due: &a[2],
+            lodged: &a[3],
+            current_gst_turnover: &a[4],
+            net_debit_errors: &a[5],
+            within_period_of_review: &a[6],
+            compliance_activity: &a[7],
+            commissioner_permits: &a[8],
+            already_corrected: &a[9],
+            reckless_or_intentional: &a[10],
+            credit_ceased_under_division_93: &a[11],
+            unrefundable_under_section_105_65: &a[12],
+            year: &a[13],
+            scope_confirmed: &a[14],
+        }),
+        "gst-credit-time-limit" => engine::gst_credit_time_limit(&engine::CreditTimeLimitArgs {
+            supply_value: &a[0],
+            return_due: &a[1],
+            tax_invoice_held_from: &a[2],
+            return_given: &a[3],
+            assessment_date: &a[4],
+            earlier_attributable_return_given: &a[5],
+            section_29_10_5_election: &a[6],
+            supplier_review_ended_without_invoice: &a[7],
+            supplier_gst_accounted_for: &a[8],
+            special_attribution: &a[9],
+            section_93_10_exception: &a[10],
+            year: &a[11],
+            scope_confirmed: &a[12],
+        }),
         "tourist-refund" => engine::tourist_refund(&engine::TouristRefundArgs {
             departure_date: &a[0],
             departing_by: &a[1],
