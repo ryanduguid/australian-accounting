@@ -21,7 +21,7 @@ fn code(input: &Value) -> &'static str {
 
 fn input(amount: &str, start: &str, end: &str, pattern: &str, ends: Value, paid: Value) -> Value {
     json!({"contract_amount": amount, "start": start, "end": end, "pattern": pattern,
-           "period_ends": ends, "consideration": paid, "variable_consideration": false,
+           "period_ends": ends, "billed": paid, "received": paid, "variable_consideration": false,
            "significant_financing_component": false, "year": "2025-26", "scope_confirmed": true})
 }
 
@@ -40,7 +40,8 @@ fn d1() -> Value {
     )
 }
 
-/// Each period's (revenue to date, contract liability, asset or receivable).
+/// Each period's (revenue to date, contract liability, contract asset), where
+/// billings and receipts match, so there is no receivable.
 fn rows(r: &Value) -> Vec<(String, String, String)> {
     let s = |p: &Value, k: &str| p[k].as_str().unwrap().to_string();
     r["periods"]
@@ -51,7 +52,7 @@ fn rows(r: &Value) -> Vec<(String, String, String)> {
             (
                 s(p, "revenue_to_date"),
                 s(p, "contract_liability"),
-                s(p, "contract_asset_or_receivable"),
+                s(p, "contract_asset"),
             )
         })
         .collect()
@@ -151,7 +152,8 @@ fn d3_milestones_with_an_asset_or_receivable() {
             ("50000.00", "0.00", "15000.00"),
         ],
     );
-    assert_eq!(r["amounts"]["contract_asset_or_receivable"], "15000.00");
+    assert_eq!(r["amounts"]["contract_asset"], "15000.00");
+    assert_eq!(r["amounts"]["receivable"], "0.00");
 }
 
 #[test]
@@ -162,7 +164,8 @@ fn d4_a_period_end_before_the_start() {
         &run(&i),
         &[("0.00", "0.00", "0.00"), ("32.88", "11967.12", "0.00")],
     );
-    i["consideration"] = json!([paid("2025-06-01", "3000.00")]);
+    i["billed"] = json!([paid("2025-06-01", "3000.00")]);
+    i["received"] = json!([paid("2025-06-01", "3000.00")]);
     expect(
         &run(&i),
         &[("0.00", "3000.00", "0.00"), ("32.88", "2967.12", "0.00")],
@@ -207,7 +210,8 @@ fn every_supported_year_and_the_boundaries() {
         i["year"] = json!(year);
         i["start"] = json!(start);
         i["end"] = json!(end);
-        i["consideration"] = json!([]);
+        i["billed"] = json!([]);
+        i["received"] = json!([]);
         assert!(api::evaluate(CMD, &i).is_ok(), "{year}");
     }
     let mut i = d1();
@@ -232,6 +236,21 @@ fn the_performance_period() {
     i["end"] = json!("2035-06-30");
     i["period_ends"] = json!(["2035-06-30"]);
     expect(&run(&i), &[("12000.00", "0.00", "0.00")]);
+    // 120 whole calendar months is the most a monthly schedule takes.
+    i["pattern"] = json!("monthly");
+    i["period_ends"] = json!(["2025-07-31", "2035-06-29", "2035-06-30"]);
+    expect(
+        &run(&i),
+        &[
+            ("100.00", "11900.00", "0.00"),
+            ("11900.00", "100.00", "0.00"),
+            ("12000.00", "0.00", "0.00"),
+        ],
+    );
+    i["end"] = json!("2035-07-31");
+    assert_eq!(code(&i), "deferred_revenue.dates_invalid");
+    i["pattern"] = json!("daily");
+    i["period_ends"] = json!(["2035-06-30"]);
     i["end"] = json!("2025-07-01");
     expect(&run(&i), &[("12000.00", "0.00", "0.00")]);
     i["end"] = json!("30/06/2026");
@@ -299,6 +318,24 @@ fn period_ends_and_consideration() {
         i["period_ends"] = ends.clone();
         assert_eq!(code(&i), "deferred_revenue.period_ends_invalid", "{ends}");
     }
+    for key in ["billed", "received"] {
+        for given in [
+            json!([paid("2025-07-01", "12000.01")]),
+            json!([paid("2025-07-01", "6000.00"), paid("2025-08-01", "6000.01")]),
+            json!([paid("2025-07-01", "0.00")]),
+            json!([paid("2025-07-01", "1.001")]),
+            json!([{"date": "2025-07-01", "amount": "1.00", "label": "x"}]),
+            json!([{"date": "2025-07-01"}]),
+        ] {
+            let mut i = d1();
+            i[key] = given.clone();
+            assert_eq!(
+                code(&i),
+                "deferred_revenue.consideration_invalid",
+                "{key} {given}"
+            );
+        }
+    }
     for given in [
         json!([paid("2025-07-01", "12000.01")]),
         json!([paid("2025-07-01", "6000.00"), paid("2025-08-01", "6000.01")]),
@@ -308,11 +345,94 @@ fn period_ends_and_consideration() {
         json!([{"date": "2025-07-01"}]),
     ] {
         let mut i = d1();
-        i["consideration"] = given.clone();
+        i["received"] = given.clone();
         assert_eq!(
             code(&i),
             "deferred_revenue.consideration_invalid",
             "{given}"
         );
     }
+}
+
+/// Each period's (receivable, contract liability, contract asset).
+fn balances(r: &Value) -> Vec<[String; 3]> {
+    let s = |p: &Value, k: &str| p[k].as_str().unwrap().to_string();
+    r["periods"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|p| {
+            [
+                s(p, "receivable"),
+                s(p, "contract_liability"),
+                s(p, "contract_asset"),
+            ]
+        })
+        .collect()
+}
+
+#[test]
+fn d6_d7_a_receivable_beside_the_contract_balance() {
+    // $1,200 over 12 days is $100 a day; the first period end is day 1.
+    let mut i = input(
+        "1200.00",
+        "2025-07-01",
+        "2025-07-12",
+        "daily",
+        json!(["2025-07-01", "2025-07-05", "2025-07-12"]),
+        json!([]),
+    );
+    i["billed"] = json!([paid("2025-07-01", "150.00"), paid("2025-07-05", "650.00")]);
+    i["received"] = json!([paid("2025-07-05", "300.00"), paid("2025-07-20", "900.00")]);
+    assert_eq!(
+        balances(&run(&i)),
+        [
+            ["150.00", "50.00", "0.00"],
+            ["500.00", "300.00", "0.00"],
+            ["500.00", "0.00", "400.00"]
+        ]
+    );
+    i["billed"] = json!([paid("2025-07-01", "100.00")]);
+    i["received"] = json!([]);
+    i["period_ends"] = json!(["2025-07-01"]);
+    let r = run(&i);
+    assert_eq!(balances(&r), [["100.00", "0.00", "0.00"]]);
+    assert_eq!(r["periods"][0]["billed_to_date"], "100.00");
+    assert_eq!(r["amounts"]["receivable"], "100.00");
+}
+
+#[test]
+fn an_advance_received_before_any_billing_and_consideration_after_the_last_period_end() {
+    let mut i = d1();
+    i["billed"] = json!([paid("2026-01-01", "12000.00")]);
+    i["received"] = json!([paid("2025-07-01", "3000.00"), paid("2026-07-31", "9000.00")]);
+    let r = run(&i);
+    assert_eq!(
+        balances(&r),
+        [
+            ["0.00", "0.00", "24.66"],
+            ["0.00", "0.00", "3049.32"],
+            ["9000.00", "2991.78", "0.00"],
+            ["9000.00", "0.00", "0.00"]
+        ]
+    );
+    assert_eq!(r["periods"][3]["received_to_date"], "3000.00");
+}
+
+#[test]
+fn milestone_labels() {
+    for label in [
+        json!(null),
+        json!(5),
+        json!({"x": 1}),
+        json!(""),
+        json!("x".repeat(201)),
+    ] {
+        let mut i = d3();
+        i["milestones"][0]["label"] = label.clone();
+        assert_eq!(code(&i), "deferred_revenue.milestones_invalid", "{label}");
+    }
+    let mut i = d3();
+    i["milestones"][0].as_object_mut().unwrap().remove("label");
+    assert_eq!(code(&i), "deferred_revenue.milestones_invalid");
 }

@@ -2972,7 +2972,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         ],
         "deferred_revenue" => vec![(
             "milestones",
-            "list of 1 to 100 objects {label, date, amount}, required with pattern milestones and refused otherwise: each milestone's date in the performance period and the part of contract_amount it earns, the amounts summing to contract_amount (AASB 15 para B15)",
+            "list of 1 to 100 objects {label, date, amount}, required with pattern milestones and refused otherwise: each milestone's label, its date in the performance period and the part of contract_amount the operator has established it depicts as progress, the amounts summing to contract_amount (AASB 15 para B15)",
         )],
         "alcohol_excise" => vec![
             (
@@ -5962,10 +5962,11 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         "deferred_revenue" => vec![
             ("contract_amount", "AUD above 0: the transaction price allocated to the performance obligation (AASB 15 paras 47 to 90), established by the operator"),
             ("start", "YYYY-MM-DD: the first day of the performance period, in the year"),
-            ("end", "YYYY-MM-DD: the last day of the performance period, on or after start and less than 120 months after it"),
-            ("pattern", "daily, monthly or milestones: the operator's measure of progress, time elapsed by day or by whole calendar month on a straight-line basis (paras B14 and B18; monthly needs start on a month's first day and end on a month's last day) or milestones reached (para B15)"),
+            ("end", "YYYY-MM-DD: the last day of the performance period, on or after start, the period at most 120 months"),
+            ("pattern", "daily, monthly or milestones: the operator's measure of progress, time elapsed by day or by whole calendar month on a straight-line basis (paras B14 and B18, where the entity's efforts are expended evenly; monthly counts whole calendar months ended and needs start on a month's first day and end on a month's last day) or milestones reached (para B15)"),
             ("period_ends", "list of 1 to 120 YYYY-MM-DD dates in strictly ascending order: the reporting dates the schedule shows"),
-            ("consideration", "list of 0 to 500 objects {date, amount}: consideration the customer paid, or that became due unconditionally, on that date (para 106), amounts in AUD above 0 totalling no more than contract_amount"),
+            ("billed", "list of 0 to 500 objects {date, amount}: amounts that became unconditionally due on that date, as by an invoice (AASB 15 paras 106 and 108), in AUD above 0 totalling no more than contract_amount"),
+            ("received", "list of 0 to 500 objects {date, amount}: payments the customer made on that date, billed or not, in AUD above 0 totalling no more than contract_amount; receipts settle billings first"),
             ("variable_consideration", "boolean: the price includes variable consideration (paras 50 to 59); true is refused"),
             ("significant_financing_component", "boolean: the contract has a significant financing component (paras 60 to 65); true is refused"),
         ],
@@ -7486,7 +7487,11 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 Json(r#"["2025-09-30", "2025-12-31", "2026-03-31", "2026-06-30"]"#),
             ),
             (
-                "consideration",
+                "billed",
+                Json(r#"[{"date": "2025-07-01", "amount": "12000.00"}]"#),
+            ),
+            (
+                "received",
                 Json(r#"[{"date": "2025-07-01", "amount": "12000.00"}]"#),
             ),
             ("variable_consideration", Flag(false)),

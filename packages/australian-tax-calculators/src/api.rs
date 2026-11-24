@@ -1379,7 +1379,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("end", Raw),
             ("pattern", Raw),
             ("period_ends", Json),
-            ("consideration", Json),
+            ("billed", Json),
+            ("received", Json),
             ("variable_consideration", Raw),
             ("significant_financing_component", Raw),
             ("year", Raw),
@@ -3786,11 +3787,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 pattern: &a[3],
                 milestones: milestones.as_ref(),
                 period_ends: &a[4],
-                consideration: &a[5],
-                variable_consideration: &a[6],
-                significant_financing_component: &a[7],
-                year: &a[8],
-                scope_confirmed: &a[9],
+                billed: &a[5],
+                received: &a[6],
+                variable_consideration: &a[7],
+                significant_financing_component: &a[8],
+                year: &a[9],
+                scope_confirmed: &a[10],
             })
         }
         "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {

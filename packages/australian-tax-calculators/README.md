@@ -252,7 +252,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `residency-tests` | `resides`, `domicile_in_australia`, `permanent_place_of_abode_outside`, `presence`, `usual_place_of_abode_outside`, `intends_to_take_up_residence`, `commonwealth_super`, `resident_elsewhere`, `year`, `scope_confirmed`; see [Residency tests](#residency-tests) |
 | `lodgment-required` | `residency`, `taxable_income`, `dividends_and_franking_credits`, `under_18`, `triggers`, `study_loan`, `working_holiday_maker`, `listed_payment`, `sapto`, `child_support_parent`, `year`, `scope_confirmed`; see [Lodgment required](#lodgment-required) |
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
-| `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `consideration`, `variable_consideration`, `significant_financing_component`, `year`, `scope_confirmed`; with `pattern` `milestones`, `milestones`; see [Deferred revenue](#deferred-revenue) |
+| `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `billed`, `received`, `variable_consideration`, `significant_financing_component`, `year`, `scope_confirmed`, and `milestones` when `pattern` is `milestones`; see [Deferred revenue](#deferred-revenue) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
 | `foreign-income-conversion` | `items`, `year`, `scope_confirmed`; see [Foreign income conversion](#foreign-income-conversion) |
@@ -490,7 +490,7 @@ own dates and figures.
 | Residency tests | 2020-21 to 2026-27; one individual's stated judgements on residing, domicile, places of abode, intention and Commonwealth fund membership, and the dates in Australia; no treaty tie-breakers, no part-year dates |
 | Lodgment required | 2020-21 to 2025-26; one individual's own return, not as trustee, partner or agent, no substituted accounting period; residency, stated conditions and exception facts as answered; no child support instrument |
 | Deferred tax | 2020-21 to 2026-27; one company at the s 23(2) rates, Australian income tax only; established carrying amounts, tax bases, losses, recognition judgement and taxable income; no business combinations, uncertain tax treatments, tax-consolidated group members or tax outside profit or loss |
-| Deferred revenue | Performance periods starting in 2020-21 to 2026-27 and shorter than 120 months; one performance obligation satisfied over time, its price, allocation and pattern of progress (by day, by whole month or by milestone) established; no variable consideration, financing component or refund liability |
+| Deferred revenue | Performance periods starting in 2020-21 to 2026-27 and of at most 120 months; one performance obligation satisfied over time, its price, allocation and pattern of progress (by day, by whole month or by milestone) established; no variable consideration, financing component or refund liability |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
 | Long service leave | Last days from 1 July 2020 to 30 June 2027 and not before each Act's text as read; one employee under a state or territory's general Act; established dates, excluded days, leave taken, reason and ordinary weekly pay; no award, agreement or portable scheme |
 | SMSF tax | 2020-21 to 2026-27; one complying SMSF that is an Australian superannuation fund; the actuary's proportion, segregated income, non-arm's length income, deductions, offsets and credits established; no tax losses carried forward |
@@ -4502,23 +4502,29 @@ daily       revenue_to_date = cents(contract_amount x days elapsed / days in per
 monthly     revenue_to_date = cents(contract_amount x whole months ended / months)       paras 39, 40, B14, B18
 milestones  revenue_to_date = milestone amounts dated on or before the period end        paras 39, B14, B15
 revenue_in_period = revenue_to_date - the previous period end's revenue_to_date
-contract_liability = consideration to date - revenue_to_date, where positive             para 106
-contract_asset_or_receivable = revenue_to_date - consideration to date, where positive   paras 105, 107, 108
+receivable          = billed to date - received to date, where positive                   paras 105, 108
+paid_or_due         = the larger of billed to date and received to date
+contract_liability  = paid_or_due - revenue_to_date, where positive                       para 106
+contract_asset      = revenue_to_date - paid_or_due, where positive                       para 107
 ```
 
 Days elapsed count both the start and the period end and stop at the
-performance period's end; `monthly` needs whole calendar months.
-`consideration` lists what the customer paid or what fell due unconditionally,
-by date (para 106); whether a shortfall is a contract asset or a receivable
-turns on whether the right is unconditional (para 108), which the operator
-decides. `periods` in the result gives each period end's revenue in the period
-and to date, consideration to date and balances; `amounts` gives those at the
-last period end.
+performance period's end. The straight-line patterns suit an obligation whose
+efforts are expended evenly (para B18), which the operator establishes;
+`monthly` counts whole calendar months ended, a calculation convention, and
+needs whole calendar months. Milestone amounts are the operator's measure of
+the progress each depicts. `billed` lists amounts that became unconditionally
+due (an invoice, para 108) and `received` the customer's payments, each by
+date; receipts settle billings first, so a payment before any billing is an
+advance. The schedule assumes the measure of progress does not change over
+the periods shown (para 43). `periods` in the result gives each period end's
+revenue in the period and to date, billings and receipts to date and the
+balances; `amounts` gives those at the last period end.
 
 It refuses variable consideration (paras 50 to 59), a significant financing
 component (paras 60 to 65), consideration above the price (a refund
 liability, para 55), and a performance period starting outside 2020-21 to
-2026-27 or lasting 120 months or more. See
+2026-27 or lasting more than 120 months. See
 [calculation evidence](docs/calculation-evidence.md#deferred-revenue).
 
 ## Leave provisions

@@ -5545,17 +5545,24 @@ Para B18 allows revenue on a straight-line basis where the entity's efforts
 are expended evenly over the performance period; para B15 names milestones
 reached as an output method. Para 40 has progress remeasured at each period
 end, so each period's revenue is the change in revenue to date, rounded to the
-cent at each end. Paras 105 to 108 set the contract liability (consideration
-paid or due before performance) against the contract asset or receivable.
+cent at each end. Paras 105 to 108 present the receivable (an unconditional
+right, billed and unpaid) apart from the contract liability (consideration
+paid or due before performance) and the contract asset (performance before
+payment or billing). Receipts settle billings first, so consideration paid or
+due is the larger of billings and receipts to date; with $100 recognised, $150
+billed and nothing received, the receivable is $150 and the contract liability
+$50 (D6).
 
 AASB 15 has no numeric straight-line or milestone example. D1 to D5 are
 made-up figures worked independently in Python's `decimal`.
 
 | Vector | Facts given | Result |
 | --- | --- | --- |
-| D1 | $12,000.00 daily, 1 Jul 2025 to 30 Jun 2026, paid 1 Jul 2025; ends 30 Sep, 31 Dec, 31 Mar, 30 Jun | revenue to date **$3,024.66**, **$6,049.32**, **$9,008.22**, **$12,000.00**; liability $8,975.34, $5,950.68, $2,991.78, nil |
+| D1 | $12,000.00 daily, 1 Jul 2025 to 30 Jun 2026, billed and paid 1 Jul 2025; ends 30 Sep, 31 Dec, 31 Mar, 30 Jun | revenue to date **$3,024.66**, **$6,049.32**, **$9,008.22**, **$12,000.00**; liability $8,975.34, $5,950.68, $2,991.78, nil |
 | D2 | $36,000.00 monthly, 1 Jul 2025 to 30 Jun 2028, $18,000 paid 1 Jul 2025 and 1 Jul 2027; ends 31 Dec 2025, 30 Jun 2026, 15 Sep 2026, 31 Dec 2027, 30 Jun 2028 | revenue **$6,000**, **$12,000**, **$14,000**, **$30,000**, **$36,000**; liability $12,000, $6,000, $4,000, $6,000, nil |
-| D3 | $50,000.00 by milestones of $10,000, $30,000 and $10,000; $15,000 and $20,000 paid | revenue **$10,000**, **$40,000**, **$50,000**; liability $5,000, then asset or receivable **$25,000** and **$15,000** |
+| D3 | $50,000.00 by milestones of $10,000, $30,000 and $10,000; $15,000 and $20,000 billed and paid | revenue **$10,000**, **$40,000**, **$50,000**; liability $5,000, then contract asset **$25,000** and **$15,000** |
+| D6 | $1,200.00 daily over 12 days; $150 billed on day 1, nothing received; end after 1 day ($100) | receivable **$150.00**, contract liability **$50.00** |
+| D7 | D6 with $100 billed on day 1 | receivable **$100.00**, no contract balance |
 | D4 | D1 with ends 30 Jun 2025 and 1 Jul 2025 | nil, then **$32.88** with liability $11,967.12 |
 | D5 | $1,000.00 daily, 15 Jul 2025 to 14 Jan 2026 (184 days); ends 31 Jul 2025, 31 Dec 2025, 30 Jun 2026 | **$92.39**, **$923.91**, **$1,000.00**; in period $92.39, $831.52, $76.09 |
 

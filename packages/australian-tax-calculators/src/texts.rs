@@ -492,7 +492,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "deferred_revenue",
-        "One performance obligation's revenue and contract balances under AASB 15 at each period end the operator states, for an obligation whose performance period starts in a financial year from 2020-21 to 2026-27, from the price allocated to it, its performance period and the pattern of progress the operator has established: time elapsed by day or by whole calendar month (an input method on a straight-line basis, paras 39, 40, B14 and B18) or the milestones reached with each one's amount (an output method, para B15). Revenue to date is the price times the days or whole months elapsed by the period end over those in the performance period, both ends counted, or the milestones dated on or before it, rounded half up to the cent; revenue in a period is the change in revenue to date. Consideration received or due by the period end less revenue to date is a contract liability where positive (para 106); a shortfall is shown as a contract asset or receivable, which the operator classifies by whether the right is unconditional (paras 105, 107 and 108). The operator establishes that the obligation is satisfied over time (paras 35 to 37), that the stated pattern faithfully depicts performance (paras 39 to 41 and B14 to B19), the transaction price (paras 47 to 72) and its allocation to the obligation (paras 73 to 90). Excludes contract costs (paras 91 to 104), modifications (paras 18 to 21), impairment of a contract asset (para 107, AASB 9), GST and presentation. Refuses variable consideration (paras 50 to 59), a significant financing component (paras 60 to 65), consideration above the price (a refund liability, para 55), monthly progress without whole calendar months and a performance period of 120 months or more.",
+        "One performance obligation's revenue and contract balances under AASB 15 at each period end the operator states, for an obligation whose performance period starts in a financial year from 2020-21 to 2026-27, from the price allocated to it, its performance period and the pattern of progress the operator has established: time elapsed by day or by whole calendar month (an input method on a straight-line basis, paras 39, 40, B14 and B18) or the milestones reached with each one's amount (an output method, para B15). Revenue to date is the price times the days or whole months elapsed by the period end over those in the performance period, both ends counted, or the milestones dated on or before it, rounded half up to the cent; revenue in a period is the change in revenue to date. The receivable is what has been billed (become unconditionally due) and not received by the period end (paras 105 and 108), receipts settling billings first; consideration paid or due is the larger of billings and receipts to date, and the contract liability is that less revenue to date where positive (para 106), the contract asset revenue to date less it where positive (para 107, excluding the receivable). The daily and monthly patterns apply straight-line progress, which para B18 allows where the entity's efforts or inputs are expended evenly over the performance period; the monthly pattern counts whole calendar months ended, a calculation convention. Milestone amounts are the operator's measure of the progress each milestone depicts, not amounts AASB 15 sets. The schedule assumes the measure of progress and its estimates do not change over the periods shown (para 43): after a change, rerun it with the revised facts. The operator establishes that the obligation is satisfied over time (paras 35 to 37), that the stated pattern faithfully depicts performance (paras 39 to 41 and B14 to B19), the transaction price (paras 47 to 72) and its allocation to the obligation (paras 73 to 90). Excludes contract costs (paras 91 to 104), modifications (paras 18 to 21), impairment of a contract asset (para 107, AASB 9), GST and presentation. Refuses variable consideration (paras 50 to 59), a significant financing component (paras 60 to 65), consideration above the price (a refund liability, para 55), monthly progress without whole calendar months and a performance period of more than 120 months.",
     ),
     (
         "leave_provisions",
@@ -2476,7 +2476,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
         "deferred_revenue",
         &[
-            "The pattern of progress, the price and the consideration received or due are the operator's stated facts and judgements (AASB 15 paras 35 to 41 and B14 to B19); the worksheet schedules them and does not decide when the performance obligation is satisfied.",
+            "The pattern of progress (for a straight line, that efforts are expended evenly, para B18), the milestone amounts, the price, billings and receipts are the operator's stated facts and judgements (AASB 15 paras 35 to 43 and B14 to B19); the worksheet schedules them and does not decide when the performance obligation is satisfied.",
         ],
     ),
     (
@@ -3465,14 +3465,17 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "decimal.overflow",
         "A worksheet step exceeded the decimal range.",
     ),
-    ("deferred_revenue.amount_invalid", "contract_amount is nil."),
+    (
+        "deferred_revenue.amount_invalid",
+        "contract_amount is 0.00: it must be above 0.",
+    ),
     (
         "deferred_revenue.consideration_invalid",
-        "consideration is not a list of up to 500 objects, each a date and an amount above 0, totalling no more than contract_amount (AASB 15 para 55).",
+        "billed or received is not a list of up to 500 objects, each a date and an amount above 0 and nothing else, totalling no more than contract_amount (AASB 15 para 55).",
     ),
     (
         "deferred_revenue.dates_invalid",
-        "end is before start, the performance period is 120 months or more, or start is outside the year.",
+        "end is before start, the performance period is more than 120 months, or start is outside the year.",
     ),
     (
         "deferred_revenue.financing_component",
