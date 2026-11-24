@@ -121,44 +121,22 @@ fn checked(row: &Value) -> bool {
     want == ["duty", "general"].map(|key| cents(row[key].as_str().unwrap()))
 }
 
-/// Every row of the site's fixture agrees, or differs only by Victoria's
-/// rounding to the dollar.
+/// Every row of the site's fixture agrees: the page takes Victorian duty to
+/// the dollar, 50 cents down, as the worksheet does (Duties Act 2000 (Vic)
+/// s 28(1)).
 #[test]
-fn the_site_cases_agree_except_where_victoria_rounds() {
+fn the_site_cases_agree() {
     let data: Value =
         serde_json::from_str(include_str!("data/transfer_duty_site_cases.json")).unwrap();
     let rows = data["rows"].as_array().unwrap();
     let moved: Vec<&Value> = rows.iter().filter(|row| !checked(row)).collect();
     eprintln!(
-        "transfer-duty site parity: {} rows, {} identical, {} moved by Duties Act 2000 (Vic) s 28(1)",
+        "transfer-duty site parity: {} rows, {} identical",
         rows.len(),
-        rows.len() - moved.len(),
-        moved.len()
+        rows.len() - moved.len()
     );
     assert_eq!(rows.len(), 925);
-    assert_eq!(moved.len(), 74);
-    assert!(moved.iter().all(|row| row["jurisdiction"] == "vic"));
-    // The page's own figures that move: its Node tests' $25,001 and the
-    // general duty beside its first home figures on $600,001 and $750,001.
-    let page: Vec<String> = moved
-        .iter()
-        .filter(|row| row["case"].as_str().unwrap().starts_with("node test"))
-        .map(|row| {
-            format!(
-                "{} {}",
-                row["dutiable_value"].as_str().unwrap(),
-                row["buyer"].as_str().unwrap()
-            )
-        })
-        .collect();
-    assert_eq!(
-        page,
-        [
-            "25001 general",
-            "600001 first_home_established",
-            "750001 first_home_established"
-        ]
-    );
+    assert!(moved.is_empty(), "{moved:?}");
     // The page's 21 cases and the oracle's 44 worked figures all agree.
     let named = |rows: &[&Value], prefix: &str| {
         rows.iter()
@@ -168,7 +146,6 @@ fn the_site_cases_agree_except_where_victoria_rounds() {
     let all: Vec<&Value> = rows.iter().collect();
     assert_eq!(named(&all, "cases: "), 21);
     assert_eq!(named(&all, "oracle: "), 44);
-    assert_eq!(named(&moved, "cases: ") + named(&moved, "oracle: "), 0);
 }
 
 /// Revenue NSW's 2026-27 examples, s 273's minimum, s 32A's premium rate on

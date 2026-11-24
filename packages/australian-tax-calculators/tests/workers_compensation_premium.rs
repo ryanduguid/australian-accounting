@@ -118,6 +118,9 @@ fn site_code(message: &str) -> &'static str {
         ("below icare", "below_minimum"),
         ("member of a group", "group_rated"),
         ("no apprentice deduction", "apprentice_unavailable"),
+        ("after premium payable is calculated", "apprentice_unsettled"),
+        ("no year-end adjustment", "adjustment_unsettled"),
+        ("rounds to $0", "remuneration_nil"),
     ]
     .iter()
     .find(|(said, _)| message.contains(said))
@@ -213,15 +216,7 @@ fn the_site_cases_agree_except_where_a_source_is_unsettled() {
     assert_eq!(tally, BTreeMap::from(TALLY));
 }
 
-const TALLY: [(&str, usize); 7] = [
-    ("identical", 849),
-    ("refused alike", 308),
-    ("NSW apprentice incentive refused", 61),
-    ("NSW exact APP over $30,000 refused", 12),
-    ("Qld actual wages refused", 48),
-    ("SA band edge refused", 24),
-    ("Vic nil remuneration refused", 24),
-];
+const TALLY: [(&str, usize); 2] = [("identical", 849), ("refused alike", 477)];
 
 #[test]
 fn each_scheme_matches_its_published_example() {
