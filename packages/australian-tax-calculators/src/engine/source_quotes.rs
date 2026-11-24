@@ -32,7 +32,7 @@ const COMMANDS: [(&str, &str); 4] = [
     ("first-home-owner-grant", "first_home_owner_grant"),
 ];
 
-pub(crate) const QUOTES: [Quote; 34] = [
+pub(crate) const QUOTES: [Quote; 36] = [
     Quote {
         kind: "transfer_duty",
         jurisdiction: "nsw",
@@ -52,7 +52,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "transfer_duty",
         jurisdiction: "qld",
-        provision: "Duties Act 2001 (Qld) Sch 3",
+        provision: "Duties Act 2001 (Qld) s 24(2) and Sch 3",
         source: "Queensland Revenue Office, 'Transfer duty rates', current transfer duty rates",
         url: "https://qro.qld.gov.au/duties/transfer-duty/calculate/rates/",
         passage: "Not more than $5,000\tNil\nMore than $5,000 up to $75,000\t$1.50 for each $100, or part of $100, over $5,000\n$75,000 to $540,000\t$1,050 plus $3.50 for each $100, or part of $100, over $75,000\n$540,000 to $1,000,000\t$17,325 plus $4.50 for each $100, or part of $100, over $540,000\nMore than $1,000,000\t$38,025 plus $5.75 for each $100, or part of $100, over $1,000,000",
@@ -68,7 +68,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "transfer_duty",
         jurisdiction: "sa",
-        provision: "Stamp Duties Act 1923 (SA) Sch 2",
+        provision: "Stamp Duties Act 1923 (SA) Sch 2 item 3(b)",
         source: "RevenueSA, 'Rate of stamp duty', conveyances",
         url: "https://revenuesa.sa.gov.au/stamp-duty/rate-of-stamp-duty",
         passage: "Does not exceed $12,000\n$1.00 for every $100 or part of $100\nExceeds $12,000 but not $30,000\n$120 plus $2.00 for every $100 or part of $100 over $12,000\nExceeds $30,000 but not $50,000\n$480 plus $3.00 for every $100 or part of $100 over $30,000\nExceeds $50,000 but not $100,000\n$1,080 plus $3.50 for every $100 or part of $100 over $50,000\nExceeds $100,000 but not $200,000\n$2,830 plus $4.00 for every $100 or part of $100 over $100,000\nExceeds $200,000 but not $250,000\n$6,830 plus $4.25 for every $100 or part of $100 over $200,000\nExceeds $250,000 but not $300,000\n$8,955 plus $4.75 for every $100 or part of $100 over $250,000\nExceeds $300,000 but not $500,000\n$11,330 plus $5.00 for every $100 or part of $100 over $300,000\nExceeds $500,000\n$21,330 plus $5.50 for every $100 or part of $100 over $500,000",
@@ -108,7 +108,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "foreign_purchaser_surcharge",
         jurisdiction: "nsw",
-        provision: "Land Tax Act 1956 (NSW) s 5A",
+        provision: "Land Tax Act 1956 (NSW), as Revenue NSW states it (the Act could not be read on 24 November 2026)",
         source: "Revenue NSW, 'What is surcharge land tax'",
         url: "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/surcharge-land-tax/what-is-surcharge-land-tax",
         passage: "2025 onwards\t5% of the land value of your property",
@@ -156,7 +156,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "foreign_purchaser_surcharge",
         jurisdiction: "sa",
-        provision: "Stamp Duties Act 1923 (SA) s 72",
+        provision: "Stamp Duties Act 1923 (SA) s 72(3)",
         source: "RevenueSA, 'Foreign ownership surcharge'",
         url: "https://www.revenuesa.sa.gov.au/stampduty/FOS",
         passage: "Foreign persons (which includes natural persons and corporations) or foreign trusts that acquire an interest in residential land in South Australia are required to pay a foreign ownership surcharge (the “surcharge”) of 7% of the value of the interest in residential land.",
@@ -172,7 +172,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "foreign_purchaser_surcharge",
         jurisdiction: "act",
-        provision: "Land Tax Act 2004 (ACT) s 17E(4); DI2026-152 s 7",
+        provision: "Land Tax Act 2004 (ACT) s 17E(3)(b) and (4); DI2026-152 s 7",
         source: "Taxation Administration (Amounts Payable—Land Tax) Determination 2026 (DI2026-152)",
         url: "https://www.legislation.act.gov.au/View/di/2026-152/current/html/2026-152.html",
         passage: "For the purposes of section 17E (4) of the Act, I determine that P (or percentage rate) is 0.75% of the base value.",
@@ -180,7 +180,15 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "foreign_purchaser_surcharge",
         jurisdiction: "nt",
-        provision: "none: the Territory levies no land tax",
+        provision: "Stamp Duty Act 1978 (NT) Sch 1 cl 1(2), which sets no rate for a foreign purchaser",
+        source: "Stamp Duty Act 1978 (NT), as in force at 1 July 2025",
+        url: "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11906",
+        passage: "(2) Subject to this clause, the duty payable on a conveyance of dutiable property is determined as follows:\n(a) if the dutiable value of the dutiable property subject to the conveyance does not exceed $525 000: D = (0.06571441 x V²) + 15V where: D is the duty (expressed in dollars) V is 1/1 000 of the dutiable value (expressed in dollars)\n(b) if the dutiable value exceeds $525 000 but is less than $3 000 000, the duty is 4.95% of the dutiable value;\n(c) if the dutiable value is $3 000 000 or more but is less than $5 000 000, the duty is 5.75% of the dutiable value;\n(d) if the dutiable value is $5 000 000 or more, the duty is 5.95% of the dutiable value.",
+    },
+    Quote {
+        kind: "foreign_purchaser_surcharge",
+        jurisdiction: "nt",
+        provision: "no Act: the Territory levies no land tax",
         source: "NT Government, 'Property taxes'",
         url: "https://nt.gov.au/property/land/buying-and-selling-land/land-taxes",
         passage: "There is no land tax in the NT.",
@@ -188,7 +196,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "land_tax",
         jurisdiction: "nsw",
-        provision: "Land Tax Act 1956 (NSW); Land Tax Management Act 1956 (NSW)",
+        provision: "Land Tax Act 1956 (NSW) and Land Tax Management Act 1956 (NSW), as Revenue NSW states them (the Acts could not be read on 24 November 2026)",
         source: "Revenue NSW, 'Land tax thresholds and rates'",
         url: "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/land-tax/understanding-land-tax/thresholds-and-rates",
         passage: "General\tMore than $1,075,000 but less than $6,571,000\t$100 + 1.6% of the land value above $1,075,000\nPremium\tMore than $6,571,000\t$88,036 + 2% of the land value above $6,571,000",
@@ -244,7 +252,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "first_home_owner_grant",
         jurisdiction: "nsw",
-        provision: "First Home Owner Grant (New Homes) Act 2000 (NSW)",
+        provision: "First Home Owner Grant (New Homes) Act 2000 (NSW), as Revenue NSW states it (the Act could not be read on 24 November 2026)",
         source: "Revenue NSW, 'First Home Owner (New Homes) Grant'",
         url: "https://www.revenue.nsw.gov.au/grants-schemes/first-home-owner-new-homes-grant",
         passage: "A $10,000 First Home Owner Grant (FHOG) is available when you buy or build your first new home.",
@@ -284,7 +292,7 @@ pub(crate) const QUOTES: [Quote; 34] = [
     Quote {
         kind: "first_home_owner_grant",
         jurisdiction: "tas",
-        provision: "First Home Owner Grant Act 2000 (Tas) s 18",
+        provision: "First Home Owner Grant Act 2000 (Tas) s 18(1) and (2)(al) and (am)",
         source: "SRO Tasmania, 'First Home Owner Grant eligibility'",
         url: "https://www.sro.tas.gov.au/first-home-owner/eligibility",
         passage: "Transaction commencement dates between:\nAmount ($)\n1 July 2026 and 30 June 2027\n$20 000\n1 July 2025 and 30 June 2026\n$30 000\n1 July 2024 and 30 June 2025\n$10 000",
@@ -296,6 +304,14 @@ pub(crate) const QUOTES: [Quote; 34] = [
         source: "ACT Revenue Office, 'First Home Owner Grant'",
         url: "https://www.revenue.act.gov.au/home-buyer-assistance/first-home-owner-grant",
         passage: "First Home Owner Grant (FHOG) payments are not available for applicants who enter into a property purchase transaction with a commencement date from 1 July 2019.",
+    },
+    Quote {
+        kind: "first_home_owner_grant",
+        jurisdiction: "nt",
+        provision: "First Home Owner Grant Act 2000 (NT) s 18(3D) and (3E)",
+        source: "First Home Owner Grant Act 2000 (NT), as in force at 1 July 2026",
+        url: "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11819",
+        passage: "(3D) If the commencement date for the transaction is on or after 1 October 2024 but before 1 October 2025, the amount for subsection (1)(b) is:\n(a) if the home is a new home – $50 000; or\n(b) otherwise – $10 000.\n(3E) If the commencement date for the transaction is on or after 1 October 2025 but before 1 October 2027, the amount for subsection (1)(b) is $50 000.",
     },
     Quote {
         kind: "first_home_owner_grant",

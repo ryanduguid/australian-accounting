@@ -2737,27 +2737,33 @@ $10.50 and $52,805.50, and the refusals.
 jurisdiction given, the passage of the Act, determination or revenue office
 page that states the scale, rate or grant applied, with its provision, the
 document's title, its URL and `verified`, the day it was read. Their
-catalogue entries hold every jurisdiction's passages. Each passage was read
-at the official site on 24 November 2026 and is quoted word for word: line
-and table row breaks are newlines, table cells are joined by a tab,
-non-breaking spaces are spaces and zero-width characters are left out.
+catalogue entries hold every jurisdiction's passages. Both are added fields:
+a consumer that refuses unknown fields must allow `source_quotes`. Each
+passage was read at the official site on 24 November 2026 and extracted
+from the page's text, not retyped: line and table row breaks are newlines,
+table cells are joined by a tab, non-breaking spaces are spaces and
+zero-width characters are left out.
 
-The passage quotes the page; where a page and the Act differ the command
-follows the Act, as its steps say. Queensland's absentee surcharge page
+An Act or a determination is the law; a revenue office page is the office's
+statement of it, quoted where the Act could not be read that day or the page
+states the current figure. Where a page and the Act differ the command
+follows the Act, as its steps say: Queensland's absentee surcharge page
 gives (taxable value - $350,000) x 3%, and the Act's 3.0 cents for each $1
-more than $349,999 is applied. The Northern Territory's passage is the
-NT Government's statement that the Territory levies no land tax; no passage
-stating that it charges no foreign purchaser duty was read, so the
-Northern Territory's nil duty surcharge rests on the Act's silence, as its
-step cites. The ACT's first home owner grant passage states that no grant is
-paid for a commencement date from 1 July 2019, which the command refuses.
-New South Wales's and Western Australia's surcharge passages come from the
-revenue office pages because AustLII refused the request that day.
+more than $349,999 is applied. Revenue NSW's pages stand for the NSW land
+tax and grant Acts, which could not be read that day; New South Wales's and
+Western Australia's duty surcharge passages are the revenue offices' because
+AustLII refused the request. The Northern Territory's surcharge passages
+are the Stamp Duty Act's conveyance scale, which sets no rate for a foreign
+purchaser, and the NT Government's statement that the Territory levies no
+land tax; no passage states in terms that it charges no foreign purchaser
+duty. The ACT's first home owner grant passage states that no grant is paid
+for a commencement date from 1 July 2019, which the command refuses.
 
 `tests/source_quotes.rs` checks that every jurisdiction of the 4 commands
 has a passage with a provision, an official URL and its date, that each
-result carries its jurisdiction's passages, and that no other worksheet
-gains them.
+passage states the figure the command applies, that each result carries
+its jurisdiction's passages, and that no other worksheet or command gains
+them.
 
 ## Depreciation
 

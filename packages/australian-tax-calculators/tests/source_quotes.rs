@@ -125,6 +125,71 @@ fn each_result_carries_its_jurisdictions_quotes() {
     }
 }
 
+/// The figure each jurisdiction's passages must state, as the command's own
+/// rate table, surcharge or grant applies it (the top band for a scale).
+const FIGURES: [(&str, &str, &str); 31] = [
+    (
+        "transfer_duty",
+        "nsw",
+        "$52,237 plus $5.50 for every $100 over $1,290,000",
+    ),
+    ("transfer_duty", "vic", "$110,000 plus 6.5%"),
+    ("transfer_duty", "qld", "$38,025 plus $5.75"),
+    ("transfer_duty", "wa", "$28,453 + $5.15"),
+    ("transfer_duty", "sa", "$21,330 plus $5.50"),
+    ("transfer_duty", "tas", "$27 810 plus $4.50"),
+    ("transfer_duty", "act", "$4.54 per $100"),
+    ("transfer_duty", "nt", "0.06571441"),
+    ("foreign_purchaser_surcharge", "nsw", "9%"),
+    ("foreign_purchaser_surcharge", "vic", "8%"),
+    ("foreign_purchaser_surcharge", "qld", "8%"),
+    ("foreign_purchaser_surcharge", "wa", "7%"),
+    ("foreign_purchaser_surcharge", "sa", "7%"),
+    ("foreign_purchaser_surcharge", "tas", "8 percent"),
+    ("foreign_purchaser_surcharge", "act", "0.75%"),
+    ("foreign_purchaser_surcharge", "nt", "no land tax"),
+    ("land_tax", "nsw", "$88,036 + 2%"),
+    ("land_tax", "vic", "$31,650 plus 2.65%"),
+    ("land_tax", "qld", "$150,000 plus 2.25 cents"),
+    ("land_tax", "wa", "$186,550 + 0.0267"),
+    ("land_tax", "sa", "$36,000 plus $2.40"),
+    ("land_tax", "tas", "$1 737.50 plus 1.5%"),
+    ("land_tax", "act", "$1,778"),
+    ("first_home_owner_grant", "nsw", "$10,000"),
+    ("first_home_owner_grant", "vic", "$10,000"),
+    ("first_home_owner_grant", "qld", "$30,000"),
+    ("first_home_owner_grant", "wa", "$10,000"),
+    ("first_home_owner_grant", "sa", "$15,000"),
+    ("first_home_owner_grant", "tas", "$20 000"),
+    ("first_home_owner_grant", "act", "from 1 July 2019"),
+    ("first_home_owner_grant", "nt", "$50 000"),
+];
+
+#[test]
+fn each_passage_states_the_figure_the_command_applies() {
+    for (kind, place, figure) in FIGURES {
+        let quotes = of(&catalogue_quotes(kind), place);
+        assert!(
+            quotes
+                .iter()
+                .any(|q| q["passage"].as_str().unwrap().contains(figure)),
+            "{kind} {place}: {figure}"
+        );
+    }
+}
+
+/// The commands take lower-case codes only, so a result's passages cannot
+/// belong to another spelling of its jurisdiction.
+#[test]
+fn an_upper_case_jurisdiction_is_refused() {
+    for (command, kind, _, _) in COMMANDS {
+        assert!(
+            api::evaluate(command, &example(kind, "NSW")).is_err(),
+            "{command}"
+        );
+    }
+}
+
 /// A command outside the four, with a jurisdiction input, gains nothing.
 #[test]
 fn other_commands_gain_no_quotes() {
