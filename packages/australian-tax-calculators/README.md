@@ -4886,8 +4886,12 @@ change over the periods shown (AASB 15 para 43; a change is recognised
 prospectively in the period of the change and future periods under AASB 108
 paras 36 to 38, without restating earlier periods, and is outside this
 schedule). `periods` in the result gives each period end's
-revenue in the period and to date, billings and receipts to date and the
-balances; `amounts` gives those at the last period end.
+revenue in the period and to date (`revenue_in_period`, `revenue_to_date`),
+billings and receipts to date (`billed_to_date`, `received_to_date`) and the
+balances; `amounts` gives `contract_amount`, `revenue_recognised`,
+`revenue_not_yet_recognised` and the last period end's balances (`receivable`,
+`contract_liability`, `contract_asset`), leaving `revenue_in_period`,
+`billed_to_date` and `received_to_date` in `periods`.
 
 It refuses variable consideration (paras 50 to 59), a significant financing
 component (paras 60 to 65), consideration above the price (a refund

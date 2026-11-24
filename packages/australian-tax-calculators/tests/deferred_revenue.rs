@@ -434,7 +434,9 @@ fn a_changed_estimate_is_refused_rather_than_rewriting_earlier_periods() {
     );
     initial["billed"] = json!([paid("2025-07-01", "12000.00")]);
     initial["received"] = json!([]);
-    assert_eq!(run(&initial)["periods"][0]["revenue_in_period"], "3000.00");
+    let initial_out = run(&initial);
+    assert_eq!(initial_out["periods"][0]["revenue_in_period"], "3000.00");
+    assert_eq!(initial_out["periods"][0]["revenue_to_date"], "3000.00");
 
     // Duration revised from 12 to 18 months in December (AASB 15 para 43;
     // AASB 108 paras 36 to 38): prospective recognition takes $4,000
@@ -451,9 +453,28 @@ fn a_changed_estimate_is_refused_rather_than_rewriting_earlier_periods() {
     );
     revised["billed"] = json!([paid("2025-07-01", "12000.00")]);
     revised["received"] = json!([]);
-    assert_eq!(run(&revised)["periods"][1]["revenue_in_period"], "2000.00");
+    let revised_out = run(&revised);
+    assert_eq!(revised_out["periods"][1]["revenue_in_period"], "2000.00");
+    assert_eq!(revised_out["periods"][1]["revenue_to_date"], "4000.00");
+    let whole_dollars = |v: &Value| {
+        v.as_str()
+            .unwrap()
+            .strip_suffix(".00")
+            .unwrap()
+            .parse::<i64>()
+            .unwrap()
+    };
+    assert_eq!(
+        whole_dollars(&revised_out["periods"][1]["revenue_to_date"])
+            - whole_dollars(&initial_out["periods"][0]["revenue_to_date"]),
+        1000
+    );
     revised["estimate_changed"] = json!(true);
     assert_eq!(code(&revised), "deferred_revenue.estimate_changed");
+    revised["estimate_changed"] = json!("yes");
+    assert_eq!(code(&revised), "input.flag_invalid");
+    revised.as_object_mut().unwrap().remove("estimate_changed");
+    assert_eq!(code(&revised), "input.missing_field");
 
     let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     let scope = catalogue["deferred_revenue"]["scope"].as_str().unwrap();
