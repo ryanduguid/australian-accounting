@@ -37,7 +37,10 @@ CALCULATORS = "australian-tax-calculators"
 CALCULATORS_VERSION = "1.3.0"
 #: SHA-256 of the executables in that release's x86_64 Linux and Windows archives,
 #: whose own digests its SHA256SUMS lists. Change them with CALCULATORS_VERSION.
-RELEASED_DIGESTS: frozenset[str] = frozenset()
+RELEASED_DIGESTS = frozenset({
+    "6473f5ed818d63cbd3091e279810062bc725a546bc214344ae7572925e3233d7",  # linux-musl
+    "e72e87389c5b5eadbaa0e9d67a7b42b52eeaf9a769206b601634ff3c2fa55914",  # windows-msvc
+})
 BINARY_VARIABLE = "AUS_TAX_CALCULATORS_BIN"
 DIGEST_VARIABLE = "AUS_TAX_CALCULATORS_SHA256"
 INSTALL = (
