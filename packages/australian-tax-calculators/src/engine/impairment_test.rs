@@ -277,7 +277,7 @@ fn allocate(all: &[Asset], loss: &Decimal) -> Calc<(Vec<Decimal>, Decimal)> {
             all[g].carrying.clone()
         };
         rest = rest.sub(&take)?;
-        out[g] = take;
+        out[g] = cents(&take)?;
     }
     let (share, capped, left) = pro_rata(all, &rest)?;
     let (mut running, mut shown) = (d("0"), d("0.00"));
@@ -300,11 +300,12 @@ fn shown_assets(all: &[Asset], losses: &[Decimal]) -> Calc<Value> {
         let mut row = Map::new();
         row.insert("label".into(), json!(a.label));
         row.insert("goodwill".into(), json!(a.goodwill));
-        row.insert("carrying_amount".into(), json!(a.carrying.to_string()));
+        let carrying = cents(&a.carrying)?;
+        row.insert("carrying_amount".into(), json!(carrying.to_string()));
         row.insert("impairment_loss".into(), json!(loss.to_string()));
         row.insert(
             "carrying_amount_after".into(),
-            json!(a.carrying.sub(loss)?.to_string()),
+            json!(carrying.sub(loss)?.to_string()),
         );
         rows.push(Value::Object(row));
     }

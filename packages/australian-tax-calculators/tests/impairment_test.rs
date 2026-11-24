@@ -314,6 +314,11 @@ fn a_cent_either_side_of_goodwill_and_the_carrying_amount() {
     let r = run(&i);
     assert_eq!(amount(&r, "impairment_loss"), "99.99");
     assert_eq!(losses(&r), ["99.99", "0.00"]);
+    // Whole-dollar carrying amounts are shown in cents.
+    let r = run(&e2());
+    assert_eq!(r["assets"][0]["carrying_amount"], "1000.00");
+    assert_eq!(r["assets"][0]["carrying_amount_after"], "0.00");
+    assert_eq!(r["assets"][1]["carrying_amount_after"], "1361.20");
     // -0.01 / 1.1 is -0.00909..., so value in use is -0.01 and the loss a
     // cent above the carrying amount.
     let mut i = input(json!(["0"]), "0.1", json!([asset("A", "100.00", false)]));
