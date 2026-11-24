@@ -308,7 +308,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "aml_cdd_review",
-        "Deterministic Australian AML/CTF Tranche 2 customer due diligence (CDD) checks for 2026-27 (designated services provided at or through a permanent establishment in Australia, AML/CTF Act 2006 s 30(2)), using zero personal data. question country_risk applies AUSTRAC's Basel AML Index country-risk bands (0-5 low, 5.01-6 medium, 6.01-10.00 high) and FATF grey/blacklist and Australian country-sanctions high-risk overrides, separating AUSTRAC guidance from statutory enhanced CDD under s 32(d) (FATF Call for Action). question beneficial_ownership applies AML/CTF Act 2006 ss 5, 11 and 28(2)(d) and AML/CTF Rules 2025 ss 6-7 and 6-8 to one natural person's indirect ownership chains (25% threshold) and control limbs. question cdd_review evaluates statutory CDD tier (ss 31 and 32), mandatory source of wealth and source of funds triggers (Rules ss 6-21 to 6-23), mandatory immediate review triggers (s 30(2)(b)-(c) and Rules s 6-24), and periodic review dates under either AUSTRAC's Accountant Program Starter Kit defaults (12, 24 or 36 months, non-statutory guidance), a firm's custom policy interval, or statutory_only (no fixed statutory calendar interval). Excludes pre-commencement customers (s 36), delayed initial CDD (s 29), foreign permanent establishments (Rules ss 6-23(3) and 6-24(2)), third-party reliance (ss 37A to 38), individual DFAT sanctions or PEP name screening, and assigning a customer's inherent ML/TF risk rating.",
+        "Deterministic Australian AML/CTF Tranche 2 customer due diligence (CDD) checks for 2026-27 (designated services provided at or through a permanent establishment in Australia, AML/CTF Act 2006 s 30(2)), using zero personal data. question country_risk applies AUSTRAC's Basel AML Index country-risk bands (0-5 low, 5.01-6 medium, 6.01-10.00 high) and FATF grey/blacklist and Australian country-sanctions high-risk overrides, noting that statutory enhanced CDD under s 32(d) applies only where a covered person is physically present in or formed in a FATF Call-for-Action jurisdiction. question beneficial_ownership applies AML/CTF Act 2006 ss 5, 11 and 28(2)(d) and AML/CTF Rules 2025 ss 6-7(1)-(1C) and 6-8 using exact scaled-integer arithmetic across indirect ownership chains (25% threshold) and control limbs. question cdd_review applies only to a customer in an ongoing business relationship (s 30(2)(b)-(c)), excluding occasional-only transactions: it evaluates statutory CDD tier (ss 31-32 and Rules s 6-16), unconditional vs relevance-conditioned source of wealth and source of funds (Rules ss 6-21 to 6-23), mandatory immediate review triggers (s 30(2)(b)-(c) and Rules s 6-24), and periodic review dates under either AUSTRAC's Accountant Program Starter Kit defaults (12, 24 or 36 months, non-statutory guidance), a firm's custom policy interval, or statutory_only (no fixed statutory calendar interval). Excludes occasional-only customer ongoing reviews, pre-commencement customers (s 36), delayed initial CDD (s 29), foreign permanent establishments (Rules ss 6-23(3) and 6-24(2)), third-party reliance (ss 37A to 38), individual DFAT sanctions or PEP name screening, and assigning a customer's inherent ML/TF risk rating.",
     ),
     (
         "ppsr_timing",
@@ -3295,6 +3295,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "last_cdd_date does not fall within 2026-07-01 to 2027-06-30 for period 2026-27.",
     ),
     (
+        "aml_cdd_review.duplicate_field",
+        "A named input field was supplied more than once to aml-cdd-review.",
+    ),
+    (
         "aml_cdd_review.entity_kind_invalid",
         "entity_kind is not body_corporate or non_body_corporate.",
     ),
@@ -3304,7 +3308,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "aml_cdd_review.exemption_invalid",
-        "customer_exemption is not none, listed_public_company or government_body.",
+        "customer_exemption is not none, listed_public_company, government_body, controlled_by_listed_or_government or owned_through_listed_or_government_only.",
     ),
     (
         "aml_cdd_review.months_invalid",
@@ -3332,7 +3336,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "aml_cdd_review.starter_kit_risk_inconsistent",
-        "austrac_accountant_starter_kit was chosen with a mandatory enhanced CDD trigger whilst customer_risk is not high.",
+        "Worksheet safeguard: austrac_accountant_starter_kit was chosen with a mandatory enhanced CDD trigger under s 32 whilst customer_risk is not high.",
     ),
     (
         "annuity_withholding.deductible_above_payment",

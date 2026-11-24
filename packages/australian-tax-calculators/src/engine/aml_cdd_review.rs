@@ -5,13 +5,12 @@
 //! `aml_cdd_review`: deterministic Australian AML/CTF Tranche 2 customer due
 //! diligence (CDD) helper for 2026-27 with zero personal data. Covers 3
 //! questions: `country_risk` (AUSTRAC Basel AML Index 0-10 bands with FATF and
-//! Australian sanctions overrides plus statutory s 32(d) FATF Call-for-Action
-//! ECDD), `beneficial_ownership` (AML/CTF Act 2006 ss 5, 11 and 28(2)(d) 25%
-//! indirect chain ownership and control tests with Rules ss 6-7 and 6-8), and
-//! `cdd_review` (statutory CDD tier, mandatory ECDD, source of wealth/funds
-//! and event-driven review triggers under ss 30 to 32 and Rules ss 5-2 and
-//! 6-20 to 6-24, cleanly separated from AUSTRAC Accountant Program Starter Kit
-//! 1/2/3-year defaults and firm-specific custom review policies).
+//! Australian country-sanctions overrides and conditional s 32(d) notice),
+//! `beneficial_ownership` (AML/CTF Act 2006 ss 5, 11 and 28(2)(d) exact 25%
+//! indirect chain ownership and control tests with Rules ss 6-7(1)-(1C) and
+//! 6-8), and `cdd_review` (business-relationship ongoing CDD under ss 30 to 32
+//! and Rules ss 5-2, 6-16 and 6-20 to 6-24, cleanly separated from AUSTRAC
+//! Accountant Program Starter Kit 1/2/3-year defaults and custom firm policies).
 //!
 //! Read on 24 November 2026: Anti-Money Laundering and Counter-Terrorism
 //! Financing Act 2006 (C2006A00169, compilation 63, 1 October 2026);
@@ -21,6 +20,9 @@
 //! Determining ownership and control structures; AUSTRAC Reviewing and
 //! updating customers' ML/TF risk and KYC information (29 October 2026).
 
+use std::collections::BTreeSet;
+
+use num_bigint::BigUint;
 use serde_json::{Value, json};
 
 use super::{Arg, Result, d, date_arg, flag, int, precise, rate, refuse, result, scope};
@@ -31,6 +33,7 @@ const KIND: &str = "aml_cdd_review";
 const QUESTIONS: [&str; 3] = ["country_risk", "beneficial_ownership", "cdd_review"];
 const MAX_CHAINS: usize = 16;
 const MAX_LAYERS: usize = 8;
+const SCALE_EXPONENT: u32 = 46; // 6 * MAX_LAYERS - 2
 
 const COUNTRY_KEYS: [&str; 4] = [
     "basel_aml_score",
@@ -54,11 +57,14 @@ const BO_NON_BODY_KEYS: [&str; 5] = [
     "board_control",
     "financial_operating_policy_control",
 ];
-const CDD_KEYS: [&str; 13] = [
+const CDD_KEYS: [&str; 16] = [
     "last_cdd_date",
     "customer_risk",
+    "simplified_cdd_policy_in_place",
     "pep_status",
+    "acting_representative_foreign_pep",
     "smr_continue_relationship",
+    "unusual_smr_behaviour",
     "fatf_call_for_action_jurisdiction",
     "nested_services_relationship",
     "unusual_service_request",
@@ -76,6 +82,22 @@ struct Given<'a> {
 }
 
 impl<'a> Given<'a> {
+    fn check_unique(&self) -> Result<()> {
+        let mut seen = BTreeSet::new();
+        for (k, _) in self.named {
+            if !seen.insert(k.as_str()) {
+                return refuse(
+                    "aml_cdd_review.duplicate_field",
+                    format!(
+                        "{k} was supplied more than once for question {}.",
+                        self.question
+                    ),
+                );
+            }
+        }
+        Ok(())
+    }
+
     fn get(&self, key: &str) -> Option<&'a Arg> {
         self.named.iter().find(|(k, _)| k == key).map(|(_, v)| v)
     }
@@ -109,6 +131,11 @@ impl<'a> Given<'a> {
     }
 }
 
+fn choice(arg: &Arg, allowed: &[&'static str]) -> Option<&'static str> {
+    arg.text()
+        .and_then(|t| allowed.iter().copied().find(|a| *a == t))
+}
+
 /// Strict unsigned decimal string (digits and optional single decimal point),
 /// finite, with at most `max_dp` decimal places.
 fn parse_plain_decimal(text: &str, max_dp: i128) -> Option<Decimal> {
@@ -138,15 +165,9 @@ fn parse_basel_score(arg: &Arg) -> Result<Decimal> {
 fn country_risk(given: &Given<'_>, period: &str) -> Result<Value> {
     given.only(&COUNTRY_KEYS)?;
     let score = parse_basel_score(given.need("basel_aml_score")?)?;
-    let call_for_action = flag(given.need("fatf_call_for_action")?, "fatf_call_for_action")?;
-    let grey_list = flag(
-        given.need("fatf_increased_monitoring")?,
-        "fatf_increased_monitoring",
-    )?;
-    let sanctioned = flag(
-        given.need("australian_sanctioned_jurisdiction")?,
-        "australian_sanctioned_jurisdiction",
-    )?;
+    let call_for_action = given.need_flag("fatf_call_for_action")?;
+    let grey_list = given.need_flag("fatf_increased_monitoring")?;
+    let sanctioned = given.need_flag("australian_sanctioned_jurisdiction")?;
     let basel_band = if score.le(&d("5.00"))? {
         "low"
     } else if score.le(&d("6.00"))? {
@@ -158,8 +179,8 @@ fn country_risk(given: &Given<'_>, period: &str) -> Result<Value> {
     let rating = if override_applied { "high" } else { basel_band };
     let mut provisions = Vec::new();
     if call_for_action {
-        provisions.push("AML/CTF Act 2006 s 32(d): mandatory enhanced CDD for FATF Call-for-Action high-risk jurisdiction");
-        provisions.push("AML/CTF Rules 2025 s 6-21: source of wealth and source of funds where relevant to ML/TF risk");
+        provisions.push("AML/CTF Act 2006 s 32(d): mandatory enhanced CDD applies only if a covered individual is physically present in, or a covered body corporate or legal arrangement was formed in, this FATF Call-for-Action jurisdiction");
+        provisions.push("AML/CTF Rules 2025 s 6-21: if s 32(d) applies, establish and hold source of wealth and source of funds where relevant to the nature of the customer's ML/TF risk");
     }
     let rates = vec![
         rate("basel_aml_score", &score),
@@ -172,7 +193,7 @@ fn country_risk(given: &Given<'_>, period: &str) -> Result<Value> {
     out["basel_band"] = json!(basel_band);
     out["override_applied"] = json!(override_applied);
     out["country_risk_rating"] = json!(rating);
-    out["statutory_ecdd_triggered"] = json!(call_for_action);
+    out["fatf_call_for_action_ecdd_applies_if_covered_connection"] = json!(call_for_action);
     out["statutory_provisions"] = json!(provisions);
     out["guidance_authority"] = json!(
         "AUSTRAC, Step 2: Identify and assess your risks (Basel AML Index 0-5 low, 5.01-6 medium, 6.01-10.00 high; FATF grey/blacklist and Australian sanctions high-risk override)"
@@ -180,23 +201,44 @@ fn country_risk(given: &Given<'_>, period: &str) -> Result<Value> {
     Ok(out)
 }
 
-fn parse_layer_percent(item: &Value) -> Result<Decimal> {
+/// Parse an exact percentage string (> 0 to 100, at most 4 decimal places) as
+/// a scaled integer in ten-thousandths of 1% (1..=1_000_000).
+fn parse_scaled_layer(item: &Value) -> Result<u64> {
     let bad = || {
         refuse(
             "aml_cdd_review.chains_invalid",
             "ownership_chains must be a list of up to 16 chains, each a list of 1 to 8 percentage strings above 0 to 100 with at most 4 decimal places.",
         )
     };
-    let Some(val) = item.as_str().and_then(|s| parse_plain_decimal(s, 4)) else {
+    let Some(s) = item.as_str() else {
         return bad();
     };
-    if !val.gt(&int(0))? || val.gt(&int(100))? {
+    let (whole_s, frac_s) = match s.split_once('.') {
+        Some((w, f)) if !w.is_empty() && !f.is_empty() && f.len() <= 4 => (w, f),
+        Some(_) => return bad(),
+        None if !s.is_empty() => (s, ""),
+        None => return bad(),
+    };
+    if !whole_s.bytes().all(|b| b.is_ascii_digit()) || !frac_s.bytes().all(|b| b.is_ascii_digit()) {
         return bad();
     }
-    Ok(val)
+    let Some(whole) = whole_s.parse::<u64>().ok().filter(|&w| w <= 100) else {
+        return bad();
+    };
+    let frac = if frac_s.is_empty() {
+        0
+    } else {
+        frac_s.parse::<u64>().unwrap() * 10u64.pow((4 - frac_s.len()) as u32)
+    };
+    let scaled = whole * 10_000 + frac;
+    if !(1..=1_000_000).contains(&scaled) {
+        return bad();
+    }
+    Ok(scaled)
 }
 
-fn compute_effective_ownership(arg: &Arg) -> Result<Decimal> {
+/// Exact combined ownership numerator over `10^46`, with zero intermediate rounding.
+fn compute_effective_ownership(arg: &Arg) -> Result<BigUint> {
     let bad = || {
         refuse(
             "aml_cdd_review.chains_invalid",
@@ -209,8 +251,8 @@ fn compute_effective_ownership(arg: &Arg) -> Result<Decimal> {
     if chains.len() > MAX_CHAINS {
         return bad();
     }
-    let hundred = int(100);
-    let mut total = int(0);
+    let ten = BigUint::from(10u8);
+    let mut total = BigUint::ZERO;
     for chain in chains {
         let Some(layers) = chain.as_array() else {
             return bad();
@@ -218,14 +260,15 @@ fn compute_effective_ownership(arg: &Arg) -> Result<Decimal> {
         if layers.is_empty() || layers.len() > MAX_LAYERS {
             return bad();
         }
-        let mut share = parse_layer_percent(&layers[0])?;
-        for layer in &layers[1..] {
-            let pct = parse_layer_percent(layer)?;
-            share = precise(|| Ok(share.mul(&pct)?.div(&hundred)?))?;
+        let mut prod = BigUint::from(1u8);
+        for layer in layers {
+            prod *= BigUint::from(parse_scaled_layer(layer)?);
         }
-        total = precise(|| Ok(total.add(&share)?))?;
+        let lift = ten.pow(6 * (MAX_LAYERS - layers.len()) as u32);
+        total += prod * lift;
     }
-    if total.gt(&hundred)? {
+    let hundred_scaled = BigUint::from(100u8) * ten.pow(SCALE_EXPONENT);
+    if total > hundred_scaled {
         return refuse(
             "aml_cdd_review.ownership_above_100",
             "Combined effective ownership across ownership_chains exceeds 100%.",
@@ -234,12 +277,19 @@ fn compute_effective_ownership(arg: &Arg) -> Result<Decimal> {
     Ok(total)
 }
 
-/// Exact decimal representation with at least 2 decimal places and no
-/// superfluous trailing zeroes beyond the second decimal place.
-fn format_percent(val: &Decimal) -> String {
-    let s = val.fixed_format();
-    let Some((whole, frac)) = s.split_once('.') else {
-        return format!("{s}.00");
+/// Format an exact integer scaled by `10^46` as a decimal string with at least
+/// 2 decimal places and no superfluous trailing zeroes beyond the second place.
+fn format_scaled_percent(num: &BigUint) -> String {
+    let digits = num.to_string();
+    let scale = SCALE_EXPONENT as usize;
+    let (whole, frac) = if digits.len() <= scale {
+        (
+            "0".to_string(),
+            format!("{}{digits}", "0".repeat(scale - digits.len())),
+        )
+    } else {
+        let (w, f) = digits.split_at(digits.len() - scale);
+        (w.to_string(), f.to_string())
     };
     let trimmed = frac.trim_end_matches('0');
     match trimmed.len() {
@@ -252,29 +302,23 @@ fn format_percent(val: &Decimal) -> String {
 fn control_grounds(given: &Given<'_>, is_body: bool) -> Result<Vec<&'static str>> {
     let mut grounds = Vec::new();
     if is_body {
-        if flag(given.need("voting_power_over_50")?, "voting_power_over_50")? {
+        if given.need_flag("voting_power_over_50")? {
             grounds.push(
                 "AML/CTF Act 2006 s 11(1)(a): capacity to cast or control more than 50% of votes",
             );
         }
-        if flag(
-            given.need("issued_share_capital_over_50")?,
-            "issued_share_capital_over_50",
-        )? {
+        if given.need_flag("issued_share_capital_over_50")? {
             grounds.push("AML/CTF Act 2006 s 11(1)(b): holds more than 50% of qualifying issued share capital");
         }
     }
-    if flag(given.need("board_control")?, "board_control")? {
+    if given.need_flag("board_control")? {
         grounds.push(if is_body {
             "AML/CTF Act 2006 s 11(1)(c): capacity to control composition of board or governing body"
         } else {
             "AML/CTF Act 2006 s 11(2)(a): capacity to control composition of board or governing body"
         });
     }
-    if flag(
-        given.need("financial_operating_policy_control")?,
-        "financial_operating_policy_control",
-    )? {
+    if given.need_flag("financial_operating_policy_control")? {
         grounds.push(if is_body {
             "AML/CTF Act 2006 s 11(1)(d): capacity to determine financial and operating policy decisions"
         } else {
@@ -300,11 +344,17 @@ fn parse_bo_header(given: &Given<'_>) -> Result<(&'static str, &'static str)> {
     }
     let Some(exemption) = choice(
         given.need("customer_exemption")?,
-        &["none", "listed_public_company", "government_body"],
+        &[
+            "none",
+            "listed_public_company",
+            "government_body",
+            "controlled_by_listed_or_government",
+            "owned_through_listed_or_government_only",
+        ],
     ) else {
         return refuse(
             "aml_cdd_review.exemption_invalid",
-            "customer_exemption must be none, listed_public_company or government_body.",
+            "customer_exemption must be none, listed_public_company, government_body, controlled_by_listed_or_government or owned_through_listed_or_government_only.",
         );
     };
     if exemption == "listed_public_company" && entity_kind != "body_corporate" {
@@ -316,25 +366,38 @@ fn parse_bo_header(given: &Given<'_>) -> Result<(&'static str, &'static str)> {
     Ok((entity_kind, exemption))
 }
 
+fn exemption_authority(exemption: &str) -> Option<&'static str> {
+    match exemption {
+        "listed_public_company" => Some(
+            "AML/CTF Rules 2025 s 6-7(1): listed public company subject to public disclosure requirements",
+        ),
+        "government_body" => Some("AML/CTF Rules 2025 s 6-7(1A): government body"),
+        "controlled_by_listed_or_government" => Some(
+            "AML/CTF Rules 2025 s 6-7(1B): customer controlled by a qualifying listed public company or government body",
+        ),
+        "owned_through_listed_or_government_only" => Some(
+            "AML/CTF Rules 2025 s 6-7(1C): individual is a beneficial owner solely through a qualifying listed public company or government body owning part of the customer",
+        ),
+        _ => None,
+    }
+}
+
 fn beneficial_ownership(given: &Given<'_>, period: &str) -> Result<Value> {
     let (entity_kind, exemption) = parse_bo_header(given)?;
     let is_body = entity_kind == "body_corporate";
     let effective = compute_effective_ownership(given.need("ownership_chains")?)?;
     let grounds = control_grounds(given, is_body)?;
-    let owns_25 = !effective.lt(&int(25))?;
+    let threshold = BigUint::from(25u8) * BigUint::from(10u8).pow(SCALE_EXPONENT);
+    let owns_25 = effective >= threshold;
     let controls = !grounds.is_empty();
     let is_bo = owns_25 || controls;
     let deemed = exemption != "none";
-    let exemption_authority = match exemption {
-        "listed_public_company" => Some(
-            "AML/CTF Rules 2025 s 6-7(1): listed public company subject to public disclosure requirements",
-        ),
-        "government_body" => Some("AML/CTF Rules 2025 s 6-7(1A): government body"),
-        _ => None,
-    };
     let rates = vec![
         rate("beneficial_ownership_threshold_percent", "25.00"),
-        rate("effective_ownership_percent", format_percent(&effective)),
+        rate(
+            "effective_ownership_percent",
+            format_scaled_percent(&effective),
+        ),
     ];
     let mut out = precise(|| result(KIND, period, vec![], rates))?;
     out["question"] = json!("beneficial_ownership");
@@ -344,7 +407,7 @@ fn beneficial_ownership(given: &Given<'_>, period: &str) -> Result<Value> {
     out["control_grounds"] = json!(grounds);
     out["is_beneficial_owner"] = json!(is_bo);
     out["beneficial_owner_cdd_deemed_established"] = json!(deemed);
-    out["exemption_authority"] = json!(exemption_authority);
+    out["exemption_authority"] = json!(exemption_authority(exemption));
     out["identification_required"] = json!(!deemed && is_bo);
     out["ceo_fallback"] = json!(
         "AML/CTF Rules 2025 s 6-8(1)-(3): where a body corporate, partnership or unincorporated association has no beneficial owners or none can be established after all reasonable steps, establish the identity of the chief executive officer (or equivalent)."
@@ -355,8 +418,11 @@ fn beneficial_ownership(given: &Given<'_>, period: &str) -> Result<Value> {
 struct CddFacts {
     last_day: i64,
     risk: &'static str,
+    simplified_policy: bool,
     pep: &'static str,
+    acting_foreign_pep: bool,
     smr_continue: bool,
+    unusual_smr_behaviour: bool,
     fatf_call: bool,
     nested: bool,
     unusual: bool,
@@ -366,11 +432,6 @@ struct CddFacts {
     new_pep: bool,
     cadence_basis: &'static str,
     policy_months: Option<i64>,
-}
-
-fn choice(arg: &Arg, allowed: &[&'static str]) -> Option<&'static str> {
-    arg.text()
-        .and_then(|t| allowed.iter().copied().find(|a| *a == t))
 }
 
 fn parse_policy_months(given: &Given<'_>, cadence_basis: &str) -> Result<Option<i64>> {
@@ -452,8 +513,11 @@ fn parse_cdd_facts(given: &Given<'_>) -> Result<CddFacts> {
     Ok(CddFacts {
         last_day,
         risk,
+        simplified_policy: given.need_flag("simplified_cdd_policy_in_place")?,
         pep,
+        acting_foreign_pep: given.need_flag("acting_representative_foreign_pep")?,
         smr_continue: given.need_flag("smr_continue_relationship")?,
+        unusual_smr_behaviour: given.need_flag("unusual_smr_behaviour")?,
         fatf_call: given.need_flag("fatf_call_for_action_jurisdiction")?,
         nested: given.need_flag("nested_services_relationship")?,
         unusual: given.need_flag("unusual_service_request")?,
@@ -474,8 +538,8 @@ fn collect_ecdd_triggers(f: &CddFacts) -> Vec<&'static str> {
     if f.smr_continue {
         out.push("AML/CTF Act 2006 s 32(b): suspicious matter reporting obligation arose and designated services continue");
     }
-    if f.pep == "foreign" {
-        out.push("AML/CTF Act 2006 s 32(c): foreign politically exposed person");
+    if f.pep == "foreign" || f.acting_foreign_pep {
+        out.push("AML/CTF Act 2006 s 32(c): foreign politically exposed person (covered customer, beneficial owner, behalf person or acting representative)");
     }
     if f.fatf_call {
         out.push("AML/CTF Act 2006 s 32(d): FATF high-risk jurisdiction calling for enhanced due diligence");
@@ -492,22 +556,31 @@ fn collect_ecdd_triggers(f: &CddFacts) -> Vec<&'static str> {
     out
 }
 
-fn collect_sow_sof_triggers(f: &CddFacts) -> Vec<&'static str> {
-    let mut out = Vec::new();
-    if f.risk == "high" || f.smr_continue || f.fatf_call {
-        out.push("AML/CTF Rules 2025 s 6-21: source of wealth and source of funds where relevant to ML/TF risk (s 32(a), (b) or (d))");
-    }
+fn collect_sow_sof(f: &CddFacts) -> (&'static str, Vec<&'static str>) {
+    let mut mandatory = Vec::new();
+    let mut conditional = Vec::new();
     if f.pep == "foreign" {
-        out.push(
+        mandatory.push(
             "AML/CTF Rules 2025 s 6-23(1)(a): source of wealth and source of funds for foreign PEP",
         );
     } else if matches!(f.pep, "domestic" | "international_organisation") && f.risk == "high" {
-        out.push("AML/CTF Rules 2025 s 6-23(1)(b)-(c): source of wealth and source of funds for high-risk domestic or international organisation PEP");
+        mandatory.push("AML/CTF Rules 2025 s 6-23(1)(b)-(c): source of wealth and source of funds for high-risk domestic or international organisation PEP");
     }
     if f.va_cash {
-        out.push("AML/CTF Rules 2025 s 6-22(2)-(3): source of funds and ongoing source of wealth for physical currency in item 50A virtual asset service");
+        mandatory.push("AML/CTF Rules 2025 s 6-22(2)-(3): source of funds and ongoing source of wealth for physical currency in item 50A virtual asset service");
     }
-    out
+    if f.risk == "high" || f.smr_continue || f.fatf_call {
+        conditional.push("AML/CTF Rules 2025 s 6-21: source of wealth and source of funds each required only where relevant to the nature of the customer's ML/TF risk (s 32(a), (b) or (d))");
+    }
+    let status = if !mandatory.is_empty() {
+        "mandatory"
+    } else if !conditional.is_empty() {
+        "conditional_on_relevance"
+    } else {
+        "not_mandated_by_rules"
+    };
+    mandatory.extend(conditional);
+    (status, mandatory)
 }
 
 fn collect_immediate_triggers(f: &CddFacts) -> Vec<&'static str> {
@@ -517,8 +590,8 @@ fn collect_immediate_triggers(f: &CddFacts) -> Vec<&'static str> {
             "AML/CTF Act 2006 s 30(2)(b)(i): significant change to s 28(4) ML/TF risk matters",
         );
     }
-    if f.smr_continue {
-        out.push("AML/CTF Act 2006 s 30(2)(b)(ii): unusual transactions or behaviours giving rise to an SMR obligation");
+    if f.unusual_smr_behaviour || f.smr_continue {
+        out.push("AML/CTF Act 2006 s 30(2)(b)(ii): unusual transactions or behaviours that may give rise to an SMR obligation");
     }
     if f.kyc_doubt {
         out.push(
@@ -545,7 +618,7 @@ fn resolve_cadence(
             if ecdd_mandatory && f.risk != "high" {
                 return refuse(
                     "aml_cdd_review.starter_kit_risk_inconsistent",
-                    "Under AUSTRAC's Accountant Program Starter Kit, a client with a mandatory enhanced CDD trigger cannot stay on a low or medium starter-kit review interval; reassess customer_risk to high or use custom_policy or statutory_only.",
+                    "Worksheet safeguard: when a mandatory enhanced CDD obligation under AML/CTF Act 2006 s 32 applies, this worksheet refuses a low (36-month) or medium (24-month) starter-kit review interval; reassess customer_risk to high or use custom_policy or statutory_only.",
                 );
             }
             let months = match f.risk {
@@ -583,12 +656,12 @@ fn resolve_cadence(
 fn cdd_review(given: &Given<'_>, period: &str) -> Result<Value> {
     let f = parse_cdd_facts(given)?;
     let ecdd = collect_ecdd_triggers(&f);
-    let sow_sof = collect_sow_sof_triggers(&f);
+    let (sow_sof_status, sow_sof_triggers) = collect_sow_sof(&f);
     let immediate = collect_immediate_triggers(&f);
     let ecdd_mandatory = !ecdd.is_empty();
     let cdd_tier = if ecdd_mandatory {
         "enhanced_mandatory"
-    } else if f.risk == "low" {
+    } else if f.risk == "low" && f.simplified_policy {
         "simplified_permitted"
     } else {
         "standard"
@@ -605,8 +678,8 @@ fn cdd_review(given: &Given<'_>, period: &str) -> Result<Value> {
     out["question"] = json!("cdd_review");
     out["cdd_tier"] = json!(cdd_tier);
     out["ecdd_triggers"] = json!(ecdd);
-    out["source_of_wealth_and_funds_required"] = json!(!sow_sof.is_empty());
-    out["sow_sof_triggers"] = json!(sow_sof);
+    out["source_of_wealth_and_funds_status"] = json!(sow_sof_status);
+    out["sow_sof_triggers"] = json!(sow_sof_triggers);
     out["immediate_review_required"] = json!(!immediate.is_empty());
     out["immediate_review_triggers"] = json!(immediate);
     out["cadence_basis"] = json!(f.cadence_basis);
@@ -624,16 +697,14 @@ pub fn aml_cdd_review(
     named: &[(String, Arg)],
 ) -> Result<Value> {
     let period = scope(scope_confirmed, year, KIND)?;
-    let question = match question.text() {
-        Some(q) if QUESTIONS.contains(&q) => q,
-        _ => {
-            return refuse(
-                "aml_cdd_review.question_invalid",
-                format!("question must be one of {}.", QUESTIONS.join(", ")),
-            );
-        }
+    let Some(question) = choice(question, &QUESTIONS) else {
+        return refuse(
+            "aml_cdd_review.question_invalid",
+            format!("question must be one of {}.", QUESTIONS.join(", ")),
+        );
     };
     let given = Given { question, named };
+    given.check_unique()?;
     match question {
         "country_risk" => country_risk(&given, &period),
         "beneficial_ownership" => beneficial_ownership(&given, &period),

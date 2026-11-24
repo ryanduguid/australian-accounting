@@ -4478,21 +4478,30 @@ s 30(2)), using 3 questions:
   up to 2 decimal places) to AUSTRAC's published bands (`0.00` to `5.00` low,
   `5.01` to `6.00` medium, `6.01` to `10.00` high), applies AUSTRAC's high-risk
   override for FATF grey/blacklists and Australian country-sanctions regimes,
-  and flags statutory enhanced CDD (`s 32(d)`) and source of wealth/funds
-  (`AML/CTF Rules 2025 s 6-21`) when `fatf_call_for_action` is `true`.
-- `beneficial_ownership`: computes exact combined effective ownership across up
-  to 16 indirect chains (up to 8 layers each) for one natural person against the
-  25% statutory threshold (`AML/CTF Act 2006 s 5`), evaluates the `s 11(1)`
-  (body corporate) or `s 11(2)` (non-body corporate) control limbs, applies
-  `AML/CTF Rules 2025 s 6-7(1)` and `s 6-7(1A)` exemptions (`listed_public_company`
-  and `government_body`), and notes the `s 6-8` CEO fallback.
-- `cdd_review`: determines the statutory CDD tier (`simplified_permitted` under
-  `s 31`, `standard` under `ss 28` and `30`, or `enhanced_mandatory` under
-  `s 32` and `Rules ss 6-20` and `6-22`), mandatory source of wealth and funds
-  triggers (`Rules ss 6-21` to `6-23`), immediate event-driven review triggers
-  (`s 30(2)(b)-(c)` and `Rules s 6-24`), and the next periodic review date under
-  `cadence_basis`: `austrac_accountant_starter_kit` (12, 24 or 36 months,
-  explicitly labelled as non-statutory AUSTRAC starter-kit guidance; refuses low
+  and notes conditionally when `fatf_call_for_action` is `true` that statutory
+  enhanced CDD (`s 32(d)`) applies only if a covered person is physically
+  present in or formed in that jurisdiction (and `Rules s 6-21` where relevant).
+- `beneficial_ownership`: computes exact scaled-integer combined effective
+  ownership across up to 16 indirect chains (up to 8 layers each, zero rounding)
+  for one natural person against the 25% statutory threshold (`AML/CTF Act 2006
+  s 5`), evaluates the `s 11(1)` (body corporate) or `s 11(2)` (non-body
+  corporate) control limbs, applies all 4 `AML/CTF Rules 2025 s 6-7(1)-(1C)`
+  exemptions (`listed_public_company`, `government_body`,
+  `controlled_by_listed_or_government`, `owned_through_listed_or_government_only`),
+  and notes the `s 6-8` CEO fallback.
+- `cdd_review` (business relationships only under `s 30(2)(b)-(c)`, excluding
+  occasional-only transactions): determines the statutory CDD tier
+  (`simplified_permitted` only when `customer_risk` is `low`, no `s 32` trigger
+  applies and `simplified_cdd_policy_in_place` is `true` under `s 31(c)` and
+  `Rules s 6-16`; `standard`; or `enhanced_mandatory` under `s 32` including
+  `acting_representative_foreign_pep` for `s 32(c)` separately from
+  `Rules ss 6-23` and `6-24`), tri-state source of wealth and funds status
+  (`mandatory` under `Rules ss 6-22` or `6-23`, `conditional_on_relevance`
+  under `Rules s 6-21` alone, or `not_mandated_by_rules`), immediate review
+  triggers (including `unusual_smr_behaviour` under `s 30(2)(b)(ii)` separately
+  from `s 32(b)`), and the next periodic review date under `cadence_basis`:
+  `austrac_accountant_starter_kit` (12, 24 or 36 months, explicitly labelled as
+  non-statutory AUSTRAC starter-kit guidance; worksheet safeguard refuses low
   or medium starter-kit cadence when statutory ECDD is triggered),
   `custom_policy` (`policy_review_months` 1 to 60), or `statutory_only` (no
   fixed statutory calendar interval).

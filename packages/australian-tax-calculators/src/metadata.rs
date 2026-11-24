@@ -1850,7 +1850,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "aml_cdd_review" => (
             "2026-11-24",
-            "Anti-Money Laundering and Counter-Terrorism Financing Act 2006 ss 5, 11, 26C, 28, 30, 31 and 32, compilation 63 (1 October 2026); Anti-Money Laundering and Counter-Terrorism Financing Rules 2025 ss 5-2, 6-7, 6-8 and 6-20 to 6-24, compilation 1 (31 March 2026); AUSTRAC Step 2: Identify and assess your risks (country risk Basel AML Index bands and FATF/sanctions overrides); AUSTRAC Accountant program starter kit: Step 2 - Use your accounting program; AUSTRAC Determining ownership and control structures; AUSTRAC Reviewing and updating customers' ML/TF risk and KYC information (29 October 2026)",
+            "Anti-Money Laundering and Counter-Terrorism Financing Act 2006 ss 5, 11, 26C, 28, 30, 31 and 32, compilation 63 (1 October 2026); Anti-Money Laundering and Counter-Terrorism Financing Rules 2025 ss 5-2, 6-7(1)-(1C), 6-8, 6-16 and 6-20 to 6-24, compilation 1 (31 March 2026); AUSTRAC Step 2: Identify and assess your risks (country risk Basel AML Index bands and FATF/sanctions overrides); AUSTRAC Accountant program starter kit: Step 2 - Use your accounting program; AUSTRAC Determining ownership and control structures; AUSTRAC Reviewing and updating customers' ML/TF risk and KYC information (29 October 2026)",
         ),
         "ppsr_timing" => (
             "2026-11-20",
@@ -4377,7 +4377,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "customer_exemption",
-                "beneficial_ownership only and required: none, listed_public_company (Rules s 6-7(1), body_corporate only) or government_body (Rules s 6-7(1A))",
+                "beneficial_ownership only and required: none, listed_public_company (Rules s 6-7(1), body_corporate only), government_body (Rules s 6-7(1A)), controlled_by_listed_or_government (Rules s 6-7(1B)) or owned_through_listed_or_government_only (Rules s 6-7(1C))",
             ),
             (
                 "ownership_chains",
@@ -4408,12 +4408,24 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "cdd_review only and required: low, medium or high (customer ML/TF risk rating under ss 28(3)(b) and 30(1))",
             ),
             (
+                "simplified_cdd_policy_in_place",
+                "boolean, cdd_review only and required: true if the reporting entity's AML/CTF policies deal with simplified CDD measures (s 31(c) and Rules s 6-16)",
+            ),
+            (
                 "pep_status",
-                "cdd_review only and required: none, foreign, domestic or international_organisation",
+                "cdd_review only and required: none, foreign, domestic or international_organisation (for the customer, a beneficial owner or a person on whose behalf the service is received; Rules ss 6-23 and 6-24)",
+            ),
+            (
+                "acting_representative_foreign_pep",
+                "boolean, cdd_review only and required: true if a person acting on behalf of the customer is a foreign PEP (triggers ECDD under s 32(c) only, not Rules ss 6-23 or 6-24)",
             ),
             (
                 "smr_continue_relationship",
                 "boolean, cdd_review only and required: true if a suspicious matter reporting obligation arose and designated services continue (s 32(b))",
+            ),
+            (
+                "unusual_smr_behaviour",
+                "boolean, cdd_review only and required: true if unusual transactions or behaviours may give rise to a suspicious matter reporting obligation even before an obligation arises or continuation is decided (s 30(2)(b)(ii))",
             ),
             (
                 "fatf_call_for_action_jurisdiction",

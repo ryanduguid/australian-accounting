@@ -15,7 +15,8 @@
   custom firm policies and statutory-only mode). New codes:
   `aml_cdd_review.basel_score_invalid`,
   `aml_cdd_review.cadence_basis_invalid`, `aml_cdd_review.chains_invalid`,
-  `aml_cdd_review.date_outside_year`, `aml_cdd_review.entity_kind_invalid`,
+  `aml_cdd_review.date_outside_year`, `aml_cdd_review.duplicate_field`,
+  `aml_cdd_review.entity_kind_invalid`,
   `aml_cdd_review.exemption_inconsistent`, `aml_cdd_review.exemption_invalid`,
   `aml_cdd_review.months_invalid`, `aml_cdd_review.ownership_above_100`,
   `aml_cdd_review.pep_change_inconsistent`, `aml_cdd_review.pep_invalid`,
