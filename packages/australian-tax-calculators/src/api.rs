@@ -141,6 +141,19 @@ const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
     ("scope_confirmed", Raw),
 ];
 
+/// Builds a static slice of `(name, Kind)` pairs, defaulting `Kind` to [`Raw`].
+macro_rules! cmd_args {
+    (@arg ($field:ident : $kind:ident)) => {
+        (stringify!($field), $kind)
+    };
+    (@arg $field:ident) => {
+        (stringify!($field), Raw)
+    };
+    ($($item:tt)+) => {
+        &[$(cmd_args!(@arg $item)),*]
+    };
+}
+
 /// Command, the worksheet's parameters in the original order.
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
@@ -534,36 +547,20 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ),
     (
         "gst-error-correction",
-        &[
-            ("error_kind", Raw),
-            ("earlier_period_start", Raw),
-            ("earlier_return_due", Raw),
-            ("lodged", Raw),
-            ("current_gst_turnover", Dec),
-            ("net_debit_errors", Dec),
-            ("within_period_of_review", Raw),
-            ("compliance_activity", Raw),
-            ("commissioner_permits", Raw),
-            ("already_corrected", Raw),
-            ("reckless_or_intentional", Raw),
-            ("credit_ceased_under_division_93", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
+        cmd_args! {
+            error_kind earlier_period_start earlier_return_due lodged
+            (current_gst_turnover: Dec) (net_debit_errors: Dec) within_period_of_review
+            compliance_activity commissioner_permits already_corrected
+            reckless_or_intentional credit_ceased_under_division_93 year scope_confirmed
+        },
     ),
     (
         "gst-credit-time-limit",
-        &[
-            ("supply_value", Dec),
-            ("return_due", Raw),
-            ("tax_invoice_held_from", Raw),
-            ("return_given", Raw),
-            ("assessment_date", Raw),
-            ("supplier_review_ended_without_invoice", Raw),
-            ("special_attribution", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
+        cmd_args! {
+            (supply_value: Dec) return_due tax_invoice_held_from return_given
+            assessment_date supplier_review_ended_without_invoice special_attribution
+            year scope_confirmed
+        },
     ),
     (
         "tourist-refund",
