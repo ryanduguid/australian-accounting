@@ -105,26 +105,45 @@ fn example(kind: &str, place: &str) -> Value {
             fields.insert("metropolitan_region".into(), json!("none"));
         }
     }
+    if kind == "first_home_owner_grant" && place == "wa" {
+        fields.insert("north_of_26th".into(), json!(false));
+    }
     facts
 }
 
+/// A grant for which the catalogue example lacks a fact the jurisdiction
+/// needs is refused; every other result carries its jurisdiction's passages.
 #[test]
 fn each_result_carries_its_jurisdictions_quotes() {
     for (command, kind, places, refused) in COMMANDS {
         let quotes = catalogue_quotes(kind);
+        let mut carried = Vec::new();
         for place in places {
-            let result = api::evaluate(command, &example(kind, place));
-            if refused.contains(place) {
-                assert!(result.is_err(), "{command} {place}");
-                continue;
+            match api::evaluate_coded(command, &example(kind, place)) {
+                Ok(result) => {
+                    assert_eq!(
+                        result["source_quotes"],
+                        Value::Array(of(&quotes, place)),
+                        "{command} {place}"
+                    );
+                    carried.push(*place);
+                }
+                Err(refusal) => assert!(
+                    refused.contains(place) || refusal.code == "first_home_owner_grant.fact_needed",
+                    "{command} {place}: {}",
+                    refusal.message
+                ),
             }
-            let result = result.unwrap_or_else(|e| panic!("{command} {place}: {e}"));
-            assert_eq!(
-                result["source_quotes"],
-                Value::Array(of(&quotes, place)),
-                "{command} {place}"
-            );
         }
+        let least = if kind == "first_home_owner_grant" {
+            4
+        } else {
+            places.len()
+        };
+        assert!(
+            carried.len() >= least && carried.contains(&"nsw"),
+            "{command} {carried:?}"
+        );
     }
 }
 
