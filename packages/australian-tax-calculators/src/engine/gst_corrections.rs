@@ -14,6 +14,7 @@
 
 use serde_json::{Value, json};
 
+use super::gst_adjustments::{condition, failing};
 use super::{Arg, Result, d, date_arg, flag, money, refuse, result, scope};
 use crate::dates;
 use crate::decimal::Decimal;
@@ -39,19 +40,6 @@ pub struct ErrorCorrectionArgs<'a> {
     pub credit_ceased_under_division_93: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
-}
-
-/// One condition row.
-fn condition(id: &str, authority: &str, met: bool) -> Value {
-    json!({"condition": id, "authority": authority, "met": met})
-}
-
-/// The ids of the rows not met.
-fn failing(rows: &[Value]) -> Vec<Value> {
-    rows.iter()
-        .filter(|row| row["met"] == false)
-        .map(|row| row["condition"].clone())
-        .collect()
 }
 
 /// Whether `day` falls in `year`, a financial year such as 2025-26.
