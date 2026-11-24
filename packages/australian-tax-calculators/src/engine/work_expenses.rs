@@ -39,7 +39,7 @@ pub const METHODS: [&str; 4] = [
 ];
 
 /// Each input only some methods or years take, and whether it is a decimal.
-pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 27] = [
+pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 30] = [
     ("hours", true),
     ("energy", true),
     ("phone", true),
@@ -67,6 +67,9 @@ pub const WORK_EXPENSES_OPTIONAL: [(&str, bool); 27] = [
     ("category_c", true),
     ("category_d", true),
     ("category_e", true),
+    ("assessable_labour_income", true),
+    ("other_work_related_deductions", true),
+    ("australian_resident", false),
 ];
 
 const WHOLE_DOLLARS: &str = "TAA 1953 Sch 1 s 388-85 as PCG 2023/1's footnotes and the ATO's examples apply it: the return amount is the total with cents disregarded, not rounded";
@@ -94,6 +97,172 @@ fn with_return(total: Step, id: &'static str) -> Result<[Step; 2]> {
     let formula = format!("floor({})", total.id);
     let back = step(id, WHOLE_DOLLARS, &formula, &[&total.value], whole);
     Ok([total, back])
+}
+
+/// The standard deduction's facts (ITAA 1997 s 25-130), all 3 or none, from
+/// 2026-27 (Act No. 49, 2026, Schedule 4 item 17(1)).
+const STANDARD_FACTS: [&str; 3] = [
+    "assessable_labour_income",
+    "other_work_related_deductions",
+    "australian_resident",
+];
+
+const STANDARD_CAP: &str = "1000";
+const LIMIT: &str = "ITAA 1997 s 25-130(1) and (2)(a) and (b): the lesser of $1,000 and the year's assessable labour income (s 25-130(4)), for an individual who is an Australian resident at any time in the year and derives assessable labour income";
+const NOT_RESIDENT: &str = "ITAA 1997 s 25-130(1)(b): no standard deduction for an individual who is not an Australian resident at any time in the year";
+const CLAIMED: &str = "ITAA 1997 s 25-130(2)(c) to (g): this method's return amount, a deduction incurred in gaining or producing assessable labour income (s 8-1, Division 28, s 25-10 or Subdivision 40-B), and the other work-related deductions those paragraphs cover";
+const REDUCED: &str = "ITAA 1997 s 25-130(2): the limit reduced, but not below zero, by the covered deductions claimed";
+const WITH_STANDARD: &str = "ITAA 1997 ss 8-1 and 25-130: the covered deductions claimed and the standard deduction left beside them";
+const CHOICE: &str = "Explanatory memorandum to the Treasury Laws Amendment (Tax Reform No. 1) Bill 2026, paras 4.14 to 4.17: the taxpayer chooses whether to itemise a covered deduction, and an itemised claim needs its records; this is what claiming this method adds to the year's deductions";
+
+/// The standard deduction's facts, once shown to be all given and the year
+/// to be one s 25-130 applies to.
+struct Standard {
+    labour: Decimal,
+    other: Decimal,
+    resident: bool,
+}
+
+/// Inputs by name, as the command passes them.
+type Given = Vec<(String, Arg)>;
+
+/// `given` split into the method's inputs and the standard deduction's facts.
+fn standard_facts(
+    given: &[(String, Arg)],
+    when: &str,
+    first: i64,
+) -> Result<(Given, Option<Standard>)> {
+    let (facts, method): (Vec<_>, Vec<_>) = given
+        .iter()
+        .cloned()
+        .partition(|(n, _)| STANDARD_FACTS.contains(&n.as_str()));
+    if facts.is_empty() {
+        return Ok((method, None));
+    }
+    if first < 2026 {
+        return refuse(
+            "work_expenses.standard_deduction_unavailable",
+            "The standard deduction for work-related expenses (ITAA 1997 s 25-130) applies to assessments for 2026-27 and later years only (Act No. 49, 2026, Schedule 4 item 17(1)).",
+        );
+    }
+    let get = named(&facts, COMMAND, when, &STANDARD_FACTS)?;
+    let standard = Standard {
+        labour: money(get("assessable_labour_income"))?,
+        other: money(get("other_work_related_deductions"))?,
+        resident: flag(get("australian_resident"), "australian_resident")?,
+    };
+    Ok((method, Some(standard)))
+}
+
+/// The standard deduction's limit: the lesser of $1,000 and the assessable
+/// labour income for a resident, and nil for anyone else.
+fn standard_limit(s: &Standard) -> Result<Step> {
+    if !s.resident {
+        return Ok(step(
+            "standard_deduction_limit",
+            NOT_RESIDENT,
+            "0",
+            &[],
+            int(0),
+        ));
+    }
+    let cap = d(STANDARD_CAP);
+    let value = py_min(cap.clone(), s.labour.clone())?;
+    Ok(step(
+        "standard_deduction_limit",
+        LIMIT,
+        "min(standard_deduction_cap, assessable_labour_income)",
+        &[&cap, &s.labour],
+        value,
+    ))
+}
+
+/// The standard deduction beside `claimed`, this method's return amount, and
+/// without it.
+fn standard_steps(s: &Standard, claimed: &Decimal) -> Result<Vec<Step>> {
+    let limit = standard_limit(s)?;
+    let lim = limit.value.clone();
+    let all = claimed.add(&s.other)?;
+    let left = py_max(int(0), lim.sub(&all)?)?;
+    let with_it = all.add(&left)?;
+    let mut steps = vec![
+        limit,
+        step(
+            "work_related_deductions_claimed",
+            CLAIMED,
+            "claimed_method_amount + other_work_related_deductions",
+            &[claimed, &s.other],
+            all.clone(),
+        ),
+        step(
+            "standard_deduction",
+            REDUCED,
+            "max(0, standard_deduction_limit - work_related_deductions_claimed)",
+            &[&lim, &all],
+            left.clone(),
+        ),
+        step(
+            "deductions_if_claimed",
+            WITH_STANDARD,
+            "work_related_deductions_claimed + standard_deduction",
+            &[&all, &left],
+            with_it.clone(),
+        ),
+    ];
+    steps.extend(without_claim(&lim, &s.other, &with_it)?);
+    Ok(steps)
+}
+
+/// The standard deduction and the deductions without this method's claim,
+/// and what the claim adds to `with_it`, the deductions with it.
+fn without_claim(lim: &Decimal, other: &Decimal, with_it: &Decimal) -> Result<[Step; 3]> {
+    let left_without = py_max(int(0), lim.sub(other)?)?;
+    let without = other.add(&left_without)?;
+    let adds = with_it.sub(&without)?;
+    Ok([
+        step(
+            "standard_deduction_if_not_claimed",
+            REDUCED,
+            "max(0, standard_deduction_limit - other_work_related_deductions)",
+            &[lim, other],
+            left_without.clone(),
+        ),
+        step(
+            "deductions_if_not_claimed",
+            WITH_STANDARD,
+            "other_work_related_deductions + standard_deduction_if_not_claimed",
+            &[other, &left_without],
+            without.clone(),
+        ),
+        step(
+            "claiming_adds",
+            CHOICE,
+            "deductions_if_claimed - deductions_if_not_claimed",
+            &[with_it, &without],
+            adds,
+        ),
+    ])
+}
+
+/// A method's result, with the standard deduction steps after its own when
+/// the facts are given; `claimed` names the step holding the amount claimed.
+fn finish(
+    year: &str,
+    mut steps: Vec<Step>,
+    rates: Vec<(String, String)>,
+    standard: Option<&Standard>,
+    claimed: &str,
+) -> Result<Value> {
+    if let Some(s) = standard {
+        let amount = steps
+            .iter()
+            .find(|x| x.id == claimed)
+            .expect("the claimed step")
+            .value
+            .clone();
+        steps.extend(standard_steps(s, &amount)?);
+    }
+    derived_result(KIND, year, steps, rates)
 }
 
 /// `work-expenses`.
@@ -129,10 +298,12 @@ pub fn work_expenses(
     }
     let when = format!(" with method {method} in {year}");
     let first = start(&year);
+    let (given, standard) = standard_facts(given, &when, first)?;
+    let (given, s) = (given.as_slice(), standard.as_ref());
     precise(|| match *method {
-        "home_office" => home_office::home_office(given, &when, &year, first),
-        "car_cents_per_kilometre" => car::cents_per_kilometre(given, &when, &year, first),
-        "car_log_book" => car::log_book(given, &when, &year, first),
-        _ => self_education::self_education(given, &when, &year, first),
+        "home_office" => home_office::home_office(given, &when, &year, first, s),
+        "car_cents_per_kilometre" => car::cents_per_kilometre(given, &when, &year, first, s),
+        "car_log_book" => car::log_book(given, &when, &year, first, s),
+        _ => self_education::self_education(given, &when, &year, first, s),
     })
 }
