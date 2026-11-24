@@ -261,23 +261,64 @@ pub(super) fn sample(
     Ok(Sample { gst_free, total })
 }
 
-/// Whether `period` is the first tax period in its 6-month half where
-/// `restaurant_purchases_snapshot` (F2026L01275 s 7) establishes its
-/// GST-free trading stock proportion, and the applicable 4-week sample window.
-pub(super) fn restaurant_plan(
+fn method_started_window(
     period: &Period,
-    july_half: bool,
+    ordinary: (i64, i64),
+    first_eligible: i64,
+    is_first: bool,
     started: Option<i64>,
-    method_started: Option<i64>,
-) -> Result<(bool, (i64, i64))> {
-    if let (Some(t), Some(m)) = (started, method_started)
-        && m < t
-    {
-        return refuse(
-            "gst_food_retailer_sam.sample_invalid",
-            "method_started cannot be before trading_started.",
-        );
+    m: i64,
+) -> Result<(i64, i64)> {
+    if m + 27 <= ordinary.1 {
+        return Ok((m, ordinary.1));
     }
+    if m >= period.start {
+        if let Some(t) = started
+            && t >= period.start
+        {
+            return Ok((t, dates::months_end(t, 2).max(period.end)));
+        }
+        let low = started.map_or(period.start, |t| period.start.max(t));
+        return Ok((low, period.end));
+    }
+    if !is_first && m >= first_eligible {
+        let low = started.map_or(first_eligible, |t| first_eligible.max(t));
+        let high = if let Some(t) = started
+            && t >= first_eligible
+            && t + 27 > ordinary.1
+        {
+            dates::months_end(t, 2).max(period.start - 1)
+        } else {
+            period.start - 1
+        };
+        return Ok((low, high));
+    }
+    refuse(
+        "gst_food_retailer_sam.new_business_unsettled",
+        "F2026L01275 s 7(d) gives a 4-week sample within the tax period only when the retailer starts using the method during an eligible tax period and paragraphs (a) and (b) cannot apply.",
+    )
+}
+
+fn trading_started_window(
+    period: &Period,
+    ordinary: (i64, i64),
+    first_eligible: i64,
+    is_first: bool,
+    t: i64,
+) -> Result<(i64, i64)> {
+    if t + 27 <= ordinary.1 {
+        return Ok((t, ordinary.1));
+    }
+    if t >= period.start || (!is_first && t >= first_eligible) {
+        return Ok((t, dates::months_end(t, 2)));
+    }
+    refuse(
+        "gst_food_retailer_sam.new_business_unsettled",
+        "F2026L01275 s 7(c) gives the first 2 months of trading only when the business starts trading during an eligible tax period and paragraphs (a) and (b) cannot apply.",
+    )
+}
+
+fn half_bounds(period: &Period, july_half: bool) -> ((i64, i64), i64, i64) {
     let (y, _, _) = dates::to_civil(period.first);
     let ordinary = if july_half {
         (day(y, 6, 1), day(y, 7, 31))
@@ -295,64 +336,43 @@ pub(super) fn restaurant_plan(
     } else {
         half_start
     };
+    (ordinary, half_start, first_eligible)
+}
+
+/// Whether `period` is the first tax period in its 6-month half where
+/// `restaurant_purchases_snapshot` (F2026L01275 s 7) establishes its
+/// GST-free trading stock proportion, and the applicable 4-week sample window.
+pub(super) fn restaurant_plan(
+    period: &Period,
+    july_half: bool,
+    started: Option<i64>,
+    method_started: Option<i64>,
+) -> Result<(bool, (i64, i64))> {
+    if let (Some(t), Some(m)) = (started, method_started)
+        && m < t
+    {
+        return refuse(
+            "gst_food_retailer_sam.sample_invalid",
+            "method_started cannot be before trading_started.",
+        );
+    }
+    let (ordinary, half_start, first_eligible) = half_bounds(period, july_half);
     let is_first = period.start <= first_eligible
         || started.is_some_and(|d| d >= period.start)
         || method_started.is_some_and(|d| d >= period.start);
     let win = if let Some(m) = method_started
         && m >= half_start
     {
-        if m + 27 <= ordinary.1 {
-            (m, ordinary.1)
-        } else if m >= period.start {
-            if let Some(t) = started
-                && t >= period.start
-            {
-                (t, dates::months_end(t, 2).max(period.end))
-            } else {
-                (
-                    started.map_or(period.start, |t| period.start.max(t)),
-                    period.end,
-                )
-            }
-        } else if !is_first && m >= first_eligible {
-            let low = started.map_or(first_eligible, |t| first_eligible.max(t));
-            let high = if let Some(t) = started
-                && t >= first_eligible
-                && t + 27 > ordinary.1
-            {
-                dates::months_end(t, 2).max(period.start - 1)
-            } else {
-                period.start - 1
-            };
-            (low, high)
-        } else {
-            return refuse(
-                "gst_food_retailer_sam.new_business_unsettled",
-                "F2026L01275 s 7(d) gives a 4-week sample within the tax period only when the retailer starts using the method during an eligible tax period and paragraphs (a) and (b) cannot apply.",
-            );
-        }
+        method_started_window(period, ordinary, first_eligible, is_first, started, m)?
     } else if let Some(t) = started
         && t >= half_start
     {
-        if t + 27 <= ordinary.1 {
-            (t, ordinary.1)
-        } else if t >= period.start || (!is_first && t >= first_eligible) {
-            (t, dates::months_end(t, 2))
-        } else {
-            return refuse(
-                "gst_food_retailer_sam.new_business_unsettled",
-                "F2026L01275 s 7(c) gives the first 2 months of trading only when the business starts trading during an eligible tax period and paragraphs (a) and (b) cannot apply.",
-            );
-        }
+        trading_started_window(period, ordinary, first_eligible, is_first, t)?
     } else {
-        let lower = [
-            ordinary.0,
-            started.unwrap_or(ordinary.0),
-            method_started.unwrap_or(ordinary.0),
-        ]
-        .into_iter()
-        .max()
-        .expect("non-empty");
+        let lower = ordinary
+            .0
+            .max(started.unwrap_or(ordinary.0))
+            .max(method_started.unwrap_or(ordinary.0));
         (lower, ordinary.1)
     };
     Ok((is_first, win))
