@@ -28,6 +28,7 @@ fn correction(overrides: Value) -> Value {
             "within_period_of_review": true, "compliance_activity": false,
             "commissioner_permits": false, "already_corrected": false,
             "reckless_or_intentional": false, "credit_ceased_under_division_93": false,
+            "unrefundable_under_section_105_65": false,
             "year": "2025-26", "scope_confirmed": true,
         }),
         overrides,
@@ -40,7 +41,8 @@ fn credit(overrides: Value) -> Value {
             "supply_value": "500.00", "return_due": "2025-10-28",
             "tax_invoice_held_from": "2025-09-15", "return_given": "2025-10-20",
             "assessment_date": "2025-10-20", "supplier_review_ended_without_invoice": false,
-            "special_attribution": false, "year": "2025-26", "scope_confirmed": true,
+            "supplier_gst_accounted_for": false, "special_attribution": false,
+            "section_93_10_exception": false, "year": "2025-26", "scope_confirmed": true,
         }),
         overrides,
     )
@@ -103,19 +105,30 @@ fn the_debit_limits_boundaries() {
     assert_eq!(under["may_correct"], true);
 }
 
-/// A credit error has no s 7 limits.
+/// A credit error has no s 7 limits and skips parsing s 7 debit-only inputs.
 #[test]
 fn a_credit_error_has_no_time_or_value_limit() {
     let r = run(
         EC,
         &correction(
-            json!({"error_kind": "credit", "net_debit_errors": "900000.00",
+            json!({"error_kind": "credit", "current_gst_turnover": "not_parsed",
+                           "net_debit_errors": "900000.00",
+                           "reckless_or_intentional": "ignored",
                            "lodged": "2027-01-01", "year": "2026-27"}),
         ),
     );
     assert_eq!(r["may_correct"], true);
     assert_eq!(r["conditions"].as_array().unwrap().len(), 5);
     assert!(r.get("debit_error_time_limit").is_none());
+    let unparsed = run(
+        EC,
+        &correction(
+            json!({"error_kind": "credit", "current_gst_turnover": "not_parsed",
+                   "net_debit_errors": "not_parsed", "reckless_or_intentional": "ignored",
+                   "lodged": "2027-01-01", "year": "2026-27"}),
+        ),
+    );
+    assert_eq!(unparsed["may_correct"], true);
 }
 
 /// Each s 6 and s 7 condition failing in turn.
@@ -124,6 +137,10 @@ fn each_correction_condition_can_fail() {
     for (overrides, failing) in [
         (
             json!({"credit_ceased_under_division_93": true}),
+            "relates_to_gst",
+        ),
+        (
+            json!({"unrefundable_under_section_105_65": true}),
             "relates_to_gst",
         ),
         (
@@ -240,6 +257,14 @@ fn the_entitlement_lapses_after_4_years() {
         supplier["failing_conditions"],
         json!(["supplier_review_open"])
     );
+    let accounted = run(
+        CT,
+        &credit(json!({
+            "supplier_review_ended_without_invoice": true,
+            "supplier_gst_accounted_for": true
+        })),
+    );
+    assert_eq!(accounted["claimable"], true);
 }
 
 #[test]
@@ -248,6 +273,10 @@ fn the_credit_refusals() {
         (
             json!({"special_attribution": true}),
             "gst_credit_time_limit.special_attribution",
+        ),
+        (
+            json!({"section_93_10_exception": true}),
+            "gst_credit_time_limit.section_93_10_exception",
         ),
         (
             json!({"assessment_date": "2025-10-19"}),

@@ -551,15 +551,16 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             error_kind earlier_period_start earlier_return_due lodged
             (current_gst_turnover: Dec) (net_debit_errors: Dec) within_period_of_review
             compliance_activity commissioner_permits already_corrected
-            reckless_or_intentional credit_ceased_under_division_93 year scope_confirmed
+            reckless_or_intentional credit_ceased_under_division_93
+            unrefundable_under_section_105_65 year scope_confirmed
         },
     ),
     (
         "gst-credit-time-limit",
         cmd_args! {
             (supply_value: Dec) return_due tax_invoice_held_from return_given
-            assessment_date supplier_review_ended_without_invoice special_attribution
-            year scope_confirmed
+            assessment_date supplier_review_ended_without_invoice supplier_gst_accounted_for
+            special_attribution section_93_10_exception year scope_confirmed
         },
     ),
     (
@@ -2339,9 +2340,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             format!("{key} is not an input of {command}"),
         );
     }
+    let skip_debit_dec = command == "gst-error-correction"
+        && v.get("error_kind").and_then(Value::as_str) == Some("credit");
     let a: Vec<Arg> = params
         .iter()
-        .map(|(key, kind)| argument(v, key, *kind))
+        .map(|(key, kind)| {
+            let kind =
+                if skip_debit_dec && matches!(*key, "current_gst_turnover" | "net_debit_errors") {
+                    Raw
+                } else {
+                    *kind
+                };
+            argument(v, key, kind)
+        })
         .collect::<Result<_>>()?;
     // Optional: the study loan component's pay date, which selects the Schedule 8 coefficients.
     let pay_date = v.get("pay_date").map(arg);
@@ -4025,8 +4036,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             already_corrected: &a[9],
             reckless_or_intentional: &a[10],
             credit_ceased_under_division_93: &a[11],
-            year: &a[12],
-            scope_confirmed: &a[13],
+            unrefundable_under_section_105_65: &a[12],
+            year: &a[13],
+            scope_confirmed: &a[14],
         }),
         "gst-credit-time-limit" => engine::gst_credit_time_limit(&engine::CreditTimeLimitArgs {
             supply_value: &a[0],
@@ -4035,9 +4047,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             return_given: &a[3],
             assessment_date: &a[4],
             supplier_review_ended_without_invoice: &a[5],
-            special_attribution: &a[6],
-            year: &a[7],
-            scope_confirmed: &a[8],
+            supplier_gst_accounted_for: &a[6],
+            special_attribution: &a[7],
+            section_93_10_exception: &a[8],
+            year: &a[9],
+            scope_confirmed: &a[10],
         }),
         "tourist-refund" => engine::tourist_refund(&engine::TouristRefundArgs {
             departure_date: &a[0],

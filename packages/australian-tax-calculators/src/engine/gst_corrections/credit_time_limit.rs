@@ -23,14 +23,16 @@ pub struct CreditTimeLimitArgs<'a> {
     pub return_given: &'a Arg,
     pub assessment_date: &'a Arg,
     pub supplier_review_ended_without_invoice: &'a Arg,
+    pub supplier_gst_accounted_for: &'a Arg,
     pub special_attribution: &'a Arg,
+    pub section_93_10_exception: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
 
 const INVOICE: &str = "GST Act s 29-10(3): a tax invoice is held when the GST return is given, unless the supply's value is $75 or less (s 29-80(1) and GST Regulations reg 29-80.01); without one the credit moves to the first later return given whilst holding it";
 const FOUR_YEARS: &str = "GST Act s 93-5(1): the credit is taken into account in an assessment within 4 years after the day the GST return was required for the tax period it would be attributable to, apart from s 29-10(3)";
-const SUPPLIER: &str = "GST Act s 93-15: not lost because the period of review of the supplier's assessment ended before you held a tax invoice";
+const SUPPLIER: &str = "GST Act s 93-15: not lost to the extent GST on the related supply was not taken into account in the assessment of the supplier's net amount after the supplier's period of review ended without you holding a tax invoice";
 
 /// The date a tax invoice was first held, or `None` for `not_held`.
 fn held_from(arg: &Arg) -> Result<Option<i64>> {
@@ -70,10 +72,24 @@ pub fn gst_credit_time_limit(args: &CreditTimeLimitArgs) -> Result<Value> {
             "A Commissioner's determination under s 29-25, or one under s 29-10(3) that a tax invoice is not required, sets other rules (s 93-10(1)), which this command does not apply.",
         );
     }
+    if flag(args.section_93_10_exception, "section_93_10_exception")? {
+        return refuse(
+            "gst_credit_time_limit.section_93_10_exception",
+            "An exception under GST Act s 93-10(4) (amended assessment reversing input-taxed supply treatment) or s 93-10(5) (s 29-70(1B) tax invoice request agreed to after 4 years) preserves entitlement outside the general 4-year rule, which this command does not apply.",
+        );
+    }
     let (due, given, assessed) = dates_of(args, &year)?;
     let needed = money(args.supply_value)?.gt(&d("75"))?;
     let held = held_from(args.tax_invoice_held_from)?;
     let cutoff = dates::add_months(due, 48);
+    let review_ended = flag(
+        args.supplier_review_ended_without_invoice,
+        "supplier_review_ended_without_invoice",
+    )?;
+    let supplier_accounted = flag(
+        args.supplier_gst_accounted_for,
+        "supplier_gst_accounted_for",
+    )?;
     let rows = vec![
         condition(
             "tax_invoice_held",
@@ -84,10 +100,7 @@ pub fn gst_credit_time_limit(args: &CreditTimeLimitArgs) -> Result<Value> {
         condition(
             "supplier_review_open",
             SUPPLIER,
-            !flag(
-                args.supplier_review_ended_without_invoice,
-                "supplier_review_ended_without_invoice",
-            )?,
+            !review_ended || supplier_accounted,
         ),
     ];
     let failing = failing(&rows);
@@ -97,5 +110,8 @@ pub fn gst_credit_time_limit(args: &CreditTimeLimitArgs) -> Result<Value> {
     out["entitlement_ends"] = json!(dates::format(cutoff));
     out["failing_conditions"] = Value::Array(failing);
     out["conditions"] = Value::Array(rows);
+    out["note"] = json!(
+        "Where only part of the GST on the related supply was not taken into account in the supplier's assessment after the supplier's period of review ended without a tax invoice, GST Act s 93-15 ceases entitlement only to that extent."
+    );
     Ok(out)
 }

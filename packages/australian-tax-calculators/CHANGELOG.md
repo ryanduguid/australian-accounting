@@ -5,12 +5,14 @@
 ### Added
 
 - `gst-error-correction` tests whether an earlier GST error may be corrected
-  in a later return under F2023L01284 ss 6 and 7, with the debit error time
-  and value limits by current GST turnover; `gst-credit-time-limit` tests
-  whether an input tax credit can be claimed under GST Act s 29-10(3) and
-  Division 93. New codes: `gst_error_correction.dates_invalid`,
-  `fact_invalid`, `lodged_outside_year`, `gst_credit_time_limit.dates_invalid`,
-  `return_given_outside_year` and `special_attribution`.
+  in a later return under F2023L01284 ss 4, 6 and 7, with the debit error time
+  and value limits by current GST turnover and excluding TAA 1953 Sch 1
+  s 105-65 amounts; `gst-credit-time-limit` tests whether an input tax credit
+  can be claimed under GST Act s 29-10(3) and Division 93 (including s 93-15's
+  supplier assessment qualification and s 93-10(4) and (5) refusals). New codes:
+  `gst_error_correction.dates_invalid`, `fact_invalid`, `lodged_outside_year`,
+  `gst_credit_time_limit.dates_invalid`, `return_given_outside_year`,
+  `section_93_10_exception` and `special_attribution`.
 - `payroll-tax-group` works out, from stated facts, one employer's payroll tax
   group for 2026-27 in Victoria, Queensland, Western Australia, South
   Australia or the ACT under each Act's grouping Part (related bodies

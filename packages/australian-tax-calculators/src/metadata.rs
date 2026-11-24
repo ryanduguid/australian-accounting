@@ -2047,7 +2047,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "gst_error_correction" => (
             "2026-11-24",
-            "F2023L01284 ss 4, 6, 7 and 8 (as made, read on the Federal Register of Legislation); TAA 1953 Sch 1 s 155-35(2); GST Act Division 93, compilation 96 (C2026C00081, from 1 January 2026)",
+            "F2023L01284 ss 4, 6, 7 and 8 (as made, read on the Federal Register of Legislation); TAA 1953 Sch 1 ss 105-65 and 155-35(2); GST Act Division 93, compilation 96 (C2026C00081, from 1 January 2026)",
         ),
         "gst_credit_time_limit" => (
             "2026-11-24",
@@ -2779,13 +2779,13 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         ),
         "gst_error_correction" => (
             "A New Tax System (Goods and Services Tax) (Correcting GST Errors) Determination 2023",
-            "Sections 6 and 7 and the s 7 table of debit error time and value limits by current GST turnover; no ATO example was read",
+            "Sections 4, 6, 7 and 8 and the s 7 table of debit error time and value limits by current GST turnover; no ATO example was read",
             "2023-09-06",
             "2026-11-24",
         ),
         "gst_credit_time_limit" => (
             "GST Act Division 93 and s 29-10(3)",
-            "Sections 29-10(3), 29-80(1), 93-5(1) and 93-15, with reg 29-80.01; no ATO example was read",
+            "Sections 29-10(3), 29-80(1), 93-5(1), 93-10(1), (4) and (5) and 93-15, with reg 29-80.01; no ATO example was read",
             "2026-01-01",
             "2026-11-24",
         ),
@@ -6291,14 +6291,15 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("earlier_period_start", "YYYY-MM-DD: the first day of the tax period in which the error was made"),
             ("earlier_return_due", "YYYY-MM-DD: the due date of the GST return for that tax period"),
             ("lodged", "YYYY-MM-DD: the day the later GST return correcting the error is lodged, in year"),
-            ("current_gst_turnover", "AUD: your current GST turnover (the group's for a GST group member), which picks the s 7 table row"),
+            ("current_gst_turnover", "AUD: your current GST turnover (the group's for a GST group member), which picks the s 7 table row; read for a debit error only"),
             ("net_debit_errors", "AUD: the debit error amounts less the credit error amounts you include in the later period (s 4 'net sum of the debit errors'); read for a debit error only"),
             ("within_period_of_review", "boolean: the later return is lodged within the period of review for the earlier assessment (s 6(c); TAA 1953 Sch 1 s 155-35)"),
             ("compliance_activity", "boolean: at lodgment the error relates to a matter, or the earlier period is, subject to a compliance activity you were notified of (s 6(d)(i))"),
             ("commissioner_permits", "boolean: the Commissioner has notified you in writing that the error can be corrected under the determination (s 6(d)(ii))"),
             ("already_corrected", "boolean: you have corrected the error, to any extent, in another tax period (s 6(e))"),
             ("reckless_or_intentional", "boolean: the error resulted from recklessness as to, or intentional disregard of, a GST law (s 7(a)); read for a debit error only"),
-            ("credit_ceased_under_division_93", "boolean: the mistake relates to an input tax credit whose entitlement ceased under Division 93, which is not an error (s 4)"),
+            ("credit_ceased_under_division_93", "boolean: the mistake relates to an input tax credit whose entitlement ceased under Division 93, which is not an error (s 4(a))"),
+            ("unrefundable_under_section_105_65", "boolean: the mistake relates to an amount the Commissioner need not refund under TAA 1953 Sch 1 s 105-65 (continuing to apply to overpaid GST for tax periods starting on or before 30 May 2014), which is not an error (s 4(b))"),
         ],
         "gst_credit_time_limit" => vec![
             ("supply_value", "AUD: the value (GST exclusive) of the taxable supply the acquisition relates to; $75 or less needs no tax invoice (GST Act s 29-80(1), reg 29-80.01)"),
@@ -6306,8 +6307,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("tax_invoice_held_from", "YYYY-MM-DD, or not_held: the day you first held the tax invoice"),
             ("return_given", "YYYY-MM-DD: the day you give the GST return that takes the credit into account, in year"),
             ("assessment_date", "YYYY-MM-DD: the day of the assessment that takes the credit into account, not before return_given"),
-            ("supplier_review_ended_without_invoice", "boolean: the period of review of the supplier's assessment for the related GST ended before you held a tax invoice (s 93-15)"),
-            ("special_attribution", "boolean: a Commissioner's determination under s 29-25, or under s 29-10(3) that no tax invoice is required, applies; true is refused"),
+            ("supplier_review_ended_without_invoice", "boolean: the period of review under TAA 1953 Sch 1 s 155-35 for the assessment of the supplier's net amount for the tax period to which GST on the related supply is attributable had ended when you first held a tax invoice (GST Act s 93-15(a) and (b))"),
+            ("supplier_gst_accounted_for", "boolean: GST on the related supply has been taken into account in the assessment of the supplier's net amount for that tax period (s 93-15; true means s 93-15 does not bar the credit, and any partial shortfall bars entitlement only to that extent)"),
+            ("special_attribution", "boolean: a Commissioner's determination under s 29-25, or under s 29-10(3) that no tax invoice is required, applies (s 93-10(1)); true is refused"),
+            ("section_93_10_exception", "boolean: an exception under s 93-10(4) (amended assessment reversing input-taxed treatment) or s 93-10(5) (timely s 29-70(1B) request to treat a document as a tax invoice agreed after 4 years) applies; true is refused"),
         ],
         "tourist_refund" => vec![
             ("departure_date", "YYYY-MM-DD: the actual day the traveller and every item leave the indirect tax zone (not a scheduled or booked date), from 1 November 2025 and in year; a later actual export day is refused by stating that day"),
@@ -7916,6 +7919,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("already_corrected", Flag(false)),
             ("reckless_or_intentional", Flag(false)),
             ("credit_ceased_under_division_93", Flag(false)),
+            ("unrefundable_under_section_105_65", Flag(false)),
         ],
         // A $550 acquisition's tax invoice held before the return is given.
         "gst_credit_time_limit" => vec![
@@ -7926,7 +7930,9 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("return_given", Text("2025-10-20")),
             ("assessment_date", Text("2025-10-20")),
             ("supplier_review_ended_without_invoice", Flag(false)),
+            ("supplier_gst_accounted_for", Flag(false)),
             ("special_attribution", Flag(false)),
+            ("section_93_10_exception", Flag(false)),
         ],
         // An aircraft passenger 45 minutes early with $330 of goods and $100 of
         // wine from one supplier: $39.09 of GST and $14.50 of wine tax.

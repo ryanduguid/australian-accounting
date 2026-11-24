@@ -38,6 +38,7 @@ pub struct ErrorCorrectionArgs<'a> {
     pub already_corrected: &'a Arg,
     pub reckless_or_intentional: &'a Arg,
     pub credit_ceased_under_division_93: &'a Arg,
+    pub unrefundable_under_section_105_65: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
@@ -67,7 +68,7 @@ fn debit_limits(turnover: &Decimal) -> Result<(i64, &'static str)> {
     Ok((12, "560000"))
 }
 
-const RELATES: &str = "F2023L01284 s 4 'error' and s 6(a): a mistake in an earlier tax period's net amount about GST, an input tax credit or an adjustment, not a credit that ceased under Division 93";
+const RELATES: &str = "F2023L01284 s 4 'error' and s 6(a): a mistake in an earlier tax period's net amount about GST, an input tax credit or an adjustment, not a credit that ceased under Division 93 (s 4(a)) or an amount the Commissioner need not refund under TAA 1953 Sch 1 s 105-65 (s 4(b))";
 const STARTED: &str = "F2023L01284 s 6(b): the earlier tax period started on or after 1 July 2012";
 const REVIEW: &str = "F2023L01284 s 6(c): the later GST return is lodged within the period of review for the earlier assessment (TAA 1953 Sch 1 s 155-35(2): 4 years starting the day after notice of it)";
 const COMPLIANCE: &str = "F2023L01284 s 6(d): at lodgment the error is not about a matter, or a period, you were notified is subject to a compliance activity, unless the Commissioner has notified you in writing that it can be corrected";
@@ -77,18 +78,22 @@ const NOT_RECKLESS: &str = "F2023L01284 s 7(a): a debit error not the result of 
 const TIME: &str = "F2023L01284 s 7(b): the debit error is corrected in a GST return lodged within the debit error time limit for your current GST turnover (18 months after the earlier return's due date under $20 million, 12 months otherwise)";
 const VALUE: &str = "F2023L01284 s 7(c): the net sum of the debit errors is less than the debit error value limit for your current GST turnover";
 
-/// The facts' dates and the s 7 limits, checked.
-struct Facts {
-    debit: bool,
-    started: i64,
-    lodged: i64,
+struct DebitFacts {
     time_limit: i64,
     value_limit: Decimal,
     net_debit_errors: Decimal,
+    reckless: bool,
+}
+
+/// The facts' dates and, for a debit error, the s 7 limits, checked.
+struct Facts {
+    debit: Option<DebitFacts>,
+    started: i64,
+    lodged: i64,
 }
 
 fn facts(args: &ErrorCorrectionArgs, year: &str) -> Result<Facts> {
-    let debit = match args.error_kind.text() {
+    let is_debit = match args.error_kind.text() {
         Some("debit") => true,
         Some("credit") => false,
         _ => {
@@ -113,14 +118,21 @@ fn facts(args: &ErrorCorrectionArgs, year: &str) -> Result<Facts> {
             "earlier_return_due must not be before earlier_period_start, nor lodged before earlier_return_due.",
         );
     }
-    let (months, limit) = debit_limits(&money(args.current_gst_turnover)?)?;
+    let debit = if is_debit {
+        let (months, limit) = debit_limits(&money(args.current_gst_turnover)?)?;
+        Some(DebitFacts {
+            time_limit: dates::add_months(due, months),
+            value_limit: d(limit),
+            net_debit_errors: money(args.net_debit_errors)?,
+            reckless: flag(args.reckless_or_intentional, "reckless_or_intentional")?,
+        })
+    } else {
+        None
+    };
     Ok(Facts {
         debit,
         started,
         lodged,
-        time_limit: dates::add_months(due, months),
-        value_limit: d(limit),
-        net_debit_errors: money(args.net_debit_errors)?,
     })
 }
 
@@ -128,15 +140,16 @@ fn facts(args: &ErrorCorrectionArgs, year: &str) -> Result<Facts> {
 fn conditions(args: &ErrorCorrectionArgs, f: &Facts) -> Result<Vec<Value>> {
     let notified = flag(args.compliance_activity, "compliance_activity")?;
     let permits = flag(args.commissioner_permits, "commissioner_permits")?;
+    let division_93 = flag(
+        args.credit_ceased_under_division_93,
+        "credit_ceased_under_division_93",
+    )?;
+    let section_105_65 = flag(
+        args.unrefundable_under_section_105_65,
+        "unrefundable_under_section_105_65",
+    )?;
     let mut rows = vec![
-        condition(
-            "relates_to_gst",
-            RELATES,
-            !flag(
-                args.credit_ceased_under_division_93,
-                "credit_ceased_under_division_93",
-            )?,
-        ),
+        condition("relates_to_gst", RELATES, !division_93 && !section_105_65),
         condition(
             "period_started_from_1_july_2012",
             STARTED,
@@ -154,18 +167,17 @@ fn conditions(args: &ErrorCorrectionArgs, f: &Facts) -> Result<Vec<Value>> {
             !flag(args.already_corrected, "already_corrected")?,
         ),
     ];
-    let reckless = flag(args.reckless_or_intentional, "reckless_or_intentional")?;
-    if f.debit {
-        rows.push(condition("not_reckless", NOT_RECKLESS, !reckless));
+    if let Some(ref df) = f.debit {
+        rows.push(condition("not_reckless", NOT_RECKLESS, !df.reckless));
         rows.push(condition(
             "within_time_limit",
             TIME,
-            f.lodged <= f.time_limit,
+            f.lodged <= df.time_limit,
         ));
         rows.push(condition(
             "below_value_limit",
             VALUE,
-            f.net_debit_errors.lt(&f.value_limit)?,
+            df.net_debit_errors.lt(&df.value_limit)?,
         ));
     }
     Ok(rows)
@@ -182,12 +194,12 @@ pub fn gst_error_correction(args: &ErrorCorrectionArgs) -> Result<Value> {
     out["may_correct"] = json!(failing.is_empty());
     out["failing_conditions"] = Value::Array(failing);
     out["conditions"] = Value::Array(rows);
-    if f.debit {
-        out["debit_error_time_limit"] = json!(dates::format(f.time_limit));
-        out["debit_error_value_limit"] = json!(f.value_limit.to_string());
+    if let Some(ref df) = f.debit {
+        out["debit_error_time_limit"] = json!(dates::format(df.time_limit));
+        out["debit_error_value_limit"] = json!(df.value_limit.to_string());
     }
     out["note"] = json!(
-        "An error that may not be corrected this way is corrected by revising the earlier activity statement (F2023L01284 s 8: never by amending a later period's assessment)."
+        "F2023L01284 s 8 provides only that an earlier-period error cannot be corrected by requesting an amendment of an assessment for a later tax period; this worksheet does not amend or revise an earlier assessment or activity statement."
     );
     Ok(out)
 }

@@ -500,11 +500,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "gst_error_correction",
-        "Whether one error in an earlier GST tax period may be corrected in a GST return lodged in 2024-25 to 2026-27 under the A New Tax System (Goods and Services Tax) (Correcting GST Errors) Determination 2023 (F2023L01284) ss 6 and 7: the conditions for every error and, for a debit error, the time and value limits by current GST turnover. The operator establishes each fact, including the period of review and the net sum of the debit errors. It works no amount and does not revise the earlier activity statement.",
+        "Whether one error in an earlier GST tax period may be corrected in a GST return lodged in 2024-25 to 2026-27 under the A New Tax System (Goods and Services Tax) (Correcting GST Errors) Determination 2023 (F2023L01284) ss 4, 6 and 7: the conditions for every error (excluding credits ceased under Division 93 and amounts the Commissioner need not refund under TAA 1953 Sch 1 s 105-65) and, for a debit error, the time and value limits by current GST turnover. The operator establishes each fact, including the period of review and the net sum of the debit errors. It works no amount and does not amend or revise any assessment or activity statement (s 8 provides only that an earlier-period error cannot be corrected by amending a later period's assessment).",
     ),
     (
         "gst_credit_time_limit",
-        "Whether one input tax credit can be taken into account in a GST return given in 2024-25 to 2026-27: a tax invoice held when the return is given (GST Act s 29-10(3), not needed for a supply of $75 or less under s 29-80(1) and reg 29-80.01), the 4 years of s 93-5(1) and the supplier's period of review (s 93-15). The operator establishes each date and fact. Excludes the exceptions in s 93-10 and the Commissioner's attribution determinations, and works no amount.",
+        "Whether one input tax credit can be taken into account in a GST return given in 2024-25 to 2026-27: a tax invoice held when the return is given (GST Act s 29-10(3), not needed for a supply of $75 or less under s 29-80(1) and reg 29-80.01), the 4 years of s 93-5(1) and the supplier's period of review where GST on the related supply was not taken into account in the supplier's assessment (s 93-15). The operator establishes each date and fact. Refuses the exceptions in s 93-10(1), (4) and (5) and s 29-10(3) attribution determinations, and works no amount.",
     ),
     (
         "tourist_refund",
@@ -4502,6 +4502,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "gst_credit_time_limit.return_given_outside_year",
         "return_given is outside year.",
+    ),
+    (
+        "gst_credit_time_limit.section_93_10_exception",
+        "An exception under GST Act s 93-10(4) or (5) applies, preserving entitlement outside s 93-5(1).",
     ),
     (
         "gst_credit_time_limit.special_attribution",

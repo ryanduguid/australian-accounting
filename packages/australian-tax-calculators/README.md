@@ -228,8 +228,8 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `gst-financial-acquisitions-threshold` | `current_financial_credits`, `current_total_credits`, `future_financial_credits`, `future_total_credits`, `gst_group`, `year`, `scope_confirmed` |
 | `gst-going-concern` | `for_consideration`, `recipient_registration`, `written_agreement`, `all_things_necessary`, `carried_on_until_supply`, `farm_land`, `part_outside_arrangement`, `year`, `scope_confirmed`; see [GST special rules](#gst-special-rules) |
 | `gst-second-hand-goods` | `consideration`, `acquired_for_sale_or_exchange`, `animals_or_plants`, `supply_to_you`, `imported`, `by_way_of_hire`, `resupply_taxable`, `divided_for_resupply`, `valuable_metal`, `leased_before_sale`, `year`, `scope_confirmed`; `resupply_gst` when `consideration` is more than $300 |
-| `gst-error-correction` | `error_kind`, `earlier_period_start`, `earlier_return_due`, `lodged`, `current_gst_turnover`, `net_debit_errors`, `within_period_of_review`, `compliance_activity`, `commissioner_permits`, `already_corrected`, `reckless_or_intentional`, `credit_ceased_under_division_93`, `year`, `scope_confirmed`; see [GST corrections](#gst-corrections) |
-| `gst-credit-time-limit` | `supply_value`, `return_due`, `tax_invoice_held_from`, `return_given`, `assessment_date`, `supplier_review_ended_without_invoice`, `special_attribution`, `year`, `scope_confirmed`; see [GST corrections](#gst-corrections) |
+| `gst-error-correction` | `error_kind`, `earlier_period_start`, `earlier_return_due`, `lodged`, `current_gst_turnover`, `net_debit_errors`, `within_period_of_review`, `compliance_activity`, `commissioner_permits`, `already_corrected`, `reckless_or_intentional`, `credit_ceased_under_division_93`, `unrefundable_under_section_105_65`, `year`, `scope_confirmed`; see [GST corrections](#gst-corrections) |
+| `gst-credit-time-limit` | `supply_value`, `return_due`, `tax_invoice_held_from`, `return_given`, `assessment_date`, `supplier_review_ended_without_invoice`, `supplier_gst_accounted_for`, `special_attribution`, `section_93_10_exception`, `year`, `scope_confirmed`; see [GST corrections](#gst-corrections) |
 | `tourist-refund` | `departure_date`, `departing_by`, `crew_or_in_charge_in_employment`, `trs_port`, `accompanied_baggage`, `minutes_before_departure`, `verification_complied`, `acquired_by_traveller`, `supplier_registered`, `items`, `year`, `scope_confirmed`; see [Tourist refund scheme](#tourist-refund-scheme) |
 | `gst-bad-debt` | `party`, `event`, `amount`, `taxable_or_creditable`, `cash_basis`, `special_rule`, `year`, `scope_confirmed`; `attributed` with `written_off` or `overdue_12_months`, `overdue_from` and `as_at` with `overdue_12_months`, `prior_adjustment` with `recovered`, and for a recipient `reduced_credit_acquisition` and `annual_apportionment`; optional `taxable_proportion` (supplier), `creditable_purpose` and `consideration_extent` (recipient) |
 | `small-business-income-offset` | `taxable_income`, `basic_income_tax_liability`, `offsets_applied_first`, `net_small_business_income`, `shares`, `prescribed_person`, `year`, `scope_confirmed`; with net small business income of your own, `business` and the 4 turnovers; see [Small business income offset](#small-business-income-offset) |
@@ -490,7 +490,7 @@ DI2026-157).
 | Division 293 | 2024-25 to 2027-28; established Division 293 income and low tax contributions; no defined benefit interests |
 | Small business CGT concessions | CGT event A1 in 2025-26 and 2026-27, before Act No. 49 of 2026's changes to Division 152; an asset other than a share, a trust interest or a partnership right, with established turnover, net value, active days and retirement facts; conditions only, not amounts |
 | GST adjustments | 2020-21 to 2026-27; one acquisition's Division 129 adjustment for a 30 June tax period of a month, quarter or year; Division 131 eligibility and one partly creditable acquisition's credit and adjustment; the Division 189 tests on established credit amounts; the apportionment method is the caller's, not judged |
-| GST corrections | Returns lodged or given in 2024-25 to 2026-27; one error under F2023L01284 ss 6 and 7, or one input tax credit under GST Act ss 29-10(3) and 93-5; works no amount; facts such as the period of review are stated |
+| GST corrections | Returns lodged or given in 2024-25 to 2026-27; one error under F2023L01284 ss 4, 6 and 7, or one input tax credit under GST Act ss 29-10(3), 93-5, 93-10 and 93-15; works no amount; facts such as the period of review are stated |
 | Tourist refund scheme | Departures from 1 November 2025 to 30 June 2027 (2025-26 and 2026-27), from the GST Regulations 2019 compilation 5; purchases from one registered supplier leaving as accompanied baggage; no External Territory route or cash rounding |
 | GST special rules | 2020-21 to 2026-27; whether a supply of a going concern is GST-free on stated facts; one acquisition's Subdivision 66-A second-hand goods credit; one Division 21 bad debt adjustment, reduced under Subdivision 136-A; never infers a fact |
 | Small business income offset | 2020-21 to 2026-27; one individual, not a trustee or a prescribed person under s 102AC of the ITAA 1936; established net small business income, partnership and trust amounts, basic income tax liability and offsets applied first |
@@ -4775,12 +4775,15 @@ refused. See
 corrected in a later GST return lodged in 2024-25 to 2026-27, under the A New
 Tax System (Goods and Services Tax) (Correcting GST Errors) Determination 2023
 (F2023L01284). Every error needs s 6: it relates to GST, an input tax credit or
-an adjustment (not a credit that ceased under Division 93), the earlier period
+an adjustment (not a credit that ceased under Division 93 under s 4(a) or an
+amount the Commissioner need not refund under TAA 1953 Sch 1 s 105-65 under
+s 4(b)), the earlier period
 started on or after 1 July 2012, the later return is lodged within the earlier
 assessment's period of review, no notified compliance activity (unless the
 Commissioner permits it in writing), and no earlier correction. A debit error
 also needs s 7: not reckless or intentional, and within the limits for current
-GST turnover:
+GST turnover (s 8 provides only that an earlier-period error cannot be
+corrected by requesting an amendment of a later period's assessment):
 
 ```text
 under $20 million                18 months after the earlier return's due date   less than $12,500
@@ -4795,9 +4798,11 @@ $1 billion and over              12 months                                      
 s 29-10(3)), unless the supply's value is $75 or less (s 29-80(1) and GST
 Regulations reg 29-80.01); an assessment taking the credit into account within
 4 years after the day the return for its tax period was due (s 93-5(1)); and
-the supplier's period of review not ended before the invoice was held
-(s 93-15). The s 93-10 exceptions and the Commissioner's attribution
-determinations are refused. See
+s 93-15 not barring entitlement (GST on the related supply was taken into account
+in the supplier's net amount assessment, or the supplier's period of review under
+TAA 1953 Sch 1 s 155-35 had not ended without a tax invoice). The s 93-10(1),
+(4) and (5) exceptions and the Commissioner's attribution determinations are
+refused. See
 [calculation evidence](docs/calculation-evidence.md#gst-error-correction).
 
 ## Tourist refund scheme
