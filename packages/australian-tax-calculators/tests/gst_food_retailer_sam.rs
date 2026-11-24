@@ -12,11 +12,14 @@ use serde_json::{Value, json};
 
 const C: &str = "gst-food-retailer-sam";
 
-fn retail(five: bool) -> Value {
+fn retail(method: &str) -> Value {
     let mut e = json!({"same_premises_taxable_and_gst_free_food": true,
         "sam_turnover": "1500000.00", "adequate_point_of_sale_equipment": false});
-    if five {
+    if method.ends_with("five_percent") {
         e["projected_gst_free_at_most_5_percent"] = json!(true);
+    }
+    if method == "business_norms" {
+        e["retailer_type_definition_met"] = json!(true);
     }
     e
 }
@@ -24,7 +27,8 @@ fn retail(five: bool) -> Value {
 fn supermarket() -> Value {
     json!({"registered_throughout": true, "mainly_supermarket_or_convenience_range": true,
         "converted_taxable_sales_under_5_percent": true, "gst_turnover": "1800000.00",
-        "adequate_point_of_sale_equipment": true, "mainly_sells_fuel": false})
+        "adequate_point_of_sale_equipment": true, "mainly_sells_fuel": false,
+        "section_7_3_goods_left_out": true})
 }
 
 fn restaurant() -> Value {
@@ -37,7 +41,7 @@ fn input(method: &str, sales: &str, purchases: &str, extra: Value) -> Value {
     let mut v = json!({
         "method": method, "tax_period_start": "2025-07-01", "tax_period_end": "2025-09-30",
         "total_sales": sales, "trading_stock_purchases": purchases,
-        "eligibility": retail(method.ends_with("five_percent")),
+        "eligibility": retail(method),
         "year": "2025-26", "scope_confirmed": true,
     });
     for (key, value) in extra.as_object().unwrap() {
@@ -392,4 +396,120 @@ fn a_new_business_samples_its_first_two_months() {
     assert_eq!(amounts(&v)["gst_free_purchases"], "400.00");
     v["purchases_sample"] = sample("2025-09-20", "2025-10-17", "400.00", "1000.00");
     assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+}
+
+#[test]
+fn a_2017_new_business_replaces_only_the_july_to_december_sample() {
+    // Started 10 August 2025: the first 2 months serve July to December, but
+    // January to March 2026 takes the ordinary 1 December to 31 January window.
+    let mut v = input(
+        "stock_purchases_two_samples",
+        "1000.00",
+        "1000.00",
+        json!({"stock_role": "reseller", "trading_started": "2025-08-10",
+               "purchases_sample": sample("2025-09-01", "2025-09-28", "400.00", "1000.00")}),
+    );
+    v["tax_period_start"] = json!("2026-01-01");
+    v["tax_period_end"] = json!("2026-03-31");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    v["purchases_sample"] = sample("2025-12-01", "2025-12-28", "300.00", "1000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "300.00");
+    // Started 15 December: the December window, from the day trading started.
+    v["trading_started"] = json!("2025-12-15");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    v["purchases_sample"] = sample("2025-12-15", "2026-01-11", "300.00", "1000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "300.00");
+    // Started in January to June: the determination does not settle it.
+    v["trading_started"] = json!("2026-02-10");
+    v["purchases_sample"] = sample("2026-02-15", "2026-03-14", "300.00", "1000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
+}
+
+#[test]
+fn a_restaurant_new_business_samples_only_the_half_it_starts_in() {
+    let mut v = anil();
+    v["trading_started"] = json!("2026-10-05");
+    v["purchases_sample"] = sample("2026-10-10", "2026-11-06", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    v["purchases_sample"] = sample("2026-11-10", "2026-12-07", "10500.00", "15000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    // The next half takes para (b)'s December window, not the first months.
+    v["tax_period_start"] = json!("2027-01-01");
+    v["tax_period_end"] = json!("2027-03-31");
+    v["purchases_sample"] = sample("2026-10-10", "2026-11-06", "10500.00", "15000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    v["purchases_sample"] = sample("2026-12-05", "2027-01-01", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    // Starting in January to June: para (c) once para (b) cannot be applied.
+    v["tax_period_start"] = json!("2027-04-01");
+    v["tax_period_end"] = json!("2027-06-30");
+    v["trading_started"] = json!("2027-02-10");
+    v["purchases_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    // Started 2 January: para (b) can still be applied, so (c) is not open.
+    v["trading_started"] = json!("2027-01-02");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    v["purchases_sample"] = sample("2027-01-02", "2027-01-29", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+}
+
+#[test]
+fn attested_facts_the_determinations_need() {
+    let mut norms = input(
+        "business_norms",
+        "1000.00",
+        "1000.00",
+        json!({"retailer_type": "cake_shop"}),
+    );
+    norms["eligibility"]["retailer_type_definition_met"] = json!(false);
+    assert_eq!(code(&norms), "gst_food_retailer_sam.not_eligible");
+    let mut market = input(
+        "supermarket_sales_percentage",
+        "200000.00",
+        "100000.00",
+        json!({"gst_free_sales": "60000.00"}),
+    );
+    market["eligibility"] = supermarket();
+    market["eligibility"]["section_7_3_goods_left_out"] = json!(false);
+    market["tax_period_start"] = json!("2025-10-01");
+    market["tax_period_end"] = json!("2025-12-31");
+    assert_eq!(code(&market), "gst_food_retailer_sam.not_eligible");
+    market["eligibility"]
+        .as_object_mut()
+        .unwrap()
+        .remove("section_7_3_goods_left_out");
+    assert_eq!(code(&market), "input.missing_field");
+}
+
+#[test]
+fn rural_reseller_pbs_stock_and_a_sampled_five_percent_snapshot() {
+    let a = amounts(&input(
+        "business_norms",
+        "50000.00",
+        "40000.00",
+        json!({"retailer_type": "rural_convenience_store", "stock_role": "reseller",
+               "fuel_and_post_sales": "20000.00", "fuel_and_post_purchases": "18000.00"}),
+    ));
+    // (50,000 - 20,000) x 30% and (40,000 - 18,000) x 30%.
+    assert_eq!(a["gst_free_sales"], "9000.00");
+    assert_eq!(a["gst_free_purchases"], "6600.00");
+    // PBS stock among the purchases: the components do not make them up.
+    let pbs = input(
+        "business_norms",
+        "100000.00",
+        "100000.00",
+        json!({"retailer_type": "pharmacy", "pbs_sales": "40000.00", "non_pbs_sales": "10000.00",
+               "otc_sales": "50000.00", "non_pbs_purchases": "10000.00", "otc_purchases": "50000.00"}),
+    );
+    assert_eq!(code(&pbs), "gst_food_retailer_sam.components_unbalanced");
+    let a = amounts(&input(
+        "snapshot_five_percent",
+        "30000.00",
+        "9000.00",
+        json!({"purchases_sample": sample("2025-06-01", "2025-06-28", "300.00", "6000.00"),
+               "product_lines": [{"gst_free_purchases": "500.00", "markup_percent": "60"}]}),
+    ));
+    // 9,000 x 300 / 6,000; 500 x 160%.
+    assert_eq!(a["gst_free_purchases"], "450.00");
+    assert_eq!(a["gst_free_sales"], "800.00");
 }

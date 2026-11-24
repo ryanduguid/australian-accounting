@@ -189,18 +189,52 @@ fn sample_invalid<T>(name: &str, why: impl std::fmt::Display) -> Result<T> {
     )
 }
 
-/// The window a sample must fall in: the first 2 months of trading when
-/// `started` is given, otherwise 1 June to 31 July (`july_half`) or 1 December
-/// to 31 January before the half it applies to.
-pub(super) fn window(period: &Period, july_half: bool, started: Option<i64>) -> (i64, i64) {
-    if let Some(started) = started {
-        return (started, dates::months_end(started, 2));
-    }
+/// Whose rule for a business that starts trading in the year applies.
+#[derive(Clone, Copy, PartialEq)]
+pub(super) enum NewBusiness {
+    /// F2017L01274 ss 6(4) and 7(3): only the first sample period (for July
+    /// to December) is replaced by one from the first 2 months of trading.
+    Retail2017,
+    /// F2026L01275 s 7 para (c): the first 2 months of trading, only when
+    /// trading starts in the half so the ordinary window cannot be used.
+    Restaurant2026,
+}
+
+/// The window a sample must fall in: 1 June to 31 July (`july_half`) or
+/// 1 December to 31 January before the half it applies to, never before
+/// trading started, or the first 2 months of trading where the rule allows.
+pub(super) fn window(
+    period: &Period,
+    july_half: bool,
+    started: Option<i64>,
+    rule: NewBusiness,
+) -> Result<(i64, i64)> {
     let (y, _, _) = dates::to_civil(period.first);
-    if july_half {
+    let ordinary = if july_half {
         (day(y, 6, 1), day(y, 7, 31))
     } else {
         (day(y, 12, 1), day(y + 1, 1, 31))
+    };
+    let Some(started) = started else {
+        return Ok(ordinary);
+    };
+    let half_start = if july_half {
+        period.first
+    } else {
+        period.january
+    };
+    let first_months = (started, dates::months_end(started, 2));
+    if started < half_start {
+        return Ok((ordinary.0.max(started), ordinary.1));
+    }
+    match rule {
+        NewBusiness::Retail2017 if july_half => Ok(first_months),
+        NewBusiness::Retail2017 => refuse(
+            "gst_food_retailer_sam.new_business_unsettled",
+            "F2017L01274 ss 6(4) and 7(3) replace only the first sample period (1 June to 31 July, for July to December) for a business that starts during the year; a business that starts trading in January to June is not worked.",
+        ),
+        NewBusiness::Restaurant2026 if started + 27 <= ordinary.1 => Ok((started, ordinary.1)),
+        NewBusiness::Restaurant2026 => Ok(first_months),
     }
 }
 

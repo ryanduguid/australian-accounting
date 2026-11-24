@@ -9,16 +9,14 @@ use serde_json::Value;
 use super::super::stated::{amount, known_keys};
 use super::super::{Arg, Result, Step, d, money, rate, refuse, step};
 use super::Method;
-use super::facts::{Given, Period, Sample, sample, started, window};
+use super::facts::{Given, NewBusiness, Period, Sample, sample, started, window};
 use crate::decimal::Decimal;
+
+mod norms;
 
 type Rates = Vec<(String, String)>;
 type Worked = (Vec<Step>, Rates);
 
-const NORMS: &str = "F2017L01274 s 5(1) table: the business norms percentages for GST-free trading sales and GST-free trading acquisitions";
-const RURAL: &str = "F2017L01274 s 5(2): fuel and Australia Post agency amounts deducted, then 22.5% (converter) or 30% (reseller) of sales and 30% of acquisitions";
-const PHARMACY_SALES: &str = "F2017L01274 s 5(3)(a): PBS prescription sales, plus 98% of non-PBS prescription sales and 47.5% of over-the-counter sales";
-const PHARMACY_PURCHASES: &str = "F2017L01274 s 5(3)(b), as the ATO reads it ('Pharmacies that also sell food'): 0% of non-PBS prescription and 2% of over-the-counter trading stock purchases";
 const EVERY: &str = "F2017L01274 s 6(3) (and s 7(4)(a)): actual GST-free trading acquisitions; GST-free sales as their share of trading stock acquisitions times total trading sales";
 const PURCHASE_SAMPLE: &str = "F2017L01274 s 6(4) (and s 7(3)(a)): the 4-week sample period percentage of GST-free trading acquisitions";
 const SALES_SAMPLE: &str =
@@ -28,30 +26,6 @@ const SUPERMARKET: &str = "F2025L01055 s 7(1), input tax credits steps 1 to 7";
 const RESTAURANT: &str = "F2026L01275 s 7: the relevant 4-week sample period's proportion of GST-free trading stock acquisitions, then one-eleventh of the rest";
 const REST: &str = "The total less the GST-free part";
 
-const TYPES: [&str; 8] = [
-    "cake_shop",
-    "continental_delicatessen",
-    "convenience_store",
-    "fresh_fish_shop",
-    "health_food_shop",
-    "hot_bread_shop",
-    "rural_convenience_store",
-    "pharmacy",
-];
-
-/// (type, sales norm, purchases norm) of F2017L01274 s 5(1) and (2).
-const NORM_TABLE: [(&str, &str, &str); 9] = [
-    ("cake_shop", "2", "95"),
-    ("continental_delicatessen", "85", "90"),
-    ("convenience_store converter", "22.5", "30"),
-    ("convenience_store reseller", "30", "30"),
-    ("fresh_fish_shop", "35", "98"),
-    ("health_food_shop", "35", "35"),
-    ("hot_bread_shop", "50", "75"),
-    ("rural_convenience_store converter", "22.5", "30"),
-    ("rural_convenience_store reseller", "30", "30"),
-];
-
 pub(super) fn work(
     m: Method,
     given: &Given,
@@ -59,7 +33,7 @@ pub(super) fn work(
     purchases: &Decimal,
 ) -> Result<Worked> {
     match m {
-        Method::BusinessNorms => business_norms(given, purchases),
+        Method::BusinessNorms => norms::business_norms(given, purchases),
         Method::StockEvery | Method::SnapEvery => every(m, given, period, purchases),
         Method::StockSamples | Method::SnapSamples => samples(m, given, period, purchases),
         Method::StockFive | Method::SnapFive => five(m, given, period, purchases),
@@ -172,149 +146,6 @@ fn pairs(
     Ok(steps)
 }
 
-fn business_norms(given: &Given, purchases: &Decimal) -> Result<Worked> {
-    let kind = given.need("retailer_type")?;
-    let Some(kind) = TYPES.into_iter().find(|t| Some(*t) == kind.text()) else {
-        return refuse(
-            "gst_food_retailer_sam.retailer_type_invalid",
-            format!("retailer_type must be one of {}.", TYPES.join(", ")),
-        );
-    };
-    if kind == "pharmacy" {
-        return pharmacy(given, purchases);
-    }
-    let key = if kind.contains("convenience") {
-        format!("{kind} {}", role(given, &["converter", "reseller"])?)
-    } else {
-        kind.to_string()
-    };
-    let sales = sales(given)?;
-    if kind == "rural_convenience_store" {
-        return rural(given, &key, &sales, purchases);
-    }
-    given.done()?;
-    let (_, s, p) = NORM_TABLE.iter().find(|row| row.0 == key).expect("a norm");
-    let names = |n| ("total_sales", n);
-    let free_sales = percent(
-        "gst_free_sales",
-        NORMS,
-        names("sales_norm_percent"),
-        &sales,
-        &d(s),
-    )?;
-    let free = percent(
-        "gst_free_purchases",
-        NORMS,
-        ("trading_stock_purchases", "purchases_norm_percent"),
-        purchases,
-        &d(p),
-    )?;
-    let rates = vec![
-        rate("sales_norm_percent", s),
-        rate("purchases_norm_percent", p),
-    ];
-    Ok((pairs(Some((&sales, free_sales)), purchases, free)?, rates))
-}
-
-/// `a x n / 100`.
-fn of(a: &Decimal, n: &str) -> Result<Decimal> {
-    Ok(a.mul(&d(n))?.div(&d("100"))?)
-}
-
-/// The fuel and Australia Post agency amounts, at most the totals.
-fn fuel_and_post(
-    given: &Given,
-    sales: &Decimal,
-    purchases: &Decimal,
-) -> Result<(Decimal, Decimal)> {
-    let fuel_sales = money(given.need("fuel_and_post_sales")?)?;
-    let fuel_purchases = money(given.need("fuel_and_post_purchases")?)?;
-    given.done()?;
-    if fuel_sales.gt(sales)? || fuel_purchases.gt(purchases)? {
-        return exceeds(
-            "fuel_and_post_sales and fuel_and_post_purchases cannot exceed total_sales and trading_stock_purchases",
-        );
-    }
-    Ok((fuel_sales, fuel_purchases))
-}
-
-fn rural(given: &Given, key: &str, sales: &Decimal, purchases: &Decimal) -> Result<Worked> {
-    let (fuel_sales, fuel_purchases) = fuel_and_post(given, sales, purchases)?;
-    let (_, s, p) = NORM_TABLE.iter().find(|row| row.0 == key).expect("a norm");
-    let free_sales = step(
-        "gst_free_sales",
-        RURAL,
-        "(total_sales - fuel_and_post_sales) x sales_norm_percent / 100",
-        &[sales, &fuel_sales, &d(s)],
-        of(&sales.sub(&fuel_sales)?, s)?,
-    );
-    let free = step(
-        "gst_free_purchases",
-        RURAL,
-        "(trading_stock_purchases - fuel_and_post_purchases) x purchases_norm_percent / 100",
-        &[purchases, &fuel_purchases, &d(p)],
-        of(&purchases.sub(&fuel_purchases)?, p)?,
-    );
-    let rates = vec![
-        rate("sales_norm_percent", s),
-        rate("purchases_norm_percent", p),
-    ];
-    Ok((pairs(Some((sales, free_sales)), purchases, free)?, rates))
-}
-
-/// A pharmacy's 3 sales and 2 purchase components, which must add up to the
-/// totals: PBS, non-PBS and over-the-counter sales, then non-PBS and
-/// over-the-counter purchases.
-fn pharmacy_parts(given: &Given, sales: &Decimal, purchases: &Decimal) -> Result<[Decimal; 5]> {
-    let mut parts = Vec::new();
-    for key in [
-        "pbs_sales",
-        "non_pbs_sales",
-        "otc_sales",
-        "non_pbs_purchases",
-        "otc_purchases",
-    ] {
-        parts.push(money(given.need(key)?)?);
-    }
-    given.done()?;
-    let sold = parts[0].add(&parts[1])?.add(&parts[2])?;
-    let bought = parts[3].add(&parts[4])?;
-    if !sold.equals(sales)? || !bought.equals(purchases)? {
-        return refuse(
-            "gst_food_retailer_sam.components_unbalanced",
-            "pbs_sales, non_pbs_sales and otc_sales must add up to total_sales, and non_pbs_purchases and otc_purchases to trading_stock_purchases: s 5(3)(b) gives no norm for any other purchase.",
-        );
-    }
-    Ok(parts.try_into().expect("5 parts"))
-}
-
-fn pharmacy(given: &Given, purchases: &Decimal) -> Result<Worked> {
-    let sales = sales(given)?;
-    let [pbs, non_pbs, otc, non_pbs_p, otc_p] = pharmacy_parts(given, &sales, purchases)?;
-    let value = pbs.add(&of(&non_pbs, "98")?)?.add(&of(&otc, "47.5")?)?;
-    let free_sales = step(
-        "gst_free_sales",
-        PHARMACY_SALES,
-        "pbs_sales + non_pbs_sales x non_pbs_sales_norm_percent / 100 + otc_sales x otc_sales_norm_percent / 100",
-        &[&pbs, &non_pbs, &d("98"), &otc, &d("47.5")],
-        value,
-    );
-    let free = step(
-        "gst_free_purchases",
-        PHARMACY_PURCHASES,
-        "non_pbs_purchases x non_pbs_purchases_norm_percent / 100 + otc_purchases x otc_purchases_norm_percent / 100",
-        &[&non_pbs_p, &d("0"), &otc_p, &d("2")],
-        of(&otc_p, "2")?,
-    );
-    let rates = vec![
-        rate("non_pbs_sales_norm_percent", "98"),
-        rate("otc_sales_norm_percent", "47.5"),
-        rate("non_pbs_purchases_norm_percent", "0"),
-        rate("otc_purchases_norm_percent", "2"),
-    ];
-    Ok((pairs(Some((&sales, free_sales)), purchases, free)?, rates))
-}
-
 /// Actual GST-free trading stock purchases, at most the total.
 fn actual(given: &Given, purchases: &Decimal) -> Result<Step> {
     let free = money(given.need("gst_free_purchases")?)?;
@@ -340,7 +171,7 @@ fn half_window(given: &Given, period: &Period) -> Result<(i64, i64)> {
         );
     };
     let started = started(given.may("trading_started"), period)?;
-    Ok(window(period, july_half, started))
+    window(period, july_half, started, NewBusiness::Retail2017)
 }
 
 fn sales_from_sample(
@@ -557,13 +388,9 @@ fn restaurant(given: &Given, period: &Period, purchases: &Decimal) -> Result<Wor
             "F2026L01275 s 7 gives a sample period for a tax period wholly in July to December or wholly in January to June.",
         );
     };
+    let win = window(period, july_half, started, NewBusiness::Restaurant2026)?;
     let mut rates = Rates::new();
-    let (free, _) = purchases_from_sample(
-        given,
-        purchases,
-        window(period, july_half, started),
-        &mut rates,
-    )?;
+    let (free, _) = purchases_from_sample(given, purchases, win, &mut rates)?;
     given.done()?;
     let free = Step {
         authority: RESTAURANT,

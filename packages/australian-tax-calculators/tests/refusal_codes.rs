@@ -54,6 +54,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/super_benefit_tax",
         "engine/gst_adjustments",
         "engine/gst_food_retailer_sam",
+        "engine/gst_food_retailer_sam/methods",
         "engine/deferred_tax",
         "engine/leave_provisions",
         "engine/long_service_leave",

@@ -4440,6 +4440,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The tax period starts before the method's determination commenced.",
     ),
     (
+        "gst_food_retailer_sam.new_business_unsettled",
+        "A 2017 sample method for a business that started trading in January to June, which the determination does not settle.",
+    ),
+    (
         "gst_food_retailer_sam.not_eligible",
         "A stated eligibility condition of the method is not met.",
     ),

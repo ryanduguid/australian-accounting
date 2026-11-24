@@ -103,10 +103,18 @@ const RETAIL_2017: [Condition; 3] = [
 const FIVE_PERCENT: Condition = (
     "projected_gst_free_at_most_5_percent",
     Want::True,
-    "F2017L01274 s 6(5) or s 7(5): the projected GST-free share is not more than 5%",
+    "F2017L01274 s 6(5) or s 7(5): the projected GST-free share is not more than 5% (exactly 5% qualifies)",
 );
 
-const SUPERMARKET: [Condition; 6] = [
+/// The business norms suit only a business that meets every part of its
+/// retailer type's s 8 definition, which the operator establishes.
+const DEFINITION: Condition = (
+    "retailer_type_definition_met",
+    Want::True,
+    "F2017L01274 s 5 and s 8: the business meets every part of the definition of its retailer_type",
+);
+
+const SUPERMARKET: [Condition; 7] = [
     ("registered_throughout", Want::True, "F2025L01055 s 6(a)"),
     (
         "mainly_supermarket_or_convenience_range",
@@ -129,6 +137,11 @@ const SUPERMARKET: [Condition; 6] = [
         "F2025L01055 s 6(e)",
     ),
     ("mainly_sells_fuel", Want::False, "F2025L01055 s 6(f)"),
+    (
+        "section_7_3_goods_left_out",
+        Want::True,
+        "F2025L01055 s 7(3): trading_stock_purchases, gst_free_sales and total_sales leave out goods not held for sale or exchange, goods outside the range commonly sold at supermarkets or convenience stores, goods held in substantially greater quantity or variety and alcoholic beverages",
+    ),
 ];
 
 const RESTAURANT: [Condition; 3] = [
@@ -163,6 +176,11 @@ impl Method {
             Method::StockFive | Method::SnapFive => {
                 let mut all = RETAIL_2017.to_vec();
                 all.push(FIVE_PERCENT);
+                all
+            }
+            Method::BusinessNorms => {
+                let mut all = RETAIL_2017.to_vec();
+                all.push(DEFINITION);
                 all
             }
             _ => RETAIL_2017.to_vec(),

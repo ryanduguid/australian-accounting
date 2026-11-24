@@ -762,7 +762,8 @@ fn cases() -> Vec<(&'static str, Value)> {
                                    "converted_taxable_sales_under_5_percent": true,
                                    "gst_turnover": "1800000.00",
                                    "adequate_point_of_sale_equipment": true,
-                                   "mainly_sells_fuel": false},
+                                   "mainly_sells_fuel": false,
+                                   "section_7_3_goods_left_out": true},
                    "year": "2025-26", "scope_confirmed": true}),
         ),
         (

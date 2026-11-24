@@ -2564,7 +2564,18 @@ $1,773). Anita's and Anil's examples were written for the repealed
 determinations; the current ones repeat their arithmetic. For a pharmacy, s
 5(3)(b) applies 0% and 2% 'to total trading stock acquisitions'; the
 worksheet follows the ATO's reading, each norm to that component's
-purchases, and refuses purchases outside the 2 components.
+purchases. Requiring the 2 components to make up all trading stock purchases,
+and so refusing a pharmacy with other purchases such as PBS stock, is the
+worksheet's own limit, not a requirement of s 5(3)(b).
+
+For a business that starts in the year, ss 6(4) and 7(3) of the 2017
+determination replace only the first sample period, the one for July to
+December, with a sample from the first 2 months of trading; a later half
+uses its ordinary window, and a business that starts in January to June is
+refused. F2026L01275 s 7 para (c) gives the first 2 months only where trading
+starts during a tax period and paras (a) and (b) cannot be applied; the
+worksheet applies it to the half in which trading starts, when a 28-day
+sample after the start cannot fit in the ordinary window.
 
 ## Insurance duty
 

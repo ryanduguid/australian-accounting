@@ -6206,7 +6206,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("tax_period_start", "YYYY-MM-DD in the year: the first day of the tax period"),
             ("tax_period_end", "YYYY-MM-DD in the year: the last day of the tax period"),
             ("trading_stock_purchases", "AUD: total trading stock acquisitions for the tax period (on a cash basis, the consideration provided; otherwise, as each determination counts them)"),
-            ("eligibility", "object of stated facts: the 2017 methods take same_premises_taxable_and_gst_free_food, sam_turnover and adequate_point_of_sale_equipment, plus projected_gst_free_at_most_5_percent for the 5% methods; supermarket_sales_percentage takes registered_throughout, mainly_supermarket_or_convenience_range, converted_taxable_sales_under_5_percent, gst_turnover, adequate_point_of_sale_equipment and mainly_sells_fuel; restaurant_purchases_snapshot takes registered_throughout, restaurant_cafe_or_catering and gst_turnover"),
+            ("eligibility", "object of stated facts: the 2017 methods take same_premises_taxable_and_gst_free_food, sam_turnover and adequate_point_of_sale_equipment, plus projected_gst_free_at_most_5_percent for the 5% methods and retailer_type_definition_met for business_norms; supermarket_sales_percentage takes registered_throughout, mainly_supermarket_or_convenience_range, converted_taxable_sales_under_5_percent, gst_turnover, adequate_point_of_sale_equipment, mainly_sells_fuel and section_7_3_goods_left_out; restaurant_purchases_snapshot takes registered_throughout, restaurant_cafe_or_catering and gst_turnover"),
         ],
         "gst_going_concern" => vec![
             ("for_consideration", "boolean: the supply is for consideration (GST Act s 38-325(1)(a))"),

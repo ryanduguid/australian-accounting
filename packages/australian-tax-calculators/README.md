@@ -2866,7 +2866,16 @@ gives. `method` is one of:
 `eligibility` holds each determination's conditions as stated facts (for the
 2017 methods, sales from the same premises, a SAM turnover of $2 million or
 less and no adequate point-of-sale equipment); a condition not met is refused
-and named. The shares are exact and the amounts shown to the cent. It refuses
+and named. The operator establishes the facts: for `business_norms`,
+`retailer_type_definition_met` states that the business meets every part of
+its type's s 8 definition, and for the supermarket method
+`section_7_3_goods_left_out` states that purchases and sales leave out the
+goods s 7(3) sends to other credits. A projected GST-free share of exactly 5%
+qualifies for the 5% methods. A business that starts trading in the year
+samples its first 2 months: under the 2017 methods only for July to December
+(one starting in January to June is refused), and under the restaurant
+method only when the ordinary window cannot hold a sample after trading
+starts. The shares are exact and the amounts shown to the cent. It refuses
 a tax period before the method's determination commenced (an annual
 restaurant tax period cannot start on or after 24 September 2026 within
 2026-27), a sample of the wrong length or outside its window, a 2017 sample
@@ -2877,6 +2886,7 @@ sales, other acquisitions' credits, adjustments and which goods are GST-free
 or trading stock. The tests hold it to the ATO's examples (Carlo, Connie,
 Andrew, Valda, Lee, Anita and Anil); see
 [calculation evidence](docs/calculation-evidence.md#gst-food-retailer-sam).
+
 ## Transfer duty
 
 `transfer-duty` works out the transfer (stamp) duty on one dutiable transaction

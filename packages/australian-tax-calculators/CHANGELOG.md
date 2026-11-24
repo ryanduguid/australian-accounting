@@ -12,6 +12,7 @@
   cafe and caterer method of F2026L01275, with trading stock input tax
   credits for the last 2. New codes: `gst_food_retailer_sam.amount_exceeds_total`,
   `components_unbalanced`, `method_invalid`, `method_not_in_force`,
+  `new_business_unsettled`,
   `not_eligible`, `retailer_type_invalid`, `sample_invalid`,
   `stock_role_invalid`, `tax_period_invalid`, `tax_period_spans_halves` and
   `total_nil`.
