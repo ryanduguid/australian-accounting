@@ -1,11 +1,18 @@
 # v1.0.0
 
-Unreleased standalone Rust major version. Python imports are removed; former API
-operations are JSON subcommands. See [CHANGELOG.md](CHANGELOG.md) for migration,
-verification and documented divergences, and [README.md](README.md) to build it.
+Standalone Rust major release. The package moves from Python (`0.2.0`) to an
+attested standalone native executable; Python imports (`edwinnixon`) are
+removed and the former API operations are exposed as JSON stdin subcommands
+(`--api-help`). `--version` prints `the-exchequer-tally 1.0.0`.
 
-Relicensed from Apache-2.0 to FSL-1.1-ALv2 (Functional Source License, with
-Apache-2.0 as the future licence). Released versions keep their licence.
+Licensed under `AGPL-3.0-or-later` with section 7(b) attribution terms (see
+`LICENSE` and `NOTICE`). Historical Python releases (`<=0.2.0`) keep their own
+licences.
+
+GitHub Releases provides attested x86-64 Linux (static musl) and Windows
+executables through `.github/workflows/release-the-exchequer-tally.yml`. See
+[CHANGELOG.md](CHANGELOG.md) for migration, verification and documented
+divergences, and [README.md](README.md) for usage and build instructions.
 
 # v0.2.0
 
