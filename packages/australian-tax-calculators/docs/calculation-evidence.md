@@ -5548,6 +5548,21 @@ read.
   found for the repealed section. Its rule is taken from the ATO page and
   TR 98/9, which state and apply it.
 
+The hours diary and log book inputs were added on 24 November 2026, when
+PCG 2023/1 (16 April 2025, still the latest version in its history table),
+paras 16, 18, 23 to 34, 56 to 62 and 68 to 72 and Table 1; ITAA 1997
+ss 28-90, 28-95, 28-100, 28-110 to 28-130, 28-140, 28-150 and 28-155 in compilation
+C2026C00471 (No. 268, 1 October 2026) on the Federal Register of
+Legislation; and the ATO's 'Logbook method' (12 June 2026) were read again.
+A diary is read only from 2022-23 (para 16), since the record rules for the
+52c rate and the shortcut were not read again. The log book period may run
+into the next or previous income year so long as it includes part of the
+year it is kept for (s 28-120(2)). The year's business kilometres from a log
+book are the year's total kilometres times the log book percentage, the
+estimate s 28-90(5)(a) asks for and the ATO's steps 1 to 5 apply; Lana's
+69% is reproduced from a 12 week log book of 2,070 business kilometres in
+3,000.
+
 Choices the sources leave to the reader:
 
 - PCG 2023/1 Table 1 gives 70c 'From 1 July 2024' with no end, so 2026-27

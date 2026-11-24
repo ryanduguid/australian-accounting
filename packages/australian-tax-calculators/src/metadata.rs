@@ -3074,7 +3074,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         "work_expenses" => vec![
             (
                 "hours",
-                "hours, at most 2 decimal places, for home_office only, and then required: the actual hours worked from home in the year, from a record kept at the time (PCG 2023/1 paras 56 to 59), at most 24 x the days in the year",
+                "hours, at most 2 decimal places, for home_office only, and then required unless hours_diary is given: the actual hours worked from home in the year, from a record kept at the time (PCG 2023/1 paras 56 to 59), at most 24 x the days in the year",
             ),
             (
                 "energy",
@@ -3122,7 +3122,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "business_kilometres",
-                "kilometres, at most 2 decimal places, for car_cents_per_kilometre and car_log_book only, and then required: the reasonable estimate of business kilometres the car travelled in the year, or for car_log_book in the period held in the year (ss 28-25(3) and 28-90(5))",
+                "kilometres, at most 2 decimal places, for car_cents_per_kilometre and car_log_book only, and then required (for car_log_book, unless log_book is given): the reasonable estimate of business kilometres the car travelled in the year, or for car_log_book in the period held in the year (ss 28-25(3) and 28-90(5))",
             ),
             (
                 "total_kilometres",
@@ -3138,7 +3138,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "log_book_weeks",
-                "integer, for car_log_book only, and then required: the continuous weeks the log book covers, at least 12 (s 28-120(1))",
+                "integer, for car_log_book only, and then required unless log_book is given: the continuous weeks the log book covers, at least 12 (s 28-120(1))",
             ),
             (
                 "log_book_representative",
@@ -3191,6 +3191,14 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "australian_resident",
                 "boolean, for 2026-27 only, with the other 2 standard deduction facts or none: an Australian resident at any time in the year (s 25-130(1)(b))",
+            ),
+            (
+                "hours_diary",
+                "list, for home_office from 2022-23 only, instead of hours: 1 to 3,000 rows {date YYYY-MM-DD inside the year, hours above 0 at most 2 decimal places}, at most 24 hours on any date; their total is the year's hours (PCG 2023/1 paras 26(a) and 58)",
+            ),
+            (
+                "log_book",
+                "object, for car_log_book only, instead of log_book_weeks and business_kilometres: {period_start, period_end (YYYY-MM-DD, at least 84 days and including part of log_book_year), odometer_start, odometer_end, journeys: 1 to 3,000 rows {start, end, odometer_start, odometer_end, purpose}} (ITAA 1997 ss 28-120 and 28-125); the year's business kilometres are total_kilometres x the log book percentage (s 28-90(5))",
             ),
         ],
         "ato_interest_penalties" => vec![
