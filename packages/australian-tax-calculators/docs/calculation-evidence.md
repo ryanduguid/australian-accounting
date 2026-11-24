@@ -2658,6 +2658,35 @@ and refusals beside them.
 | $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
 | $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
+## Payroll tax group
+
+This worksheet was added on 24 November 2026. Each Act was read that day,
+from 12:10 to 12:50 AEDT, at its official legislation site: the Payroll Tax
+Act 2007 (Vic) Pt 5 and Sch 1 Pts 3 and 4 (authorised version 041, in force
+from 1 May 2026); the Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and
+Pt 4 (current reprint); the Pay-roll Tax Assessment Act 2002 (WA) s 17 and
+Pt 4 (version 04-d0-03, current from 1 July 2019); the Payroll Tax Act 2009
+(SA) Pt 5 and Sch 1 Pt 3 (version 31.3.2026); the Payroll Tax Act 2011 (ACT)
+Pt 5 and Sch 1 Pts 1.3 and 1.4; and the Payroll Tax Act 2008 (Tas) and
+Payroll Tax Act 2009 (NT) Pt 5. legislation.nsw.gov.au answered with a
+Cloudflare challenge, so New South Wales is refused; the Tasmanian (Sch 1
+cl 8 to 9B) and Northern Territory (Sch 1 cl 7) group formulas are images
+the text does not carry, so both are refused. SRO Victoria's 'Grouping' and
+QRO's 'Payroll tax deductions' were read the same day.
+
+| Case | Source | Result |
+|---|---|---|
+| 80% x 70% = 56% groups; x 40% = 22.4% does not | Payroll Tax Act 2007 (Vic) s 77(5) | B grouped, C not |
+| 40% + 25% x 60% = 55% | s 78(3) (here 40% + 30% x 50%) | grouped; 50% exactly is not |
+| Ian controls A, A controls Partnership B | SRO Victoria, 'Grouping' | A, B (and C) grouped; Ian not |
+| Lucy, object of a discretionary trust whose trustee holds 80% of Trading Co | SRO Victoria, 'Grouping' | Trading Co and Lucy's café grouped |
+| $2,000,000, $4,000,000 and $2,000,000 of $4,000,000 in Victoria | Sch 1 cl 7A | $1,000,000; $500,000; $250,000 |
+| $1,000,000 (DGE) and $400,000 in Queensland | s 33, ss 45 and 48(2); QRO | $1,285,714.29; DGE $1,000,000; B $285,714.29 |
+| $800,000 and $700,000 in Western Australia | s 17(3A) | $923,076.92, with or without a DGE |
+| $1,800,000 in South Australia; $2,500,000 in the ACT | SA Sch 1 cl 9(2); ACT Sch 1 s 1.9(2) | $600,000; $1,750,000 |
+
+`tests/payroll_tax_group.rs` holds these cases.
+
 ## Transfer duty
 
 This worksheet was added on 24 November 2026. Each source was read that day:
@@ -2729,6 +2758,42 @@ Revenue NSW's calculator does; s 78A prescribes no rounding.
 
 `tests/transfer_duty.rs` holds these cases, Victoria's rounding at $3.50,
 $10.50 and $52,805.50, and the refusals.
+
+## Quoted source passages
+
+`transfer-duty`, `foreign-purchaser-surcharge`, `land-tax` and
+`first-home-owner-grant` add `source_quotes` to each result: for the
+jurisdiction given, the passage of the Act, determination or revenue office
+page that states the scale, rate or grant applied, with its provision, the
+document's title, its URL and `verified`, the day it was read. Their
+catalogue entries hold every jurisdiction's passages, which
+`data/source-quotes.json` keeps. Both are added fields:
+a consumer that refuses unknown fields must allow `source_quotes`. Each
+passage was read at the official site on 24 November 2026 and extracted
+from the page's text, not retyped: line and table row breaks are newlines,
+table cells are joined by a tab, non-breaking spaces are spaces and
+zero-width characters are left out.
+
+An Act or a determination is the law; a revenue office page is the office's
+statement of it, quoted where the Act could not be read that day or the page
+states the current figure. Where a page and the Act differ the command
+follows the Act, as its steps say: Queensland's absentee surcharge page
+gives (taxable value - $350,000) x 3%, and the Act's 3.0 cents for each $1
+more than $349,999 is applied. Revenue NSW's pages stand for the NSW land
+tax and grant Acts, which could not be read that day; New South Wales's and
+Western Australia's duty surcharge passages are the revenue offices' because
+AustLII refused the request. The Northern Territory's surcharge passages
+are the Stamp Duty Act's conveyance scale, which sets no rate for a foreign
+purchaser, and the NT Government's statement that the Territory levies no
+land tax; no passage states in terms that it charges no foreign purchaser
+duty. The ACT's first home owner grant passage states that no grant is paid
+for a commencement date from 1 July 2019, which the command refuses.
+
+`tests/source_quotes.rs` checks that every jurisdiction of the 4 commands
+has a passage with a provision, an official URL and its date, that each
+passage states the figure the command applies, that each result carries
+its jurisdiction's passages, and that no other worksheet or command gains
+them.
 
 ## Depreciation
 
@@ -5222,18 +5287,32 @@ differs, the Act is followed:
 - a Victorian, Western Australian or Northern Territory home bought for less
   than the grant gets the price (Vic s 18(1A), WA s 19(2CA), NT s 18(1));
   the page refuses;
-- a Victorian home built over $750,000 in total is refused, as the cap is on
-  the consideration for the building work (s 13(1A) and (7)(b)); the page
-  pays nil.
+- a Victorian home built over $750,000 in total is refused without
+  `contract_price`, as the cap is on the consideration for the building work
+  (s 13(1A) and (7)(b)); the page pays nil.
+
+A home built's optional `contract_price` (read again on 24 November 2026)
+is that consideration: 'the total consideration payable for the building
+work' (Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas
+s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b)). Each Act read pays the lesser of
+the consideration and the amount (Qld s 20(1) and s 25EB, Vic s 18(1A),
+WA s 19(2CA), SA, Tas, NT and ACT s 18(1); in the NT 'the amount of
+consideration actually paid'), so below the amount the grant is the contract
+price; the ACT still pays nil. In Victoria the contract price is the value
+the $750,000 cap tests. A New South Wales contract price below $10,000 is
+refused, as that Act could not be read. Owner builders, whose consideration
+is the actual costs less their own labour (s 13(7)(c) and its equivalents),
+stay outside the command.
 
 The value tested against the cap is the one each source names, kept apart
 from the consideration that limits the grant. For a home bought that is
 `total_value`, the price. For a home built every Act read on 24 November
 2026 makes it the building work alone (Qld schedule 'consideration' (b),
 WA s 14AB(b), Vic, SA and Tas s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b);
-the New South Wales Act could not be read), not the land and contract total: the command pays the amount only when
-`building_contract` states the contract is at least the grant, refuses
-without it, and never limits a built home's grant by `total_value`. In Queensland
+the New South Wales Act could not be read), not the land and contract total: the command pays the lesser of
+`contract_price` and the amount, or the amount when `building_contract`
+states the contract is at least the grant, refuses with neither, and never
+limits a built home's grant by `total_value`. In Queensland
 and Western Australia the optional `cap_value` carries the value the Act
 tests where it differs: for a home bought, the unencumbered value of the home
 and land at the contract date, tested with the price as the greater of the 2
@@ -5257,6 +5336,9 @@ typed from the rules above.
 | SA bought for $10,000 | RevenueSA's example | $10,000 |
 | Tas built on 30 June and 1 July 2026 | Tas Act ss 18L, 18M | $30,000; $20,000 |
 | NT established on 30 September and 1 October 2025 | NT Act ss 13(1)(a), 18(3D) | $10,000; nil |
+| Qld built, contract $29,999, $30,000 and $1 | Qld Act s 20(1), schedule 'consideration' (b) | $29,999; $30,000; $1 |
+| Vic built, $900,000 total, contract $750,000 and $750,001 | Vic Act ss 13(1A), 13(7)(b), 18(1A) | $10,000; nil |
+| NSW built, contract $9,999 | Revenue NSW (Act unread) | refused |
 
 ## PSI test
 
@@ -5864,6 +5946,71 @@ and only the rest is remeasured (paras 47 and 60(a)).
 offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
+
+## WIP lock-up
+
+Added on 24 November 2026. The site's `tools/wip-schedule` page, read that day
+from the site's main branch, is the construction WIP page for The WIP Tally
+(AASB 15 cost-to-cost progress): it has no calculator script, no ageing and no
+lock-up, and its one worked example is The WIP Tally's own test. The
+definitions mirrored are Ozzit's, published on the site as
+`assets/ozzit-function-reference-v3.7.0.json`: `oz.WIPDaysλ(WIP,
+RelatedFlow, [Days])` and `oz.ReceivableDaysλ(Receivables, Sales, [Days])`,
+each balance / flow x Days with Days defaulting to 365, a nil flow giving
+#DIV/0! and Days of 0 or less #NUM!, and lock-up days as WIP days plus
+receivable days (the WIPDaysλ note). No Standard or Act defines lock-up or
+the ageing buckets.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| O1 | `=oz.WIPDaysλ(42000, 510000)` | **30.0588** |
+| O2 | `=oz.ReceivableDaysλ(125000, 1200000)` | **38.0208** |
+| O3 | `=oz.ReceivableDaysλ(125000, 330000, 90)` | **34.0909** |
+| O4 | O1 and O2 together | lock-up **68.0797** |
+| W1 | as at 30 Jun 2026: $5,000 (age 0), $7,500 (30), $2,500 (31), $4,000 (90), $3,000 (91), $1,250.50 (211); fees $300,000, receivables $60,000, billings $320,000 | buckets **$12,500.00**, **$2,500.00**, **$4,000.00**, **$4,250.50**; WIP days **28.29**, receivable days **68.44**, lock-up **96.73** |
+
+O1 to O3 are the reference's published examples; W1 is made up and worked in
+Python's `decimal`. `tests/wip_lockup.rs` also covers stated buckets, each
+bound on buckets, days and entries, the year boundaries and every refusal.
+
+## Impairment test
+
+Added on 24 November 2026, when the sources were read: AASB 136 compilation
+COMPjan26_07-26 (F2026C01108, periods beginning from 1 July 2026 to before
+1 January 2029) with its tables of amendments, and compilation COMPdec22_01-23
+for earlier periods. Since the August 2015 Standard the tables list changes to
+paras 2 and 140N (AASB 17), Aus2.1, Aus5.1, Aus6.1, Aus6.2, Aus32.1 and
+Aus32.2 (AASB 2016-4), Aus141.1, Appendix E (AASB 1060) and Illustrative
+Example 10 (AASB 2026-1) only; none of paras 6, 18 to 20, 30 to 33, 39, 50 to
+57, 59 to 62, 104 and 105 changed, so the rules applied read the same for
+every reporting period ending in 2020-21 to 2026-27.
+
+Illustrative Example 2 (IE23 to IE32) gives the Country A unit's cash flows
+for 20X2 to 20Y2 (230, 253, 273, 290, 304, 313, 307, 289, 245, 184 and 61) at
+15%, goodwill of 1,000 and identifiable assets of 1,833. Schedule 2 rounds
+each discounted flow to whole units (200, 191, 180, 166, 151, 135, 115, 94,
+70, 45 and 13) and totals 1,360; Schedule 3 recognises 1,473 (goodwill 1,000,
+identifiable assets 473). Unrounded, value in use is 1,361.20 and the loss
+1,471.80 (goodwill 1,000.00, identifiable assets 471.80): each year's present
+value rounds to Schedule 2's figure, and the totals differ only by Schedule
+2's rounding of each line. E2 so reconciles the 2 rounding conventions; it
+does not reproduce Schedule 3's 1,473. I2 to I7 are made up and worked in
+Python's `decimal`.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| E2 | Example 2 as above | value in use **$1,361.20**, loss **$1,471.80**: goodwill $1,000.00, other $471.80 |
+| I2 | goodwill 200, plant 600 with floor 550, building 400; fair value less costs of disposal 700 | loss **$500.00**: goodwill $200, plant $50 at its floor, building **$250** |
+| I3 | goodwill 100, A 500 floor 450, B 300 floor 280; recoverable nil | loss **$900.00**: goodwill $100, A $50, B $20, unallocated **$730** |
+| I4 | recoverable above carrying | no loss |
+| I5 | 12,000, 12,500, 13,000, 13,500, 14,000 and terminal 40,000 at 9.25% | value in use **$75,599.58** |
+| I6 | 3 assets of $100.00, loss $100.00 | **$33.33**, **$33.34**, **$33.33** |
+| I7 | A 300 floor 290, B 300 floor 295, nil, C 700, D 200; loss $100.00 | A and B reach their floors in one round (**$10.00**, **$5.00**); C **$66.11**, D **$18.89** |
+
+`tests/impairment_test.rs` also covers the year boundaries, negative cash
+flows and terminal values, an unmeasurable fair value, floors above carrying
+amount, losses a cent below goodwill and a cent above the carrying amount, a
+non-controlling interest without goodwill and every refusal.
 
 ## Leave provisions
 

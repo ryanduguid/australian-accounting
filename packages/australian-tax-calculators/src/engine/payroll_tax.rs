@@ -22,7 +22,9 @@ use super::{
 };
 use crate::decimal::Decimal;
 
+mod group;
 mod surcharges;
+pub use group::{PayrollTaxGroupArgs, payroll_tax_group};
 use surcharges::{queensland, victoria};
 
 const KIND: &str = "payroll_tax";
