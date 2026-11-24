@@ -479,6 +479,85 @@ pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> 
         taxable_income,
         &year,
         meta::RESIDENT_TAX_SCALES,
+        None,
+    )?;
+    year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
+    Ok(out)
+}
+
+/// Income Tax Rates Act 1986 s 20(1), with ss 16 and 18, compilation 66
+/// (1 July 2026), whose Division 4 reads the same in the compilations of
+/// 1 July 2024 and 28 March 2025 apart from s 16's list, all read on
+/// 23 November 2026.
+const PART_YEAR_THRESHOLD: &str = "Income Tax Rates Act 1986 s 20(1) and s 3(1): with one or more part-year residency periods (s 18(1)), the Schedule 7 Part I table applies as if its tax-free threshold were (the $18,200 tax-free threshold - $4,736) + $4,736 x the number of months in the year of income during which there is a part-year residency period / 12";
+const ELIGIBLE_PENSIONER: &str = "Income Tax Rates Act 1986 s 18(2)(a): no period is a part-year residency period for an eligible pensioner (s 16), so the full $18,200 tax-free threshold applies";
+
+/// The pro-rated tax-free threshold (s 20(1)), or $18,200 for an eligible
+/// pensioner (s 18(2)(a)).
+fn part_year_threshold(months: &Arg, eligible_pensioner: Option<&Arg>) -> Result<Step> {
+    let m = match months.int() {
+        Some(Some(n)) if (1..=12).contains(&n) => int(n),
+        _ => {
+            return refuse(
+                "input.count_invalid",
+                "part_year_residency_months must be an integer from 1 to 12.",
+            );
+        }
+    };
+    let Some(pensioner) = eligible_pensioner else {
+        return refuse(
+            "input.missing_field",
+            "eligible_pensioner is required with part_year_residency_months.",
+        );
+    };
+    if flag(pensioner, "eligible_pensioner")? {
+        let full = int(18200);
+        return Ok(step(
+            "tax_free_threshold",
+            ELIGIBLE_PENSIONER,
+            "18200",
+            &[],
+            full,
+        ));
+    }
+    let value = precise(|| Ok(int(13464).add(&int(4736).mul(&m)?.div(&int(12))?)?))?;
+    let formula = "18200 - 4736 + 4736 x part_year_residency_months / 12";
+    Ok(step(
+        "tax_free_threshold",
+        PART_YEAR_THRESHOLD,
+        formula,
+        &[&m],
+        value,
+    ))
+}
+
+/// `resident_tax`, or for a person resident for part of the year the same with
+/// the tax-free threshold pro-rated by `months` unless the person is an
+/// eligible pensioner.
+pub fn resident_tax_part_year(
+    taxable_income: &Arg,
+    year: &Arg,
+    scope_confirmed: &Arg,
+    months: Option<&Arg>,
+    eligible_pensioner: Option<&Arg>,
+) -> Result<Value> {
+    let Some(months) = months else {
+        if eligible_pensioner.is_some() {
+            return refuse(
+                "input.field_unknown",
+                "eligible_pensioner is an input only with part_year_residency_months.",
+            );
+        }
+        return resident_tax(taxable_income, year, scope_confirmed);
+    };
+    let year = scope(scope_confirmed, year, "resident_tax")?;
+    let threshold = part_year_threshold(months, eligible_pensioner)?;
+    let mut out = basic_tax(
+        "resident_tax",
+        taxable_income,
+        &year,
+        meta::RESIDENT_TAX_SCALES,
+        Some(threshold),
     )?;
     year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
     Ok(out)
@@ -506,6 +585,7 @@ pub fn foreign_resident_tax(
         taxable_income,
         &year,
         meta::FOREIGN_RESIDENT_TAX_SCALES,
+        None,
     )?;
     year_warning(&mut out, texts::FOREIGN_RESIDENT_YEAR_WARNINGS, &year);
     Ok(out)
@@ -565,20 +645,24 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
 }
 
 /// Basic income tax on whole-dollar taxable income: each band of the year's
-/// scale at its rate.
-fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -> Result<Value> {
-    let income = money(taxable_income)?;
-    whole_dollars(&income, "taxable income")?;
-    let scale = lookup(scales, year);
-    let rates: Vec<(String, String)> = scale
-        .iter()
-        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
-        .collect();
+/// scale at its rate. `threshold`, when given, is the step for a part-year
+/// resident's tax-free threshold, which replaces the first band's lower limit.
+/// The tax, each band's term and the values the terms read.
+type Bands<'a> = (Decimal, Vec<String>, Vec<(&'a str, Decimal)>);
+
+/// The tax of each band of `scale` on `income`, with its terms and the values
+/// they read; the first band starts at `threshold` when one is given.
+fn tax_by_band<'a>(
+    scale: &[(i64, Option<i64>, &'static str)],
+    rates: &'a [(String, String)],
+    income: &Decimal,
+    threshold: Option<&Step>,
+) -> Result<Bands<'a>> {
     let mut values = vec![("taxable_income_used", income.clone())];
     let mut terms = Vec::new();
     let tax = precise(|| {
         let mut tax = int(0);
-        for ((low, high, rate), (name, _)) in scale.iter().zip(&rates) {
+        for (i, ((low, high, rate), (name, _))) in scale.iter().zip(rates).enumerate() {
             let (ceiling, top) = match high {
                 None => (income.clone(), "taxable_income_used".to_string()),
                 Some(high) => (
@@ -586,29 +670,56 @@ fn basic_tax(kind: &str, taxable_income: &Arg, year: &str, scales: &TaxScales) -
                     format!("min(taxable_income_used, {high})"),
                 ),
             };
-            let band = py_max(int(0), ceiling.sub(&int(*low))?)?;
+            let (floor, label) = match threshold {
+                Some(t) if i == 0 => {
+                    values.push(("tax_free_threshold", t.value.clone()));
+                    (t.value.clone(), "tax_free_threshold".to_string())
+                }
+                _ => (int(*low), low.to_string()),
+            };
+            let band = py_max(int(0), ceiling.sub(&floor)?)?;
             tax = tax.add(&band.mul(&d(rate))?)?;
-            terms.push(format!("max(0, {top} - {low}) x {name}"));
+            terms.push(format!("max(0, {top} - {label}) x {name}"));
             values.push((name.as_str(), d(rate)));
         }
         Ok(tax)
     })?;
-    let steps = vec![
-        step(
-            "taxable_income_used",
-            "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
-            "taxable_income",
-            &[&income],
-            income.clone(),
-        ),
-        step_by_name(
-            "basic_income_tax",
-            basic_tax_authority(kind, year),
-            &terms.join(" + "),
-            &values,
-            tax,
-        ),
-    ];
+    Ok((tax, terms, values))
+}
+
+fn basic_tax(
+    kind: &str,
+    taxable_income: &Arg,
+    year: &str,
+    scales: &TaxScales,
+    threshold: Option<Step>,
+) -> Result<Value> {
+    let income = money(taxable_income)?;
+    whole_dollars(&income, "taxable income")?;
+    let scale = lookup(scales, year);
+    let mut rates: Vec<(String, String)> = scale
+        .iter()
+        .map(|(low, _, r)| rate(&format!("over_{low}"), r))
+        .collect();
+    if threshold.is_some() {
+        rates[0].0 = "over_tax_free_threshold".to_string();
+    }
+    let (tax, terms, values) = tax_by_band(scale, &rates, &income, threshold.as_ref())?;
+    let mut steps = vec![step(
+        "taxable_income_used",
+        "ITAA 1997 s 4-10(3) step 1: taxable income, as established",
+        "taxable_income",
+        &[&income],
+        income.clone(),
+    )];
+    steps.extend(threshold);
+    steps.push(step_by_name(
+        "basic_income_tax",
+        basic_tax_authority(kind, year),
+        &terms.join(" + "),
+        &values,
+        tax,
+    ));
     derived_result(kind, year, steps, rates)
 }
 
@@ -1186,13 +1297,18 @@ pub fn depreciation(
             "effective_life's significant digits and taxable_use's decimal places, as written, must total 22 or fewer: beyond that the 40-digit working precision can miss the exact cent.",
         );
     }
+    // Days held can be 366 in a leap year, over 365 (every Guide to
+    // depreciating assets from 2021 to 2026): 2023-24 alone of these years.
+    let most = dates::parse(&format!("20{}-06-30", &year[5..])).expect("year")
+        - dates::parse(&format!("{}-07-01", &year[..4])).expect("year")
+        + 1;
     let Some(Some(days)) = days
         .int()
-        .filter(|n| n.is_some_and(|n| (0..=365).contains(&n)))
+        .filter(|n| n.is_some_and(|n| (0..=most).contains(&n)))
     else {
         return refuse(
             "input.day_count_invalid",
-            format!("days must be an integer from 0 to 365 for {year}."),
+            format!("days must be an integer from 0 to {most} for {year}."),
         );
     };
     let factor = match method.text() {
@@ -1286,7 +1402,11 @@ pub fn depreciation(
             ),
         ])
     })?;
-    derived_result("depreciation", &year, steps, Vec::new())
+    let out = derived_result("depreciation", &year, steps, Vec::new())?;
+    let later_year = opening_adjustable_value.is_some();
+    Ok(depreciation_pools::depreciation_flags(
+        out, &year, prime_cost, later_year,
+    ))
 }
 
 /// The provisions `depreciation`'s decline in value applies, in ITAA 1997
@@ -3736,6 +3856,7 @@ pub fn contribution_caps(
     year: &Arg,
     scope_confirmed: &Arg,
     determination_date: Option<&Arg>,
+    downsizer: Option<&DownsizerArgs>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "contribution_caps")?;
     let balance = money(total_super_balance)?;
@@ -3760,7 +3881,7 @@ pub fn contribution_caps(
         steps,
         (&non_concessional, *under_75),
         Vec::new(),
-        determination_date,
+        (determination_date, downsizer),
     )
 }
 
@@ -3772,7 +3893,7 @@ fn caps_result(
     mut steps: Vec<Step>,
     (non_concessional, under_75): (&Decimal, bool),
     more_rates: Vec<(String, String)>,
-    determination_date: Option<&Arg>,
+    (determination_date, downsizer): (Option<&Arg>, Option<&DownsizerArgs>),
 ) -> Result<Value> {
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
     let mut release_warning = None;
@@ -3807,7 +3928,9 @@ fn caps_result(
         }
         Ok(rates)
     })?;
+    let tests = downsizer::extend(downsizer, year, &mut steps)?;
     let mut out = derived_result("contribution_caps", year, steps, rates)?;
+    downsizer::record(&mut out, tests);
     if let Some(warning) = release_warning {
         ato_interest_penalties::warn(&mut out, warning);
     }
@@ -3971,6 +4094,8 @@ fn non_concessional_steps(
 
 mod carry_forward;
 pub use carry_forward::{CarryForward, contribution_caps_by_year};
+mod downsizer;
+pub use downsizer::{DOWNSIZER_INPUTS, DownsizerArgs};
 
 fn is_leap(year: i64) -> bool {
     year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
@@ -3982,8 +4107,11 @@ pub fn pension_minimum(
     days: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    transition_to_retirement: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "pension_minimum")?;
+    let ttr = transition_to_retirement
+        .map_or(Ok(false), |given| flag(given, "transition_to_retirement"))?;
     let balance = money(account_balance)?;
     let Some(Some(age)) = age
         .int()
@@ -3994,6 +4122,36 @@ pub fn pension_minimum(
             "age must be an integer number of years from 0 to 150.",
         );
     };
+    let (days, days_in_year) = held_days(days, &year)?;
+    let factor = d(meta::PENSION_MINIMUM_FACTORS
+        .iter()
+        .find(|(lowest, _)| age >= *lowest)
+        .expect("age 0 band")
+        .1);
+    let steps = minimum_steps(&balance, &factor, days, days_in_year)?;
+    let steps = ttr_maximum(steps, &balance, ttr)?;
+    let mut out = derived_result(
+        "pension_minimum",
+        &year,
+        steps,
+        vec![
+            rate("percentage_factor", &factor),
+            rate("days", days),
+            rate("days_in_year", days_in_year),
+        ],
+    )?;
+    if ttr {
+        texts::add_note(
+            &mut out,
+            (texts::TTR_MAXIMUM_SOURCE, texts::TTR_MAXIMUM_WARNING),
+            texts::TTR_MAXIMUM_SCOPE,
+        );
+    }
+    Ok(out)
+}
+
+/// The days the pension is held in `year`, checked, and the days in it.
+fn held_days(days: &Arg, year: &str) -> Result<(i64, i64)> {
     let start: i64 = year[..4].parse().expect("supported period");
     let days_in_year: i64 = if is_leap(start + 1) { 366 } else { 365 };
     let Some(Some(days)) = days
@@ -4005,13 +4163,19 @@ pub fn pension_minimum(
             format!("days must be an integer from 1 to {days_in_year} for {year}."),
         );
     };
-    let factor = d(meta::PENSION_MINIMUM_FACTORS
-        .iter()
-        .find(|(lowest, _)| age >= *lowest)
-        .expect("age 0 band")
-        .1);
+    Ok((days, days_in_year))
+}
+
+/// SISR Schedule 7 cl 1(1), 3 and 4: the minimum for `days` of a
+/// `days_in_year` year, before rounding.
+fn minimum_before_rounding(
+    balance: &Decimal,
+    factor: &Decimal,
+    days: i64,
+    days_in_year: i64,
+) -> Result<Step> {
     let (held, length) = (int(days), int(days_in_year));
-    let steps = precise(|| {
+    precise(|| {
         // cl 4: nothing is required for a pension commencing on or after 1 June,
         // which is within the last 30 days of the income year. Otherwise cl 3
         // pro-rates the factor over a first year that starts after 1 July.
@@ -4021,56 +4185,71 @@ pub fn pension_minimum(
             (
                 "SISR Schedule 7 cl 1(1) and cl 3",
                 "account_balance_used x percentage_factor x days / days_in_year",
-                &[&balance, &factor, &held, &length],
-                balance.mul(&factor)?.mul(&held)?.div(&length)?,
+                &[balance, factor, &held, &length],
+                balance.mul(factor)?.mul(&held)?.div(&length)?,
             )
         } else {
             (
                 "SISR Schedule 7 cl 1(1)",
                 "account_balance_used x percentage_factor",
-                &[&balance, &factor],
-                balance.mul(&factor)?,
+                &[balance, factor],
+                balance.mul(factor)?,
             )
         };
-        let minimum = exact
+        let id = "minimum_before_rounding";
+        Ok(step(id, authority, formula, operands, exact))
+    })
+}
+
+/// SISR Schedule 7: the minimum for `days` of a `days_in_year` year, before
+/// and after rounding.
+fn minimum_steps(
+    balance: &Decimal,
+    factor: &Decimal,
+    days: i64,
+    days_in_year: i64,
+) -> Result<Vec<Step>> {
+    let before = minimum_before_rounding(balance, factor, days, days_in_year)?;
+    let exact = before.value.clone();
+    let minimum = precise(|| {
+        Ok(exact
             .div(&int(10))?
             .quantize(0, Rounding::HalfUp)?
-            .mul(&int(10))?;
-        let rounding = "dollars(minimum_before_rounding / 10) x 10";
-        Ok(vec![
-            step(
-                "account_balance_used",
-                "SISR Schedule 7 cl 1(2)",
-                "account_balance",
-                &[&balance],
-                balance.clone(),
-            ),
-            step(
-                "minimum_before_rounding",
-                authority,
-                formula,
-                operands,
-                exact.clone(),
-            ),
-            step(
-                "minimum_payment",
-                "SISR Schedule 7 cl 5",
-                rounding,
-                &[&exact],
-                minimum,
-            ),
-        ])
+            .mul(&int(10))?)
     })?;
-    derived_result(
-        "pension_minimum",
-        &year,
-        steps,
-        vec![
-            rate("percentage_factor", &factor),
-            rate("days", days),
-            rate("days_in_year", days_in_year),
-        ],
-    )
+    Ok(vec![
+        step(
+            "account_balance_used",
+            "SISR Schedule 7 cl 1(2)",
+            "account_balance",
+            &[balance],
+            balance.clone(),
+        ),
+        before,
+        step(
+            "minimum_payment",
+            "SISR Schedule 7 cl 5",
+            "dollars(minimum_before_rounding / 10) x 10",
+            &[&exact],
+            minimum,
+        ),
+    ])
+}
+
+/// SISR reg 6.01(2) 'transition to retirement income stream': the maximum
+/// payment, 10% of the balance the minimum uses, down to the cent so that
+/// what is paid stays within it, after the minimum's steps.
+fn ttr_maximum(mut steps: Vec<Step>, balance: &Decimal, ttr: bool) -> Result<Vec<Step>> {
+    if ttr {
+        steps.push(step(
+            "maximum_payment",
+            "SISR reg 6.01(2) 'transition to retirement income stream' paras (a)(ii) and (b)(ii): no more than 10% of the account balance on 1 July, or on the commencement day in the first year, not reduced for a part year",
+            "cents_down(account_balance_used x 0.10)",
+            &[balance],
+            precise(|| Ok(balance.mul(&d("0.10"))?.quantize(-2, Rounding::Down)?))?,
+        ));
+    }
+    Ok(steps)
 }
 
 /// A period of days, both ends included, and for income use the part of the
@@ -4894,6 +5073,8 @@ mod fbt_ev_exemption;
 mod fbt_instalment;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 pub use fbt_instalment::{FBT_INSTALMENT_OPTIONAL, FbtInstalmentArgs, fbt_instalment};
+mod foreign_purchaser_surcharge;
+pub use foreign_purchaser_surcharge::{ForeignPurchaserSurchargeArgs, foreign_purchaser_surcharge};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
@@ -4901,10 +5082,18 @@ pub use super_benefit_tax::{
     STREAM_OPTIONAL, SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs,
     super_benefit_tax, super_withholding,
 };
+mod transfer_duty;
+pub use transfer_duty::{TransferDutyArgs, transfer_duty};
 mod payroll_tax;
 pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
 mod land_tax;
 pub use land_tax::{LandTaxArgs, land_tax};
+mod workers_compensation_premium;
+pub use workers_compensation_premium::{WorkersCompensationArgs, workers_compensation_premium};
+mod motor_vehicle_duty;
+pub use motor_vehicle_duty::{MotorVehicleDutyArgs, motor_vehicle_duty};
+mod insurance_duty;
+pub use insurance_duty::{InsuranceDutyArgs, insurance_duty};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6203,6 +6392,8 @@ mod vic_property_taxes;
 pub use vic_property_taxes::{VicPropertyTaxesArgs, vic_property_taxes};
 mod alcohol_excise;
 pub use alcohol_excise::{AlcoholExciseArgs, alcohol_excise};
+mod asic_fees;
+pub use asic_fees::{AsicFeesArgs, asic_fees};
 mod fbt_minor_benefit;
 pub use fbt_minor_benefit::{MinorBenefitArgs, fbt_minor_benefit_check};
 mod gst_margin_scheme;
@@ -6220,6 +6411,8 @@ mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 mod work_expenses;
 pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
+mod notice_period;
+pub use notice_period::{NoticePeriodArgs, notice_period};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
 mod excess_contributions;
@@ -6234,6 +6427,8 @@ mod depreciation_pools;
 pub use depreciation_pools::{
     capital_works, depreciation_low_value_pool, depreciation_small_business_pool,
 };
+mod instant_asset_write_off;
+pub use instant_asset_write_off::instant_asset_write_off;
 mod small_business_income_offset;
 pub use small_business_income_offset::{
     SBITO_OPTIONAL, SmallBusinessIncomeOffsetArgs, small_business_income_offset,
@@ -6246,8 +6441,12 @@ mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
+mod first_home_owner_grant;
+pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
+mod pcg_2021_4;
+pub use pcg_2021_4::{PCG_OPTIONAL, PcgArgs, pcg_2021_4};
 mod rental_property;
 pub use rental_property::{RentalPropertyArgs, rental_property};
 mod foreign_resident_withholding;
@@ -6270,6 +6469,8 @@ mod lodgment_required;
 pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
 mod rd_tax_offset;
 pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
+mod esic;
+pub use esic::{EsicArgs, esic};
 mod gst_adjustments;
 pub use gst_adjustments::{
     AnnualApportionmentArgs, BadDebtArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
@@ -6281,6 +6482,8 @@ mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 mod leave_provisions;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
+mod long_service_leave;
+pub use long_service_leave::{LongServiceLeaveArgs, long_service_leave};
 mod foreign_income_conversion;
 pub use foreign_income_conversion::foreign_income_conversion;
 mod foreign_income_tax_offset;
@@ -6295,8 +6498,20 @@ mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
 pub use help_indexation::{HELP_INDEXATION_OPTIONAL, HelpIndexationArgs, help_indexation};
+mod defined_benefit_income_cap;
+pub use defined_benefit_income_cap::{DefinedBenefitIncomeCapArgs, defined_benefit_income_cap};
+mod foreign_pension_upp;
+pub use foreign_pension_upp::{
+    FOREIGN_PENSION_UPP_OPTIONAL, ForeignPensionUppArgs, foreign_pension_upp,
+};
+mod scholarship_exemption;
+pub use scholarship_exemption::{ScholarshipExemptionArgs, scholarship_exemption};
+mod super_crystallisation;
+pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation};
+mod endorsement_review;
+pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 119] = [
+const KINDS: [&str; 136] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6314,11 +6529,16 @@ const KINDS: [&str; 119] = [
     "balancing_adjustment",
     "trade_in",
     "franking_account",
+    "foreign_purchaser_surcharge",
     "dasp_tax",
     "super_benefit_tax",
+    "transfer_duty",
     "super_withholding",
     "payroll_tax",
     "land_tax",
+    "workers_compensation_premium",
+    "motor_vehicle_duty",
+    "insurance_duty",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
@@ -6372,8 +6592,10 @@ const KINDS: [&str; 119] = [
     "wine_equalisation_tax",
     "vic_property_taxes",
     "alcohol_excise",
+    "asic_fees",
     "sb_cgt_concessions",
     "work_expenses",
+    "notice_period",
     "ato_interest_penalties",
     "transfer_balance",
     "excess_contributions",
@@ -6381,9 +6603,11 @@ const KINDS: [&str; 119] = [
     "depreciation_low_value_pool",
     "depreciation_small_business_pool",
     "capital_works",
+    "instant_asset_write_off",
     "small_business_income_offset",
     "non_commercial_losses",
     "psi_test",
+    "pcg_2021_4",
     "government_super_amounts",
     "rental_property",
     "foreign_resident_withholding",
@@ -6398,6 +6622,7 @@ const KINDS: [&str; 119] = [
     "residency_tests",
     "lodgment_required",
     "rd_tax_offset",
+    "esic",
     "gst_creditable_purpose_change",
     "gst_annual_apportionment",
     "gst_financial_acquisitions_threshold",
@@ -6408,6 +6633,7 @@ const KINDS: [&str; 119] = [
     "cgt_cost_base_adjustments",
     "payg_instalment",
     "leave_provisions",
+    "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
     "trading_stock",
@@ -6416,6 +6642,12 @@ const KINDS: [&str; 119] = [
     "smsf_tax",
     "ess_discount",
     "help_indexation",
+    "defined_benefit_income_cap",
+    "foreign_pension_upp",
+    "scholarship_exemption",
+    "super_crystallisation",
+    "endorsement_review",
+    "first_home_owner_grant",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6482,6 +6714,8 @@ fn evidence_heading(kind: &str) -> String {
         "seniors_pensioners_tax_offset" => "seniors-and-pensioners-tax-offset".into(),
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         "ato_interest_penalties" => "ato-penalties-and-interest".into(),
+        "pcg_2021_4" => "pcg-20214".into(),
+        "esic" => "early-stage-investor-tax-offset".into(),
         _ => kind.replace('_', "-"),
     }
 }

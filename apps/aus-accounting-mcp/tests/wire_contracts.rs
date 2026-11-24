@@ -55,9 +55,34 @@ impl Drop for Server {
 }
 /// A frozen Python resource reply as the linked engine gives it (tests/engine/mod.rs).
 fn linked(request: &Value, mut expected: Value) -> Value {
+    for pointer in ["/result/instructions", "/result/serverInfo/instructions"] {
+        if let Some(instructions) = expected
+            .pointer(pointer)
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+        {
+            *expected.pointer_mut(pointer).unwrap() = json!(instructions.replace(
+                "covers fourteen bounded worksheets",
+                "covers 14 bounded worksheets",
+            ));
+        }
+    }
+    if let Some(tools) = expected
+        .pointer_mut("/result/tools")
+        .and_then(Value::as_array_mut)
+        && let Some(worksheet) = tools
+            .iter_mut()
+            .find(|t| t["name"] == "calculate_tax_worksheet")
+        && let Some(description) = worksheet["description"].as_str().map(str::to_owned)
+    {
+        worksheet["description"] = json!(description.replace(
+            "Calculate one of fourteen bounded tax and super worksheets",
+            "Calculate one of 14 bounded tax and super worksheets",
+        ));
+    }
     if request["params"]["uri"] == "aus-accounting://disclaimer" {
         let text = expected.pointer_mut("/result/contents/0/text").unwrap();
-        *text = json!(engine::statutory_fbt_text(text.as_str().unwrap()));
+        *text = json!(engine::disclaimer(text.as_str().unwrap()));
     }
     if let Some(worksheets) = expected
         .pointer_mut("/result/contents/0/text/calculation_worksheets")

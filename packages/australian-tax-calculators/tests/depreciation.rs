@@ -158,8 +158,13 @@ fn an_opening_value_above_cost_or_not_money_is_refused() {
 fn an_opening_value_equal_to_cost_matches_the_start_year() {
     for method in ["prime_cost", "diminishing_value"] {
         let first = run(json!({"method": method, "days": 200}));
-        let same =
+        let mut same =
             run(json!({"method": method, "days": 200, "opening_adjustable_value": "80000.00"}));
+        if method == "prime_cost" {
+            // A later prime cost year also flags the adjusted formula of s 40-75(3).
+            let flag = same["warnings"].as_array_mut().unwrap().pop().unwrap();
+            assert!(flag.as_str().unwrap().contains("s 40-75(3)"), "{flag}");
+        }
         assert_eq!(first, same, "{method}");
     }
 }

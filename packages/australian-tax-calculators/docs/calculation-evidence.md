@@ -256,6 +256,37 @@ The existing $45,000 boundary gives $4,288 at 16%. At the engine's existing
 2026–27 first rate of 15%, the same arithmetic gives $4,020. The latter is a
 regression of the existing rate, not a rate corroborated by this Library passage.
 
+## Part-year tax-free threshold
+
+Income Tax Rates Act 1986 s 20(1) (compilation 66, 1 July 2026, read on
+23 November 2026): with one or more part-year residency periods, the Part I
+table applies as if its tax-free threshold were (the $18,200 of s 3(1) less
+$4,736) plus $4,736 x the months in the year with a part-year residency period
+/ 12. Section 18(1) counts each period from the start of the month residency
+began to the end of the month it ended; s 18(2)(a) gives an eligible pensioner
+(s 16) no part-year residency period, and s 18(2)(b) excludes a period of the
+whole year. Under s 18(1) as written, residency that begins and ends within
+one month, or a 1 July resident's residency that ends during July, is no
+period, so the threshold stays $18,200 and the inputs are omitted. Division 4
+reads the same in the compilations of 1 July 2024 and
+28 March 2025, apart from s 16's list of excluded Social Security Act parts.
+The Act states no rounding, so the threshold stays exact.
+
+| Case | Source | Months | Threshold | Taxable income | Basic tax |
+|---|---|---|---|---|---|
+| John, 2025-26 | ATO 'Tax-free threshold for newcomers to Australia' (updated 3 June 2026) | 3 | $14,648 | $20,000 | (20,000 - 14,648) x 16% = **$856.32** |
+| Britney, 2025-26 | ATO 'Living overseas and becoming a foreign tax-resident' (updated 3 June 2026) | 6 | $15,832 | $100,000 | (45,000 - 15,832) x 16% + 55,000 x 30% = **$21,166.88** |
+| 2026-27 | s 20(1) | 1 | $13,858.666... | $20,000 | (20,000 - 13,858.666...) x 15% = **$921.20** |
+| 2027-28 | s 20(1) | 8 | $16,621.333... | $16,000 | **nil** |
+| Eligible pensioner | s 18(2)(a) | 3 | $18,200 | as given | the full-year result |
+
+The ATO's John page says the thresholds for the other rates do not change, so
+only the first band's lower limit moves. `personal-tax-estimate` still refuses
+a part-year resident: under ITAA 1936 s 251U(1)(d) the days of non-residence
+can make the person a prescribed person for the Medicare levy, unless a
+dependant who is not one prevents it (s 251U(2)), which `medicare-levy` and
+`medicare-levy-surcharge` do not take. Tests: `tests/part_year_resident.rs`.
+
 ## Foreign resident tax
 
 This worksheet's evidence is not a Library document. On 14 November 2026 the
@@ -951,6 +982,55 @@ the $20 million turnover boundary, exempt entity control, the 2% boundary, the
 cap at and above $150 million for both offsets, the present year's rate, each
 year boundary and each refusal.
 
+## Early stage investor tax offset
+
+Added on 24 November 2026. The sources were read that day: ITAA 1997 ss
+360-10 to 360-50 with their history notes, from the ATO's legal database. Act
+No. 54 of 2016 inserted Subdivision 360-A for equity interests issued on or
+after 1 July 2016; Act No. 8 of 2020 Sch 2 (effective 1 April 2020, for income
+years commencing on or after 1 July 2018) added the ESVCLP exclusion, the 30%
+income, capital and voting test, the non-cash benefit, 'before the current
+year' in s 360-40(1)(a)(ii) and the foreign company test; Act No. 92 of 2020
+Sch 5 item 37 added the s 355-450(1) disregard for assessments for income
+years commencing on or after 1 July 2021. Nothing is prescribed under ss
+360-40(3), 360-40(4) or 360-45(2): Part 3-45 of the Income Tax Assessment
+(1997 Act) Regulations 2021 (compilation C16, 27 June 2026) holds Divisions
+393, 418 and 419 only, and the Income Tax Assessment Regulations 1997 (1 April
+2020) hold no Division 360 provision. The ATO's 'Calculating the early stage
+investor tax offset', 'Limits for investors who don't meet the sophisticated
+investor test' (both last updated 16 August 2024) and 'Qualifying as an early
+stage innovation company' (9 September 2024) give the examples.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Thomas, 2016-17 | **$100,000**, sophisticated | **$20,000** |
+| Savannah, 2016-17 | **$4 million**, sophisticated | **$800,000** capped at **$200,000** |
+| Georgia Co, Savannah's affiliate | **$2 million** | Combined with Savannah's, no more than **$200,000**: **$0** after her **$200,000**, the CGT treatment kept |
+| Jason, 2017-18 | **$950,000**, **$50,000** carried forward | **$190,000**, of which **$150,000** |
+| Tim, 2016-17, not sophisticated | **$50,000**; then **$10,000** more | **$10,000**; then nothing |
+
+Tim's further $10,000 goes to 'an ESIC or shares in any other company'. Section
+360-20(1)(b) counts the amount paid for 'the shares' of 'the company', so a
+further $10,000 to another company leaves $50,000 for this one; the command
+refuses that case (`esic.retail_limit_unsettled`) and the test holds Tim's
+loss with the $10,000 paid to the same company. It refuses, too, a case where a
+non-cash benefit or money still receivable alone takes the amount over
+$50,000, as s 360-20 counts what was 'paid', and a case where an exempt offer
+by another ESIC would lift the limit on the ATO's reading ('unless he is a
+sophisticated investor in relation to a later ESIC share offer') but not under
+s 360-20(1)(a), which looks at this company's offers. Before 2018-19 the offset
+is 20% of 'the total amount paid for the shares', so $40,000 paid of a
+$60,000 issue gives $8,000; from 2018-19, money 'received, or entitled to be
+received', $12,000. A company neither incorporated in Australia nor
+registered in the Australian Business Register meets no route of
+s 360-40(1)(a) and is not an ESIC. Section 360-40(2)(b) disregards an amount
+in 'the company's assessable income', so a 100% subsidiary's s 355-450(1)
+amount stays counted. `tests/esic.rs` also covers each incorporation route and year
+boundary, the $1 million, $200,000 and $50,000 limits at and a cent over, the
+grant and clawback disregard by year, each points combination crossing 100,
+the cap with affiliates and carried forward offsets, each investor kind and
+each refusal.
+
 ## Fuel tax credits
 
 This worksheet was added on 19 November 2026. The Fuel Tax Act 2006 ss 41-5,
@@ -1408,6 +1488,33 @@ the cent; the ATO's example shows whole dollars.
 | Draught beer from 3 February 2025 to 2026 | Excise Tariff Act s 6L | 1.11 stays $43.39 |
 | A licence from 30 October 2026 | QC65935 | Cap $267,397.26 |
 | Remission lines over the cap in 2025-26 and 2026-27 | Excise Regulation 2015 item 10(c)(i) | $350,000; $400,000 |
+
+## ASIC fees
+
+This worksheet was added on 24 November 2026, when its sources were read.
+The amounts are ASIC's fee data (`fees-data-current.json`, YEARFEE 2026,
+SHA-256 03281f57…866da), which fills INFO 30 'Fees for commonly lodged
+documents' and 'Fee indexation' ('From 1 July 2026'). Each was recomputed
+from the regulations: the Corporations (Fees) Regulations 2001, Compilation
+No. 41 (1 January 2025), Schedule 2 items 1(a)(i) and (ii) (registration), 8
+(name reservation) and 14 (late lodgement), indexed under reg 3(3) to (7),
+50 cents rounding up; the Corporations (Review Fees) Regulations 2003,
+Compilation No. 11 (12 March 2025), Schedule 1 Part 1 items 1, 2, 4 and 5 and
+Part 3 items 1 and 2, indexed under reg 4(6) to (10) from 2024-25, 50 cents
+rounding down; and the Business Names Registration (Fees) Regulations 2022
+s 6 items 1 to 4, indexed under s 6(2) to (7) with the factor to 3 places,
+50 cents rounding down. The factors use the ABS CPI March quarters 2018 to
+2026 (97.70 and 101.70 for 2025 and 2026 on the new reference base).
+
+The first month after the due date follows the Acts Interpretation Act 1901
+(compilation of 28 March 2026) s 2G(1) and s 36(1) item 6, and the
+Corporations Act 2001 (compilation 149, 19 September 2026) s 105(1). INFO 30
+and ASIC's 'Late fees' page tier by the day ASIC receives the payment or
+document. Section 36(2) of the Acts Interpretation Act and s 105(3) of the
+Corporations Act can move a deadline that falls on a weekend; the worksheet
+refuses a received date such a move could change. The site page cites
+company registration to Schedule 1 item 1(a); Compilation No. 41 puts it in
+Schedule 2 item 1(a), and Schedule 1 item 1 is an AFS licence application.
 
 ## Beneficiary tax offset
 
@@ -2313,6 +2420,176 @@ $125,013, and the 5-cent ties $125,100 and $500,010), the s 6 minimum
 nil and $25,001, $125.50) and Queensland's absentee and foreign company
 scales at $6,400,000 ($103,000 and $106,500).
 
+## Workers compensation premium
+
+This worksheet was added on 24 November 2026. Each source was read that day,
+from 03:15 to 03:30 AEST:
+
+- WorkCover Premiums Order (No. 34) 2026/2027, Victoria Government Gazette P1
+  (29 April 2026), from WorkSafe Victoria's PDF: cl 5 (new and small
+  employer), 6 (rounding), 7 (exemption limit $7,500), 8 (premium payable plus
+  GST), 9 (WorkCover premium, preliminary premium, premium rate), 10 (buy-out),
+  11 (deductible benefit) and 12(4) and (5) (employer performance rating 1
+  for a small or new employer; small employer, total annualised remuneration
+  for 2025-26 of $200,000 or less). Gazette S 284 (2 June 2026) items 1 to 3:
+  minimum premium $400, buy-out value 0.1, deductible amount 15,500.
+- WorkCover Queensland Notice (No. 1) of 2026, Queensland Government Gazette
+  No. 43 (26 June 2026), from WorkCover Queensland's PDF (scanned; read by
+  OCR): ss 1, 3.1 and 3.2, 4.1 (minimums of $200, $150, $100 and $50 by the
+  quarter a policy commences in, inclusive of GST and duty), 5.2, 8.3, 10.1, 11
+  and 12. Duties Act 2001 (Qld), current as at 22 October 2026, ss 356, 357,
+  361 and 362(3) (5% of net premiums for accident insurance); the Queensland
+  Revenue Office's public ruling DA356.1 (net premiums include the GST).
+- icare, 'Premium calculation for small employers' (the formula, the $30,000
+  small employer limit, Rob's Restaurant, the definitions of D, SER and A) and
+  'Premium updates for 2026-27' (updated 9 November 2026: the $240 minimum;
+  2025-26 WIC rates kept). SIRA's Workers Compensation Market Practice and
+  Premiums Guidelines 2026 were not read: sira.nsw.gov.au answered with a
+  Cloudflare challenge, also after one change of network and a slower retry.
+- ReturnToWorkSA, 'Your premium explained' (the formula, the discount bands
+  and examples 1 to 3), 'Apprentice incentive', the 'Your work injury
+  insurance' booklet (June 2026: the $200 minimum 'subject to any rounding';
+  new employers pay the base premium for a full year) and its 2026-27 premium
+  calculator workbook (the premium is `INT` of the sum after the minimum; the
+  band is looked up with `MATCH(BP, {..., 9999.99}, -1)`). The ReturnToWorkSA
+  Premium Order 2026-27 in the South Australian Government Gazette was not
+  read: governmentgazette.sa.gov.au answered with a Cloudflare challenge.
+- NT WorkSafe, 'Understanding workers compensation premiums' (the builder's
+  example); WorkSafe Tasmania, 'Workers compensation insurance'; the ACT's
+  suggested reasonable premium rates; WorkCover WA's rates page.
+
+The site's workers compensation calculator (ryanduguid.github.io, main at
+dcc7ecbe) was run on its 25 page cases, the 31 edge inputs of its unit tests
+and a sweep of each scheme's edges, 1,326 rows in
+`tests/data/workers_compensation_site_cases.json`. The worksheet gives the
+same 6 figures on 849 rows and the same refusal on 308; it refuses the other
+169, where a source does not settle the case or the page goes further than
+its source (table below). Of the page's own 25 cases, 18 agree and 7 are
+refused alike.
+
+| Rule | Source | Rows |
+| --- | --- | --- |
+| A South Australian base premium above $9,999.99 and below $10,000 (and at each other bound) is refused | ReturnToWorkSA's table and calculator differ | 24 refused |
+| A New South Wales apprentice incentive is refused | icare says it is 'discounted from premium after premium payable is calculated', not whether before or after GST | 61 refused |
+| A New South Wales average performance premium is compared with $30,000 unrounded | icare does not say APP is rounded before the test; the page rounds it first | 12 refused |
+| Queensland actual wages are refused | the 2026-27 notice sets no year-end adjustment for a policy commencing in 2026-27 | 48 refused |
+| A Victorian remuneration that rounds to $0 is refused | Premiums Order (No. 34) cl 11 divides by the remuneration | 24 refused |
+| N / 365 is rounded to 6 places before the deductible | Premiums Order (No. 34) cl 6(1) and (4); the page uses the exact fraction | none in the fixture; $150,000 at 7.123% for 1 day gives $3.03, not $3.02, in the tests |
+| A Queensland premium that rounding the estimated premium and the apprentice discount first would move is refused | the notice does not say which is rounded | none in the fixture; in the tests |
+
+## Motor vehicle duty
+
+This worksheet was added on 24 November 2026. The Acts and determinations were
+read that day:
+
+- New South Wales: the Duties Act 1997 (NSW) could not be read (NSW
+  Legislation returned a Cloudflare challenge and AustLII refused the
+  request). The scale rests on Revenue NSW, 'Motor vehicle duty' (last updated
+  16 October 2025), and Service NSW, 'Check motor vehicle stamp duty': $3 for every $100 or part to
+  $45,000, then $1,350 plus $5 for every $100 or part.
+- Victoria: the Duties Act 2000 (Vic) ss 3(1), 218 and 219 (authorised
+  version 141), with the 2026-27 luxury car tax threshold of $80,809 for other
+  vehicles (s 218(5)), the State Revenue Office's 'Motor vehicle duty (current
+  rates)' and the ATO's 'Luxury car tax rate and thresholds'.
+- Queensland: the Duties Act 2001 (Qld) ss 377, 378, 382 and 383 and Sch 4C (reprint
+  current as at 22 October 2026), and Transport and Main Roads, 'Vehicle
+  registration duty help' (reviewed 14 August 2026), whose 8 light vehicle
+  figures the tests hold.
+- Western Australia: the Duties Act 2008 (WA) ss 228 to 230 and 236 (03-z0-00,
+  as at 22 October 2026), the formula read from the PDF, and RevenueWA,
+  'Vehicle licence duty'.
+- South Australia: the Stamp Duties Act 1923 (SA) ss 42A and 42B and Sch 2
+  cl 2(1) (version 15.9.2026) and RevenueSA, 'Stamp duty on vehicles'.
+- Tasmania: the Duties Act 2001 (Tas) ss 3 and 197 (in force 24 November
+  2026) and the State Revenue Office, 'Rates of duty'. Section 197(3A) applies
+  'Despite subsection (2)' only, so a fleet-discounted vehicle of $600 or less
+  pays s 197(3)'s $20.
+- ACT: the Duties Act 1999 (ACT) ss 203, 204, 207 and 208 (republication 79),
+  the Duties (Motor Vehicle Duty) Determination 2025 (DI2025-152) and its 2026
+  successor (DI2026-154), which commences on 1 February 2027 and revokes it,
+  and the Legislation Act 2001 (ACT) s 74(2) (republication 127): an
+  instrument that commences on a day commences at the beginning of it.
+- Northern Territory: the Stamp Duty Act 1978 (NT) ss 4, 57, 59 and 92A and
+  Sch 1 cl 6(2) (as in force at 1 July 2025, the current version) and the
+  Territory Revenue Office's stamp duty page. The s 92A exemption applies to
+  the issue of a certificate of registration under s 57, and s 4 defines a
+  motor vehicle certificate of registration as one issued on the registration
+  or the transfer of the registration of a motor vehicle, so it applies on a
+  transfer too.
+
+Only Transport and Main Roads publishes a current worked passenger example.
+The ACT Revenue Office's circular DAA005.9 works its examples at the 2024
+rates, which DI2025-152 replaced, so it is used only for the method: duty on
+each $100 or part. Every other figure was worked by hand from the Act at each
+band edge, and an oracle written in Python from the spec, not the code, gives
+946 cases: each edge less 1, at, plus 1, plus 99 and plus 100, and common
+values, under every choice each jurisdiction asks.
+
+| Case | Source | Duty |
+|---|---|---|
+| Queensland, 1 to 4 cylinders, $35,600 and $135,600 | Transport and Main Roads | $1,068.00 and $6,780.00 |
+| New South Wales, $45,000 and $45,001 | Worked by hand | $1,350.00 and $1,355.00 |
+| Victoria, $80,809 and $80,810 | Worked by hand: 405 lots of $200 at $8.40 and $10.40 | $3,402.00 and $4,212.00 |
+| Western Australia, $37,500 | Worked by hand: R = 4.625001875, 4.63% | $1,736.25 |
+| South Australia, $300 | Worked by hand: the $5 minimum | $5.00 |
+| Tasmania, $40,000 and $40,001 | Worked by hand | $1,600.00 and $1,604.00 |
+| ACT, new Category B, $80,000, 31 January and 1 February 2027 | Worked by hand from each determination | $3,177.00 and $3,419.00 |
+| Northern Territory, electric, $80,000 | Worked by hand: 300 lots of $100 above $50,000 | $900.00 |
+
+## Insurance duty
+
+This worksheet was added on 24 November 2026. The Acts were read that day:
+
+- New South Wales: the Duties Act 1997 (NSW) could not be read (NSW
+  Legislation returned a Cloudflare challenge and AustLII refused the
+  request). The rates rest on Revenue NSW, 'Types of insurance': Type A 9 per
+  cent, Type B 5 per cent and Type C 2.5 per cent for policies taken out on or
+  before 31 December 2017 and exempt for those taken out on or after 1 January
+  2018. Whether a renewal takes out a new policy is not stated, so the
+  worksheet asks for the day the policy was taken out.
+- Victoria: the Duties Act 2000 (Vic) ss 3(1) ('business insurance') and 179
+  (authorised version 141), whose s 179(4) Table steps the business rate down
+  by 1% each year to nil from 1 July 2033, and the State Revenue Office's
+  'Insurance policies (current rates)' (updated 13 November 2026).
+- Queensland: the Duties Act 2001 (Qld) s 362 (current as at 22 October 2026)
+  and the Queensland Revenue Office's 'Insurance duty rates'.
+- Western Australia: the Duties Act 2008 (WA) s 215 (03-z0-00) and
+  RevenueWA, 'Self-assess and pay insurance duty'.
+- South Australia: the Stamp Duties Act 1923 (SA) s 34(1)(b) (version
+  15.9.2026), which charges premiums for insurance of any kind other than life
+  insurance; s 34(5)(b)(ii) and (iii) show personal accident insurance is
+  among them.
+- Tasmania: the Duties Act 2001 (Tas) s 166 (in force 24 November 2026) and
+  the State Revenue Office, 'Rates of duty' (10% from 1 October 2012).
+- ACT: the Duties Act 1999 (ACT) republication 79, whose endnotes record
+  chapter 8 (insurance) omitted by the Revenue Legislation Amendment Act 2017
+  (No 2) A2017-11 s 4, part 2 commencing on 1 July 2017. That is the repeal;
+  the endnotes do not show whether the rate reached nil earlier, and the
+  worksheet claims only the repeal date.
+- Northern Territory: the Stamp Duty Act 1978 (NT) Sch 1 cl 6(3) (as in force
+  at 1 July 2025, the current version).
+
+No revenue office publishes a worked general insurance example with figures,
+so every figure was worked by hand from the rate, and an oracle written in
+Python from the spec, not the code, gives 644 cases: each class at 23
+premiums (New South Wales Type C for policies taken out on 31 December 2017
+and 1 January 2018), including half-cent ties and the largest amount the crate takes, on
+the first and last day of the year.
+
+| Case | Source | Duty |
+|---|---|---|
+| New South Wales Type A, $1,000.00 | Revenue NSW: 9 per cent | $90.00 |
+| Victoria business, $1,234.56 | s 179(4): 7%, 86.4192 | $86.42 |
+| Queensland class 1, $555.55 | s 362(1)(a): 9%, 49.9995 | $50.00 |
+| Queensland CTP, any premium | s 362(2) | $0.10 |
+| South Australia, $0.05 | s 34(1)(b): 11%, 0.0055 | $0.01 |
+| New South Wales Type C, $1,000.00, policy taken out 31 December 2017 | Revenue NSW: 2.5 per cent | $25.00 |
+| ACT, $5,000.00 | ch 8 omitted from 1 July 2017 | nil |
+
+No Act sets a rounding rule for one premium's duty: insurers pay on a return
+of total premiums. The worksheet shows `duty` to the cent, as every amount in
+this crate is, and gives the exact figure in `rates.exact_duty`.
+
 ## Payroll tax
 
 This worksheet was added on 19 November 2026. The revenue offices' pages were
@@ -2381,6 +2658,78 @@ and refusals beside them.
 | $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
 | $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
+## Transfer duty
+
+This worksheet was added on 24 November 2026. Each source was read that day:
+
+- Duties Act 1997 (NSW) ss 32, 32A, 32B, 32C, 33AC, 33AD, 33AF, 74, 78A and
+  273 on AustLII (as at 29 June 2026; s 78A's formula is an image there), as
+  legislation.nsw.gov.au served a challenge; Revenue NSW, 'How to calculate
+  transfer duty' (last updated 6 October 2026: the 2026-27 rates, the premium
+  threshold of $3,870,000 and the $55,537, $203,237 and $14,437 examples) and
+  'First Home Buyers Assistance Scheme'; the NSW Government's table of reduced
+  rates for 1 July 2026 to 30 June 2027. The s 33AF notice for 2026-27 was not
+  read: the figures are Revenue NSW's, and their base amounts check against
+  s 33AD.
+- Duties Act 2000 (Vic), authorised version 141 (24 June 2026), ss 28, 57JA
+  and 57JB; the State Revenue Office's non-principal place of residence rates
+  (updated 29 September 2026) and first home buyer page (updated 20 November
+  2026).
+- Duties Act 2001 (Qld), current as at 22 October 2026, ss 24, 91, 92 and 92A
+  and Schs 3 and 4A; the Queensland Revenue Office's transfer duty rates
+  (updated 25 June 2026) and home concession rates (updated 31 July 2026).
+- Duties Act 2008 (WA) Sch 2 on AustLII, with No. 18 of 2026; the Department
+  of Treasury and Finance's 'Transfer duty assessment' and first home owner
+  rate fact sheet (agreements from 7 May 2026).
+- Stamp Duties Act 1923 (SA), version 15.9.2026, s 71DD and Sch 2; RevenueSA's
+  rate of stamp duty and first home buyer relief pages.
+- Duties Act 2001 (Tas) ss 29, 57C and 57G; the State Revenue Office's page on
+  relief for first home buyers of established homes (not available after 30
+  June 2026).
+- DI2026-155 and DI2026-157 (ACT, from 1 July 2026); the ACT Revenue Office's
+  Home Buyer Concession Scheme page.
+- Stamp Duty Act 1978 (NT), reprint REPS013 (in force at 1 July 2025), s 88A
+  and Sch 1 cl 1(2); NT.GOV.AU's home owner assistance pages.
+
+The site's transfer duty calculator (ryanduguid.github.io, main at dcc7ecbe)
+was run through its own `transferDuty` and `firstHomeDuty` on its 21 cases,
+its Node tests' figures, the 44 worked figures in its Rust oracle, every band
+and first home threshold edge (each edge less 1, the edge and the edge plus 1,
+for the 3 buyers) and 240 seeded values: 925 rows in
+`tests/data/transfer_duty_site_cases.json`. The worksheet gives the same duty,
+general duty and concession on 850 rows and refuses the 1 row the page
+refuses (cents). The other 74, all Victorian, differ only where the Act
+differs from the page:
+
+| Rule | Act | Rows |
+| --- | --- | --- |
+| Victoria's duty is chargeable to the nearest whole dollar, 50 cents down; the page shows the percentage in cents, and s 57JA's share is then of the rounded duty | Duties Act 2000 (Vic) s 28(1) | 74 moved, each by under $1 |
+
+Of the page's own figures, its 21 cases and the oracle's 44 agree; 3 of its
+Node tests' figures move ($350.02 to $350 on $25,001, and the general duty
+beside the first home figures on $600,001 and $750,001).
+
+Other amounts are worked exactly and shown to the cent, half up; the Northern
+Territory's formula is the only scale with fractions of a cent. New South
+Wales' first home bracket is rounded to the cent before it comes off, as
+Revenue NSW's calculator does; s 78A prescribes no rounding.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $1,350,000 in New South Wales | Revenue NSW: $55,537 | $55,537.00 |
+| $4,000,000 of residential land in New South Wales | Revenue NSW: $203,237 at the premium rate | $203,237.00; $201,287.00 for other land |
+| A first home at $900,000 in New South Wales | NSW Government: $19,593.50 | $19,593.50, with $30,187.00 on $800,000 |
+| $550,000 in Victoria | SRO Victoria: $28,070 | $28,070.00 |
+| A first home at $700,000 in Victoria | Worked by hand from s 57JA: $100,000 / $150,000 x $37,070 | $24,713.33 |
+| $850,000 in Queensland, and a first home at $730,000 and $850,000 | QRO: $31,275, $6,555 and $24,100 | The same |
+| $600,000 in South Australia | RevenueSA: $26,830 | $26,830.00 |
+| $800,000 in Western Australia, and a first home at $700,000 | Worked by hand from Sch 2 | $32,315.50 and $16,150.00 |
+| $1,500,000 in the ACT | Worked by hand: 4.54% of the whole value | $68,100.00 |
+| $500,000 in the Northern Territory | Worked by hand: 0.06571441 x 500^2 + 15 x 500 | $23,928.60 |
+
+`tests/transfer_duty.rs` holds these cases, Victoria's rounding at $3.50,
+$10.50 and $52,805.50, and the refusals.
+
 ## Depreciation
 
 Paragraph ¶6-000 supplies the first-year prime cost and diminishing value
@@ -2407,6 +2756,17 @@ cost it declines $16,000 a year. Prime cost's final year is limited to the
 opening adjustable value (s 40-75(7)(b)). The closing value is the opening
 value less the decline as shown in cents, so carrying it forward never writes
 off more than cost.
+
+The years 2020-21 to 2024-25 were added on 23 November 2026. Every Guide to
+depreciating assets from 2021 to 2026 (read that day) gives the same formulas
+and says days held 'can be 366' in a leap year 'even though the denominator
+remains 365'. `tests/depreciation_years.rs` checks Laura's $1,500 photocopier
+with a 5-year life: in the 2021 guide, **$600.00** by diminishing value and
+**$300.00** by prime cost for 2020-21 (closing **$1,200.00**); in the 2024
+guide, 366 days in 2023-24, **$601.64** (ATO $602, closing $898) and
+**$300.82** (ATO $301, closing $1,199). Paul's $2,000 refrigerator in the
+2023 guide, used wholly privately, declines **$200.00** in 2021-22 from a
+$1,600 opening value and deducts nothing.
 
 ## Quarterly SG
 
@@ -3189,6 +3549,64 @@ The statute reduces 'so much of [the tax] as is attributable to' item 1, 2, 3,
 ATO's step 3 method, as section B does. The opening surplus counts in it, and a
 deficit opening does not, its credit being in the year's credits.
 
+## Foreign purchaser surcharge
+
+This worksheet was added on 24 November 2026. Each source was read that day:
+
+- Duties Act 1997 (NSW) s 104U on AustLII (as at 29 June 2026); Revenue NSW,
+  'What is surcharge purchaser duty' (9%) and 'What is surcharge land tax'
+  (last updated 8 April 2026: 5% from 2025, no threshold). The Land Tax Act
+  1956 (NSW) could not be read: AustLII served its download page and
+  legislation.nsw.gov.au a challenge.
+- Duties Act 2000 (Vic) s 28A(2), authorised version 141; SRO Victoria,
+  'Calculating foreign purchaser additional duty' (Emily's $16,000) and the
+  absentee individuals and corporations pages (4% from the 2024 land tax
+  year; $40,000 on $1,000,000). Land Tax Act 2005 (Vic) Sch 1 Tables 1.6 and
+  4.5, version 086, read on 23 November 2026: at every band from $50,000 the
+  absentee owner rates less the general rates are 4% of the whole value.
+- Duties Act 2001 (Qld) s 244, current as at 22 October 2026; the Queensland
+  Revenue Office's AFAD and absentee land tax pages. Land Tax Act 2010 (Qld)
+  Schs 2 and 3, read on 23 November 2026.
+- Duties Act 2008 (WA) ss 205G, 205H and 205O on AustLII; the Department of
+  Treasury and Finance's foreign transfer duty fact sheet (22 October 2026:
+  Simon's $14,000) and 'About land tax'.
+- Stamp Duties Act 1923 (SA) s 72, version 15.9.2026; RevenueSA's foreign
+  ownership surcharge page ($7,000 on a $100,000 interest) and land tax rates
+  page (no foreign owner surcharge).
+- Duties Act 2001 (Tas) ss 30C and 30E; the State Revenue Office's 'Rates of
+  surcharge' (8% and 1.5% from 1 April 2020). Land Tax Rating Act 2000 (Tas)
+  ss 6A and 7, read on 23 November 2026.
+- DI2026-155 (ACT: no foreign purchaser rate); Land Tax Act 2004 (ACT) s 17E
+  and DI2026-152 s 7, read on 23 November 2026; the ACT Revenue Office's
+  foreign ownership surcharge page (0.75% of the AUV a year).
+- NT.GOV.AU, 'Land taxes', and the Stamp Duty Act 1978 (NT): neither
+  surcharge.
+
+The site's foreign surcharge calculator (ryanduguid.github.io, main at
+dcc7ecbe) was run through its own `foreignSurcharge` on its cases, its Node
+tests' and oracle's figures, a grid of every jurisdiction, use and kind of
+buyer at each threshold edge and seeded values: 980 rows in
+`tests/data/foreign_surcharge_site_cases.json`, each with the page's verdicts
+as `foreign_purchaser` and `foreign_owner`. The worksheet gives the same 2
+amounts on 871 rows. 2 rows are facts the worksheet does not take (an
+exemption and a partner visa, which the page refuses). The other 107 differ
+only where an Act differs from the page:
+
+| Rule | Act | Rows |
+| --- | --- | --- |
+| Queensland's surcharge is 3.0c for each $1 more than $349,999, from $350,000; the page works 3% over $350,000, 3 cents less | Land Tax Act 2010 (Qld) Sch 2 Pt 2, Sch 3 Pt 2 | 56 moved |
+| Tasmanian land tax is rounded to 10 cents; the page applies no rounding | Land Tax Rating Act 2000 (Tas) s 7 | 21 moved |
+| A Victorian trust's absentee surcharge turns on its absentee beneficiaries' interests; the page works them from its answers | Land Tax Act 2005 (Vic) s 46IA | 30 refused |
+
+Of the page's 23 cases, 4 are its FIRB fee, a federal fee the worksheet does
+not work. Of the other 19, 15 agree, 1 moves (Queensland's foreign company,
+$1,500.03 for $1,500), 1 is refused (SRO Victoria's Clara, a fixed trust) and
+2 are facts the worksheet does not take.
+
+`tests/foreign_purchaser_surcharge.rs` also works by hand Victoria's $50,000
+edge, Queensland's $350,000 edge ($0.03), Tasmania's s 7 rounding ($8,000.02
+down, $8,000.06 up, 5 cents down) and the ACT's fractions of a cent.
+
 ## DASP tax
 
 Added on 19 November 2026. Its sources were read that afternoon: the
@@ -3399,6 +3817,40 @@ denominator is 365 in a leap year while the days can be 366.
 The tests also cover the 4% rate, partial use, the undeducted limit, the
 16 September 1987 and 27 February 1992 boundaries and days limited by a
 start of construction in or after the year.
+
+## Instant asset write-off
+
+Added on 23 November 2026. The sources were read that day: ITAA 1997 ss 40-25,
+40-82 and 328-180 and IT(TP)A 1997 ss 40-140 to 40-190, 328-180 and 328-181
+from the ATO's legal database; Treasury Laws Amendment (Tax Reform No. 2) Act
+2026 (No. 71 of 2026) Sch 2 items 3 and 15 and its commencement table
+(Schedule 2 from 1 October 2026); the ATO's 'Instant asset write-off for
+eligible businesses' (last updated 28 August 2026), tables 1 and 2 and its
+examples; and 'TFE for small business entities using simplified
+depreciation', example 1.
+
+The ATO's table 1 adds 'purchased by 31 December 2020' to the $150,000 limit
+for a small business. IT(TP)A s 328-180(4A) has no such condition, but an asset
+acquired from 1 January to 30 June 2021 is held after the 2020 budget time, so
+s 328-181(2) removes the limit and both give the same result. The table gives
+no row for first use from 1 July 2021 to 30 June 2023: the law leaves
+s 328-180(1)(b)'s $1,000 for an asset acquired before 7.30 pm on
+6 October 2020.
+
+| Example | Facts given | Result |
+| --- | --- | --- |
+| Fiona's computer, 2025-26 | **$6,800**, 80% business use, 18 November 2025 | **$5,440.00** written off |
+| Fiona's printer | **$700**, wholly business | **$700.00** |
+| Jack's MIG welder | **$4,500**, ready for use 12 March 2026 | **$4,500.00** |
+| Daryl's ute | **$40,000**, 40% use, 28 July 2025 | Not written off; **$16,000.00** to the pool |
+| Jack's excavator, 2022-23 | **$220,000**, first used 20 January 2023 | **$220,000.00** (temporary full expensing) |
+| X Co's van, 2020-21 | **$35,000**, held and used 30 November 2020 | **$35,000.00** |
+
+The ATO does not give the welder's or the excavator's acquisition date; the
+tests take the first use date, and any date the ATO's account allows gives the
+same result. `tests/instant_asset_write_off.rs` also covers each limit either
+side of its amount, the 3 budget times, s 40-82(2A) and (5), the temporary full
+expensing refusal and the input refusals.
 
 ## Horticulture shearing withholding
 
@@ -4034,6 +4486,40 @@ $450,000. Table 2's later rows (the cap available each year) need each year's
 balance and are years this worksheet does not run as the current year, so the
 test checks its unused amounts and the 5-year expiry.
 
+## Downsizer contributions
+
+ITAA 1997 s 292-102, read on 24 November 2026 in the ATO's legal database with
+its history notes: Act No. 132 of 2017 Sch 2 item 4 applies it to a disposal
+under a contract entered into on or after 1 July 2018; the age in (1)(a) fell
+from 65 to 60 for contributions from 1 July 2022 and to 55 for contributions
+from 1 January 2023 (Act No. 84 of 2022 Sch 5 item 1), so every contribution
+in the years `contribution_caps` takes (2024-25 to 2026-27) needs 55. The 90
+days of s 292-102(1)(g) run from the day after the change of ownership (Acts
+Interpretation Act 1901 s 36(1)), so day 90 is in and day 91 is out unless the
+Commissioner allowed longer. Subsection (3) limits the covered amount to the
+lesser of $300,000 less the person's other downsizer contributions and the
+capital proceeds less the contributions already covered from them for the
+person or their spouse. The ATO's page 'Downsizer super contributions' (last
+updated 20 January 2026) says a downsizer contribution does not count towards
+the contribution caps.
+
+`tests/downsizer_ttr.rs` holds these cases from that page, and
+`tests/derivation.rs` checks every step of 2 more:
+
+| Case | Worksheet | Published |
+| --- | --- | --- |
+| George and Jane sell for $800,000 and each contribute $300,000 | each $300,000 covered | each may contribute up to $300,000 |
+| Bruce and Betty sell for $400,000; Betty contributes $300,000, then Bruce $100,000 | $300,000, then $100,000; Bruce at $100,000.01 has $0.01 not covered | a combined total of $400,000 |
+| Alisha sells for $1,500,000 and offers $400,000 | $300,000 covered, $100,000 not | her limit is $300,000 |
+| Robert and Wendy sell a 20% share for $100,000; Robert contributes $60,000, then Wendy $60,000 | $60,000, then $40,000 covered and $20,000 not | a combined total of $100,000 |
+| Ben settles on 1 August 2024 and has an extension to 1 February 2025 | covered with the extension; 184 days without it, not covered | the Commissioner may allow a longer period |
+| Rebecca is 54 and James 60 at the contribution | Rebecca not covered, James covered | James is eligible, Rebecca is not |
+
+The other criteria (an Australian dwelling, the main residence exemption, 10
+years' ownership, the choice given to the fund and no earlier downsizer
+contribution from another dwelling) are the operator's statement in
+`downsizer_conditions_met`.
+
 ## Pension minimum
 
 Paragraph ¶18-500 gives the Schedule 7 factors from 4% under 65 to 14% at 95 or
@@ -4047,8 +4533,22 @@ SISR Schedule 7 in compilation 159 (in force from 1 July 2026), read on
 from the commencement day (cl 3), requires nothing for a pension starting on or
 after 1 June (cl 4) and rounds any amount under the Schedule to the nearest $10,
 an exact $5 rounding up (cl 5). Because cl 3 pro-rates the factor, the engine
-rounds once, after pro-rating. The transition to retirement 10% maximum and the
-other pension schedules are outside this worksheet.
+rounds once, after pro-rating. The other pension schedules are outside this
+worksheet.
+
+For a transition to retirement income stream, `transition_to_retirement` adds
+the 10% maximum from the definition in SISR reg 6.01(2), paras (a)(ii) and
+(b)(ii): total payments in a financial year, excluding commutations and
+including payment splits, of no more than 10% of the account balance on 1 July
+or, in the first year, on the commencement day, until the pensioner satisfies
+a condition of release with a nil cashing restriction. Read on 24 November
+2026 in compilation 159 (1 July 2026) and, word for word the same, compilation
+148 (1 July 2024). The definition neither pro-rates nor rounds it, and the
+ATO's 'Transition to retirement income streams' page for SMSFs (last updated
+2 April 2025) says the same. The command shows it down to the cent, so a
+payment of the amount shown stays within 10%: $123,456.78 gives $12,345.67. `tests/downsizer_ttr.rs` checks $500,000 at age
+60 (minimum $20,000, maximum $50,000) and a pension commencing on 1 January
+2026 with $400,000 (minimum pro-rated to $7,930, maximum $40,000).
 
 ## Income tests
 
@@ -4446,6 +4946,102 @@ Choices the Act leaves to the reader:
 | 2024-25, a $1,000 debt in September 2024 less $200 repaid | s 140-26(2) | $640 |
 | 2 debts of $0.60 in one group, then in 2 | s 140-25(1A) | $1, then nil; without groups, refused |
 
+## Defined benefit income cap
+
+This command was added on 24 November 2026. ITAA 1997 Subdivision 303-A and
+ss 301-100 and 302-85 were read that day in the ATO's legal database, and
+against compilation 170 (1 July 2017) for 2017-18. LCR 2017/1 (28 April 2017)
+works the same text in its Examples 2 to 6, and the tests reproduce each. The
+general transfer balance cap for each year is the ATO's 'Transfer balance cap'
+page: $1.6 million to 2020-21, $1.7 million for 2021-22 and 2022-23, $1.9
+million for 2023-24 and 2024-25, $2 million for 2025-26 and $2.1 million for
+2026-27. 2027-28 is refused: its cap is not published.
+
+- s 303-4(2) counts the days remaining in the year after the first day, then
+  adds 1; LCR 2017/1 Example 2 gives $49,590 for 1 January 2018.
+- s 303-4(3) reduces the cap by defined benefit income that gets no
+  concessional treatment, but not below nil (LCR 2017/1 paragraph 61).
+- The amounts are to the cent; the cap is in whole dollars, rounded up.
+
+## Foreign pension UPP
+
+This command was added on 24 November 2026. ITAA 1936 s 27H was read that day
+in the ATO's legal database and in the 11 May 2007 compilation, which holds the
+same text for 2007-08. The Income Tax Assessment (1936 Act) Regulations 2025
+s 7 prescribes the Life Tables for the life expectation factor. The shortcuts
+are the ATO's individual supplementary tax return instructions 2026, D11.
+
+Choices the Act leaves to the reader:
+
+- The ATO publishes no calculator and no numeric example for a foreign
+  pension: it determines the amount by private ruling (NAT 16543). The command
+  works s 27H(2) from the operator's figures and warns of this.
+- The command does not hold the Life Tables or translate currency: the factor
+  and the Australian dollar amounts are inputs.
+- s 27H(2) gives an amount for a year of income with no rule for part of a
+  year; part years are refused. A commuted annuity (s 27H(3A)) and any
+  relevant number other than a term of years or one life are the
+  Commissioner's and are refused.
+- The D11 shortcuts were found for 2025-26 only; earlier years use `formula`.
+- The amount is kept to the cent; the Act gives no rounding rule.
+
+## Scholarship exemption
+
+This command was added on 24 November 2026. ITAA 1997 s 51-10 item 2.1A and
+s 51-35 were read that day in compilation 268 and in compilation 170 (1 July
+2017): the text is the same. The ATO's 'Scholarship payments' page gives 6
+examples, and the tests reproduce each: Jenny (exempt), Henry (an employment
+condition), Kirra (part time), AAA University's vet students (work experience
+in the course, exempt), Megan (exempt) and Diego (not principally educational).
+
+- The Commonwealth payments s 51-35(a), (b) and (f) name fall outside item
+  2.1A and may be exempt under item 2.1B or Subdivisions 52-E and 52-F; they
+  are refused, as the ATO's tool leaves them out. Commonwealth funding alone
+  is not one of them: a scholarship the Commonwealth funds or pays takes
+  `commonwealth_payment: none` and is tested like any other.
+- Friendly society scholarship plans are refused: the ATO says some of their
+  benefits are taxable, and its tool does not test them.
+
+## Super crystallisation
+
+This command was added on 24 November 2026. ITTPA 1997 s 307-225 was read that
+day in the ATO's legal database, and former ITAA 1936 ss 27A and 27AA in the 19
+February 2007 compilation, the law just before 1 July 2007. The pre-July 83
+component is s 27AA(1)(d): the lesser of (ETP - C - IC - NQ - EC - CGT) x
+pre-July 83 days over all days, and that amount less undeducted
+contributions.
+
+- The ATO's 'Calculating components of a super benefit' example 9 counts both
+  the first and last days (2,191 days from 1 July 1977 to 30 June 1983); the
+  command counts the same way to 30 June 2007.
+- NQ (an immediate annuity's non-qualifying component) and EC (the excessive
+  component under the reasonable benefit limits) are taken as nil, as the
+  ATO's crystallisation calculator takes neither.
+- The ATO publishes no numeric crystallisation example; the tests use
+  hand-worked cases of the formula. The page rounds $37,037.34 to $37,038
+  and says the law gives no rounding rule; the command keeps cents.
+- A defined benefit interest's value comes from the regulations' method; it is
+  an input.
+
+## Endorsement review
+
+This command was added on 24 November 2026. The worksheets are the ATO's NAT
+74110-02.2021, NAT 11685-02.2021 and NAT 11686-02.2021. Each question is tied
+to the provision it tests as the ATO's legal database gave it that day: ITAA
+1997 ss 30-15 item 1, 30-125, 30-130, 30-228, 50-5, 50-47, 50-50 and 50-110,
+and TAA 1953 Sch 1 ss 426-45 and 426-55.
+
+- The worksheet tells an entity without a winding up clause to amend its
+  documents. s 30-125(1)(c) makes the clause a condition of entitlement, so a
+  'No' gives `not_entitled`, with the notice s 426-45(1) requires and the
+  amendment. An entity established by an Act that does not provide for its
+  winding up meets the condition without a clause and answers yes.
+- A cancelled ABN ends the endorsement without notice from the entity (s
+  426-45(3)); every other 'No' that ends entitlement needs written notice.
+- Act No. 58 of 2026 repealed s 30-15 item 1 condition (b), the $2 minimum
+  gift, a donor-side rule the worksheets do not ask about.
+- Only 2026-27 is supported: the provisions were read as at 24 November 2026.
+
 ## Non-commercial losses
 
 This worksheet was added on 22 November 2026. ITAA 1997 Division 35 was read
@@ -4537,6 +5133,124 @@ Choices the Act leaves to the reader:
 | $2,000 of dividends with a $100 gift, with and without $2,000 of wages | s 102AD(c) | $100.00 and $50.00 apportioned |
 | A $5,000 trust share with a $3,000 Division 6AA part | s 102AE(4), s 102AG | $1,260.00 |
 | Full-time 3 months, intending full-time study next year | s 102AC(8)(b) | prescribed |
+
+## PCG 2021/4
+
+This worksheet was added on 24 November 2026. Each source was read that day,
+from 00:05 to 00:15 AEDT:
+
+- PCG 2021/4, Allocation of professional firm profits (updated guideline of
+  19 June 2024) on the ATO legal database
+  (https://www.ato.gov.au/law/view/document?docid=COG/PCG20214/NAT/ATO/00001):
+  paragraphs 10 to 12 (the gateways), 17 (from 1 July 2022), 76 (Table 1),
+  78 to 80 (Table 2), 81 (100% returned), 82 to 86 (factors 1 and 2 and the
+  larger of paragraph 85(a) and (b)), 100 and 101 (factor 3), 122 (2020-21
+  rates), footnotes 6 (no levy) and 7 (26% for a corporate taxpayer),
+  examples 4 to 6 and case studies 1 to 12;
+- the ATO's 'Tax rates – Australian resident' (last updated 13 August 2026),
+  the resident scales for 2020-21 and 2022-23 to 2026-27, which
+  `PRIOR_RESIDENT_TAX_SCALES` and `RESIDENT_TAX_SCALES` already hold;
+- the ATO's company tax rates for 2020-21 (26% for a base rate entity, last
+  updated 30 May 2024), 2022-23 to 2025-26 (25%) and the Income Tax Rates Act
+  1986 s 23(2), Compilation No. 66 (1 July 2026), for 2026-27 (25%, otherwise
+  30%), which `deferred_tax` already holds.
+
+The site's PCG 2021/4 pages (ryanduguid.github.io, main at dcc7ecbe,
+`assets/pcg-2021-4.mjs`) were run on their 16 cases, the 96 vectors of
+their tests (case studies 1 to 12, examples 4 to 6, every Table 1 boundary
+and Table 2 edge, rounding and refusals) and a seeded sweep of 160
+arrangements and 160 allocations over every year and kind, 432 rows in
+`tests/data/pcg_2021_4_site_cases.json`. The worksheet gives the same
+percentages, scores, zone, firm income, tax and each recipient's tax and limb
+on all 407 rows the site works out, and refuses the 25 it refuses.
+
+The guideline prints Bernie's tax (case study 4) as $116,916 and Frank's
+(case study 5) as $105,666; the 2020-21 scale gives $116,917 and $105,667,
+as the site does, with the same rate and scores.
+
+| Case | Source | Result |
+| --- | --- | --- |
+| Case study 1: Nicolas $330,000, his company $270,000 | Table 4 | $119,167 and $70,200; 55.00%, 31.56%; scores 4 and 3; green at 7 |
+| Example 4: 6 recipients of $1,100,000 | Paragraphs 87 to 93 | Associate 2 $33,850 under 85(b); 33.31%; green at 7 |
+| Example 5: $600,000 less $40,000, with $50,000 other income | Paragraph 94 | $238,450 under 85(b) |
+| Case study 7: $360,000 against a $350,000 benchmark | Table 10 | 102.86%, factor 3 score 3; green at 10 on all 3 |
+| Exactly 50% returned and 30% tax; a cent less of each | Table 1 | Scores 4 and 3, green; 5 and 4, red at 9 |
+
+## First home owner grant
+
+This worksheet was added on 23 November 2026. That day these were read:
+
+- Victoria: First Home Owner Grant and Home Buyer Schemes Act 2000,
+  authorised version 053 (amendments as at 26 November 2025), ss 13(1)(ab),
+  13(1A), 13(7) and 18(1A); the State Revenue Office's current rates and
+  'Understanding the First Home Owner Grant' pages.
+- Queensland: First Home Owner Grant and Other Home Owner Grants Act 2000,
+  current as at 22 October 2026, ss 5(1), 5(6) to (8), 15 and 20(1); the
+  Queensland Revenue Office's eligibility page ($30,000 for contracts from
+  20 November 2023).
+- Western Australia: First Home Owner Grant Act 2000, as at 22 October 2026,
+  ss 14AC, 14AD and 19(2CA); the Department of Treasury and Finance fact sheet
+  as at 28 July 2026 (the $800,000 cap south of the 26th parallel from 7 May
+  2026, which s 14AD lets regulations prescribe; the regulations were not
+  read).
+- South Australia: First Home and Housing Construction Grants Act 2000,
+  version 4.12.2025, ss 7(1a) and 18(1); RevenueSA's grant details, eligible
+  properties and residence requirement pages.
+- Tasmania: First Home Owner Grant Act 2000, authorised version as at
+  9 October 2026, ss 18(1), 18(2)(al) and (am), 18L and 18M; the State
+  Revenue Office's eligibility page.
+- Northern Territory: First Home Owner Grant Act 2000, as in force at 1 July
+  2026, ss 12(2), 13(1)(a), 13AA, 18 and 56; the NT Government's HomeGrown
+  Territory Grant page.
+- ACT: First Home Owner Grant Act 2000, republication 37 (16 November 2025),
+  s 18; the ACT Revenue Office's page (no grant from 1 July 2019; the
+  Minister's determination was not read).
+- New South Wales: Revenue NSW's 'First Home Owner (New Homes) Grant' page.
+  The First Home Owner Grant and Shared Equity Act 2000 returned HTTP 403 to
+  every route that day, so its lesser-of rule, if any, is not applied and a
+  value below $10,000 is refused.
+
+The worksheet follows ryanduguid.github.io's first home owner grant page
+(`assets/first-home-owner-grant.mjs`, rules read 22 November 2026) and agrees
+with it on all 26 of the page's cases
+(`tests/data/first_home_owner_grant_page_cases.json`). Where an Act read
+differs, the Act is followed:
+
+- a Northern Territory established home under a contract from 1 July to
+  30 September 2025 gets $10,000 (s 13(1)(a)(iii), s 18(3D)(b)); the page
+  pays nil;
+- a Victorian, Western Australian or Northern Territory home bought for less
+  than the grant gets the price (Vic s 18(1A), WA s 19(2CA), NT s 18(1));
+  the page refuses;
+- a Victorian home built over $750,000 in total is refused, as the cap is on
+  the consideration for the building work (s 13(1A) and (7)(b)); the page
+  pays nil.
+
+The value tested against the cap is the one each source names, kept apart
+from the consideration that limits the grant (`total_value`). In Queensland
+and Western Australia the optional `cap_value` carries the value the Act
+tests where it differs: for a home bought, the unencumbered value of the home
+and land at the contract date, tested with the price as the greater of the 2
+(Qld s 5(6) and (7), WA s 14AC(2)); for a home built, the building contract
+plus the land's value, tested in place of `total_value` (Qld s 5(8), WA
+s 14AC(3)). The grant stays the lesser of the consideration and the amount
+(Qld s 20(1), WA s 19(2CA)): a Queensland home bought for $20,000 and valued
+at $100,000 gets $20,000, and a Western Australian one bought for $5,000 and
+valued at $100,000 gets $5,000. Each residence requirement is stated
+with its principal place of residence condition, period and starting event.
+The page's transfer duty rows are not part of the worksheet.
+`tests/first_home_owner_grant.rs` runs the page's cases and every
+jurisdiction, home and edge date at each amount and cap against an oracle
+typed from the rules above.
+
+| Case | Source | Worksheet |
+|---|---|---|
+| NSW bought at $600,000 and $600,001 | Revenue NSW | $10,000; nil |
+| Qld bought at $749,999, $750,000 and $20,000 | Qld Act ss 5(6), 20(1) | $30,000; nil; $20,000 |
+| WA south at $780,000 on 6 and 7 May 2026 | DTF fact sheet | nil; $10,000 |
+| SA bought for $10,000 | RevenueSA's example | $10,000 |
+| Tas built on 30 June and 1 July 2026 | Tas Act ss 18L, 18M | $30,000; $20,000 |
+| NT established on 30 September and 1 October 2025 | NT Act ss 13(1)(a), 18(3D) | $10,000; nil |
 
 ## PSI test
 
@@ -4889,6 +5603,93 @@ Choices the sources leave to the reader:
 | $290 of category A in 2022-23; a seminar in 2021-22 | Act No. 84, 2022 Sch 3; TR 98/9 para 129 | $290 each, no reduction |
 | Category A $500 and D $100, with and without log book car expenses in A | ATO 'Self-education reduction in expenses' | $600; refused |
 | Wendy (new employment), Bert (general only), Callum's second semester (not employed) | ATO 'Self-education expenses' | Nil in every year |
+| Nicky: $200 working from home and $250 of other covered expenses; none claimed; $1,050 claimed; $800 allowed | Explanatory memorandum examples 4.1 to 4.4 | $550 standard deduction; $1,000; nil, $1,050 or $1,000 unclaimed; $200 |
+| Simon, $400 of wages; Yui, $95,000 of wages and $550 of covered expenses | ATO 'Standard deduction for work-related expenses' | $400 limit; $450 standard deduction |
+
+The standard deduction (added on 24 November 2026, when these were read):
+the Treasury Laws Amendment (Tax Reform No. 1) Act 2026 (No. 49 of 2026,
+assented to 26 June 2026; the Parliament's Bills page records it passed both
+Houses on 25 June 2026) as made on the Federal Register of Legislation:
+Schedule 4 item 3 inserts ITAA 1997 s 25-130, commencing 1 July 2026 (s 2
+table item 6), and item 17(1) applies it to assessments for 2026-27 and later
+years. s 25-130 on the ATO legal database reads as made. Its explanatory
+memorandum (paras 4.11 to 4.19 and examples 4.1 to 4.4) and the ATO's
+'Standard deduction for work-related expenses' (last updated 2 November 2026)
+state the choice whether to itemise. The worksheet takes every amount a
+method works out as a covered deduction: the methods are for an employee's
+expenses in gaining salary or wages, under s 8-1 (home office,
+self-education), Division 28 (car), s 25-10 (repairs) or Subdivision 40-B
+(decline in value). Example 4.4 is set in 2027-28, which the worksheet does
+not cover; the test works the same figures in 2026-27.
+
+## Notice period
+
+This worksheet was added on 24 November 2026, when every source below was
+read.
+
+- Fair Work Act 2009, compilation 73 (C2026C00355, compilation date 7 July
+  2026, the latest on the Federal Register of Legislation,
+  https://www.legislation.gov.au/C2009A00028/latest/text): s 117 (notice or
+  payment in lieu), s 118, s 123 (limits on scope), s 18 (full rate of pay)
+  and s 22 (service; s 22(4) for notice of termination). Endnote 4 records
+  s 117 as amended only by Act No. 25, 2021, and no amendment of s 123.
+- Fair Work Amendment (Supporting Australia's Jobs and Economic Recovery) Act
+  2021 (No. 25, 2021) as made
+  (https://www.legislation.gov.au/C2021A00025/asmade/text): Schedule 1 item
+  19 adds s 117(4); s 2 table item 2 commences Schedule 1 Parts 1 and 2 on
+  27 March 2021; the transitional clause 46(9) it inserts in the Fair Work
+  Act's Schedule 1 Part 10 applies the casual reference in s 117 to periods
+  of employment starting before, on or after that day.
+- The Fair Work Ombudsman's 'Dismissal'
+  (https://www.fairwork.gov.au/ending-employment/notice-and-final-pay/dismissal-how-much-notice),
+  'Notice of termination and redundancy pay' fact sheet and 'Who doesn't get
+  notice'.
+
+Choices the sources leave to the reader:
+
+- 'More than 1 year' is service running past the last day of a year from the
+  first day: Acts Interpretation Act 1901 s 2G(2) ends a period of years on
+  the day before the anniversary, so service from 1 August 2025 to the end of
+  31 July 2026 is exactly 1 year (1 week) and to 1 August is more (2 weeks).
+- Excluded days come off the end of the period, as they do not count towards
+  its length (s 22(4)(b)). The days between employments on a transfer of
+  employment are excluded days too (s 22(5)(b)); the first employer's service
+  counts (s 22(5)(a)), so `service_start` is its first day. The note to
+  s 22(5) and ss 91(1) and 122(1) let a second employer refuse that service
+  only for annual leave and redundancy pay, not for notice.
+- 'Over 45 years old' (s 117(3)(b)) is refused for an employee aged 45 in
+  completed years at the end of the notice day: read as older than 45 years
+  it includes them, read as aged above 45 it does not, and neither the Act nor
+  the Fair Work Ombudsman's pages say which. 46 or more is over 45; 44 or less
+  is not. A 29 February birthday is taken at 28 February for the 45th and
+  1 March for the 46th, the earliest and latest it could fall, so the refusal
+  covers both readings.
+- The notice ends no earlier than the notice day plus 7 days a week: the time
+  between giving notice and the termination day must be at least the period
+  (s 117(2)(a)), and the Fair Work Ombudsman starts the period on the day
+  after notice is given.
+- The payment in lieu takes the hours a week as the same in each week; an
+  employee whose hours or full rate differ by week is outside it. It is
+  rounded up to the cent, as s 117(2)(b) requires at least the full rate for
+  the hours.
+- 30 June 2027 is the last notice day accepted, not a statement that the law
+  stays the same to then; a later amendment is not covered.
+
+`tests/notice_period.rs` holds these cases.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Gunter, 5 months' service, notice on Tuesday 4 August 2026 | FWO 'Dismissal' | 1 week, ending Tuesday 11 August |
+| Joan, 35, 5 years and 3 months with 12 months' unpaid parental leave | FWO 'Dismissal' | 4 weeks |
+| 50, 3 1/2 years | s 117(3) | 3 + 1 = 4 weeks |
+| Exactly 1, 3 and 5 years, and a day more | s 117(3)(a), s 2G | 1, 2, 3 weeks; 2, 3, 4 weeks |
+| 50, exactly 2 years; a day short | s 117(3)(b) | 3 weeks; 2 weeks |
+| Notice the day before the 45th birthday, on it, the day before the 46th, on it | s 117(3)(b) | Not over 45; refused; refused; over 45 |
+| 1 year and 10 days with 10 days excluded | s 22(4) | 1 week |
+| Service from 29 February 2024: exactly 1 and 3 years, and a day more; 50, exactly 2 years | s 117(3), s 2G | 1, 2 weeks; 2, 3 weeks; 2 + 1 weeks |
+| Transfer: 3 years and 5 days with a 5-day gap between employers | s 22(5) | 2 weeks |
+| 3 weeks at 38 hours and $40.00; 1 week at 7.25 hours and $33.33 | s 117(2)(b) | $4,560.00; $241.65, rounded up |
+| Each s 123 exclusion; a specified period to avoid the Division | s 123(1) to (3) | No notice; notice as worked |
 
 ## Residency tests
 
@@ -5116,6 +5917,59 @@ the cents dropped.
 
 `tests/leave_provisions.rs` also covers each year, the year boundaries, each
 assumption's bounds (1 to 50 years; 0 refused), both versions of the right to defer in the text, and every refusal.
+
+## Long service leave
+
+This worksheet was added on 24 November 2026. Each source was read that day:
+
+- New South Wales: Long Service Leave Act 1955 s 4(2)(a) and (a3).
+  legislation.nsw.gov.au and AustLII answered with Cloudflare challenges, so
+  the in-force text was read in the Internet Archive's captures of
+  legislation.nsw.gov.au: the version from 25 March 2021 (captured 1 February
+  2022) and the version from 1 July 2025 (captured 16 December 2025) give
+  s 4(2)(a) to (a3) word for word alike. NSW Industrial Relations' long
+  service leave page and short guide (February 2026) agree.
+- Victoria: Long Service Leave Act 2018, authorised version 006 (12 December
+  2025), ss 6, 9 and 10; in operation from 1 November 2018, s 9 substituted
+  from 1 July 2021 (No. 14/2021 s 75).
+- Queensland: Industrial Relations Act 2016 (in force) s 95, last amended by
+  Act No. 19 of 2020 s 134, in part 13, division 4, which commenced on assent
+  (s 2(1)(c)), 22 June 2020. Section 95(2)(a) and (7) give 8.6667 weeks.
+- Western Australia: Long Service Leave Act 1958 s 8, last amended by Act
+  No. 30 of 2021 from 20 June 2022; s 8(4) (the 2006 transition, commencement
+  day 4 July 2006) cannot apply after 4 July 2007.
+- South Australia: Long Service Leave Act 1987, version of 1 July 2017, s 5,
+  unchanged since 1 January 1988 apart from s 5(1a) (1997).
+- Tasmania: Long Service Leave Act 1976 ss 8 and 9 and Schedule 3 (Act No. 41
+  of 2011 from 1 July 2012, with a 12-month transition).
+- The ACT: Long Service Leave Act 1976 R29 (19 November 2025) ss 3, 4, 11A and
+  11C, against R28 (1 October 2022): A2025-30 added only the offence in
+  s 11A(4) and (5). WorkSafe ACT's calculation guidelines give the weeks as
+  years x 1/5 x 52/12.
+- The Northern Territory: Long Service Leave Act 1981 (as in force at
+  14 October 2015) ss 8 and 10, s 10 last amended from 27 October 2004.
+
+The site's long service leave calculator (ryanduguid.github.io, main at
+dcc7ecbe) was run on its 39 page cases, its unit tests' inputs and a sweep of
+every place, status, reason and threshold, 3,016 rows in
+`tests/data/long_service_leave_site_cases.json`. The worksheet gives the same
+service, weeks, balance and value on 2,485 rows and refuses the 69 the page
+refuses. It departs on 462:
+
+| Rule | Source | Rows |
+| --- | --- | --- |
+| Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | 241 differ in the fourth place of the weeks or in cents (3 page cases) |
+| A last day before 1 July 2020, after 30 June 2027 or before the earliest text read is refused | each Act's commencement and amendment history above | 185 refused (2 page cases) |
+| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with service from before 1 July 2012 are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 42 refused (6, 6 and 30; 2 page cases) |
+
+The Queensland row count falls to 235 (2 page cases) because 6 of its rows
+are now refused. WorkSafe ACT's guidance note 067A rounds 7 years to 6.0667
+weeks before multiplying, giving $3,397.35 at $560 a week; the Act's 1/5 of a
+month a year gives 91/15 weeks exactly, $3,397.33, which the worksheet uses.
+The part year as days over 365.25 (over 364 in Queensland, as Business
+Queensland's example of 18 years, 3 months and 16 days giving 15.8548 weeks
+requires) is the worksheet's convention: the Acts give a proportion of years
+without a day count.
 
 ## Foreign income conversion
 

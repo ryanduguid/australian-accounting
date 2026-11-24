@@ -14,7 +14,8 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
-/// `tests/payroll_tax.rs`, `tests/land_tax.rs`,
+/// `tests/payroll_tax.rs`, `tests/land_tax.rs`, `tests/workers_compensation_premium.rs`, `tests/motor_vehicle_duty.rs`, `tests/insurance_duty.rs`, `tests/transfer_duty.rs`,
+/// `tests/foreign_purchaser_surcharge.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -30,24 +31,32 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
 /// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
 /// `tests/income_tests.rs`,
-/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/vic_property_taxes.rs`, `tests/alcohol_excise.rs`,
+/// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/vic_property_taxes.rs`, `tests/alcohol_excise.rs`, `tests/asic_fees.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
 /// `tests/private_health_insurance_rebate.rs`, `tests/depreciation_pools.rs`,
+/// `tests/instant_asset_write_off.rs`,
 /// `tests/withholding_schedules.rs`, `tests/payment_withholding.rs`,
 /// `tests/work_expenses.rs`, `tests/ato_interest_penalties.rs`,
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
-/// `tests/psi_test.rs`, `tests/rental_property.rs` and
+/// `tests/psi_test.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
 /// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
-/// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
+/// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
-/// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs` and
-/// `tests/help_indexation.rs` cover them, as `tests/transfer_balance.rs` covers
+/// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs`,
+/// `tests/help_indexation.rs`, `tests/first_home_owner_grant.rs`, `tests/defined_benefit_income_cap.rs`,
+/// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
+/// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 105] = [
+const NEW_KINDS: [(&str, &str); 122] = [
+    ("defined-benefit-income-cap", "defined_benefit_income_cap"),
+    ("foreign-pension-upp", "foreign_pension_upp"),
+    ("scholarship-exemption", "scholarship_exemption"),
+    ("super-crystallisation", "super_crystallisation"),
+    ("endorsement-review", "endorsement_review"),
     ("help-indexation", "help_indexation"),
     ("super-withholding", "super_withholding"),
     ("super-benefit-tax", "super_benefit_tax"),
@@ -58,6 +67,7 @@ const NEW_KINDS: [(&str, &str); 105] = [
     ("transfer-balance", "transfer_balance"),
     ("excess-contributions", "excess_contributions"),
     ("ppsr-timing", "ppsr_timing"),
+    ("foreign-purchaser-surcharge", "foreign_purchaser_surcharge"),
     ("dasp-tax", "dasp_tax"),
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
     ("gst-margin-scheme", "gst_margin_scheme"),
@@ -83,16 +93,25 @@ const NEW_KINDS: [(&str, &str); 105] = [
     ),
     ("balancing-adjustment", "balancing_adjustment"),
     ("trade-in", "trade_in"),
+    ("transfer-duty", "transfer_duty"),
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
     ("land-tax", "land_tax"),
+    (
+        "workers-compensation-premium",
+        "workers_compensation_premium",
+    ),
+    ("motor-vehicle-duty", "motor_vehicle_duty"),
+    ("insurance-duty", "insurance_duty"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("vic-property-taxes", "vic_property_taxes"),
     ("alcohol-excise", "alcohol_excise"),
+    ("asic-fees", "asic_fees"),
     ("cgt-parcels", "cgt_parcels"),
     ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),
+    ("notice-period", "notice_period"),
     (
         "private-health-insurance-rebate",
         "private_health_insurance_rebate",
@@ -103,13 +122,16 @@ const NEW_KINDS: [(&str, &str); 105] = [
         "depreciation_small_business_pool",
     ),
     ("capital-works", "capital_works"),
+    ("instant-asset-write-off", "instant_asset_write_off"),
     (
         "small-business-income-offset",
         "small_business_income_offset",
     ),
     ("non-commercial-losses", "non_commercial_losses"),
     ("psi-test", "psi_test"),
+    ("first-home-owner-grant", "first_home_owner_grant"),
     ("payg-instalment", "payg_instalment"),
+    ("pcg-2021-4", "pcg_2021_4"),
     ("minors-income", "minors_income"),
     ("smsf-tax", "smsf_tax"),
     ("beneficiary-tax-offset", "beneficiary_tax_offset"),
@@ -145,6 +167,7 @@ const NEW_KINDS: [(&str, &str); 105] = [
     ("residency-tests", "residency_tests"),
     ("lodgment-required", "lodgment_required"),
     ("rd-tax-offset", "rd_tax_offset"),
+    ("esic", "esic"),
     (
         "gst-creditable-purpose-change",
         "gst_creditable_purpose_change",
@@ -159,6 +182,7 @@ const NEW_KINDS: [(&str, &str); 105] = [
     ("gst-bad-debt", "gst_bad_debt"),
     ("deferred-tax", "deferred_tax"),
     ("leave-provisions", "leave_provisions"),
+    ("long-service-leave", "long_service_leave"),
     ("foreign-income-conversion", "foreign_income_conversion"),
     ("foreign-income-tax-offset", "foreign_income_tax_offset"),
     ("division-296", "division_296"),
@@ -297,7 +321,9 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     adapt_fbt(command, input, &mut expected);
     adapt_medicare(command, input, &mut expected);
     adapt_depreciation(command, &mut expected);
+    adapt_depreciation_years(command, input, &mut expected);
     adapt_contribution_caps(command, &mut expected);
+    adapt_resident_tax(command, &mut expected);
     adapt_2027_28(command, input, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
@@ -648,14 +674,58 @@ fn adapt_depreciation(command: &str, expected: &mut Value) {
         ))
     });
     record["sources"].as_array_mut().unwrap().extend(sections);
-    record["source_checked"] = json!("2026-11-13");
+    record["source_checked"] = json!("2026-11-23");
     if command == "worksheet-catalogue" {
         record["source_passage"] = json!(
-            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year"
+            "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year; Guides to depreciating assets 2021 to 2026, the methods and days held in a leap year, with Laura's photocopier in the 2021 and 2024 guides and Paul's refrigerator in the 2023 guide; IT(TP)A 1997 Subdivisions 40-BA and 40-BB, flagged"
         );
         record["optional_inputs"] = json!({"opening_adjustable_value":
             "AUD, for a year after the start time only: cost less the decline in value of earlier years, not the deductions; omit in the start year"});
     }
+}
+
+/// `depreciation` also accepts 2020-21 to 2024-25, with 366 days held in
+/// 2023-24, and cites the guides for those years (CHANGELOG.md). The 3 frozen
+/// 2023-24 inputs refused as an unsupported period now meet the refusals of
+/// their other inputs: a string day count or an effective life of 1001.
+fn adapt_depreciation_years(command: &str, input: &Value, expected: &mut Value) {
+    let periods = match command {
+        "periods" if input["kind"] == "depreciation" => expected["ok"].as_array_mut(),
+        "worksheet-catalogue" => {
+            let entry = &mut expected["ok"]["depreciation"];
+            entry["required_inputs"]["days"] = json!("integer from 0 to 365, or to 366 in 2023-24");
+            entry["supported_periods"].as_array_mut()
+        }
+        _ => None,
+    };
+    if let Some(periods) = periods {
+        let added = ["2020-21", "2021-22", "2022-23", "2023-24", "2024-25"].map(|id| {
+            let start: i32 = id[..4].parse().unwrap();
+            json!({"id": id, "basis": "income year", "start": format!("{start}-07-01"),
+                "end": format!("{}-06-30", start + 1), "arguments": {"year": id}})
+        });
+        periods.splice(0..0, added);
+        return;
+    }
+    if command != "depreciation" {
+        return;
+    }
+    let Some(Value::String(error)) = expected.get_mut("error") else {
+        return;
+    };
+    if input["year"] == "2023-24" && error.starts_with("Unsupported period") {
+        *error = if input["effective_life"] == "1001" {
+            "effective_life must be a finite Decimal between 0.01 and 1000 years.".into()
+        } else {
+            assert_eq!(input["days"], "146", "a frozen 2023-24 input");
+            "days must be an integer from 0 to 366 for 2023-24.".into()
+        };
+        return;
+    }
+    *error = error.replace(
+        "; supported: 2025-26, 2026-27.",
+        "; supported: 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26, 2026-27.",
+    );
 }
 
 /// `contribution-caps` can also work out the unused concessional cap from each
@@ -663,6 +733,11 @@ fn adapt_depreciation(command: &str, expected: &mut Value) {
 /// ATO's concessional contributions cap page and s 291-20, and the catalogue
 /// lists the new optional inputs. A supplied total gives the same amounts.
 fn adapt_contribution_caps(command: &str, expected: &mut Value) {
+    if command == "worksheet-catalogue" {
+        // pension-minimum lists its optional transition_to_retirement input.
+        expected["ok"]["pension_minimum"]["optional_inputs"] =
+            worksheet_catalogue()["pension_minimum"]["optional_inputs"].clone();
+    }
     let old_scope = "unused concessional cap is the established total of unexpired amounts from the previous 5 years. Excludes";
     let record = match command {
         "contribution-caps" => expected.pointer_mut("/ok"),
@@ -684,6 +759,34 @@ fn adapt_contribution_caps(command: &str, expected: &mut Value) {
         .unwrap()
         .extend(current["sources"].as_array().unwrap()[1..].iter().cloned());
     record["source_checked"] = json!("2026-11-16");
+    if command == "worksheet-catalogue" {
+        record["source_passage"] = current["source_passage"].clone();
+        record["optional_inputs"] = current["optional_inputs"].clone();
+    }
+}
+
+/// `resident-tax` also pro-rates a part-year resident's tax-free threshold
+/// (CHANGELOG.md): its scope says so, its source passage names Income Tax
+/// Rates Act 1986 ss 16, 18 and 20, and the catalogue lists the 2 optional
+/// inputs. Without them every result is the full-year one.
+fn adapt_resident_tax(command: &str, expected: &mut Value) {
+    let old_scope = "Full-year Australian resident individual, ordinary taxable income only.";
+    let record = match command {
+        "resident-tax" => expected.pointer_mut("/ok"),
+        "worksheet-catalogue" => expected.pointer_mut("/ok/resident_tax"),
+        _ => None,
+    };
+    let Some(record) = record else {
+        return;
+    };
+    let current = &worksheet_catalogue()["resident_tax"];
+    let scope = record["scope"].as_str().unwrap();
+    assert!(
+        scope.starts_with(old_scope),
+        "frozen resident tax scope changed"
+    );
+    record["scope"] = current["scope"].clone();
+    record["source_checked"] = current["source_checked"].clone();
     if command == "worksheet-catalogue" {
         record["source_passage"] = current["source_passage"].clone();
         record["optional_inputs"] = current["optional_inputs"].clone();
@@ -713,7 +816,7 @@ const REFUSED_2027_28: [(&str, &str); 6] = [
     ),
     (
         "depreciation",
-        "2027-28 has 366 days, and this worksheet takes at most 365 days held.",
+        "2027-28 has 366 days, and this worksheet has been checked for a year of 366 days only in 2023-24.",
     ),
     (
         "payg-withholding",

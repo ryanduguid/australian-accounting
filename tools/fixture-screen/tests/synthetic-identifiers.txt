@@ -55,6 +55,7 @@ packages/australian-tax-calculators/src/dgr/tests.rs abn 61000000002 unissued nu
 packages/australian-tax-calculators/src/dgr/tests.rs abn 74000000006 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/src/dgr/tests.rs abn 80000000001 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/src/dgr/tests.rs abn 93000000005 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/tests/data/pcg_2021_4_site_cases.json tfn 603944400 digits of the seeded sweep's amounts 60394.44 and 0.00 run together, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 143895032 generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 180300887 generated total_super_balance input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json acn 604579286 generated amount input in the frozen Python differential corpus, not an identifier

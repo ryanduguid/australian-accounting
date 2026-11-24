@@ -53,7 +53,7 @@ const DEPRECIATION_PAGES: [&str; 3] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-72",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-75",
 ];
-const DEPRECIATION_PASSAGE: &str = "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year";
+const DEPRECIATION_PASSAGE: &str = "Decline in value: diminishing value and prime cost methods, with the later-year diminishing value example; taxable use; ITAA 1997 ss 40-70(1), 40-72 and 40-75(1) and (7), base value and the limit on decline in a later year; Guides to depreciating assets 2021 to 2026, the methods and days held in a leap year, with Laura's photocopier in the 2021 and 2024 guides and Paul's refrigerator in the 2023 guide; IT(TP)A 1997 Subdivisions 40-BA and 40-BB, flagged";
 const CAPS_PAGES: [&str; 2] = [
     "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/concessional-contributions-cap",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/291-20",
@@ -90,7 +90,7 @@ fn review(kind: &str) -> Option<Review> {
         },
         "depreciation" => Review {
             pages: &DEPRECIATION_PAGES,
-            checked: "2026-11-13",
+            checked: "2026-11-23",
             passage: DEPRECIATION_PASSAGE,
         },
         "contribution_caps" => Review {
@@ -157,6 +157,21 @@ fn statutory_fbt(facts: &Value, amounts: &mut Value) {
     }
 }
 
+/// A frozen disclaimer, with the worksheet scopes the linked engine states: the
+/// statutory FBT wording and #837's resident_tax scope.
+pub fn disclaimer(text: &str) -> String {
+    let mut text = statutory_fbt_text(text);
+    let label = "\nresident_tax: ";
+    if let Some(start) = text.find(label) {
+        let from = start + label.len();
+        let end = from + text[from..].find('\n').unwrap();
+        let mut scope = json!({});
+        resident_tax(&mut scope, &["scope"]);
+        text.replace_range(from..end, scope["scope"].as_str().unwrap());
+    }
+    text
+}
+
 pub fn statutory_fbt_text(text: &str) -> String {
     text.replace(
         "for the year ended 31 March 2026. Excludes",
@@ -164,8 +179,22 @@ pub fn statutory_fbt_text(text: &str) -> String {
     )
 }
 
+/// #837: resident_tax also pro-rates a part-year resident's tax-free threshold, so its
+/// scope, check date and source passage are the linked engine's, as the engine's own
+/// `adapt_resident_tax` in tests/parity.rs applies them. Without the new inputs every
+/// amount is the frozen one.
+fn resident_tax(value: &mut Value, fields: &[&str]) {
+    let now = &australian_tax_calculators::engine::worksheet_catalogue()["resident_tax"];
+    for field in fields {
+        value[*field] = now[*field].clone();
+    }
+}
+
 /// A frozen successful calculate_tax_worksheet result, as the linked engine gives it.
 pub fn worksheet(kind: &str, facts: &Value, result: &mut Value) {
+    if kind == "resident_tax" {
+        resident_tax(result, &["scope", "source_checked"]);
+    }
     if kind == "contribution_caps" && result["amounts"].get("carry_forward_applied").is_some() {
         carry_forward(facts, result);
     }
@@ -183,6 +212,9 @@ pub fn worksheet(kind: &str, facts: &Value, result: &mut Value) {
 
 /// A frozen worksheet catalogue entry (the scope resource), as the linked engine gives it.
 pub fn catalogue(kind: &str, entry: &mut Value) {
+    if kind == "resident_tax" {
+        resident_tax(entry, &["scope", "source_checked", "source_passage"]);
+    }
     let Some(review) = review(kind) else {
         return;
     };
@@ -231,6 +263,9 @@ pub fn catalogue(kind: &str, entry: &mut Value) {
             );
             evidence["checked"] = json!(review.checked);
         }
+        "depreciation" => {
+            entry["required_inputs"]["days"] = json!("integer from 0 to 365, or to 366 in 2023-24");
+        }
         _ => {}
     }
 }
@@ -244,6 +279,10 @@ pub fn freshness(row: &mut Value) {
         return;
     };
     let kind = kind.to_owned();
+    if kind == "resident_tax" {
+        resident_tax(row, &["source_checked"]);
+        resident_tax(&mut row["provenance"], &["source_passage"]);
+    }
     let Some(review) = review(&kind) else {
         return;
     };
@@ -299,6 +338,21 @@ pub fn file_note(kind: &str, note: &str, before: &Value, after: &Value) -> Strin
         }
     }
     let covered = "The engine's source check covered: ";
+    if kind == "resident_tax" {
+        let now = &australian_tax_calculators::engine::worksheet_catalogue()["resident_tax"];
+        for (old, new) in [
+            (
+                before["scope"].as_str().unwrap(),
+                now["scope"].as_str().unwrap(),
+            ),
+            (
+                "Income Tax Rates Act 1986, Schedule 7 Part I clause 1.",
+                &format!("{}.", now["source_passage"].as_str().unwrap()),
+            ),
+        ] {
+            note = note.replace(old, new);
+        }
+    }
     if let Some(review) = review(kind)
         && let Some(start) = note.find(covered)
     {
