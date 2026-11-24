@@ -5530,6 +5530,42 @@ offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
 
+## Impairment test
+
+Added on 24 November 2026, when the sources were read: AASB 136 compilation
+COMPjan26_07-26 (F2026C01108, periods beginning from 1 July 2026 to before
+1 January 2029) with its tables of amendments, and compilation COMPdec22_01-23
+for earlier periods. Since the August 2015 Standard the tables list changes to
+paras 2 and 140N (AASB 17), Aus2.1, Aus5.1, Aus6.1, Aus6.2, Aus32.1 and
+Aus32.2 (AASB 2016-4), Aus141.1, Appendix E (AASB 1060) and Illustrative
+Example 10 (AASB 2026-1) only; none of paras 6, 18 to 20, 30 to 33, 39, 50 to
+57, 59 to 62, 104 and 105 changed, so the rules applied read the same for
+every reporting period ending in 2020-21 to 2026-27.
+
+Illustrative Example 2 (IE23 to IE32) gives the Country A unit's cash flows
+for 20X2 to 20Y2 (230, 253, 273, 290, 304, 313, 307, 289, 245, 184 and 61) at
+15%, goodwill of 1,000 and identifiable assets of 1,833. Schedule 2 rounds
+each discounted flow to whole units (200, 191, 180, 166, 151, 135, 115, 94,
+70, 45 and 13) and totals 1,360; Schedule 3 recognises 1,473 (goodwill 1,000,
+identifiable assets 473). Unrounded, value in use is 1,361.20 and the loss
+1,471.80 (goodwill 1,000.00, identifiable assets 471.80): each year's present
+value rounds to Schedule 2's figure, and the totals differ only by Schedule
+2's rounding of each line. I2 to I6 are made up and worked in Python's
+`decimal`.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| E2 | Example 2 as above | value in use **$1,361.20**, loss **$1,471.80**: goodwill $1,000.00, other $471.80 |
+| I2 | goodwill 200, plant 600 with floor 550, building 400; fair value less costs of disposal 700 | loss **$500.00**: goodwill $200, plant $50 at its floor, building **$250** |
+| I3 | goodwill 100, A 500 floor 450, B 300 floor 280; recoverable nil | loss **$900.00**: goodwill $100, A $50, B $20, unallocated **$730** |
+| I4 | recoverable above carrying | no loss |
+| I5 | 12,000, 12,500, 13,000, 13,500, 14,000 and terminal 40,000 at 9.25% | value in use **$75,599.58** |
+| I6 | 3 assets of $100.00, loss $100.00 | **$33.33**, **$33.34**, **$33.33** |
+
+`tests/impairment_test.rs` also covers the year boundaries, negative cash
+flows, an unmeasurable fair value, floors above carrying amount and every
+refusal.
+
 ## Leave provisions
 
 Added on 22 November 2026, when the sources were read: AASB 119 compilation
