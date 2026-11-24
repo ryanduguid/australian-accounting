@@ -296,9 +296,9 @@ fn schedule(
     Ok(rows)
 }
 
-/// AASB 15 for one performance obligation's stated pattern of progress.
-pub fn deferred_revenue(a: &DeferredRevenueArgs) -> Result<Value> {
-    let year = scope(a.scope_confirmed, a.year, KIND)?;
+/// The facts outside the worksheet: variable consideration and a significant
+/// financing component.
+fn excluded(a: &DeferredRevenueArgs) -> Result<()> {
     if flag(a.variable_consideration, "variable_consideration")? {
         return refuse(
             "deferred_revenue.variable_consideration",
@@ -314,6 +314,13 @@ pub fn deferred_revenue(a: &DeferredRevenueArgs) -> Result<Value> {
             "A significant financing component adjusts the price under AASB 15 paras 60 to 65, which this worksheet does not apply.",
         );
     }
+    Ok(())
+}
+
+/// AASB 15 for one performance obligation's stated pattern of progress.
+pub fn deferred_revenue(a: &DeferredRevenueArgs) -> Result<Value> {
+    let year = scope(a.scope_confirmed, a.year, KIND)?;
+    excluded(a)?;
     let amount = money(a.contract_amount)?;
     if amount.is_zero() {
         return refuse(
