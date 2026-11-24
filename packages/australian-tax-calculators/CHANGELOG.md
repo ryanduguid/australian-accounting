@@ -4,6 +4,12 @@
 
 ### Added
 
+- `charity-check`: whether each ABN is on the 22 November 2026 copy of the ACNC
+  Register of Australian charities, with its legal name, registration date and
+  ACNC Act s 25-5(5) subtypes, and the limits of one copy. The copy answers for
+  a check date up to 31 days after its own and refuses any other, with
+  `charity_check.as_at_before_snapshot` and `charity_check.snapshot_stale`.
+  `examples/acnc_register.rs` rebuilds it from the dataset's CSV.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and

@@ -6333,6 +6333,25 @@ means the document bytes changed; it does not establish that the rule changed.
 | `Tax/Depreciation.md` | `395195f3422f9695fee4ea409e34b241384002091b9ea67a8bbd75197d1912e1` |
 | `Superannuation/Instant Reference – Rates, Thresholds and Checklists.md` | `de94931c47597286f33e0a952ff1686cbe7120bca48def74d1a44dd388922bf6` |
 
+## Charity check
+
+`charity-check` adds no rate. Read on 24 November 2026 (AEDT): the data.gov.au
+record for `acnc-register` (licence CC BY 3.0 AU; CSV resource last modified
+2026-11-22T17:39:55, 15,227,773 bytes, SHA-256
+`559c29245442d98abc473ffa60a2832b4d25ead3ebbf6734dd2857237fef328d`, 66,645
+rows); the dataset's user notes (December 2024), paras 4, 5, 7, 16 to 17 and
+29 to 32; the ACNC Act 2012 s 25-5(5) table (Compilation No. 11, 5 December
+2025); the CC BY 3.0 AU legal code, cl 4A and 4B; and ABN Lookup's page for ABN
+50 169 561 394, which showed Australian Red Cross Society registered with the
+ACNC from 3 December 2012, as the copy does. The CSV's subtype columns map to
+the table's items: Advancing_Health 1, Advancing_Education 2,
+Advancing_social_or_public_welfare 3, Advancing_Religion 4, Advancing_Culture 5,
+Promoting_reconciliation 6, Promoting_or_protecting_human_rights 7,
+Advancing_security_or_safety 8, Preventing_or_relieving_suffering_of_animals 9,
+Advancing_natual_environment 10, Purposes_beneficial_to_the_general_public 11,
+Promote_or_oppose_a_change_to_law 12 (para (l), shown in the table as advancing
+public debate), HPC 13 and PBI 14.
+
 ## DGR check
 
 `dgr-check` adds no rate; its rules and data were read on 16 November 2026

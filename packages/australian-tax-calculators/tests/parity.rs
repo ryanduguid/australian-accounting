@@ -901,12 +901,13 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        // derive, personal-tax-estimate, dgr-check and fbt-return are new
-        // too; tests/derivation.rs, tests/personal_tax_estimate.rs,
-        // tests/dgr_check.rs and tests/fbt_return.rs cover them.
+        // derive, personal-tax-estimate, dgr-check, charity-check and
+        // fbt-return are new too; tests/derivation.rs,
+        // tests/personal_tax_estimate.rs, tests/dgr_check.rs,
+        // tests/charity_check.rs and tests/fbt_return.rs cover them.
         if matches!(
             command,
-            "derive" | "personal-tax-estimate" | "dgr-check" | "fbt-return"
+            "derive" | "personal-tax-estimate" | "dgr-check" | "charity-check" | "fbt-return"
         ) || NEW_KINDS.iter().any(|(c, _)| *c == command)
         {
             continue;

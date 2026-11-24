@@ -102,7 +102,7 @@ pub(super) fn parse_register(text: &str) -> Register {
 /// 13, 15, 17 and 19, and the sum must divide by 89. As in gst-review and the
 /// MCP's `validate_abn`, only ASCII digits and spaces are accepted: stripping
 /// anything else could turn a malformed ABN into a different, valid one.
-pub(super) fn abn_digits(text: &str) -> Option<String> {
+pub(crate) fn abn_digits(text: &str) -> Option<String> {
     const WEIGHTS: [u32; 11] = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
     if !text.bytes().all(|b| b.is_ascii_digit() || b == b' ') {
         return None;

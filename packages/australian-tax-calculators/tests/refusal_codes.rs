@@ -75,6 +75,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         ("engine.rs", &["refuse(", "bad("][..]),
         ("api.rs", &["refusal("][..]),
         ("estimate.rs", &["Refusal::new("][..]),
+        ("charity.rs", &["refusal("][..]),
         ("dgr.rs", &["Refusal::new("][..]),
         ("dgr/input.rs", &["Refusal::new("][..]),
         ("fbt_return.rs", &["Refusal::new("][..]),

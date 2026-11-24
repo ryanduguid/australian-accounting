@@ -276,6 +276,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `worksheet-catalogue` | none: send `{}` |
 | `periods` | `kind`, the worksheet name, such as `"payg_withholding"` |
 | `dgr-check` | `donations`, a list of 1 to 10,000 objects, each with `abn` or `name` or both, and optional `date` and `amount`; see [DGR check](#dgr-check) |
+| `charity-check` | `abns`, a list of 1 to 10,000 ABNs, and `as_at`, the check date; see [Charity check](#charity-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), and for a full-year resident `medicare-levy` and `medicare-levy-surcharge`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp` and `super-crystallisation`, and `input`, that command's arguments; see [Derivations](#derivations) |
@@ -5327,6 +5328,42 @@ To refresh it:
 
 Do not commit the raw extract. The cross-check against ABN Lookup's DGR listing
 and the sources read are in the calculation evidence.
+
+## Charity check
+
+`charity-check` says whether each ABN is on a dated copy of the ACNC Register of
+Australian charities, with the legal name, registration date and subtypes (ACNC
+Act 2012 s 25-5(5), items 1 to 14) the copy shows. It takes `abns`, 1 to 10,000
+ABNs read as `dgr-check` reads them, and `as_at`, the date of the check:
+
+```json
+{"abns": ["50 169 561 394"], "as_at": "2026-11-24"}
+```
+
+Each result gives `on_register_snapshot`. When true it adds `legal_name`,
+`registration_date` (null where the dataset leaves it blank) and `subtypes`, each
+`{item, subtype}`. When false the finding says the ABN 'is not on the ACNC
+register in the data of' the copy's date, never that the entity is not a
+charity. Every result names `snapshot_date` and carries the limits: the dataset
+lists only charities registered on its date, a charity may have its ABN or a
+subtype withheld, and registration settles neither income tax exemption (ITAA
+1997 Division 50) nor DGR status (`dgr-check`).
+
+The copy answers for `as_at` from its date to 31 days after
+(`data.answers_until`); the dataset is weekly. An earlier `as_at` is refused
+with `charity_check.as_at_before_snapshot` and a later one with
+`charity_check.snapshot_stale`.
+
+`data` carries the attribution the CC BY 3.0 AU licence asks for: the source,
+the copyright, the licence and its URL, and the changes made.
+
+To refresh it, download `datadotgov_main.csv` from the
+[dataset page](https://data.gov.au/data/dataset/acnc-register), note the
+resource's last-modified time, and run the command in
+`examples/acnc_register.rs`'s comment from this directory. Then run `cargo
+test`: `tests/charity_check.rs` pins the copy's date, counts and digest, so it
+fails until they are updated with this section, `NOTICE` and the changelog. Do
+not commit the raw CSV.
 
 ## Worksheet discovery
 
