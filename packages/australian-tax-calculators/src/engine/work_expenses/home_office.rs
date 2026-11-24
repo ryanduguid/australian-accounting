@@ -8,9 +8,10 @@
 
 use serde_json::{Value, json};
 
+use super::rows::{Diary, fixed_rate_records};
 use super::{
-    Arg, Decimal, Result, Standard, Step, conflict, d, finish, flag, int, money, named, rate, step,
-    sum, with_return,
+    Arg, Decimal, Result, Standard, Step, conflict, d, finish, flag, int, money, named, rate,
+    refuse, step, sum, with_return,
 };
 
 /// The inputs, in [`Inputs`]' order.
@@ -58,6 +59,8 @@ struct Inputs {
     furniture: Decimal,
     assets: Decimal,
     repairs: Decimal,
+    /// The diary the hours were read from, if they were.
+    diary: Option<Diary>,
 }
 
 /// With no additional running expense incurred, refuses an amount for one:
@@ -94,6 +97,61 @@ fn within_year(hours: &Decimal, year: &str, first: i64) -> Result<()> {
     Ok(())
 }
 
+/// Whether the hours come from `hours_diary`, which stands in for `hours`
+/// from 2022-23, the years PCG 2023/1 covers.
+fn from_diary(given: &[(String, Arg)], early: bool) -> Result<bool> {
+    let has = |name: &str| given.iter().any(|(n, _)| n == name);
+    if !has("hours_diary") {
+        return Ok(false);
+    }
+    if has("hours") {
+        return conflict("Give hours or hours_diary, not both.");
+    }
+    if early {
+        return refuse(
+            "work_expenses.diary_year_unsupported",
+            "hours_diary is read from 2022-23, the years PCG 2023/1 covers; for an earlier year give hours.",
+        );
+    }
+    Ok(true)
+}
+
+/// The inputs taken: [`NAMES`] with `hours_diary` for `hours` when a diary
+/// is given, whether running expenses were incurred and, before 2022-23,
+/// whether there was a dedicated home office.
+fn input_names(diary: bool, early: bool) -> Vec<&'static str> {
+    let hours = if diary { "hours_diary" } else { "hours" };
+    let mut names = vec![hours];
+    names.extend(&NAMES[1..]);
+    names.push("running_expenses_incurred");
+    if early {
+        names.push("dedicated_home_office");
+    }
+    names
+}
+
+/// Each input's value in [`NAMES`]' order, `hours` from the diary when one
+/// is given, and the diary.
+fn values<'a>(
+    get: impl Fn(&str) -> &'a Arg,
+    diary: bool,
+    year: &str,
+    first: i64,
+) -> Result<([Decimal; 9], Option<Diary>)> {
+    let mut read = None;
+    let mut values = Vec::with_capacity(NAMES.len());
+    for name in NAMES {
+        if diary && name == "hours" {
+            let given = Diary::read(get("hours_diary"), year, first)?;
+            values.push(given.hours.clone());
+            read = Some(given);
+        } else {
+            values.push(money(get(name))?);
+        }
+    }
+    Ok((<[Decimal; 9]>::try_from(values).expect("9 inputs"), read))
+}
+
 /// The inputs, whether additional running expenses were incurred, which
 /// every hourly rate needs, and whether the 52c rate's dedicated home office
 /// was there (always true from 2022-23, which does not ask).
@@ -104,16 +162,10 @@ fn inputs(
     first: i64,
 ) -> Result<(Inputs, bool, bool)> {
     let early = first < 2022;
-    let mut names = NAMES.to_vec();
-    names.push("running_expenses_incurred");
-    if early {
-        names.push("dedicated_home_office");
-    }
+    let diary = from_diary(given, early)?;
+    let names = input_names(diary, early);
     let get = named(given, super::COMMAND, when, &names)?;
-    let mut values = Vec::with_capacity(NAMES.len());
-    for name in NAMES {
-        values.push(money(get(name))?);
-    }
+    let (values, diary) = values(&get, diary, year, first)?;
     let [
         hours,
         energy,
@@ -124,7 +176,7 @@ fn inputs(
         furniture,
         assets,
         repairs,
-    ] = <[Decimal; 9]>::try_from(values).expect("9 inputs");
+    ] = values;
     within_year(&hours, year, first)?;
     let incurred = flag(
         get("running_expenses_incurred"),
@@ -141,6 +193,7 @@ fn inputs(
         furniture,
         assets,
         repairs,
+        diary,
     };
     if !incurred {
         no_running_expense(&x, early)?;
@@ -246,7 +299,7 @@ pub(super) fn home_office(
     let early = first < 2022;
     let (x, incurred, dedicated) = inputs(given, when, year, first)?;
     let hourly = d(fixed_rate(first));
-    let mut steps = Vec::new();
+    let mut steps: Vec<Step> = x.diary.iter().map(Diary::step).collect();
     let mut methods = Vec::new();
     let mut rates = vec![rate("fixed_rate", &hourly)];
     if incurred && dedicated {
@@ -275,5 +328,20 @@ pub(super) fn home_office(
         (true, true) => Value::Null,
     };
     out["higher_method"] = json!(higher);
+    records(&mut out, &x, first, incurred && dedicated)?;
     Ok(out)
+}
+
+/// The diary's coverage, and from 2022-23, where the fixed rate is open, the
+/// records PCG 2023/1 makes its condition.
+fn records(out: &mut Value, x: &Inputs, first: i64, fixed: bool) -> Result<()> {
+    if let Some(diary) = &x.diary {
+        diary.report(out);
+    }
+    if fixed && first >= 2022 {
+        let beside = [&x.cleaning, &x.furniture, &x.assets, &x.repairs];
+        let beside = !sum(&beside)?.is_zero();
+        out["records_to_confirm"] = fixed_rate_records(first, beside);
+    }
+    Ok(())
 }

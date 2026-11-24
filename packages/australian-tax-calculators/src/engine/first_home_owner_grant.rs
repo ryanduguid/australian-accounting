@@ -333,8 +333,10 @@ fn tested(house: Home, dollars: &Decimal, cap: Option<Decimal>) -> Result<Decima
     })
 }
 
-/// The pair is the consideration, which limits the grant, and the value
-/// tested against the cap.
+/// The pair is `total_value`, which limits the grant only for a home
+/// bought (for a home built the consideration is the contract alone, which
+/// `building_contract` states is at least the amount), and the value tested
+/// against the cap.
 fn work(
     s: &Scheme,
     r: &Rule,
