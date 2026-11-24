@@ -439,6 +439,27 @@
   `ess_discount.taxing_point_value` and `ess_discount.valuation_unavailable`.
   `tests/ess_discount.rs` holds it to the ATO's examples and every table entry.
 
+- `non-resident-withholding` works out PAYG withholding on monetary payments
+  to foreign residents for 2024-25 to 2026-27 under TAA 1953 Schedule 1
+  Subdivision 12-F (dividends, interest and royalties, with franked amounts,
+  conduit foreign income, stated treaty rates, TAR 2017 s 26 rounding and the
+  s 12-300 ceiling), Subdivision 12-H (withholding MIT fund payments including
+  clean building MIT and non-concessional MIT income components for EOI and
+  non-EOI recipients) and Subdivision 12-FB / s 12-315 (casino gaming junkets,
+  entertainment or sports activities for companies and individuals, and
+  construction and related activities, with s 12-319 exemptions, s 15-15
+  variations and s 48 prior-withholding reductions). New codes:
+  `non_resident_withholding.already_withheld_exceeds_payment`,
+  `non_resident_withholding.base_rate_entity_invalid`,
+  `non_resident_withholding.construction_contract_before_cutoff`,
+  `non_resident_withholding.exempt_exceeds_payment`,
+  `non_resident_withholding.mit_parts_exceed_payment`,
+  `non_resident_withholding.payee_entity_unsupported`,
+  `non_resident_withholding.payment_type_invalid`,
+  `non_resident_withholding.treaty_rate_invalid` and
+  `non_resident_withholding.variation_rate_invalid`.
+  `tests/non_resident_withholding.rs` verifies every statutory rate, rounding
+  boundary and refusal code.
 - `foreign-resident-withholding` works out the foreign resident capital gains
   withholding amount under TAA 1953 Sch 1 s 14-200 for taxable Australian real
   property or a company title interest acquired from 1 July 2017 to 30 June

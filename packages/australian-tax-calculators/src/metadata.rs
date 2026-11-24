@@ -1519,6 +1519,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
             "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
             "2025-26", "2026-27",
         ],
+        // TAA Sch 1 Subdivs 12-F, 12-H and 12-FB, IT(DIRWHT)A 1974 s 7,
+        // IT(MITWHT)A 2008 s 4, TAR 2017 ss 26, 31 to 34, 39 to 45 and 48 to 51
+        // (sunsets 1 October 2027) and ITRA 1986 s 23(2) and Sch 7 Pt II cl 1
+        // (table for 2024-25 onwards) share the same rates across these years.
+        "non_resident_withholding" => vec!["2024-25", "2025-26", "2026-27"],
         // The years payg_withholding's Schedule 1 holds: Schedules 6 and 14 and
         // the daily and casual table use it, and Schedules 2, 3, 4 and 10 and
         // s 12-190 were read for the same years only.
@@ -2018,6 +2023,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "foreign_resident_withholding" => (
             "2026-11-22",
             "TAA 1953 Sch 1 ss 14-200, 14-210, 14-215, 14-220 and 14-235, compilation 227 (1 October 2026), against compilations 148 (1 July 2017) and 215 (11 December 2024) and the compilation of 1 January 2025; Acts No. 57 of 2017 and No. 135 of 2024 Sch 1; ITAA 1997 ss 108-7 and 109-5; F2016L01123 and LI 2026/38 (F2026L01231); the ATO's foreign resident capital gains withholding pages (last updated 22 June to 9 October 2026)",
+        ),
+        "non_resident_withholding" => (
+            "2026-11-24",
+            "TAA 1953 Sch 1 Subdivs 12-F (ss 12-210 to 12-300), 12-FB (ss 12-315 to 12-319), 12-H (ss 12-383 to 12-450) and ss 12-1, 15-10 and 15-15, compilation 227 (C2026C00468, 1 October 2026); ITAA 1936 Div 11A ss 128B to 128D, compilation 193 (C2026C00454, 1 October 2026); Income Tax (Dividends, Interest and Royalties Withholding Tax) Act 1974 s 7 (C2007C00596, 24 September 2007); Income Tax (Managed Investment Trust Withholding Tax) Act 2008 s 4, compilation 3 (C2019C00219, 1 July 2019); Taxation Administration Regulations 2017 ss 26, 31 to 34, 39 to 45 and 48 to 51, compilation 18 (F2026C01210, 14 November 2026); Income Tax Rates Act 1986 s 23(2) and Sch 7 Pt II cl 1, compilation 66 (C2026C00300, 1 July 2026); Act No. 138 of 2024 Sch 1 (active build to rent exclusion in s 12-450(5) from 1 January 2025)",
         ),
         "residency_tests" => (
             "2026-11-22",
@@ -2602,6 +2611,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "the rate examples (Jane and Toni), the clearance certificate examples (Willow and Stanley, Maisie and Max) and the multiple vendor examples (Zac and Jen, Kim)",
             "2026-10-09",
             "2026-11-22",
+        ),
+        "non_resident_withholding" => (
+            "TAA 1953 Sch 1, ITAA 1936 s 128B, IT(DIRWHT)A 1974, IT(MITWHT)A 2008, TAR 2017 and ITRA 1986",
+            "statutory rate schedules across Subdivisions 12-F, 12-H and 12-FB, TAR 2017 s 26 whole-dollar truncation and s 12-300(b) ceiling cases",
+            "2026-11-14",
+            "2026-11-24",
         ),
         "horticulture_shearing_withholding" => (
             "ATO Schedule 2 tax table for the horticultural or shearing industry (NAT 1013)",
@@ -3481,6 +3496,60 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "principal_payments",
                 "AUD, with agent true only, and then required: the principal's payments to you for services to its customers (s 87-40(2)(b))",
+            ),
+        ],
+        "non_resident_withholding" => vec![
+            (
+                "franked_amount",
+                "AUD, payment_type dividend only, and then required: the franked part of the dividend exempt from withholding tax under ITAA 1936 s 128B(3)(ga)(i)",
+            ),
+            (
+                "conduit_foreign_income",
+                "AUD, payment_type dividend only, and then required: the unfranked part declared to be conduit foreign income (ITAA 1997 ss 802-15 and 802-17)",
+            ),
+            (
+                "treaty_rate",
+                "null or decimal string from 0 to the domestic rate (0.30 for dividend or royalty, 0.10 for interest), Subdivision 12-F types only, and then required: the maximum rate under an applicable double tax agreement or international tax sharing treaty (TAR 2017 ss 40 and 42; TAA Sch 1 s 12-300); pass null where domestic rates apply or TAR 2017 s 40(3) excludes the treaty rate for a US tax-exempt dividend",
+            ),
+            (
+                "information_exchange_country",
+                "boolean, payment_type mit_fund_payment only, and then required: whether the recipient's address or place for payment (ss 12-385(3)(a) and 12-390(3)(a)), or residency for a non-custodian intermediary (s 12-390(6)(a)), is in an information exchange country listed in TAR 2017 s 34",
+            ),
+            (
+                "clean_building_mit_amount",
+                "AUD, payment_type mit_fund_payment only, and then required: the part of payment attributable to a clean building MIT (s 12-425) and not non-concessional MIT income (s 12-385(3)(a)(ii))",
+            ),
+            (
+                "non_concessional_mit_income",
+                "AUD, payment_type mit_fund_payment only, and then required: the part of payment attributable to non-concessional MIT income (s 12-435, excluding affordable housing under s 12-450(3) and active build to rent income under s 12-450(5) from 1 January 2025)",
+            ),
+            (
+                "company_not_acting_as_agent",
+                "boolean, payment_type mit_fund_payment only, and then required: true where the entity withholding under s 12-390 is a company not acting in the capacity as agent for the recipient (apart from s 12-420), which s 12-390(10)(a) exempts from withholding; false for a withholding MIT under s 12-385, a non-company entity, or a company acting as agent",
+            ),
+            (
+                "payee_entity",
+                "individual or company, payment_type entertainment_or_sports only, and then required (TAR 2017 s 50(2)); trusts, partnerships and other entities are refused",
+            ),
+            (
+                "base_rate_entity",
+                "boolean when payee_entity is company (25% if true, 30% if false, ITRA 1986 s 23(2)), or null when payee_entity is individual; payment_type entertainment_or_sports only, and then required",
+            ),
+            (
+                "contract_date",
+                "YYYY-MM-DD, payment_type construction only, and then required: date the contract for works or related activities was entered into; contracts on or before 30 June 2004 are refused (TAR 2017 s 33(1))",
+            ),
+            (
+                "variation_rate",
+                "null or decimal string from 0 to 1, Subdivision 12-FB types only, and then required: a Commissioner's varied withholding rate under TAA Sch 1 s 15-15 (individual written notice or class variation)",
+            ),
+            (
+                "exempt",
+                "boolean, all payment types, required: whether a statutory exemption makes no withholding tax payable (s 12-300(a) for Subdivision 12-F; ss 12-385(5) and 12-390(10)(b) for Subdivision 12-H) or a Commissioner's written exemption under s 12-319(1) is in force for Subdivision 12-FB",
+            ),
+            (
+                "already_withheld",
+                "AUD, Subdivisions 12-F and 12-FB only, and then required: amounts already withheld from this payment under the same Subdivision (TAA Sch 1 s 12-300(b); TAR 2017 s 48(2)); 0.00 for none",
             ),
         ],
         "payg_instalment" => vec![
@@ -4877,6 +4946,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("borrowing_loans", "list of objects as borrowing-expenses-schedule takes loans, your own borrowing expenses only; empty for none"),
             ("capital_works", "list of objects, the whole property's, each with construction_expenditure (AUD, given, never derived), kind (building or structural_improvement), began and first_used (YYYY-MM-DD) and taken_to_begin_before_16_september_1987 (boolean, s 43-220(1)(a) or (b); required for a building begun after 15 September 1987)"),
             ("depreciating_assets", "list of objects, the whole property's, each with decline_in_value (AUD from its start time to the end of the days held, before any private use reduction), acquired (YYYY-MM-DD, when you acquired it or entered into the contract under which you did, if earlier: Act No. 126 of 2017 Schedule 2 item 13), first_used (YYYY-MM-DD, its start time, first used or installed ready for use), held_when_first_used, residence_or_private_use and low_value_pool (booleans), and new_premises_exception (boolean, for an asset not held when first used) and deductible_in_2016_17 (boolean, for an asset acquired before 9 May 2017) where needed (s 40-27)"),
+        ],
+        "non_resident_withholding" => vec![
+            ("payment_type", "dividend, interest, royalty (Subdivision 12-F), mit_fund_payment (Subdivision 12-H), gaming_junket, entertainment_or_sports or construction (Subdivision 12-FB / s 12-315); capital_gains is refused (use foreign-resident-withholding)"),
+            ("payment", "AUD: the gross monetary payment dealt with under the Subdivision (excluding non-cash benefits under Division 14 and LAFHA or expense payment benefits disregarded under TAA Sch 1 s 12-1(2) and (3))"),
         ],
         "foreign_resident_withholding" => vec![
             ("payment", "capital_gains: foreign resident capital gains withholding (TAA Sch 1 s 14-200); any other payment is refused"),
@@ -6684,6 +6757,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("borrowing_loans", Json("[]")),
             ("capital_works", Json("[]")),
             ("depreciating_assets", Json("[]")),
+        ],
+        // An unfranked dividend of $10,000.00 ($4,000.00 franked, $1,000.00
+        // conduit foreign income, $5,000.00 unfranked non-CFI) paid to a
+        // resident of a 15% treaty country: $750.00 withheld.
+        "non_resident_withholding" => vec![
+            ("year", Text("2025-26")),
+            ("payment_type", Text("dividend")),
+            ("payment", Text("10000.00")),
+            ("franked_amount", Text("4000.00")),
+            ("conduit_foreign_income", Text("1000.00")),
+            ("treaty_rate", Text("0.15")),
+            ("exempt", Flag(false)),
+            ("already_withheld", Text("0.00")),
         ],
         // The ATO's multiple vendor example: Zac (foreign resident, no
         // document) and Jen (clearance certificate) sell a $1 million property

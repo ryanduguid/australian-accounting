@@ -64,6 +64,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/payroll_tax",
         "engine/payroll_tax/group",
         "engine/tourist_refund",
+        "engine/non_resident_withholding",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -195,7 +196,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
     // first-home-owner-grant,
     // fbt-instalment, private-health-insurance-rebate, rental-property, super-benefit-tax and
-    // foreign-resident-withholding,
+    // foreign-resident-withholding, non-resident-withholding,
     // horticulture-shearing-withholding, upward-variation-withholding,
     // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
     // return-to-work-withholding, annuity-withholding,
@@ -212,7 +213,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 127);
+    assert_eq!(checked, 128);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
