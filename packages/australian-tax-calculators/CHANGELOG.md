@@ -223,6 +223,18 @@
   `transfer_duty.first_home_not_residential`,
   `transfer_duty.jurisdiction_invalid` and
   `transfer_duty.non_residential_unsupported`. `derive` takes it.
+- `work-expenses` reads the records themselves. For `home_office` from
+  2022-23, `hours_diary` (dated rows of hours) stands in for `hours`; for
+  `car_log_book`, `log_book` (the period, its odometer readings and each
+  journey with its purpose) stands in for `log_book_weeks` and
+  `business_kilometres`, checks the 12 week period, that it includes part of
+  its year and that the journeys fit inside it, and applies its percentage to
+  the year's kilometres. Both methods now list the records PCG 2023/1 and
+  Division 28 require in `records_to_confirm`, as facts for the operator to
+  confirm. Other results are unchanged. New codes:
+  `work_expenses.diary_year_unsupported`,
+  `work_expenses.log_book_entry_incomplete` and
+  `work_expenses.log_book_outside_year`.
 - `work-expenses` works out the standard deduction for work-related expenses
   (ITAA 1997 s 25-130, Act No. 49 of 2026) in 2026-27 when given
   `assessable_labour_income`, `other_work_related_deductions` and
