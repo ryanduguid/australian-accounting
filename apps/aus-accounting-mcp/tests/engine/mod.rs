@@ -47,7 +47,7 @@ const MEDICARE_PAGES: [&str; 8] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251U",
     "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/medicare-levy-questions-m1-m2-individual-tax-return-2026/m1-medicare-levy-reduction-or-exemption-2026",
 ];
-const MEDICARE_PASSAGE: &str = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B";
+const MEDICARE_PASSAGE: &str = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B; non-resident days (read 24 November 2026): ITAA 1936 ss 251S(1)(a) and 251U(1)(d), (2) and (3), and M1 2026, category 2";
 const DEPRECIATION_PAGES: [&str; 3] = [
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-70",
     "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/40-72",
@@ -85,7 +85,7 @@ fn review(kind: &str) -> Option<Review> {
         },
         "medicare_levy" => Review {
             pages: &MEDICARE_PAGES,
-            checked: "2026-11-14",
+            checked: "2026-11-24",
             passage: MEDICARE_PASSAGE,
         },
         "depreciation" => Review {
@@ -261,7 +261,8 @@ pub fn catalogue(kind: &str, entry: &mut Value) {
             evidence["paragraphs"] = json!(
                 "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton); claiming an exemption, example (Priya)"
             );
-            evidence["checked"] = json!(review.checked);
+            // The examples were last read on 14 November 2026; the passage on 24 November.
+            evidence["checked"] = json!("2026-11-14");
         }
         "depreciation" => {
             entry["required_inputs"]["days"] = json!("integer from 0 to 365, or to 366 in 2023-24");

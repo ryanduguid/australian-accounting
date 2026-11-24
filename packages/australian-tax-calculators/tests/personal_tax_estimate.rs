@@ -172,21 +172,14 @@ fn division_293_is_shown_outside_the_total() {
 }
 
 #[test]
-fn a_part_year_resident_or_working_holiday_maker_is_refused() {
-    for residency in ["part_year_resident", "working_holiday_maker"] {
-        let r = refusal(input("2025-26", "50000", json!({"residency": residency})));
-        assert_eq!(r.code, "estimate.residency_unsupported", "{residency}");
-    }
-    // The reason names the part not taken, the Medicare levy's
-    // non-resident days, not the threshold resident-tax now pro-rates.
+fn a_working_holiday_maker_is_refused() {
+    // A part-year resident is composed: tests/part_year_estimate.rs.
     let r = refusal(input(
         "2025-26",
         "50000",
-        json!({"residency": "part_year_resident"}),
+        json!({"residency": "working_holiday_maker"}),
     ));
-    for cited in ["s 251U(1)(d)", "s 251U(2)"] {
-        assert!(r.message.contains(cited), "{cited}");
-    }
+    assert_eq!(r.code, "estimate.residency_unsupported");
     let r = refusal(input("2025-26", "50000", json!({"residency": "resident"})));
     assert_eq!(r.code, "input.residency_invalid");
     let mut facts = input("2025-26", "50000", json!({}));

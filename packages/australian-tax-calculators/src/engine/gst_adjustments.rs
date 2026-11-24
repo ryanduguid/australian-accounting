@@ -44,12 +44,12 @@ fn fraction(value: &Arg, name: &str) -> Result<Decimal> {
 }
 
 /// One condition row.
-fn condition(id: &str, authority: &str, met: bool) -> Value {
+pub(super) fn condition(id: &str, authority: &str, met: bool) -> Value {
     json!({"condition": id, "authority": authority, "met": met})
 }
 
 /// The ids of the rows not met.
-fn failing(rows: &[Value]) -> Vec<Value> {
+pub(super) fn failing(rows: &[Value]) -> Vec<Value> {
     rows.iter()
         .filter(|row| row["met"] == json!(false))
         .map(|row| row["condition"].clone())

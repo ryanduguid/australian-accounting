@@ -729,3 +729,203 @@ fn residence_requirements_are_stated_in_full() {
         }
     }
 }
+
+/// For a home built, every Act read on 24 November 2026 makes the
+/// consideration the building work alone (Qld schedule 'consideration' (b),
+/// WA s 14AB(b), Vic, SA and Tas s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b)),
+/// so the help must not call the land and contract total the consideration
+/// that limits the grant.
+#[test]
+fn total_value_help_keeps_the_land_out_of_a_built_homes_consideration() {
+    let units = australian_tax_calculators::metadata::input_units("first_home_owner_grant");
+    let total = units
+        .iter()
+        .find(|(name, _)| *name == "total_value")
+        .unwrap()
+        .1;
+    assert!(
+        !total.contains("the consideration, which limits the grant"),
+        "{total}"
+    );
+    assert!(
+        total.contains("the consideration is the building contract alone"),
+        "{total}"
+    );
+}
+
+/// A home built with its contract price stated, and the conditions each
+/// jurisdiction needs.
+fn built(place: &str, date: &str, total: u64, price: u64) -> Value {
+    let extra: &[&str] = match place {
+        "nt" => &["nt_no_replacement"],
+        "tas" => &["tas_conditions"],
+        _ => &[],
+    };
+    let mut input = case(place, date, "built", total, extra);
+    input["contract_price"] = json!(price.to_string());
+    if place == "wa" {
+        input["north_of_26th"] = json!(false);
+    }
+    input
+}
+
+/// The grant is the lesser of the consideration and the amount, and a home
+/// built's consideration is the total payable for the building work: Qld
+/// s 20(1) and schedule 'consideration' (b), Vic s 18(1A) and s 13(7)(b), WA
+/// s 19(2CA) and s 14AB(b), SA s 18(1) and s 13(7)(b), Tas s 18(1) and
+/// s 13(7)(b), NT s 18(1) and s 13(8)(b). The ACT pays nil (s 18(1)(b)).
+#[test]
+fn the_contract_price_limits_a_built_homes_grant() {
+    let lesser = "the grant cannot be more than the consideration";
+    for (place, date, amount) in [
+        ("qld", "2026-08-01", 30_000),
+        ("vic", "2026-08-01", 10_000),
+        ("wa", "2026-08-01", 10_000),
+        ("sa", "2026-08-01", 15_000),
+        ("tas", "2026-08-01", 20_000),
+        ("tas", "2026-06-01", 30_000),
+        ("nt", "2026-08-01", 50_000),
+    ] {
+        for (price, want, why) in [
+            (1, 1, lesser),
+            (amount - 1, amount - 1, lesser),
+            (amount, amount, ""),
+            (amount + 1, amount, ""),
+        ] {
+            let input = built(place, date, 400_000, price);
+            assert_eq!(
+                grant(&input),
+                (format!("{want}.00"), why.to_owned()),
+                "{input}"
+            );
+        }
+    }
+    for price in [1, 9_999, 10_000, 400_000] {
+        assert_eq!(grant(&built("act", "2026-08-01", 400_000, price)).0, "0.00");
+    }
+}
+
+/// The NSW Act could not be read, so a NSW contract price below the grant
+/// stays refused; at or above it the grant is paid.
+#[test]
+fn a_nsw_contract_price_below_the_grant_is_refused() {
+    for price in [1, 9_999] {
+        assert_eq!(
+            code(&built("nsw", "2026-08-01", 400_000, price)),
+            "first_home_owner_grant.below_grant"
+        );
+    }
+    for price in [10_000, 400_000] {
+        assert_eq!(
+            grant(&built("nsw", "2026-08-01", 400_000, price)),
+            ("10000.00".into(), String::new())
+        );
+    }
+}
+
+/// Vic s 13(1A) caps the consideration, which for a home built is the
+/// building work alone (s 13(7)(b)): with the contract price stated the cap
+/// tests it, not the land and building total.
+#[test]
+fn the_victorian_cap_tests_the_contract_price() {
+    let vic = |total, price| grant(&built("vic", "2026-08-01", total, price));
+    assert_eq!(vic(900_000, 600_000), ("10000.00".into(), String::new()));
+    assert_eq!(vic(900_000, 750_000), ("10000.00".into(), String::new()));
+    assert_eq!(
+        vic(900_000, 750_001),
+        ("0.00".into(), "the value is over the Victoria cap".into())
+    );
+}
+
+/// The contract price changes nothing the land and contract total tests:
+/// the NSW, Queensland and Western Australian caps.
+#[test]
+fn the_contract_price_leaves_the_total_value_caps_alone() {
+    assert_eq!(
+        grant(&built("nsw", "2026-08-01", 750_001, 400_000)).0,
+        "0.00"
+    );
+    assert_eq!(
+        grant(&built("qld", "2026-08-01", 750_000, 20_000)).0,
+        "0.00"
+    );
+    assert_eq!(
+        grant(&built("qld", "2026-08-01", 749_999, 20_000)).0,
+        "20000.00"
+    );
+    assert_eq!(grant(&built("wa", "2026-08-01", 800_001, 5_000)).0, "0.00");
+    let wa = with(
+        built("wa", "2026-08-01", 300_000, 5_000),
+        json!({"cap_value": "900000"}),
+    );
+    assert_eq!(grant(&wa).0, "0.00");
+}
+
+#[test]
+fn contract_price_refusals() {
+    let built_home = built("sa", "2026-08-01", 400_000, 5_000);
+    for (changes, want) in [
+        (json!({"home": "bought"}), "input.field_unknown"),
+        (json!({"home": "established"}), "input.field_unknown"),
+        (
+            json!({"contract_price": "400001"}),
+            "first_home_owner_grant.value_invalid",
+        ),
+        (
+            json!({"contract_price": "0"}),
+            "first_home_owner_grant.value_invalid",
+        ),
+        (
+            json!({"contract_price": "5000.50"}),
+            "input.amount_not_whole_dollars",
+        ),
+        (
+            json!({"facts": {"person": true, "citizen": true, "first_home": true,
+                "residence": true, "building_contract": true}}),
+            "first_home_owner_grant.facts_invalid",
+        ),
+    ] {
+        assert_eq!(
+            code(&with(built_home.clone(), changes.clone())),
+            want,
+            "{changes}"
+        );
+    }
+    // Review S2: cap_value includes the contract price, so it cannot be lower.
+    let qld = with(
+        built("qld", "2026-08-01", 900_000, 750_000),
+        json!({"cap_value": "749999"}),
+    );
+    assert_eq!(code(&qld), "first_home_owner_grant.value_invalid");
+    let wa = with(
+        built("wa", "2026-08-01", 900_000, 800_001),
+        json!({"cap_value": "800000"}),
+    );
+    assert_eq!(code(&wa), "first_home_owner_grant.value_invalid");
+    // Review I1: a total that is all contract price, and the same total
+    // without the price.
+    assert_eq!(
+        grant(&built("sa", "2026-08-01", 5_000, 5_000)),
+        (
+            "5000.00".into(),
+            "the grant cannot be more than the consideration".into()
+        )
+    );
+    assert_eq!(
+        code(&case(
+            "sa",
+            "2026-08-01",
+            "built",
+            5_000,
+            &["building_contract"]
+        )),
+        "first_home_owner_grant.below_grant"
+    );
+    // The fact agrees with a contract price at or above the grant.
+    let agreed = with(
+        built("sa", "2026-08-01", 400_000, 15_000),
+        json!({"facts": {"person": true, "citizen": true, "first_home": true,
+            "residence": true, "building_contract": true}}),
+    );
+    assert_eq!(grant(&agreed).0, "15000.00");
+}

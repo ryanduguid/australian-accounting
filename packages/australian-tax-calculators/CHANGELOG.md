@@ -16,6 +16,33 @@
   `not_eligible`, `retailer_type_invalid`, `sample_invalid`,
   `stock_role_invalid`, `tax_period_invalid`, `tax_period_spans_halves` and
   `total_nil`.
+- `payroll-tax-group` works out, from stated facts, one employer's payroll tax
+  group for 2026-27 in Victoria, Queensland, Western Australia, South
+  Australia or the ACT under each Act's grouping Part (related bodies
+  corporate, common employees, common control, tracing and subsumed groups,
+  less excluded persons), its designated group employer and the group's single
+  deduction, with Queensland's excess deduction shared in order. New South
+  Wales, Tasmania and the Northern Territory are refused. New codes:
+  `payroll_tax_group.act_unread`, `business_unstated`, `dge_conflict`, `dge_not_member`,
+  `dge_wages_below_deduction`, `excess_order_invalid`,
+  `excess_unnominated`, `exclusion_barred`, `fact_invalid`, `formula_unread`,
+  `interest_cycle`, `jurisdiction_invalid`, `no_dge_unsettled`,
+  `not_grouped`, `part_year`, `percent_invalid`, `person_duplicate`,
+  `person_unknown` and `test_invalid`. `derive` takes it.
+- `charity-check`: whether each ABN is on the 22 November 2026 copy of the ACNC
+  Register of Australian charities, with its legal name, registration date and
+  ACNC Act s 25-5(5) subtypes, and the limits of one copy. The copy answers for
+  a check date up to 31 days after its own and refuses any other, with
+  `charity_check.as_at_before_snapshot` and `charity_check.snapshot_stale`.
+  `examples/acnc_register.rs` rebuilds it from the dataset's CSV.
+- `tourist-refund` tests one traveller's purchases from one registered
+  supplier against the tourist refund scheme (GST Act s 168-5(1), GST
+  Regulations 2019 Division 168) for departures from 1 November 2025 to
+  30 June 2027, and works the refund of GST and of the wine tax borne
+  (WET Act s 25-5(1), 29% of half the price). New codes:
+  `tourist_refund.date_invalid`, `departure_not_covered`,
+  `departure_outside_year`, `fact_invalid`, `gst_exceeds_price_share`,
+  `item_invalid`, `threshold_unsettled` and `wine_tax_reduced`.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and
@@ -130,9 +157,15 @@
   s 20(1), or keeps $18,200 for an eligible pensioner (s 18(2)(a)), for
   2024-25 to 2027-28. A near miss of either input name is refused as
   `input.field_unknown`; other unknown fields are still ignored.
-  `personal-tax-estimate` still refuses a part-year resident, now citing the
-  Medicare levy's non-resident days (ITAA 1936 s 251U(1)(d), subject to
-  s 251U(2)).
+- `medicare-levy` takes `non_resident_days`: a part-year resident's days not
+  resident on which every dependant was also a prescribed person (ITAA 1936
+  s 251U(1)(d) and (2)), each a whole day off the levy under Medicare Levy Act
+  1986 s 9(1). `personal-tax-estimate` composes a part-year resident before
+  2027-28 with `part_year_residency_months`, `eligible_pensioner` and those
+  days, and refuses for one the surcharge, the seniors and pensioners tax
+  offset, the private health insurance rebate, a study loan repayment, worked
+  tax withheld and every year from 2027-28. Full-year and foreign resident
+  results do not change.
 - `workers-compensation-premium`: one employer's workers compensation premium
   for a 2026-27 policy in each state and territory, with the adjustment on
   actual wages: icare's small employer formula, the Victorian Premiums Order
@@ -204,7 +237,10 @@
   the contract date, the value cap (with an optional `cap_value` where
   Queensland and Western Australia test a value other than the
   consideration) and the lesser-of-consideration rule, from eligibility
-  facts the operator states. New codes:
+  facts the operator states. An optional `contract_price` for a home built
+  is its consideration: below the amount, the grant is the contract price
+  in every state and territory but New South Wales, whose Act could not be
+  read, and the Victorian cap tests it. New codes:
   `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
   `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
   `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,
@@ -235,6 +271,18 @@
   `transfer_duty.first_home_not_residential`,
   `transfer_duty.jurisdiction_invalid` and
   `transfer_duty.non_residential_unsupported`. `derive` takes it.
+- `work-expenses` reads the records themselves. For `home_office` from
+  2022-23, `hours_diary` (dated rows of hours) stands in for `hours`; for
+  `car_log_book`, `log_book` (the period, its odometer readings and each
+  journey with its purpose) stands in for `log_book_weeks` and
+  `business_kilometres`, checks the 12 week period, that it includes part of
+  its year and that the journeys fit inside it, and applies its percentage to
+  the year's kilometres. Both methods now list the records PCG 2023/1 and
+  Division 28 require in `records_to_confirm`, as facts for the operator to
+  confirm. Other results are unchanged. New codes:
+  `work_expenses.diary_year_unsupported`,
+  `work_expenses.log_book_entry_incomplete` and
+  `work_expenses.log_book_outside_year`.
 - `work-expenses` works out the standard deduction for work-related expenses
   (ITAA 1997 s 25-130, Act No. 49 of 2026) in 2026-27 when given
   `assessable_labour_income`, `other_work_related_deductions` and
