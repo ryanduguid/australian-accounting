@@ -44,6 +44,26 @@ REQUIRED = {
         ".github/workflows/codeql.yml: Analyze Python",
         ".github/workflows/codeql.yml: codeql-gates"
     ],
+    "release-solomons-sword.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
+        ".github/workflows/ci.yml: solomons-sword / check (ubuntu-latest)",
+        ".github/workflows/ci.yml: solomons-sword / check (windows-latest)",
+        ".github/workflows/ci.yml: solomons-sword / check (macos-latest)",
+        ".github/workflows/ci.yml: solomons-sword / dependency-audit",
+        ".github/workflows/boundaries.yml: boundaries",
+        ".github/workflows/codeql.yml: Analyze Rust",
+        ".github/workflows/codeql.yml: codeql-gates"
+    ],
+    "release-the-exchequer-tally.yml": [
+        ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
+        ".github/workflows/ci.yml: the-exchequer-tally / check (ubuntu-latest)",
+        ".github/workflows/ci.yml: the-exchequer-tally / check (windows-latest)",
+        ".github/workflows/ci.yml: the-exchequer-tally / check (macos-latest)",
+        ".github/workflows/ci.yml: the-exchequer-tally / dependency-audit",
+        ".github/workflows/boundaries.yml: boundaries",
+        ".github/workflows/codeql.yml: Analyze Rust",
+        ".github/workflows/codeql.yml: codeql-gates"
+    ],
 }
 
 

@@ -9,7 +9,9 @@ use serde_json::Value;
 use super::super::stated::{amount, known_keys};
 use super::super::{Arg, Result, Step, d, money, rate, refuse, step};
 use super::Method;
-use super::facts::{Given, NewBusiness, Period, Sample, sample, started, window};
+use super::facts::{
+    Given, Period, Sample, method_started, restaurant_plan, sample, started, window,
+};
 use crate::decimal::Decimal;
 
 mod norms;
@@ -171,7 +173,7 @@ fn half_window(given: &Given, period: &Period) -> Result<(i64, i64)> {
         );
     };
     let started = started(given.may("trading_started"), period)?;
-    window(period, july_half, started, NewBusiness::Retail2017)
+    window(period, july_half, started)
 }
 
 fn sales_from_sample(
@@ -226,25 +228,33 @@ fn every(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Resu
     Ok((pairs(Some((&sales, free_sales)), purchases, free)?, rates))
 }
 
+fn sample_share(
+    given: &Given,
+    key: &'static str,
+    purchases: &Decimal,
+    win: (i64, i64),
+    rates: &mut Rates,
+) -> Result<(Step, Sample)> {
+    let s = sample(given.need(key)?, key, 28, win)?;
+    rates.extend(sample_rates(key, &s));
+    let gst_free_key = format!("{key}_gst_free");
+    let total_key = format!("{key}_total");
+    let free = share(
+        "gst_free_purchases",
+        PURCHASE_SAMPLE,
+        ["trading_stock_purchases", &gst_free_key, &total_key],
+        [purchases, &s.gst_free, &s.total],
+    )?;
+    Ok((free, s))
+}
+
 fn purchases_from_sample(
     given: &Given,
     purchases: &Decimal,
     win: (i64, i64),
     rates: &mut Rates,
 ) -> Result<(Step, Sample)> {
-    let s = sample(given.need("purchases_sample")?, "purchases_sample", 28, win)?;
-    rates.extend(sample_rates("purchases_sample", &s));
-    let free = share(
-        "gst_free_purchases",
-        PURCHASE_SAMPLE,
-        [
-            "trading_stock_purchases",
-            "purchases_sample_gst_free",
-            "purchases_sample_total",
-        ],
-        [purchases, &s.gst_free, &s.total],
-    )?;
-    Ok((free, s))
+    sample_share(given, "purchases_sample", purchases, win, rates)
 }
 
 fn samples(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Result<Worked> {
@@ -382,15 +392,27 @@ fn supermarket(given: &Given, purchases: &Decimal) -> Result<Worked> {
 
 fn restaurant(given: &Given, period: &Period, purchases: &Decimal) -> Result<Worked> {
     let started = started(given.may("trading_started"), period)?;
+    let method_started = method_started(given.may("method_started"), period)?;
     let Some(july_half) = period.half() else {
         return refuse(
             "gst_food_retailer_sam.tax_period_spans_halves",
             "F2026L01275 s 7 gives a sample period for a tax period wholly in July to December or wholly in January to June.",
         );
     };
-    let win = window(period, july_half, started, NewBusiness::Restaurant2026)?;
+    let (is_first, win) = restaurant_plan(period, july_half, started, method_started)?;
     let mut rates = Rates::new();
-    let (free, _) = purchases_from_sample(given, purchases, win, &mut rates)?;
+    let sample_key = if is_first {
+        "purchases_sample"
+    } else {
+        if given.may("purchases_sample").is_some() {
+            return refuse(
+                "gst_food_retailer_sam.first_period_sample_required",
+                "F2026L01275 s 7 applies the GST-free trading stock proportion worked out for the first tax period in the 6-month half to every tax period in that half; pass first_tax_period_sample instead of choosing a separate purchases_sample for a later tax period.",
+            );
+        }
+        "first_tax_period_sample"
+    };
+    let (free, _) = sample_share(given, sample_key, purchases, win, &mut rates)?;
     given.done()?;
     let free = Step {
         authority: RESTAURANT,

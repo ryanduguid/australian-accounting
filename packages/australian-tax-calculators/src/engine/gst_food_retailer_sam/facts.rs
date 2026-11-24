@@ -189,26 +189,11 @@ fn sample_invalid<T>(name: &str, why: impl std::fmt::Display) -> Result<T> {
     )
 }
 
-/// Whose rule for a business that starts trading in the year applies.
-#[derive(Clone, Copy, PartialEq)]
-pub(super) enum NewBusiness {
-    /// F2017L01274 ss 6(4) and 7(3): only the first sample period (for July
-    /// to December) is replaced by one from the first 2 months of trading.
-    Retail2017,
-    /// F2026L01275 s 7 para (c): the first 2 months of trading, only when
-    /// trading starts during the tax period and paras (a) and (b) cannot apply.
-    Restaurant2026,
-}
-
-/// The window a sample must fall in: 1 June to 31 July (`july_half`) or
+/// The 2017 window a sample must fall in: 1 June to 31 July (`july_half`) or
 /// 1 December to 31 January before the half it applies to, never before
-/// trading started, or the first 2 months of trading where the rule allows.
-pub(super) fn window(
-    period: &Period,
-    july_half: bool,
-    started: Option<i64>,
-    rule: NewBusiness,
-) -> Result<(i64, i64)> {
+/// trading started, or the first 2 months of trading in July to December
+/// (F2017L01274 ss 6(4) and 7(3)).
+pub(super) fn window(period: &Period, july_half: bool, started: Option<i64>) -> Result<(i64, i64)> {
     let (y, _, _) = dates::to_civil(period.first);
     let ordinary = if july_half {
         (day(y, 6, 1), day(y, 7, 31))
@@ -227,18 +212,13 @@ pub(super) fn window(
     if started < half_start {
         return Ok((ordinary.0.max(started), ordinary.1));
     }
-    match rule {
-        NewBusiness::Retail2017 if july_half => Ok(first_months),
-        NewBusiness::Retail2017 => refuse(
+    if july_half {
+        Ok(first_months)
+    } else {
+        refuse(
             "gst_food_retailer_sam.new_business_unsettled",
             "F2017L01274 ss 6(4) and 7(3) replace only the first sample period (1 June to 31 July, for July to December) for a business that starts during the year; a business that starts trading in January to June is not worked.",
-        ),
-        NewBusiness::Restaurant2026 if started + 27 <= ordinary.1 => Ok((started, ordinary.1)),
-        NewBusiness::Restaurant2026 if started >= period.start => Ok(first_months),
-        NewBusiness::Restaurant2026 => refuse(
-            "gst_food_retailer_sam.new_business_unsettled",
-            "F2026L01275 s 7(c) gives the first 2 months of trading only when the business starts trading during the tax period and paragraphs (a) and (b) cannot apply; a later tax period in the same half is not worked.",
-        ),
+        )
     }
 }
 
@@ -281,6 +261,92 @@ pub(super) fn sample(
     Ok(Sample { gst_free, total })
 }
 
+/// Whether `period` is the first tax period in its 6-month half where
+/// `restaurant_purchases_snapshot` (F2026L01275 s 7) establishes its
+/// GST-free trading stock proportion, and the applicable 4-week sample window.
+pub(super) fn restaurant_plan(
+    period: &Period,
+    july_half: bool,
+    started: Option<i64>,
+    method_started: Option<i64>,
+) -> Result<(bool, (i64, i64))> {
+    if let (Some(t), Some(m)) = (started, method_started)
+        && m < t
+    {
+        return refuse(
+            "gst_food_retailer_sam.sample_invalid",
+            "method_started cannot be before trading_started.",
+        );
+    }
+    let (y, _, _) = dates::to_civil(period.first);
+    let ordinary = if july_half {
+        (day(y, 6, 1), day(y, 7, 31))
+    } else {
+        (day(y, 12, 1), day(y + 1, 1, 31))
+    };
+    let half_start = if july_half {
+        period.first
+    } else {
+        period.january
+    };
+    let commences = dates::parse("2026-09-24").expect("a date");
+    let first_eligible = if half_start < commences {
+        dates::parse("2026-10-01").expect("a date")
+    } else {
+        half_start
+    };
+    let is_first = period.start <= first_eligible
+        || started.is_some_and(|d| d >= period.start)
+        || method_started.is_some_and(|d| d >= period.start);
+    let win = if let Some(m) = method_started
+        && m >= half_start
+    {
+        if m + 27 <= ordinary.1 {
+            (m, ordinary.1)
+        } else if m >= period.start {
+            if let Some(t) = started
+                && t >= period.start
+            {
+                (t, dates::months_end(t, 2).max(period.end))
+            } else {
+                (
+                    started.map_or(period.start, |t| period.start.max(t)),
+                    period.end,
+                )
+            }
+        } else {
+            return refuse(
+                "gst_food_retailer_sam.new_business_unsettled",
+                "F2026L01275 s 7(d) gives a 4-week sample within the tax period only when the retailer starts using the method during that tax period and paragraphs (a) and (b) cannot apply; a later tax period in the same half is not worked.",
+            );
+        }
+    } else if let Some(t) = started
+        && t >= half_start
+    {
+        if t + 27 <= ordinary.1 {
+            (t, ordinary.1)
+        } else if t >= period.start {
+            (t, dates::months_end(t, 2))
+        } else {
+            return refuse(
+                "gst_food_retailer_sam.new_business_unsettled",
+                "F2026L01275 s 7(c) gives the first 2 months of trading only when the business starts trading during the tax period and paragraphs (a) and (b) cannot apply; a later tax period in the same half is not worked.",
+            );
+        }
+    } else {
+        let lower = [
+            ordinary.0,
+            started.unwrap_or(ordinary.0),
+            method_started.unwrap_or(ordinary.0),
+        ]
+        .into_iter()
+        .max()
+        .expect("non-empty");
+        (lower, ordinary.1)
+    };
+    Ok((is_first, win))
+}
+
 /// The day trading started, when the business started in the year: it must
 /// fall in the financial year and on or before the tax period's end.
 pub(super) fn started(given: Option<&Arg>, period: &Period) -> Result<Option<i64>> {
@@ -292,6 +358,24 @@ pub(super) fn started(given: Option<&Arg>, period: &Period) -> Result<Option<i64
         return refuse(
             "gst_food_retailer_sam.sample_invalid",
             "trading_started must fall in the financial year, on or before tax_period_end.",
+        );
+    }
+    Ok(Some(day))
+}
+
+/// The day the retailer started using `restaurant_purchases_snapshot` in the
+/// year (F2026L01275 s 7(d)): from 24 September 2026 in the year, up to
+/// `tax_period_end`.
+pub(super) fn method_started(given: Option<&Arg>, period: &Period) -> Result<Option<i64>> {
+    let Some(value) = given else {
+        return Ok(None);
+    };
+    let day = date_arg(value, "method_started")?;
+    let commences = dates::parse("2026-09-24").expect("a date");
+    if day < period.first || day < commences || day > period.end {
+        return refuse(
+            "gst_food_retailer_sam.sample_invalid",
+            "method_started must fall from 2026-09-24 within the financial year, on or before tax_period_end.",
         );
     }
     Ok(Some(day))

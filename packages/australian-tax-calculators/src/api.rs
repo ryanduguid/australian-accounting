@@ -2903,7 +2903,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 .iter()
                 .filter_map(|key| {
                     let kind = match *key {
-                        "retailer_type" | "stock_role" | "trading_started" => Raw,
+                        "retailer_type" | "stock_role" | "trading_started" | "method_started" => {
+                            Raw
+                        }
                         k if k.ends_with("sample") || k == "product_lines" => Json,
                         _ => Dec,
                     };

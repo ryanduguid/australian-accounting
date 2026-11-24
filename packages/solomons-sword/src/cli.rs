@@ -1047,6 +1047,13 @@ fn dispatch(parsed: &Parsed) -> Result<String, Error> {
 
 /// (exit code, stdout, stderr), before platform text-mode newline conversion.
 pub fn run(args: &[String]) -> (i32, String, String) {
+    if args == ["--version"] {
+        return (
+            0,
+            format!("{PROG} {}\n", env!("CARGO_PKG_VERSION")),
+            String::new(),
+        );
+    }
     match parse(PROG, args) {
         Err(Exit::Help(text, code)) => (code, text, String::new()),
         Err(Exit::Error {

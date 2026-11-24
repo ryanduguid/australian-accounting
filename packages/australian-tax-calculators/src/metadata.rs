@@ -3787,7 +3787,11 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "purchases_sample",
-                "object {start, end, gst_free, total}: a continuous 4-week (28-day) sample of trading stock acquisitions, total and GST-free, in 1 June to 31 July for a tax period in July to December or 1 December to 31 January for one in January to June",
+                "object {start, end, gst_free, total}: a continuous 4-week (28-day) sample of trading stock acquisitions, total and GST-free, in 1 June to 31 July for a tax period in July to December or 1 December to 31 January for one in January to June; under restaurant_purchases_snapshot (F2026L01275 s 7), taken for the first tax period in the 6-month half (or the tax period of trading_started or method_started) and required only then",
+            ),
+            (
+                "first_tax_period_sample",
+                "object {start, end, gst_free, total}, restaurant_purchases_snapshot only: for a later tax period in the same 6-month half, the 4-week sample already worked out for the first tax period in that half (F2026L01275 s 7 applies that first tax period's GST-free proportion to every tax period in the half)",
             ),
             (
                 "sales_sample",
@@ -3800,6 +3804,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "trading_started",
                 "YYYY-MM-DD, for a business that started trading in the financial year (the 2017 sampled methods and restaurant_purchases_snapshot): under the 2017 methods, replaces only the July to December sample window (1 June to 31 July) with the first 2 months of trading; a January to June tax period for a July to December starter uses 1 December to 31 January (never before trading_started, so an August starter uses a December to January sample rather than September), and a business starting in January to June is refused. Under restaurant_purchases_snapshot, uses the first 2 months only when trading started during the tax period and no 28-day sample fits in 1 June to 31 July or 1 December to 31 January from trading_started (a later tax period in that half is refused); otherwise uses that ordinary window from trading_started",
+            ),
+            (
+                "method_started",
+                "YYYY-MM-DD, restaurant_purchases_snapshot only (F2026L01275 s 7(d)): when the retailer started using this method on or after 24 September 2026 in the year. When given during the tax period and no 28-day sample fits in the ordinary window from method_started, opens any continuous 4-week period within that tax period (s 7(d)); omit only when paragraphs (a) and (b) were not prevented by starting to use the method",
             ),
         ],
         "insurance_duty" => vec![

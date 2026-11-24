@@ -1,6 +1,6 @@
 # Australian tax calculators
 
-Australian Tax Calculators 1.2.0 is a standalone Rust binary with a JSON
+Australian Tax Calculators 1.3.0 is a standalone Rust binary with a JSON
 stdin interface. It replaces the Python `austaxcalc` import API. The MCP
 server through 0.9.0 used the 0.2.0 Python package from PyPI. Later versions
 run the calculator executable and require the exact version they were
@@ -48,7 +48,7 @@ install` does not install this binary.
 ## Install
 
 These commands install 1.2.0, the release the published MCP server 0.12.0
-accepts.
+accepts. For 1.3.0, give the tag `australian-tax-calculators/v1.3.0` instead.
 
 Each `australian-tax-calculators/v*` release on GitHub Releases carries the
 executable for x86_64 Linux (static, musl) and x86_64 Windows, built and
@@ -100,7 +100,7 @@ echo '{"amount": "1100.00", "gst_inclusive": true, "scope_confirmed": true, "yea
 ```
 
 ```json
-{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.2.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
+{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.3.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
 ```
 
 Amounts come back as quoted decimal strings rather than numbers, so an amount
@@ -2924,7 +2924,14 @@ samples its first 2 months under the 2017 methods only for July to December
 refused), and under the restaurant method only when trading starts during the tax
 period and the ordinary window (`1 June to 31 July` or `1 December to
 31 January`) cannot hold a 28-day sample from `trading_started` (a later tax
-period in the same half is refused). The shares are exact and the amounts shown to the cent. It refuses
+period in the same half is refused). Under F2026L01275 s 7, the first tax
+period in each 6-month half establishes the GST-free proportion via
+`purchases_sample`, and later tax periods in that half reuse it via
+`first_tax_period_sample` rather than choosing a new sample; starting to use
+the method during a tax period when the ordinary window cannot apply uses
+`method_started` (s 7(d)).
+
+The shares are exact and the amounts shown to the cent. It refuses
 a tax period before the method's determination commenced (an annual
 restaurant tax period cannot start on or after 24 September 2026 within
 2026-27), a sample of the wrong length or outside its window, a 2017 sample

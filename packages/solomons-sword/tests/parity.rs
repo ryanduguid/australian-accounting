@@ -332,6 +332,20 @@ fn a_narrow_console_codepage_does_not_end_the_run() {
     assert!(out.contains("Section 100A Risk Evaluation — Zoë Ŧrust"));
 }
 
+#[test]
+fn version_flag_prints_crate_name_and_version() {
+    let out = Command::new(env!("CARGO_BIN_EXE_solomons-sword"))
+        .arg("--version")
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert!(out.stderr.is_empty());
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap().replace("\r\n", "\n"),
+        format!("solomons-sword {}\n", env!("CARGO_PKG_VERSION"))
+    );
+}
+
 // Nightly campaigns vary generated cases whilst ordinary checks retain their frozen seeds.
 fn campaign_seed(default: u64) -> u64 {
     match std::env::var("LL_PROPERTY_SEED") {

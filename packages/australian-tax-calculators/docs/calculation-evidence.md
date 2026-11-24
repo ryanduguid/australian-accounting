@@ -2611,7 +2611,10 @@ refused. F2026L01275 s 7 para (c) gives the first 2 months only where trading
 starts during a tax period and paras (a) and (b) cannot be applied; the
 worksheet applies it only to the tax period in which trading starts when a
 28-day sample after the start cannot fit in the ordinary window, and refuses a
-later tax period in the same half.
+later tax period in the same half. Para (d) uses `method_started` for a
+retailer starting the method during a tax period outside the ordinary window,
+and later tax periods in the same 6-month half require `first_tax_period_sample`
+so one proportion applies across the half.
 
 ## Insurance duty
 

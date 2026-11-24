@@ -492,7 +492,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "gst_food_retailer_sam",
-        "For one tax period from 28 September 2017 to 30 June 2027 of a retailer that sells food and has chosen a simplified accounting method under GST Act s 123-10, the GST-free share of trading sales and trading stock purchases the method gives: the business norms, stock purchases and snapshot methods of F2017L01274, the supermarket and convenience store sales percentage method of F2025L01055 (from 9 September 2025) and the restaurant, cafe and caterer purchases snapshot method of F2026L01275 (from 24 September 2026), with the trading stock input tax credits where the method works them out. Eligibility is stated, not tested. Excludes the choice and its revocation, GST on sales, other acquisitions' credits, adjustments, the prisons and detention determination and which goods are GST-free or trading stock.",
+        "For one tax period from 28 September 2017 to 30 June 2027 of a retailer that sells food and has chosen a simplified accounting method under GST Act s 123-10, the GST-free share of trading sales and trading stock purchases the method gives: the business norms, stock purchases and snapshot methods of F2017L01274, the supermarket and convenience store sales percentage method of F2025L01055 (from 9 September 2025) and the restaurant, cafe and caterer purchases snapshot method of F2026L01275 (from 24 September 2026), with the trading stock input tax credits where the method works them out. Under F2026L01275 s 7, the GST-free proportion worked out for the first tax period in a 6-month half applies to every tax period in that half (`first_tax_period_sample` for later tax periods), and s 7(d) applies when `method_started` is stated; omitting `method_started` establishes that starting to use the method did not prevent the ordinary window. Eligibility is stated, not tested. Excludes the choice and its revocation, GST on sales, other acquisitions' credits, adjustments, the prisons and detention determination and which goods are GST-free or trading stock.",
     ),
     (
         "gst_going_concern",
@@ -4523,6 +4523,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "gst_food_retailer_sam.components_unbalanced",
         "A pharmacy's sales components do not add up to total_sales, or its non-PBS and over-the-counter purchases to trading_stock_purchases.",
+    ),
+    (
+        "gst_food_retailer_sam.first_period_sample_required",
+        "Under F2026L01275 s 7, a later tax period in a 6-month half reuses the first tax period's sample (`first_tax_period_sample`) rather than taking a separate `purchases_sample`.",
     ),
     (
         "gst_food_retailer_sam.method_invalid",

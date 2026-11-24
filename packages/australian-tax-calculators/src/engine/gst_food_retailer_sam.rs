@@ -38,7 +38,7 @@ pub struct GstFoodRetailerSamArgs<'a> {
 }
 
 /// The inputs a command may give beside the required ones.
-pub const GST_FOOD_RETAILER_SAM_OPTIONAL: [&str; 16] = [
+pub const GST_FOOD_RETAILER_SAM_OPTIONAL: [&str; 18] = [
     "total_sales",
     "retailer_type",
     "stock_role",
@@ -52,9 +52,11 @@ pub const GST_FOOD_RETAILER_SAM_OPTIONAL: [&str; 16] = [
     "gst_free_purchases",
     "gst_free_sales",
     "purchases_sample",
+    "first_tax_period_sample",
     "sales_sample",
     "product_lines",
     "trading_started",
+    "method_started",
 ];
 
 #[derive(Clone, Copy, PartialEq)]
