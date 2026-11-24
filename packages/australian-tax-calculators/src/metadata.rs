@@ -1391,6 +1391,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // GST Act s 38-325, Subdivision 66-A, Division 21 and Subdivision
         // 136-A read the same in compilations 82 and 96.
+        // Departures from 1 November 2025, the GST Regulations 2019 compilation 5
+        // read, to 30 June 2027.
+        "tourist_refund" => vec!["2025-26", "2026-27"],
         "gst_going_concern" | "gst_second_hand_goods" | "gst_bad_debt" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1772,8 +1775,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Schedule 8 (NAT 3539) for payments from 1 July 2026, and Schedule 8 of the Taxation Administration (Withholding Schedules) Instrument (No. 2) 2025 (F2025L01016) for payments from 24 September 2025: study and training support loans component rates, calculating fortnightly, monthly and quarterly amounts, examples 1 to 3, rounding",
         ),
         "medicare_levy" => (
-            "2026-11-14",
-            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B",
+            "2026-11-24",
+            "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B; non-resident days (read 24 November 2026): ITAA 1936 ss 251S(1)(a) and 251U(1)(d), (2) and (3), and M1 2026, category 2",
         ),
         "private_health_insurance_rebate" => (
             "2026-11-22",
@@ -2038,6 +2041,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_second_hand_goods" => (
             "2026-11-22",
             "GST Act ss 66-5, 66-10, 66-15, 66-17 and 66-40 and the s 195-1 definitions of second-hand goods and valuable metal, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTD 2012/6 paras 1 to 13",
+        ),
+        "tourist_refund" => (
+            "2026-11-24",
+            "GST Act s 168-5(1) and (2), compilation 96 (C2026C00081, from 1 January 2026); GST Regulations 2019 regs 168-5.01 to 168-5.11 and 168-5.14, compilation 5 (F2025C01015, from 1 November 2025); WET Act ss 25-5(1) and (2) and 31-10(3), compilation 32 (C2026C00149, from 1 April 2026); WET Regulations 2019 regs 25-5.01 to 25-5.04 (F2019L01154, as made)",
         ),
         "gst_bad_debt" => (
             "2026-11-22",
@@ -2758,6 +2765,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Finance Co's $5,500 vehicle: a notional credit of $500, 1/11 of the consideration (para 7)",
             "2012-08-01",
             "2026-11-22",
+        ),
+        "tourist_refund" => (
+            "GST Regulations 2019 Division 168 and WET Regulations 2019 Division 25",
+            "Regs 168-5.02 to 168-5.10 (goods, registered supplier, $300, tax invoice, departure, accompanied baggage, 60 days, 30 and 60 minutes), 168-5.11 and 168-5.14 (cash), and 25-5.01 to 25-5.04 (29% of half the price); no ATO or ABF worked example with figures was found",
+            "2025-11-01",
+            "2026-11-24",
         ),
         "gst_bad_debt" => (
             "GSTR 2000/2",
@@ -3983,6 +3996,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "medicare_levy_exemption_half_days",
                 "integer from 0 to the days in the year, the days the person qualified for a half exemption (label M1 W): in the medical category, but with a dependant outside the exemption categories (s 251U(3)); a day in both counts once, as a full day; omit for none",
+            ),
+            (
+                "non_resident_days",
+                "integer from 0 to the days in the year less 1, for a part-year resident: the days the person was not an Australian resident and so a prescribed person (ITAA 1936 s 251U(1)(d); ATO M1 category 2, counted at label V), only those on which every dependant was also a prescribed person (s 251U(2)); each a whole day (s 251U(3) gives no half), counted once and not also as a full or half exemption day; omit for none",
             ),
         ],
         "contribution_caps" => vec![
@@ -6246,6 +6263,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("valuable_metal", "boolean: the goods consist to any extent of gold, silver or platinum (s 195-1); true is refused"),
             ("leased_before_sale", "boolean: you lease the goods before you sell them (GSTD 2012/6); true is refused"),
         ],
+        "tourist_refund" => vec![
+            ("departure_date", "YYYY-MM-DD: the actual day the traveller and every item leave the indirect tax zone (not a scheduled or booked date), from 1 November 2025 and in year; a later actual export day is refused by stating that day"),
+            ("departing_by", "aircraft or ship: sets the 30 or 60 minutes of reg 168-5.10(3)"),
+            ("crew_or_in_charge_in_employment", "boolean: the traveller leaves in the course of employment as the person in charge or command of, or a member of the crew of, the aircraft or ship (reg 168-5.06); off-duty crew travelling otherwise state false"),
+            ("trs_port", "boolean: the traveller leaves at an airport or seaport at which the tourist refund scheme is administered (reg 168-5.07)"),
+            ("accompanied_baggage", "boolean: the goods leave with the traveller as accompanied baggage (s 168-5(1)(c))"),
+            ("minutes_before_departure", "integer, 0 to 10,080 (a software limit): how many minutes before the scheduled departure the traveller completed compliance with reg 168-5.10(1) or (2) (reg 168-5.10(3))"),
+            ("verification_complied", "boolean: the traveller presented the tax invoice and what an officer requested, or lodged a completed claim with the tax invoice where the facility allows it, and for goods checked in holds the tax invoice endorsed as checked in, requested beforehand in the approved manner (reg 168-5.10(1), (2), (4) and (5))"),
+            ("acquired_by_traveller", "boolean: the traveller made the acquisition (s 168-5(1)(a))"),
+            ("supplier_registered", "boolean: the supplier, one entity for every item (a software limit), was registered for GST when the goods were acquired (reg 168-5.03)"),
+            ("items", "list of 1 to 1,000 objects, the goods acquired from that supplier, each with date (YYYY-MM-DD, the day of acquisition, not after departure_date), price (AUD, the GST-inclusive price paid), taxable_supply (boolean: the supply is a taxable supply), gst (AUD, the established GST payable on that supply after the invoice's rounding under GST Act s 9-90, at most one eleventh of price; nil only where it rounds to nil or the supply is not taxable), goods (general, wine, other_alcohol or tobacco, which covers tobacco products; wine as the WET Act defines it), wine_tax_borne and wine_tax_refunded_or_credited (booleans, with wine only: wine tax is taken to have been borne, and none of it was refunded, credited or the basis of a wine tax credit entitlement, WET Act s 31-10; true for the second is refused), tax_invoice (boolean: a valid tax invoice) and partly_consumed (boolean)"),
+        ],
         "gst_bad_debt" => vec![
             ("party", "supplier or recipient: you made the supply (ss 21-5 and 21-10) or the acquisition (ss 21-15 and 21-20)"),
             ("event", "written_off, overdue_12_months or recovered: the debt, or part of it, is written off as bad (by the supplier), has been overdue for 12 months or more, or is recovered by the supplier or paid by the recipient after the earlier adjustment"),
@@ -7824,6 +7853,26 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("divided_for_resupply", Flag(false)),
             ("valuable_metal", Flag(false)),
             ("leased_before_sale", Flag(false)),
+        ],
+        // An aircraft passenger 45 minutes early with $330 of goods and $100 of
+        // wine from one supplier: $39.09 of GST and $14.50 of wine tax.
+        "tourist_refund" => vec![
+            ("year", Text("2025-26")),
+            ("departure_date", Text("2026-03-20")),
+            ("departing_by", Text("aircraft")),
+            ("crew_or_in_charge_in_employment", Flag(false)),
+            ("trs_port", Flag(true)),
+            ("accompanied_baggage", Flag(true)),
+            ("minutes_before_departure", Whole(45)),
+            ("verification_complied", Flag(true)),
+            ("acquired_by_traveller", Flag(true)),
+            ("supplier_registered", Flag(true)),
+            (
+                "items",
+                Json(
+                    r#"[{"date": "2026-03-10", "price": "330.00", "taxable_supply": true, "gst": "30.00", "goods": "general", "tax_invoice": true, "partly_consumed": false}, {"date": "2026-03-10", "price": "100.00", "taxable_supply": true, "gst": "9.09", "goods": "wine", "wine_tax_borne": true, "wine_tax_refunded_or_credited": false, "tax_invoice": true, "partly_consumed": false}]"#,
+                ),
+            ),
         ],
         // GSTR 2000/2's Marcus (paras 49AA to 53), 20 years on.
         "gst_bad_debt" => vec![
