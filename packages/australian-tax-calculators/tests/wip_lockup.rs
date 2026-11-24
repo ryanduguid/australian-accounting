@@ -213,3 +213,80 @@ fn years_and_scope() {
     i["not_an_input"] = json!(1);
     assert_eq!(code(&i), "input.field_unknown");
 }
+
+/// Each bucket's amount, in order.
+fn bucket_amounts(r: &Value) -> Vec<String> {
+    r["ageing"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|b| b["amount"].as_str().unwrap().to_string())
+        .collect()
+}
+
+#[test]
+fn ages_60_and_61_and_a_leap_year() {
+    // 1 May to 30 Jun 2026 is 60 days; 30 Apr is 61.
+    let mut i = w1();
+    i["entries"] = json!([entry("2026-05-01", "1.00"), entry("2026-04-30", "2.00")]);
+    assert_eq!(bucket_amounts(&run(&i)), ["0.00", "1.00", "2.00", "0.00"]);
+    // 31 Dec 2023 to 29 Feb 2024 is 60 days (31 + 29); 30 Dec 2023 is 61.
+    i["year"] = json!("2023-24");
+    i["as_at"] = json!("2024-02-29");
+    i["entries"] = json!([entry("2023-12-31", "1.00"), entry("2023-12-30", "2.00")]);
+    assert_eq!(bucket_amounts(&run(&i)), ["0.00", "1.00", "2.00", "0.00"]);
+    for (as_at, ok) in [
+        ("2023-07-01", true),
+        ("2024-06-30", true),
+        ("2023-06-30", false),
+        ("2024-07-01", false),
+    ] {
+        i["as_at"] = json!(as_at);
+        i["entries"] = json!([entry("2023-06-30", "1.00")]);
+        if ok {
+            assert!(api::evaluate(CMD, &i).is_ok(), "{as_at}");
+        } else {
+            assert_eq!(code(&i), "wip_lockup.as_at_outside_year", "{as_at}");
+        }
+    }
+    for bad in ["2026-02-30", "2026-06-31", "30/06/2026", ""] {
+        let mut i = w1();
+        i["as_at"] = json!(bad);
+        assert_eq!(code(&i), "input.date_invalid", "{bad}");
+    }
+}
+
+#[test]
+fn old_entries_single_buckets_and_the_money_limit() {
+    // 30 Jun 2016 is 3,652 days before 30 Jun 2026: entries have no age limit.
+    let mut i = w1();
+    i["entries"] = json!([entry("2016-06-30", "1.00"), entry("2026-06-29", "2.00")]);
+    i["bucket_days"] = json!([3650]);
+    assert_eq!(bucket_amounts(&run(&i)), ["2.00", "1.00"]);
+    i["bucket_days"] = json!([1]);
+    let r = run(&i);
+    assert_eq!(bucket_amounts(&r), ["2.00", "1.00"]);
+    assert_eq!(r["ageing"][1]["from_days"], 2);
+    let mut i = w1();
+    i["entries"] = json!([entry("2026-06-30", "1000000000000.00")]);
+    assert_eq!(run(&i)["amounts"]["wip"], "1000000000000.00");
+    i["entries"] = json!([entry("2026-06-30", "1000000000000.01")]);
+    assert_eq!(code(&i), "wip_lockup.entry_invalid");
+    for key in ["fee_revenue", "receivables", "billings"] {
+        let mut i = w1();
+        i[key] = json!("1000000000000.00");
+        assert!(api::evaluate(CMD, &i).is_ok(), "{key}");
+        i[key] = json!("1000000000000.01");
+        assert_eq!(code(&i), "input.amount_invalid", "{key}");
+    }
+}
+
+#[test]
+fn lock_up_rounds_the_unrounded_sum() {
+    // Each of 0.04 / 100,000 x 365 = 0.000146 rounds to 0.0001; their
+    // unrounded sum, 0.000292, rounds to 0.0003, not 0.0002.
+    let r = run(&ozzit("0.04", "100000.00", "0.04", "100000.00"));
+    assert_eq!(r["rates"]["wip_days"], "0.0001");
+    assert_eq!(r["rates"]["receivable_days"], "0.0001");
+    assert_eq!(r["rates"]["lock_up_days"], "0.0003");
+}

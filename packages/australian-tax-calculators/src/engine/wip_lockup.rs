@@ -42,7 +42,7 @@ fn entry(v: &Value, as_at: i64, n: usize) -> Result<(i64, Decimal)> {
         refuse(
             "wip_lockup.entry_invalid",
             format!(
-                "entry {n}: needs a label, a YYYY-MM-DD date on or before as_at and an amount from 0, at most 2 dp."
+                "entry {n}: needs a label, a YYYY-MM-DD date on or before as_at and an amount from 0 to 1000000000000.00, at most 2 dp."
             ),
         )
     };
