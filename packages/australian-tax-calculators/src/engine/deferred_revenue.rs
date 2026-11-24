@@ -131,7 +131,7 @@ fn milestones(given: &Arg, amount: &Decimal, start: i64, end: i64) -> Result<Vec
         || !total(&read, end)?.equals(amount)?
     {
         return refuse(
-            CODE,
+            "deferred_revenue.milestones_invalid",
             "Each milestone must fall in the performance period, and the milestones must sum to contract_amount.",
         );
     }
@@ -139,15 +139,15 @@ fn milestones(given: &Arg, amount: &Decimal, start: i64, end: i64) -> Result<Vec
 }
 
 fn pattern(a: &DeferredRevenueArgs, amount: &Decimal, start: i64, end: i64) -> Result<Pattern> {
-    let bad = |why: &str| refuse("deferred_revenue.pattern_invalid", why.to_string());
+    let wrong = |why: &str| refuse("deferred_revenue.pattern_invalid", why.to_string());
     let given = a.pattern.text();
     match (given, a.milestones) {
         (Some("milestones"), Some(m)) => {
             Ok(Pattern::Milestones(milestones(m, amount, start, end)?))
         }
-        (Some("milestones"), None) => bad("pattern milestones needs milestones."),
+        (Some("milestones"), None) => wrong("pattern milestones needs milestones."),
         (Some("daily" | "monthly"), Some(_)) => {
-            bad("milestones is taken only with pattern milestones.")
+            wrong("milestones is taken only with pattern milestones.")
         }
         (Some("daily"), None) => Ok(Pattern::Daily),
         (Some("monthly"), None) => {
@@ -161,7 +161,7 @@ fn pattern(a: &DeferredRevenueArgs, amount: &Decimal, start: i64, end: i64) -> R
             }
             Ok(Pattern::Monthly)
         }
-        _ => bad("pattern must be daily, monthly or milestones."),
+        _ => wrong("pattern must be daily, monthly or milestones."),
     }
 }
 
@@ -177,7 +177,7 @@ fn period_ends(given: &Arg) -> Result<Vec<i64>> {
         .collect();
     match days {
         Some(days) if days.windows(2).all(|w| w[0] < w[1]) => Ok(days),
-        _ => refuse(CODE, why),
+        _ => refuse("deferred_revenue.period_ends_invalid", why),
     }
 }
 
@@ -191,7 +191,7 @@ fn consideration(given: &Arg, amount: &Decimal) -> Result<Vec<(i64, Decimal)>> {
         .collect::<Result<Vec<_>>>()?;
     if total(&read, i64::MAX)?.gt(amount)? {
         return refuse(
-            CODE,
+            "deferred_revenue.consideration_invalid",
             "Consideration above contract_amount needs a refund liability (AASB 15 para 55), which this worksheet does not measure.",
         );
     }
