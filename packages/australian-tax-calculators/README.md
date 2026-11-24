@@ -48,7 +48,7 @@ install` does not install this binary.
 ## Install
 
 These commands install 1.2.0, the release the published MCP server 0.12.0
-accepts. To use 1.3.0 from this source tree, follow Build and check above.
+accepts. For 1.3.0, give the tag `australian-tax-calculators/v1.3.0` instead.
 
 Each `australian-tax-calculators/v*` release on GitHub Releases carries the
 executable for x86_64 Linux (static, musl) and x86_64 Windows, built and
