@@ -2943,15 +2943,18 @@ qualifies for the 5% methods. A business that starts trading in the year
 samples its first 2 months under the 2017 methods only for July to December
 (a January to June tax period for a July to December starter uses `1 December to
 31 January` from `trading_started`, and one starting in January to June is
-refused), and under the restaurant method only when trading starts during the tax
-period and the ordinary window (`1 June to 31 July` or `1 December to
-31 January`) cannot hold a 28-day sample from `trading_started` (a later tax
-period in the same half is refused). Under F2026L01275 s 7, the first tax
-period in each 6-month half establishes the GST-free proportion via
-`purchases_sample`, and later tax periods in that half reuse it via
-`first_tax_period_sample` rather than choosing a new sample; starting to use
-the method during a tax period when the ordinary window cannot apply uses
-`method_started` (s 7(d)).
+refused), and under the restaurant method when trading starts during an
+eligible tax period and the ordinary window (`1 June to 31 July` or `1 December
+to 31 January`) cannot hold a 28-day sample from `trading_started` (s 7(c)),
+whilst starting to use the method during an eligible tax period when the
+ordinary window cannot apply uses `method_started` (s 7(d)).
+
+Under F2026L01275 s 7, the first eligible tax period in each 6-month half
+establishes the GST-free proportion via `purchases_sample` (under whichever of
+paragraphs (a) to (d) applies), and later tax periods in that half reuse that
+established sample via `first_tax_period_sample` rather than choosing a new
+`purchases_sample`; a commencement before the half's first eligible tax period
+where no ordinary sample fits is refused.
 
 The shares are exact and the amounts shown to the cent. It refuses
 a tax period before the method's determination commenced (an annual

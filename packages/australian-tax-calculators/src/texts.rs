@@ -4724,7 +4724,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "gst_food_retailer_sam.new_business_unsettled",
-        "A 2017 sample method for a business that started trading in January to June, or a restaurant tax period after an earlier start in the same half, which the determination does not settle.",
+        "A 2017 sample method for a business that started trading in January to June, or a restaurant commencement before the half's first eligible tax period where paragraphs (a) and (b) cannot apply, which the determination does not settle.",
     ),
     (
         "gst_food_retailer_sam.not_eligible",

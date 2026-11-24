@@ -441,14 +441,23 @@ fn a_restaurant_new_business_follows_tax_period_and_half_windows() {
     v["purchases_sample"] = sample("2026-12-05", "2027-01-01", "10500.00", "15000.00");
     assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
     // Starting in January to June: para (c) once para (b) cannot be applied,
-    // only for the tax period in which trading started.
+    // establishes the half's proportion in the first period via purchases_sample;
+    // April-June rejects a fresh purchases_sample and reuses that first-period sample.
     v["trading_started"] = json!("2027-02-10");
     v["purchases_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
     assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
-    // A later tax period after that earlier start in the same half is refused.
     v["tax_period_start"] = json!("2027-04-01");
     v["tax_period_end"] = json!("2027-06-30");
-    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
+    assert_eq!(
+        code(&v),
+        "gst_food_retailer_sam.first_period_sample_required"
+    );
+    v.as_object_mut().unwrap().remove("purchases_sample");
+    v["first_tax_period_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    v["first_tax_period_sample"] = sample("2027-04-15", "2027-05-12", "10500.00", "15000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    v.as_object_mut().unwrap().remove("first_tax_period_sample");
     // Started 2 January: para (b) still has 28 days in January, so January-March takes (b)
     // and April-June reuses that first tax period's sample via first_tax_period_sample.
     v["tax_period_start"] = json!("2027-01-01");
@@ -471,13 +480,22 @@ fn a_restaurant_new_business_follows_tax_period_and_half_windows() {
 
 #[test]
 fn a_restaurant_first_two_months_requires_starting_in_the_tax_period() {
+    // Q4 (Apr-Jun) after a Feb start refuses purchases_sample and carries forward
+    // Q3's s 7(c) sample via first_tax_period_sample.
     let mut v = anil();
     v["tax_period_start"] = json!("2027-04-01");
     v["tax_period_end"] = json!("2027-06-30");
     v["trading_started"] = json!("2027-02-10");
     v["purchases_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
-    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
-    // Starting in an earlier tax period of the July-December half is refused too.
+    assert_eq!(
+        code(&v),
+        "gst_food_retailer_sam.first_period_sample_required"
+    );
+    v.as_object_mut().unwrap().remove("purchases_sample");
+    v["first_tax_period_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    v.as_object_mut().unwrap().remove("first_tax_period_sample");
+    // Starting in an earlier tax period before the half's first eligible period is refused.
     v["tax_period_start"] = json!("2026-10-01");
     v["tax_period_end"] = json!("2026-12-31");
     v["trading_started"] = json!("2026-08-10");
@@ -539,6 +557,9 @@ fn a_restaurant_starting_method_during_period_uses_section_7_d() {
     // Before trading_started or before F2026L01275 commenced on 24 September 2026 is refused.
     v["method_started"] = json!("2026-09-23");
     assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    // 25 Sep 2026 is before the Jul-Dec half's first eligible period (Oct 2026) -> unsettled.
+    v["method_started"] = json!("2026-09-25");
+    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
     v["trading_started"] = json!("2026-10-20");
     v["method_started"] = json!("2026-10-19");
     assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
@@ -550,10 +571,19 @@ fn a_restaurant_starting_method_during_period_uses_section_7_d() {
     v["method_started"] = json!("2027-04-15");
     v["purchases_sample"] = sample("2027-04-20", "2027-05-17", "10500.00", "15000.00");
     assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
-    // Earlier-period method_started in the same half is refused as unsettled.
+    // Started both trading and method in Q3 (Feb 2027): Q4 reuses Q3's established sample
+    // via first_tax_period_sample and rejects a new purchases_sample.
     v["method_started"] = json!("2027-02-10");
-    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
-    // 4 January still fits (b); 5 January opens (d) within Jan-Mar 2027.
+    assert_eq!(
+        code(&v),
+        "gst_food_retailer_sam.first_period_sample_required"
+    );
+    v.as_object_mut().unwrap().remove("purchases_sample");
+    v["first_tax_period_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    v.as_object_mut().unwrap().remove("first_tax_period_sample");
+    // 4 January still fits (b); 5 January opens (d) within Jan-Mar 2027, and Apr-Jun
+    // carries that February s 7(d) sample forward via first_tax_period_sample.
     v.as_object_mut().unwrap().remove("trading_started");
     v["tax_period_start"] = json!("2027-01-01");
     v["tax_period_end"] = json!("2027-03-31");
@@ -565,6 +595,18 @@ fn a_restaurant_starting_method_during_period_uses_section_7_d() {
     v["method_started"] = json!("2027-01-05");
     v["purchases_sample"] = sample("2027-02-01", "2027-02-28", "10500.00", "15000.00");
     assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    v["tax_period_start"] = json!("2027-04-01");
+    v["tax_period_end"] = json!("2027-06-30");
+    v["purchases_sample"] = sample("2027-04-05", "2027-05-02", "3000.00", "15000.00");
+    assert_eq!(
+        code(&v),
+        "gst_food_retailer_sam.first_period_sample_required"
+    );
+    v.as_object_mut().unwrap().remove("purchases_sample");
+    v["first_tax_period_sample"] = sample("2027-02-01", "2027-02-28", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    v["first_tax_period_sample"] = sample("2027-04-05", "2027-05-02", "10500.00", "15000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
 }
 
 #[test]

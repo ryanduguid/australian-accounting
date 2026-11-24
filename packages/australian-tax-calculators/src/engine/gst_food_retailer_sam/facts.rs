@@ -314,10 +314,21 @@ pub(super) fn restaurant_plan(
                     period.end,
                 )
             }
+        } else if !is_first && m >= first_eligible {
+            let low = started.map_or(first_eligible, |t| first_eligible.max(t));
+            let high = if let Some(t) = started
+                && t >= first_eligible
+                && t + 27 > ordinary.1
+            {
+                dates::months_end(t, 2).max(period.start - 1)
+            } else {
+                period.start - 1
+            };
+            (low, high)
         } else {
             return refuse(
                 "gst_food_retailer_sam.new_business_unsettled",
-                "F2026L01275 s 7(d) gives a 4-week sample within the tax period only when the retailer starts using the method during that tax period and paragraphs (a) and (b) cannot apply; a later tax period in the same half is not worked.",
+                "F2026L01275 s 7(d) gives a 4-week sample within the tax period only when the retailer starts using the method during an eligible tax period and paragraphs (a) and (b) cannot apply.",
             );
         }
     } else if let Some(t) = started
@@ -325,12 +336,12 @@ pub(super) fn restaurant_plan(
     {
         if t + 27 <= ordinary.1 {
             (t, ordinary.1)
-        } else if t >= period.start {
+        } else if t >= period.start || (!is_first && t >= first_eligible) {
             (t, dates::months_end(t, 2))
         } else {
             return refuse(
                 "gst_food_retailer_sam.new_business_unsettled",
-                "F2026L01275 s 7(c) gives the first 2 months of trading only when the business starts trading during the tax period and paragraphs (a) and (b) cannot apply; a later tax period in the same half is not worked.",
+                "F2026L01275 s 7(c) gives the first 2 months of trading only when the business starts trading during an eligible tax period and paragraphs (a) and (b) cannot apply.",
             );
         }
     } else {

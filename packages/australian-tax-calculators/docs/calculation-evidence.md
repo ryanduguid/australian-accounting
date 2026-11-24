@@ -2608,14 +2608,16 @@ For a business that starts in the year, ss 6(4) and 7(3) of the 2017
 determination replace only the first sample period, the one for July to
 December, with a sample from the first 2 months of trading; a later half
 uses its ordinary window, and a business that starts in January to June is
-refused. F2026L01275 s 7 para (c) gives the first 2 months only where trading
-starts during a tax period and paras (a) and (b) cannot be applied; the
-worksheet applies it only to the tax period in which trading starts when a
-28-day sample after the start cannot fit in the ordinary window, and refuses a
-later tax period in the same half. Para (d) uses `method_started` for a
-retailer starting the method during a tax period outside the ordinary window,
-and later tax periods in the same 6-month half require `first_tax_period_sample`
-so one proportion applies across the half.
+refused. F2026L01275 s 7 para (c) gives the first 2 months when trading
+starts during a tax period and paras (a) and (b) cannot be applied, and para
+(d) uses `method_started` for a retailer starting to use the method during a
+tax period outside the ordinary window. Once the first eligible tax period in a
+6-month half establishes its sample under para (a), (b), (c) or (d), later tax
+periods in that half reuse that sample through `first_tax_period_sample` so
+one proportion applies across the half rather than accepting a new
+`purchases_sample`; a commencement before the half's first eligible tax period
+(1 October 2026 for July to December 2026) where paras (a) and (b) cannot apply
+is refused.
 
 ## Insurance duty
 
