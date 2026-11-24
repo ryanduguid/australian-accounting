@@ -271,11 +271,7 @@ fn non_resident_days_the_worksheet_cannot_settle_are_refused() {
     )
     .unwrap_err();
     assert_eq!(refused.code, invalid);
-    assert!(
-        refused.message.contains("s 251S(1)(a)"),
-        "{}",
-        refused.message
-    );
+    assert!(refused.message.contains("s 251S(1)(a)"));
     // A day counts once (ATO M1 2026, step 1).
     let refused = api::evaluate_coded(
         COMMAND,
@@ -380,9 +376,5 @@ fn the_leap_year_bound_on_non_resident_days() {
     )
     .unwrap_err();
     assert_eq!(refused.code, "input.day_count_invalid");
-    assert!(
-        refused.message.contains("s 251S(1)(a)"),
-        "{}",
-        refused.message
-    );
+    assert!(refused.message.contains("s 251S(1)(a)"));
 }

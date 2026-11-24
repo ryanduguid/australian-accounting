@@ -154,12 +154,12 @@ fn parts_not_composed_for_a_part_year_resident_are_refused() {
     ] {
         let r = refusal(&input("2025-26", "60000", json!({part: {}})));
         assert_eq!(r.code, "estimate.residency_unsupported", "{part}");
-        assert!(r.message.contains(part), "{part}: {}", r.message);
+        assert!(r.message.contains(part), "{part}");
     }
     // From 2027-28 the working Australians tax offset applies (s 61-155).
     let r = refusal(&input("2027-28", "60000", json!({})));
     assert_eq!(r.code, "estimate.residency_unsupported");
-    assert!(r.message.contains("s 61-160"), "{}", r.message);
+    assert!(r.message.contains("s 61-160"));
     let r = refusal(&input(
         "2025-26",
         "60000",
@@ -199,7 +199,7 @@ fn part_year_inputs_are_refused_where_they_do_not_fit() {
             }
             let r = refusal(&facts);
             assert_eq!(r.code, "input.field_unknown", "{residency} {key}");
-            assert!(r.message.contains(key), "{}", r.message);
+            assert!(r.message.contains(key), "{residency} {key}");
         }
     }
     // A full-year resident has no non-resident days.
@@ -213,7 +213,7 @@ fn part_year_inputs_are_refused_where_they_do_not_fit() {
     object.remove("eligible_pensioner");
     let r = refusal(&facts);
     assert_eq!(r.code, "input.field_unknown");
-    assert!(r.message.contains("non_resident_days"), "{}", r.message);
+    assert!(r.message.contains("non_resident_days"));
     // Resident on at least 1 day in each of the 9 months: at most 356
     // non-resident days in 365.
     let many = json!({"medicare-levy": {"section_9a_adjustment_applies": false,
