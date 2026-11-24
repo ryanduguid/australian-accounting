@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-142 calculation worksheets for established facts; the sections below document
+146 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -163,6 +163,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `workers-compensation-premium` | `jurisdiction`, `wages`, `rate`, `group_member`, `year`, `scope_confirmed`; optionally `apprentice_wages` (qld, sa) and `actual_wages` (not qld); in New South Wales `dust_diseases_rate` and `safe_employer_reward`, in Victoria `employer`, `days_registered` and `excess_buy_out`, in Queensland `policy_start`, in South Australia `new_employer`, once established `claims_costs` and with actual wages `actual_apprentice_wages`; see [Workers compensation premium](#workers-compensation-premium) |
 | `motor-vehicle-duty` | `jurisdiction`, `vehicle_class`, `dutiable_value`, `duty_date`, `year`, `scope_confirmed`; in Queensland `engine`, in Victoria `green_car` and `primary_producer`, in the ACT `emissions_category` and `new_vehicle`, in Tasmania `fleet_discount`, in the Northern Territory `electric`; see [Motor vehicle duty](#motor-vehicle-duty) |
 | `insurance-duty` | `jurisdiction`, `class`, `premium`, `effected_date`, `year`, `scope_confirmed`; in the Northern Territory `term_over_one_year`; see [Insurance duty](#insurance-duty) |
+| `portable-lsl-levy` | `jurisdiction`, `scheme`, `year`, `scope_confirmed`; scheme-specific `ordinary_wages` (plus `paid_on_time` in Tasmania), `project_cost` (and optional `partial_exemption` in NSW, Qld and NT) or Coal LSL s 3B inputs (`reporting_month`, `branch`, `eligible_employee` and pay components); see [Portable LSL levy](#portable-lsl-levy) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -250,10 +251,13 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `super-crystallisation` | `eligible_service_start`, `interest_value`, `concessional_component`, `post_june_1994_invalidity_component`, `cgt_exempt_component`, `undeducted_contributions`, `untaxed_source`, `income_stream_before_july_2007`, `year`, `scope_confirmed`; see [Super crystallisation](#super-crystallisation) |
 | `endorsement-review` | `worksheet`, `answers`, `year`, `scope_confirmed`; see [Endorsement review](#endorsement-review) |
 | `government-super-amounts` | `income-tests`' 16 components and `residency`, `eligible_income`, `personal_contributions`, `concessional_contributions`, `return_lodged`, `under_71`, `temporary_visa_held`, `non_concessional_within_cap`, `total_super_balance_below_cap`, `year`, `scope_confirmed`; for a spouse contribution all of `spouse_contributions`, `spouse_assessable_income`, `spouse_assessable_fhss_released_amount`, `spouse_reportable_fringe_benefits_total`, `spouse_reportable_employer_super_contributions`, `spouse_excess_concessional_contributions`, `spouse_non_concessional_within_cap` and `spouse_total_super_balance_below_cap`; see [Government super amounts](#government-super-amounts) |
+| `aml-cdd-review` | `question` (`country_risk`, `beneficial_ownership` or `cdd_review`), `year`, `scope_confirmed`, and the inputs for that question; see [AML/CTF CDD review](#amlctf-cdd-review) |
 | `notice-period` | `notice_date`, `service_start`, `excluded_days`, `date_of_birth`, `exclusion`, `year`, `scope_confirmed`; with `exclusion` `specified_period`, `to_avoid_division`; optionally `full_rate_of_pay` and `weekly_hours` together; see [Notice period](#notice-period) |
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
+| `residential-vacancy-fee` | `vacancy_year_start`, `held_full_vacancy_year`, `residentially_occupied_days`, `return_lodged_on_time`, `exemption`, `acquisition_basis`, `ownership`, `application_fee_waiver`, `vacancy_fee_waiver_or_remission`, `year`, `scope_confirmed`; optional `application_fee_payable`, or `consideration`, `dwelling_kind`, `application_date` and `ownership_share` |
 | `foreign-resident-withholding` | `payment`, `acquisition_date`, `asset`, `market_value`, `cost_base_first_element`, `option_payments`, `sale_price`, `vendors`, `exclusion`, `class_variation_to_nil`, `year`, `scope_confirmed`; see [Foreign resident withholding](#foreign-resident-withholding) |
+| `non-resident-withholding` | `payment_type`, `payment`, `year`, `scope_confirmed` plus the payment type's own facts (`franked_amount`, `conduit_foreign_income`, `treaty_rate`, `information_exchange_country`, `clean_building_mit_amount`, `non_concessional_mit_income`, `company_not_acting_as_agent`, `payee_entity`, `base_rate_entity`, `contract_date`, `variation_rate`, `exempt`, `already_withheld`); see [Non-resident withholding](#non-resident-withholding) |
 | `residency-tests` | `resides`, `domicile_in_australia`, `permanent_place_of_abode_outside`, `presence`, `usual_place_of_abode_outside`, `intends_to_take_up_residence`, `commonwealth_super`, `resident_elsewhere`, `year`, `scope_confirmed`; see [Residency tests](#residency-tests) |
 | `lodgment-required` | `residency`, `taxable_income`, `dividends_and_franking_credits`, `under_18`, `triggers`, `study_loan`, `working_holiday_maker`, `listed_payment`, `sapto`, `child_support_parent`, `year`, `scope_confirmed`; see [Lodgment required](#lodgment-required) |
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
@@ -282,7 +286,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `charity-check` | `abns`, a list of 1 to 10,000 ABNs, and `as_at`, the check date; see [Charity check](#charity-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), for a full-year resident `medicare-levy` and `medicare-levy-surcharge`, and for a part-year resident before 2027-28 `part_year_residency_months`, `eligible_pensioner` and `medicare-levy`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp` and `super-crystallisation`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `portable-lsl-levy`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -2714,6 +2718,24 @@ and calculator differ there). The tests hold it to every case of the site's page
 and to the schemes' examples; see
 [calculation evidence](docs/calculation-evidence.md#workers-compensation-premium).
 
+## Portable LSL levy
+
+`portable-lsl-levy` calculates portable long service leave levies across 20
+verified Australian scheme combinations: national black coal mining (Coal LSL,
+mirroring `tools/coal-lsl-levy` under s 3B of the Payroll Levy Collection Act
+1992 and s 6 of the Payroll Levy Regulations 2018 at 2.7% from 1 July 2023) and
+state and territory construction, community services, contract cleaning and
+security schemes (NSW Long Service Corporation, Victoria LeavePlus and PLSA,
+Queensland QLeave, SA Portable Long Service Leave, WA MyLeave, ACT Leave,
+Tasmania TasBuild and NT Build). NSW construction rounds down to the whole
+dollar (verified on the LSC Building Levy Calculator); Queensland construction
+(s 72(2)) and Northern Territory construction (s 33(2)) round each statutory
+levy to the nearest whole dollar with 50 cents rounded downwards. Unavailable jurisdiction-scheme pairs,
+unverified historical periods, NT projects above $5 billion, partial project
+exemptions, ineligible Coal LSL employees, unconfirmed reimbursement exclusions
+on positive Coal LSL allowances and mismatched or unread branch fields are
+refused.
+
 ## Payroll tax
 
 `payroll_tax` works out one employer's payroll tax for the whole of 2026-27 in
@@ -3795,6 +3817,59 @@ acquired on 9 May 2017, works or an asset first used after the property was firs
 not supported. `tests/rental_property.rs` holds it to the ATO's Rental
 properties guide 2026 Examples 12, 20, 21, 23, 29, 33 and 34.
 
+## Residential vacancy fee
+
+`residential_vacancy_fee` works out the Australian federal annual vacancy fee
+for one foreign-owned residential dwelling for one vacancy year starting in
+`2020-21` to `2026-27` under Part 6A of the Foreign Acquisitions and Takeovers
+Act 1975 (FATA 1975, ss 115A to 115T), Division 4A of the Foreign Acquisitions
+and Takeovers Regulation 2015 (FATR 2015, ss 43C and 43D), the Foreign
+Acquisitions and Takeovers Fees Imposition Act 2015 (ss 5 to 9) and the Foreign
+Acquisitions and Takeovers Fees Imposition Regulations 2020 (Part 2 Division 2,
+Part 3 ss 42 to 46, ss 53, 57, 59 to 61A and 67).
+
+- `vacancy_year_start` (inside `year`) sets the 12-month vacancy year under
+  FATA s 115C(2) and the Acts Interpretation Act 1901 s 2G(2), the 30-day
+  return due date (FATA s 115D(1)) and the 5-year record-retention date
+  (FATA s 115G(1)).
+- If `held_full_vacancy_year` is `false` (sold, transferred, deceased or ceased
+  to be a foreign person during the vacancy year), no return is required and
+  the vacancy fee is nil (FATA s 115C(2), s 115D(3) note).
+- A dwelling residentially occupied for fewer than 183 days under FATA s 115C(4)
+  (owner or relative occupation, or occupied or genuinely available under a
+  lease or licence of at least 30 days; short-term stays under 30 days do not
+  count) is liable unless a FATR 2015 s 43D exemption applies. Failing to lodge
+  within 30 days (`return_lodged_on_time: false`) deems liability under FATA
+  s 115D(3) regardless of days occupied and overrides FATR s 43D exemptions
+  (s 43D(4)).
+- For vacancy years starting before 9 April 2024 the vacancy fee equals the
+  application fee basis (`1x`); for vacancy years starting on or after 9 April
+  2024 it is doubled (`2x`, Act No. 17 of 2024 Sch 2, Regs s 67(2)) regardless
+  of when the dwelling was acquired.
+- The application fee basis is supplied directly (`application_fee_payable`,
+  for `notifiable_action` s 43(a), `other_exemption_certificate` s 45(a) or
+  `no_notice_order` s 46(a)), derived from the verified 1 January 2021 to
+  30 June 2027 residential fee schedule (`consideration`, `dwelling_kind`,
+  `application_date` and, for `tenants_in_common`, `ownership_share` under
+  s 57(2), including 3x for established dwellings from 9 April 2024 under
+  ss 10(2) and 53(1)(c)), or set to the s 10 item 1 notional tier-1 fee on a
+  full waiver (`application_fee_waiver: "full"`, ss 43(b) and 46(b)).
+- Fees Imposition Act 2015 s 7(3) guarantees the s 6(3) statutory fee cap
+  (enforced by Fees Regulations s 61A) never decreases on later 1 July
+  indexations. The worksheet checks that the uncapped fee does not exceed the
+  cap floor at `vacancy_year_end` (or `$7,791,000` for `2027-28` onwards), so
+  the cap cannot bind regardless of when the s 115E notice is issued or the
+  s 115F payment falls due; any higher uncapped fee is refused (`cap_unsettled`).
+
+It refuses build-to-rent developments, partial application fee waivers,
+discretionary s 115H vacancy fee waivers or remissions, waived fees for other
+exemption certificates (s 45(b)), consideration below `$75,000` under a
+developer exemption certificate, pre-9 April 2024 waived fees straddling a
+tier-1 indexation boundary, and unsettled statutory cap windows.
+`tests/residential_vacancy_fee.rs` holds it to the ATO's and Treasury's
+worked examples; see
+[calculation evidence](docs/calculation-evidence.md#residential-vacancy-fee).
+
 ## Foreign resident withholding
 
 `foreign_resident_withholding` works out the foreign resident capital gains
@@ -3828,10 +3903,57 @@ interest, for an acquisition date (the contract date, ITAA 1997 s 109-5) from
 
 It refuses other indirect Australian real property interests, options or
 rights as the asset, look-through earnouts (s 14-205), and interest,
-dividend, royalty, managed investment trust and s 12-315 withholding, which
-are not built. `tests/foreign_resident_withholding.rs` holds it to the ATO's
-foreign resident capital gains withholding examples; see
+dividend, royalty, managed investment trust and s 12-315 withholding (which
+`non-resident-withholding` covers). `tests/foreign_resident_withholding.rs`
+holds it to the ATO's foreign resident capital gains withholding examples; see
 [calculation evidence](docs/calculation-evidence.md#foreign-resident-withholding).
+
+## Non-resident withholding
+
+`non_resident_withholding` works out PAYG withholding on monetary payments to
+foreign residents for 2024-25 to 2026-27 across 3 Subdivisions of Schedule 1
+to the Taxation Administration Act 1953:
+
+- **Subdivision 12-F (`dividend`, `interest`, `royalty`):** ITAA 1936 s 128B,
+  IT(DIRWHT)A 1974 s 7 and Taxation Administration Regulations 2017 ss 26 and
+  39 to 42. Domestic rates are 30% on the unfranked non-conduit-foreign-income
+  part of a dividend (`payment` less `franked_amount` and
+  `conduit_foreign_income`), 10% on interest and 30% on royalties; a stated
+  `treaty_rate` reduces the rate. TAR 2017 s 26 disregards cents in the
+  payment and in the regulation withholding amount (and disregards amounts
+  under $1). TAA Sch 1 s 12-300 caps withholding at the withholding tax
+  payable less `already_withheld` (floored to whole cents so the statutory
+  limit is never exceeded), and gives nil when `exempt` is `true`.
+- **Subdivision 12-H (`mit_fund_payment`):** TAA Sch 1 ss 12-385, 12-390,
+  12-425, 12-435 and 12-450 and IT(MITWHT)A 2008 s 4. For a recipient in an
+  information exchange country (`information_exchange_country: true`, TAR 2017
+  s 34), the rates are 15% on the standard fund payment, 10% on
+  `clean_building_mit_amount` and 30% on `non_concessional_mit_income` (with
+  active build to rent income excluded from NCMI under s 12-450(5) from
+  1 January 2025 as an operator fact); otherwise 30% applies to the whole fund
+  payment. Under s 12-390(10)(a), `company_not_acting_as_agent: true` gives
+  nil where a company withholding under s 12-390 is not acting as agent for
+  the recipient. Subdivision 12-H does not engage TAR 2017 s 26 (s 15-10(3)),
+  so each statutory rate part is rounded half up to the cent.
+- **Subdivision 12-FB (`gaming_junket`, `entertainment_or_sports`,
+  `construction`):** TAA Sch 1 ss 12-315, 12-317, 12-319 and 15-15 and TAR
+  2017 ss 26, 31 to 33 and 48 to 51. Rates are 3% for casino gaming junkets,
+  5% for construction and related activities under contracts entered into
+  after 30 June 2004 (`contract_date` on or before 30 June 2004 is refused,
+  TAR 2017 s 33(1)), and for entertainment or sports
+  activities either the ordinary company rate (25% if `base_rate_entity` is
+  `true`, 30% if `false`, ITRA 1986 s 23(2)) or foreign resident individual
+  marginal rates (ITRA 1986 Sch 7 Pt II: 30% to $135,000, 37% to $190,000,
+  45% above $190,000). A Commissioner's `variation_rate` (s 15-15) replaces
+  the statutory rate; `exempt: true` (s 12-319) gives nil; `already_withheld`
+  reduces withholding under TAR 2017 s 48(2); TAR 2017 s 26 disregards cents
+  and amounts under $1.
+
+It refuses `capital_gains` (pointing to `foreign-resident-withholding`),
+non-company non-individual payees under `entertainment_or_sports`, invalid
+rates, parts exceeding `payment`, and 2027-28 (TAR 2017 sunsets on 1 October
+2027). See
+[calculation evidence](docs/calculation-evidence.md#non-resident-withholding).
 
 ## Small business CGT concessions
 
@@ -4521,6 +4643,47 @@ over relying on the standard deduction, not the tax it saves. Given before 2026-
 hold it to the explanatory memorandum's examples 4.1 to 4.4 and the ATO's
 Simon and Yui. `personal-tax-estimate` applies the same deduction to a whole
 year's labour income.
+
+## AML/CTF CDD review
+
+`aml-cdd-review` provides deterministic, zero-personal-data checks for Australian
+AML/CTF Tranche 2 customer due diligence (CDD) in `2026-27` (designated services
+provided at or through a permanent establishment in Australia, AML/CTF Act 2006
+s 30(2)), using 3 questions:
+
+- `country_risk`: maps a jurisdiction's Basel AML Index score (`0.00` to `10.00`,
+  up to 2 decimal places) to AUSTRAC's published bands (`0.00` to `5.00` low,
+  `5.01` to `6.00` medium, `6.01` to `10.00` high), applies AUSTRAC's high-risk
+  override for FATF grey/blacklists and Australian country-sanctions regimes,
+  and notes conditionally when `fatf_call_for_action` is `true` that statutory
+  enhanced CDD (`s 32(d)`) applies only if a covered person is physically
+  present in or formed in that jurisdiction (and `Rules s 6-21` where relevant).
+- `beneficial_ownership`: computes exact scaled-integer combined effective
+  ownership across up to 16 indirect chains (up to 8 layers each, zero rounding)
+  for one natural person against the 25% statutory threshold (`AML/CTF Act 2006
+  s 5`), evaluates the `s 11(1)` (body corporate) or `s 11(2)` (non-body
+  corporate) control limbs, applies all 4 `AML/CTF Rules 2025 s 6-7(1)-(1C)`
+  exemptions (`listed_public_company`, `government_body`,
+  `controlled_by_listed_or_government`, `owned_through_listed_or_government_only`),
+  and notes the `s 6-8` CEO fallback.
+- `cdd_review` (business relationships only under `s 30(2)(b)-(c)`, excluding
+  occasional-only transactions): determines the statutory CDD tier
+  (`simplified_permitted` only when `customer_risk` is `low`, no `s 32` trigger
+  applies and `simplified_cdd_policy_in_place` is `true` under `s 31(c)` and
+  `Rules s 6-16`; `standard`; or `enhanced_mandatory` under `s 32` including
+  `acting_representative_foreign_pep` for `s 32(c)` separately from
+  `Rules ss 6-23` and `6-24`), tri-state source of wealth and funds status
+  (`mandatory` under `Rules ss 6-22` or `6-23`, `conditional_on_relevance`
+  under `Rules s 6-21` alone, or `not_mandated_by_rules`), immediate review
+  triggers (including `unusual_smr_behaviour` under `s 30(2)(b)(ii)` separately
+  from `s 32(b)`), and the next periodic review date under `cadence_basis`:
+  `austrac_accountant_starter_kit` (12, 24 or 36 months, explicitly labelled as
+  non-statutory AUSTRAC starter-kit guidance; worksheet safeguard refuses low
+  or medium starter-kit cadence when statutory ECDD is triggered),
+  `custom_policy` (`policy_review_months` 1 to 60), or `statutory_only` (no
+  fixed statutory calendar interval).
+
+See [calculation evidence](docs/calculation-evidence.md#aml-cdd-review).
 
 ## Notice period
 

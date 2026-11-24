@@ -15,6 +15,96 @@
   `gst_credit_time_limit.dates_invalid`, `fact_invalid`,
   `partial_supplier_gst`, `return_given_outside_year`,
   `section_93_10_exception` and `special_attribution`.
+- `aml-cdd-review`: deterministic Australian AML/CTF Tranche 2 customer due
+  diligence helper for 2026-27 with zero personal data (`country_risk` using
+  AUSTRAC's Basel AML Index 0-5 / 5.01-6 / 6.01-10.00 bands and FATF/sanctions
+  overrides plus statutory s 32(d) FATF Call-for-Action ECDD;
+  `beneficial_ownership` for exact 25% indirect ownership chains and s 11
+  control limbs with Rules ss 6-7 and 6-8; and `cdd_review` for statutory CDD
+  tiers, ECDD/SoW-SoF/immediate triggers and periodic review dates cleanly
+  distinguishing AUSTRAC Accountant Program Starter Kit 12/24/36-month defaults,
+  custom firm policies and statutory-only mode). New codes:
+  `aml_cdd_review.basel_score_invalid`,
+  `aml_cdd_review.cadence_basis_invalid`, `aml_cdd_review.chains_invalid`,
+  `aml_cdd_review.date_outside_year`, `aml_cdd_review.duplicate_field`,
+  `aml_cdd_review.entity_kind_invalid`,
+  `aml_cdd_review.exemption_inconsistent`, `aml_cdd_review.exemption_invalid`,
+  `aml_cdd_review.months_invalid`, `aml_cdd_review.ownership_above_100`,
+  `aml_cdd_review.pep_change_inconsistent`, `aml_cdd_review.pep_invalid`,
+  `aml_cdd_review.question_invalid`, `aml_cdd_review.risk_invalid` and
+  `aml_cdd_review.starter_kit_risk_inconsistent`.
+- `residential-vacancy-fee` works out the Australian federal annual vacancy fee
+  for a foreign owner of a residential dwelling for vacancy years starting in
+  2020-21 to 2026-27 under FATA 1975 Part 6A (ss 115A to 115T), FATR 2015
+  Division 4A (ss 43C and 43D), Fees Imposition Act 2015 ss 5 to 9 and Fees
+  Imposition Regulations 2020 Part 3 (ss 42 to 46), with the 183-day occupancy
+  test, late-return deemed liability (s 115D(3) and FATR s 43D(4)), 9 April
+  2024 fee doubling (s 67(2)), established dwelling 3x tripling (ss 10(2) and
+  53(1)(c)), 9 verified indexed schedules from 1 January 2021 to 30 June 2027,
+  joint tenancy and tenants in common apportionment (s 57), full-waiver
+  substitution (ss 43(b) and 46(b)), statutory fee cap (Act s 6(3), Regs
+  s 61A) and `derive` steps. New codes:
+  `residential_vacancy_fee.acquisition_basis_invalid`,
+  `residential_vacancy_fee.application_date_unsupported`,
+  `residential_vacancy_fee.application_fee_invalid`,
+  `residential_vacancy_fee.build_to_rent_unsupported`,
+  `residential_vacancy_fee.cap_unsettled`,
+  `residential_vacancy_fee.consideration_invalid`,
+  `residential_vacancy_fee.date_outside_year`,
+  `residential_vacancy_fee.days_invalid`,
+  `residential_vacancy_fee.de_minimis_developer_ec_unsettled`,
+  `residential_vacancy_fee.discretionary_waiver_unsupported`,
+  `residential_vacancy_fee.dwelling_kind_invalid`,
+  `residential_vacancy_fee.exemption_invalid`,
+  `residential_vacancy_fee.other_ec_waiver_unsupported`,
+  `residential_vacancy_fee.ownership_invalid`,
+  `residential_vacancy_fee.partial_waiver_unsupported`,
+  `residential_vacancy_fee.pre_2024_waiver_boundary_unsettled` and
+  `residential_vacancy_fee.waiver_invalid`. `tests/residential_vacancy_fee.rs`
+  holds it to the ATO's and Treasury's examples.
+- `portable-lsl-levy` works out portable long service leave levies for the
+  national black coal mining industry scheme (Coal LSL, mirroring
+  `tools/coal-lsl-levy` under s 3B of the Payroll Levy Collection Act 1992 and
+  s 6 of the Payroll Levy Regulations 2018 at 2.7% from 1 July 2023) and the
+  verified Australian state and territory portable LSL schemes across
+  construction, community services, contract cleaning and security (NSW LSC,
+  Vic LeavePlus and PLSA, Qld QLeave, SA Portable Long Service Leave, WA
+  MyLeave, ACT Leave, Tas TasBuild and NT Build), including NSW whole-dollar
+  rounding downwards (verified on the LSC Building Levy Calculator) and
+  statutory nearest-dollar rounding with 50 cents downwards under Qld s 72(2)
+  and NT s 33(2). New codes: `portable_lsl_levy.bonus_invalid`,
+  `portable_lsl_levy.branch_field_mismatch`, `portable_lsl_levy.branch_invalid`,
+  `portable_lsl_levy.employee_ineligible`,
+  `portable_lsl_levy.exemption_unsupported`,
+  `portable_lsl_levy.jurisdiction_invalid`,
+  `portable_lsl_levy.project_cost_above_tier`,
+  `portable_lsl_levy.reimbursements_unconfirmed`,
+  `portable_lsl_levy.reporting_month_invalid`,
+  `portable_lsl_levy.scheme_invalid`, `portable_lsl_levy.scheme_unavailable`
+  and `portable_lsl_levy.scheme_year_unsupported`. `tests/portable_lsl_levy.rs`
+  holds Coal LSL to the site parity vectors and checks all 19 state and
+  territory schemes.
+- `non-resident-withholding` works out PAYG withholding on monetary payments
+  to foreign residents for 2024-25 to 2026-27 under TAA 1953 Schedule 1
+  Subdivision 12-F (dividends, interest and royalties, with franked amounts,
+  conduit foreign income, stated treaty rates, TAR 2017 s 26 rounding and the
+  s 12-300 ceiling), Subdivision 12-H (withholding MIT fund payments including
+  clean building MIT and non-concessional MIT income components for EOI and
+  non-EOI recipients) and Subdivision 12-FB / s 12-315 (casino gaming junkets,
+  entertainment or sports activities for companies and individuals, and
+  construction and related activities, with s 12-319 exemptions, s 15-15
+  variations and s 48 prior-withholding reductions). New codes:
+  `non_resident_withholding.already_withheld_exceeds_payment`,
+  `non_resident_withholding.base_rate_entity_invalid`,
+  `non_resident_withholding.construction_contract_before_cutoff`,
+  `non_resident_withholding.exempt_exceeds_payment`,
+  `non_resident_withholding.mit_parts_exceed_payment`,
+  `non_resident_withholding.payee_entity_unsupported`,
+  `non_resident_withholding.payment_type_invalid`,
+  `non_resident_withholding.treaty_rate_invalid` and
+  `non_resident_withholding.variation_rate_invalid`.
+  `tests/non_resident_withholding.rs` verifies every statutory rate, rounding
+  boundary and refusal code.
 
 ## 1.3.0
 

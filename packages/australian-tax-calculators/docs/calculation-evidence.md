@@ -60,6 +60,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
+| Portable LSL levy | Not a Library document: Coal LSL (`F2018L00217`, `C2004A04352`, `tools/coal-lsl-levy` parity vectors) and each state and territory portable LSL board's rates page and in-force legislation (NSW LSC, LeavePlus, PLSA, QLeave and Qld BCI Act/Reg, SA Portable LSL, MyLeave, ACT DI2024-12/15/16/224 and DI2026-228, TasBuild, NT Build) | 24 November 2026 (read) | 20 verified jurisdiction-scheme combinations across 2023-24 to 2026-27 (each scheme gated to its verified years); worker coverage, exemptions, apprentice exclusions, late interest and lodgement excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
@@ -2658,6 +2659,78 @@ No Act sets a rounding rule for one premium's duty: insurers pay on a return
 of total premiums. The worksheet shows `duty` to the cent, as every amount in
 this crate is, and gives the exact figure in `rates.exact_duty`.
 
+## Portable LSL levy
+
+This worksheet was added on 24 November 2026. Primary statutory board pages and
+in-force legislation were read on 24 November 2026:
+
+- **Coal LSL (Commonwealth)**: Federal Register of Legislation OData API
+  confirmed `F2018L00217` (*Coal Mining Industry (Long Service Leave) Payroll
+  Levy Regulations 2018*, Compilation No. 1 `F2023C00557`, in force from 1 July
+  2023: 2.7% prescribed percentage under s 6) and `C2004A04352` (*Coal Mining
+  Industry (Long Service Leave) Payroll Levy Collection Act 1992*, Compilation
+  No. 12 `C2026C00364`, in force 1 September 2026: s 3B eligible wages) have no
+  unincorporated amendments; `coallsl.com.au/employer/administer-lsl/levy`
+  states 2.7%. Mirrors `ryanduguid.github.io/tools/coal-lsl-levy`
+  (`assets/levy.mjs`, `scripts/levy.test.mjs`,
+  `service/coal-lsl-levy/fixtures/cases.json`).
+- **New South Wales (Long Service Corporation)**: `nsw.gov.au` pages for BCI
+  (0.25% on works of $250,000 or more including GST from 1 January 2023), CCI
+  (1% of gross ordinary wages from 1 July 2021) and CSI (1.3% for 2025-26 and
+  1.7% from 1 July 2026). NSW BCI whole-dollar rounding downwards was verified
+  directly on 24 November 2026 against the official LSC Building Levy
+  Calculator (`longservice.my.site.com/bci/s/levy-calculator`): `$249,999` ->
+  `$0`, `$250,000` -> `$625`, `$250,399` (exact `$625.9975`) -> `$625`,
+  `$250,400` -> `$626` and `$300,200` (exact `$750.50`) -> `$750`. Note:
+  `legislation.nsw.gov.au` and `classic.austlii.edu.au` returned Cloudflare
+  challenges (HTTP 403), so the NSW statutory text itself was not read directly.
+- **Victoria**: LeavePlus `leaveplus.com.au/employers/charges/` (2.7% of gross
+  reportable ordinary pay) and Portable Long Service Authority
+  `plsa.vic.gov.au/employer-information/about-the-portable-long-service-benefits-scheme`
+  (1.65% community services, 1.80% contract cleaning and 1.80% security) for
+  2026-27.
+- **Queensland (QLeave)**: *Building and Construction Industry (Portable Long
+  Service Leave) Act 1991* (Qld) ss 72 and 73 and *Regulation 2024* (SL No. 162)
+  ss 8, 9 and 11 (read verbatim on `legislation.qld.gov.au`: $150,000 threshold
+  excluding GST; 0.35% LSL, 0.1% CSQ training and 0.125% WHSQ, each rounded to
+  the nearest dollar with 50c rounded downwards under s 72(2)); *Contract
+  Cleaning Industry (Portable Long Service Leave) Act 2005* (Qld) s 83 and
+  QLeave 'Employer obligations' (0.5% for 2026-27); QLeave community services
+  'Paying the levy' (1.35% for 2026-27).
+- **South Australia (SA Portable Long Service Leave)**:
+  `saplsl-construction.org.au/employers/how-to-complete-employer-returns`
+  (2.00% of gross remuneration, apprentices levy-free) and
+  `saplsl-community.org.au/employers-home/what-do-i-have-to-do` (2.2% of gross
+  remuneration, trainees exempt) for 2026-27.
+- **Western Australia (MyLeave)**: `wa.gov.au` public notice 'MyLeave - 2027
+  Employer Contribution Rate' (published 4 November 2026): 0.75% of ordinary
+  pay for both the 2026 and 2027 calendar years (apprentices levy-free),
+  covering all of 2026-27.
+- **Australian Capital Territory (ACT Leave)**: *Long Service Leave (Portable
+  Schemes) Act 2009* (ACT) Disallowable Instruments read verbatim from
+  `legislation.act.gov.au` PDFs: `DI2024-12` (construction 2.75% from 1 October
+  2024), `DI2024-16` (community sector 1.85% from 1 July 2024), `DI2024-15`
+  (security 1.47% from 1 July 2024), `DI2024-224` (services including contract
+  cleaning 1.07% from 1 April 2025) and `DI2026-228` (services 1.07% from
+  1 January 2027, with phased discounts for food and beverage services only).
+- **Tasmania (TasBuild)**: `tasbuild.com.au/employers-information/` FAQ: 2.5%
+  standard contribution rate on ordinary pay, or 1.8% discounted rate when
+  returns and invoices are lodged and paid by the due dates (2026-27).
+- **Northern Territory (NT Build)**: `ntbuild.com.au/levy-payers`: 0.1% on
+  eligible construction projects from $1 million to $5 billion inclusive of GST,
+  rounded to the nearest dollar with 50c rounded downwards (s 33(2) of the
+  *Construction Industry Long Service Leave and Benefits Act 2005* (NT));
+  projects above $5 billion face a two-tier ministerial levy and are refused.
+
+| Case | Basis | Expected |
+| --- | --- | --- |
+| Coal LSL base rate $6,000 + $3,000 OT + $500 allowances | s 3B(1) Formula B = 0.75 x $9,500 = $7,125; 2.7% = $192.375 | $192.38 |
+| Coal LSL base rate $100.03 + $300 OT | Formula B = $300.0225 exact; 2.7% = $8.1006075 | $8.10 |
+| NSW construction $250,399 incl. GST | 0.25% = $625.9975, rounded down to whole dollar (LSC calculator) | $625.00 |
+| Qld construction $150,000 excl. GST | s 72(2): LSL $525, training $150, WHS $187.50 -> $187 | $862.00 |
+| NT construction $1,000,500 incl. GST | s 33(2): $1,000.50 -> 50c rounded down | $1,000.00 |
+| Tas construction $50,000 on time vs standard | 1.8% vs 2.5% | $900.00 / $1,250.00 |
+
 ## Payroll tax
 
 This worksheet was added on 19 November 2026. The revenue offices' pages were
@@ -4771,6 +4844,81 @@ from the provisions: the 53% rounding, excess concessional contributions,
 the FHSS amount, family trust distribution amounts, child support and
 business deductions.
 
+## Residential vacancy fee
+
+`residential_vacancy_fee` was checked on 24 November 2026 against the Foreign
+Acquisitions and Takeovers Act 1975 Part 6A (ss 115A to 115T) and s 4
+definitions in compilation 35 (`C2025C00672`, 5 December 2025); the Foreign
+Acquisitions and Takeovers Regulation 2015 Division 4A (ss 43C and 43D) in
+compilation 20 (`F2025C01038`, 1 November 2025); the Foreign Acquisitions and
+Takeovers Fees Imposition Act 2015 ss 5 to 9 in compilations 4 (`C2021C00021`,
+1 January 2021), 5 (`C2022C00334`, 6 December 2022) and 6 (`C2024C00141`,
+9 April 2024); the Foreign Acquisitions and Takeovers Fees Imposition Amendment
+Act 2024 (No. 17, 2024, `C2024A00017`, Schedule 2); the Foreign Acquisitions
+and Takeovers Fees Imposition Regulations 2020 Part 2 Division 2 (ss 8 to 11),
+Part 3 (ss 42 to 46), ss 53, 57, 59 to 61A and 67 in compilations 1
+(`F2021C00683`), 2 (`F2022C00757`) and 4 (`F2024C01252`, 10 December 2024);
+the ATO's 'Vacancy fee return for foreign owners', 'Residential fees for a
+foreign person', 'Request waiver of an application fee', 'Types of property a
+foreign person can buy' and 'Consumer price index' pages; and Treasury's
+Guidance Note 6: Residential Land (v5, 1 July 2026), Guidance Note 10: Fees
+(v12, 18 September 2026) and Schedule of Fees (v8, June 2026).
+
+Statutory indexation across all 9 verified residential fee periods from
+1 January 2021 to 30 June 2027 (Fees Regulations ss 59 to 61 and Fees Act
+ss 7 to 9, All Groups CPI weighted average of 8 capital cities):
+
+| Effective period | Factor | Below $75,000 (s 53) | Up to $1m (s 10 item 1) | Step per $1m (s 10 items 2 to 3) | Residential cap | Statutory cap (Act s 6(3)) | Established 3x |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 Jan 2021 to 30 Jun 2021 | 1.000 | $2,000 | $6,350 | $12,700 | $500,000 | $1,000,000 | No |
+| 1 Jul 2021 to 30 Jun 2022 | 1.006 | $2,000 | $6,350 | $12,700 | $503,000 | $1,006,000 | No |
+| 1 Jul 2022 to 28 Jul 2022 | 1.045 | $2,000 | $6,600 | $13,200 | $522,500 | $1,045,000 | No |
+| 29 Jul 2022 to 30 Jun 2023 | 1.000 | $4,000 | $13,200 | $26,400 | $1,045,000 | $1,045,000 | No |
+| 1 Jul 2023 to 8 Apr 2024 | 1.071 | $4,200 | $14,100 | $28,200 | $1,119,100 | $1,119,100 | No |
+| 9 Apr 2024 to 30 Jun 2024 | 1.000 | $4,200 | $14,100 | $28,200 | $1,119,100 | $7,000,000 | Yes |
+| 1 Jul 2024 to 30 Jun 2025 | 1.047 | $4,300 | $14,700 | $29,500 | $1,171,600 | $7,329,000 | Yes |
+| 1 Jul 2025 to 30 Jun 2026 | 1.077 | $4,500 | $15,100 | $30,300 | $1,205,200 | $7,539,000 | Yes |
+| 1 Jul 2026 to 30 Jun 2027 | 1.113 | $4,600 | $15,600 | $31,300 | $1,245,500 | $7,791,000 | Yes |
+
+Choices the law leaves to the reader and boundaries refused:
+- FATA s 115C(1) triggers liability when a dwelling is residentially occupied
+  for fewer than 183 days in the vacancy year; in a 366-day leap year, 183
+  occupied days is not liable despite leaving 183 vacant days.
+- Occupancy, genuine rental availability (minimum 30-day terms), lodgment
+  timing and FATR s 43D exemption evidence are the operator's facts.
+- Build-to-rent developments receive case-by-case commercial-rate waivers
+  under FATA s 115 and bespoke Treasury reporting conditions (GN6 Section I,
+  GN10 Section L) and are refused, along with partial application fee waivers
+  and discretionary FATA s 115H vacancy fee waivers or remissions.
+- Consideration below $75,000 under a developer exemption certificate hits the
+  unsettled boundary between Fees Regulations s 44(2) (Division 2 of Part 2)
+  and s 53(1) (de minimis rule despite Part 2) and is refused.
+- Fees Regulations s 57(2) apportions a tenant in common's fee by ownership
+  share without stating a rounding rule; the worksheet rounds half up to cents.
+- Fees Imposition Act 2015 s 7(3) guarantees the s 6(3) statutory fee cap
+  (enforced by Fees Regulations s 61A) cannot decrease on any later 1 July
+  indexation. Because the Commissioner may issue a FATA s 115E notice of
+  liability after a subsequent 1 July (setting a s 115F due date at least 21
+  days later) and this worksheet takes no notice date, the cap in force at
+  `vacancy_year_end` (or `$7,791,000` for `2027-28` onwards) is treated as a
+  non-decreasing floor: any uncapped fee at or below that floor (including
+  every single residential dwelling under all 9 schedules, up to `$7,473,000`
+  for a 2026-27 established dwelling over `$40` million) is guaranteed uncapped
+  under every possible notice date, whilst any higher uncapped fee is refused
+  (`cap_unsettled`). Likewise, a pre-9 April 2024 full waiver with a late
+  return is refused (`pre_2024_waiver_boundary_unsettled`) because a delayed
+  notice can cross an indexation date.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Myeong, $850,000 new townhouse, $13,200 fee, 1 Aug 2022 and 1 Aug 2023 starts | ATO: $13,200 | $13,200.00 |
+| Myeong, 1 Aug 2024 to 31 Jul 2025 | ATO: $26,400 (doubled) | $26,400.00 |
+| Edmond, 5 Oct 2022 start | ATO: ends 4 Oct 2023, due 3 Nov 2023 | 2023-10-04, due 2023-11-03 |
+| Rishi, $31,300 exemption certificate, 2 Nov 2026 start | ATO: ends 1 Nov 2027, due 1 Dec 2027, $62,600 | $62,600.00 |
+| GN10 Example 34, $1.5m established, 2 Jul 2024, settled 15 Aug 2024 | Treasury GN10: $88,500 app fee, $177,000 vacancy fee | $88,500.00 / $177,000.00 |
+| Sara, 25% tenant in common of $1.5m new dwelling, 1 Aug 2026 | ATO: $7,825 app fee ($15,650 doubled vacancy fee) | $7,825.00 / $15,650.00 |
+| GN6 Example 27, Nikolai, 250 days occupied, late return | Treasury GN6: deemed liable (FATA s 115D(3)) | `deemed_liable_late_return` |
+
 ## Foreign resident withholding
 
 `foreign_resident_withholding` was checked on 22 November 2026 against TAA 1953
@@ -4826,6 +4974,77 @@ Choices the law leaves to the reader:
 | Maisie and Max, $650,000, both certificates; neither | nil; $97,500 ($48,750 each) | $0.00; $97,500.00 |
 | Zac and Jen, $1 million, Jen's certificate; Zac's 5% notice | $75,000; $25,000 | $75,000.00; $25,000.00 |
 | Kim, 3 vendors, $1.3 million, no certificates | $195,000 ($65,000 each) | $195,000.00 |
+
+## Non-resident withholding
+
+`non_resident_withholding` was checked on 24 November 2026 against the Federal
+Register of Legislation compilations in force that day: Taxation
+Administration Act 1953 Schedule 1 Subdivisions 12-F (ss 12-210 to 12-300),
+12-FB (ss 12-315 to 12-319), 12-H (ss 12-383 to 12-453) and ss 12-1, 15-10,
+15-15, 18-15, 18-30 and 18-32 in compilation 227 (C2026C00468, 1 October
+2026), including Act No. 138 of 2024 Schedule 1 (active build to rent
+exclusion in s 12-450(5) from 1 January 2025); Income Tax Assessment Act 1936
+Division 11A ss 128B to 128D in compilation 193 (C2026C00454, 1 October 2026);
+Income Tax (Dividends, Interest and Royalties Withholding Tax) Act 1974 s 7
+(C2007C00596, 24 September 2007); Income Tax (Managed Investment Trust
+Withholding Tax) Act 2008 s 4 in compilation 3 (C2019C00219, 1 July 2019);
+Taxation Administration Regulations 2017 ss 26, 31 to 34, 39 to 45 and 48 to
+51 in compilation 18 (F2026C01210, 14 November 2026, sunsetting 1 October 2027
+under Legislation Act 2003 s 50); and Income Tax Rates Act 1986 s 23(2) and
+Schedule 7 Part II clause 1 in compilation 66 (C2026C00300, 1 July 2026).
+
+Choices the law leaves to the reader:
+
+- Every legal classification is the operator's fact: residency, treaty
+  entitlement and rate (including TAR 2017 s 40(3) for US tax-exempt
+  dividends), permanent establishment attribution, information exchange
+  country status (TAR 2017 s 34), clean building MIT and NCMI/active build to
+  rent classification, statutory exemptions (s 128B(3), ss 128F/128FA/128GB,
+  Div 880, s 12-319) and Commissioner variations (s 15-15).
+- Under TAA Sch 1 s 15-10(2), Subdivision 12-F (TAR 2017 ss 39 to 42) and
+  Subdivision 12-FB (TAR 2017 ss 48 to 51) are worked out under Division 3 of
+  Part 3 of TAR 2017, so TAR 2017 s 26 applies to both the payment and the
+  worked-out withholding amount: amounts under $1 and cents above whole
+  dollars are disregarded.
+- Under TAA Sch 1 s 12-300(b), Subdivision 12-F cannot require withholding
+  exceeding the Division 11A withholding tax payable less amounts already
+  withheld under Subdivision 12-F. Where that statutory cap binds (for
+  example, an interest payment with a treaty rate below TAR 2017 s 41's 10%,
+  or an intermediary with `already_withheld` above nil), the cap is floored to
+  whole cents so the withheld amount never exceeds the statutory ceiling.
+- Under TAA Sch 1 s 15-10(3), Subdivision 12-H is worked out directly under
+  ss 12-385(2), 12-390(2) and 12-390(5) rather than under TAR 2017, and the
+  law sets no rounding rule. By the worksheet's convention, each statutory
+  rate part (15%, 10% and 30% for an information exchange country, or one 30%
+  amount otherwise) is rounded half up to the cent and summed so the
+  components always add up to `withholding`.
+- For Subdivision 12-H, s 12-385(5) and s 12-390(10)(b) exclude payments to
+  the extent no MIT withholding tax is payable, and s 12-390(10)(a) excludes
+  a company under s 12-390 unless it would (apart from s 12-420) be acting in
+  the capacity as agent for the recipient (`company_not_acting_as_agent`).
+- For Subdivision 12-FB, s 12-319(1) to (5) allows the Commissioner to grant
+  a written exemption based on established and likely future tax compliance
+  (having regard to Div 45 instalments, unpaid tax-related liabilities and
+  associates' compliance over the current and previous 2 income years).
+- For Subdivision 12-FB `construction`, TAR 2017 s 33(1) prescribes only a
+  payment made under a contract entered into after 30 June 2004, so
+  `contract_date` on or before `2004-06-30` is refused.
+- For Subdivision 12-FB `entertainment_or_sports`, TAR 2017 s 50(2)(a) cites
+  ITRA 1986 s 23 (company) and s 50(2)(b) cites ITRA 1986 Schedule 7 Part II
+  (individual). Special company classes under s 23(3) to (7) and s 23A and
+  non-company non-individual payees (such as trusts and partnerships) are
+  outside scope; non-individual non-company payees are refused.
+
+| Case | Basis | Worksheet |
+| --- | --- | --- |
+| Dividend $10,000 ($4,000 franked, $1,000 CFI), 15% treaty | 15% x $5,000 (s 128B(3)(ga), s 802-15, TAR s 40) | $750.00 |
+| Interest $1,000.90, domestic 10%; 5% treaty cap | TAR s 26 + s 41: $100; s 12-300(b) cap: floor_cents($50.045) = $50.04 | $100.00; $50.04 |
+| Royalty $25,000.95, no treaty (30%); 10% treaty | floor(0.30 x $25,000) = $7,500; floor(0.10 x $25,000) = $2,500 | $7,500.00; $2,500.00 |
+| MIT fund payment $100,000 EOI ($50,000 std, $30,000 clean, $20,000 NCMI) | $7,500 + $3,000 + $6,000 (s 12-385(3)(a), IT(MITWHT)A s 4) | $16,500.00 |
+| MIT fund payment $100,000 non-EOI | 30% x $100,000 (s 12-385(3)(b)) | $30,000.00 |
+| Gaming junket $33.99; $34.00; $10,000.90 (3%) | TAR s 26 + s 49: $0 (< $1), $1 ($1.02), $300 | $0.00; $1.00; $300.00 |
+| Construction $80,000.75 (5%), $1,000 already withheld | TAR ss 26, 48, 51: $4,000 - $1,000 | $3,000.00 |
+| Entertainment/sports: individual $200,000.75; BRE company $50,000; standard company $50,000 | Sch 7 Pt II: $40,500 + $20,350 + $4,500 = $65,350; 25% = $12,500; 30% = $15,000 | $65,350.00; $12,500.00; $15,000.00 |
 
 ## Rental property
 
@@ -6717,3 +6936,50 @@ page, `au-compliance-kit` at e94cef24 and `william-laverty/ato-mcp` at
 d3d84941. ABN Lookup itself shows each ABN's DGR status and history, and its
 keyed web services, which need a registered GUID, would add both; this
 command uses only the open bulk data.
+## aml-cdd-review
+
+Read on 24 November 2026:
+
+- *Anti-Money Laundering and Counter-Terrorism Financing Act 2006* (`C2006A00169`,
+  compilation 63, 1 October 2026): s 5 ('beneficial owner': 25% or more direct
+  or indirect ownership, or direct or indirect control), s 11 ('Meaning of
+  control': s 11(1) body corporate >50% votes, >50% qualifying issued share
+  capital, board control or financial/operating policy control; s 11(2)
+  non-body corporate board/governing body or financial/operating policy
+  control), s 26C(3)(d), s 28(2)(d), s 30(2)(b)-(c) (business-relationship
+  ongoing CDD review at a frequency appropriate to ML/TF risk and on mandatory
+  triggers including unusual behaviours that may give rise to an SMR obligation
+  under s 30(2)(b)(ii), with no fixed statutory calendar interval; excludes
+  occasional-only transactions), s 31 (simplified CDD only when risk is low,
+  s 32 does not apply and Rules requirements are met), and s 32(a)-(f)
+  (mandatory enhanced CDD, including acting-representative foreign PEPs under
+  s 32(c) and physical-presence or formation connection under s 32(d)).
+- *Anti-Money Laundering and Counter-Terrorism Financing Rules 2025*
+  (`F2025L01026`, compilation 1, 31 March 2026): s 5-2(3) (AML/CTF policies
+  for ongoing CDD), s 6-7(1)-(1C) (beneficial owner CDD deemed established for
+  listed public companies subject to public disclosure requirements, government
+  bodies, customers controlled by them, and individuals whose beneficial
+  ownership arises solely through them), s 6-8(1)-(3) (CEO/equivalent fallback),
+  s 6-16 (AML/CTF policies prerequisite for simplified CDD under s 31(c)),
+  s 6-20 (unusual service request ECDD), s 6-21 (relevance-conditioned source
+  of wealth and funds under s 32(a), (b) or (d)), s 6-22 (physical currency in
+  item 50A virtual asset services), s 6-23 (PEP source of wealth and funds for
+  customer, beneficial owner or behalf person, excluding acting representatives)
+  and s 6-24 (mandatory KYC review on acquiring foreign PEP status, or
+  domestic/international organisation PEP status with high ML/TF risk).
+- AUSTRAC, *Step 2: Identify and assess your risks* (Country risk): Basel AML
+  Index bands `0-5` low, `5.01-6` medium, `6.01-10.00` high, with high-risk
+  override for FATF grey/blacklists and Australian sanctions regimes, verified
+  against AUSTRAC's worked table (Australia `4.04` -> low; Country A `5.75` ->
+  medium; Country B `5.25` with FATF/sanctions override -> high).
+- AUSTRAC, *Accountant program starter kit: Step 2 - Use your accounting
+  program*: client review defaults for small accounting practices adopting the
+  starter kit (High: Annual / 12 months; Medium: Every 2 years / 24 months;
+  Low: Every 3 years / 36 months), explicitly separated from statutory rules
+  under s 30(2)(c).
+- AUSTRAC, *Determining ownership and control structures* and *Reviewing and
+  updating customers' ML/TF risk and KYC information* (last updated 29 October
+  2026).
+
+`tests/aml_cdd_review.rs` holds the boundary, statutory-trigger, exact
+scaled-integer chain-tracing, duplicate-field and refusal cases.

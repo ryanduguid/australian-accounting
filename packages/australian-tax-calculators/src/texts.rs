@@ -111,6 +111,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One employer's workers compensation premium for a 12-month policy or premium period in 2026-27 in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, on the wages it estimates and the industry or premium rate its insurer gives it, with the premium worked again on its actual wages and the same scheme facts and the adjustment. The operator establishes the wages as the scheme defines them, the rate, the apprentice wages and each scheme's facts. New South Wales: a small employer (average performance premium, wages x the WIC rate, of $30,000 or less) under icare's formula with no apprentice incentive, the average performance premium less the Safe Employer Reward, plus GST, then the dust diseases contribution at a rate that includes GST (the gst amount excludes the GST within that contribution); a premium under icare's $240 minimum is refused. Victoria: a new employer (cl 12(5), including its related-employer and predecessor conditions) or small employer under the WorkCover Premiums Order (No. 34) 2026/2027 cl 6 to 12, with one premium rate and one remuneration figure (one workplace and coverage period), N / 365 to 6 places and the $400 minimum premium, 0.1 buy-out value and 15,500 deductible amount of Gazette S 284, plus GST. Queensland: a new policy (not reinstated under s 11 or carried on by a successor under s 12) that commences to insure in 2026-27 under WorkCover Queensland Notice (No. 1) of 2026 ss 3.2, 4.1, 5.2, 8.3 and 10.1 with no further premium under s 3.1, plus GST and insurance duty of 5% of the premium and its GST (Duties Act 2001 (Qld) s 362(3)), with s 4.1's minimum including both. South Australia: ReturnToWorkSA's BP x (1 - D) + C - A with its discount bands, claims costs capped at 3 x D x BP and no discount or claims costs while the employer has not completed a full financial year registered, at least $200 and rounded down to the dollar, plus GST; the supplementary underwriting rate is nil. Western Australia, Tasmania, the ACT and the Northern Territory: a policy whose premium is the insurer's rate times this employer's wages, plus GST, with no minimum, fixed charge, other adjustment or group allocation. Each step is worked exactly and shown to the cent, half up, except where a scheme rounds otherwise. Refuses experience-rated and performance-rated premiums, group members in New South Wales, Victoria, Queensland and South Australia, a New South Wales apprentice incentive, a Victorian remuneration that rounds to $0, a Queensland policy that commenced before 1 July 2026, a Queensland premium that rounding the estimated premium and apprentice discount first would move, Queensland actual wages, and a South Australian base premium above a band's bound less a cent and below the bound (ReturnToWorkSA's table and calculator differ). Excludes the industry classification and rate, what counts as wages, exemption from holding a policy, the Mine Safety Fund adjustment, catastrophic claims contribution and performance discount in New South Wales, default assessments, policies carried on from an earlier policy, business transfers in South Australia, the South Australian work health and safety fee, Comcare and self-insurers, household workers, early payment discounts and instalment interest.",
     ),
     (
+        "portable_lsl_levy",
+        "Portable long service leave levies across the national black coal mining industry scheme (Coal LSL, s 3B eligible wages and 2.7% prescribed levy rate from 1 July 2023) and the verified Australian state and territory portable LSL schemes for construction, community services, contract cleaning and security. Covers 20 jurisdiction-scheme combinations: Cth Coal LSL (2023-24 to 2026-27); NSW construction (project cost >= $250,000 incl. GST at 0.25%), contract cleaning (1.0%) and community services (1.3% in 2025-26, 1.7% in 2026-27); Vic LeavePlus construction (2.7%) and PLSA community services (1.65%), contract cleaning (1.80%) and security (1.80%) for 2026-27; Qld QLeave construction (project cost >= $150,000 excl. GST: 0.35% LSL, 0.1% CSQ training and 0.125% WHSQ, each rounded to the nearest dollar with 50c downwards under s 72(2)), contract cleaning (0.5%) and community services (1.35%); SA construction (2.00%) and community services (2.2%); WA MyLeave construction (0.75%); ACT construction (2.75%, DI2024-12), community services (1.85%, DI2024-16), security (1.47%, DI2024-15) and contract cleaning under the Services Industry Scheme (1.07%, DI2024-224 and DI2026-228); Tas TasBuild construction (1.8% on-time discounted or 2.5% standard); and NT NT Build construction ($1 million to $5 billion incl. GST at 0.1%, rounded to the nearest dollar with 50c downwards under s 33(2)). Refuses unavailable jurisdiction-scheme pairs, unverified periods, NT projects above $5 billion, partial or special project exemptions, ineligible Coal LSL employees, unconfirmed reimbursement exclusions on positive Coal LSL allowances and mismatched or unread branch fields. Excludes worker or employer coverage determinations, apprentice and trainee exemptions, ACT Services Industry expansion discounts from 1 January 2027 for food and beverage businesses, late-payment interest, penalties, instalment plans, refunds and lodgement.",
+    ),
+    (
         "payroll_tax",
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
     ),
@@ -311,6 +315,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "An ordinary taxable employer's board fringe benefits (FBTAA s 35) in the FBT year ended 31 March 2026 or 2027: meals provided to employees, or their associates, that are board meals (s 136(1)), such as meals an employee entitled to accommodation and at least 2 meals a day is given, cooked and supplied on the employer's premises and not at a party, reception or other social function. Each meal is valued at $2.00 for a recipient who was 12 or older before the year began and $1.00 for another (s 36), less the recipients contribution for it, which the operator establishes in total, counting each meal's only up to its value; the contributions cannot take the value below nil, and an unused excess is shown. The otherwise deductible rule (s 37) then takes off the gross deduction, the share of the value before contributions that would have been deductible to the employee under ITAA 1997 s 8-1, rounded to cents, less the deduction for the contribution, never below nil and never taking the value below nil; it applies only to meals provided to the employee. Excludes deciding what is a board meal, exempt meals, such as those for an employee in a primary production business in a remote area (the employer's guide, 13.6), food or drink exempt under s 54, gross-up and FBT payable. Board fringe benefits are type 2 (the employer's guide, 13.2).",
     ),
     (
+        "aml_cdd_review",
+        "Deterministic Australian AML/CTF Tranche 2 customer due diligence (CDD) checks for 2026-27 (designated services provided at or through a permanent establishment in Australia, AML/CTF Act 2006 s 30(2)), using zero personal data. question country_risk applies AUSTRAC's Basel AML Index country-risk bands (0-5 low, 5.01-6 medium, 6.01-10.00 high) and FATF grey/blacklist and Australian country-sanctions high-risk overrides, noting that statutory enhanced CDD under s 32(d) applies only where a covered person is physically present in or formed in a FATF Call-for-Action jurisdiction. question beneficial_ownership applies AML/CTF Act 2006 ss 5, 11 and 28(2)(d) and AML/CTF Rules 2025 ss 6-7(1)-(1C) and 6-8 using exact scaled-integer arithmetic across indirect ownership chains (25% threshold) and control limbs. question cdd_review applies only to a customer in an ongoing business relationship (s 30(2)(b)-(c)), excluding occasional-only transactions: it evaluates statutory CDD tier (ss 31-32 and Rules s 6-16), unconditional vs relevance-conditioned source of wealth and source of funds (Rules ss 6-21 to 6-23), mandatory immediate review triggers (s 30(2)(b)-(c) and Rules s 6-24), and periodic review dates under either AUSTRAC's Accountant Program Starter Kit defaults (12, 24 or 36 months, non-statutory guidance), a firm's custom policy interval, or statutory_only (no fixed statutory calendar interval). Excludes occasional-only customer ongoing reviews, pre-commencement customers (s 36), delayed initial CDD (s 29), foreign permanent establishments (Rules ss 6-23(3) and 6-24(2)), third-party reliance (ss 37A to 38), individual DFAT sanctions or PEP name screening, and assigning a customer's inherent ML/TF risk rating.",
+    ),
+    (
         "ppsr_timing",
         "What the Personal Property Securities Register's law decides without a search, for a registration, possession or attachment, or security agreement in the 2025-26 or 2026-27 income year, in ACT legal time (PPSA s 294). question registration gives a financing statement's latest end time under PPSA s 153 item 5 (consumer property or property described by serial number: the end of the day 7 years after the registration time; other collateral: no stated end time, or the end of the day 25 years after), the end time s 153(2) and (3) apply (a requested end time later than that, earlier than the registration time, or missing where one is required is taken to be the default time), and the registration fee of the Personal Property Securities (Fees) Determination 2018 s 4 items 1 to 3. question pmsi gives the time by which a purchase money security interest must be perfected by registration for priority under PPSA s 62: for inventory, by the time the grantor obtains possession of goods or the interest attaches to other property (s 62(2)(b)); otherwise before the end of 15 business days after that day (s 62(3)(b)), with a stated registration tested against it and the s 153 item 7 statement. question company_grantor gives the end of 20 business days, in the place concerned (Corporations Act s 9), after a company's security agreement came into force (s 588FL(2)(b)(ii)), and, with a critical time from 1 July 2025 to 30 June 2027, the latest of the s 588FL(2)(b) times and whether a stated registration time is after it, so that the interest vests in the company (s 588FL(4)); a registration after the critical time is left undecided, as s 588FL(2)(a) then turns on when the interest arose. Business days exclude weekends, the days the caller lists, and for the PPSA the days between Christmas Day and New Year's Day; the regulations prescribe no other day. The operator establishes that the arrangement is a security interest and, for pmsi, a purchase money security interest (PPSA s 14), the collateral's class and description, the possession or attachment time, the critical time, and that every public holiday the count spans is listed. Excludes searches and anything only the register holds, priority between interests that are not purchase money security interests, perfection by possession or control, transitional registrations, amendments and their fees, ending a registration (ss 151, 167 and 179), a foreign-law agreement's 56 day time (s 588FL(2)(b)(iii)), s 588FN's exceptions and court extensions under PPSA s 293.",
     ),
@@ -353,6 +361,14 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "rental_property",
         "One residential rental property for one owner and one income year from 2020-21 to 2026-27: the owner's share of rent and other rental income (ITAA 1997 s 6-5) and of the expenses by the ATO worksheet's lines, apportioned by the days let or available for rent on commercial terms over the days held except those relating solely to renting (s 8-1; Rental properties guide 2026, 'Time-based method'), travel shown and denied (s 26-31); interest on the owner's own loans at the share of principal used for the rental (TR 2000/2); borrowing expenses through borrowing-expenses-schedule (s 25-25); capital works at 2.5% or 4% by when they began, for the days used and within the undeducted construction expenditure (Division 43); each depreciating asset's decline in value as given, nil where s 40-27 reduces it; the net rent; and, with other taxable income for 2024-25 to 2026-27, the tax at the resident scale without and with it. The operator establishes that the owner is an individual not carrying on a business of letting and not an entity excepted by ss 26-31(2), 40-27(3) or 26-102(5); the owner's legal interest; that the property is in Australia and the whole dwelling is let as residential accommodation at a market rent, with no area-based apportionment and no non-commercial letting; that the days counted as available exclude any day the land was vacant under s 26-102 and any private use; the line each expense belongs on, that it is revenue (not capital, an initial repair or an improvement) and whether it relates solely to renting; each loan's interest and principal split with no redraw or further drawing in the year; the construction expenditure from a builder's contract or a qualified estimate, whether each item is a building or a structural improvement (not earthworks s 43-20(4) excludes), when it began and was first used and whether s 43-220 applies; and each asset's decline in value and the facts s 40-27 turns on. Excludes holiday homes whose costs s 26-50 denies (refused); the 4% manner (build to rent and short-term traveller accommodation); GST on short-stay letting; s 26-155 from 2027-28; Medicare levy, the surcharge, offsets and tax losses in the effect on tax; and working out the decline in value or the construction expenditure.",
+    ),
+    (
+        "non_resident_withholding",
+        "PAYG withholding from monetary payments to foreign residents for 2024-25 to 2026-27 under TAA 1953 Sch 1 Subdivision 12-F (dividends at 30%, interest at 10% and royalties at 30% under IT(DIRWHT)A 1974 s 7 and TAR 2017 ss 39 to 42, or a stated treaty rate, with franked dividends and conduit foreign income excluded, TAR 2017 s 26 whole-dollar truncation and the s 12-300 ceiling), Subdivision 12-H (withholding MIT fund payments under ss 12-385 and 12-390 and IT(MITWHT)A 2008 s 4 at 15% standard, 10% clean building MIT and 30% non-concessional MIT income for an information exchange country, or 30% otherwise, with the s 12-390(10)(a) exception for a company not acting as agent) and Subdivision 12-FB / s 12-315 (casino gaming junkets at 3%, construction and related activities under contracts entered into after 30 June 2004 at 5%, and entertainment or sports activities at the ordinary company rate of 25% or 30% or foreign resident individual marginal rates under TAR 2017 ss 26, 31 to 33 and 48 to 51 and ITRA 1986 s 23(2) and Sch 7 Pt II, with s 12-319 exemptions, s 15-15 variations and s 48 prior-withholding reductions). Residency, treaty entitlement, permanent establishment attribution, information exchange country status, NCMI and active build to rent classification (s 12-450(5) from 1 January 2025), exemptions and variations are stated facts. Excludes non-cash benefits (Div 14), foreign resident capital gains withholding (foreign-resident-withholding), DASP (dasp-tax), no-ABN withholding (no-abn-withholding), labour mobility (Subdiv 12-FC), mining and natural resource payments (Subdiv 12-G), special company classes (ITRA 1986 s 23(3) to (7) and s 23A), trusts or partnerships for entertainment or sports activities, and 2027-28 (TAR 2017 sunsets 1 October 2027).",
+    ),
+    (
+        "residential_vacancy_fee",
+        "Australian federal annual vacancy fee for one foreign-owned residential dwelling for one vacancy year starting in 2020-21 to 2026-27 under FATA 1975 Part 6A (ss 115A to 115T), FATR 2015 Div 4A (ss 43C and 43D), Fees Imposition Act 2015 ss 5 to 9 and Fees Imposition Regulations 2020 Part 3 (ss 42 to 46). Occupancy, return lodgment timing, FATR s 43D exemptions and acquisition basis are the operator's facts; build-to-rent developments, partial application fee waivers, discretionary s 115H waivers or remissions, s 45(b) waived other exemption certificates and state vacant residential land taxes are outside this worksheet.",
     ),
     (
         "foreign_resident_withholding",
@@ -682,6 +698,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.worksafe.vic.gov.au/resources/workcover-insurance-premiums-order",
     ),
     (
+        "portable_lsl_levy",
+        "https://www.legislation.gov.au/F2018L00217/latest/text",
+    ),
+    (
         "payroll_tax",
         "https://www.revenue.nsw.gov.au/taxes-duties-levies-royalties/payroll-tax/lodge-and-pay-returns/thresholds-and-rates",
     ),
@@ -879,6 +899,10 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19530001/SCH1-138-40",
     ),
     (
+        "aml_cdd_review",
+        "https://www.legislation.gov.au/C2006A00169/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
         "ppsr_timing",
         "https://www.legislation.gov.au/C2009A00130/2024-10-14/2024-10-14/text/original/epub/OEBPS/document_1/document_1.html",
     ),
@@ -981,6 +1005,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "rental_property",
         "https://www.ato.gov.au/forms-and-instructions/rental-properties-2026",
+    ),
+    (
+        "non_resident_withholding",
+        "https://www.legislation.gov.au/C1953A00001/latest/text",
+    ),
+    (
+        "residential_vacancy_fee",
+        "https://www.legislation.gov.au/C2004A01402/latest/text",
     ),
     (
         "foreign_resident_withholding",
@@ -1427,6 +1459,33 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-employers/workers-compensation-insurance",
             "https://www.act.gov.au/open/act-workers-compensation-scheme-suggested-reasonable-premium-rates",
             "https://www.workcover.wa.gov.au/resources/rates-fees-payments/",
+        ],
+    ),
+    (
+        "portable_lsl_levy",
+        &[
+            "https://coallsl.com.au/employer/administer-lsl/levy",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/bci-long-service-payments-scheme/long-service-levy",
+            "https://longservice.my.site.com/bci/s/levy-calculator",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/cci-long-service-leave-scheme/managing-employer-returns-and-paying-levies",
+            "https://www.nsw.gov.au/employment/rights-responsibilities/portable-long-service/csi-long-service-leave-scheme/making-levy-contributions",
+            "https://leaveplus.com.au/employers/charges/",
+            "https://www.plsa.vic.gov.au/employer-information/about-the-portable-long-service-benefits-scheme",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/act-1991-090",
+            "https://www.legislation.qld.gov.au/view/whole/html/inforce/current/sl-2024-0162",
+            "https://www.qleave.qld.gov.au/building-and-construction/levy-payers/what-is-the-levy",
+            "https://www.qleave.qld.gov.au/contract-cleaning/employers/employer-obligations",
+            "https://www.qleave.qld.gov.au/community-services/employers/pay-the-levy",
+            "https://saplsl-construction.org.au/employers/how-to-complete-employer-returns",
+            "https://saplsl-community.org.au/employers-home/what-do-i-have-to-do",
+            "https://www.wa.gov.au/government/announcements/myleave-2027-employer-contribution-rate",
+            "https://www.legislation.act.gov.au/di/2024-12/",
+            "https://www.legislation.act.gov.au/di/2024-15/",
+            "https://www.legislation.act.gov.au/di/2024-16/",
+            "https://www.legislation.act.gov.au/di/2024-224/",
+            "https://www.legislation.act.gov.au/di/2026-228/",
+            "https://tasbuild.com.au/employers-information/",
+            "https://www.ntbuild.com.au/levy-payers",
         ],
     ),
     (
@@ -1936,6 +1995,16 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[FBTAA_PART_1, FBTAA_PART_2, FBT_RETURN_ITEM_23],
     ),
     (
+        "aml_cdd_review",
+        &[
+            "https://www.legislation.gov.au/F2025L01026/2026-03-31/2026-03-31/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/your-amlctf-program/develop-your-amlctf-programs/step-2-identify-and-assess-your-risks",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/program-starter-kits/accountant-program-starter-kit/step-2-use-your-accounting-program",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/additional-guidance/determining-ownership-and-control-structures",
+            "https://www.austrac.gov.au/industry-and-business/obligations-and-guidance/your-amlctf-program/customer-due-diligence/ongoing-customer-due-diligence/reviewing-and-updating-customers-mltf-risk-and-kyc-information",
+        ],
+    ),
+    (
         "ppsr_timing",
         &[
             "https://www.legislation.gov.au/F2010L03071/2022-07-01/2022-07-01/text/original/epub/OEBPS/document_1/document_1.html",
@@ -2133,6 +2202,29 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2017A00126/asmade/text",
             "https://www.ato.gov.au/law/view/document?docid=TXR/TR20002/NAT/ATO/00001",
             "https://www.ato.gov.au/law/view/document?docid=TXR/TR9332/NAT/ATO/00001",
+        ],
+    ),
+    (
+        "non_resident_withholding",
+        &[
+            "https://www.legislation.gov.au/C1936A00027/latest/text",
+            "https://www.legislation.gov.au/C2004A00086/latest/text",
+            "https://www.legislation.gov.au/C2008A00031/latest/text",
+            "https://www.legislation.gov.au/F2017L01227/latest/text",
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+        ],
+    ),
+    (
+        "residential_vacancy_fee",
+        &[
+            "https://www.legislation.gov.au/C2015A00152/latest/text",
+            "https://www.legislation.gov.au/C2024A00017/asmade/text",
+            "https://www.legislation.gov.au/F2020L01648/latest/text",
+            "https://www.legislation.gov.au/F2015L01854/latest/text",
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/foreign-resident-investments/foreign-investment-in-australia/vacancy-fee-return-for-foreign-owners",
+            "https://www.ato.gov.au/individuals-and-families/investments-and-assets/foreign-resident-investments/foreign-investment-in-australia/fees-for-foreign-residential-investors",
+            "https://foreigninvestment.gov.au/guidance/general/fees",
+            "https://foreigninvestment.gov.au/guidance/types-investments/residential-land",
         ],
     ),
     (
@@ -2742,6 +2834,22 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "non_resident_withholding",
+        &[
+            "Subdivision 12-F (ITAA 1936 s 128D) and Subdivision 12-H (ITAA 1997 s 840-815) withholding taxes are generally final taxes; Subdivision 12-FB (s 12-315) withholding is not a final tax and the payee claims a credit on assessment (TAA Sch 1 s 18-15).",
+            "For dividends, TAR 2017 s 40(3) disapplies the double tax agreement rate where a dividend is paid to a US resident and is exempt from tax under US law; pass treaty_rate null unless a statutory or treaty exemption eliminates liability under s 12-300(a).",
+            "Subdivision 12-H has no statutory rounding rule (s 15-10(3) does not engage TAR 2017 s 26); each rate part is rounded half up to the cent here, whilst activity statements and annual reports take whole Australian dollars.",
+        ],
+    ),
+    (
+        "residential_vacancy_fee",
+        &[
+            "An annual vacancy fee return must be lodged through ATO Online services for foreign investors within 30 days after the end of each completed vacancy year, even where the dwelling was occupied for 183 or more days or qualifies for a FATR 2015 s 43D exemption (FATA 1975 s 115D(1), civil penalty 500 penalty units).",
+            "Short-term leases or holiday rentals with terms under 30 days do not count as residential occupation under FATA 1975 s 115C(4); established dwellings acquired as a principal place of residence cannot be rented out under standard approval conditions.",
+            "Records explaining vacancy fee liability must be kept in English (or readily convertible to English) for at least 5 years after the end of each vacancy year (FATA 1975 s 115G(1), civil penalty 500 penalty units). For tenants in common, Fees Regulations s 57(2) apportions the fee by ownership share without a statutory rounding rule; this worksheet rounds to the nearest cent half up.",
+        ],
+    ),
+    (
         "foreign_resident_withholding",
         &[
             "A clearance certificate counts only if the vendor gave it before you pay and its period covers the contract date (s 14-210(2)); a notice of variation only for the asset and up to its maximum price. Check each document's names against the title.",
@@ -2925,6 +3033,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "portable_lsl_levy",
+        &[
+            "Each administering board and statute defines eligible workers, covered work, ordinary pay inclusions and exclusions, apprentice or trainee exemptions and project cost inclusions; this worksheet takes the supplied pay or project cost figures as established.",
+            "NSW construction rounds down to the whole dollar (verified on the LSC Building Levy Calculator) and Queensland construction (s 72(2)) and NT construction (s 33(2)) round to the nearest dollar with 50 cents downwards; other schemes round half up to the cent once at the final step. Reconcile against the board's return portal before payment.",
+        ],
+    ),
+    (
         "payroll_tax",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
@@ -3034,6 +3149,13 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "lump_sum_arrears_tax_offset",
         &[
             "The Medicare levy and Medicare levy surcharge are separate questions this worksheet does not answer. From 2024-25 Medicare Levy Act 1986 s 9A leaves the total arrears amount out of taxable income for the levy when it is at least 10% of normal taxable income, the arrears included, and the levy in each of the 2 latest accrual years meets a condition of s 9A(1)(c); ITAA 1997 Subdivision 61-L gives a tax offset against the surcharge on them.",
+        ],
+    ),
+    (
+        "aml_cdd_review",
+        &[
+            "AML/CTF Act 2006 s 30(2)(c) sets no fixed calendar interval for periodic KYC reviews; the 12, 24 and 36 month intervals are AUSTRAC Accountant Program Starter Kit defaults for small accounting practices, not statutory mandates.",
+            "This worksheet processes no personal names and performs no individual DFAT sanctions, PEP or adverse-media screening; carry out screening separately through current authoritative lists.",
         ],
     ),
     (
@@ -3173,6 +3295,10 @@ pub const BORROWING_PROJECTED: &str = "A row marked projected is after 2027-28, 
 /// `period.unsupported` message: the figures not yet published, or the change
 /// in the law it does not apply.
 pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
+    (
+        "aml_cdd_review",
+        "The AML/CTF Act 2006, AML/CTF Rules 2025 and AUSTRAC guidance were read for 2026-27 on 24 November 2026; 2027-28 amendments and guidance updates are not yet read.",
+    ),
     (
         "alcohol_excise",
         "The excise duty rates for goods entered from 1 February 2027 had not been published when this worksheet was checked, so no 2027-28 rate is held.",
@@ -3353,6 +3479,66 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "alcohol_excise.rate_unpublished",
         "A line is on or after 1 February 2027, when the next substituted rates apply and none is held.",
+    ),
+    (
+        "aml_cdd_review.basel_score_invalid",
+        "basel_aml_score is not a decimal string from 0.00 to 10.00 with at most 2 decimal places.",
+    ),
+    (
+        "aml_cdd_review.cadence_basis_invalid",
+        "cadence_basis is not austrac_accountant_starter_kit, custom_policy or statutory_only.",
+    ),
+    (
+        "aml_cdd_review.chains_invalid",
+        "ownership_chains is not a list of up to 16 chains, each holding 1 to 8 percentage strings above 0 to 100 with at most 4 decimal places.",
+    ),
+    (
+        "aml_cdd_review.date_outside_year",
+        "last_cdd_date does not fall within 2026-07-01 to 2027-06-30 for period 2026-27.",
+    ),
+    (
+        "aml_cdd_review.duplicate_field",
+        "A named input field was supplied more than once to aml-cdd-review.",
+    ),
+    (
+        "aml_cdd_review.entity_kind_invalid",
+        "entity_kind is not body_corporate or non_body_corporate.",
+    ),
+    (
+        "aml_cdd_review.exemption_inconsistent",
+        "listed_public_company exemption was supplied for a non_body_corporate customer.",
+    ),
+    (
+        "aml_cdd_review.exemption_invalid",
+        "customer_exemption is not none, listed_public_company, government_body, controlled_by_listed_or_government or owned_through_listed_or_government_only.",
+    ),
+    (
+        "aml_cdd_review.months_invalid",
+        "policy_review_months is not an integer from 1 to 60.",
+    ),
+    (
+        "aml_cdd_review.ownership_above_100",
+        "Combined effective ownership across ownership_chains exceeds 100%.",
+    ),
+    (
+        "aml_cdd_review.pep_change_inconsistent",
+        "new_pep_status_change is true whilst pep_status is none.",
+    ),
+    (
+        "aml_cdd_review.pep_invalid",
+        "pep_status is not none, foreign, domestic or international_organisation.",
+    ),
+    (
+        "aml_cdd_review.question_invalid",
+        "question is not country_risk, beneficial_ownership or cdd_review.",
+    ),
+    (
+        "aml_cdd_review.risk_invalid",
+        "customer_risk is not low, medium or high.",
+    ),
+    (
+        "aml_cdd_review.starter_kit_risk_inconsistent",
+        "Worksheet safeguard: austrac_accountant_starter_kit was chosen with a mandatory enhanced CDD trigger under s 32 whilst customer_risk is not high.",
     ),
     (
         "annuity_withholding.deductible_above_payment",
@@ -4801,7 +4987,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5266,6 +5452,42 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "earlier_years is not a list of 4 entries, each null or an object with assessable_income and deductions.",
     ),
     (
+        "non_resident_withholding.already_withheld_exceeds_payment",
+        "already_withheld exceeds payment.",
+    ),
+    (
+        "non_resident_withholding.base_rate_entity_invalid",
+        "base_rate_entity is not a JSON boolean for a company payee or not null for an individual payee under entertainment_or_sports.",
+    ),
+    (
+        "non_resident_withholding.construction_contract_before_cutoff",
+        "contract_date for construction is on or before 30 June 2004 (TAR 2017 s 33(1) prescribes contracts entered into after 30 June 2004).",
+    ),
+    (
+        "non_resident_withholding.exempt_exceeds_payment",
+        "franked_amount plus conduit_foreign_income exceeds payment for a dividend.",
+    ),
+    (
+        "non_resident_withholding.mit_parts_exceed_payment",
+        "clean_building_mit_amount plus non_concessional_mit_income exceeds payment for a MIT fund payment.",
+    ),
+    (
+        "non_resident_withholding.payee_entity_unsupported",
+        "payee_entity is not individual or company for entertainment_or_sports (TAR 2017 s 50(2)).",
+    ),
+    (
+        "non_resident_withholding.payment_type_invalid",
+        "payment_type is not dividend, interest, royalty, mit_fund_payment, gaming_junket, entertainment_or_sports or construction.",
+    ),
+    (
+        "non_resident_withholding.treaty_rate_invalid",
+        "treaty_rate is not null or a decimal string from 0 to the domestic rate (0.30 for dividend or royalty, 0.10 for interest).",
+    ),
+    (
+        "non_resident_withholding.variation_rate_invalid",
+        "variation_rate is not null or a decimal string from 0 to 1 (TAA Sch 1 s 15-15).",
+    ),
+    (
         "notice_period.age_unsettled",
         "The employee is 45 in completed years at the end of the notice day, where the readings of 'over 45 years old' in s 117(3)(b) differ.",
     ),
@@ -5490,6 +5712,54 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The worksheet has no rates for the period.",
     ),
     (
+        "portable_lsl_levy.bonus_invalid",
+        "Coal LSL bonuses is not a valid list of bonus objects with plain non-negative decimal amounts and recognised frequencies.",
+    ),
+    (
+        "portable_lsl_levy.branch_field_mismatch",
+        "An input field was supplied that does not apply to the selected scheme or Coal LSL branch, or would be discarded unread.",
+    ),
+    (
+        "portable_lsl_levy.branch_invalid",
+        "Coal LSL branch is missing or is not base_rate, annual_salary or casual.",
+    ),
+    (
+        "portable_lsl_levy.employee_ineligible",
+        "Coal LSL eligible_employee is false, so no eligible wages arise under s 3B.",
+    ),
+    (
+        "portable_lsl_levy.exemption_unsupported",
+        "partial_exemption is true on a project-cost scheme; owner-builder, non-profit, church, Crown and local government reductions are outside this worksheet.",
+    ),
+    (
+        "portable_lsl_levy.jurisdiction_invalid",
+        "jurisdiction is not cth, nsw, vic, qld, sa, wa, act, tas or nt.",
+    ),
+    (
+        "portable_lsl_levy.project_cost_above_tier",
+        "Northern Territory project_cost exceeds $5 billion, where a two-tier ministerial levy determination applies.",
+    ),
+    (
+        "portable_lsl_levy.reimbursements_unconfirmed",
+        "Coal LSL base_rate received positive allowances without allowances_exclude_expense_reimbursements set to true.",
+    ),
+    (
+        "portable_lsl_levy.reporting_month_invalid",
+        "Coal LSL reporting_month is not a valid YYYY-MM month from 2023-07 onwards within the supplied financial year.",
+    ),
+    (
+        "portable_lsl_levy.scheme_invalid",
+        "scheme is not coal, construction, community_services, contract_cleaning or security.",
+    ),
+    (
+        "portable_lsl_levy.scheme_unavailable",
+        "No covered portable long service leave scheme exists for the requested jurisdiction and scheme combination.",
+    ),
+    (
+        "portable_lsl_levy.scheme_year_unsupported",
+        "The requested financial year is outside the primary-source-verified years for the selected jurisdiction and scheme.",
+    ),
+    (
         "ppsr_timing.date_outside_year",
         "The registration, possession or attachment, or agreement time is outside the income year given.",
     ),
@@ -5645,6 +5915,74 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "residency_tests.treaty_tie_breaker",
         "The individual is a resident under ITAA 1936 s 6(1) and also of another country under its law; a tax treaty's tie-breaker may apply, and the worksheet does not apply treaties.",
+    ),
+    (
+        "residential_vacancy_fee.acquisition_basis_invalid",
+        "acquisition_basis is not notifiable_action, developer_exemption_certificate, other_exemption_certificate, no_notice_order or build_to_rent.",
+    ),
+    (
+        "residential_vacancy_fee.application_date_unsupported",
+        "application_date is missing, outside 2021-01-01 to 2027-06-30, or after vacancy_year_start for a notified acquisition or developer exemption certificate.",
+    ),
+    (
+        "residential_vacancy_fee.application_fee_invalid",
+        "application_fee_payable is nil, missing for other_exemption_certificate, or combined with incompatible schedule or waiver inputs.",
+    ),
+    (
+        "residential_vacancy_fee.build_to_rent_unsupported",
+        "Build-to-rent developments receive case-by-case commercial-rate fee waivers under FATA s 115 and bespoke Treasury vacancy-fee reporting conditions.",
+    ),
+    (
+        "residential_vacancy_fee.cap_unsettled",
+        "The uncapped vacancy fee exceeds the Fees Imposition Act 2015 s 6(3) statutory cap floor at vacancy_year_end, so the binding cap turns on when the s 115E notice is issued or s 115F payment falls due.",
+    ),
+    (
+        "residential_vacancy_fee.consideration_invalid",
+        "consideration is nil, missing when deriving the notional residential application fee, or supplied with a full waiver.",
+    ),
+    (
+        "residential_vacancy_fee.date_outside_year",
+        "vacancy_year_start is outside the stated financial year.",
+    ),
+    (
+        "residential_vacancy_fee.days_invalid",
+        "residentially_occupied_days is not a JSON integer from 0 to the number of days in the vacancy year.",
+    ),
+    (
+        "residential_vacancy_fee.de_minimis_developer_ec_unsettled",
+        "Consideration below $75,000 under a developer exemption certificate hits the unsettled boundary between Fees Regulations s 44(2) and s 53(1).",
+    ),
+    (
+        "residential_vacancy_fee.discretionary_waiver_unsupported",
+        "Discretionary waiver or remission of a vacancy fee under FATA s 115H is decided case by case by the Treasurer or Commissioner.",
+    ),
+    (
+        "residential_vacancy_fee.dwelling_kind_invalid",
+        "dwelling_kind is missing, not new_or_near_new or established, or established was given for a developer exemption certificate.",
+    ),
+    (
+        "residential_vacancy_fee.exemption_invalid",
+        "exemption is not null or one of the four FATR 2015 s 43D exemption grounds.",
+    ),
+    (
+        "residential_vacancy_fee.other_ec_waiver_unsupported",
+        "A fully waived other exemption certificate fee under Fees Regulations s 45(b) depends on the specific Division 7 certificate kind and lowest fee.",
+    ),
+    (
+        "residential_vacancy_fee.ownership_invalid",
+        "ownership is not sole, joint_tenants or tenants_in_common, or ownership_share is missing, out of range or given for sole or joint_tenants.",
+    ),
+    (
+        "residential_vacancy_fee.partial_waiver_unsupported",
+        "Partial waivers of the original application fee fall outside Fees Regulations Part 3's full-waiver substitution rules.",
+    ),
+    (
+        "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
+        "A pre-9 April 2024 vacancy year with a waived application fee has its 30-day return window crossing a change in the s 10 item 1 fee.",
+    ),
+    (
+        "residential_vacancy_fee.waiver_invalid",
+        "application_fee_waiver is not none, full or partial, or full was given for a developer exemption certificate.",
     ),
     (
         "sb_cgt_concessions.active_period_unclear",
