@@ -54,11 +54,12 @@ INSTALL = (
 # A worksheet answers in milliseconds; this bounds a hung or wrong executable.
 TIMEOUT_SECONDS = 60
 #: The executable's commands that are not one worksheet: its catalogue, its period
-#: list, its derivation of another command's result, and 3 that combine several
+#: list, its derivation of another command's result, and 4 that combine several
 #: worksheets or checks into results of their own shape. Every other command is a
 #: worksheet in its catalogue, which calculate_tax_worksheet serves.
 NOT_WORKSHEETS = frozenset({"worksheet-catalogue", "periods", "derive",
-                            "personal-tax-estimate", "dgr-check", "fbt-return"})
+                            "personal-tax-estimate", "dgr-check", "charity-check",
+                            "fbt-return"})
 #: The release executables are under 8 MiB; a source build over this is refused unread.
 MAX_BYTES = 256 * 1024 * 1024
 COPY_CHUNK_BYTES = 1024 * 1024
