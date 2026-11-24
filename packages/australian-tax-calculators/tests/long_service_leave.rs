@@ -158,25 +158,15 @@ fn the_site_cases_agree_except_where_a_source_decides_otherwise() {
     assert_eq!(tally, BTreeMap::from(TALLY));
 }
 
-const PAGE: [(&str, usize); 5] = [
-    ("identical", 27),
-    ("refused alike", 6),
-    ("Queensland at 8.6667 weeks", 2),
+const PAGE: [(&str, usize); 3] = [
+    ("identical", 29),
+    ("refused alike", 8),
     ("outside the dates covered", 2),
-    (
-        "refused where the Act needs a fact the page does not ask",
-        2,
-    ),
 ];
-const TALLY: [(&str, usize); 5] = [
-    ("identical", 2485),
-    ("refused alike", 69),
-    ("Queensland at 8.6667 weeks", 235),
+const TALLY: [(&str, usize); 3] = [
+    ("identical", 2750),
+    ("refused alike", 81),
     ("outside the dates covered", 185),
-    (
-        "refused where the Act needs a fact the page does not ask",
-        42,
-    ),
 ];
 
 /// The regulators' examples: place, start, end, reason (empty while
@@ -470,8 +460,10 @@ fn qualifying_dismissals_and_the_tasmanian_transition() {
         "performance",
     );
     assert_eq!(figures(&run(&qld)), ["0.0000", "0.0000", "0.00"]);
-    // Tasmania: leave taken with service from before 1 July 2012 is refused
-    // (Schedule 3 cl 2(4)); none taken, or service from that day, is worked.
+    // Tasmania: Schedule 3 cl 2(4) bites only where leave under the Act before
+    // 1 July 2012 was used up, and its s 8(2)(a) gave that leave only at 15
+    // years: leave taken with 15 years complete by that day is refused; a
+    // later 15th anniversary, or none taken, is worked.
     let tas = |start: &str, taken: &str| {
         with(
             input("tas", start, "2025-12-31", "2025-26"),
@@ -479,9 +471,11 @@ fn qualifying_dismissals_and_the_tasmanian_transition() {
         )
     };
     assert_eq!(
-        code(&tas("2012-06-30", "1")),
+        code(&tas("1997-07-01", "1")),
         "long_service_leave.unsettled"
     );
+    assert!(!figures(&run(&tas("1997-07-02", "1")))[0].is_empty());
+    assert_eq!(figures(&run(&tas("2012-06-30", "1")))[..2], ["8.6667", "7.6667"]);
     assert_eq!(figures(&run(&tas("2012-06-30", "0")))[0], "8.6667");
     assert_eq!(figures(&run(&tas("2012-07-01", "1")))[1], "7.6667");
 }

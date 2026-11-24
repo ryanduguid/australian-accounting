@@ -5981,7 +5981,7 @@ refuses. It departs on 462:
 | --- | --- | --- |
 | Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | 241 differ in the fourth place of the weeks or in cents (3 page cases) |
 | A last day before 1 July 2020, after 30 June 2027 or before the earliest text read is refused | each Act's commencement and amendment history above | 185 refused (2 page cases) |
-| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with service from before 1 July 2012 are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 42 refused (6, 6 and 30; 2 page cases) |
+| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with 15 years of service complete by 1 July 2012 (the old s 8(2)(a) gave leave only at 15 years) are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 42 refused (6, 6 and 30; 2 page cases) |
 
 The Queensland row count falls to 235 (2 page cases) because 6 of its rows
 are now refused. WorkSafe ACT's guidance note 067A rounds 7 years to 6.0667
