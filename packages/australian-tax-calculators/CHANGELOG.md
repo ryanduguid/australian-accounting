@@ -4,6 +4,19 @@
 
 ### Added
 
+- `payroll-tax-group` works out, from stated facts, one employer's payroll tax
+  group for 2026-27 in Victoria, Queensland, Western Australia, South
+  Australia or the ACT under each Act's grouping Part (related bodies
+  corporate, common employees, common control, tracing and subsumed groups,
+  less excluded persons), its designated group employer and the group's single
+  deduction, with Queensland's excess deduction shared in order. New South
+  Wales, Tasmania and the Northern Territory are refused. New codes:
+  `payroll_tax_group.act_unread`, `business_unstated`, `dge_conflict`, `dge_not_member`,
+  `dge_wages_below_deduction`, `excess_order_invalid`,
+  `excess_unnominated`, `exclusion_barred`, `fact_invalid`, `formula_unread`,
+  `interest_cycle`, `jurisdiction_invalid`, `no_dge_unsettled`,
+  `not_grouped`, `part_year`, `percent_invalid`, `person_duplicate`,
+  `person_unknown` and `test_invalid`. `derive` takes it.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and
@@ -192,7 +205,10 @@
   the contract date, the value cap (with an optional `cap_value` where
   Queensland and Western Australia test a value other than the
   consideration) and the lesser-of-consideration rule, from eligibility
-  facts the operator states. New codes:
+  facts the operator states. An optional `contract_price` for a home built
+  is its consideration: below the amount, the grant is the contract price
+  in every state and territory but New South Wales, whose Act could not be
+  read, and the Victorian cap tests it. New codes:
   `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
   `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
   `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,

@@ -5084,8 +5084,10 @@ pub use super_benefit_tax::{
 };
 mod transfer_duty;
 pub use transfer_duty::{TransferDutyArgs, transfer_duty};
+mod source_quotes;
+pub(crate) use source_quotes::attach as attach_source_quotes;
 mod payroll_tax;
-pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
+pub use payroll_tax::{PayrollTaxArgs, PayrollTaxGroupArgs, payroll_tax, payroll_tax_group};
 mod land_tax;
 pub use land_tax::{LandTaxArgs, land_tax};
 mod workers_compensation_premium;
@@ -6515,7 +6517,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 138] = [
+const KINDS: [&str; 139] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6539,6 +6541,7 @@ const KINDS: [&str; 138] = [
     "transfer_duty",
     "super_withholding",
     "payroll_tax",
+    "payroll_tax_group",
     "land_tax",
     "workers_compensation_premium",
     "motor_vehicle_duty",
@@ -6775,6 +6778,9 @@ pub fn worksheet_catalogue() -> Value {
         entry.insert("sources".into(), json!(sources(kind)));
         entry.insert("source_checked".into(), json!(checked));
         entry.insert("source_passage".into(), json!(passage));
+        if let Some(quotes) = source_quotes::catalogue(kind) {
+            entry.insert("source_quotes".into(), quotes);
+        }
         entry.insert("example_evidence".into(), Value::Object(evidence));
         entry.insert("supported_periods".into(), supported.clone());
         entry.insert("required_inputs".into(), Value::Object(inputs));
