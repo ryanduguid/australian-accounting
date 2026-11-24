@@ -1,9 +1,15 @@
 # Changes
 
-## Unreleased
+## 1.3.0
 
 ### Added
 
+- `wip-lockup` ages unbilled WIP and returns WIP, receivable and lock-up
+  days from stated figures; lock-up is a management measure, not an
+  accounting result.
+- `impairment-test` works out value in use, recoverable amount and loss
+  allocation under AASB 136 from stated cash flows and a stated pre-tax
+  discount rate.
 - `payroll-tax-group` works out, from stated facts, one employer's payroll tax
   group for 2026-27 in Victoria, Queensland, Western Australia, South
   Australia or the ACT under each Act's grouping Part (related bodies

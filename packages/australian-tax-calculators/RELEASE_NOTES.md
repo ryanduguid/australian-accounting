@@ -1,3 +1,33 @@
+# v1.3.0
+
+The standalone calculator now serves 140 worksheet kinds, up from 102 in
+1.2.0. New commands and extensions cover payroll tax grouping, charity
+registration checks (`charity-check`), the tourist refund scheme,
+foreign purchaser and land tax surcharges, early stage investor tax
+offsets, downsizer contributions and transition-to-retirement maximums,
+superannuation income stream withholding, land tax, Victorian property
+taxes, PCG 2021/4 risk zones, ASIC fees, the instant asset write-off
+and earlier depreciation years, part-year residency for resident tax and
+the Medicare levy, workers compensation premiums, defined benefit income
+caps, foreign pension UPP, scholarship exemptions, super crystallisation,
+endorsement reviews, motor vehicle and insurance duties, first home owner
+grants, long service leave, transfer duty, record-based work expenses,
+notice periods, trading stock, prepayments, minors' income, foreign
+income conversion and foreign income tax offsets, SMSF income tax,
+alcohol excise, transfer balance accounts and excess contributions, FBT
+instalments and rebatable employer returns, ESS discounts, foreign
+resident CGT withholding, HELP indexation, quarterly PAYG instalments,
+WIP lock-up and AASB 136 impairment tests.
+
+See [CHANGELOG.md](CHANGELOG.md) for each command's scope, sources and
+refusal codes.
+
+GitHub Releases provides attested x86-64 Linux (static musl) and Windows
+executables. Other platforms can build from source. The command
+`australian-tax-calculators --version` prints
+`australian-tax-calculators 1.3.0`. See [README.md](README.md) for
+installation and verification.
+
 # v1.2.0
 
 The standalone calculator now serves 102 worksheet kinds, up from 66 in

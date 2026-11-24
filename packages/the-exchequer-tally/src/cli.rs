@@ -905,6 +905,13 @@ fn dispatch(command: &Command, values: &BTreeMap<&str, String>) -> Result<String
 /// (exit code, stdout, stderr), before platform text-mode newline conversion.
 pub fn run(args: &[String]) -> (i32, String, String) {
     const PROG: &str = "the-exchequer-tally";
+    if args == ["--version"] {
+        return (
+            0,
+            format!("{PROG} {}\n", env!("CARGO_PKG_VERSION")),
+            String::new(),
+        );
+    }
     match parse(PROG, args) {
         Err(Exit::Help(text, code)) => (code, text, String::new()),
         Err(Exit::Error {
