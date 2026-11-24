@@ -103,6 +103,34 @@ def test_a_term_with_no_entry_is_not_defined_and_has_no_nearest_terms(corpus):
     assert result["defined_note"]
 
 
+def test_a_term_defined_only_in_a_superseded_compilation_is_not_defined_in_force(corpus):
+    assert call("define_tax_term", term="old term")["defined"] is False
+    assert call("define_tax_term", term="old term", in_force_only=False)["defined"] is True
+
+
+@pytest.mark.parametrize(("wording", "cited"), [
+    ("Section 5-10 applies to the levy.", True),
+    ("Under subsection 5-10(1) the rate applies.", True),
+    ("See ss 5-5 and 5-10.", True),
+    # "the Act" as a defined short title may name another Act.
+    ("The rate in section 5-10 of the Act applies.", False),
+    ("Section 5-10 of Schedule 1 applies.", False),
+])
+def test_ordinary_forms_are_read_and_a_title_it_cannot_name_is_not(corpus, wording, cited):
+    synthetic_corpus.write(
+        corpus / "markdown" / "C9999A00001" / "sections.jsonl",
+        [
+            section("C9999A00001", "0002", "5-10", "The rate is 7%.", act=LEVY_ACT),
+            section("C9999A00001", "0003", "5-15", wording, act=LEVY_ACT,
+                    heading="5-15 Use"),
+        ],
+    )
+
+    result = call("find_citing_provisions", row_id=TARGET)
+
+    assert [entry["section"] for entry in result["cited_by"]] == (["5-15"] if cited else [])
+
+
 def test_a_dictionary_citation_of_a_section_is_listed(corpus):
     result = call("find_citing_provisions", row_id="C9999A00004:0004:4")
 

@@ -161,10 +161,10 @@ UNDEFINED_NOTE = (
     "hold every word of it."
 )
 # A section number as a title prints it: "8-1", "40-880", "82KZM", "6".
-SECTION_LABEL = r"\d[0-9A-Za-z]*(?:[-.]\d+[0-9A-Za-z]*)*"
+SECTION_LABEL = r"\d[0-9A-Za-z]*(?:[-.]\d[0-9A-Za-z]*)*"
 LABEL_ONLY = re.compile(SECTION_LABEL)
 CITED_LABEL = SECTION_LABEL + r"(?:\([0-9A-Za-z]{1,6}\))*"
-LIST_SEPARATOR = re.compile(r"\s*,\s*|\s+(?:and|or)\s+")
+ONE_CITED_LABEL = re.compile(CITED_LABEL)
 # "section 5-10", "subsections 8-1(1) and (2)", "ss 26-55 or 26-60", optionally
 # followed by the title they belong to: "of this Act", "of the Income Tax Assessment
 # Act 1997" or "in Schedule 1 to the Taxation Administration Act 1953".
@@ -174,6 +174,9 @@ CITATION = re.compile(
     r"(?:,?\s+(?:of|in)\s+(?:(?:Schedule|Part)\s+\w+\s+(?:to|of)\s+)?"
     r"(?:this\s+Act\b|(?:the\s+)?(?P<act>\*?[A-Z][^.;:\n]{0,150}?\bAct\s+\d{4})))?"
 )
+# A title the pattern cannot name ("of the Act" as a defined short title, "of
+# Schedule 1"): such a citation is not read as one of the citing title's own sections.
+OTHER_TITLE = re.compile(r",?\s+(?:of|in)\s+(?:the\s+)?\*?[A-Z]")
 # Only 1-for-1 replacements, so a citation's offsets stay valid in the stored text.
 CITE_PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " "})
 CITING_TEXT_CHARS = 600
@@ -1365,15 +1368,18 @@ def _cited_labels(text: str, label: str, act: str, internal: bool) -> Iterator[r
     """Each citation in text of section label (or one of its subsections).
 
     A citation followed by "of" or "in" and a title names that title: it counts only
-    when the title is act. One naming no title counts only inside the cited title.
+    when the title is act. One naming no title counts only inside the cited title, and
+    one followed by a title the pattern cannot name counts nowhere.
     """
-    for found in CITATION.finditer(text.translate(CITE_PLAIN)):
-        items = [item.split("(", 1)[0] for item in LIST_SEPARATOR.split(found.group("labels"))]
+    plain = text.translate(CITE_PLAIN)
+    for found in CITATION.finditer(plain):
+        labels = ONE_CITED_LABEL.findall(found.group("labels"))
+        items = [item.split("(", 1)[0] for item in labels]
         if label not in items:
             continue
         named = found.group("act")
         if named is None:
-            if internal:
+            if internal and not OTHER_TITLE.match(plain, found.end()):
                 yield found
         elif _act_name(named) == act:
             yield found
