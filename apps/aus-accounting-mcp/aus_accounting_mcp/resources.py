@@ -144,6 +144,8 @@ def scope() -> dict[str, Any]:
             "and window, and withholds the text unless the status is captured.",
             "define_tax_term": "Find an expression's statutory definitions in that corpus's "
             "dictionary sections; no match is not proof the expression is undefined.",
+            "find_citing_provisions": "List the provisions in that corpus whose text cites one "
+            "section by number; an empty list is not proof that nothing cites it.",
             "search_tax_rates": "Find legislated rate, threshold and factor rows in that corpus; "
             "amounts are quoted text, not a calculation or a current-figure confirmation.",
             "search_ato_rulings": "Search an explicitly configured local folder of ATO rulings "
