@@ -154,10 +154,9 @@ fn four(v: &Decimal) -> Result<String> {
     Ok(v.quantize(-4, Rounding::HalfUp)?.to_string())
 }
 
-/// Ageing at `as_at`, and WIP, receivable and lock-up days.
-pub fn wip_lockup(a: &WipLockupArgs) -> Result<Value> {
-    let year = scope(a.scope_confirmed, a.year, KIND)?;
-    let as_at = date_arg(a.as_at, "as_at")?;
+/// `as_at`, refused outside the financial year.
+fn as_at_in(given: &Arg, year: &str) -> Result<i64> {
+    let as_at = date_arg(given, "as_at")?;
     let first: i64 = year[..4].parse().expect("a supported year");
     let in_year = |y: i64, md: &str| dates::parse(&format!("{y}-{md}")).expect("a date");
     if as_at < in_year(first, "07-01") || as_at > in_year(first + 1, "06-30") {
@@ -166,34 +165,52 @@ pub fn wip_lockup(a: &WipLockupArgs) -> Result<Value> {
             format!("as_at must fall in {year}."),
         );
     }
+    Ok(as_at)
+}
+
+/// WIP, and the WIP, receivable and lock-up days, unrounded.
+fn day_counts(
+    all: &[(i64, Decimal)],
+    flows: [&Decimal; 3],
+    span: &Decimal,
+) -> Result<[Decimal; 4]> {
+    let [fees, receivables, billings] = flows;
+    precise(|| {
+        let mut wip = d("0.00");
+        for (_, amount) in all {
+            wip = wip.add(amount)?;
+        }
+        let wip_days = wip.div(fees)?.mul(span)?;
+        let receivable_days = receivables.div(billings)?.mul(span)?;
+        let lock_up = wip_days.add(&receivable_days)?;
+        Ok([wip, wip_days, receivable_days, lock_up])
+    })
+}
+
+/// Ageing at `as_at`, and WIP, receivable and lock-up days.
+pub fn wip_lockup(a: &WipLockupArgs) -> Result<Value> {
+    let year = scope(a.scope_confirmed, a.year, KIND)?;
+    let as_at = as_at_in(a.as_at, &year)?;
     let all = entries(a.entries, as_at)?;
     let bounds = buckets(a.bucket_days)?;
     let fees = flow(a.fee_revenue, "fee_revenue")?;
     let receivables = money(a.receivables)?;
     let billings = flow(a.billings, "billings")?;
     let span = Decimal::from_int(days(a.days)?);
-    let (groups, wip, wip_days, receivable_days) = precise(|| {
-        let groups = aged(&all, as_at, &bounds)?;
-        let mut wip = d("0.00");
-        for (_, amount) in &all {
-            wip = wip.add(amount)?;
-        }
-        let wip_days = wip.div(&fees)?.mul(&span)?;
-        let receivable_days = receivables.div(&billings)?.mul(&span)?;
-        Ok((groups, wip, wip_days, receivable_days))
-    })?;
-    let lock_up = precise(|| Ok(wip_days.add(&receivable_days)?))?;
-    let amounts = vec![
-        ("wip", wip),
-        ("receivables", receivables),
-        ("wip_days", wip_days.clone()),
-        ("receivable_days", receivable_days.clone()),
-        ("lock_up_days", lock_up.clone()),
-    ];
+    let groups = precise(|| aged(&all, as_at, &bounds))?;
+    let [wip, wip_days, receivable_days, lock_up] =
+        day_counts(&all, [&fees, &receivables, &billings], &span)?;
     let rates = vec![
         rate("wip_days", four(&wip_days)?),
         rate("receivable_days", four(&receivable_days)?),
         rate("lock_up_days", four(&lock_up)?),
+    ];
+    let amounts = vec![
+        ("wip", wip),
+        ("receivables", receivables),
+        ("wip_days", wip_days),
+        ("receivable_days", receivable_days),
+        ("lock_up_days", lock_up),
     ];
     let mut out = result(KIND, &year, amounts, rates)?;
     out["ageing"] = Value::Array(groups);
