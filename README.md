@@ -262,39 +262,26 @@ workspace, uv takes `gst-review` 0.1.0, `div7a-loan-review` 0.3.2,
 releases, from PyPI.
 
 The uv workspace develops `lodgment-calendar` and the MCP application; the
-MCP server uses none of the Rust crates yet.
+published Python MCP server links none of the Rust crates, which only its unreleased native
+build does.
 
 ## Alternatives
 
 Australian Accounting calculates from figures you supply, and its research tools use folders
-you configure. As read on 13 November 2026, these projects cover nearby ground:
+you configure. As read on 13 November 2026, these kinds of project cover nearby ground:
 
-- [william-laverty/ato-mcp](https://github.com/william-laverty/ato-mcp): a hosted MCP connector,
-  for Claude.ai, ChatGPT and other clients after sign-in, over more than 34,500 ATO documents
-  (guidance, legislation and public rulings), with point-in-time legislation queries. Its latest release
-  is v2.3.0 of 22 October 2026. Its [pricing](https://ato-mcp.com.au/pricing) gives 25 lookups a
-  month free and unlimited lookups for $300 a year, and its
-  [privacy page](https://ato-mcp.com.au/privacy), last updated 11 November 2026, names Voyage AI in
-  the United States as turning search queries into vectors and ranking the matching passages. The
-  repository is AGPL-3.0, and its README calls the hosted platform and corpus proprietary.
-- [darrentmorgan/au-accounting](https://github.com/darrentmorgan/au-accounting): MIT-licensed
-  Australian calculators with refusal codes in YAML.
-- [PolicyEngine/policyengine-au](https://github.com/PolicyEngine/policyengine-au): microsimulation
-  for Australia, a different purpose.
-- [Nagaris](https://nagaris.com/llms.txt): a hosted practice platform for Australian accounting
-  firms, with proposals, AML/CTF checks, e-signing, job tracking and an AI assistant on one client
-  file. It publishes browser calculators, including [Division 7A](https://nagaris.com/division-7a-calculator),
-  which with repayments entered also shows interest at the benchmark rate and the closing balance
-  (this repository's Division 7A review computes neither), and
-  [Payday Super due dates](https://nagaris.com/payday-super-due-date-calculator), whose page also
-  states 11 August 2026 for a 30 July 2026 payday. Its
-  [AI Accounting Index](https://nagaris.com/ai-accounting-index), which tested third-party AI models
-  with each question answered once, reports that none of the 14 setups that answered that question
-  got the date right, and says Ask Nagaris adds lookup tables for business days.
-- [Lodgeit](https://lodgeit.net.au/): a hosted platform that
-  [prepares and lodges](https://lodgeit.net.au/for-accountants/) returns, BAS and financial reports.
-  Its home page calls it an 'Official ATO Standard Business Reporting platform' and states
-  ISO 27001:2022 certification.
+- A hosted MCP connector over more than 34,500 ATO documents (guidance, legislation and public
+  rulings), with point-in-time legislation queries, for Claude.ai, ChatGPT and other clients after
+  sign-in. It charges for lookups beyond a monthly free allowance and sends search queries to a
+  United States embedding provider.
+- Open source Australian calculators with refusal codes, and an Australian tax and benefit
+  microsimulation model, which serves a different purpose.
+- A hosted practice platform for Australian accounting firms, with proposals, AML/CTF checks,
+  e-signing, job tracking and an AI assistant on one client file, which also publishes browser
+  calculators. Its Division 7A calculator, with repayments entered, also shows interest at the
+  benchmark rate and the closing balance; this repository's Division 7A review computes neither.
+- A hosted platform that prepares and lodges returns, BAS and financial reports through Standard
+  Business Reporting.
 - [LodgeiT Labs](https://lodgeit.org/calculators.html): a public HTTP gateway for deterministic
   calculators with no key or signup, which its page describes as 'Not stable yet'. The gateway also
   speaks MCP, and its page says to add it to Claude as a custom connector with no sign-in. Its
@@ -317,10 +304,9 @@ you configure. As read on 13 November 2026, these projects cover nearby ground:
   the listing's 19 FBT calculators has a counterpart here. Its spaces calculator takes one space at
   a time and leaves the s 39FB reduction to the caller; `fbt-car-parking` takes every space an
   election covers and applies s 39FB.
-- [AusCalc](https://auscalc.com.au/): free browser calculators for individual and sole trader tax,
-  PAYG, GST, super and HECS, which its home page also offers inside ChatGPT and Claude as a plugin.
-- [PayCalculator](https://mcp.paycalculator.com.au/): a remote MCP server in the MCP Registry for
-  Australian pay, income tax, super, HECS, family payments and child care subsidy.
+- Free browser calculators for individual and sole trader tax, PAYG, GST, super and HECS, some
+  also offered inside AI assistants, and a remote MCP server for Australian pay, income tax,
+  super, HECS, family payments and child care subsidy.
 - [aftertaxau/au-compliance-kit](https://github.com/aftertaxau/au-compliance-kit), read on
   14 November 2026: an MIT-licensed JavaScript library with no dependencies, v0.4.0 of
   13 November 2026, with a local MCP server and a hosted one at `https://aftertaxau.com/mcp` that
@@ -390,7 +376,8 @@ shared runtime library or combined version.
 
 ## Install the Rust engines
 
-The 8 Rust engines are unreleased standalone binaries. With
+7 of the 8 Rust engines are unreleased standalone binaries; only
+`australian-tax-calculators` has releases (below). With
 [Rust](https://rustup.rs/) 1.99 or later, install `au-accounting`, one command
 with a subcommand per engine (`benchmarks`, `div7a`, `exchequer`, `payday-super`,
 `gst-review`, `solomons`, `tax` and `wip`):
@@ -442,10 +429,11 @@ Four structural boundaries hold across Australian Accounting:
 
 ## Releases
 
-`aus-accounting-mcp` and `lodgment-calendar` are each released on a namespaced tag
-`<component>/vX.Y.Z` by their own root workflow `.github/workflows/release-<component>.yml`,
-which calls the pinned Release Policy reusable workflow for that component directory only.
-The 8 Rust engines have reserved tags and no publisher yet. `CONTRIBUTING.md` has the table.
+`aus-accounting-mcp`, `lodgment-calendar` and `australian-tax-calculators` are each released
+on a namespaced tag `<component>/vX.Y.Z` by their own root workflow
+`.github/workflows/release-<component>.yml`, which calls the pinned Release Policy reusable
+workflow for that component directory only. The other 7 Rust engines have reserved tags and no
+publisher yet. `CONTRIBUTING.md` has the table.
 The rates dataset in `packages/au-tax-rates-data/` is never released on its own; the next
 `aus-accounting-mcp` release bundles a copy of its records.
 To check a downloaded release's checksum and SLSA provenance, follow [Verify a release](https://github.com/ryanduguid/release-policy/blob/main/docs/verify-a-release.md).
