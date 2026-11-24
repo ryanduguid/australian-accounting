@@ -31,6 +31,24 @@
   `tourist_refund.date_invalid`, `departure_not_covered`,
   `departure_outside_year`, `fact_invalid`, `gst_exceeds_price_share`,
   `item_invalid`, `threshold_unsettled` and `wine_tax_reduced`.
+- `aml-cdd-review`: deterministic Australian AML/CTF Tranche 2 customer due
+  diligence helper for 2026-27 with zero personal data (`country_risk` using
+  AUSTRAC's Basel AML Index 0-5 / 5.01-6 / 6.01-10.00 bands and FATF/sanctions
+  overrides plus statutory s 32(d) FATF Call-for-Action ECDD;
+  `beneficial_ownership` for exact 25% indirect ownership chains and s 11
+  control limbs with Rules ss 6-7 and 6-8; and `cdd_review` for statutory CDD
+  tiers, ECDD/SoW-SoF/immediate triggers and periodic review dates cleanly
+  distinguishing AUSTRAC Accountant Program Starter Kit 12/24/36-month defaults,
+  custom firm policies and statutory-only mode). New codes:
+  `aml_cdd_review.basel_score_invalid`,
+  `aml_cdd_review.cadence_basis_invalid`, `aml_cdd_review.chains_invalid`,
+  `aml_cdd_review.date_outside_year`, `aml_cdd_review.duplicate_field`,
+  `aml_cdd_review.entity_kind_invalid`,
+  `aml_cdd_review.exemption_inconsistent`, `aml_cdd_review.exemption_invalid`,
+  `aml_cdd_review.months_invalid`, `aml_cdd_review.ownership_above_100`,
+  `aml_cdd_review.pep_change_inconsistent`, `aml_cdd_review.pep_invalid`,
+  `aml_cdd_review.question_invalid`, `aml_cdd_review.risk_invalid` and
+  `aml_cdd_review.starter_kit_risk_inconsistent`.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and

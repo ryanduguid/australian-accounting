@@ -1059,6 +1059,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "aml-cdd-review",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "ppsr-timing",
         &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -2213,6 +2217,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment-register"
             | "fbt-minor-benefit-check"
             | "fhss"
+            | "aml-cdd-review"
             | "ppsr-timing"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
@@ -3018,6 +3023,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "aml-cdd-review" => {
+            // The question's own inputs, by name: strings, booleans, integers and chain arrays.
+            let named: Vec<(String, Arg)> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| {
+                    let given = match value {
+                        Value::Array(_) => Arg::Json(value.clone()),
+                        other => arg(other),
+                    };
+                    (key.clone(), given)
+                })
+                .collect();
+            engine::aml_cdd_review(&a[0], &a[1], &a[2], &named)
         }
         "ppsr-timing" => {
             // The question's own inputs, by name: times stay text, day lists JSON.

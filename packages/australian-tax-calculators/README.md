@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-140 calculation worksheets for established facts; the sections below document
+141 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -248,6 +248,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `super-crystallisation` | `eligible_service_start`, `interest_value`, `concessional_component`, `post_june_1994_invalidity_component`, `cgt_exempt_component`, `undeducted_contributions`, `untaxed_source`, `income_stream_before_july_2007`, `year`, `scope_confirmed`; see [Super crystallisation](#super-crystallisation) |
 | `endorsement-review` | `worksheet`, `answers`, `year`, `scope_confirmed`; see [Endorsement review](#endorsement-review) |
 | `government-super-amounts` | `income-tests`' 16 components and `residency`, `eligible_income`, `personal_contributions`, `concessional_contributions`, `return_lodged`, `under_71`, `temporary_visa_held`, `non_concessional_within_cap`, `total_super_balance_below_cap`, `year`, `scope_confirmed`; for a spouse contribution all of `spouse_contributions`, `spouse_assessable_income`, `spouse_assessable_fhss_released_amount`, `spouse_reportable_fringe_benefits_total`, `spouse_reportable_employer_super_contributions`, `spouse_excess_concessional_contributions`, `spouse_non_concessional_within_cap` and `spouse_total_super_balance_below_cap`; see [Government super amounts](#government-super-amounts) |
+| `aml-cdd-review` | `question` (`country_risk`, `beneficial_ownership` or `cdd_review`), `year`, `scope_confirmed`, and the inputs for that question; see [AML/CTF CDD review](#amlctf-cdd-review) |
 | `notice-period` | `notice_date`, `service_start`, `excluded_days`, `date_of_birth`, `exclusion`, `year`, `scope_confirmed`; with `exclusion` `specified_period`, `to_avoid_division`; optionally `full_rate_of_pay` and `weekly_hours` together; see [Notice period](#notice-period) |
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
@@ -4518,6 +4519,47 @@ over relying on the standard deduction, not the tax it saves. Given before 2026-
 hold it to the explanatory memorandum's examples 4.1 to 4.4 and the ATO's
 Simon and Yui. `personal-tax-estimate` applies the same deduction to a whole
 year's labour income.
+
+## AML/CTF CDD review
+
+`aml-cdd-review` provides deterministic, zero-personal-data checks for Australian
+AML/CTF Tranche 2 customer due diligence (CDD) in `2026-27` (designated services
+provided at or through a permanent establishment in Australia, AML/CTF Act 2006
+s 30(2)), using 3 questions:
+
+- `country_risk`: maps a jurisdiction's Basel AML Index score (`0.00` to `10.00`,
+  up to 2 decimal places) to AUSTRAC's published bands (`0.00` to `5.00` low,
+  `5.01` to `6.00` medium, `6.01` to `10.00` high), applies AUSTRAC's high-risk
+  override for FATF grey/blacklists and Australian country-sanctions regimes,
+  and notes conditionally when `fatf_call_for_action` is `true` that statutory
+  enhanced CDD (`s 32(d)`) applies only if a covered person is physically
+  present in or formed in that jurisdiction (and `Rules s 6-21` where relevant).
+- `beneficial_ownership`: computes exact scaled-integer combined effective
+  ownership across up to 16 indirect chains (up to 8 layers each, zero rounding)
+  for one natural person against the 25% statutory threshold (`AML/CTF Act 2006
+  s 5`), evaluates the `s 11(1)` (body corporate) or `s 11(2)` (non-body
+  corporate) control limbs, applies all 4 `AML/CTF Rules 2025 s 6-7(1)-(1C)`
+  exemptions (`listed_public_company`, `government_body`,
+  `controlled_by_listed_or_government`, `owned_through_listed_or_government_only`),
+  and notes the `s 6-8` CEO fallback.
+- `cdd_review` (business relationships only under `s 30(2)(b)-(c)`, excluding
+  occasional-only transactions): determines the statutory CDD tier
+  (`simplified_permitted` only when `customer_risk` is `low`, no `s 32` trigger
+  applies and `simplified_cdd_policy_in_place` is `true` under `s 31(c)` and
+  `Rules s 6-16`; `standard`; or `enhanced_mandatory` under `s 32` including
+  `acting_representative_foreign_pep` for `s 32(c)` separately from
+  `Rules ss 6-23` and `6-24`), tri-state source of wealth and funds status
+  (`mandatory` under `Rules ss 6-22` or `6-23`, `conditional_on_relevance`
+  under `Rules s 6-21` alone, or `not_mandated_by_rules`), immediate review
+  triggers (including `unusual_smr_behaviour` under `s 30(2)(b)(ii)` separately
+  from `s 32(b)`), and the next periodic review date under `cadence_basis`:
+  `austrac_accountant_starter_kit` (12, 24 or 36 months, explicitly labelled as
+  non-statutory AUSTRAC starter-kit guidance; worksheet safeguard refuses low
+  or medium starter-kit cadence when statutory ECDD is triggered),
+  `custom_policy` (`policy_review_months` 1 to 60), or `statutory_only` (no
+  fixed statutory calendar interval).
+
+See [calculation evidence](docs/calculation-evidence.md#aml-cdd-review).
 
 ## Notice period
 

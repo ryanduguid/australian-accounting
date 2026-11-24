@@ -6684,3 +6684,50 @@ page, `au-compliance-kit` at e94cef24 and `william-laverty/ato-mcp` at
 d3d84941. ABN Lookup itself shows each ABN's DGR status and history, and its
 keyed web services, which need a registered GUID, would add both; this
 command uses only the open bulk data.
+## aml-cdd-review
+
+Read on 24 November 2026:
+
+- *Anti-Money Laundering and Counter-Terrorism Financing Act 2006* (`C2006A00169`,
+  compilation 63, 1 October 2026): s 5 ('beneficial owner': 25% or more direct
+  or indirect ownership, or direct or indirect control), s 11 ('Meaning of
+  control': s 11(1) body corporate >50% votes, >50% qualifying issued share
+  capital, board control or financial/operating policy control; s 11(2)
+  non-body corporate board/governing body or financial/operating policy
+  control), s 26C(3)(d), s 28(2)(d), s 30(2)(b)-(c) (business-relationship
+  ongoing CDD review at a frequency appropriate to ML/TF risk and on mandatory
+  triggers including unusual behaviours that may give rise to an SMR obligation
+  under s 30(2)(b)(ii), with no fixed statutory calendar interval; excludes
+  occasional-only transactions), s 31 (simplified CDD only when risk is low,
+  s 32 does not apply and Rules requirements are met), and s 32(a)-(f)
+  (mandatory enhanced CDD, including acting-representative foreign PEPs under
+  s 32(c) and physical-presence or formation connection under s 32(d)).
+- *Anti-Money Laundering and Counter-Terrorism Financing Rules 2025*
+  (`F2025L01026`, compilation 1, 31 March 2026): s 5-2(3) (AML/CTF policies
+  for ongoing CDD), s 6-7(1)-(1C) (beneficial owner CDD deemed established for
+  listed public companies subject to public disclosure requirements, government
+  bodies, customers controlled by them, and individuals whose beneficial
+  ownership arises solely through them), s 6-8(1)-(3) (CEO/equivalent fallback),
+  s 6-16 (AML/CTF policies prerequisite for simplified CDD under s 31(c)),
+  s 6-20 (unusual service request ECDD), s 6-21 (relevance-conditioned source
+  of wealth and funds under s 32(a), (b) or (d)), s 6-22 (physical currency in
+  item 50A virtual asset services), s 6-23 (PEP source of wealth and funds for
+  customer, beneficial owner or behalf person, excluding acting representatives)
+  and s 6-24 (mandatory KYC review on acquiring foreign PEP status, or
+  domestic/international organisation PEP status with high ML/TF risk).
+- AUSTRAC, *Step 2: Identify and assess your risks* (Country risk): Basel AML
+  Index bands `0-5` low, `5.01-6` medium, `6.01-10.00` high, with high-risk
+  override for FATF grey/blacklists and Australian sanctions regimes, verified
+  against AUSTRAC's worked table (Australia `4.04` -> low; Country A `5.75` ->
+  medium; Country B `5.25` with FATF/sanctions override -> high).
+- AUSTRAC, *Accountant program starter kit: Step 2 - Use your accounting
+  program*: client review defaults for small accounting practices adopting the
+  starter kit (High: Annual / 12 months; Medium: Every 2 years / 24 months;
+  Low: Every 3 years / 36 months), explicitly separated from statutory rules
+  under s 30(2)(c).
+- AUSTRAC, *Determining ownership and control structures* and *Reviewing and
+  updating customers' ML/TF risk and KYC information* (last updated 29 October
+  2026).
+
+`tests/aml_cdd_review.rs` holds the boundary, statutory-trigger, exact
+scaled-integer chain-tracing, duplicate-field and refusal cases.
