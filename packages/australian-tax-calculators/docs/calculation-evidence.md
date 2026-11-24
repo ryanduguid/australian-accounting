@@ -5227,7 +5227,13 @@ differs, the Act is followed:
   pays nil.
 
 The value tested against the cap is the one each source names, kept apart
-from the consideration that limits the grant (`total_value`). In Queensland
+from the consideration that limits the grant. For a home bought that is
+`total_value`, the price. For a home built every Act read on 24 November
+2026 makes it the building work alone (Qld schedule 'consideration' (b),
+WA s 14AB(b), Vic, SA and Tas s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b);
+the New South Wales Act could not be read), not the land and contract total: the command pays the amount only when
+`building_contract` states the contract is at least the grant, refuses
+without it, and never limits a built home's grant by `total_value`. In Queensland
 and Western Australia the optional `cap_value` carries the value the Act
 tests where it differs: for a home bought, the unencumbered value of the home
 and land at the contract date, tested with the price as the greater of the 2
@@ -5547,6 +5553,21 @@ read.
   read: the ATO legal database returned 'currently unavailable' and then not
   found for the repealed section. Its rule is taken from the ATO page and
   TR 98/9, which state and apply it.
+
+The hours diary and log book inputs were added on 24 November 2026, when
+PCG 2023/1 (16 April 2025, still the latest version in its history table),
+paras 16, 18, 23 to 34, 56 to 62 and 68 to 72 and Table 1; ITAA 1997
+ss 28-90, 28-95, 28-100, 28-110 to 28-130, 28-140, 28-150 and 28-155 in compilation
+C2026C00471 (No. 268, 1 October 2026) on the Federal Register of
+Legislation; and the ATO's 'Logbook method' (12 June 2026) were read again.
+A diary is read only from 2022-23 (para 16), since the record rules for the
+52c rate and the shortcut were not read again. The log book period may run
+into the next or previous income year so long as it includes part of the
+year it is kept for (s 28-120(2)). The year's business kilometres from a log
+book are the year's total kilometres times the log book percentage, the
+estimate s 28-90(5)(a) asks for and the ATO's steps 1 to 5 apply; Lana's
+69% is reproduced from a 12 week log book of 2,070 business kilometres in
+3,000.
 
 Choices the sources leave to the reader:
 

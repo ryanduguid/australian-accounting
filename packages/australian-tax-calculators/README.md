@@ -4143,9 +4143,14 @@ building work alone, s 13(1A) and (7)(b)), a Northern Territory or
 Tasmanian contract without its conditions, and a Western Australian home
 without its location. Owner-builders, substantially renovated homes,
 exemptions, the Commissioner's discretions and transfer duty are outside it.
-`total_value` is the consideration: for a home bought, the price; for a home
-built, the land and the building contract with its variations. It limits the
-grant and is the value tested against the cap, except that in Queensland and
+`total_value` is, for a home bought, the price: the consideration, which
+limits the grant. For a home built it is the land and the building contract
+with its variations, but the consideration is the building contract alone
+(Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas s 13(7)(b),
+ACT s 13(6)(b), NT s 13(8)(b); the New South Wales Act could not be
+read); `building_contract` states that it is at least the grant, so the land
+never limits a built home's grant.
+`total_value` is the value tested against the cap, except that in Queensland and
 Western Australia `cap_value` gives the value the Act tests where it differs:
 for a home bought, the unencumbered value of the home and land at the
 contract date, tested with the price (the greater of the 2; Qld s 5(6) and
@@ -4519,6 +4524,24 @@ longer notice under an award,
 enterprise agreement or contract, notice by the employee (s 118) or
 redundancy pay. The tests hold it to the Fair Work Ombudsman's Gunter and
 Joan; see [calculation evidence](docs/calculation-evidence.md#notice-period).
+
+The records can be given instead of their totals. For `home_office` from
+2022-23, `hours_diary` is a list of `{"date", "hours"}` rows inside the year,
+several a date if need be but at most 24 hours on any date; their total is
+the year's hours (`diary_hours`, with `diary_days`, `diary_first_date` and
+`diary_last_date`). For `car_log_book`, `log_book` is `{"period_start",
+"period_end", "odometer_start", "odometer_end", "journeys"}`, each journey
+`{"start", "end", "odometer_start", "odometer_end", "purpose"}`, in place of
+`log_book_weeks` and `business_kilometres`. The period must run at least 84
+days (ITAA 1997 s 28-120(1)) and include part of `log_book_year`
+(s 28-120(2)); every journey states its purpose (s 28-125(2)(d)) and lies
+inside the period's dates and odometer readings without overlapping another.
+The journeys' kilometres over the period's total give `log_book_percentage`,
+and `total_kilometres` for the year times that percentage gives the year's
+`business_kilometres` (s 28-90(5)). Whenever the fixed rate is open from
+2022-23, and for every log book claim, `records_to_confirm` lists the
+records PCG 2023/1 paras 28 and 56 to 61, or Division 28, require: the
+worksheet reports them for the operator to confirm and assumes none of them.
 
 ## Residency tests
 
