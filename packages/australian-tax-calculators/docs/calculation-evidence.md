@@ -2761,22 +2761,29 @@ land tax; no passage states in terms that it charges no foreign purchaser
 duty. The ACT's first home owner grant passage states that no grant is paid
 for a commencement date from 1 July 2019, which the command refuses.
 
-For motor vehicle duty, the ACT's result carries the Category D row of both
-determinations, DI2025-152 for duty dates to 31 January 2027 and DI2026-154
-from 1 February 2027; the command applies the one in force on the duty date.
-Revenue NSW's motor vehicle and insurance pages stand for the Duties Act 1997
-(NSW), which could not be read that day. Queensland's motor vehicle passage
-is the Queensland Government's rate table for light vehicles, and the
-Victorian property tax passages are the State Revenue Office's. The ACT
-Revenue Office says insurance duty was abolished on 1 July 2016; the command
-gives 1 July 2017, when A2017-11 omitted the Duties Act's insurance chapter,
-as the date the duty went. Both are nil for every year the command takes.
+For motor vehicle duty, New South Wales carries both Revenue NSW's table and
+Service NSW's rule (part-$100 rounding and excess over $45,000), and Revenue
+NSW's insurance page stands for NSW insurance duty, because
+`legislation.nsw.gov.au` returned a Cloudflare challenge that day. The ACT's
+result carries Tables 1 to 3 of both determinations, DI2025-152 for duty dates
+to 31 January 2027 and DI2026-154 from 1 February 2027; the command applies the
+one in force on the duty date. The Northern Territory's motor vehicle duty
+result carries both the Sch 1 cl 5(2) rate and the s 92A electric vehicle
+exemption (for registrations to 30 June 2027). Queensland's motor vehicle
+passage is the Queensland Government's rate table for light vehicles, and the
+Victorian property tax passages are the State Revenue Office's. The ACT Revenue
+Office says insurance duty was abolished on 1 July 2016; the command gives
+1 July 2017, when A2017-11 omitted the Duties Act's insurance chapter, as the
+date the duty went. Both are nil for every year the command takes.
 
 `tests/source_quotes.rs` checks that every jurisdiction of the 6 commands
-that take one, and each of the 3 Victorian property taxes, has a passage with a provision, an official URL and its date, that each
-passage states the figure the command applies, that each result carries
-its jurisdiction's passages, and that no other worksheet or command gains
-them.
+that take one, and each of the 3 Victorian property taxes, has a non-empty
+provision, source and passage, an official URL and its date, that each
+passage states the figure the command applies, that ACT Tables 1 to 3, NT
+electric vehicle exemption ($50,000 and $60,000), NSW $45,001/$50,000 and
+CIPT nil-in-transition outcomes match their quoted evidence, that each result
+carries its jurisdiction's passages, and that no other worksheet or command
+gains them.
 
 ## Depreciation
 

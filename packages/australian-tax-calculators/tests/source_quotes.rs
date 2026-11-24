@@ -47,12 +47,18 @@ const TAXES: [&str; 3] = [
     "windfall_gains",
 ];
 
-fn catalogue_quotes(kind: &str) -> Vec<Value> {
-    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+fn quotes_in(catalogue: &Value, kind: &str) -> Vec<Value> {
     catalogue[kind]["source_quotes"]
         .as_array()
         .unwrap_or_else(|| panic!("{kind} has no source_quotes"))
         .clone()
+}
+
+fn catalogue_quotes(kind: &str) -> Vec<Value> {
+    quotes_in(
+        &api::evaluate("worksheet-catalogue", &json!({})).unwrap(),
+        kind,
+    )
 }
 
 fn of(quotes: &[Value], place: &str) -> Vec<Value> {
@@ -61,6 +67,18 @@ fn of(quotes: &[Value], place: &str) -> Vec<Value> {
         .filter(|q| q["jurisdiction"] == place)
         .cloned()
         .collect()
+}
+
+fn assert_quote_meta(quote: &Value, kind: &str) {
+    let text = |field: &str| quote[field].as_str().unwrap_or_default();
+    for field in ["provision", "source", "passage"] {
+        assert!(!text(field).trim().is_empty(), "{kind} {field}");
+    }
+    assert!(text("url").starts_with("https://"), "{}", text("url"));
+    let host = text("url")[8..].split('/').next().unwrap();
+    assert!(host.ends_with(".gov.au"), "{host}");
+    assert_eq!(text("verified"), "2026-11-24", "{kind}");
+    assert!(!text("passage").contains('\u{200b}'), "{kind}");
 }
 
 #[test]
@@ -73,14 +91,7 @@ fn every_jurisdiction_has_a_quoted_passage_and_its_date() {
         for quote in &quotes {
             let text = |field: &str| quote[field].as_str().unwrap_or_default();
             assert!(places.contains(&text("jurisdiction")), "{quote}");
-            for field in ["provision", "source", "passage"] {
-                assert!(!text(field).trim().is_empty(), "{kind} {field}");
-            }
-            assert!(text("url").starts_with("https://"), "{}", text("url"));
-            let host = text("url")[8..].split('/').next().unwrap();
-            assert!(host.ends_with(".gov.au"), "{host}");
-            assert_eq!(text("verified"), "2026-11-24", "{kind}");
-            assert!(!text("passage").contains('\u{200b}'), "{kind}");
+            assert_quote_meta(quote, kind);
         }
     }
 }
@@ -196,8 +207,9 @@ fn each_result_carries_its_jurisdictions_quotes() {
 }
 
 /// The figure each jurisdiction's passages must state, as the command's own
-/// rate table, surcharge or grant applies it (the top band for a scale).
-const FIGURES: [(&str, &str, &str); 50] = [
+/// rate table, surcharge or grant applies it (the top band for a scale, plus
+/// ACT Tables 1 to 3, NT EV exemption and Service NSW's complete rule).
+const FIGURES: &[(&str, &str, &str)] = &[
     (
         "transfer_duty",
         "nsw",
@@ -211,8 +223,11 @@ const FIGURES: [(&str, &str, &str); 50] = [
     ("transfer_duty", "act", "$4.54 per $100"),
     ("transfer_duty", "nt", "0.06571441"),
     ("foreign_purchaser_surcharge", "nsw", "9%"),
+    ("foreign_purchaser_surcharge", "nsw", "5%"),
     ("foreign_purchaser_surcharge", "vic", "8%"),
+    ("foreign_purchaser_surcharge", "vic", "4%"),
     ("foreign_purchaser_surcharge", "qld", "8%"),
+    ("foreign_purchaser_surcharge", "qld", "3%"),
     ("foreign_purchaser_surcharge", "wa", "7%"),
     ("foreign_purchaser_surcharge", "sa", "7%"),
     ("foreign_purchaser_surcharge", "tas", "8 percent"),
@@ -238,6 +253,12 @@ const FIGURES: [(&str, &str, &str); 50] = [
         "nsw",
         "$1,350, plus $5 for every $100",
     ),
+    ("motor_vehicle_duty", "nsw", "$3 per $100, or part thereof"),
+    (
+        "motor_vehicle_duty",
+        "nsw",
+        "$1,350 plus $5 per $100, or part thereof, of the vehicle's value over $45,000",
+    ),
     ("motor_vehicle_duty", "vic", "$18.00 per $200"),
     (
         "motor_vehicle_duty",
@@ -248,8 +269,17 @@ const FIGURES: [(&str, &str, &str); 50] = [
     ("motor_vehicle_duty", "sa", "$60 plus $4 for every $100"),
     ("motor_vehicle_duty", "tas", "$1 050 plus $11"),
     ("motor_vehicle_duty", "act", "$4.53 for every $100"),
+    ("motor_vehicle_duty", "act", "$1,426.50 plus $5.62"),
+    ("motor_vehicle_duty", "act", "$4,772.00 plus $8.00"),
     ("motor_vehicle_duty", "act", "$4.83 for every $100"),
+    ("motor_vehicle_duty", "act", "$1,674.00 plus $6.44"),
+    ("motor_vehicle_duty", "act", "$4,973.50 plus $8.00"),
     ("motor_vehicle_duty", "nt", "$3 for every $100"),
+    (
+        "motor_vehicle_duty",
+        "nt",
+        "the first $50 000 of the dutiable value of the electric motor vehicle is exempt from duty",
+    ),
     ("insurance_duty", "nsw", "9 per cent of the premium"),
     ("insurance_duty", "vic", "10% of the gross premium"),
     (
@@ -268,8 +298,9 @@ const FIGURES: [(&str, &str, &str); 50] = [
 
 #[test]
 fn each_passage_states_the_figure_the_command_applies() {
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     for (kind, place, figure) in FIGURES {
-        let quotes = of(&catalogue_quotes(kind), place);
+        let quotes = of(&quotes_in(&catalogue, kind), place);
         assert!(
             quotes
                 .iter()
@@ -277,6 +308,106 @@ fn each_passage_states_the_figure_the_command_applies() {
             "{kind} {place}: {figure}"
         );
     }
+}
+
+/// Motor vehicle duty passages establish ACT Categories A to D across Tables 1
+/// to 3 (both determinations), NT's Sch 1 cl 5(2) pinpoint and s 92A electric
+/// exemption, and Service NSW's excess-over-$45,000 and part-$100 rule.
+#[test]
+fn motor_vehicle_duty_passages_cover_rules_and_exemptions() {
+    let act =
+        api::evaluate_coded("motor-vehicle-duty", &duty("motor_vehicle_duty", "act")).unwrap();
+    assert_eq!(act["amounts"]["duty"], "1426.50");
+    let act_quotes = act["source_quotes"].as_array().unwrap();
+    assert_eq!(act_quotes.len(), 2);
+    for (quote, table3_c, expected_cols) in [
+        (
+            &act_quotes[0],
+            "$3,393.50 plus $8.00",
+            &["Column 2", "Column 3", "Used eligible hybrid"][..],
+        ),
+        (&act_quotes[1], "$3,928.00 plus $8.00", &["Column 2"][..]),
+    ] {
+        assert!(
+            quote["provision"]
+                .as_str()
+                .unwrap()
+                .contains("s 6 Tables 1 to 3")
+        );
+        let text = quote["passage"].as_str().unwrap();
+        for marker in [
+            "Table 1",
+            "Table 2",
+            "Table 3",
+            "Category AAA",
+            "Category AA",
+            "Category A",
+            "Category B",
+            "Non-rated vehicle",
+            "Category C",
+            "Category D",
+            table3_c,
+        ]
+        .into_iter()
+        .chain(expected_cols.iter().copied())
+        {
+            assert!(text.contains(marker), "ACT missing {marker}");
+        }
+    }
+    assert!(
+        act_quotes[0]["passage"]
+            .as_str()
+            .unwrap()
+            .contains("$1,426.50 plus $5.62")
+    );
+
+    let mut nt_ev_50 = duty("motor_vehicle_duty", "nt");
+    nt_ev_50["dutiable_value"] = json!("50000");
+    nt_ev_50["electric"] = json!(true);
+    let r50 = api::evaluate_coded("motor-vehicle-duty", &nt_ev_50).unwrap();
+    assert_eq!(r50["amounts"]["duty"], "0.00");
+    let mut nt_ev_60 = nt_ev_50.clone();
+    nt_ev_60["dutiable_value"] = json!("60000");
+    let r60 = api::evaluate_coded("motor-vehicle-duty", &nt_ev_60).unwrap();
+    assert_eq!(r60["amounts"]["duty"], "300.00");
+    let nt_quotes = r50["source_quotes"].as_array().unwrap();
+    assert!(
+        nt_quotes
+            .iter()
+            .any(|q| q["provision"] == "Stamp Duty Act 1978 (NT) Sch 1 cl 5(2)")
+    );
+    assert!(
+        nt_quotes
+            .iter()
+            .all(|q| !q["provision"].as_str().unwrap().contains("Sch 1 cl 6"))
+    );
+    let s92a = nt_quotes
+        .iter()
+        .find(|q| q["provision"] == "Stamp Duty Act 1978 (NT) s 92A")
+        .expect("missing NT s 92A quote")["passage"]
+        .as_str()
+        .unwrap();
+    for marker in ["1 July 2022", "30 June 2027", "$50 000", "$1 500"] {
+        assert!(s92a.contains(marker), "NT s 92A missing {marker}");
+    }
+
+    let mut nsw_45001 = duty("motor_vehicle_duty", "nsw");
+    nsw_45001["dutiable_value"] = json!("45001");
+    let r45 = api::evaluate_coded("motor-vehicle-duty", &nsw_45001).unwrap();
+    assert_eq!(r45["amounts"]["duty"], "1355.00");
+    let mut nsw_50000 = nsw_45001.clone();
+    nsw_50000["dutiable_value"] = json!("50000");
+    let r50_nsw = api::evaluate_coded("motor-vehicle-duty", &nsw_50000).unwrap();
+    assert_eq!(r50_nsw["amounts"]["duty"], "1600.00");
+    let nsw_text: String = r50_nsw["source_quotes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|q| q["passage"].as_str().unwrap())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(nsw_text.contains("or part thereof"));
+    assert!(nsw_text.contains("of the vehicle's value over $45,000"));
 }
 
 /// The commands take lower-case codes only, so a result's passages cannot
@@ -304,7 +435,7 @@ fn other_commands_gain_no_quotes() {
 
 /// Each Victorian property tax's input, as tests/vic_property_taxes.rs gives
 /// it, and the figure its passage must state as the command applies it: the
-/// top VRLT rate, CIPT's 1% (nil until the transition period ends) and
+/// top VRLT rate, CIPT's 2035 first tax year after transition (nil in 2026) and
 /// windfall gains tax's 62.5% band.
 fn vic_tax(tax: &str) -> (Value, &'static str) {
     match tax {
@@ -317,7 +448,7 @@ fn vic_tax(tax: &str) -> (Value, &'static str) {
         ),
         "commercial_industrial" => (
             json!({"tax": tax, "entry_date": "2024-07-01", "year": "2026", "scope_confirmed": true}),
-            "flat rate of 1%",
+            "2035 tax year",
         ),
         _ => (
             json!({"tax": tax, "parcels": [{"civ_before": "1000000", "civ_after": "1400000"}],
@@ -348,9 +479,18 @@ fn each_vic_property_tax_carries_its_own_quotes() {
                     .unwrap()
                     .starts_with("https://www.sro.vic.gov.au/")
             );
-            assert_eq!(quote["verified"], "2026-11-24", "{tax}");
+            assert_quote_meta(quote, tax);
         }
         let result = api::evaluate_coded("vic-property-taxes", &input).unwrap();
+        if tax == "commercial_industrial" {
+            assert!(
+                own.iter()
+                    .any(|q| q["passage"].as_str().unwrap().contains("10-year period")),
+                "CIPT passage must explain the 10-year transition"
+            );
+            assert_eq!(result["amounts"]["cipt"], "0.00");
+            assert_eq!(result["amounts"]["total"], "0.00");
+        }
         assert_eq!(result["source_quotes"], Value::Array(own), "{tax}");
     }
     assert!(quotes.iter().all(|q| TAXES.iter().any(|t| q["tax"] == *t)));

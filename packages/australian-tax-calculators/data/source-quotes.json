@@ -297,8 +297,16 @@
   },
   {
     "kind": "motor_vehicle_duty",
+    "jurisdiction": "nsw",
+    "provision": "Duties Act 1997 (NSW) Ch 9, as Service NSW states it (the Act could not be read on 24 November 2026)",
+    "source": "Service NSW, 'Check motor vehicle stamp duty'",
+    "url": "https://www.service.nsw.gov.au/transaction/check-motor-vehicle-stamp-duty",
+    "passage": "Stamp duty is calculated at $3 per $100, or part thereof, of the vehicle's value.\nFor passenger vehicles valued over $45,000 with seating for up to 9 occupants, the rate of stamp duty is $1,350 plus $5 per $100, or part thereof, of the vehicle's value over $45,000. These vehicles may include:"
+  },
+  {
+    "kind": "motor_vehicle_duty",
     "jurisdiction": "vic",
-    "provision": "Duties Act 2000 (Vic) s 218(1) Table and (5)",
+    "provision": "Duties Act 2000 (Vic) s 218(1) Table, (1A), (1B) and (5)",
     "source": "SRO Victoria, 'Motor vehicle duty (current rates)', rates from 1 July 2026",
     "url": "https://www.sro.vic.gov.au/about-us/rates-and-statistics/current-rates/motor-vehicle-duty-current-rates",
     "passage": "Type of vehicle/value\tValue\tDuty rate\nGreen passenger car✝\tAll values\t$8.40 per $200 or part thereof\nPrimary producer passenger car☨\tAll values\t$8.40 per $200 or part thereof\nNew non-passenger motor vehicles*\n(i.e. not previously registered in Victoria or elsewhere)\tAll values\t$5.40 per $200 or part thereof\nNon-passenger motor vehicles* previously registered in Victoria or elsewhere\n(i.e. being re-registered to a new owner)\tAll values\t$8.40 per $200 or part thereof\nUsed non-passenger motor vehicle*\n(i.e. the transfer of a used vehicle)\tAll values\t$8.40 per $200 or part thereof\nOther passenger car\t$0-$80,809\t$8.40 per $200 or part thereof\n$80,809.01-$100,000\t$10.40 per $200 or part thereof\n$100,000.01-$150,000\t$14.00 per $200 or part thereof\nMore than $150,000\t$18.00 per $200 or part thereof"
@@ -338,26 +346,34 @@
   {
     "kind": "motor_vehicle_duty",
     "jurisdiction": "act",
-    "provision": "Duties Act 1999 (ACT) s 208; DI2025-152 s 6 Table 1",
+    "provision": "Duties Act 1999 (ACT) s 208; DI2025-152 s 6 Tables 1 to 3",
     "source": "Taxation Administration (Amounts Payable—Motor Vehicle Duty) Determination 2025 (DI2025-152), for duty dates to 31 January 2027",
     "url": "https://www.legislation.act.gov.au/View/di/2025-152/current/html/2025-152.html",
-    "passage": "New Category D motor vehicle\n$4.53 for every $100, or part of $100, of the dutiable value"
+    "passage": "Table 1 Amounts payable—the Act, s 208 (1)\nColumn 1\ns 208 (1) of the Act\nColumn 2\nRate of duty from 1 July 2025 to 31 August 2025\nColumn 3\nRate of duty on or after 1 September 2025\nNew and used Category AAA motor vehicle\nNil\n$2.50 for every $100, or part of $100, of the dutiable value\nNew Category AA motor vehicle\nNil\n$2.67 for every $100, or part of $100, of the dutiable value\nNew Category A motor vehicle\nNil\n$2.84 for every $100, or part of $100, of the dutiable value\nNew Category B motor vehicle\nNew motorcycle (other than a Category AAA vehicle)\n$1.00 for every $100, or part of $100, of the dutiable value\n$3.00 for every $100, or part of $100, of the dutiable value\nUsed eligible hybrid\nUsed eligible PHEV\nNil\n$3.17 for every $100, or part of $100, of the dutiable value\nNon-rated vehicle\n$3.00 for every $100, or part of $100, of the dutiable value\n$3.17 for every $100, or part of $100, of the dutiable value\nNew Category C motor vehicle\n$3.17 for every $100, or part of $100, of the dutiable value\n$3.17 for every $100, or part of $100, of the dutiable value\nNew Category D motor vehicle\n$4.53 for every $100, or part of $100, of the dutiable value\n$4.53 for every $100, or part of $100, of the dutiable value\nTable 2 Amounts payable—the Act, s 208 (2) — vehicles with a value of $45 000 to $80 000\nColumn 1\ns 208 (2) of the Act\n(motor vehicles with dutiable value of $45 000 to $80 000)\nColumn 2\nRate of duty for 1 July 2025 to 31 August 2025\nColumn 3\nRate of duty on or after 1 September 2025\nNew and used Category AAA motor vehicle\nNil\n$1,125.00 plus $4.00 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category AA motor vehicle\nNil\n$1,201.50 plus $4.41 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category A motor vehicle\nNil\n$1,278.00 plus $4.81 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category B motor vehicle\n$450 plus $2.00 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$1,350.00 plus $5.22 for every $100, or part of $100, of the dutiable value in excess of $45 000\nUsed eligible hybrid\nUsed eligible PHEV\nNil\n$1,426.50 plus $5.62 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNon-rated vehicle\n$1,350 plus $5.00 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$1,426.50 plus $5.62 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category C motor vehicle\n$1,426.50 plus $5.62 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$1,426.50 plus $5.62 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category D motor vehicle\n$2,038.50 plus $7.81 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$2,038.50 plus $7.81 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNote Table 2 does not apply to vehicles listed in the Act, section 208 (2) (b) (including motorcycles).\nTable 3 Amounts payable—the Act, s 208 (2) — vehicles with a value of $80 000 or more\nColumn 1\ns 208 (2) of the Act\n(motor vehicles with dutiable value of $80 000 or more)\nColumn 2\nRate of duty for 1 July 2025 to 31 August 2025\nColumn 3\nRate of duty on or after 1 September 2025\nNew and used Category AAA motor vehicle\nNil\n$2,525.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category AA motor vehicle\nNil\n$2,745.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category A motor vehicle\nNil\n$2,961.50 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category B motor vehicle\n$450 plus $2 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$3,177.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nUsed eligible hybrid\nUsed eligible PHEV\nNil\n$3,393.50 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNon-rated vehicle\n$1,350 plus $5 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$3,393.50 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category C motor vehicle\n$1,426.50 plus $5.62 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$3,393.50 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category D motor vehicle\n$2,038.50 plus $7.81 for every $100, or part of $100, of the dutiable value in excess of $45 000\n$4,772.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNote Table 3 does not apply to vehicles listed in the Act, section 208 (2) (b) (including motorcycles)."
   },
   {
     "kind": "motor_vehicle_duty",
     "jurisdiction": "act",
-    "provision": "Duties Act 1999 (ACT) s 208; DI2026-154 s 6 Table 1",
+    "provision": "Duties Act 1999 (ACT) s 208; DI2026-154 s 6 Tables 1 to 3",
     "source": "Taxation Administration (Amounts Payable—Motor Vehicle Duty) Determination 2026 (DI2026-154), for duty dates from 1 February 2027",
     "url": "https://www.legislation.act.gov.au/View/di/2026-154/current/html/2026-154.html",
-    "passage": "New Category D motor vehicle\n$4.83 for every $100, or part of $100, of the dutiable value"
+    "passage": "Table 1 Amounts payable—the Act, s 208 (1)\nColumn 1\ns 208 (1) of the Act\nColumn 2\nRate of duty\nNew and used Category AAA motor vehicle\n$2.50 for every $100, or part of $100, of the dutiable value\nNew Category AA motor vehicle\n$2.67 for every $100, or part of $100, of the dutiable value\nNew Category A motor vehicle\n$2.84 for every $100, or part of $100, of the dutiable value\nNew Category B motor vehicle\nNew motorcycle (other than a Category AAA vehicle)\n$3.25 for every $100, or part of $100, of the dutiable value\nNon-rated vehicle\n$3.72 for every $100, or part of $100, of the dutiable value\nNew Category C motor vehicle\n$3.72 for every $100, or part of $100, of the dutiable value\nNew Category D motor vehicle\n$4.83 for every $100, or part of $100, of the dutiable value\nTable 2 Amounts payable—the Act, s 208 (2) — vehicles with a value of $45 000 to $80 000\nColumn 1\ns 208 (2) of the Act (motor vehicles with dutiable value of $45 000 to $80 000)\nColumn 2\nRate of duty\nNew and used Category AAA motor vehicle\n$1,125.00 plus $4.00 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category AA motor vehicle\n$1,201.50 plus $4.41 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category A motor vehicle\n$1,278.00 plus $4.81 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category B motor vehicle\n$1,462.50 plus $5.59 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNon-rated vehicle\n$1,674.00 plus $6.44 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category C motor vehicle\n$1,674.00 plus $6.44 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNew Category D motor vehicle\n$2,173.50 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $45 000\nNote Table 2 does not apply to vehicles listed in the Act, section 208 (2) (b) (including motorcycles).\nTable 3 Amounts payable—the Act, s 208 (2) — vehicles with a value of $80 000 or more\nColumn 1\ns 208 (2) of the Act (motor vehicles with dutiable value of $80 000 or more)\nColumn 2\nRate of duty\nNew and used Category AAA motor vehicle\n$2,525.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category AA motor vehicle\n$2,745.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category A motor vehicle\n$2,961.50 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category B motor vehicle\n$3,419.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNon-rated vehicle\n$3,928.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category C motor vehicle\n$3,928.00 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNew Category D motor vehicle\n$4,973.50 plus $8.00 for every $100, or part of $100, of the dutiable value in excess of $80 000\nNote Table 3 does not apply to vehicles listed in the Act, section 208 (2) (b) (including motorcycles)."
   },
   {
     "kind": "motor_vehicle_duty",
     "jurisdiction": "nt",
-    "provision": "Stamp Duty Act 1978 (NT) Sch 1 cl 6",
+    "provision": "Stamp Duty Act 1978 (NT) Sch 1 cl 5(2)",
     "source": "Stamp Duty Act 1978 (NT), as in force at 1 July 2025",
     "url": "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11906",
     "passage": "The duty payable on a motor vehicle certificate of registration is $3 for every $100 or fractional part of $100 of the dutiable value of the motor vehicle."
+  },
+  {
+    "kind": "motor_vehicle_duty",
+    "jurisdiction": "nt",
+    "provision": "Stamp Duty Act 1978 (NT) s 92A",
+    "source": "Stamp Duty Act 1978 (NT), as in force at 1 July 2025",
+    "url": "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=11906",
+    "passage": "(1) This section applies in relation to the issue of a certificate of registration for an electric motor vehicle during the period commencing on 1 July 2022 and ending on 30 June 2027.\n(2) When determining the amount of duty payable in relation to the issue of a certificate of registration under section 57 for an electric motor vehicle, the first $50 000 of the dutiable value of the electric motor vehicle is exempt from duty.\n(3) Section 61 does not apply to this section.\n(4) Despite subsection (2), the amount of the exemption that may be claimed under this section is limited to a maximum of $1 500."
   },
   {
     "kind": "insurance_duty",
@@ -402,7 +418,7 @@
   {
     "kind": "insurance_duty",
     "jurisdiction": "sa",
-    "provision": "Stamp Duties Act 1923 (SA) s 34(1)(b)",
+    "provision": "Stamp Duties Act 1923 (SA) ss 34(1)(b) and 35(1)(b)",
     "source": "RevenueSA, 'Stamp duty on insurance: rates'",
     "url": "https://revenuesa.sa.gov.au/stamp-duty-insurance/rates",
     "passage": "Insurance type\nRate of stamp duty\nLife Insurance\n1.5% of premium subject to duty\nGeneral Insurance (property/risk insured inside South Australia)\n11% of premium subject to duty"
