@@ -6484,6 +6484,8 @@ pub use gst_food_retailer_sam::{
 };
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod deferred_revenue;
+pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod leave_provisions;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
 mod long_service_leave;
@@ -6515,7 +6517,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 137] = [
+const KINDS: [&str; 138] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6638,6 +6640,7 @@ const KINDS: [&str; 137] = [
     "cgt_cost_base_adjustments",
     "payg_instalment",
     "leave_provisions",
+    "deferred_revenue",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
