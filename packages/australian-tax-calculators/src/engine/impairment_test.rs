@@ -89,9 +89,9 @@ fn discount_rate(given: &Arg) -> Result<Decimal> {
 }
 
 fn asset(v: &Value, n: usize) -> Result<Asset> {
-    let bad = |why: &str| refuse("impairment_test.asset_invalid", format!("asset {n}: {why}"));
+    let wrong = |why: &str| refuse("impairment_test.asset_invalid", format!("asset {n}: {why}"));
     let Some(o) = v.as_object() else {
-        return bad("must be an object.");
+        return wrong("must be an object.");
     };
     let known = |k: &String| {
         matches!(
@@ -107,9 +107,11 @@ fn asset(v: &Value, n: usize) -> Result<Asset> {
     let goodwill = o.get("goodwill").and_then(Value::as_bool);
     let floor = o.get("floor").map(|f| text_amount(Some(f), false));
     match (label, carrying, goodwill, floor) {
-        _ if !o.keys().all(known) => bad("takes label, carrying_amount, goodwill and floor only."),
+        _ if !o.keys().all(known) => {
+            wrong("takes label, carrying_amount, goodwill and floor only.")
+        }
         (Some(_), Some(_), Some(true), Some(_)) => {
-            bad("goodwill takes no floor; it may be reduced to nil (AASB 136 para 104(a)).")
+            wrong("goodwill takes no floor; it may be reduced to nil (AASB 136 para 104(a)).")
         }
         (Some(l), Some(c), Some(g), None) => Ok(Asset {
             label: l.to_string(),
@@ -123,7 +125,7 @@ fn asset(v: &Value, n: usize) -> Result<Asset> {
             goodwill: g,
             floor: f,
         }),
-        _ => bad(
+        _ => wrong(
             "needs a label, a carrying_amount in AUD from 0, goodwill true or false and, optionally, a floor in AUD from 0.",
         ),
     }
