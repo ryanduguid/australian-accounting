@@ -31,6 +31,19 @@ regexes = [
   '''^11[ -]?222[ -]?333[ -]?444$''',
   # A placeholder ABN of sequential digits that fails the checksum.
   '''^12[ -]?345[ -]?678[ -]?901$''',
+  # An unissued, checksum-valid ABN in the dgr-check and charity-check fixtures;
+  # ABN Lookup found no such ABN on 16 November 2026.
+  '''^23[ -]?000[ -]?000[ -]?004$''',
+]
+
+[[allowlists]]
+description = "Organisations' ABNs in their legal names on the public ACNC register copy"
+targetRules = ["au-business-number"]
+paths = [
+  # Built from the ACNC Register of Australian charities, a public register of
+  # organisations; a charity's legal name can carry another entity's ABN, such as
+  # a trustee's.
+  '''^packages/australian-tax-calculators/data/acnc-register\.jsonl$''',
 ]
 
 [[allowlists]]
