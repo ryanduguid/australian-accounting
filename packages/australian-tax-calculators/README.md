@@ -4146,8 +4146,9 @@ exemptions, the Commissioner's discretions and transfer duty are outside it.
 limits the grant. For a home built it is the land and the building contract
 with its variations, but the consideration is the building contract alone
 (Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas s 13(7)(b),
-ACT s 13(6)(b), NT s 13(8)(b)); `building_contract` states that it is at
-least the grant, so the land never limits a built home's grant.
+ACT s 13(6)(b), NT s 13(8)(b); the New South Wales Act could not be
+read); `building_contract` states that it is at least the grant, so the land
+never limits a built home's grant.
 `total_value` is the value tested against the cap, except that in Queensland and
 Western Australia `cap_value` gives the value the Act tests where it differs:
 for a home bought, the unencumbered value of the home and land at the
