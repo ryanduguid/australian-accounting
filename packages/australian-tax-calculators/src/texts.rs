@@ -499,6 +499,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One acquisition of second-hand goods under GST Act Subdivision 66-A in a year from 2020-21 to 2026-27: the conditions of s 66-5 and the s 195-1 definition, and the notional input tax credit of s 66-10, 1/11 of the consideration, capped above $300 at the GST on your taxable supply of the goods. The operator establishes the facts, the consideration and that GST. Excludes goods divided for re-supply (Subdivision 66-B), goods of valuable metal, goods leased before sale (GSTD 2012/6), the tax period the credit is attributable to (s 66-15), which is noted, not worked out, and the records s 66-17 requires.",
     ),
     (
+        "tourist_refund",
+        "One traveller's purchases from one registered supplier under the tourist refund scheme, leaving Australia with the goods as accompanied baggage on a departure from 1 November 2025 to 30 June 2027: whether each item and the claim meet GST Act s 168-5(1) and GST Regulations 2019 Subdivisions 168-A to 168-C, and the refund of the GST on the qualifying items and of the wine tax borne on qualifying wine (WET Act s 25-5(1), 29% of half the price under WET Regulations reg 25-5.03). The operator establishes each fact. Excludes the External Territory route (s 168-5(1A)), cash rounding, special valuation rules and invoice-level GST allocations, wine tax refunded or credited earlier, the ABF's administrative requirements and goods brought back into Australia. The 1 November 2025 start is the coverage of the law reviewed on 24 November 2026, not a commencement.",
+    ),
+    (
         "gst_bad_debt",
         "One bad debt adjustment under GST Act Division 21 in a year from 2020-21 to 2026-27, for the supplier (ss 21-5 and 21-10) or the recipient (ss 21-15 and 21-20): 1/11 of the amount written off, overdue for 12 months or more, recovered or paid, reduced for a partly taxable supply (s 136-5) or a partly creditable acquisition (s 136-10(1)). The operator establishes the amount, that it is overdue (s 195-1), the earlier adjustment for a recovery, and the proportion or extents. Excludes supplies and acquisitions taxable or creditable at less than 1/11 of the price (Subdivision 136-B, such as the margin scheme), reduced credit acquisitions (s 136-10(2)), credits worked out under Division 131 (s 136-10(3)), a change of accounting basis (Division 159) and the tax period the adjustment is attributable to.",
     ),
@@ -1041,6 +1045,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "gst_second_hand_goods",
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "tourist_refund",
+        "https://www.legislation.gov.au/F2019L00417/latest/text",
     ),
     (
         "gst_bad_debt",
@@ -2292,6 +2300,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "tourist_refund",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/latest/text",
+            "https://www.legislation.gov.au/C2004A00452/latest/text",
+            "https://www.legislation.gov.au/F2019L01154/latest/text",
+            "https://www.abf.gov.au/entering-and-leaving-australia/tourist-refund-scheme",
+        ],
+    ),
+    (
         "gst_bad_debt",
         &[
             "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
@@ -2585,6 +2602,12 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one_value when the provider, or a member of its GST group, is entitled to a GST credit for providing the benefit (a GST-creditable benefit), and as part of type_two_value otherwise.";
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
+    (
+        "tourist_refund",
+        &[
+            "The ABF administers the claim and adds its own requirements, such as an original tax invoice naming the traveller for $1,000 or more and no claim for goods bought for a business; this worksheet does not test them.",
+        ],
+    ),
     (
         "motor_vehicle_duty",
         &[
@@ -4718,7 +4741,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5714,6 +5737,38 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_withholding.schedule_not_read",
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
+    ),
+    (
+        "tourist_refund.date_invalid",
+        "An item's date is after departure_date.",
+    ),
+    (
+        "tourist_refund.departure_not_covered",
+        "departure_date is before 1 November 2025, before the GST Regulations 2019 compilation read.",
+    ),
+    (
+        "tourist_refund.departure_outside_year",
+        "departure_date is outside year.",
+    ),
+    (
+        "tourist_refund.fact_invalid",
+        "departing_by, an item's goods or minutes_before_departure is not one of the values the command takes.",
+    ),
+    (
+        "tourist_refund.gst_exceeds_price_share",
+        "An item's gst is more than one eleventh of its price, rounded half up to the cent.",
+    ),
+    (
+        "tourist_refund.item_invalid",
+        "items is not a list of 1 to 1,000 objects, an item is not an object, a wine input is given with goods other than wine, or gst is above nil on a supply stated not to be taxable.",
+    ),
+    (
+        "tourist_refund.threshold_unsettled",
+        "The items meeting Subdivision 168-A reach $300 only with items exported more than 60 days after acquisition, which the sources read do not settle.",
+    ),
+    (
+        "tourist_refund.wine_tax_reduced",
+        "Wine tax on a wine item was refunded, credited or the basis of a wine tax credit entitlement (WET Act s 31-10(2) and (3)).",
     ),
     (
         "trade_in.asset_invalid",

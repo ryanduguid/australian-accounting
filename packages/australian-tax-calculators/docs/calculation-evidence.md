@@ -194,6 +194,43 @@ See [GST going concern](#gst-going-concern).
 
 See [GST going concern](#gst-going-concern).
 
+## Tourist refund
+
+Added on 24 November 2026. Its sources were read that day through the Federal
+Register of Legislation: the GST Act compilation 96 (C2026C00081) s 168-5, the
+GST Regulations 2019 compilation 5 (F2025C01015, from 1 November 2025) regs
+168-5.01 to 168-5.17, the WET Act compilation 32 (C2026C00149) ss 25-5 and
+31-10, and the WET Regulations 2019 as made (F2019L01154) regs 25-5.01 to
+25-5.07. The ABF's 'Tourist Refund Scheme (TRS)' and 'Making the claim' pages
+were read for context: they state the $300, the 60 days and the 30 minutes as
+the regulations do, and add that no cash refund is paid.
+
+Reg 168-5.04 sets the $300 for the acquisition Subdivision 168-A specifies;
+the 60 days are in Subdivision 168-C. Items failing a Subdivision 168-A
+condition never count. Where the qualifying items fall short of $300 but
+items failing only the 60 days would bring the total to $300, the command
+refuses (`tourist_refund.threshold_unsettled`): neither the regulations nor the
+ABF's pages settle whether such items count. The GST Regulations compilation 4
+(1 July 2023) and GST Act compilation 95 (1 November 2025) read the same for
+these provisions (checked by the review on 24 November 2026), so 1 November
+2025 marks the coverage of the law read, not a change in it. Reg
+168-5.09's 'within 60 days after the day on which they were acquired' counts
+from the next day, so goods bought on 19 January leave in time on 20 March.
+
+No ATO or ABF example with figures was found. The tests work the
+regulations' arithmetic:
+
+| Case | Facts given | Result |
+| --- | --- | --- |
+| One item | $330 with $30 GST | **$30.00** |
+| With wine | $330 and $100 of wine with $9.09 GST | GST **$39.09**, wine tax 29% x $50 = **$14.50** |
+| Wine at $49.99 | with $300 of goods | wine tax 7.24855, shown **$7.25** |
+| 2 items | $150 and $149.99 | below $300: **nil** |
+| 60 and 61 days | $200 each | the second fails; the $300 depends on it: **refused** |
+| 5-cent item | $299.95 with $27.27 GST and a taxable $0.05 with nil GST | **$27.27** |
+
+`tests/tourist_refund.rs` holds each case, each boundary and each refusal.
+
 ## GST margin scheme
 
 Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to

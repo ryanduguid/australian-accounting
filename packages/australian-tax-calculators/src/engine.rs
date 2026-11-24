@@ -6566,6 +6566,8 @@ pub use gst_adjustments::{
     gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
     gst_second_hand_goods,
 };
+mod tourist_refund;
+pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 mod impairment_test;
@@ -6603,7 +6605,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 139] = [
+const KINDS: [&str; 140] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6722,6 +6724,7 @@ const KINDS: [&str; 139] = [
     "gst_going_concern",
     "gst_second_hand_goods",
     "gst_bad_debt",
+    "tourist_refund",
     "deferred_tax",
     "cgt_cost_base_adjustments",
     "payg_instalment",

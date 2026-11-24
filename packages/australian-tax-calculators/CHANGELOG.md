@@ -23,6 +23,14 @@
   a check date up to 31 days after its own and refuses any other, with
   `charity_check.as_at_before_snapshot` and `charity_check.snapshot_stale`.
   `examples/acnc_register.rs` rebuilds it from the dataset's CSV.
+- `tourist-refund` tests one traveller's purchases from one registered
+  supplier against the tourist refund scheme (GST Act s 168-5(1), GST
+  Regulations 2019 Division 168) for departures from 1 November 2025 to
+  30 June 2027, and works the refund of GST and of the wine tax borne
+  (WET Act s 25-5(1), 29% of half the price). New codes:
+  `tourist_refund.date_invalid`, `departure_not_covered`,
+  `departure_outside_year`, `fact_invalid`, `gst_exceeds_price_share`,
+  `item_invalid`, `threshold_unsettled` and `wine_tax_reduced`.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and
