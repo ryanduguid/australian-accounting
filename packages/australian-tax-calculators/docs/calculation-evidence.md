@@ -6239,6 +6239,54 @@ offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
 
+## Deferred revenue
+
+Added on 24 November 2026, when the sources were read: AASB 15 compilation
+COMPdec22_07-26 (periods beginning from 1 July 2026 to before 1 January 2027)
+with its table of amendments to the Standard, compilation COMPdec22_01-23
+for earlier periods, and AASB 108 compilation no. 3 (F2023C00187, paras 36 to
+38). The AASB 15 table lists no amendment to paras 35 to 45, 105 to
+108 or B14 to B19 since the December 2014 Standard (its amended paragraphs are
+5, 26, 27, 29, 97, B1, B34 to B38, B52, B53, B57, B58, B66, B70, Australian
+paragraphs and transition), so the rules applied read the same for every
+period from 2020-21.
+
+Under AASB 15 para 43 and AASB 108 paras 36 to 38, a change in the measure of
+progress or its estimates is recognised prospectively from the change without
+rewriting earlier periods (so a $12,000.00 monthly contract from 1 July 2025
+with $3,000.00 recognised in the September quarter and duration revised from
+12 to 18 months in December takes $4,000.00 cumulative less $3,000.00 already
+recognised = $1,000.00 for December, not $2,000.00 from restarting at 1 July);
+changed estimates are excluded and refused (`estimate_changed`).
+
+Para B18 allows revenue on a straight-line basis where the entity's efforts
+are expended evenly over the performance period; para B15 names milestones
+reached as an output method. Para 40 has progress remeasured at each period
+end, so each period's revenue is the change in revenue to date, rounded to the
+cent at each end. Paras 105 to 108 present the receivable (an unconditional
+right, billed and unpaid) apart from the contract liability (consideration
+paid or due before performance) and the contract asset (performance before
+payment or billing). Receipts settle billings first, so consideration paid or
+due is the larger of billings and receipts to date; with $100 recognised, $150
+billed and nothing received, the receivable is $150 and the contract liability
+$50 (D6).
+
+AASB 15 has no numeric straight-line or milestone example. D1 to D5 are
+made-up figures worked independently in Python's `decimal`.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | $12,000.00 daily, 1 Jul 2025 to 30 Jun 2026, billed and paid 1 Jul 2025; ends 30 Sep, 31 Dec, 31 Mar, 30 Jun | revenue to date **$3,024.66**, **$6,049.32**, **$9,008.22**, **$12,000.00**; liability $8,975.34, $5,950.68, $2,991.78, nil |
+| D2 | $36,000.00 monthly, 1 Jul 2025 to 30 Jun 2028, $18,000 paid 1 Jul 2025 and 1 Jul 2027; ends 31 Dec 2025, 30 Jun 2026, 15 Sep 2026, 31 Dec 2027, 30 Jun 2028 | revenue **$6,000**, **$12,000**, **$14,000**, **$30,000**, **$36,000**; liability $12,000, $6,000, $4,000, $6,000, nil |
+| D3 | $50,000.00 by milestones of $10,000, $30,000 and $10,000; $15,000 and $20,000 billed and paid | revenue **$10,000**, **$40,000**, **$50,000**; liability $5,000, then contract asset **$25,000** and **$15,000** |
+| D6 | $1,200.00 daily over 12 days; $150 billed on day 1, nothing received; end after 1 day ($100) | receivable **$150.00**, contract liability **$50.00** |
+| D7 | D6 with $100 billed on day 1 | receivable **$100.00**, no contract balance |
+| D4 | D1 with ends 30 Jun 2025 and 1 Jul 2025 | nil, then **$32.88** with liability $11,967.12 |
+| D5 | $1,000.00 daily, 15 Jul 2025 to 14 Jan 2026 (184 days); ends 31 Jul 2025, 31 Dec 2025, 30 Jun 2026 | **$92.39**, **$923.91**, **$1,000.00**; in period $92.39, $831.52, $76.09 |
+
+`tests/deferred_revenue.rs` also covers each year boundary, the performance
+period's limits, whole-month boundaries and every refusal.
+
 ## WIP lock-up
 
 Added on 24 November 2026. The site's `tools/wip-schedule` page, read that day

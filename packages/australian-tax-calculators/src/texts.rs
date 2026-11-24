@@ -531,6 +531,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One employee's long service leave under the general long service leave Act of one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, at a last day from 1 July 2020 to 30 June 2027 and not before the Act's text as read (New South Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022): the weeks an employee still employed can take, or the weeks paid when employment ends for the reason given, less leave already taken or paid, and their value at the weekly pay. Service runs from the first day to the end of the last day, less excluded days, in completed years, then completed months, then days, an anniversary on a missing day falling on the 1st of the next month; a part year is months over 12 plus days over 365.25, or in Queensland days over 364. New South Wales s 4(2)(a): 8 2/3 weeks for 10 years and 4 1/3 for each further 5; on ending after 10 to 15 years for any reason a proportion on 3 months for 15 years, after 15 each completed year at 2 months for 10, and after 5 to 10 years for the employer ending it other than for serious and wilful misconduct, illness, incapacity or a pressing necessity, or death, a proportion on 2 months for 10. Victoria ss 6, 9 and 10: after 7 years 1/60 of the continuous employment. Queensland s 95: 8.6667 weeks for 10 years and the proportion for a further 5 or more, and on ending after 7 years a proportion on 8.6667 weeks for 10, before 10 only for the reasons in s 95(4). Western Australia s 8, South Australia s 5, Tasmania ss 8 and 9, the ACT ss 3, 4, 11A and 11C and the Northern Territory ss 8 and 10 as the README sets out. The operator establishes the dates, the excluded days, the leave taken, the reason and the ordinary weekly pay. Weeks are shown to 4 places, half up; the value is the exact weeks less leave taken times the pay, half up to the cent once. Refuses a fixed term ending before the full period in New South Wales, Queensland, Tasmania, the ACT and the Northern Territory, a death under 10 years in the Northern Territory, leaving without notice between 7 and 10 years in South Australia, a dismissal found unfair outside Queensland where the reason decides, leave taken in Tasmania with service from before 1 July 2012, leave taken above the exact weeks, a start before 23 June 1990 and a last day outside the dates covered. Excludes awards, agreements and portable schemes that displace the Act, Queensland's seasonal employees, mining and casual industry schemes, what counts as service or ordinary pay, leave in advance, cashing out and public holidays during leave.",
     ),
     (
+        "deferred_revenue",
+        "One performance obligation's revenue and contract balances under AASB 15 at each period end the operator states, for an obligation whose performance period starts in a financial year from 2020-21 to 2026-27, from the price allocated to it, its performance period and the pattern of progress the operator has established: time elapsed by day or by whole calendar month (an input method on a straight-line basis, paras 39, 40, B14 and B18) or the milestones reached with each one's amount (an output method, para B15). Revenue to date is the price times the days or whole months elapsed by the period end over those in the performance period, both ends counted, or the milestones dated on or before it, rounded half up to the cent; revenue in a period is the change in revenue to date. The receivable is what has been billed (become unconditionally due) and not received by the period end (paras 105 and 108), receipts settling billings first; consideration paid or due is the larger of billings and receipts to date, and the contract liability is that less revenue to date where positive (para 106), the contract asset revenue to date less it where positive (para 107, excluding the receivable). The daily and monthly patterns apply straight-line progress, which para B18 allows where the entity's efforts or inputs are expended evenly over the performance period; the monthly pattern counts whole calendar months ended, a calculation convention. Milestone amounts are the operator's measure of the progress each milestone depicts, not amounts AASB 15 sets. The schedule assumes the measure of progress and its estimates do not change over the periods shown (para 43). The operator establishes that the obligation is satisfied over time (paras 35 to 37), that the stated pattern faithfully depicts performance (paras 39 to 41 and B14 to B19), the transaction price (paras 47 to 72) and its allocation to the obligation (paras 73 to 90). Excludes contract costs (paras 91 to 104), modifications (paras 18 to 21), a changed measure of progress or estimate recognised prospectively in the period of the change and future periods (AASB 15 para 43; AASB 108 paras 36 to 38), impairment of a contract asset (para 107, AASB 9), GST and presentation. Refuses variable consideration (paras 50 to 59), a significant financing component (paras 60 to 65), consideration above the price (a refund liability, para 55), a changed measure of progress or estimate, monthly progress without whole calendar months and a performance period of more than 120 months.",
+    ),
+    (
         "wip_lockup",
         "One professional firm's unbilled work in progress at a date in a financial year from 2020-21 to 2026-27, aged by the days from each entry's date to that date into stated buckets (by default 0 to 30, 31 to 60, 61 to 90 and over 90 days), with WIP days (WIP over fee revenue, or cost of sales, on WIP's valuation basis, times the days that revenue covers), receivable days (trade receivables over credit sales times those days) and lock-up days, their sum, as Ozzit's WIPDays and ReceivableDays functions define them (function reference v3.7.0). Days default to 365; each day count is shown to 2 decimal places in amounts and to 4 in rates. The firm establishes the entries and their valuation (AASB 15 contract assets or AASB 102 costs), the receivables and the flows, on one GST basis. No Standard or Act defines lock-up or the buckets: they are management measures. Excludes recoverability of WIP and receivables (AASB 9 and AASB 15 para 107), write-downs and billing decisions. Refuses a nil fee revenue or billings and days below 1.",
     ),
@@ -1089,6 +1093,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "deferred_tax",
         "https://standards.aasb.gov.au/aasb-112-sep-2023",
+    ),
+    (
+        "deferred_revenue",
+        "https://standards.aasb.gov.au/sites/default/files/2026-11/AASB15_12-14_COMPdec22_07-26.pdf",
     ),
     (
         "wip_lockup",
@@ -2572,6 +2580,13 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "deferred_revenue",
+        &[
+            "https://www.aasb.gov.au/admin/file/content105/c9/AASB15_12-14_COMPdec22_01-23.pdf",
+            "https://www.legislation.gov.au/F2023C00187/latest/text",
+        ],
+    ),
+    (
         "impairment_test",
         &["https://www.aasb.gov.au/admin/file/content105/c9/AASB136_08-15_COMPdec22_01-23.pdf"],
     ),
@@ -2719,6 +2734,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "long_service_leave",
         &[
             "An award, enterprise agreement, pre-modern federal award or portable long service leave scheme can displace the Act, and what counts as service and ordinary pay are the operator's facts: this worksheet applies the Act to them and does not decide them.",
+        ],
+    ),
+    (
+        "deferred_revenue",
+        &[
+            "The pattern of progress (for a straight line, that efforts are expended evenly, para B18), the milestone amounts, the price, billings and receipts are the operator's stated facts and judgements (AASB 15 paras 35 to 43 and B14 to B19); the worksheet schedules them and does not decide when the performance obligation is satisfied.",
         ],
     ),
     (
@@ -3906,6 +3927,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A worksheet step exceeded the decimal range.",
     ),
     (
+        "deferred_revenue.amount_invalid",
+        "contract_amount is 0.00: it must be above 0.",
+    ),
+    (
+        "deferred_revenue.consideration_invalid",
+        "billed or received is not a list of up to 500 objects, each a date and an amount above 0 and nothing else, totalling no more than contract_amount (AASB 15 para 55).",
+    ),
+    (
+        "deferred_revenue.dates_invalid",
+        "end is before start, the performance period is more than 120 months, or start is outside the year.",
+    ),
+    (
+        "deferred_revenue.estimate_changed",
+        "The measure of progress or an estimate in it changed over the periods shown: a change is recognised prospectively under AASB 15 para 43 and AASB 108 paras 36 to 38, which this worksheet does not model.",
+    ),
+    (
+        "deferred_revenue.financing_component",
+        "A significant financing component was stated (AASB 15 paras 60 to 65).",
+    ),
+    (
+        "deferred_revenue.milestones_invalid",
+        "milestones is not a list of 1 to 100 objects, each a label, a date in the performance period and an amount above 0, summing to contract_amount.",
+    ),
+    (
+        "deferred_revenue.month_boundary",
+        "Monthly progress was stated without whole calendar months: start is not a month's first day or end not a month's last day.",
+    ),
+    (
+        "deferred_revenue.pattern_invalid",
+        "pattern is not daily, monthly or milestones, or milestones is missing with milestones or given with another pattern.",
+    ),
+    (
+        "deferred_revenue.period_ends_invalid",
+        "period_ends is not a list of 1 to 120 dates in strictly ascending order.",
+    ),
+    (
+        "deferred_revenue.variable_consideration",
+        "Variable consideration was stated (AASB 15 paras 50 to 59).",
+    ),
+    (
         "deferred_tax.business_combination",
         "Deferred tax arising in a business combination was stated (AASB 112 paras 19 and 66 to 68).",
     ),
@@ -4927,7 +4988,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

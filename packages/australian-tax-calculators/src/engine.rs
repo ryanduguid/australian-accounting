@@ -6582,6 +6582,8 @@ mod tourist_refund;
 pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod deferred_revenue;
+pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
 pub use impairment_test::{ImpairmentTestArgs, impairment_test};
 mod leave_provisions;
@@ -6617,7 +6619,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 144] = [
+const KINDS: [&str; 145] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6745,6 +6747,7 @@ const KINDS: [&str; 144] = [
     "cgt_cost_base_adjustments",
     "payg_instalment",
     "leave_provisions",
+    "deferred_revenue",
     "wip_lockup",
     "impairment_test",
     "long_service_leave",

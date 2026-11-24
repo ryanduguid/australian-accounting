@@ -1408,6 +1408,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2018-2, periods from 1 January 2019) changed, and AASB 2022-9 changes
         // footnote Aus1 alone. AASB 101 para 69(d) changed for periods beginning
         // from 1 January 2024 (AASB 2020-1); the caller's right to defer follows it.
+        // AASB 15 paras 35 to 45, 105 to 108 and B14 to B18 were not amended
+        // after 2014 (the compilation's table of amendments, read on
+        // 24 November 2026), so they read the same for every year.
+        "deferred_revenue" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // A management measure with no statutory rate: the years the other
         // AASB worksheets take.
         "wip_lockup" => vec![
@@ -2086,6 +2092,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "long_service_leave" => (
             "2026-11-24",
             "Long Service Leave Act 1955 (NSW) s 4(2)(a) and (a3), in force from 25 March 2021 and from 1 July 2025 (legislation.nsw.gov.au's text in the Internet Archive's captures of 1 February 2022 and 16 December 2025), with NSW Industrial Relations' long service leave page and short guide (February 2026); Long Service Leave Act 2018 (Vic), authorised version 006, ss 6, 9 and 10; Industrial Relations Act 2016 (Qld) s 95, as amended by Act No. 19 of 2020 s 134 (assent 22 June 2020); Long Service Leave Act 1958 (WA) s 8, as amended by Act No. 30 of 2021 (from 20 June 2022); Long Service Leave Act 1987 (SA) s 5, version of 1 July 2017; Long Service Leave Act 1976 (Tas) ss 8, 9 and Schedule 3; Long Service Leave Act 1976 (ACT) R29 ss 3, 4, 11A and 11C, against R28, with WorkSafe ACT's calculation guidelines; Long Service Leave Act 1981 (NT) ss 8 and 10, as in force at 14 October 2015",
+        ),
+        "deferred_revenue" => (
+            "2026-11-24",
+            "AASB 15 compilations of December 2022 (COMPdec22_07-26 and COMPdec22_01-23) with the table of amendments to the Standard, paras 18 to 21, 35 to 45, 47 to 90, 91 to 104, 105 to 108 and B14 to B19; AASB 108 compilation no. 3 (F2023C00187), paras 36 to 38",
         ),
         "wip_lockup" => (
             "2026-11-24",
@@ -3119,6 +3129,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "fraction, decimal string above 0 and at most 1, default 1: the extent you provide, or are liable to provide, the consideration (ss 11-30(3) and 131-40(2))",
             ),
         ],
+        "deferred_revenue" => vec![(
+            "milestones",
+            "list of 1 to 100 objects {label, date, amount}, required with pattern milestones and refused otherwise: each milestone's label, its date in the performance period and the part of contract_amount the operator has established it depicts as progress, the amounts summing to contract_amount (AASB 15 para B15)",
+        )],
         "wip_lockup" => vec![
             (
                 "bucket_days",
@@ -6635,6 +6649,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("status", "employed or ends: whether the employee is still employed at end or employment ends on it"),
             ("weekly_pay", "AUD, no more than 1,000,000: the ordinary pay for a week as the Act defines it, already averaged where the Act averages hours or pay"),
         ],
+        "deferred_revenue" => vec![
+            ("contract_amount", "AUD above 0: the transaction price allocated to the performance obligation (AASB 15 paras 47 to 90), established by the operator"),
+            ("start", "YYYY-MM-DD: the first day of the performance period, in the year"),
+            ("end", "YYYY-MM-DD: the last day of the performance period, on or after start, the period at most 120 months"),
+            ("pattern", "daily, monthly or milestones: the operator's measure of progress, time elapsed by day or by whole calendar month on a straight-line basis (paras B14 and B18, where the entity's efforts are expended evenly; monthly counts whole calendar months ended and needs start on a month's first day and end on a month's last day) or milestones reached (para B15)"),
+            ("period_ends", "list of 1 to 120 YYYY-MM-DD dates in strictly ascending order: the reporting dates the schedule shows"),
+            ("billed", "list of 0 to 500 objects {date, amount}: amounts that became unconditionally due on that date, as by an invoice (AASB 15 paras 106 and 108), in AUD above 0 totalling no more than contract_amount"),
+            ("received", "list of 0 to 500 objects {date, amount}: payments the customer made on that date, billed or not, in AUD above 0 totalling no more than contract_amount; receipts settle billings first"),
+            ("variable_consideration", "boolean: the price includes variable consideration (paras 50 to 59); true is refused"),
+            ("significant_financing_component", "boolean: the contract has a significant financing component (paras 60 to 65); true is refused"),
+            ("estimate_changed", "boolean: the measure of progress or an estimate in it changed over the periods shown (AASB 15 para 43; AASB 108 paras 36 to 38); true is refused"),
+        ],
         "wip_lockup" => vec![
             ("entries", "list of 1 to 5,000 objects {label, date, amount}: unbilled work in progress, each dated when the work was done (on or before as_at), in AUD from 0 at the firm's valuation basis (charge-out value or cost)"),
             ("as_at", "YYYY-MM-DD: the date the WIP is aged at, in the year"),
@@ -8291,6 +8317,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("status", Text("ends")),
             ("reason", Text("redundancy")),
             ("weekly_pay", Text("1500.00")),
+        ],
+        // Fabricated: a year's support contract paid in advance.
+        "deferred_revenue" => vec![
+            ("year", Text("2025-26")),
+            ("contract_amount", Text("12000.00")),
+            ("start", Text("2025-07-01")),
+            ("end", Text("2026-06-30")),
+            ("pattern", Text("daily")),
+            (
+                "period_ends",
+                Json(r#"["2025-09-30", "2025-12-31", "2026-03-31", "2026-06-30"]"#),
+            ),
+            (
+                "billed",
+                Json(r#"[{"date": "2025-07-01", "amount": "12000.00"}]"#),
+            ),
+            (
+                "received",
+                Json(r#"[{"date": "2025-07-01", "amount": "12000.00"}]"#),
+            ),
+            ("variable_consideration", Flag(false)),
+            ("significant_financing_component", Flag(false)),
+            ("estimate_changed", Flag(false)),
         ],
         // Fabricated: a practice's WIP at 30 June 2026.
         "wip_lockup" => vec![

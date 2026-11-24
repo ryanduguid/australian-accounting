@@ -206,7 +206,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // voluntary-agreement-withholding, residency-tests, lodgment-required,
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
-    // gst-second-hand-goods, gst-bad-debt, tourist-refund, deferred-tax, leave-provisions, wip-lockup, impairment-test,
+    // gst-second-hand-goods, gst-bad-debt, tourist-refund, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test,
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
@@ -216,7 +216,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 130);
+    assert_eq!(checked, 131);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

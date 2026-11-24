@@ -1502,6 +1502,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "deferred-revenue",
+        &[
+            ("contract_amount", Dec),
+            ("start", Raw),
+            ("end", Raw),
+            ("pattern", Raw),
+            ("period_ends", Json),
+            ("billed", Json),
+            ("received", Json),
+            ("variable_consideration", Raw),
+            ("significant_financing_component", Raw),
+            ("estimate_changed", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wip-lockup",
         &[
             ("entries", Json),
@@ -2307,6 +2324,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-bad-debt"
             | "deferred-tax"
             | "leave-provisions"
+            | "deferred-revenue"
             | "wip-lockup"
             | "impairment-test"
             | "long-service-leave"
@@ -4212,6 +4230,25 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[18],
             scope_confirmed: &a[19],
         }),
+        "deferred-revenue" => {
+            // Optional: the milestones, taken only with pattern milestones.
+            let milestones = optional(v, "milestones", Json)?;
+            engine::deferred_revenue(&engine::DeferredRevenueArgs {
+                contract_amount: &a[0],
+                start: &a[1],
+                end: &a[2],
+                pattern: &a[3],
+                milestones: milestones.as_ref(),
+                period_ends: &a[4],
+                billed: &a[5],
+                received: &a[6],
+                variable_consideration: &a[7],
+                significant_financing_component: &a[8],
+                estimate_changed: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
+            })
+        }
         "wip-lockup" => {
             // Optional: the ageing buckets and the days the flows cover.
             let buckets = optional(v, "bucket_days", Json)?;
