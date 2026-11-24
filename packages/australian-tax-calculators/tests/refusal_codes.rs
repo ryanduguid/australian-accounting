@@ -61,6 +61,9 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/ess_discount",
         "engine/workers_compensation_premium",
         "engine/gst_corrections",
+        "engine/payroll_tax",
+        "engine/payroll_tax/group",
+        "engine/tourist_refund",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -76,6 +79,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         ("engine.rs", &["refuse(", "bad("][..]),
         ("api.rs", &["refusal("][..]),
         ("estimate.rs", &["Refusal::new("][..]),
+        ("charity.rs", &["refusal("][..]),
         ("dgr.rs", &["Refusal::new("][..]),
         ("dgr/input.rs", &["Refusal::new("][..]),
         ("fbt_return.rs", &["Refusal::new("][..]),
@@ -181,6 +185,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // etp-tax-free-component, fbt-meal-entertainment-register,
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
+    // payroll-tax-group,
     // fuel-tax-credits, alcohol-excise, dasp-tax, ppsr-timing, cgt-parcels,
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
@@ -198,7 +203,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, gst-error-correction,
-    // gst-credit-time-limit, deferred-tax, leave-provisions,
+    // gst-credit-time-limit, tourist-refund, deferred-tax, leave-provisions, wip-lockup, impairment-test,
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
@@ -208,7 +213,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 124);
+    assert_eq!(checked, 128);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

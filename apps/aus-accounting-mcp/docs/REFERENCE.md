@@ -173,6 +173,7 @@ copy without a download until the uv cache is cleaned.
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, cited to Act, section, compilation and register page; `as_at` answers for a date or refuses by name | local read-only retrieval |
 | `read_tax_legislation_section` | Read one cited provision from that corpus in full, optionally with the provisions either side; `as_at` adds the title's status and window | local read-only retrieval |
 | `define_tax_term` | Find an expression's statutory definitions in that corpus's dictionary, definitions and interpretation sections | local read-only retrieval |
+| `find_citing_provisions` | List the provisions in that corpus whose text cites one section by number | local read-only retrieval |
 | `search_tax_rates` | Find legislated rate, threshold, indexation and factor rows with the provision that sets them | local read-only retrieval |
 | `get_div7a_benchmark_rate` | Return the reviewed s 109N(2) rate for a year, or `UNKNOWN` | div7a-loan-review |
 | `review_div7a_loan` | Review s 109N terms and s 109E minimum yearly repayment for one operator-supplied amalgamated loan | div7a-loan-review |
@@ -842,6 +843,25 @@ because the title may be absent, the definition may sit in an operative provisio
 or the dictionary may write the expression differently, and an ordinary meaning
 must never be presented as the statutory one. Superseded dictionaries are left out
 unless `in_force_only` is false.
+
+Every result says whether the term itself was found: `defined` is true when an
+`exact` entry was, and false otherwise. When it is false, `nearest_terms` lists the
+heads of the partial matches kept, best ranked first, and `defined_note` says that
+false is not a finding that the law leaves the expression undefined.
+
+`find_citing_provisions` takes the `row_id` of a section and lists the provisions
+whose text cites it by number after "section", "subsection", "s" or "ss", including
+a subsection of it such as `8-1(1)` and an item of a list such as "sections 5-10 and
+5-15". A citation naming no other title counts only within the cited title; one
+followed by "of" or "in" and a title's full name, such as "of the Income Tax
+Assessment Act 1997", counts in any title when that name is the cited title's. Each
+entry carries the citing provision's citation fields, the paragraph holding its first
+citation (at most 600 characters) and `citations`, each citation as written. Principal
+Acts come first, then corpus order; `limit` defaults to 20, at most 50, with
+`has_more`. A reference through a Division, Subdivision or Part, a range such as
+"sections 5-5 to 5-15", or an abbreviated or defined short title is not found, so an
+empty list is not proof that nothing cites the section. Superseded provisions are
+left out unless `in_force_only` is false.
 
 ### Dates
 

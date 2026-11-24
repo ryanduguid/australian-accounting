@@ -3,6 +3,7 @@
 // Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 pub mod api;
+mod charity;
 mod contract_register;
 mod dates;
 pub mod decimal;

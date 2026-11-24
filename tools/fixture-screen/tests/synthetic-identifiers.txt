@@ -41,13 +41,23 @@ packages/ato-benchmark-compare/tests/data/python-cases.json tfn 639942383 genera
 packages/ato-benchmark-compare/tests/data/python-cases.json tfn 673759175 generated value input in the frozen Python differential corpus, not an identifier
 packages/ato-benchmark-compare/tests/data/python-cases.json tfn 826030703 generated value input in the frozen Python differential corpus, not an identifier
 packages/ato-benchmark-compare/tests/data/python-cases.json tfn 855687005 generated value input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/README.md abn 50169561394 ABN of Australian Red Cross Society, a charity on the public ACNC register; checked on ABN Lookup on 24 November 2026
 packages/australian-tax-calculators/README.md abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 16 November 2026
+packages/australian-tax-calculators/data/acnc-register.jsonl abn * the ACNC Register of Australian charities, a public register of organisations that holds no individual's record
+packages/australian-tax-calculators/data/acnc-register.jsonl acn * ACNs in those charities' names on the same register
 packages/australian-tax-calculators/data/dgr-register.jsonl abn * the ABN Bulk Extract's deductible gift recipients, a public register; the build leaves out individuals' records
 packages/australian-tax-calculators/data/dgr-register.jsonl acn * ACNs in those organisations' names on the same register
+packages/australian-tax-calculators/docs/calculation-evidence.md abn 50169561394 ABN of Australian Red Cross Society, a charity on the public ACNC register; checked on ABN Lookup on 24 November 2026
 packages/australian-tax-calculators/docs/calculation-evidence.md abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 16 November 2026
+packages/australian-tax-calculators/examples/acnc_register/tests.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/examples/acnc_register/tests.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/examples/acnc_register/tests.rs abn 61000000002 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/examples/dgr_register/tests.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/examples/dgr_register/tests.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/examples/dgr_register/tests.rs abn 61000000002 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/charity/tests.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/charity/tests.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
+packages/australian-tax-calculators/src/charity/tests.rs abn 61000000002 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/src/dgr/tests.rs abn 23000000004 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/src/dgr/tests.rs abn 42000000003 unissued number in a fixture; ABN Lookup found no such ABN on 16 November 2026
 packages/australian-tax-calculators/src/dgr/tests.rs abn 51824753556 ABN Lookup's worked example in Format of the ABN (https://abr.business.gov.au/Help/AbnFormat), read on 16 November 2026
@@ -79,6 +89,7 @@ packages/australian-tax-calculators/tests/data/python-api.json tfn 799087919 gen
 packages/australian-tax-calculators/tests/data/python-api.json tfn 916902926 generated amount input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json tfn 964938228 generated amount input in the frozen Python differential corpus, not an identifier
 packages/australian-tax-calculators/tests/data/python-api.json tfn 997093046 generated amount input in the frozen Python differential corpus, not an identifier
+packages/australian-tax-calculators/tests/charity_check.rs abn 50169561394 ABN of Australian Red Cross Society, a charity on the public ACNC register; checked on ABN Lookup on 24 November 2026
 packages/australian-tax-calculators/tests/dgr_check.rs abn 11000047950 ABN of Sydney Missionary & Bible College, a deductible gift recipient on the public register; checked on ABN Lookup on 16 November 2026
 packages/australian-tax-calculators/tests/dgr_check.rs abn 11001209490 ABN of The Killarney School Ltd, a deductible gift recipient on the public register; checked on ABN Lookup on 16 November 2026
 packages/australian-tax-calculators/tests/dgr_check.rs abn 12713020917 ABN of Kurrajong Public School, ABN cancelled, a deductible gift recipient on the public register; checked on ABN Lookup on 16 November 2026

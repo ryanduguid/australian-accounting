@@ -37,3 +37,7 @@ pkg-fmt = "zip"
 [[example]]
 name = "dgr_register"
 test = true
+
+[[example]]
+name = "acnc_register"
+test = true
