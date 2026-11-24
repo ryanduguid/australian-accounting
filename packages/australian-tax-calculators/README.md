@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-142 calculation worksheets for established facts; the sections below document
+143 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -252,6 +252,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `notice-period` | `notice_date`, `service_start`, `excluded_days`, `date_of_birth`, `exclusion`, `year`, `scope_confirmed`; with `exclusion` `specified_period`, `to_avoid_division`; optionally `full_rate_of_pay` and `weekly_hours` together; see [Notice period](#notice-period) |
 | `work-expenses` | `method` (`home_office`, `car_cents_per_kilometre`, `car_log_book` or `self_education`), `reimbursed`, `allowance_received`, `year`, `scope_confirmed`, and the inputs the method and year take; see [Work expenses](#work-expenses) |
 | `rental-property` | `ownership_share`, `acquired`, `disposed`, `days_available`, `section_26_50_applies`, `income`, `expenses`, `rental_only_expenses`, `loans`, `borrowing_loans`, `capital_works`, `depreciating_assets`, `year`, `scope_confirmed`; optional `other_taxable_income`; see [Rental property](#rental-property) |
+| `residential-vacancy-fee` | `vacancy_year_start`, `held_full_vacancy_year`, `residentially_occupied_days`, `return_lodged_on_time`, `exemption`, `acquisition_basis`, `ownership`, `application_fee_waiver`, `vacancy_fee_waiver_or_remission`, `year`, `scope_confirmed`; optional `application_fee_payable`, or `consideration`, `dwelling_kind`, `application_date` and `ownership_share` |
 | `foreign-resident-withholding` | `payment`, `acquisition_date`, `asset`, `market_value`, `cost_base_first_element`, `option_payments`, `sale_price`, `vendors`, `exclusion`, `class_variation_to_nil`, `year`, `scope_confirmed`; see [Foreign resident withholding](#foreign-resident-withholding) |
 | `non-resident-withholding` | `payment_type`, `payment`, `year`, `scope_confirmed` plus the payment type's own facts (`franked_amount`, `conduit_foreign_income`, `treaty_rate`, `information_exchange_country`, `clean_building_mit_amount`, `non_concessional_mit_income`, `company_not_acting_as_agent`, `payee_entity`, `base_rate_entity`, `contract_date`, `variation_rate`, `exempt`, `already_withheld`); see [Non-resident withholding](#non-resident-withholding) |
 | `residency-tests` | `resides`, `domicile_in_australia`, `permanent_place_of_abode_outside`, `presence`, `usual_place_of_abode_outside`, `intends_to_take_up_residence`, `commonwealth_super`, `resident_elsewhere`, `year`, `scope_confirmed`; see [Residency tests](#residency-tests) |
@@ -282,7 +283,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `charity-check` | `abns`, a list of 1 to 10,000 ABNs, and `as_at`, the check date; see [Charity check](#charity-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), for a full-year resident `medicare-levy` and `medicare-levy-surcharge`, and for a part-year resident before 2027-28 `part_year_residency_months`, `eligible_pensioner` and `medicare-levy`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp` and `super-crystallisation`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
 The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
@@ -3793,6 +3794,59 @@ acquired on 9 May 2017, works or an asset first used after the property was firs
 2024-25. From 2027-28 s 26-155 can quarantine rental deductions; that year is
 not supported. `tests/rental_property.rs` holds it to the ATO's Rental
 properties guide 2026 Examples 12, 20, 21, 23, 29, 33 and 34.
+
+## Residential vacancy fee
+
+`residential_vacancy_fee` works out the Australian federal annual vacancy fee
+for one foreign-owned residential dwelling for one vacancy year starting in
+`2020-21` to `2026-27` under Part 6A of the Foreign Acquisitions and Takeovers
+Act 1975 (FATA 1975, ss 115A to 115T), Division 4A of the Foreign Acquisitions
+and Takeovers Regulation 2015 (FATR 2015, ss 43C and 43D), the Foreign
+Acquisitions and Takeovers Fees Imposition Act 2015 (ss 5 to 9) and the Foreign
+Acquisitions and Takeovers Fees Imposition Regulations 2020 (Part 2 Division 2,
+Part 3 ss 42 to 46, ss 53, 57, 59 to 61A and 67).
+
+- `vacancy_year_start` (inside `year`) sets the 12-month vacancy year under
+  FATA s 115C(2) and the Acts Interpretation Act 1901 s 2G(2), the 30-day
+  return due date (FATA s 115D(1)) and the 5-year record-retention date
+  (FATA s 115G(1)).
+- If `held_full_vacancy_year` is `false` (sold, transferred, deceased or ceased
+  to be a foreign person during the vacancy year), no return is required and
+  the vacancy fee is nil (FATA s 115C(2), s 115D(3) note).
+- A dwelling residentially occupied for fewer than 183 days under FATA s 115C(4)
+  (owner or relative occupation, or occupied or genuinely available under a
+  lease or licence of at least 30 days; short-term stays under 30 days do not
+  count) is liable unless a FATR 2015 s 43D exemption applies. Failing to lodge
+  within 30 days (`return_lodged_on_time: false`) deems liability under FATA
+  s 115D(3) regardless of days occupied and overrides FATR s 43D exemptions
+  (s 43D(4)).
+- For vacancy years starting before 9 April 2024 the vacancy fee equals the
+  application fee basis (`1x`); for vacancy years starting on or after 9 April
+  2024 it is doubled (`2x`, Act No. 17 of 2024 Sch 2, Regs s 67(2)) regardless
+  of when the dwelling was acquired.
+- The application fee basis is supplied directly (`application_fee_payable`,
+  for `notifiable_action` s 43(a), `other_exemption_certificate` s 45(a) or
+  `no_notice_order` s 46(a)), derived from the verified 1 January 2021 to
+  30 June 2027 residential fee schedule (`consideration`, `dwelling_kind`,
+  `application_date` and, for `tenants_in_common`, `ownership_share` under
+  s 57(2), including 3x for established dwellings from 9 April 2024 under
+  ss 10(2) and 53(1)(c)), or set to the s 10 item 1 notional tier-1 fee on a
+  full waiver (`application_fee_waiver: "full"`, ss 43(b) and 46(b)).
+- Fees Imposition Act 2015 s 7(3) guarantees the s 6(3) statutory fee cap
+  (enforced by Fees Regulations s 61A) never decreases on later 1 July
+  indexations. The worksheet checks that the uncapped fee does not exceed the
+  cap floor at `vacancy_year_end` (or `$7,791,000` for `2027-28` onwards), so
+  the cap cannot bind regardless of when the s 115E notice is issued or the
+  s 115F payment falls due; any higher uncapped fee is refused (`cap_unsettled`).
+
+It refuses build-to-rent developments, partial application fee waivers,
+discretionary s 115H vacancy fee waivers or remissions, waived fees for other
+exemption certificates (s 45(b)), consideration below `$75,000` under a
+developer exemption certificate, pre-9 April 2024 waived fees straddling a
+tier-1 indexation boundary, and unsettled statutory cap windows.
+`tests/residential_vacancy_fee.rs` holds it to the ATO's and Treasury's
+worked examples; see
+[calculation evidence](docs/calculation-evidence.md#residential-vacancy-fee).
 
 ## Foreign resident withholding
 
