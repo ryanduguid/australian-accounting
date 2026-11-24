@@ -2609,8 +2609,9 @@ December, with a sample from the first 2 months of trading; a later half
 uses its ordinary window, and a business that starts in January to June is
 refused. F2026L01275 s 7 para (c) gives the first 2 months only where trading
 starts during a tax period and paras (a) and (b) cannot be applied; the
-worksheet applies it to the half in which trading starts, when a 28-day
-sample after the start cannot fit in the ordinary window.
+worksheet applies it only to the tax period in which trading starts when a
+28-day sample after the start cannot fit in the ordinary window, and refuses a
+later tax period in the same half.
 
 ## Insurance duty
 

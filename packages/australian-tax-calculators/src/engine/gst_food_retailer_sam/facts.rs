@@ -196,7 +196,7 @@ pub(super) enum NewBusiness {
     /// to December) is replaced by one from the first 2 months of trading.
     Retail2017,
     /// F2026L01275 s 7 para (c): the first 2 months of trading, only when
-    /// trading starts in the half so the ordinary window cannot be used.
+    /// trading starts during the tax period and paras (a) and (b) cannot apply.
     Restaurant2026,
 }
 
@@ -234,7 +234,11 @@ pub(super) fn window(
             "F2017L01274 ss 6(4) and 7(3) replace only the first sample period (1 June to 31 July, for July to December) for a business that starts during the year; a business that starts trading in January to June is not worked.",
         ),
         NewBusiness::Restaurant2026 if started + 27 <= ordinary.1 => Ok((started, ordinary.1)),
-        NewBusiness::Restaurant2026 => Ok(first_months),
+        NewBusiness::Restaurant2026 if started >= period.start => Ok(first_months),
+        NewBusiness::Restaurant2026 => refuse(
+            "gst_food_retailer_sam.new_business_unsettled",
+            "F2026L01275 s 7(c) gives the first 2 months of trading only when the business starts trading during the tax period and paragraphs (a) and (b) cannot apply; a later tax period in the same half is not worked.",
+        ),
     }
 }
 

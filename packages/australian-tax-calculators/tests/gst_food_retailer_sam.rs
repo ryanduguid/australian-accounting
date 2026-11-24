@@ -440,17 +440,36 @@ fn a_restaurant_new_business_samples_only_the_half_it_starts_in() {
     assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
     v["purchases_sample"] = sample("2026-12-05", "2027-01-01", "10500.00", "15000.00");
     assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
-    // Starting in January to June: para (c) once para (b) cannot be applied.
-    v["tax_period_start"] = json!("2027-04-01");
-    v["tax_period_end"] = json!("2027-06-30");
+    // Starting in January to June: para (c) once para (b) cannot be applied,
+    // only for the tax period in which trading started.
     v["trading_started"] = json!("2027-02-10");
     v["purchases_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
     assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    // A later tax period after that earlier start in the same half is refused.
+    v["tax_period_start"] = json!("2027-04-01");
+    v["tax_period_end"] = json!("2027-06-30");
+    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
     // Started 2 January: para (b) can still be applied, so (c) is not open.
     v["trading_started"] = json!("2027-01-02");
     assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
     v["purchases_sample"] = sample("2027-01-02", "2027-01-29", "10500.00", "15000.00");
     assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+}
+
+#[test]
+fn a_restaurant_first_two_months_requires_starting_in_the_tax_period() {
+    let mut v = anil();
+    v["tax_period_start"] = json!("2027-04-01");
+    v["tax_period_end"] = json!("2027-06-30");
+    v["trading_started"] = json!("2027-02-10");
+    v["purchases_sample"] = sample("2027-02-15", "2027-03-14", "10500.00", "15000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
+    // Starting in an earlier tax period of the July-December half is refused too.
+    v["tax_period_start"] = json!("2026-10-01");
+    v["tax_period_end"] = json!("2026-12-31");
+    v["trading_started"] = json!("2026-08-10");
+    v["purchases_sample"] = sample("2026-08-15", "2026-09-11", "10500.00", "15000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.new_business_unsettled");
 }
 
 #[test]
@@ -525,8 +544,8 @@ fn trading_started_metadata_qualifies_first_two_months_and_points_to_december() 
         "missing 2017 July to December qualification: {desc}"
     );
     assert!(
-        desc.contains("restaurant_purchases_snapshot"),
-        "missing restaurant method qualification: {desc}"
+        desc.contains("restaurant_purchases_snapshot") && desc.contains("during the tax period"),
+        "missing restaurant tax-period qualification: {desc}"
     );
     assert!(
         desc.contains("1 December to 31 January"),
