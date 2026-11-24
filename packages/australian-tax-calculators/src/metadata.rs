@@ -3799,7 +3799,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "trading_started",
-                "YYYY-MM-DD, for a business that started trading in the financial year: a sample then falls in the first 2 months of trading instead",
+                "YYYY-MM-DD, for a business that started trading in the financial year (the 2017 sampled methods and restaurant_purchases_snapshot): under the 2017 methods, replaces only the July to December sample window (1 June to 31 July) with the first 2 months of trading; a January to June tax period for a July to December starter uses 1 December to 31 January (never before trading_started, so an August starter uses a December to January sample rather than September), and a business starting in January to June is refused. Under restaurant_purchases_snapshot, uses the first 2 months only when trading started in that half and no 28-day sample fits in 1 June to 31 July or 1 December to 31 January from trading_started; otherwise uses that ordinary window from trading_started",
             ),
         ],
         "insurance_duty" => vec![
@@ -7915,7 +7915,6 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("future_total_credits", Text("1220000.00")),
             ("gst_group", Flag(false)),
         ],
-        // The 5 conditions of GST Act s 38-325 all met.
         // The ATO's Andrew: a September quarter with a sample from 1 to 28 June.
         "gst_food_retailer_sam" => vec![
             ("year", Text("2025-26")),
@@ -7938,6 +7937,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
+        // The 5 conditions of GST Act s 38-325 all met.
         "gst_going_concern" => vec![
             ("year", Text("2025-26")),
             ("for_consideration", Flag(true)),

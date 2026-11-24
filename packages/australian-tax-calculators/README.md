@@ -2918,10 +2918,12 @@ its type's s 8 definition, and for the supermarket method
 `section_7_3_goods_left_out` states that purchases and sales leave out the
 goods s 7(3) sends to other credits. A projected GST-free share of exactly 5%
 qualifies for the 5% methods. A business that starts trading in the year
-samples its first 2 months: under the 2017 methods only for July to December
-(one starting in January to June is refused), and under the restaurant
-method only when the ordinary window cannot hold a sample after trading
-starts. The shares are exact and the amounts shown to the cent. It refuses
+samples its first 2 months under the 2017 methods only for July to December
+(a January to June tax period for a July to December starter uses `1 December to
+31 January` from `trading_started`, and one starting in January to June is
+refused), and under the restaurant method only when the ordinary window (`1 June
+to 31 July` or `1 December to 31 January`) cannot hold a 28-day sample from
+`trading_started`. The shares are exact and the amounts shown to the cent. It refuses
 a tax period before the method's determination commenced (an annual
 restaurant tax period cannot start on or after 24 September 2026 within
 2026-27), a sample of the wrong length or outside its window, a 2017 sample

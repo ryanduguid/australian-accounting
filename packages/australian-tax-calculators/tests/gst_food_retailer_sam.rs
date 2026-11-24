@@ -513,3 +513,23 @@ fn rural_reseller_pbs_stock_and_a_sampled_five_percent_snapshot() {
     assert_eq!(a["gst_free_purchases"], "450.00");
     assert_eq!(a["gst_free_sales"], "800.00");
 }
+
+#[test]
+fn trading_started_metadata_qualifies_first_two_months_and_points_to_december() {
+    let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+    let desc = catalogue["gst_food_retailer_sam"]["optional_inputs"]["trading_started"]
+        .as_str()
+        .unwrap();
+    assert!(
+        desc.contains("2017") && desc.contains("July to December"),
+        "missing 2017 July to December qualification: {desc}"
+    );
+    assert!(
+        desc.contains("restaurant_purchases_snapshot"),
+        "missing restaurant method qualification: {desc}"
+    );
+    assert!(
+        desc.contains("1 December to 31 January"),
+        "missing December window pointer for January to June periods: {desc}"
+    );
+}
