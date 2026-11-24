@@ -1390,6 +1390,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // GST Act s 38-325, Subdivision 66-A, Division 21 and Subdivision
         // 136-A read the same in compilations 82 and 96.
+        // Departures from 1 November 2025, the GST Regulations 2019 compilation 5
+        // read, to 30 June 2027.
+        "tourist_refund" => vec!["2025-26", "2026-27"],
         "gst_going_concern" | "gst_second_hand_goods" | "gst_bad_debt" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2022,6 +2025,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_second_hand_goods" => (
             "2026-11-22",
             "GST Act ss 66-5, 66-10, 66-15, 66-17 and 66-40 and the s 195-1 definitions of second-hand goods and valuable metal, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTD 2012/6 paras 1 to 13",
+        ),
+        "tourist_refund" => (
+            "2026-11-24",
+            "GST Act s 168-5(1) and (2), compilation 96 (C2026C00081, from 1 January 2026); GST Regulations 2019 regs 168-5.01 to 168-5.11 and 168-5.14, compilation 5 (F2025C01015, from 1 November 2025); WET Act ss 25-5(1) and (2) and 31-10(3), compilation 32 (C2026C00149, from 1 April 2026); WET Regulations 2019 regs 25-5.01 to 25-5.04 (F2019L01154, as made)",
         ),
         "gst_bad_debt" => (
             "2026-11-22",
@@ -2728,6 +2735,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Finance Co's $5,500 vehicle: a notional credit of $500, 1/11 of the consideration (para 7)",
             "2012-08-01",
             "2026-11-22",
+        ),
+        "tourist_refund" => (
+            "GST Regulations 2019 Division 168 and WET Regulations 2019 Division 25",
+            "Regs 168-5.02 to 168-5.10 (goods, registered supplier, $300, tax invoice, departure, accompanied baggage, 60 days, 30 and 60 minutes), 168-5.11 and 168-5.14 (cash), and 25-5.01 to 25-5.04 (29% of half the price); no ATO or ABF worked example with figures was found",
+            "2025-11-01",
+            "2026-11-24",
         ),
         "gst_bad_debt" => (
             "GSTR 2000/2",
@@ -6150,6 +6163,17 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("valuable_metal", "boolean: the goods consist to any extent of gold, silver or platinum (s 195-1); true is refused"),
             ("leased_before_sale", "boolean: you lease the goods before you sell them (GSTD 2012/6); true is refused"),
         ],
+        "tourist_refund" => vec![
+            ("departure_date", "YYYY-MM-DD: the day the traveller leaves the indirect tax zone, from 1 November 2025 and in year"),
+            ("departing_by", "aircraft or ship: sets the 30 or 60 minutes of reg 168-5.10(3)"),
+            ("departing_as", "passenger, crew or in_charge: crew and in_charge (the person in charge or command of the aircraft or ship, in that employment) cannot claim (reg 168-5.06)"),
+            ("trs_port", "boolean: the traveller leaves at an airport or seaport at which the tourist refund scheme is administered (reg 168-5.07)"),
+            ("accompanied_baggage", "boolean: the goods leave with the traveller as accompanied baggage (s 168-5(1)(c))"),
+            ("minutes_before_departure", "integer, 0 to 10,080: how many minutes before the scheduled departure the traveller presents at, or lodges the claim at, the TRS verification facility (reg 168-5.10(3))"),
+            ("acquired_by_traveller", "boolean: the traveller made the acquisition (s 168-5(1)(a))"),
+            ("supplier_registered", "boolean: the supplier, one entity for every item, is registered for GST (reg 168-5.03)"),
+            ("items", "list of 1 to 1,000 objects, the goods acquired from that supplier, each with date (YYYY-MM-DD, the day of acquisition, not after departure_date), price (AUD, the GST-inclusive price paid), gst (AUD, the GST on the tax invoice for it, at most one eleventh of price), goods (general, wine, other_alcohol or tobacco), wine_tax_borne (boolean, with wine only: wine tax is taken to have been borne, WET Act s 31-10), tax_invoice (boolean) and partly_consumed (boolean)"),
+        ],
         "gst_bad_debt" => vec![
             ("party", "supplier or recipient: you made the supply (ss 21-5 and 21-10) or the acquisition (ss 21-15 and 21-20)"),
             ("event", "written_off, overdue_12_months or recovered: the debt, or part of it, is written off as bad (by the supplier), has been overdue for 12 months or more, or is recovered by the supplier or paid by the recipient after the earlier adjustment"),
@@ -7699,6 +7723,25 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("divided_for_resupply", Flag(false)),
             ("valuable_metal", Flag(false)),
             ("leased_before_sale", Flag(false)),
+        ],
+        // An aircraft passenger 45 minutes early with $330 of goods and $100 of
+        // wine from one supplier: $39.09 of GST and $14.50 of wine tax.
+        "tourist_refund" => vec![
+            ("year", Text("2025-26")),
+            ("departure_date", Text("2026-03-20")),
+            ("departing_by", Text("aircraft")),
+            ("departing_as", Text("passenger")),
+            ("trs_port", Flag(true)),
+            ("accompanied_baggage", Flag(true)),
+            ("minutes_before_departure", Whole(45)),
+            ("acquired_by_traveller", Flag(true)),
+            ("supplier_registered", Flag(true)),
+            (
+                "items",
+                Json(
+                    r#"[{"date": "2026-03-10", "price": "330.00", "gst": "30.00", "goods": "general", "tax_invoice": true, "partly_consumed": false}, {"date": "2026-03-10", "price": "100.00", "gst": "9.09", "goods": "wine", "wine_tax_borne": true, "tax_invoice": true, "partly_consumed": false}]"#,
+                ),
+            ),
         ],
         // GSTR 2000/2's Marcus (paras 49AA to 53), 20 years on.
         "gst_bad_debt" => vec![

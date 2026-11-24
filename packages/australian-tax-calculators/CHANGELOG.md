@@ -4,6 +4,14 @@
 
 ### Added
 
+- `tourist-refund` tests one traveller's purchases from one registered
+  supplier against the tourist refund scheme (GST Act s 168-5(1), GST
+  Regulations 2019 Division 168) for departures from 1 November 2025 to
+  30 June 2027, and works the refund of GST and of the wine tax borne
+  (WET Act s 25-5(1), 29% of half the price). New codes:
+  `tourist_refund.date_invalid`, `departure_not_covered`,
+  `departure_outside_year`, `fact_invalid`, `gst_exceeds_price_share` and
+  `item_invalid`.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and

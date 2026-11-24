@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 92] = [
+const DERIVED: [&str; 93] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -104,6 +104,7 @@ const DERIVED: [&str; 92] = [
     "gst-financial-acquisitions-threshold",
     "gst-second-hand-goods",
     "gst-bad-debt",
+    "tourist-refund",
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
@@ -878,6 +879,20 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "consideration_extent": "0.5", "car": false,
                    "reduced_credit_acquisition": false, "year": "2025-26",
                    "scope_confirmed": true}),
+        ),
+        // The tourist refund scheme: $330 of goods and $100 of wine from one
+        // supplier, $39.09 of GST and $14.50 of wine tax.
+        (
+            "tourist-refund",
+            json!({"departure_date": "2026-03-20", "departing_by": "aircraft",
+                   "departing_as": "passenger", "trs_port": true, "accompanied_baggage": true,
+                   "minutes_before_departure": 45, "acquired_by_traveller": true,
+                   "supplier_registered": true, "year": "2025-26", "scope_confirmed": true,
+                   "items": [
+                       {"date": "2026-03-10", "price": "330.00", "gst": "30.00", "goods": "general",
+                        "tax_invoice": true, "partly_consumed": false},
+                       {"date": "2026-03-10", "price": "100.00", "gst": "9.09", "goods": "wine",
+                        "wine_tax_borne": true, "tax_invoice": true, "partly_consumed": false}]}),
         ),
         // GSTR 2003/9's Cedar, Examples 1A and 2A.
         (

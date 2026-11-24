@@ -522,6 +522,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "tourist-refund",
+        &[
+            ("departure_date", Raw),
+            ("departing_by", Raw),
+            ("departing_as", Raw),
+            ("trs_port", Raw),
+            ("accompanied_baggage", Raw),
+            ("minutes_before_departure", Raw),
+            ("acquired_by_traveller", Raw),
+            ("supplier_registered", Raw),
+            ("items", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "vic-property-taxes",
         &[("tax", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1619,7 +1635,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 93] = [
+const DERIVED: [&str; 94] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1706,6 +1722,7 @@ const DERIVED: [&str; 93] = [
     "gst-financial-acquisitions-threshold",
     "gst-second-hand-goods",
     "gst-bad-debt",
+    "tourist-refund",
     "cgt-cost-base-adjustments",
     "foreign-income-tax-offset",
     "fbt-instalment",
@@ -2143,6 +2160,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
             | "wine-equalisation-tax"
+            | "tourist-refund"
             | "vic-property-taxes"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
@@ -3884,6 +3902,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[11],
             })
         }
+        "tourist-refund" => engine::tourist_refund(&engine::TouristRefundArgs {
+            departure_date: &a[0],
+            departing_by: &a[1],
+            departing_as: &a[2],
+            trs_port: &a[3],
+            accompanied_baggage: &a[4],
+            minutes_before_departure: &a[5],
+            acquired_by_traveller: &a[6],
+            supplier_registered: &a[7],
+            items: &a[8],
+            year: &a[9],
+            scope_confirmed: &a[10],
+        }),
         "gst-bad-debt" => {
             // Optional: inputs used only for some parties and events.
             let raw = |key| optional(v, key, Raw);

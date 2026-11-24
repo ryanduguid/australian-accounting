@@ -495,6 +495,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One acquisition of second-hand goods under GST Act Subdivision 66-A in a year from 2020-21 to 2026-27: the conditions of s 66-5 and the s 195-1 definition, and the notional input tax credit of s 66-10, 1/11 of the consideration, capped above $300 at the GST on your taxable supply of the goods. The operator establishes the facts, the consideration and that GST. Excludes goods divided for re-supply (Subdivision 66-B), goods of valuable metal, goods leased before sale (GSTD 2012/6), the tax period the credit is attributable to (s 66-15), which is noted, not worked out, and the records s 66-17 requires.",
     ),
     (
+        "tourist_refund",
+        "One traveller's purchases from one registered supplier under the tourist refund scheme, leaving Australia with the goods as accompanied baggage on a departure from 1 November 2025 to 30 June 2027: whether each item and the claim meet GST Act s 168-5(1) and GST Regulations 2019 Subdivisions 168-A to 168-C, and the refund of the GST on the qualifying items and of the wine tax borne on qualifying wine (WET Act s 25-5(1), 29% of half the price under WET Regulations reg 25-5.03). The operator establishes each fact. Excludes the External Territory route (s 168-5(1A)), cash rounding, the ABF's administrative requirements and goods brought back into Australia.",
+    ),
+    (
         "gst_bad_debt",
         "One bad debt adjustment under GST Act Division 21 in a year from 2020-21 to 2026-27, for the supplier (ss 21-5 and 21-10) or the recipient (ss 21-15 and 21-20): 1/11 of the amount written off, overdue for 12 months or more, recovered or paid, reduced for a partly taxable supply (s 136-5) or a partly creditable acquisition (s 136-10(1)). The operator establishes the amount, that it is overdue (s 195-1), the earlier adjustment for a recovery, and the proportion or extents. Excludes supplies and acquisitions taxable or creditable at less than 1/11 of the price (Subdivision 136-B, such as the margin scheme), reduced credit acquisitions (s 136-10(2)), credits worked out under Division 131 (s 136-10(3)), a change of accounting basis (Division 159) and the tax period the adjustment is attributable to.",
     ),
@@ -1025,6 +1029,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "gst_second_hand_goods",
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "tourist_refund",
+        "https://www.legislation.gov.au/F2019L00417/latest/text",
     ),
     (
         "gst_bad_debt",
@@ -2257,6 +2265,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "tourist_refund",
+        &[
+            "https://www.legislation.gov.au/C2004A00446/latest/text",
+            "https://www.legislation.gov.au/C2004A00452/latest/text",
+            "https://www.legislation.gov.au/F2019L01154/latest/text",
+            "https://www.abf.gov.au/entering-and-leaving-australia/tourist-refund-scheme",
+        ],
+    ),
+    (
         "gst_bad_debt",
         &[
             "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
@@ -2546,6 +2563,12 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one_value when the provider, or a member of its GST group, is entitled to a GST credit for providing the benefit (a GST-creditable benefit), and as part of type_two_value otherwise.";
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
+    (
+        "tourist_refund",
+        &[
+            "The ABF administers the claim and adds its own requirements, such as an original tax invoice naming the traveller for $1,000 or more and no claim for goods bought for a business; this worksheet does not test them.",
+        ],
+    ),
     (
         "motor_vehicle_duty",
         &[
@@ -5548,6 +5571,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_withholding.schedule_not_read",
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
+    ),
+    (
+        "tourist_refund.date_invalid",
+        "An item's date is after departure_date.",
+    ),
+    (
+        "tourist_refund.departure_not_covered",
+        "departure_date is before 1 November 2025, before the GST Regulations 2019 compilation read.",
+    ),
+    (
+        "tourist_refund.departure_outside_year",
+        "departure_date is outside year.",
+    ),
+    (
+        "tourist_refund.fact_invalid",
+        "departing_by, departing_as, an item's goods or minutes_before_departure is not one of the values the command takes.",
+    ),
+    (
+        "tourist_refund.gst_exceeds_price_share",
+        "An item's gst is more than one eleventh of its price, rounded half up to the cent.",
+    ),
+    (
+        "tourist_refund.item_invalid",
+        "items is not a list of 1 to 1,000 objects, an item is not an object, or wine_tax_borne is given with goods other than wine.",
     ),
     (
         "trade_in.asset_invalid",

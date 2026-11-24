@@ -60,6 +60,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
         "engine/workers_compensation_premium",
+        "engine/tourist_refund",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -196,7 +197,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // voluntary-agreement-withholding, residency-tests, lodgment-required,
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
-    // gst-second-hand-goods, gst-bad-debt, deferred-tax, leave-provisions,
+    // gst-second-hand-goods, gst-bad-debt, tourist-refund, deferred-tax, leave-provisions,
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
@@ -206,7 +207,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 122);
+    assert_eq!(checked, 123);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
