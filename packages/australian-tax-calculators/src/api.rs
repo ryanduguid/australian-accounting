@@ -1464,6 +1464,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "wip-lockup",
+        &[
+            ("entries", Json),
+            ("as_at", Raw),
+            ("fee_revenue", Dec),
+            ("receivables", Dec),
+            ("billings", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "leave-provisions",
         &[
             ("lines", Json),
@@ -2237,6 +2249,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "deferred-tax"
             | "leave-provisions"
             | "deferred-revenue"
+            | "wip-lockup"
             | "long-service-leave"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
@@ -4019,6 +4032,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 significant_financing_component: &a[8],
                 year: &a[9],
                 scope_confirmed: &a[10],
+            })
+        }
+        "wip-lockup" => {
+            // Optional: the ageing buckets and the days the flows cover.
+            let buckets = optional(v, "bucket_days", Json)?;
+            let days = optional(v, "days", Raw)?;
+            engine::wip_lockup(&engine::WipLockupArgs {
+                entries: &a[0],
+                as_at: &a[1],
+                bucket_days: buckets.as_ref(),
+                fee_revenue: &a[2],
+                receivables: &a[3],
+                billings: &a[4],
+                days: days.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {

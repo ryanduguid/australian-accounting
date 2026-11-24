@@ -1413,6 +1413,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "deferred_revenue" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // A management measure with no statutory rate: the years the other
+        // AASB worksheets take.
+        "wip_lockup" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "leave_provisions" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2051,6 +2056,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "deferred_revenue" => (
             "2026-11-24",
             "AASB 15 compilations of December 2022 (COMPdec22_07-26 and COMPdec22_01-23) with the table of amendments to the Standard, paras 18 to 21, 35 to 45, 47 to 90, 91 to 104, 105 to 108 and B14 to B19",
+        ),
+        "wip_lockup" => (
+            "2026-11-24",
+            "Ozzit function reference v3.7.0 (oz.WIPDaysλ, oz.ReceivableDaysλ and oz.CashConversionCycleλ, with their examples), on duguid.com.au; the site's tools/wip-schedule page (construction WIP, no lock-up)",
         ),
         "leave_provisions" => (
             "2026-11-23",
@@ -3050,6 +3059,16 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "milestones",
             "list of 1 to 100 objects {label, date, amount}, required with pattern milestones and refused otherwise: each milestone's label, its date in the performance period and the part of contract_amount the operator has established it depicts as progress, the amounts summing to contract_amount (AASB 15 para B15)",
         )],
+        "wip_lockup" => vec![
+            (
+                "bucket_days",
+                "list of 1 to 6 strictly ascending whole numbers from 1 to 3,650: each ageing bucket's last day of age, the last bucket open; default [30, 60, 90]",
+            ),
+            (
+                "days",
+                "whole number from 1 to 3,660: the days fee_revenue and billings cover, 365 for a year, 90 for a rolling quarter; default 365",
+            ),
+        ],
         "alcohol_excise" => vec![
             (
                 "remission_used_this_year",
@@ -6279,6 +6298,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("variable_consideration", "boolean: the price includes variable consideration (paras 50 to 59); true is refused"),
             ("significant_financing_component", "boolean: the contract has a significant financing component (paras 60 to 65); true is refused"),
         ],
+        "wip_lockup" => vec![
+            ("entries", "list of 1 to 5,000 objects {label, date, amount}: unbilled work in progress, each dated when the work was done (on or before as_at), in AUD from 0 at the firm's valuation basis (charge-out value or cost)"),
+            ("as_at", "YYYY-MM-DD: the date the WIP is aged at, in the year"),
+            ("fee_revenue", "AUD above 0: fee revenue over the days, with WIP at charge-out value, or cost of sales with WIP at cost (oz.WIPDaysλ's RelatedFlow)"),
+            ("receivables", "AUD from 0: trade receivables, the closing balance or the average of opening and closing"),
+            ("billings", "AUD above 0: credit sales billed over the days, on the receivables' GST basis (oz.ReceivableDaysλ's Sales)"),
+        ],
         "leave_provisions" => vec![
             ("lines", "list of 1 to 500 objects, each {label, leave, hours, hourly_rate, probability, settled_within_12_months} and, when settled_within_12_months is false, {years_to_settlement, salary_growth, discount_rate, can_defer_settlement}: leave is annual or long_service; hours the unused entitlement accumulated at the reporting date (AASB 119 paras 13(a) and 15); hourly_rate in AUD: on a short-term line the rate the entity expects to pay for the leave (para 16), on a long-term line the rate at the reporting date before future salary growth, which salary_growth projects (para 87(b)); probability from 0 to 1 that the entitlement vests and is paid (paras 15 and 72); settled_within_12_months whether the benefit the line belongs to is expected to be settled wholly before 12 months after the reporting date (para 8): the part of a benefit that is not, due within 12 months, is false; years_to_settlement a whole number from 1 to 50 (the part of a long-term benefit due within 12 months takes 1, the nearest whole year); salary_growth and discount_rate decimal fractions from 0 to 1 a year (paras 83 to 87); can_defer_settlement whether the entity has the right at the reporting date to defer settlement for at least 12 months (AASB 101 para 69(d)): for a period beginning before 1 January 2024 only an unconditional right counts (the earlier para 69(d)), and from 1 January 2024 a right with substance that exists at the reporting date (paras 72A and 75A, AASB 2020-1 and AASB 2022-6), so for every period ending in 2020-21 to 2023-24, and a 2024-25 period ending before 31 December 2024, a conditional right is false unless AASB 2020-1 and AASB 2022-6 were applied early"),
             ("defined_benefit_plan", "boolean: the obligation includes a defined benefit plan or other post-employment benefit (AASB 119 paras 26 to 152); true is refused"),
@@ -7882,6 +7908,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ),
             ("variable_consideration", Flag(false)),
             ("significant_financing_component", Flag(false)),
+        ],
+        // Fabricated: a practice's WIP at 30 June 2026.
+        "wip_lockup" => vec![
+            ("year", Text("2025-26")),
+            ("as_at", Text("2026-06-30")),
+            (
+                "entries",
+                Json(
+                    r#"[{"label": "Client A", "date": "2026-06-30", "amount": "5000.00"}, {"label": "Client B", "date": "2026-05-30", "amount": "2500.00"}, {"label": "Client C", "date": "2025-12-01", "amount": "1250.50"}]"#,
+                ),
+            ),
+            ("fee_revenue", Text("300000.00")),
+            ("receivables", Text("60000.00")),
+            ("billings", Text("320000.00")),
         ],
         "leave_provisions" => vec![
             ("year", Text("2025-26")),

@@ -5945,6 +5945,32 @@ made-up figures worked independently in Python's `decimal`.
 `tests/deferred_revenue.rs` also covers each year boundary, the performance
 period's limits, whole-month boundaries and every refusal.
 
+## WIP lock-up
+
+Added on 24 November 2026. The site's `tools/wip-schedule` page, read that day
+from the site's main branch, is the construction WIP page for The WIP Tally
+(AASB 15 cost-to-cost progress): it has no calculator script, no ageing and no
+lock-up, and its one worked example is The WIP Tally's own test. The
+definitions mirrored are Ozzit's, published on the site as
+`assets/ozzit-function-reference-v3.7.0.json`: `oz.WIPDaysλ(WIP,
+RelatedFlow, [Days])` and `oz.ReceivableDaysλ(Receivables, Sales, [Days])`,
+each balance / flow x Days with Days defaulting to 365, a nil flow giving
+#DIV/0! and Days of 0 or less #NUM!, and lock-up days as WIP days plus
+receivable days (the WIPDaysλ note). No Standard or Act defines lock-up or
+the ageing buckets.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| O1 | `=oz.WIPDaysλ(42000, 510000)` | **30.0588** |
+| O2 | `=oz.ReceivableDaysλ(125000, 1200000)` | **38.0208** |
+| O3 | `=oz.ReceivableDaysλ(125000, 330000, 90)` | **34.0909** |
+| O4 | O1 and O2 together | lock-up **68.0797** |
+| W1 | as at 30 Jun 2026: $5,000 (age 0), $7,500 (30), $2,500 (31), $4,000 (90), $3,000 (91), $1,250.50 (211); fees $300,000, receivables $60,000, billings $320,000 | buckets **$12,500.00**, **$2,500.00**, **$4,000.00**, **$4,250.50**; WIP days **28.29**, receivable days **68.44**, lock-up **96.73** |
+
+O1 to O3 are the reference's published examples; W1 is made up and worked in
+Python's `decimal`. `tests/wip_lockup.rs` also covers stated buckets, each
+bound on buckets, days and entries, the year boundaries and every refusal.
+
 ## Leave provisions
 
 Added on 22 November 2026, when the sources were read: AASB 119 compilation
