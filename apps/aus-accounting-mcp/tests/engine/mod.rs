@@ -261,7 +261,8 @@ pub fn catalogue(kind: &str, entry: &mut Value) {
             evidence["paragraphs"] = json!(
                 "table of single thresholds, example (Angie); family taxable income thresholds, example (Ashton); claiming an exemption, example (Priya)"
             );
-            evidence["checked"] = json!(review.checked);
+            // The examples were last read on 14 November 2026; the passage on 24 November.
+            evidence["checked"] = json!("2026-11-14");
         }
         "depreciation" => {
             entry["required_inputs"]["days"] = json!("integer from 0 to 365, or to 366 in 2023-24");
