@@ -4105,7 +4105,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         }),
         _ => unreachable!("listed command"),
     };
-    result.or_else(|e| refusal(e.code(), e.to_string()))
+    let mut result = result.or_else(|e| refusal(e.code(), e.to_string()))?;
+    engine::attach_source_quotes(command, v, &mut result);
+    Ok(result)
 }
 
 #[cfg(test)]
