@@ -58,6 +58,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/foreign_income_conversion",
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
+        "engine/residential_vacancy_fee",
     ]
     .into_iter()
     .flat_map(|dir| {
