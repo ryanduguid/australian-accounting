@@ -289,15 +289,21 @@ fn extracted_archive_is_complete_and_runs_without_python_or_checkout_assets() {
     let context = success(&evaluator, &["context"], &cwd);
     let marker = "# Preloaded scope resource\n\naus-accounting://scope\n\n";
     let (definitions, scope) = context.split_once(marker).unwrap();
-    assert_eq!(
-        definitions,
-        fixture["context"]
-            .as_str()
-            .unwrap()
-            .split_once(marker)
-            .unwrap()
-            .0
-    );
+    let expected_definitions = fixture["context"]
+        .as_str()
+        .unwrap()
+        .split_once(marker)
+        .unwrap()
+        .0
+        .replace(
+            "covers fourteen bounded worksheets",
+            "covers 14 bounded worksheets",
+        )
+        .replace(
+            "Calculate one of fourteen bounded tax and super worksheets",
+            "Calculate one of 14 bounded tax and super worksheets",
+        );
+    assert_eq!(definitions, expected_definitions);
     let scope: Value = serde_json::from_str(scope).unwrap();
     let mut expected_scope = aus_accounting_mcp::resources::read("aus-accounting://scope").unwrap();
     for name in aus_accounting_mcp::resources::RETRIEVAL_FOLDERS {

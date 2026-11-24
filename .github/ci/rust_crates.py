@@ -35,6 +35,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 UMBRELLA = "apps/au-accounting"
+DEP_SECTIONS = ("dependencies", "dev-dependencies", "build-dependencies")
 
 
 def crates(root: Path = ROOT, ci_yml: bool = False) -> list[dict[str, str]]:
@@ -86,6 +87,62 @@ def linked(root: Path = ROOT) -> list[str]:
         spec.get("package", name) for name, spec in data["dependencies"].items()
         if isinstance(spec, dict) and "path" in spec
     )
+
+
+def _manifest_path_deps(manifest: Path) -> list[Path]:
+    data = tomllib.loads(manifest.read_text(encoding="utf-8"))
+    tables: list[object] = [data.get(section) for section in DEP_SECTIONS]
+    targets = data.get("target", {})
+    if isinstance(targets, dict):
+        for target in targets.values():
+            if isinstance(target, dict):
+                tables.extend(target.get(section) for section in DEP_SECTIONS)
+    paths: list[Path] = []
+    for table in tables:
+        if not isinstance(table, dict):
+            continue
+        for spec in table.values():
+            if isinstance(spec, dict) and isinstance(spec.get("path"), str):
+                paths.append((manifest.parent / spec["path"]).resolve())
+    return paths
+
+
+def crate_dependencies(root: Path = ROOT, ci_yml: bool = True) -> dict[str, set[str]] | None:
+    """Map each crate to the local crates it links by path or candidate-files.
+
+    Returns None if any path dependency or candidate file escapes the listed crates,
+    so callers fail closed and run every crate.
+    """
+    listed = crates(root, ci_yml=ci_yml)
+    dirs = {
+        crate["package"]: (root / crate["root"] / crate["package"]).resolve()
+        for crate in listed
+    }
+    prefixes = {
+        f"{crate['root']}/{crate['package']}/": crate["package"]
+        for crate in listed
+    }
+    deps: dict[str, set[str]] = {name: set() for name in dirs}
+    for crate in listed:
+        name = crate["package"]
+        own_dir = dirs[name]
+        for manifest in sorted(own_dir.rglob("Cargo.toml")):
+            if "target" in manifest.relative_to(own_dir).parts:
+                continue
+            for target in _manifest_path_deps(manifest):
+                if target.is_relative_to(own_dir):
+                    continue
+                owner = next((pkg for pkg, d in dirs.items() if target.is_relative_to(d)), None)
+                if owner is None:
+                    return None
+                deps[name].add(owner)
+        for candidate in crate["candidate-files"].split():
+            owner = next((pkg for prefix, pkg in prefixes.items() if candidate.startswith(prefix)), None)
+            if owner is None:
+                return None
+            if owner != name:
+                deps[name].add(owner)
+    return deps
 
 
 def main() -> None:

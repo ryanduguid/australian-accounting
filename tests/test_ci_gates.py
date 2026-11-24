@@ -288,8 +288,8 @@ class ApplicationSelectionTests(unittest.TestCase):
         self.assertTrue(self.ci.crates_should_run([]))
 
     def test_crates_link_only_each_other_by_path(self) -> None:
-        # A change to any one of these crates runs them all, so a path dependency
-        # outside them would change a crate without selecting it.
+        # Per-crate selection walks local path dependencies across this set, so a path
+        # dependency outside them would change a crate without selecting it.
         matrix = [ROOT / crate["root"] / crate["package"] for crate in self.ci.crates(ci_yml=True)]
         for directory in matrix:
             metadata = json.loads(subprocess.run(
@@ -302,6 +302,219 @@ class ApplicationSelectionTests(unittest.TestCase):
                         path = Path(dependency["path"]).resolve()
                         with self.subTest(crate=package["name"], dependency=dependency["name"]):
                             self.assertTrue(any(path.is_relative_to(d.resolve()) for d in matrix), path)
+
+    def test_per_crate_selection_resolves_transitive_dependents_and_parity(self) -> None:
+        from select_package import SHARED_PATHS
+
+        all_names = [crate["package"] for crate in self.ci.crates(ci_yml=True)]
+        linked_engines = self.ci.linked()
+
+        def packages(selection) -> list[str]:
+            return [crate["package"] for crate in selection.crates]
+
+        # Single engine linked by both au-accounting and aus-accounting-mcp.
+        tax = self.ci.select_crates(["packages/australian-tax-calculators/src/lib.rs"])
+        self.assertTrue(tax.run)
+        self.assertEqual(packages(tax), ["au-accounting", "aus-accounting-mcp", "australian-tax-calculators"])
+        self.assertTrue(tax.parity_run)
+        self.assertEqual(tax.parity_engines, ["australian-tax-calculators"])
+        self.assertFalse(tax.all_parity)
+
+        # Single engine linked only by au-accounting (not aus-accounting-mcp).
+        solomons = self.ci.select_crates(["packages/solomons-sword/src/lib.rs"])
+        self.assertEqual(packages(solomons), ["au-accounting", "solomons-sword"])
+        self.assertTrue(solomons.parity_run)
+        self.assertEqual(solomons.parity_engines, ["solomons-sword"])
+        self.assertFalse(solomons.all_parity)
+
+        # Multiple engines combine their parity set cleanly.
+        pair = self.ci.select_crates([
+            "packages/div7a-loan-review/src/lib.rs",
+            "packages/payday-super-checker/src/lib.rs",
+        ])
+        self.assertEqual(
+            packages(pair),
+            ["au-accounting", "aus-accounting-mcp", "div7a-loan-review", "payday-super-checker"],
+        )
+        self.assertTrue(pair.parity_run)
+        self.assertEqual(pair.parity_engines, ["div7a-loan-review", "payday-super-checker"])
+        self.assertFalse(pair.all_parity)
+
+        # MCP-only change runs only aus-accounting-mcp and skips umbrella-parity.
+        mcp = self.ci.select_crates(["apps/aus-accounting-mcp/tests/native_candidate.rs"])
+        self.assertTrue(mcp.run)
+        self.assertEqual(packages(mcp), ["aus-accounting-mcp"])
+        self.assertFalse(mcp.parity_run)
+        self.assertEqual(mcp.parity_engines, [])
+
+        # lodgment-calendar feeds aus-accounting-mcp, not au-accounting.
+        cal = self.ci.select_crates(["packages/lodgment-calendar/src/lib.rs"])
+        self.assertEqual(packages(cal), ["aus-accounting-mcp", "lodgment-calendar"])
+        self.assertFalse(cal.parity_run)
+
+        # Standalone rates dataset runs only itself.
+        rates = self.ci.select_crates(["packages/au-tax-rates-data/src/main.rs"])
+        self.assertEqual(packages(rates), ["au-tax-rates-data"])
+        self.assertFalse(rates.parity_run)
+
+        # Direct change to au-accounting rebuilds all linked engines for full parity.
+        umbrella = self.ci.select_crates(["apps/au-accounting/src/main.rs"])
+        self.assertEqual(packages(umbrella), ["au-accounting", *linked_engines])
+        self.assertTrue(umbrella.parity_run)
+        self.assertEqual(umbrella.parity_engines, linked_engines)
+        self.assertTrue(umbrella.all_parity)
+
+        # Known unrelated paths skip both rust and umbrella-parity.
+        unrelated = self.ci.select_crates([
+            "apps/lodgeit-calculator-adapter/src/dial.rs",
+            "tests/test_components.py",
+            "tools/fixture-screen/src/main.rs",
+        ])
+        self.assertFalse(unrelated.run)
+        self.assertFalse(unrelated.parity_run)
+        self.assertEqual(unrelated.crates, [])
+
+        # Shared, workflow, root, unknown, invalid or empty paths fail closed to all crates.
+        for paths in (
+            [],
+            [".github/workflows/ci.yml"],
+            [".github/ci/app_ci.py"],
+            [next(iter(SHARED_PATHS))],
+            ["Cargo.toml"],
+            ["Cargo.lock"],
+            ["deny.toml"],
+            ["docs/new.md"],
+            ["packages/solomons-sword/../gst-review/src/lib.rs"],
+            [""],
+        ):
+            with self.subTest(paths=paths):
+                full = self.ci.select_crates(paths)
+                self.assertTrue(full.run)
+                self.assertTrue(full.parity_run)
+                self.assertTrue(full.all_parity)
+                self.assertEqual(packages(full), all_names)
+                self.assertEqual(full.parity_engines, linked_engines)
+
+    def test_per_crate_selection_handles_multi_hop_and_escaping_path_deps(self) -> None:
+        def write_crate(root: Path, rel: str, name: str, deps: str = "") -> None:
+            directory = root / rel
+            (directory / "src").mkdir(parents=True, exist_ok=True)
+            (directory / "src/main.rs").write_text("fn main() {}\n", encoding="utf-8")
+            (directory / "Cargo.toml").write_text(
+                f'[package]\nname = "{name}"\nversion = "0.1.0"\n[dependencies]\n{deps}',
+                encoding="utf-8",
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_crate(root, "packages/leaf", "leaf")
+            write_crate(root, "packages/mid", "mid", 'leaf = { path = "../leaf" }\n')
+            write_crate(root, "packages/unrelated", "unrelated")
+            write_crate(root, "apps/au-accounting", "au-accounting", 'mid = { path = "../../packages/mid" }\n')
+
+            selected = self.ci.select_crates(["packages/leaf/src/main.rs"], root=root)
+            self.assertEqual([c["package"] for c in selected.crates], ["au-accounting", "leaf", "mid"])
+            self.assertTrue(selected.parity_run)
+            self.assertEqual(selected.parity_engines, ["mid"])
+            self.assertTrue(selected.all_parity)
+
+            # A path dependency escaping the ci.yml crate set fails closed to all crates.
+            write_crate(root, "tools/shared", "shared")
+            write_crate(root, "packages/mid", "mid", 'leaf = { path = "../leaf" }\nshared = { path = "../../tools/shared" }\n')
+            self.assertIsNone(self.ci.crate_dependencies(root=root, ci_yml=True))
+            fallback = self.ci.select_crates(["packages/leaf/src/main.rs"], root=root)
+            self.assertEqual(
+                [c["package"] for c in fallback.crates],
+                ["au-accounting", "leaf", "mid", "unrelated"],
+            )
+            self.assertTrue(fallback.all_parity)
+
+    def test_select_crates_cli_outputs_scoped_matrix_and_full_matrix_off_pr(self) -> None:
+        def write_crate(root: Path, rel: str, name: str, deps: str = "") -> None:
+            directory = root / rel
+            (directory / "src").mkdir(parents=True, exist_ok=True)
+            (directory / "src/main.rs").write_text("fn main() {}\n", encoding="utf-8")
+            (directory / "Cargo.toml").write_text(
+                f'[package]\nname = "{name}"\nversion = "0.1.0"\n[dependencies]\n{deps}',
+                encoding="utf-8",
+            )
+
+        def parse_outputs(text: str) -> dict[str, str]:
+            return dict(line.split("=", 1) for line in text.strip().splitlines())
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_crate(root, "packages/eng-a", "eng-a")
+            write_crate(root, "packages/eng-b", "eng-b")
+            write_crate(root, "apps/mcp", "mcp", 'eng-a = { path = "../../packages/eng-a" }\n')
+            write_crate(
+                root,
+                "apps/au-accounting",
+                "au-accounting",
+                'eng-a = { path = "../../packages/eng-a" }\neng-b = { path = "../../packages/eng-b" }\n',
+            )
+            (root / "tests").mkdir()
+            (root / "tests/test_root.py").write_text("# ok\n", encoding="utf-8")
+            git(root, "init", "-q", "-b", "main")
+            git(root, "add", "-A")
+            git(root, "commit", "-q", "-m", "base")
+
+            def run_merge(rel: str, content: str, event: str) -> dict[str, str]:
+                git(root, "checkout", "-q", "-B", "feature", "main")
+                (root / rel).write_text(content, encoding="utf-8")
+                git(root, "add", "-A")
+                git(root, "commit", "-q", "-m", f"change {rel}")
+                git(root, "checkout", "-q", "main")
+                git(root, "merge", "-q", "--no-ff", "--no-edit", "feature")
+                # The current interpreter runs the repository selector with fixed arguments and no shell.
+                # nosemgrep: python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
+                done = subprocess.run(  # nosec B603
+                    [sys.executable, str(CHECK.parent / "app_ci.py"), "select", "crates"],
+                    cwd=root,
+                    env={**os.environ, "GITHUB_EVENT_NAME": event},
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+                git(root, "reset", "--hard", "-q", "HEAD^1")
+                return parse_outputs(done.stdout)
+
+            pr_eng = run_merge("packages/eng-a/src/main.rs", "fn main() { /* a */ }\n", "pull_request")
+            self.assertEqual(pr_eng["run"], "true")
+            self.assertEqual(pr_eng["parity-run"], "true")
+            self.assertEqual(
+                [c["package"] for c in json.loads(pr_eng["ci-matrix"])["include"]],
+                ["au-accounting", "mcp", "eng-a"],
+            )
+            self.assertEqual(pr_eng["parity"], "{eng-a,au-accounting}")
+            self.assertEqual(pr_eng["parity-count"], "2")
+            self.assertEqual(pr_eng["parity-engines"], "eng-a")
+
+            pr_mcp = run_merge("apps/mcp/src/main.rs", "fn main() { /* mcp */ }\n", "pull_request")
+            self.assertEqual(pr_mcp["run"], "true")
+            self.assertEqual(pr_mcp["parity-run"], "false")
+            self.assertEqual([c["package"] for c in json.loads(pr_mcp["ci-matrix"])["include"]], ["mcp"])
+            self.assertEqual(pr_mcp["parity"], "")
+            self.assertEqual(pr_mcp["parity-count"], "0")
+            self.assertEqual(pr_mcp["parity-engines"], "")
+
+            pr_unrelated = run_merge("tests/test_root.py", "# changed\n", "pull_request")
+            self.assertEqual(pr_unrelated["run"], "false")
+            self.assertEqual(pr_unrelated["parity-run"], "false")
+            self.assertEqual(json.loads(pr_unrelated["ci-matrix"]), {"include": []})
+
+            for event in ("push", "workflow_dispatch", "schedule"):
+                non_pr = run_merge("tests/test_root.py", "# changed\n", event)
+                with self.subTest(event=event):
+                    self.assertEqual(non_pr["run"], "true")
+                    self.assertEqual(non_pr["parity-run"], "true")
+                    self.assertEqual(
+                        [c["package"] for c in json.loads(non_pr["ci-matrix"])["include"]],
+                        ["au-accounting", "mcp", "eng-a", "eng-b"],
+                    )
+                    self.assertEqual(non_pr["parity"], "{eng-a,eng-b,au-accounting}")
+                    self.assertEqual(non_pr["parity-count"], "3")
+                    self.assertEqual(non_pr["parity-engines"], "")
 
     def test_gated_workflows_select_their_former_trigger_paths(self) -> None:
         # These workflows dropped on.pull_request.paths for a changes job, so every pull
@@ -464,7 +677,10 @@ class ApplicationGateTests(unittest.TestCase):
                 success = {name: {"result": result} for name in app_jobs}
                 if app == "aus-accounting-mcp":
                     success["test"] = {"result": "success"}
-                success.update({selector: {"result": "success", "outputs": {"run": selection}}},
+                outputs = {"run": selection}
+                if app == "crates":
+                    outputs["parity-run"] = selection
+                success.update({selector: {"result": "success", "outputs": outputs}},
                                packages={"result": "success"}, future={"result": "success"})
                 ci.check_results(success, "pull_request", app)
                 for name in success:
@@ -504,18 +720,27 @@ class ApplicationGateTests(unittest.TestCase):
 
     def test_ci_yml_gate_holds_each_selection_to_its_own_jobs(self) -> None:
         ci = application_ci()
-        app_jobs, crate_jobs = ci.SELECTED_JOBS["aus-accounting-mcp"], ci.SELECTED_JOBS["crates"]
-        for app_run, crates_run in (("true", "false"), ("false", "true"), ("false", "false")):
+        app_jobs = ci.SELECTED_JOBS["aus-accounting-mcp"]
+        for app_run, crates_run, parity_run in (
+            ("true", "false", "false"),
+            ("false", "true", "true"),
+            ("false", "true", "false"),
+            ("true", "true", "false"),
+            ("false", "false", "false"),
+        ):
             results = {name: {"result": "success" if app_run == "true" else "skipped"} for name in app_jobs}
             results["test"] = {"result": "success"}
-            results |= {name: {"result": "success" if crates_run == "true" else "skipped"} for name in crate_jobs}
+            results |= {
+                "rust": {"result": "success" if crates_run == "true" else "skipped"},
+                "umbrella-parity": {"result": "success" if parity_run == "true" else "skipped"},
+            }
             results |= {"changes": {"result": "success", "outputs": {"run": app_run}},
-                        "crates": {"result": "success", "outputs": {"run": crates_run}},
+                        "crates": {"result": "success", "outputs": {"run": crates_run, "parity-run": parity_run}},
                         "packages": {"result": "success"}}
-            with self.subTest(app=app_run, crates=crates_run):
+            with self.subTest(app=app_run, crates=crates_run, parity=parity_run):
                 ci.check_results(results, "pull_request", "aus-accounting-mcp", "crates")
                 # A selection the gate is not told about leaves its skipped jobs failing.
-                if crates_run == "false":
+                if crates_run == "false" or parity_run == "false":
                     with self.assertRaises(ValueError):
                         ci.check_results(results, "pull_request", "aus-accounting-mcp")
                 if app_run == "false":
@@ -524,6 +749,19 @@ class ApplicationGateTests(unittest.TestCase):
                 for event in ("push", "workflow_dispatch"):
                     with self.assertRaises(ValueError):
                         ci.check_results(results, event, "aus-accounting-mcp", "crates")
+        # Running parity when rust is skipped, or omitting/malforming parity-run, always fails.
+        for bad_outputs in (
+            {"run": "false", "parity-run": "true"},
+            {"run": "true"},
+            {"run": "true", "parity-run": "TRUE"},
+        ):
+            bad = {
+                "crates": {"result": "success", "outputs": bad_outputs},
+                "rust": {"result": "skipped"},
+                "umbrella-parity": {"result": "success"},
+            }
+            with self.subTest(bad_outputs=bad_outputs), self.assertRaises(ValueError):
+                ci.check_results(bad, "pull_request", "crates")
 
     def test_gate_cli_works_with_sparse_checkout_and_rejects_invalid_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -533,7 +771,10 @@ class ApplicationGateTests(unittest.TestCase):
                 results = {name: {"result": "skipped"} for name in app_jobs}
                 if app == "aus-accounting-mcp":
                     results["test"] = {"result": "success"}
-                results[application_ci().SELECTORS.get(app, "changes")] = {"result": "success", "outputs": {"run": "false"}}
+                outputs = {"run": "false"}
+                if app == "crates":
+                    outputs["parity-run"] = "false"
+                results[application_ci().SELECTORS.get(app, "changes")] = {"result": "success", "outputs": outputs}
                 for raw, gate, expected in ((json.dumps(results), [app], 0), ("{invalid", [app], 1),
                                             ("null", [app], 1), (json.dumps(results), [], 2),
                                             (json.dumps(results), ["unknown-app"], 2)):
@@ -640,11 +881,18 @@ class GateWiringTests(unittest.TestCase):
                 self.assertIn("fetch-depth: 2", crates)
                 self.assertIn('run: python3 .github/ci/app_ci.py select crates >> "$GITHUB_OUTPUT"', crates)
                 self.assertIn("run: ${{ steps.select.outputs.run }}", crates)
+                self.assertIn("parity-run: ${{ steps.select.outputs.parity-run }}", crates)
+                self.assertIn("parity-engines: ${{ steps.select.outputs.parity-engines }}", crates)
                 rust = job_block(text, "rust")
                 self.assertIn("if: needs.crates.result == 'success' && needs.crates.outputs.run == 'true'", rust)
                 parity = job_block(text, "umbrella-parity")
                 self.assertIn("needs: [crates, rust]", parity)
-                self.assertNotIn("if:", parity)
+                self.assertIn(
+                    "if: needs.crates.result == 'success' && needs.rust.result == 'success'"
+                    " && needs.crates.outputs.parity-run == 'true'",
+                    parity,
+                )
+                self.assertIn("AU_ACCOUNTING_PARITY_ENGINES: ${{ needs.crates.outputs.parity-engines }}", parity)
         owner = (WORKFLOWS / "boundaries.yml").read_text(encoding="utf-8")
         self.assertIn("run: uv run --locked --group dev pytest", owner)
         self.assertIn("needs: [boundaries, root-checks, fixture-screen]", owner)

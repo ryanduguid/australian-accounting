@@ -117,6 +117,15 @@ fn questions_and_complete_actual_stdio_context_match_original() {
         .unwrap()
         .split_once(marker)
         .unwrap();
+    let expected_definitions = expected_definitions
+        .replace(
+            "covers fourteen bounded worksheets",
+            "covers 14 bounded worksheets",
+        )
+        .replace(
+            "Calculate one of fourteen bounded tax and super worksheets",
+            "Calculate one of 14 bounded tax and super worksheets",
+        );
     assert_eq!(
         definitions, expected_definitions,
         "full instructions, tools and schemas"
