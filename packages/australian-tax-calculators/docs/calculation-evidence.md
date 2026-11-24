@@ -5550,8 +5550,9 @@ each discounted flow to whole units (200, 191, 180, 166, 151, 135, 115, 94,
 identifiable assets 473). Unrounded, value in use is 1,361.20 and the loss
 1,471.80 (goodwill 1,000.00, identifiable assets 471.80): each year's present
 value rounds to Schedule 2's figure, and the totals differ only by Schedule
-2's rounding of each line. I2 to I6 are made up and worked in Python's
-`decimal`.
+2's rounding of each line. E2 so reconciles the 2 rounding conventions; it
+does not reproduce Schedule 3's 1,473. I2 to I7 are made up and worked in
+Python's `decimal`.
 
 | Vector | Facts given | Result |
 | --- | --- | --- |
@@ -5561,10 +5562,12 @@ value rounds to Schedule 2's figure, and the totals differ only by Schedule
 | I4 | recoverable above carrying | no loss |
 | I5 | 12,000, 12,500, 13,000, 13,500, 14,000 and terminal 40,000 at 9.25% | value in use **$75,599.58** |
 | I6 | 3 assets of $100.00, loss $100.00 | **$33.33**, **$33.34**, **$33.33** |
+| I7 | A 300 floor 290, B 300 floor 295, nil, C 700, D 200; loss $100.00 | A and B reach their floors in one round (**$10.00**, **$5.00**); C **$66.11**, D **$18.89** |
 
 `tests/impairment_test.rs` also covers the year boundaries, negative cash
-flows, an unmeasurable fair value, floors above carrying amount and every
-refusal.
+flows and terminal values, an unmeasurable fair value, floors above carrying
+amount, losses a cent below goodwill and a cent above the carrying amount, a
+non-controlling interest without goodwill and every refusal.
 
 ## Leave provisions
 

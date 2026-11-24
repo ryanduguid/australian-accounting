@@ -276,3 +276,86 @@ fn years_and_scope() {
     i["not_an_input"] = json!(1);
     assert_eq!(code(&i), "input.field_unknown");
 }
+
+#[test]
+fn i7_two_assets_reach_their_floors_in_one_round() {
+    // Round 1: A's share 20 and B's 20 pass their rooms of 10 and 5; round 2
+    // spreads the 85 left over C and D, 66.111... and 18.888..., in cents
+    // cumulatively. E carries nil and takes nothing.
+    let mut i = input(
+        json!(["0"]),
+        "0.1",
+        json!([
+            floored("A", "300.00", "290.00"),
+            floored("B", "300.00", "295.00"),
+            asset("E", "0.00", false),
+            asset("C", "700.00", false),
+            asset("D", "200.00", false)
+        ]),
+    );
+    i["fair_value_less_costs_of_disposal"] = json!("1400.00");
+    let r = run(&i);
+    assert_eq!(amount(&r, "impairment_loss"), "100.00");
+    assert_eq!(losses(&r), ["10.00", "5.00", "0.00", "66.11", "18.89"]);
+    assert_eq!(amount(&r, "unallocated"), "0.00");
+}
+
+#[test]
+fn a_cent_either_side_of_goodwill_and_the_carrying_amount() {
+    let mut i = input(
+        json!(["0"]),
+        "0.1",
+        json!([
+            asset("Goodwill", "100.00", true),
+            asset("B", "50.00", false)
+        ]),
+    );
+    i["fair_value_less_costs_of_disposal"] = json!("50.01");
+    let r = run(&i);
+    assert_eq!(amount(&r, "impairment_loss"), "99.99");
+    assert_eq!(losses(&r), ["99.99", "0.00"]);
+    // -0.01 / 1.1 is -0.00909..., so value in use is -0.01 and the loss a
+    // cent above the carrying amount.
+    let mut i = input(json!(["0"]), "0.1", json!([asset("A", "100.00", false)]));
+    i["terminal_value"] = json!("-0.01");
+    let r = run(&i);
+    assert_eq!(amount(&r, "value_in_use"), "-0.01");
+    assert_eq!(amount(&r, "impairment_loss"), "100.01");
+    assert_eq!(losses(&r), ["100.00"]);
+    assert_eq!(amount(&r, "unallocated"), "0.01");
+}
+
+#[test]
+fn a_negative_terminal_value_after_several_years() {
+    // 100 / 1.1 + 100 / 1.21 - 50 / 1.21 = 132.2314...
+    let mut i = input(
+        json!(["100.00", "100.00"]),
+        "0.1",
+        json!([asset("A", "200.00", false)]),
+    );
+    i["terminal_value"] = json!("-50.00");
+    let r = run(&i);
+    assert_eq!(r["terminal_present_value"], "-41.32");
+    assert_eq!(amount(&r, "value_in_use"), "132.23");
+    assert_eq!(amount(&r, "impairment_loss"), "67.77");
+}
+
+#[test]
+fn a_non_controlling_interest_without_goodwill_and_goodwill_alone() {
+    let mut i = input(
+        json!(["100"]),
+        "0.1",
+        json!([asset("A", "100.00", false), asset("B", "200.00", false)]),
+    );
+    i["non_controlling_interest"] = json!(true);
+    let r = run(&i);
+    assert_eq!(amount(&r, "impairment_loss"), "209.09");
+    let mut i = e2();
+    i["assets"] = json!([asset("Goodwill", "1000", true)]);
+    assert_eq!(code(&i), "impairment_test.asset_invalid");
+    i["non_controlling_interest"] = json!(true);
+    assert_eq!(code(&i), "impairment_test.asset_invalid");
+    let mut i = e2();
+    i["non_controlling_interest"] = json!("yes");
+    assert_eq!(code(&i), "input.flag_invalid");
+}

@@ -83,7 +83,7 @@ fn discount_rate(given: &Arg) -> Result<Decimal> {
         }
         _ => refuse(
             "impairment_test.rate_invalid",
-            "discount_rate must be a decimal fraction above 0 and at most 1, at most 6 places: the stated pre-tax rate (AASB 136 para 55).",
+            "discount_rate must be a decimal fraction above 0 and at most 1 (100%), at most 6 places: the stated pre-tax rate (AASB 136 para 55). The bounds are this worksheet's, not the Standard's.",
         ),
     }
 }
@@ -153,6 +153,12 @@ fn assets(given: &Arg) -> Result<Vec<Asset>> {
         return refuse(
             "impairment_test.asset_invalid",
             "assets may hold one goodwill line and must carry an amount above nil in total.",
+        );
+    }
+    if all.iter().all(|a| a.goodwill) {
+        return refuse(
+            "impairment_test.asset_invalid",
+            "Goodwill does not generate cash flows independently (AASB 136 para 81): list the unit's other assets beside the goodwill line.",
         );
     }
     Ok(all)
@@ -324,7 +330,10 @@ fn read(a: &ImpairmentTestArgs) -> Result<Inputs> {
             "A revalued asset's impairment loss is a revaluation decrease under its own Standard (AASB 136 para 60), which this worksheet does not apply.",
         );
     }
-    if flag(a.non_controlling_interest, "non_controlling_interest")? {
+    let all = assets(a.assets)?;
+    if flag(a.non_controlling_interest, "non_controlling_interest")?
+        && all.iter().any(|x| x.goodwill)
+    {
         return refuse(
             "impairment_test.non_controlling_interest",
             "A unit with goodwill and a non-controlling interest is tested with the goodwill grossed up and allocated under AASB 136 Appendix C, which this worksheet does not apply.",
@@ -336,7 +345,7 @@ fn read(a: &ImpairmentTestArgs) -> Result<Inputs> {
         .map_or_else(|| Ok(d("0.00")), signed_money)?;
     let rate = discount_rate(a.discount_rate)?;
     let fair = a.fair_value_less_costs_of_disposal.map(money).transpose()?;
-    Ok((flows, terminal, rate, fair, assets(a.assets)?))
+    Ok((flows, terminal, rate, fair, all))
 }
 
 /// The measured figures, rounded to the cent.

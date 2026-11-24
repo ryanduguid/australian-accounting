@@ -490,7 +490,7 @@ own dates and figures.
 | Residency tests | 2020-21 to 2026-27; one individual's stated judgements on residing, domicile, places of abode, intention and Commonwealth fund membership, and the dates in Australia; no treaty tie-breakers, no part-year dates |
 | Lodgment required | 2020-21 to 2025-26; one individual's own return, not as trustee, partner or agent, no substituted accounting period; residency, stated conditions and exception facts as answered; no child support instrument |
 | Deferred tax | 2020-21 to 2026-27; one company at the s 23(2) rates, Australian income tax only; established carrying amounts, tax bases, losses, recognition judgement and taxable income; no business combinations, uncertain tax treatments, tax-consolidated group members or tax outside profit or loss |
-| Impairment test | Reporting periods ending in 2020-21 to 2026-27; one asset or cash-generating unit with stated pre-tax cash flows, terminal value, pre-tax rate, fair value less costs of disposal, carrying amounts and floors; no revalued assets, non-controlling interests, reversals or deferred tax |
+| Impairment test | Reporting periods ending in 2020-21 to 2026-27; one asset or cash-generating unit with stated pre-tax cash flows, terminal value, pre-tax rate, fair value less costs of disposal, carrying amounts and floors; no revalued assets, goodwill with a non-controlling interest, reversals or deferred tax |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
 | Long service leave | Last days from 1 July 2020 to 30 June 2027 and not before each Act's text as read; one employee under a state or territory's general Act; established dates, excluded days, leave taken, reason and ordinary weekly pay; no award, agreement or portable scheme |
 | SMSF tax | 2020-21 to 2026-27; one complying SMSF that is an Australian superannuation fund; the actuary's proportion, segregated income, non-arm's length income, deductions, offsets and credits established; no tax losses carried forward |
@@ -4511,14 +4511,18 @@ requires one). Shares are rounded to the cent cumulatively so they add to the
 loss. `years` gives each year's present value and `assets` each asset's loss
 and carrying amount after it.
 
-AASB 136 Illustrative Example 2 rounds each discounted cash flow to whole
-units; the command does not, so it gives value in use of 1,361.20 where the
-example totals 1,360, and each year's present value rounds to the example's.
+The command reconciles with AASB 136 Illustrative Example 2 rather than
+reproducing it: the example rounds each discounted cash flow to whole units
+and the command does not, so it gives value in use of 1,361.20 and a loss of
+1,471.80 where the example has 1,360 and 1,473; each year's present value
+rounds to the example's.
 
 It refuses a revalued asset (para 60), a unit with goodwill and a
-non-controlling interest (Appendix C), more than one goodwill line, and years
-before 2020-21 and after 2026-27. Indications of impairment, reversals,
-deferred tax and disclosure are outside it. See
+non-controlling interest (Appendix C), more than one goodwill line, a goodwill
+line alone (para 81), a rate of nil or less or above 100% (the worksheet's
+limits, not the Standard's) and years before 2020-21 and after 2026-27.
+Indications of impairment, reversals, deferred tax and disclosure are outside
+it. See
 [calculation evidence](docs/calculation-evidence.md#impairment-test).
 
 ## Leave provisions

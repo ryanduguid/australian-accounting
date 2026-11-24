@@ -492,7 +492,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "impairment_test",
-        "One asset's or cash-generating unit's impairment test under AASB 136 at a reporting date ending in a financial year from 2020-21 to 2026-27, from figures the preparer has established. Value in use is the present value of the stated pre-tax net cash flows for years 1 to n, each at the end of its year, and of a stated terminal value at the end of year n, at one stated pre-tax discount rate, rounded half up to the cent (paras 30, 31, 33, 39, 50 to 52, 55 and A21). Recoverable amount is the higher of value in use and any stated fair value less costs of disposal (paras 18 to 20). An impairment loss is the carrying amount less recoverable amount where positive (paras 59 and 104). It is allocated first to goodwill (para 104(a)), then to the other assets pro rata to their carrying amounts (para 104(b)), none below the higher of its own stated fair value less costs of disposal and value in use or nil, the excess passed pro rata to the others (para 105); any loss left once every asset is at its floor is shown unallocated, a liability only where another Standard requires one (para 62). Each share is rounded half up to the cent cumulatively. The preparer establishes the cash flows (paras 33 and 39 to 53), the rate (paras 55 to 57), the unit and its assets (paras 65 to 79), goodwill's allocation (paras 80 to 99), corporate assets (paras 100 to 103) and the floors. Excludes indications of impairment (paras 9 to 17), reversals (paras 109 to 125), deferred tax and disclosure. Refuses a revalued asset (para 60) and a unit with a non-controlling interest (Appendix C).",
+        "One asset's or cash-generating unit's impairment test under AASB 136 at a reporting date ending in a financial year from 2020-21 to 2026-27, from figures the preparer has established. Value in use is the present value of the stated pre-tax net cash flows for years 1 to n, each at the end of its year, and of a stated terminal value at the end of year n, at one stated pre-tax discount rate above 0 and at most 100% (limits of this worksheet), rounded half up to the cent (paras 30, 31, 33, 39, 50 to 52, 55 and A21). Recoverable amount is the higher of value in use and any stated fair value less costs of disposal (paras 18 to 20). An impairment loss is the carrying amount less recoverable amount where positive (paras 59 and 104). It is allocated first to goodwill (para 104(a)), then to the other assets pro rata to their carrying amounts (para 104(b)), none below the higher of its own stated fair value less costs of disposal and value in use or nil, the excess passed pro rata to the others (para 105); any loss left once every asset is at its floor is shown unallocated, a liability only where another Standard requires one (para 62). Each share is rounded half up to the cent cumulatively. The preparer establishes the cash flows (paras 33 and 39 to 53), the rate (paras 55 to 57), the unit and its assets (paras 65 to 79), goodwill's allocation (paras 80 to 99), corporate assets (paras 100 to 103) and the floors. Excludes indications of impairment (paras 9 to 17), reversals (paras 109 to 125), deferred tax and disclosure. Refuses a revalued asset (para 60), a unit with goodwill and a non-controlling interest (Appendix C) and a goodwill line alone (para 81).",
     ),
     (
         "leave_provisions",
@@ -4315,7 +4315,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "impairment_test.asset_invalid",
-        "assets is not a list of 1 to 200 objects, each a label, a carrying amount from 0, goodwill true or false and, other than on goodwill, an optional floor, with at most one goodwill line and an amount above nil in total.",
+        "assets is not a list of 1 to 200 objects, each a label, a carrying amount from 0, goodwill true or false and, other than on goodwill, an optional floor, with at most one goodwill line, never alone, and an amount above nil in total.",
     ),
     (
         "impairment_test.cash_flows_invalid",
@@ -4327,7 +4327,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "impairment_test.rate_invalid",
-        "discount_rate is not a decimal fraction above 0 and at most 1, at most 6 places.",
+        "discount_rate is not a decimal fraction above 0 and at most 1 (this worksheet's limits), at most 6 places.",
     ),
     (
         "impairment_test.revalued",
