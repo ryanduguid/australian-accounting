@@ -205,9 +205,10 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // instant-asset-write-off, defined-benefit-income-cap,
     // foreign-pension-upp, scholarship-exemption, super-crystallisation and
     // endorsement-review.
-    // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4 and
-    // workers-compensation-premium, gst-food-retailer-sam.
-    assert_eq!(checked, 119);
+    // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
+    // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
+    // gst-food-retailer-sam.
+    assert_eq!(checked, 123);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

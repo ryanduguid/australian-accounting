@@ -15,6 +15,39 @@
   `not_eligible`, `retailer_type_invalid`, `sample_invalid`,
   `stock_role_invalid`, `tax_period_invalid`, `tax_period_spans_halves` and
   `total_nil`.
+- `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
+  buyer's share in 2026-27 and the foreign or absentee owner land tax
+  surcharge for a full land tax year, in each of the 8 states and
+  territories, with foreign status taken as established. It mirrors the
+  site's foreign surcharge calculator and agrees with it on every case except
+  where the Act differs: Queensland's surcharge from $349,999 and Tasmania's
+  rounding to 10 cents. New codes:
+  `foreign_purchaser_surcharge.absentee_trust_unsupported`,
+  `foreign_purchaser_surcharge.dutiable_value_nil`,
+  `foreign_purchaser_surcharge.jurisdiction_invalid`,
+  `foreign_purchaser_surcharge.owner_invalid` and
+  `foreign_purchaser_surcharge.use_invalid`. `derive` takes it.
+- `esic` works out an investor's early stage investor tax offset under ITAA
+  1997 Subdivision 360-A for 2016-17 to 2026-27: the early stage innovation
+  company tests at the time of issue (s 360-40), the 100-point test from the
+  stated items (s 360-45), the investor tests and the $50,000 limit (ss 360-15
+  and 360-20), 20% of the amount (s 360-25(1)) and the $200,000 cap with
+  affiliates and carried forward offsets (s 360-25(2)). New codes:
+  `esic.amount_above_income`, `esic.clawback_year_unsettled`,
+  `esic.incorporation_after_year`, `esic.innovation_items_conflict`,
+  `esic.innovation_items_invalid`, `esic.investor_invalid`,
+  `esic.non_cash_before_2018_19`,
+  `esic.retail_limit_unsettled`, `esic.six_year_route_before_2018_19`,
+  `esic.trust_or_partnership_unsupported` and `esic.year_invalid`.
+
+- `contribution-caps` takes 10 optional downsizer inputs, all or none, and
+  tests one downsizer contribution under ITAA 1997 s 292-102: age 55, a
+  contract from 1 July 2018, 90 days after the change of ownership and the
+  $300,000 and capital proceeds limits, with the other criteria stated.
+  `pension-minimum` takes an optional `transition_to_retirement` and adds the
+  10% maximum of SISR reg 6.01(2). Without the new inputs both commands answer
+  as before. New codes: `downsizer.contribution_before_settlement`,
+  `downsizer.date_outside_year` and `downsizer.settlement_before_contract`.
 - `super-withholding` takes one superannuation income stream payment with
   `income_stream_period`: Schedule 13 Part A withholding in 2024-25 to
   2026-27 for an account-based stream, or a capped defined benefit stream to
@@ -191,6 +224,31 @@
   `excluded_invalid`, `hours_invalid`, `jurisdiction_invalid`,
   `pay_invalid`, `reason_invalid`, `start_too_early`, `status_invalid`,
   `taken_above_weeks`, `taken_invalid`, `unsettled` and `year_mismatch`.
+- `transfer-duty`: transfer duty on one dutiable transaction in 2026-27 in each
+  of the 8 states and territories, at the general rate or with an eligible
+  first home buyer's concession for an established or new home. It mirrors
+  the site's transfer duty calculator and agrees with it on every case except
+  Victoria's, which Duties Act 2000 (Vic) s 28(1) charges to the nearest
+  dollar. New codes: `transfer_duty.buyer_invalid`,
+  `transfer_duty.dutiable_value_nil`,
+  `transfer_duty.first_home_not_residential`,
+  `transfer_duty.jurisdiction_invalid` and
+  `transfer_duty.non_residential_unsupported`. `derive` takes it.
+- `work-expenses` works out the standard deduction for work-related expenses
+  (ITAA 1997 s 25-130, Act No. 49 of 2026) in 2026-27 when given
+  `assessable_labour_income`, `other_work_related_deductions` and
+  `australian_resident`: the $1,000 limit, what is left beside the covered
+  deductions claimed, and what claiming this method adds over relying on
+  the standard deduction. Results without these inputs are unchanged. New
+  code: `work_expenses.standard_deduction_unavailable`.
+- `notice-period` works out the minimum notice of termination under the
+  National Employment Standards (Fair Work Act 2009 s 117) for notice given
+  from 27 March 2021 to 30 June 2027, with the over-45 week, the s 123
+  exclusions as stated, and the payment in lieu, rounded up to the cent,
+  from a stated full rate of pay and hours a week. New codes: `notice_period.age_unsettled`,
+  `before_current_text`, `birth_after_start`, `excluded_invalid`,
+  `exclusion_invalid`, `hours_invalid`, `start_after_notice` and
+  `year_mismatch`.
 - `trading-stock` works out the change in value of trading stock under ITAA
   1997 s 70-35 for 2020-21 to 2026-27, each closing item valued by its own
   election (cost, market selling value, replacement value, the lowest, or an
