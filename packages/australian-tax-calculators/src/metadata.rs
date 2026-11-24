@@ -3699,7 +3699,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "excess_deduction_order",
-                "list of person ids, Queensland only and with a designated group employer: the order in which other members share an excess deduction (Payroll Tax Act 1971 (Qld) ss 46 and 47)",
+                "list of person ids, Queensland only and with a designated group employer, required when the deduction exceeds that employer's wages: the order, nominated by the DGE or determined by the commissioner, in which entitled group members share the excess (Payroll Tax Act 1971 (Qld) ss 44, 46 and 47)",
             ),
         ],
         "vic_property_taxes" => vec![
@@ -5015,7 +5015,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("employer", "the person id whose group is worked"),
             (
                 "persons",
-                "list of objects: id, taxable_wages (AUD, in the jurisdiction), interstate_wages (AUD), each nil when absent, and carries_on_business (boolean; by default true when the person has wages)",
+                "list of objects: id, taxable_wages (AUD, in the jurisdiction), interstate_wages (AUD), each nil when absent, and carries_on_business (boolean, whether the person carries on a business of its own; required for a person who holds a controlling interest alone)",
             ),
             (
                 "employed_all_year",

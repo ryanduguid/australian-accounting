@@ -2767,8 +2767,8 @@ single deduction. It takes:
 
 - `jurisdiction` and `employer`, the person whose group is worked;
 - `persons`: each `id`, `taxable_wages` in the jurisdiction,
-  `interstate_wages` and, for a holder without wages that still carries on a
-  business, `carries_on_business`;
+  `interstate_wages` and `carries_on_business`, which a person holding a
+  controlling interest alone must state;
 - the stated facts, each optional: `related_bodies_corporate` and
   `common_employees` (pairs), `controlling_interests` (holders, business,
   test and, where the test has one, percent), `voting_interests` (holders,
@@ -2782,14 +2782,15 @@ person its employees work for, the businesses one set of holders controls
 a discretionary trust, with control passed along chains and to related
 bodies corporate), an entity and a corporation whose traced voting interest
 (direct, through each chain of corporations, then summed) is more than 50%,
-and smaller groups into larger ones. An excluded person is left out; an
-exclusion of a related body corporate, or one that would split the rest of the
-group, is refused. The group's deduction is `payroll_tax`'s deduction for
+and smaller groups into larger ones. The group is formed again without any
+excluded person and its links; an exclusion of a related body corporate of
+another member is refused (in Queensland, of one outside the excluded set). The group's deduction is `payroll_tax`'s deduction for
 2026-27 worked on the group's taxable and interstate wages. Only the
 designated group employer claims it; with none, no member does, except in
 Western Australia, where the Act gives it to the group. In Queensland a
-deduction above the employer's own wages is shared with the nominated members
-in order; elsewhere such a case is refused. New South Wales is refused (its
+deduction above the employer's own wages is shared with the members in the
+stated order (nominated by the employer or determined by the commissioner),
+and refused when no order is stated; elsewhere such a case is refused. New South Wales is refused (its
 Act could not be read on 24 November 2026), as are Tasmania and the Northern
 Territory, whose group formulas are published only as images, and a South
 Australian group with no designated group employer. See

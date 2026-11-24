@@ -263,9 +263,23 @@ fn queensland_shares_the_excess_deduction_in_order() {
         shared["excess_shares"],
         json!([{"person": "B", "share": "285714.29"}])
     );
-    let unshared = run(&v);
-    assert_eq!(amount(&unshared, "excess_unshared"), "285714.29");
-    assert_eq!(unshared["excess_shares"], json!([]));
+    // With no order stated the commissioner may determine one (s 47).
+    assert_eq!(code(&v), "payroll_tax_group.excess_unnominated");
+    // A member with no Queensland wages has no annual liability to share it.
+    let mut idle = with(v.clone(), "excess_deduction_order", json!(["B"]));
+    idle["persons"][1]["taxable_wages"] = json!("0");
+    assert_eq!(code(&idle), "payroll_tax_group.excess_order_invalid");
+    // B's own wages cap its share; what is left stays unshared (s 48(2)).
+    // Splitting B's wages with C keeps the group's wages and the excess.
+    let mut small = with(v.clone(), "excess_deduction_order", json!(["B"]));
+    small["persons"] = wages(&[("A", "1000000.00"), ("B", "200000.00"), ("C", "200000.00")]);
+    small["related_bodies_corporate"] = json!([["A", "B"], ["A", "C"]]);
+    let capped = run(&small);
+    assert_eq!(
+        capped["excess_shares"],
+        json!([{"person": "B", "share": "200000.00"}])
+    );
+    assert_eq!(amount(&capped, "excess_unshared"), "85714.29");
     let none = run(&with(v, "designated_group_employers", json!([])));
     assert_eq!(amount(&none, "group_deduction"), "0.00");
 }
@@ -326,9 +340,10 @@ fn exclusions_take_a_member_out_unless_the_act_bars_it() {
     let result = run(&with(v.clone(), "exclusions", json!(["C"])));
     assert_eq!(result["group"], json!(["A", "B"]));
     assert_eq!(result["excluded"], json!(["C"]));
+    // Without A, B and C have no link of their own.
     let split = with(v.clone(), "exclusions", json!(["A"]));
     let split = with(split, "employer", json!("B"));
-    assert_eq!(code(&split), "payroll_tax_group.exclusion_splits_group");
+    assert_eq!(code(&split), "payroll_tax_group.not_grouped");
     let related = with(v.clone(), "related_bodies_corporate", json!([["A", "C"]]));
     assert_eq!(
         code(&with(related, "exclusions", json!(["C"]))),
@@ -400,22 +415,6 @@ fn refusals_name_the_fact_that_is_wrong() {
     let cases = [
         (rbc(json!([["A", "Z"]])), "payroll_tax_group.person_unknown"),
         (rbc(json!([["A"]])), "payroll_tax_group.fact_invalid"),
-        (
-            with(v.clone(), "persons", json!([{"id": "A"}, {"id": "A"}])),
-            "payroll_tax_group.person_duplicate",
-        ),
-        (
-            with(v.clone(), "persons", json!("A")),
-            "payroll_tax_group.fact_invalid",
-        ),
-        (
-            with(
-                v.clone(),
-                "persons",
-                json!([{"id": "A", "taxable_wage": "1"}]),
-            ),
-            "input.field_unknown",
-        ),
         (ci("0"), "payroll_tax_group.percent_invalid"),
         (ci("100.01"), "payroll_tax_group.percent_invalid"),
         (ci("sixty"), "payroll_tax_group.percent_invalid"),
@@ -447,4 +446,73 @@ fn refusals_name_the_fact_that_is_wrong() {
     for (case, expected) in cases {
         assert_eq!(code(&case), expected, "{case}");
     }
+}
+
+#[test]
+fn persons_are_listed_once_in_the_stated_form() {
+    let v = input("vic", "A", wages(&[("A", "500000.00")]));
+    let cases = [
+        (
+            with(v.clone(), "persons", json!([{"id": "A"}, {"id": "A"}])),
+            "payroll_tax_group.person_duplicate",
+        ),
+        (
+            with(v.clone(), "persons", json!("A")),
+            "payroll_tax_group.fact_invalid",
+        ),
+        (
+            with(
+                v.clone(),
+                "persons",
+                json!([{"id": "A", "taxable_wage": "1"}]),
+            ),
+            "input.field_unknown",
+        ),
+    ];
+    for (case, expected) in cases {
+        assert_eq!(code(&case), expected, "{case}");
+    }
+}
+
+/// Queensland s 74(4)(b) bars excluding a set only for a related body
+/// corporate outside it; Victoria s 79(3) bars excluding either corporation.
+#[test]
+fn queensland_excludes_a_set_of_related_corporations() {
+    let persons = wages(&[
+        ("A", "500000.00"),
+        ("B", "400000.00"),
+        ("C", "300000.00"),
+        ("D", "200000.00"),
+    ]);
+    let v = input("qld", "A", persons);
+    let v = with(v, "common_employees", json!([["A", "B"], ["A", "D"]]));
+    let v = with(v, "related_bodies_corporate", json!([["B", "C"]]));
+    let v = with(v, "exclusions", json!(["B", "C"]));
+    assert_eq!(run(&v)["group"], json!(["A", "D"]));
+    let vic = with(v.clone(), "jurisdiction", json!("vic"));
+    assert_eq!(code(&vic), "payroll_tax_group.exclusion_barred");
+    let part = with(v, "exclusions", json!(["B"]));
+    assert_eq!(code(&part), "payroll_tax_group.exclusion_barred");
+}
+
+#[test]
+fn a_sole_holder_must_say_whether_it_carries_on_a_business() {
+    let persons = wages(&[("A", "500000.00"), ("B", "400000.00")]);
+    let facts = json!([control(&["A"], "B", "voting_shares", Some("60"))]);
+    let v = with(input("vic", "A", persons), "controlling_interests", facts);
+    assert_eq!(code(&v), "payroll_tax_group.business_unstated");
+    let mut stated = v.clone();
+    stated["persons"][0]["carries_on_business"] = json!(true);
+    assert_eq!(run(&stated)["group"], json!(["A", "B"]));
+    // A holder that carries on no business of its own groups nothing.
+    stated["persons"][0]["carries_on_business"] = json!(false);
+    assert_eq!(code(&stated), "payroll_tax_group.not_grouped");
+}
+
+#[test]
+fn a_voting_interest_is_given_once() {
+    let persons = holders(&[("E", "0"), ("B", "900000")]);
+    let votes = json!([vote("E", "B", "30"), vote("E", "B", "30")]);
+    let v = with(input("vic", "B", persons), "voting_interests", votes);
+    assert_eq!(code(&v), "payroll_tax_group.fact_invalid");
 }

@@ -11,9 +11,9 @@
   less excluded persons), its designated group employer and the group's single
   deduction, with Queensland's excess deduction shared in order. New South
   Wales, Tasmania and the Northern Territory are refused. New codes:
-  `payroll_tax_group.act_unread`, `dge_conflict`, `dge_not_member`,
-  `dge_wages_below_deduction`, `excess_order_invalid`, `exclusion_barred`,
-  `exclusion_splits_group`, `fact_invalid`, `formula_unread`,
+  `payroll_tax_group.act_unread`, `business_unstated`, `dge_conflict`, `dge_not_member`,
+  `dge_wages_below_deduction`, `excess_order_invalid`,
+  `excess_unnominated`, `exclusion_barred`, `fact_invalid`, `formula_unread`,
   `interest_cycle`, `jurisdiction_invalid`, `no_dge_unsettled`,
   `not_grouped`, `part_year`, `percent_invalid`, `person_duplicate`,
   `person_unknown` and `test_invalid`. `derive` takes it.

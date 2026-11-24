@@ -2856,7 +2856,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "payroll_tax_group",
         &[
             "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
-            "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns or the annual reconciliation.",
+            "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined.",
         ],
     ),
     (
@@ -5239,6 +5239,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The jurisdiction's Act could not be read today, so its grouping Part is not worked.",
     ),
     (
+        "payroll_tax_group.business_unstated",
+        "A person holds a controlling interest alone, and whether it carries on a business is not stated.",
+    ),
+    (
         "payroll_tax_group.dge_conflict",
         "More than one designated group employer is stated for one group.",
     ),
@@ -5255,12 +5259,12 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "excess_deduction_order is given outside Queensland, without a designated group employer, or names a person who cannot share.",
     ),
     (
-        "payroll_tax_group.exclusion_barred",
-        "An exclusion order is stated for a related body corporate of another member, which the Act bars.",
+        "payroll_tax_group.excess_unnominated",
+        "A Queensland excess deduction exists and no order of members to share it is stated.",
     ),
     (
-        "payroll_tax_group.exclusion_splits_group",
-        "Without the excluded persons the rest of the group would not be linked.",
+        "payroll_tax_group.exclusion_barred",
+        "An exclusion order is stated for a related body corporate of another member, which the Act bars.",
     ),
     (
         "payroll_tax_group.fact_invalid",

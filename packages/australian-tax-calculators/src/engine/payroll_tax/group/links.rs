@@ -18,7 +18,8 @@ pub(super) struct Person {
     pub(super) id: String,
     pub(super) taxable: Decimal,
     pub(super) interstate: Decimal,
-    pub(super) business: bool,
+    /// Whether the person carries on a business, where stated (s 67).
+    pub(super) business: Option<bool>,
 }
 
 /// The stated facts, with each person by its place in `persons`.
@@ -86,8 +87,8 @@ fn person(item: &Value) -> Result<Person> {
     let taxable = amount(item.get("taxable_wages"), "taxable_wages")?;
     let interstate = amount(item.get("interstate_wages"), "interstate_wages")?;
     let business = match item.get("carries_on_business") {
-        None => !(taxable.is_zero() && interstate.is_zero()),
-        Some(Value::Bool(b)) => *b,
+        None => None,
+        Some(Value::Bool(b)) => Some(*b),
         Some(_) => return invalid("carries_on_business must be true or false."),
     };
     Ok(Person {
@@ -217,6 +218,25 @@ pub(super) struct Stated<'a> {
     pub(super) voting: Option<&'a Arg>,
 }
 
+/// A sole holder's own business decides the group (s 72(2)(a)), so it must be
+/// stated.
+fn sole_holders_stated(persons: &[Person], control: &[(Vec<usize>, usize)]) -> Result<()> {
+    for (holders, _) in control {
+        if let [h] = holders.as_slice()
+            && persons[*h].business.is_none()
+        {
+            return refuse(
+                "payroll_tax_group.business_unstated",
+                format!(
+                    "{} holds a controlling interest alone, so whether it carries on a business of its own (Payroll Tax Act 2007 (Vic) s 67 and each other Act's equivalent) decides the group: state carries_on_business for it.",
+                    persons[*h].id
+                ),
+            );
+        }
+    }
+    Ok(())
+}
+
 pub(super) fn facts(persons: Vec<Person>, index: &Index, stated: &Stated) -> Result<Facts> {
     let mut f = Facts {
         related: index.pairs(stated.related, "related_bodies_corporate")?,
@@ -235,6 +255,7 @@ pub(super) fn facts(persons: Vec<Person>, index: &Index, stated: &Stated) -> Res
             f.control.push((holders, business));
         }
     }
+    sole_holders_stated(&persons, &f.control)?;
     for item in items(stated.voting, "voting_interests")? {
         keys(
             item,
@@ -243,6 +264,14 @@ pub(super) fn facts(persons: Vec<Person>, index: &Index, stated: &Stated) -> Res
         )?;
         let holders = index.set(item.get("holders"), "holders")?;
         let corporation = index.of(item.get("corporation").unwrap_or(&Value::Null))?;
+        if f.voting
+            .iter()
+            .any(|(h, c, _)| *h == holders && *c == corporation)
+        {
+            return invalid(
+                "voting_interests names the same holders and corporation twice; give their whole voting power once.",
+            );
+        }
         f.voting
             .push((holders, corporation, fraction(item.get("percent"))?));
     }
@@ -327,7 +356,7 @@ fn pass_to_related(
 fn controlled(f: &Facts, out: &[bool]) -> BTreeMap<Vec<usize>, BTreeSet<usize>> {
     let mut held: BTreeMap<Vec<usize>, BTreeSet<usize>> = BTreeMap::new();
     for (p, person) in f.persons.iter().enumerate() {
-        if person.business && !out[p] {
+        if person.business == Some(true) && !out[p] {
             held.entry(vec![p]).or_default().insert(p);
         }
     }

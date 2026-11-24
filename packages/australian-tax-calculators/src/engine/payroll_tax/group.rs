@@ -168,10 +168,23 @@ fn group_of(
     f: &Facts,
     employer: usize,
     excluded: &[usize],
-    act: &Act,
+    (place, act): (&str, &Act),
 ) -> Result<(Vec<usize>, Groups)> {
+    // Queensland excludes a person or a set of persons, barred only by a
+    // related body corporate outside the set (s 74(4)); the other Acts exclude
+    // a person, barred by any related body corporate in the group.
     for &x in excluded {
-        if f.related.iter().any(|&(a, b)| a == x || b == x) {
+        let barred = f.related.iter().any(|&(a, b)| {
+            let other = if a == x {
+                b
+            } else if b == x {
+                a
+            } else {
+                return false;
+            };
+            place != "qld" || !excluded.contains(&other)
+        });
+        if barred {
             return refuse(
                 "payroll_tax_group.exclusion_barred",
                 format!(
@@ -181,29 +194,16 @@ fn group_of(
             );
         }
     }
-    let none = vec![false; f.persons.len()];
-    let mut whole = form(f, &none)?;
-    let mut out = none.clone();
+    // An excluded person is not a member (s 67 'group'), so the group is
+    // formed again without it and its links.
+    let mut out = vec![false; f.persons.len()];
     excluded.iter().for_each(|&x| out[x] = true);
     let mut rest = form(f, &out)?;
-    if out[employer] {
+    let members = rest.members(employer);
+    if out[employer] || members.len() < 2 {
         return not_grouped(f, employer);
     }
-    let members: Vec<usize> = whole
-        .members(employer)
-        .into_iter()
-        .filter(|&p| !out[p])
-        .collect();
-    if members.len() < 2 {
-        return not_grouped(f, employer);
-    }
-    if rest.members(employer).len() != members.len() {
-        return refuse(
-            "payroll_tax_group.exclusion_splits_group",
-            "Without the excluded persons the rest of the group would not be linked, and the Act does not say whether they remain one group.",
-        );
-    }
-    Ok((members, whole))
+    Ok((members, rest))
 }
 
 fn not_grouped<T>(f: &Facts, employer: usize) -> Result<T> {
@@ -269,18 +269,12 @@ const GIW: &str = "The interstate wages paid or payable by the group's members (
 const GAW: &str = "The group's taxable and interstate wages together (GTW + GIW), on which each Act's group clause works the deduction";
 const NO_WAGES: &str = "The group pays no taxable or interstate wages, so there is no deduction";
 
-/// The group's wages, the deduction worked on them and the group deduction.
-fn group_steps(
-    place: &str,
-    act: &Act,
-    f: &Facts,
-    members: &[usize],
-    claims: bool,
-) -> Result<Table> {
+/// The group's taxable, interstate and Australian wages.
+fn wage_steps(f: &Facts, members: &[usize]) -> Result<(Vec<Step>, Wages)> {
     let (taxable_terms, gtw) = summed(f, members, |p| &p.taxable)?;
     let (interstate_terms, giw) = summed(f, members, |p| &p.interstate)?;
     let australian = gtw.add(&giw)?;
-    let mut steps = vec![
+    let steps = vec![
         step("taxable_wages", GTW, &taxable_terms, &[], gtw.clone()),
         step("interstate_wages", GIW, &interstate_terms, &[], giw.clone()),
         step(
@@ -291,14 +285,28 @@ fn group_steps(
             australian.clone(),
         ),
     ];
-    if australian.is_zero() {
+    Ok((
+        steps,
+        Wages {
+            taxable: gtw,
+            australian,
+        },
+    ))
+}
+
+/// The group's wages, the deduction worked on them and the group deduction.
+fn group_steps(
+    place: &str,
+    act: &Act,
+    f: &Facts,
+    members: &[usize],
+    claims: bool,
+) -> Result<Table> {
+    let (mut steps, wages) = wage_steps(f, members)?;
+    if wages.australian.is_zero() {
         steps.push(step("group_deduction", NO_WAGES, "0", &[], int(0)));
         return Ok((steps, Vec::new()));
     }
-    let wages = Wages {
-        taxable: gtw,
-        australian,
-    };
     let worked = worked(place, &wages, false)?;
     let mut it = worked.steps.into_iter();
     steps.push(
@@ -322,6 +330,17 @@ fn group_steps(
     Ok((steps, worked.rates))
 }
 
+/// Outside Queensland, refuses a DGE whose wages are below the deduction.
+fn below(own: &Decimal, deduction: &Decimal) -> Result<()> {
+    if own.lt(deduction)? {
+        return refuse(
+            "payroll_tax_group.dge_wages_below_deduction",
+            "The designated group employer's taxable wages are less than the group deduction: the Act's formula for it would go below nil, and the Act does not say where the rest of the deduction goes.",
+        );
+    }
+    Ok(())
+}
+
 /// The DGE's claim and, in Queensland, the excess shared in order (ss 45, 48).
 fn claim_steps(
     place: &str,
@@ -332,16 +351,16 @@ fn claim_steps(
 ) -> Result<(Vec<Step>, Vec<Value>)> {
     let own = &f.persons[dge].taxable;
     if place != "qld" {
-        if own.lt(deduction)? {
-            return refuse(
-                "payroll_tax_group.dge_wages_below_deduction",
-                "The designated group employer's taxable wages are less than the group deduction: the Act's formula for it would go below nil, and the Act does not say where the rest of the deduction goes.",
-            );
-        }
-        return Ok((Vec::new(), Vec::new()));
+        return below(own, deduction).map(|()| (Vec::new(), Vec::new()));
     }
     let claimed = py_min(deduction.clone(), own.clone())?;
     let excess = deduction.sub(&claimed)?;
+    if !excess.is_zero() && order.is_empty() {
+        return refuse(
+            "payroll_tax_group.excess_unnominated",
+            "The group deduction exceeds the designated group employer's wages, and no excess_deduction_order is stated: the DGE nominates the members who share it (Payroll Tax Act 1971 (Qld) s 46), or the commissioner determines them (s 47).",
+        );
+    }
     let mut left = excess.clone();
     let (mut shares, mut less) = (Vec::new(), String::from("excess_deduction"));
     for &p in order {
@@ -438,14 +457,20 @@ pub fn payroll_tax_group(args: &PayrollTaxGroupArgs) -> Result<Value> {
     }
     let (f, index, employer) = gather(args)?;
     let excluded = named(&index, args.exclusions, "exclusions")?;
-    let (members, mut groups) = group_of(&f, employer, &excluded, act)?;
+    let (members, mut groups) = group_of(&f, employer, &excluded, (place, act))?;
     let stated_dges = named(
         &index,
         args.designated_group_employers,
         "designated_group_employers",
     )?;
     let dge = designated(&f, &members, &stated_dges, &mut groups)?;
-    let order = excess_order(place, &index, args.excess_deduction_order, &members, dge)?;
+    let order = excess_order(
+        place,
+        (&f, &index),
+        args.excess_deduction_order,
+        &members,
+        dge,
+    )?;
     if dge.is_none() && place == "sa" {
         return refuse(
             "payroll_tax_group.no_dge_unsettled",
@@ -472,7 +497,7 @@ pub fn payroll_tax_group(args: &PayrollTaxGroupArgs) -> Result<Value> {
 /// The Queensland order of members to share an excess deduction (s 46).
 fn excess_order(
     place: &str,
-    index: &Index,
+    (f, index): (&Facts, &Index),
     arg: Option<&Arg>,
     members: &[usize],
     dge: Option<usize>,
@@ -487,12 +512,14 @@ fn excess_order(
     };
     let fits = place == "qld"
         && dge.is_some()
-        && order.iter().all(|p| members.contains(p) && Some(*p) != dge)
+        && order
+            .iter()
+            .all(|&p| members.contains(&p) && Some(p) != dge && !f.persons[p].taxable.is_zero())
         && (1..order.len()).all(|i| !order[..i].contains(&order[i]));
     if !fits {
         return refuse(
             "payroll_tax_group.excess_order_invalid",
-            "excess_deduction_order applies in Queensland only, with a designated group employer, and must name other members of its group, each once (Payroll Tax Act 1971 (Qld) s 46).",
+            "excess_deduction_order applies in Queensland only, with a designated group employer, and must name other members of its group with Queensland taxable wages (an entitled group member has an annual liability, s 44), each once (Payroll Tax Act 1971 (Qld) s 46).",
         );
     }
     Ok(order)
