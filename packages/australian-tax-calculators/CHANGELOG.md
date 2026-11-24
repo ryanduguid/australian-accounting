@@ -192,7 +192,10 @@
   the contract date, the value cap (with an optional `cap_value` where
   Queensland and Western Australia test a value other than the
   consideration) and the lesser-of-consideration rule, from eligibility
-  facts the operator states. New codes:
+  facts the operator states. An optional `contract_price` for a home built
+  is its consideration: below the amount, the grant is the contract price
+  in every state and territory but New South Wales, whose Act could not be
+  read, and the Victorian cap tests it. New codes:
   `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
   `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
   `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,

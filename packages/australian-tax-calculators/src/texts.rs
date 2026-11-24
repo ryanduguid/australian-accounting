@@ -4124,11 +4124,11 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "first_home_owner_grant.fact_needed",
-        "A fact the transaction needs is not stated: the building contract price for a home built, or the Northern Territory or Tasmanian conditions.",
+        "A fact the transaction needs is not stated: the building contract price for a home built without contract_price, or the Northern Territory or Tasmanian conditions.",
     ),
     (
         "first_home_owner_grant.facts_invalid",
-        "facts is not an object of booleans.",
+        "facts is not an object of booleans, or states building_contract with a contract_price below the grant.",
     ),
     (
         "first_home_owner_grant.facts_not_stated",
@@ -4148,11 +4148,11 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "first_home_owner_grant.value_basis",
-        "A Victorian home built over $750,000 in total: the Act caps the building work's consideration, which the total does not show.",
+        "A Victorian home built over $750,000 in total without contract_price: the Act caps the building work's consideration, which the total does not show.",
     ),
     (
         "first_home_owner_grant.value_invalid",
-        "total_value or cap_value is not whole dollars from 1 to 1,000,000,000.",
+        "total_value, cap_value or contract_price is not whole dollars from 1 to 1,000,000,000, or contract_price is more than total_value.",
     ),
     (
         "foreign_income_conversion.average_period",

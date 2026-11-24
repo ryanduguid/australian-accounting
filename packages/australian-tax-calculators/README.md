@@ -236,7 +236,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `prepayments` | `taxpayer`, `individual`, `business_expenditure`, `chose_82kzmd`, `expenditure`, `incurred`, `service_start`, `service_end`, `agreement_date`, `exclusion`, `tax_shelter`, `year`, `scope_confirmed`; see [Prepayments](#prepayments) |
 | `non-commercial-losses` | `activity`, `assessable_income`, `deductions`, `brought_forward`, `part_year`, `earlier_years`, `real_property_value`, `other_assets_value`, `taxable_income`, `business_losses`, `assessable_fhss_released_amount`, `reportable_fringe_benefits`, `reportable_super_contributions`, `total_net_investment_loss`, `net_exempt_income`, `year`, `scope_confirmed`; `assessable_income_estimate` for a part year and `other_income` for an excepted activity; see [Non-commercial losses](#non-commercial-losses) |
 | `minors-income` | `taxable_income`, `residency`, `under_18_on_30_june`, `excepted_person`, `excepted_income`, `trust_shares`, `other_assessable_income`, `deductions_exclusive`, `deductions_related`, `apportionable_deductions`, `special_income_component`, `year`, `scope_confirmed`; `full_time_occupation` or `dependent_on_relatives` for some grounds; see [Minors income](#minors-income) |
-| `first-home-owner-grant` | `jurisdiction`, `contract_date`, `home`, `total_value`, `facts`, `year`, `scope_confirmed`; in Western Australia, `north_of_26th`; in Queensland and Western Australia, optionally `cap_value`; see [First home owner grant](#first-home-owner-grant) |
+| `first-home-owner-grant` | `jurisdiction`, `contract_date`, `home`, `total_value`, `facts`, `year`, `scope_confirmed`; in Western Australia, `north_of_26th`; in Queensland and Western Australia, optionally `cap_value`; for a home built, optionally `contract_price`; see [First home owner grant](#first-home-owner-grant) |
 | `psi-test` | `earner`, `mainly_personal_efforts`, `determination_in_force`, `payers`, `agent`, `principal_work_by_others`, `apprentice`, `premises`, `year`, `scope_confirmed`; `commission` and `principal_payments` for an agent; see [PSI test](#psi-test) |
 | `payg-instalment` | `method`, `year`, `scope_confirmed`; then `notified_amount` for `amount`; `instalment_number`, `estimated_tax`, `earlier_instalments` and `credits_entitled` for `varied_amount`; `instalment_income` and `instalment_rate` for `rate`; `instalment_income`, `previous_rate`, `estimated_tax`, `estimated_instalment_income`, `earlier_instalments`, `credits_claimed` and `earlier_instalment_income` for `varied_rate`; see [PAYG instalments](#payg-instalments) |
 | `pcg-2021-4` | `gateway_1`, `gateway_2`, `factor_3`, `year`, `scope_confirmed`; `recipients`, or `entitlement`, `returned` and `tax`; with `factor_3`, `benchmark` (and `remuneration` beside the totals) unless the IPP returns all of it; see [PCG 2021/4](#pcg-20214) |
@@ -4139,9 +4139,15 @@ page works it, with each First Home Owner Grant Act read on 23 November 2026:
 5. the lesser of the consideration and the amount where the Act read says
    so (all but New South Wales, whose Act could not be read that day).
 
-It refuses a home built without the fact that its building contract price is
-at least the grant, a total value below the grant for a home built or in New
-South Wales, a Victorian home built over $750,000 in total (the Act caps the
+A home built's optional `contract_price` is its consideration, the total
+payable for the building work: below the amount, the grant is the contract
+price (in the Northern Territory, enter the amount actually paid, s 18(1)(a)),
+and in Victoria it is the value the $750,000 cap tests. A New South Wales
+contract price below $10,000 is refused, as its Act could not be read.
+It refuses a home built with neither `contract_price` nor the fact that its
+building contract price is at least the grant, a total value below the grant
+for a home built without `contract_price` or in New South Wales, a Victorian
+home built over $750,000 in total without `contract_price` (the Act caps the
 building work alone, s 13(1A) and (7)(b)), a Northern Territory or
 Tasmanian contract without its conditions, and a Western Australian home
 without its location. Owner-builders, substantially renovated homes,
@@ -4151,10 +4157,11 @@ limits the grant. For a home built it is the land and the building contract
 with its variations, but the consideration is the building contract alone
 (Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas s 13(7)(b),
 ACT s 13(6)(b), NT s 13(8)(b); the New South Wales Act could not be
-read); `building_contract` states that it is at least the grant, so the land
-never limits a built home's grant.
-`total_value` is the value tested against the cap, except that in Queensland and
-Western Australia `cap_value` gives the value the Act tests where it differs:
+read); `contract_price` gives it, or `building_contract` states that it is at
+least the grant, so the land never limits a built home's grant.
+`total_value` is the value tested against the cap, except that in Victoria
+`contract_price` is, and in Queensland and
+Western Australia `cap_value` (at least `contract_price`) gives the value the Act tests where it differs:
 for a home bought, the unencumbered value of the home and land at the
 contract date, tested with the price (the greater of the 2; Qld s 5(6) and
 (7), WA s 14AC(2)); for a home built, the building contract plus the land's
