@@ -1209,6 +1209,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 24 November 2026.
         "insurance_duty" => vec!["2026-27"],
         "payroll_tax" => vec!["2026-27"],
+        "payroll_tax_group" => vec!["2026-27"],
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
         "workers_compensation_premium" => vec!["2026-27"],
@@ -1641,6 +1642,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "payroll_tax" => (
             "2026-11-19",
             "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
+        ),
+        "payroll_tax_group" => (
+            "2026-11-24",
+            "Payroll Tax Act 2007 (Vic) Pt 5 (ss 67 to 80) and Sch 1 Pts 3 and 4 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and Pt 4 (ss 67 to 75; current reprint); Pay-roll Tax Assessment Act 2002 (WA) s 17 and Pt 4 (ss 30 to 39; 04-d0-03); Payroll Tax Act 2009 (SA) Pt 5 and Sch 1 Pt 3 (31.3.2026); Payroll Tax Act 2011 (ACT) Pt 5 and Sch 1 Pts 1.3 and 1.4 (current republication); with SRO Victoria's 'Grouping' and QRO's 'Payroll tax deductions'. NSW (a Cloudflare challenge) and the Tasmanian and Northern Territory group formulas (images) could not be read and are refused",
         ),
         "transfer_duty" => (
             "2026-11-24",
@@ -2225,6 +2230,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Revenue NSW's 2 examples; SRO Victoria example 2; QRO's annual deduction example; RevenueWA's $1,104,000; SRO Tasmania examples 1 and 2",
             "2026-07-01",
             "2026-11-19",
+        ),
+        "payroll_tax_group" => (
+            "Revenue office grouping pages: SRO Victoria 'Grouping'; QRO 'Payroll tax deductions'",
+            "The Acts' tracing examples (Payroll Tax Act 2007 (Vic) ss 77(5) and 78(3)); SRO Victoria's Ian and Lucy examples",
+            "2026-05-01",
+            "2026-11-24",
         ),
         "transfer_duty" => (
             "Revenue office transfer duty pages: Revenue NSW 'How to calculate transfer duty' and the NSW Government's First Home Buyers Assistance Scheme table; SRO Victoria non-principal place of residence rates; QRO transfer duty and home concession rates; RevenueSA rate of stamp duty",
@@ -3712,6 +3723,36 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
         )],
+        "payroll_tax_group" => vec![
+            (
+                "related_bodies_corporate",
+                "list of pairs of person ids, each 2 corporations that are related bodies corporate within the meaning of the Corporations Act 2001 s 50",
+            ),
+            (
+                "common_employees",
+                "list of pairs of person ids, each an employer and another person grouped by the use of common employees (Payroll Tax Act 2007 (Vic) s 71 and each other Act's equivalent), as established",
+            ),
+            (
+                "controlling_interests",
+                "list of objects: holders (person ids, together), business (the person id that carries it on), test (sole_owner, directors_obliged, board_composition, discretionary_object, director_votes, board_members, voting_shares, partnership_capital, partnership_profits or trust_interests) and, for the last 6, percent; more than 50% passes",
+            ),
+            (
+                "voting_interests",
+                "list of objects: holders (person ids, one entity: a person or associated persons), corporation (person id) and percent, the voting power of all voting shares the holders can exercise, control or substantially influence",
+            ),
+            (
+                "exclusions",
+                "list of person ids under an exclusion order in force for the year",
+            ),
+            (
+                "designated_group_employers",
+                "list of person ids, each designated (with the commissioner's approval where the Act needs it) as its group's designated group employer for the year",
+            ),
+            (
+                "excess_deduction_order",
+                "list of person ids, Queensland only and with a designated group employer, required when the deduction exceeds that employer's wages: the order, nominated by the DGE or determined by the commissioner, in which entitled group members share the excess (Payroll Tax Act 1971 (Qld) ss 44, 46 and 47)",
+            ),
+        ],
         "vic_property_taxes" => vec![
             (
                 "capital_improved_value",
@@ -5018,6 +5059,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "employed_all_year",
                 "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
+            ),
+        ],
+        "payroll_tax_group" => vec![
+            ("jurisdiction", "vic, qld, wa, sa or act; nsw, tas and nt are refused"),
+            ("employer", "the person id whose group is worked"),
+            (
+                "persons",
+                "list of objects: id, taxable_wages (AUD, in the jurisdiction), interstate_wages (AUD), each nil when absent, and carries_on_business (boolean, whether the person carries on a business of its own; required for a person who holds a controlling interest alone)",
+            ),
+            (
+                "employed_all_year",
+                "boolean, true when at least one member paid or was liable to pay wages on every day of the financial year; false is refused",
             ),
         ],
         "transfer_duty" => vec![
@@ -6642,6 +6695,21 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("taxable_wages", Text("900000.00")),
             ("australian_wages", Text("3000000.00")),
             ("group_member", Flag(false)),
+            ("employed_all_year", Flag(true)),
+        ],
+        "payroll_tax_group" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("qld")),
+            ("employer", Text("A")),
+            (
+                "persons",
+                Json(
+                    r#"[{"id": "A", "taxable_wages": "1000000.00"}, {"id": "B", "taxable_wages": "400000.00"}]"#,
+                ),
+            ),
+            ("related_bodies_corporate", Json(r#"[["A", "B"]]"#)),
+            ("designated_group_employers", Json(r#"["A"]"#)),
+            ("excess_deduction_order", Json(r#"["B"]"#)),
             ("employed_all_year", Flag(true)),
         ],
         // The NSW Government's first home buyer figure: $19,593.50 on $900,000.
