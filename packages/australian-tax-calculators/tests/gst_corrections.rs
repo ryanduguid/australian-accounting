@@ -40,8 +40,9 @@ fn credit(overrides: Value) -> Value {
         json!({
             "supply_value": "500.00", "return_due": "2025-10-28",
             "tax_invoice_held_from": "2025-09-15", "return_given": "2025-10-20",
-            "assessment_date": "2025-10-20", "supplier_review_ended_without_invoice": false,
-            "supplier_gst_accounted_for": false, "special_attribution": false,
+            "assessment_date": "2025-10-20", "earlier_attributable_return_given": false,
+            "section_29_10_5_election": false, "supplier_review_ended_without_invoice": false,
+            "supplier_gst_accounted_for": "none", "special_attribution": false,
             "section_93_10_exception": false, "year": "2025-26", "scope_confirmed": true,
         }),
         overrides,
@@ -103,6 +104,9 @@ fn the_debit_limits_boundaries() {
     assert_eq!(at["failing_conditions"], json!(["below_value_limit"]));
     let under = run(EC, &correction(json!({"net_debit_errors": "12499.99"})));
     assert_eq!(under["may_correct"], true);
+    // F2023L01284 s 4: net sum may be negative when credit errors exceed debit errors.
+    let net_credit = run(EC, &correction(json!({"net_debit_errors": "-500.00"})));
+    assert_eq!(net_credit["may_correct"], true);
 }
 
 /// A credit error has no s 7 limits and skips parsing s 7 debit-only inputs.
@@ -188,8 +192,20 @@ fn the_correction_refusals() {
         ),
         (json!({"lodged": "28/12/2025"}), "input.date_invalid"),
         (
+            json!({"current_gst_turnover": "not_a_number"}),
+            "input.decimal_unreadable",
+        ),
+        (
+            json!({"net_debit_errors": "not_a_number"}),
+            "input.decimal_unreadable",
+        ),
+        (
             json!({"current_gst_turnover": "-1"}),
             "input.amount_invalid",
+        ),
+        (
+            json!({"net_debit_errors": "1.005"}),
+            "input.signed_amount_invalid",
         ),
         (json!({"already_corrected": "no"}), "input.flag_invalid"),
         (json!({"year": "2023-24"}), "period.unsupported"),
@@ -255,16 +271,58 @@ fn the_entitlement_lapses_after_4_years() {
     );
     assert_eq!(
         supplier["failing_conditions"],
-        json!(["supplier_review_open"])
+        json!(["supplier_entitlement_not_barred"])
     );
     let accounted = run(
         CT,
         &credit(json!({
             "supplier_review_ended_without_invoice": true,
-            "supplier_gst_accounted_for": true
+            "supplier_gst_accounted_for": "full"
         })),
     );
     assert_eq!(accounted["claimable"], true);
+    let partial_open_review = run(
+        CT,
+        &credit(json!({
+            "supplier_review_ended_without_invoice": false,
+            "supplier_gst_accounted_for": "partial"
+        })),
+    );
+    assert_eq!(partial_open_review["claimable"], true);
+}
+
+/// s 29-10(3)(b) and (5): an intervening return given whilst holding the
+/// invoice prevents claiming in a later period unless a s 29-10(5) election moved it.
+#[test]
+fn attribution_requires_first_return_or_section_29_10_5_election() {
+    let missed = run(
+        CT,
+        &credit(json!({
+            "return_due": "2025-10-28",
+            "tax_invoice_held_from": "2025-11-10",
+            "return_given": "2026-04-28",
+            "assessment_date": "2026-04-28",
+            "earlier_attributable_return_given": true
+        })),
+    );
+    assert_eq!(missed["claimable"], false);
+    assert_eq!(
+        missed["failing_conditions"],
+        json!(["attributable_to_return"])
+    );
+
+    let elected = run(
+        CT,
+        &credit(json!({
+            "return_due": "2025-10-28",
+            "tax_invoice_held_from": "2025-11-10",
+            "return_given": "2026-04-28",
+            "assessment_date": "2026-04-28",
+            "earlier_attributable_return_given": true,
+            "section_29_10_5_election": true
+        })),
+    );
+    assert_eq!(elected["claimable"], true);
 }
 
 #[test]
@@ -277,6 +335,17 @@ fn the_credit_refusals() {
         (
             json!({"section_93_10_exception": true}),
             "gst_credit_time_limit.section_93_10_exception",
+        ),
+        (
+            json!({
+                "supplier_review_ended_without_invoice": true,
+                "supplier_gst_accounted_for": "partial"
+            }),
+            "gst_credit_time_limit.partial_supplier_gst",
+        ),
+        (
+            json!({"supplier_gst_accounted_for": "unknown"}),
+            "gst_credit_time_limit.fact_invalid",
         ),
         (
             json!({"assessment_date": "2025-10-19"}),

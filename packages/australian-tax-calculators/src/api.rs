@@ -559,7 +559,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         "gst-credit-time-limit",
         cmd_args! {
             (supply_value: Dec) return_due tax_invoice_held_from return_given
-            assessment_date supplier_review_ended_without_invoice supplier_gst_accounted_for
+            assessment_date earlier_attributable_return_given section_29_10_5_election
+            supplier_review_ended_without_invoice supplier_gst_accounted_for
             special_attribution section_93_10_exception year scope_confirmed
         },
     ),
@@ -4046,12 +4047,14 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             tax_invoice_held_from: &a[2],
             return_given: &a[3],
             assessment_date: &a[4],
-            supplier_review_ended_without_invoice: &a[5],
-            supplier_gst_accounted_for: &a[6],
-            special_attribution: &a[7],
-            section_93_10_exception: &a[8],
-            year: &a[9],
-            scope_confirmed: &a[10],
+            earlier_attributable_return_given: &a[5],
+            section_29_10_5_election: &a[6],
+            supplier_review_ended_without_invoice: &a[7],
+            supplier_gst_accounted_for: &a[8],
+            special_attribution: &a[9],
+            section_93_10_exception: &a[10],
+            year: &a[11],
+            scope_confirmed: &a[12],
         }),
         "tourist-refund" => engine::tourist_refund(&engine::TouristRefundArgs {
             departure_date: &a[0],

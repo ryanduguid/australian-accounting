@@ -228,8 +228,8 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `gst-financial-acquisitions-threshold` | `current_financial_credits`, `current_total_credits`, `future_financial_credits`, `future_total_credits`, `gst_group`, `year`, `scope_confirmed` |
 | `gst-going-concern` | `for_consideration`, `recipient_registration`, `written_agreement`, `all_things_necessary`, `carried_on_until_supply`, `farm_land`, `part_outside_arrangement`, `year`, `scope_confirmed`; see [GST special rules](#gst-special-rules) |
 | `gst-second-hand-goods` | `consideration`, `acquired_for_sale_or_exchange`, `animals_or_plants`, `supply_to_you`, `imported`, `by_way_of_hire`, `resupply_taxable`, `divided_for_resupply`, `valuable_metal`, `leased_before_sale`, `year`, `scope_confirmed`; `resupply_gst` when `consideration` is more than $300 |
-| `gst-error-correction` | `error_kind`, `earlier_period_start`, `earlier_return_due`, `lodged`, `current_gst_turnover`, `net_debit_errors`, `within_period_of_review`, `compliance_activity`, `commissioner_permits`, `already_corrected`, `reckless_or_intentional`, `credit_ceased_under_division_93`, `unrefundable_under_section_105_65`, `year`, `scope_confirmed`; see [GST corrections](#gst-corrections) |
-| `gst-credit-time-limit` | `supply_value`, `return_due`, `tax_invoice_held_from`, `return_given`, `assessment_date`, `supplier_review_ended_without_invoice`, `supplier_gst_accounted_for`, `special_attribution`, `section_93_10_exception`, `year`, `scope_confirmed`; see [GST corrections](#gst-corrections) |
+| `gst-error-correction` | `error_kind`, `earlier_period_start`, `earlier_return_due`, `lodged`, `current_gst_turnover`, `net_debit_errors`, `within_period_of_review`, `compliance_activity`, `commissioner_permits`, `already_corrected`, `reckless_or_intentional`, `credit_ceased_under_division_93`, `unrefundable_under_section_105_65`, `year`, `scope_confirmed` (`current_gst_turnover`, `net_debit_errors` and `reckless_or_intentional` evaluated for debit errors only); see [GST corrections](#gst-corrections) |
+| `gst-credit-time-limit` | `supply_value`, `return_due`, `tax_invoice_held_from`, `return_given`, `assessment_date`, `earlier_attributable_return_given`, `section_29_10_5_election`, `supplier_review_ended_without_invoice`, `supplier_gst_accounted_for`, `special_attribution`, `section_93_10_exception`, `year`, `scope_confirmed`; see [GST corrections](#gst-corrections) |
 | `tourist-refund` | `departure_date`, `departing_by`, `crew_or_in_charge_in_employment`, `trs_port`, `accompanied_baggage`, `minutes_before_departure`, `verification_complied`, `acquired_by_traveller`, `supplier_registered`, `items`, `year`, `scope_confirmed`; see [Tourist refund scheme](#tourist-refund-scheme) |
 | `gst-bad-debt` | `party`, `event`, `amount`, `taxable_or_creditable`, `cash_basis`, `special_rule`, `year`, `scope_confirmed`; `attributed` with `written_off` or `overdue_12_months`, `overdue_from` and `as_at` with `overdue_12_months`, `prior_adjustment` with `recovered`, and for a recipient `reduced_credit_acquisition` and `annual_apportionment`; optional `taxable_proportion` (supplier), `creditable_purpose` and `consideration_extent` (recipient) |
 | `small-business-income-offset` | `taxable_income`, `basic_income_tax_liability`, `offsets_applied_first`, `net_small_business_income`, `shares`, `prescribed_person`, `year`, `scope_confirmed`; with net small business income of your own, `business` and the 4 turnovers; see [Small business income offset](#small-business-income-offset) |
@@ -4796,11 +4796,15 @@ $1 billion and over              12 months                                      
 `gst-credit-time-limit` tests one input tax credit for a GST return given in
 2024-25 to 2026-27: a tax invoice held when the return is given (GST Act
 s 29-10(3)), unless the supply's value is $75 or less (s 29-80(1) and GST
-Regulations reg 29-80.01); an assessment taking the credit into account within
+Regulations reg 29-80.01); attribution to that return (not preceded by an
+earlier attributable return or an intervening return given whilst holding the
+invoice under s 29-10(1) to (3)(b), unless moved by an irrevocable s 29-10(5)
+election); an assessment taking the credit into account within
 4 years after the day the return for its tax period was due (s 93-5(1)); and
 s 93-15 not barring entitlement (GST on the related supply was taken into account
-in the supplier's net amount assessment, or the supplier's period of review under
-TAA 1953 Sch 1 s 155-35 had not ended without a tax invoice). The s 93-10(1),
+in full in the supplier's net amount assessment, or the supplier's period of
+review under TAA 1953 Sch 1 s 155-35 had not ended without a tax invoice;
+`partial` accounting after that review period is refused). The s 93-10(1),
 (4) and (5) exceptions and the Commissioner's attribution determinations are
 refused. See
 [calculation evidence](docs/calculation-evidence.md#gst-error-correction).

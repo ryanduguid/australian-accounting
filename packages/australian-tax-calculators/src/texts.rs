@@ -504,7 +504,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "gst_credit_time_limit",
-        "Whether one input tax credit can be taken into account in a GST return given in 2024-25 to 2026-27: a tax invoice held when the return is given (GST Act s 29-10(3), not needed for a supply of $75 or less under s 29-80(1) and reg 29-80.01), the 4 years of s 93-5(1) and the supplier's period of review where GST on the related supply was not taken into account in the supplier's assessment (s 93-15). The operator establishes each date and fact. Refuses the exceptions in s 93-10(1), (4) and (5) and s 29-10(3) attribution determinations, and works no amount.",
+        "Whether one input tax credit can be taken into account in a GST return given in 2024-25 to 2026-27: a tax invoice held when the return is given (GST Act s 29-10(3), not needed for a supply of $75 or less under s 29-80(1) and reg 29-80.01), attribution to that return (no earlier attributable return or intervening return given whilst holding the invoice, unless moved by a s 29-10(5) election), the 4 years of s 93-5(1) and the supplier's period of review where GST on the related supply was not taken into account in full in the supplier's assessment (s 93-15). The operator establishes each date and fact. Refuses partial supplier GST accounting after that review period, the exceptions in s 93-10(1), (4) and (5) and s 29-10(3) attribution determinations, and works no amount.",
     ),
     (
         "tourist_refund",
@@ -4498,6 +4498,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "gst_credit_time_limit.dates_invalid",
         "assessment_date is before return_given.",
+    ),
+    (
+        "gst_credit_time_limit.fact_invalid",
+        "supplier_gst_accounted_for is not one of none, partial, full.",
+    ),
+    (
+        "gst_credit_time_limit.partial_supplier_gst",
+        "Only part of the GST on the related supply was accounted for after the supplier's review period ended without a tax invoice (GST Act s 93-15 ceases entitlement only to the shortfall).",
     ),
     (
         "gst_credit_time_limit.return_given_outside_year",

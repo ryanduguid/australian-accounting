@@ -15,7 +15,7 @@
 use serde_json::{Value, json};
 
 use super::gst_adjustments::{condition, failing};
-use super::{Arg, Result, d, date_arg, flag, money, refuse, result, scope};
+use super::{Arg, Result, d, date_arg, flag, money, refuse, result, scope, signed_money};
 use crate::dates;
 use crate::decimal::Decimal;
 
@@ -123,7 +123,7 @@ fn facts(args: &ErrorCorrectionArgs, year: &str) -> Result<Facts> {
         Some(DebitFacts {
             time_limit: dates::add_months(due, months),
             value_limit: d(limit),
-            net_debit_errors: money(args.net_debit_errors)?,
+            net_debit_errors: signed_money(args.net_debit_errors)?,
             reckless: flag(args.reckless_or_intentional, "reckless_or_intentional")?,
         })
     } else {
