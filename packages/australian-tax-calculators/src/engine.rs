@@ -6486,6 +6486,8 @@ mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
+mod impairment_test;
+pub use impairment_test::{ImpairmentTestArgs, impairment_test};
 mod leave_provisions;
 mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
@@ -6519,7 +6521,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 139] = [
+const KINDS: [&str; 140] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6644,6 +6646,7 @@ const KINDS: [&str; 139] = [
     "leave_provisions",
     "deferred_revenue",
     "wip_lockup",
+    "impairment_test",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",

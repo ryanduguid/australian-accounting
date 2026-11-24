@@ -1476,6 +1476,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "impairment-test",
+        &[
+            ("cash_flows", Json),
+            ("discount_rate", Dec),
+            ("assets", Json),
+            ("revalued", Raw),
+            ("non_controlling_interest", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "leave-provisions",
         &[
             ("lines", Json),
@@ -2250,6 +2262,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "leave-provisions"
             | "deferred-revenue"
             | "wip-lockup"
+            | "impairment-test"
             | "long-service-leave"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
@@ -4046,6 +4059,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 receivables: &a[3],
                 billings: &a[4],
                 days: days.as_ref(),
+                year: &a[5],
+                scope_confirmed: &a[6],
+            })
+        }
+        "impairment-test" => {
+            // Optional: the terminal value, and fair value less costs of
+            // disposal where it can be measured.
+            let terminal = optional(v, "terminal_value", Dec)?;
+            let fair = optional(v, "fair_value_less_costs_of_disposal", Dec)?;
+            engine::impairment_test(&engine::ImpairmentTestArgs {
+                cash_flows: &a[0],
+                terminal_value: terminal.as_ref(),
+                discount_rate: &a[1],
+                fair_value_less_costs_of_disposal: fair.as_ref(),
+                assets: &a[2],
+                revalued: &a[3],
+                non_controlling_interest: &a[4],
                 year: &a[5],
                 scope_confirmed: &a[6],
             })
