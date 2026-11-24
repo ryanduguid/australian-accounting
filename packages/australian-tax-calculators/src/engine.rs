@@ -232,17 +232,6 @@ fn result(
         rendered.insert(key.to_string(), json!(cents.to_string()));
     }
     let rates: Map<String, Value> = rates.into_iter().map(|(k, v)| (k, json!(v))).collect();
-    let mut out = Map::new();
-    out.insert("ok".into(), json!(true));
-    out.insert("engine".into(), json!("australian-tax-calculators"));
-    out.insert("engine_version".into(), json!(VERSION));
-    out.insert("calculation".into(), json!(kind));
-    out.insert("period".into(), json!(period));
-    out.insert("amounts".into(), Value::Object(rendered));
-    out.insert("rates".into(), Value::Object(rates));
-    out.insert("scope".into(), json!(lookup(texts::SCOPES, kind)));
-    out.insert("sources".into(), json!(sources(kind)));
-    out.insert("source_checked".into(), json!(meta::source_review(kind).0));
     let mut warnings = vec![
         "Operator-confirmed facts and scope; eligibility is not independently verified.",
         "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
@@ -250,8 +239,19 @@ fn result(
     if let Some((_, extra)) = texts::EXTRA_WARNINGS.iter().find(|(k, _)| *k == kind) {
         warnings.extend(extra.iter().copied());
     }
-    out.insert("warnings".into(), json!(warnings));
-    Ok(Value::Object(out))
+    Ok(json!({
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": VERSION,
+        "calculation": kind,
+        "period": period,
+        "amounts": rendered,
+        "rates": rates,
+        "scope": lookup(texts::SCOPES, kind),
+        "sources": sources(kind),
+        "source_checked": meta::source_review(kind).0,
+        "warnings": warnings,
+    }))
 }
 
 /// One amount and how it was worked out: the provision or ATO page that sets
@@ -2289,17 +2289,38 @@ impl Family {
 pub struct MedicareExemption<'a> {
     pub full_days: Option<&'a Arg>,
     pub half_days: Option<&'a Arg>,
+    pub non_resident_days: Option<&'a Arg>,
 }
 
 /// The days in the year a person was in a Medicare levy exemption category.
 struct Exemption {
     full: i64,
     half: i64,
+    /// The days a non-resident and so a prescribed person (ITAA 1936
+    /// s 251U(1)(d)), each a whole day: s 251U(3) gives no half under para (d).
+    non_resident: i64,
     days_in_year: i64,
 }
 
+/// The non-resident days, from 0 to the days in the year less 1: a person not
+/// resident at any time pays no Medicare levy (ITAA 1936 s 251S(1)(a)).
+fn non_resident_days(value: Option<&Arg>, days_in_year: i64) -> Result<i64> {
+    let Some(value) = value else {
+        return Ok(0);
+    };
+    if value.int() == Some(Some(days_in_year)) {
+        return refuse(
+            "input.day_count_invalid",
+            format!(
+                "non_resident_days of {days_in_year} is the whole year: ITAA 1936 s 251S(1)(a) levies the Medicare levy only on a person resident at some time in the year, so a person not resident at any time pays none (see foreign-resident-tax)."
+            ),
+        );
+    }
+    day_count(value, days_in_year - 1, "non_resident_days")
+}
+
 /// The days in an income year such as "2025-26": 366 when it holds 29 February.
-fn income_year_days(year: &str) -> i64 {
+pub(crate) fn income_year_days(year: &str) -> i64 {
     let start: i64 = year[..4].parse().expect("income year");
     if is_leap(start + 1) { 366 } else { 365 }
 }
@@ -2312,6 +2333,15 @@ fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Optio
         |value: Option<&Arg>, name| value.map_or(Ok(0), |v| day_count(v, days_in_year, name));
     let full = count(exemption.full_days, "medicare_levy_exemption_full_days")?;
     let half = count(exemption.half_days, "medicare_levy_exemption_half_days")?;
+    let non_resident = non_resident_days(exemption.non_resident_days, days_in_year)?;
+    if non_resident > 0 && full + half + non_resident > days_in_year {
+        return refuse(
+            "input.day_count_invalid",
+            format!(
+                "medicare_levy_exemption_full_days, medicare_levy_exemption_half_days and non_resident_days together must be no more than {days_in_year}; count each day once, a non-resident day as non-resident only."
+            ),
+        );
+    }
     if full + half > days_in_year {
         return refuse(
             "input.day_count_invalid",
@@ -2321,20 +2351,23 @@ fn medicare_exemption(exemption: &MedicareExemption, year: &str) -> Result<Optio
             ),
         );
     }
-    Ok((full + half > 0).then_some(Exemption {
+    Ok((full + half + non_resident > 0).then_some(Exemption {
         full,
         half,
+        non_resident,
         days_in_year,
     }))
 }
 
 /// s 9(1): `levy` (times `scale`, see `family_reductions`) less the share of it
-/// for the days the person was a prescribed person: each full exemption day,
-/// and half of each half exemption day (ITAA 1936 s 251U(3)). It applies to the
-/// levy after ss 7 and 8, which each work out the levy 'but for' s 9.
+/// for the days the person was a prescribed person: each full exemption day and
+/// non-resident day, and half of each half exemption day (ITAA 1936 s 251U(3)).
+/// It applies to the levy after ss 7 and 8, which each work out the levy 'but
+/// for' s 9.
 fn levy_after_exemption(levy: &Decimal, scale: &Decimal, exemption: &Exemption) -> Calc<Decimal> {
     let halves = int(2 * exemption.days_in_year);
-    let kept = halves.sub(&int(2 * exemption.full + exemption.half))?;
+    let prescribed_halves = 2 * (exemption.full + exemption.non_resident) + exemption.half;
+    let kept = halves.sub(&int(prescribed_halves))?;
     levy.mul(&kept)?.div(&scale.mul(&halves)?)
 }
 
@@ -2795,36 +2828,89 @@ fn medicare_working(
         ));
         return Ok((steps, rates, shared));
     };
-    rates.push(rate("exemption_full_days", exemption.full));
-    rates.push(rate("exemption_half_days", exemption.half));
-    rates.push(rate("days_in_year", exemption.days_in_year));
-    values.push(("exemption_full_days", int(exemption.full)));
-    values.push(("exemption_half_days", int(exemption.half)));
-    values.push(("days_in_year", int(exemption.days_in_year)));
+    let levy = (
+        &before,
+        &scale,
+        before_formula.as_str(),
+        times_family_income,
+    );
+    steps.extend(exemption_working(levy, exemption, values, &mut rates)?);
+    Ok((steps, rates, shared))
+}
+
+const EXEMPTION_AUTHORITY: &str = "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day";
+const NON_RESIDENT_AUTHORITY: &str = "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(1)(d), (2) and (3): the share of the levy for each full exemption day, each non-resident day on which every dependant was also a prescribed person (a whole day: s 251U(3) gives no half under para (d)) and half of each half exemption day";
+
+/// The exemption's day counts as rates and values, in the order the result has
+/// always given them, and the full days' term and authority: with non-resident
+/// days, both name them.
+fn exemption_facts(
+    exemption: &Exemption,
+    values: &mut Vec<(&str, Decimal)>,
+    rates: &mut Vec<(String, String)>,
+) -> (&'static str, &'static str) {
+    let mut days = vec![
+        ("exemption_full_days", exemption.full),
+        ("exemption_half_days", exemption.half),
+    ];
+    let named = if exemption.non_resident > 0 {
+        days.push(("non_resident_days", exemption.non_resident));
+        (
+            "(exemption_full_days + non_resident_days)",
+            NON_RESIDENT_AUTHORITY,
+        )
+    } else {
+        ("exemption_full_days", EXEMPTION_AUTHORITY)
+    };
+    days.push(("days_in_year", exemption.days_in_year));
+    for (key, n) in days {
+        rates.push(rate(key, n));
+        values.push((key, int(n)));
+    }
+    named
+}
+
+/// The s 9(1) steps: the share of the levy before s 9 (`levy`: the levy times
+/// `scale` and its formula, times family income where the last is true) for
+/// the prescribed days, and the levy left.
+fn exemption_working(
+    levy: (&Decimal, &Decimal, &str, bool),
+    exemption: &Exemption,
+    mut values: Vec<(&str, Decimal)>,
+    rates: &mut Vec<(String, String)>,
+) -> Calc<Vec<Step>> {
+    let (before, scale, before_formula, times_family_income) = levy;
+    let (full_days, authority) = exemption_facts(exemption, &mut values, rates);
     let halves = if times_family_income {
         "family_income x 2 x days_in_year"
     } else {
         "2 x days_in_year"
     };
-    let after = levy_after_exemption(&before, &scale, exemption)?;
+    let after = levy_after_exemption(before, scale, exemption)?;
+    let scaled = if times_family_income {
+        format!("({before_formula}) / family_income")
+    } else {
+        before_formula.to_string()
+    };
     let after_formula = format!(
-        "({before_formula}) x (2 x days_in_year - (2 x exemption_full_days + exemption_half_days)) / ({halves})"
+        "({before_formula}) x (2 x days_in_year - (2 x {full_days} + exemption_half_days)) / ({halves})"
     );
-    steps.push(step_by_name(
-        "exemption_reduction",
-        "Medicare Levy Act 1986 s 9(1) and ITAA 1936 s 251U(3): the share of the levy for each full exemption day and half of each half exemption day",
-        &format!("{} - {after_formula}", scaled(&before_formula)),
-        &values,
-        before.div(&scale)?.sub(&after)?,
-    ));
-    steps.push(step_by_name(
-        "medicare_levy",
-        "Medicare Levy Act 1986 s 9(1): the levy after ss 7 and 8 for the days the person was not a prescribed person",
-        &after_formula,
-        &values,
-        after,
-    ));
-    Ok((steps, rates, shared))
+    Ok(vec![
+        step_by_name(
+            "exemption_reduction",
+            authority,
+            &format!("{scaled} - {after_formula}"),
+            &values,
+            before.div(scale)?.sub(&after)?,
+        ),
+        step_by_name(
+            "medicare_levy",
+            "Medicare Levy Act 1986 s 9(1): the levy after ss 7 and 8 for the days the person was not a prescribed person",
+            &after_formula,
+            &values,
+            after,
+        ),
+    ])
 }
 
 pub fn medicare_levy(
@@ -3856,6 +3942,7 @@ pub fn contribution_caps(
     year: &Arg,
     scope_confirmed: &Arg,
     determination_date: Option<&Arg>,
+    downsizer: Option<&DownsizerArgs>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "contribution_caps")?;
     let balance = money(total_super_balance)?;
@@ -3880,7 +3967,7 @@ pub fn contribution_caps(
         steps,
         (&non_concessional, *under_75),
         Vec::new(),
-        determination_date,
+        (determination_date, downsizer),
     )
 }
 
@@ -3892,7 +3979,7 @@ fn caps_result(
     mut steps: Vec<Step>,
     (non_concessional, under_75): (&Decimal, bool),
     more_rates: Vec<(String, String)>,
-    determination_date: Option<&Arg>,
+    (determination_date, downsizer): (Option<&Arg>, Option<&DownsizerArgs>),
 ) -> Result<Value> {
     let (cap, transfer) = lookup(meta::CONTRIBUTION_CAPS, year);
     let mut release_warning = None;
@@ -3927,7 +4014,9 @@ fn caps_result(
         }
         Ok(rates)
     })?;
+    let tests = downsizer::extend(downsizer, year, &mut steps)?;
     let mut out = derived_result("contribution_caps", year, steps, rates)?;
+    downsizer::record(&mut out, tests);
     if let Some(warning) = release_warning {
         ato_interest_penalties::warn(&mut out, warning);
     }
@@ -4091,6 +4180,8 @@ fn non_concessional_steps(
 
 mod carry_forward;
 pub use carry_forward::{CarryForward, contribution_caps_by_year};
+mod downsizer;
+pub use downsizer::{DOWNSIZER_INPUTS, DownsizerArgs};
 
 fn is_leap(year: i64) -> bool {
     year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
@@ -4102,8 +4193,11 @@ pub fn pension_minimum(
     days: &Arg,
     year: &Arg,
     scope_confirmed: &Arg,
+    transition_to_retirement: Option<&Arg>,
 ) -> Result<Value> {
     let year = scope(scope_confirmed, year, "pension_minimum")?;
+    let ttr = transition_to_retirement
+        .map_or(Ok(false), |given| flag(given, "transition_to_retirement"))?;
     let balance = money(account_balance)?;
     let Some(Some(age)) = age
         .int()
@@ -4114,6 +4208,36 @@ pub fn pension_minimum(
             "age must be an integer number of years from 0 to 150.",
         );
     };
+    let (days, days_in_year) = held_days(days, &year)?;
+    let factor = d(meta::PENSION_MINIMUM_FACTORS
+        .iter()
+        .find(|(lowest, _)| age >= *lowest)
+        .expect("age 0 band")
+        .1);
+    let steps = minimum_steps(&balance, &factor, days, days_in_year)?;
+    let steps = ttr_maximum(steps, &balance, ttr)?;
+    let mut out = derived_result(
+        "pension_minimum",
+        &year,
+        steps,
+        vec![
+            rate("percentage_factor", &factor),
+            rate("days", days),
+            rate("days_in_year", days_in_year),
+        ],
+    )?;
+    if ttr {
+        texts::add_note(
+            &mut out,
+            (texts::TTR_MAXIMUM_SOURCE, texts::TTR_MAXIMUM_WARNING),
+            texts::TTR_MAXIMUM_SCOPE,
+        );
+    }
+    Ok(out)
+}
+
+/// The days the pension is held in `year`, checked, and the days in it.
+fn held_days(days: &Arg, year: &str) -> Result<(i64, i64)> {
     let start: i64 = year[..4].parse().expect("supported period");
     let days_in_year: i64 = if is_leap(start + 1) { 366 } else { 365 };
     let Some(Some(days)) = days
@@ -4125,13 +4249,19 @@ pub fn pension_minimum(
             format!("days must be an integer from 1 to {days_in_year} for {year}."),
         );
     };
-    let factor = d(meta::PENSION_MINIMUM_FACTORS
-        .iter()
-        .find(|(lowest, _)| age >= *lowest)
-        .expect("age 0 band")
-        .1);
+    Ok((days, days_in_year))
+}
+
+/// SISR Schedule 7 cl 1(1), 3 and 4: the minimum for `days` of a
+/// `days_in_year` year, before rounding.
+fn minimum_before_rounding(
+    balance: &Decimal,
+    factor: &Decimal,
+    days: i64,
+    days_in_year: i64,
+) -> Result<Step> {
     let (held, length) = (int(days), int(days_in_year));
-    let steps = precise(|| {
+    precise(|| {
         // cl 4: nothing is required for a pension commencing on or after 1 June,
         // which is within the last 30 days of the income year. Otherwise cl 3
         // pro-rates the factor over a first year that starts after 1 July.
@@ -4141,56 +4271,71 @@ pub fn pension_minimum(
             (
                 "SISR Schedule 7 cl 1(1) and cl 3",
                 "account_balance_used x percentage_factor x days / days_in_year",
-                &[&balance, &factor, &held, &length],
-                balance.mul(&factor)?.mul(&held)?.div(&length)?,
+                &[balance, factor, &held, &length],
+                balance.mul(factor)?.mul(&held)?.div(&length)?,
             )
         } else {
             (
                 "SISR Schedule 7 cl 1(1)",
                 "account_balance_used x percentage_factor",
-                &[&balance, &factor],
-                balance.mul(&factor)?,
+                &[balance, factor],
+                balance.mul(factor)?,
             )
         };
-        let minimum = exact
+        let id = "minimum_before_rounding";
+        Ok(step(id, authority, formula, operands, exact))
+    })
+}
+
+/// SISR Schedule 7: the minimum for `days` of a `days_in_year` year, before
+/// and after rounding.
+fn minimum_steps(
+    balance: &Decimal,
+    factor: &Decimal,
+    days: i64,
+    days_in_year: i64,
+) -> Result<Vec<Step>> {
+    let before = minimum_before_rounding(balance, factor, days, days_in_year)?;
+    let exact = before.value.clone();
+    let minimum = precise(|| {
+        Ok(exact
             .div(&int(10))?
             .quantize(0, Rounding::HalfUp)?
-            .mul(&int(10))?;
-        let rounding = "dollars(minimum_before_rounding / 10) x 10";
-        Ok(vec![
-            step(
-                "account_balance_used",
-                "SISR Schedule 7 cl 1(2)",
-                "account_balance",
-                &[&balance],
-                balance.clone(),
-            ),
-            step(
-                "minimum_before_rounding",
-                authority,
-                formula,
-                operands,
-                exact.clone(),
-            ),
-            step(
-                "minimum_payment",
-                "SISR Schedule 7 cl 5",
-                rounding,
-                &[&exact],
-                minimum,
-            ),
-        ])
+            .mul(&int(10))?)
     })?;
-    derived_result(
-        "pension_minimum",
-        &year,
-        steps,
-        vec![
-            rate("percentage_factor", &factor),
-            rate("days", days),
-            rate("days_in_year", days_in_year),
-        ],
-    )
+    Ok(vec![
+        step(
+            "account_balance_used",
+            "SISR Schedule 7 cl 1(2)",
+            "account_balance",
+            &[balance],
+            balance.clone(),
+        ),
+        before,
+        step(
+            "minimum_payment",
+            "SISR Schedule 7 cl 5",
+            "dollars(minimum_before_rounding / 10) x 10",
+            &[&exact],
+            minimum,
+        ),
+    ])
+}
+
+/// SISR reg 6.01(2) 'transition to retirement income stream': the maximum
+/// payment, 10% of the balance the minimum uses, down to the cent so that
+/// what is paid stays within it, after the minimum's steps.
+fn ttr_maximum(mut steps: Vec<Step>, balance: &Decimal, ttr: bool) -> Result<Vec<Step>> {
+    if ttr {
+        steps.push(step(
+            "maximum_payment",
+            "SISR reg 6.01(2) 'transition to retirement income stream' paras (a)(ii) and (b)(ii): no more than 10% of the account balance on 1 July, or on the commencement day in the first year, not reduced for a part year",
+            "cents_down(account_balance_used x 0.10)",
+            &[balance],
+            precise(|| Ok(balance.mul(&d("0.10"))?.quantize(-2, Rounding::Down)?))?,
+        ));
+    }
+    Ok(steps)
 }
 
 /// A period of days, both ends included, and for income use the part of the
@@ -5014,6 +5159,8 @@ mod fbt_ev_exemption;
 mod fbt_instalment;
 pub use fbt_ev_exemption::{EvExemptionArgs, fbt_ev_exemption_check};
 pub use fbt_instalment::{FBT_INSTALMENT_OPTIONAL, FbtInstalmentArgs, fbt_instalment};
+mod foreign_purchaser_surcharge;
+pub use foreign_purchaser_surcharge::{ForeignPurchaserSurchargeArgs, foreign_purchaser_surcharge};
 mod dasp_tax;
 pub use dasp_tax::{DaspTaxArgs, dasp_tax};
 mod super_benefit_tax;
@@ -5021,8 +5168,12 @@ pub use super_benefit_tax::{
     STREAM_OPTIONAL, SUPER_BENEFIT_OPTIONAL, SuperBenefitTaxArgs, SuperWithholdingArgs,
     super_benefit_tax, super_withholding,
 };
+mod transfer_duty;
+pub use transfer_duty::{TransferDutyArgs, transfer_duty};
+mod source_quotes;
+pub(crate) use source_quotes::attach as attach_source_quotes;
 mod payroll_tax;
-pub use payroll_tax::{PayrollTaxArgs, payroll_tax};
+pub use payroll_tax::{PayrollTaxArgs, PayrollTaxGroupArgs, payroll_tax, payroll_tax_group};
 mod land_tax;
 pub use land_tax::{LandTaxArgs, land_tax};
 mod workers_compensation_premium;
@@ -6347,7 +6498,9 @@ pub use individual_offsets::{
 mod sb_cgt_concessions;
 pub use sb_cgt_concessions::{SB_CGT_OPTIONAL, SbCgtConcessionsArgs, sb_cgt_concessions};
 mod work_expenses;
-pub use work_expenses::{WORK_EXPENSES_OPTIONAL, work_expenses};
+pub use work_expenses::{WORK_EXPENSES_OPTIONAL, WORK_EXPENSES_RECORDS, work_expenses};
+mod notice_period;
+pub use notice_period::{NoticePeriodArgs, notice_period};
 mod ato_interest_penalties;
 pub use ato_interest_penalties::ato_interest_penalties;
 mod excess_contributions;
@@ -6404,6 +6557,8 @@ mod lodgment_required;
 pub use lodgment_required::{LodgmentRequiredArgs, lodgment_required};
 mod rd_tax_offset;
 pub use rd_tax_offset::{RdTaxOffsetArgs, rd_tax_offset};
+mod esic;
+pub use esic::{EsicArgs, esic};
 mod gst_adjustments;
 pub use gst_adjustments::{
     AnnualApportionmentArgs, BadDebtArgs, CreditablePurposeArgs, FinancialAcquisitionsArgs,
@@ -6411,12 +6566,18 @@ pub use gst_adjustments::{
     gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
     gst_second_hand_goods,
 };
+mod tourist_refund;
+pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
 mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
+mod impairment_test;
+pub use impairment_test::{ImpairmentTestArgs, impairment_test};
 mod leave_provisions;
+mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
+pub use wip_lockup::{WipLockupArgs, wip_lockup};
 mod long_service_leave;
 pub use long_service_leave::{LongServiceLeaveArgs, long_service_leave};
 mod foreign_income_conversion;
@@ -6446,7 +6607,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 133] = [
+const KINDS: [&str; 141] = [
     "gst",
     "gst_margin_scheme",
     "fuel_tax_credits",
@@ -6464,10 +6625,13 @@ const KINDS: [&str; 133] = [
     "balancing_adjustment",
     "trade_in",
     "franking_account",
+    "foreign_purchaser_surcharge",
     "dasp_tax",
     "super_benefit_tax",
+    "transfer_duty",
     "super_withholding",
     "payroll_tax",
+    "payroll_tax_group",
     "land_tax",
     "workers_compensation_premium",
     "motor_vehicle_duty",
@@ -6528,6 +6692,7 @@ const KINDS: [&str; 133] = [
     "asic_fees",
     "sb_cgt_concessions",
     "work_expenses",
+    "notice_period",
     "ato_interest_penalties",
     "transfer_balance",
     "excess_contributions",
@@ -6554,17 +6719,21 @@ const KINDS: [&str; 133] = [
     "residency_tests",
     "lodgment_required",
     "rd_tax_offset",
+    "esic",
     "gst_creditable_purpose_change",
     "gst_annual_apportionment",
     "gst_financial_acquisitions_threshold",
     "gst_going_concern",
     "gst_second_hand_goods",
     "gst_bad_debt",
+    "tourist_refund",
     "deferred_tax",
     "cgt_cost_base_adjustments",
     "payg_instalment",
     "leave_provisions",
     "deferred_revenue",
+    "wip_lockup",
+    "impairment_test",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
@@ -6586,40 +6755,40 @@ const KINDS: [&str; 133] = [
 pub fn periods(kind: &str) -> Value {
     let mut out = Vec::new();
     for year in meta::supported_periods(kind) {
-        let mut period = Map::new();
         if kind.starts_with("fbt") {
             let ended: i64 = year.parse().expect("FBT year");
-            period.insert("id".into(), json!(year));
-            period.insert("basis".into(), json!("FBT year"));
-            period.insert("start".into(), json!(format!("{}-04-01", ended - 1)));
-            period.insert("end".into(), json!(format!("{year}-03-31")));
-            period.insert("arguments".into(), json!({ "year_ended": ended }));
-        } else {
-            let start: i64 = year[..4].parse().expect("income year");
-            period.insert("id".into(), json!(year));
-            period.insert("basis".into(), json!("income year"));
-            period.insert("start".into(), json!(format!("{start}-07-01")));
-            period.insert("end".into(), json!(format!("{}-06-30", start + 1)));
-            period.insert("arguments".into(), json!({ "year": year }));
-            if kind == "study_loan_withholding" {
-                let from = lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year);
-                period.insert("start".into(), json!(from));
-            }
-            if kind == "quarterly_sg" {
-                period.insert("basis".into(), json!("complete quarter within income year"));
-                let next = start + 1;
-                period.insert(
-                    "quarters".into(),
-                    json!([
-                        {"quarter": 1, "start": format!("{start}-07-01"), "end": format!("{start}-09-30")},
-                        {"quarter": 2, "start": format!("{start}-10-01"), "end": format!("{start}-12-31")},
-                        {"quarter": 3, "start": format!("{next}-01-01"), "end": format!("{next}-03-31")},
-                        {"quarter": 4, "start": format!("{next}-04-01"), "end": format!("{next}-06-30")},
-                    ]),
-                );
-            }
+            out.push(json!({
+                "id": year,
+                "basis": "FBT year",
+                "start": format!("{}-04-01", ended - 1),
+                "end": format!("{year}-03-31"),
+                "arguments": { "year_ended": ended },
+            }));
+            continue;
         }
-        out.push(Value::Object(period));
+        let start: i64 = year[..4].parse().expect("income year");
+        // Overwriting a key keeps its position (`preserve_order`).
+        let mut period = json!({
+            "id": year,
+            "basis": "income year",
+            "start": format!("{start}-07-01"),
+            "end": format!("{}-06-30", start + 1),
+            "arguments": { "year": year },
+        });
+        if kind == "study_loan_withholding" {
+            period["start"] = json!(lookup(meta::STUDY_LOAN_WITHHOLDING_FROM, year));
+        }
+        if kind == "quarterly_sg" {
+            period["basis"] = json!("complete quarter within income year");
+            let next = start + 1;
+            period["quarters"] = json!([
+                {"quarter": 1, "start": format!("{start}-07-01"), "end": format!("{start}-09-30")},
+                {"quarter": 2, "start": format!("{start}-10-01"), "end": format!("{start}-12-31")},
+                {"quarter": 3, "start": format!("{next}-01-01"), "end": format!("{next}-03-31")},
+                {"quarter": 4, "start": format!("{next}-04-01"), "end": format!("{next}-06-30")},
+            ]);
+        }
+        out.push(period);
     }
     Value::Array(out)
 }
@@ -6647,6 +6816,8 @@ fn evidence_heading(kind: &str) -> String {
         "sb_cgt_concessions" => "small-business-cgt-concessions".into(),
         "ato_interest_penalties" => "ato-penalties-and-interest".into(),
         "pcg_2021_4" => "pcg-20214".into(),
+        "esic" => "early-stage-investor-tax-offset".into(),
+        "wip_lockup" => "wip-lock-up".into(),
         _ => kind.replace('_', "-"),
     }
 }
@@ -6699,6 +6870,9 @@ pub fn worksheet_catalogue() -> Value {
         entry.insert("sources".into(), json!(sources(kind)));
         entry.insert("source_checked".into(), json!(checked));
         entry.insert("source_passage".into(), json!(passage));
+        if let Some(quotes) = source_quotes::catalogue(kind) {
+            entry.insert("source_quotes".into(), quotes);
+        }
         entry.insert("example_evidence".into(), Value::Object(evidence));
         entry.insert("supported_periods".into(), supported.clone());
         entry.insert("required_inputs".into(), Value::Object(inputs));

@@ -17,6 +17,8 @@
     "Super caps: `contribution-caps` for the year's caps and excess, `excess-contributions` for the concessional charge or the non-concessional release, `transfer-balance` for the transfer balance account. Each gives estimates, not determinations.",
     "A worksheet supports human review; it is not an assessment or lodgment. Distinguish a super accrual from evidence of receipt by a fund and distinguish a planning assumption from a statutory calculation.",
     "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities.",
-    "`deferred-revenue` (AASB 15) schedules revenue and the contract liability from a stated pattern of progress; it does not decide when a performance obligation is satisfied."
+    "`deferred-revenue` (AASB 15) schedules revenue and the contract liability from a stated pattern of progress; it does not decide when a performance obligation is satisfied.",
+    "`wip-lockup` ages a firm's unbilled WIP and gives WIP, receivable and lock-up days as Ozzit's WIPDays and ReceivableDays define them; lock-up is a management measure, not an accounting result.",
+    "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow."
   ]
 }

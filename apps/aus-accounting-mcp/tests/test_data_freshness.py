@@ -31,6 +31,7 @@ NO_BUNDLED_DATA = {
     "search_tax_legislation",
     "read_tax_legislation_section",
     "define_tax_term",
+    "find_citing_provisions",
     "search_tax_rates",
     "search_ato_rulings",
     "read_ato_ruling",

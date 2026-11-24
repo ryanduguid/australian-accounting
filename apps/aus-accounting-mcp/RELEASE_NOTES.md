@@ -1,3 +1,18 @@
+# Unreleased
+
+## Added
+
+- `find_citing_provisions` lists the provisions in the configured corpus whose text
+  cites one section by number, within its own title or by the title's full name.
+  An empty list is not proof that nothing cites the section.
+
+## Changed
+
+- `define_tax_term` says whether the term itself was found: `defined` is false when
+  no entry for it was, with `nearest_terms`, the longer defined expressions holding
+  every word of it, and `defined_note`, which says false is not a finding that the
+  expression is undefined.
+
 # v0.12.0
 
 ## Changed

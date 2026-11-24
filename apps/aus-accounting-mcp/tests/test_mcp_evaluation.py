@@ -74,7 +74,7 @@ async def _answer(session, case):
 
     if case in {"grouped-payday", "worksheet-gst", "library-reference", "payday-evidence-pack",
                 "legislation-citation", "legislated-rate", "statutory-definition",
-                "injected-instruction", "undefined-term", "stored-rate-date",
+                "injected-instruction", "undefined-term", "stored-rate-date", "citing-provision",
                 "ranked-provision", "long-provision", "ruling-paragraph",
                 "gst-coding", "bas-reconciliation", "lodgment-due-date",
                 "data-freshness", "reviewed-rate-outside-years", "union-fees-paper-question",
@@ -125,6 +125,9 @@ async def _answer(session, case):
             return results[0]["section"]["section"]
         if case == "undefined-term":
             return "NONE_FOUND" if not results[0]["definitions"] else "FOUND"
+        if case == "citing-provision":
+            assert results[0]["provision"]["section"] == "4"
+            return results[0]["cited_by"][0]["section"]
         if case == "ranked-provision":
             return results[0]["matches"][0]["section"]
         if case == "long-provision":
