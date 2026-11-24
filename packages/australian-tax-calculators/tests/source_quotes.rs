@@ -252,7 +252,11 @@ const FIGURES: [(&str, &str, &str); 50] = [
     ("motor_vehicle_duty", "nt", "$3 for every $100"),
     ("insurance_duty", "nsw", "9 per cent of the premium"),
     ("insurance_duty", "vic", "10% of the gross premium"),
-    ("insurance_duty", "vic", "is 7% from 1 July 2026 to 30 June 2027"),
+    (
+        "insurance_duty",
+        "vic",
+        "is 7% from 1 July 2026 to 30 June 2027",
+    ),
     ("insurance_duty", "qld", "9% of the premium paid"),
     ("insurance_duty", "qld", "10 cents"),
     ("insurance_duty", "wa", "rate of 10%"),
@@ -332,12 +336,18 @@ fn each_vic_property_tax_carries_its_own_quotes() {
         let own: Vec<Value> = quotes.iter().filter(|q| q["tax"] == tax).cloned().collect();
         let (input, figure) = vic_tax(tax);
         assert!(
-            own.iter().any(|q| q["passage"].as_str().unwrap().contains(figure)),
+            own.iter()
+                .any(|q| q["passage"].as_str().unwrap().contains(figure)),
             "{tax}: {figure}"
         );
         for quote in &own {
             assert_eq!(quote["jurisdiction"], "vic", "{tax}");
-            assert!(quote["url"].as_str().unwrap().starts_with("https://www.sro.vic.gov.au/"));
+            assert!(
+                quote["url"]
+                    .as_str()
+                    .unwrap()
+                    .starts_with("https://www.sro.vic.gov.au/")
+            );
             assert_eq!(quote["verified"], "2026-11-24", "{tax}");
         }
         let result = api::evaluate_coded("vic-property-taxes", &input).unwrap();

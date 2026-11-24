@@ -30,7 +30,11 @@ const COMMANDS: [(&str, &str, &str); 7] = [
         "jurisdiction",
     ),
     ("land-tax", "land_tax", "jurisdiction"),
-    ("first-home-owner-grant", "first_home_owner_grant", "jurisdiction"),
+    (
+        "first-home-owner-grant",
+        "first_home_owner_grant",
+        "jurisdiction",
+    ),
     ("motor-vehicle-duty", "motor_vehicle_duty", "jurisdiction"),
     ("insurance-duty", "insurance_duty", "jurisdiction"),
     ("vic-property-taxes", "vic_property_taxes", "tax"),
