@@ -4519,6 +4519,24 @@ enterprise agreement or contract, notice by the employee (s 118) or
 redundancy pay. The tests hold it to the Fair Work Ombudsman's Gunter and
 Joan; see [calculation evidence](docs/calculation-evidence.md#notice-period).
 
+The records can be given instead of their totals. For `home_office` from
+2022-23, `hours_diary` is a list of `{"date", "hours"}` rows inside the year,
+several a date if need be but at most 24 hours on any date; their total is
+the year's hours (`diary_hours`, with `diary_days`, `diary_first_date` and
+`diary_last_date`). For `car_log_book`, `log_book` is `{"period_start",
+"period_end", "odometer_start", "odometer_end", "journeys"}`, each journey
+`{"start", "end", "odometer_start", "odometer_end", "purpose"}`, in place of
+`log_book_weeks` and `business_kilometres`. The period must run at least 84
+days (ITAA 1997 s 28-120(1)) and include part of `log_book_year`
+(s 28-120(2)); every journey states its purpose (s 28-125(2)(d)) and lies
+inside the period's dates and odometer readings without overlapping another.
+The journeys' kilometres over the period's total give `log_book_percentage`,
+and `total_kilometres` for the year times that percentage gives the year's
+`business_kilometres` (s 28-90(5)). Whenever the fixed rate is open from
+2022-23, and for every log book claim, `records_to_confirm` lists the
+records PCG 2023/1 paras 28 and 56 to 61, or Division 28, require: the
+worksheet reports them for the operator to confirm and assumes none of them.
+
 ## Residency tests
 
 `residency_tests` says whether an individual was a resident of Australia for
