@@ -5222,18 +5222,32 @@ differs, the Act is followed:
 - a Victorian, Western Australian or Northern Territory home bought for less
   than the grant gets the price (Vic s 18(1A), WA s 19(2CA), NT s 18(1));
   the page refuses;
-- a Victorian home built over $750,000 in total is refused, as the cap is on
-  the consideration for the building work (s 13(1A) and (7)(b)); the page
-  pays nil.
+- a Victorian home built over $750,000 in total is refused without
+  `contract_price`, as the cap is on the consideration for the building work
+  (s 13(1A) and (7)(b)); the page pays nil.
+
+A home built's optional `contract_price` (read again on 24 November 2026)
+is that consideration: 'the total consideration payable for the building
+work' (Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas
+s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b)). Each Act read pays the lesser of
+the consideration and the amount (Qld s 20(1) and s 25EB, Vic s 18(1A),
+WA s 19(2CA), SA, Tas, NT and ACT s 18(1); in the NT 'the amount of
+consideration actually paid'), so below the amount the grant is the contract
+price; the ACT still pays nil. In Victoria the contract price is the value
+the $750,000 cap tests. A New South Wales contract price below $10,000 is
+refused, as that Act could not be read. Owner builders, whose consideration
+is the actual costs less their own labour (s 13(7)(c) and its equivalents),
+stay outside the command.
 
 The value tested against the cap is the one each source names, kept apart
 from the consideration that limits the grant. For a home bought that is
 `total_value`, the price. For a home built every Act read on 24 November
 2026 makes it the building work alone (Qld schedule 'consideration' (b),
 WA s 14AB(b), Vic, SA and Tas s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b);
-the New South Wales Act could not be read), not the land and contract total: the command pays the amount only when
-`building_contract` states the contract is at least the grant, refuses
-without it, and never limits a built home's grant by `total_value`. In Queensland
+the New South Wales Act could not be read), not the land and contract total: the command pays the lesser of
+`contract_price` and the amount, or the amount when `building_contract`
+states the contract is at least the grant, refuses with neither, and never
+limits a built home's grant by `total_value`. In Queensland
 and Western Australia the optional `cap_value` carries the value the Act
 tests where it differs: for a home bought, the unencumbered value of the home
 and land at the contract date, tested with the price as the greater of the 2
@@ -5257,6 +5271,9 @@ typed from the rules above.
 | SA bought for $10,000 | RevenueSA's example | $10,000 |
 | Tas built on 30 June and 1 July 2026 | Tas Act ss 18L, 18M | $30,000; $20,000 |
 | NT established on 30 September and 1 October 2025 | NT Act ss 13(1)(a), 18(3D) | $10,000; nil |
+| Qld built, contract $29,999, $30,000 and $1 | Qld Act s 20(1), schedule 'consideration' (b) | $29,999; $30,000; $1 |
+| Vic built, $900,000 total, contract $750,000 and $750,001 | Vic Act ss 13(1A), 13(7)(b), 18(1A) | $10,000; nil |
+| NSW built, contract $9,999 | Revenue NSW (Act unread) | refused |
 
 ## PSI test
 

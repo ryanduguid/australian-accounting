@@ -3653,10 +3653,15 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             })
         }
         "first-home-owner-grant" => {
-            // Optional: the Western Australian home's location, and the value
-            // Queensland and Western Australia test against their caps.
-            let [north, cap] = engine::FHOG_OPTIONAL;
-            let given = [optional(v, north, Raw)?, optional(v, cap, Dec)?];
+            // Optional: the Western Australian home's location, the value
+            // Queensland and Western Australia test against their caps, and a
+            // home built's contract price.
+            let [north, cap, price] = engine::FHOG_OPTIONAL;
+            let given = [
+                optional(v, north, Raw)?,
+                optional(v, cap, Dec)?,
+                optional(v, price, Dec)?,
+            ];
             engine::first_home_owner_grant(&engine::FirstHomeOwnerGrantArgs {
                 jurisdiction: &a[0],
                 contract_date: &a[1],
