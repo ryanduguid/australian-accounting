@@ -475,7 +475,10 @@ fn qualifying_dismissals_and_the_tasmanian_transition() {
         "long_service_leave.unsettled"
     );
     assert!(!figures(&run(&tas("1997-07-02", "1")))[0].is_empty());
-    assert_eq!(figures(&run(&tas("2012-06-30", "1")))[..2], ["8.6667", "7.6667"]);
+    assert_eq!(
+        figures(&run(&tas("2012-06-30", "1")))[..2],
+        ["8.6667", "7.6667"]
+    );
     assert_eq!(figures(&run(&tas("2012-06-30", "0")))[0], "8.6667");
     assert_eq!(figures(&run(&tas("2012-07-01", "1")))[1], "7.6667");
 }

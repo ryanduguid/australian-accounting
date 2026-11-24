@@ -118,9 +118,13 @@ fn site_code(message: &str) -> &'static str {
         ("below icare", "below_minimum"),
         ("member of a group", "group_rated"),
         ("no apprentice deduction", "apprentice_unavailable"),
-        ("after premium payable is calculated", "apprentice_unsettled"),
+        (
+            "after premium payable is calculated",
+            "apprentice_unsettled",
+        ),
         ("no year-end adjustment", "adjustment_unsettled"),
         ("rounds to $0", "remuneration_nil"),
+        ("lower discount band", "band_edge_unsettled"),
     ]
     .iter()
     .find(|(said, _)| message.contains(said))
