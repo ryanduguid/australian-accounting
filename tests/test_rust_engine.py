@@ -32,7 +32,7 @@ REMOVED_IMPORTS = {
     "gst-review": "gstreview",
 }
 # Crates release-policy's release-binary.yml publishes as executables.
-BINARY_RELEASES = {"australian-tax-calculators"}
+BINARY_RELEASES = {"australian-tax-calculators", "solomons-sword", "the-exchequer-tally"}
 # The line each audit step ends with: cargo-audit 0.22.2 prints one of these and
 # exits 0 when it cannot fetch, open or read the crates.io index.
 UNCHECKED_YANKED = (
