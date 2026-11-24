@@ -56,7 +56,7 @@ fn debit_limits(turnover: &Decimal) -> Result<(i64, &'static str)> {
     const BANDS: [(&str, i64, &str); 4] = [
         ("20000000", 18, "12500"),
         ("100000000", 12, "25000"),
-        ("500000000", 12, "50000"),
+        ("500000000.00", 12, "50000"),
         ("1000000000", 12, "100000"),
     ];
     for (below, months, limit) in BANDS {
