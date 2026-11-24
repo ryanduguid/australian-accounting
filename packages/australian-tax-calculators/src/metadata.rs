@@ -1175,6 +1175,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "wine_equalisation_tax" => vec!["2023-24", "2024-25", "2025-26", "2026-27", "2027-28"],
         // s 5 sets fixed rates; the temporary budget repair levy of s 6 ended
         // with 2016-17. The years are the other superannuation worksheets'.
+        // Duty surcharges on transactions in 2026-27 and land tax surcharges
+        // for the 2026 (nsw, vic) or 2026-27 land tax year, read on 24
+        // November 2026.
+        "foreign_purchaser_surcharge" => vec!["2026-27"],
         "dasp_tax" => vec!["2025-26", "2026-27", "2027-28"],
         // The years the map asks for; the untaxed plan cap for 2027-28 is not
         // yet published (s 307-350, indexed each February).
@@ -1208,6 +1212,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
         "workers_compensation_premium" => vec!["2026-27"],
+        // Each Act, determination and revenue office's rates for transactions
+        // in 2026-27, read on 24 November 2026.
+        "transfer_duty" => vec!["2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1418,6 +1425,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Each year's rates were read at the ATO, the Commissioner's
         // instruments and PCG 2023/1 on 22 November 2026; 2027-28 has no cents
         // per kilometre rate yet.
+        // The financial year holding the notice day, from 27 March 2021, when
+        // s 117(4) began (Act No. 25, 2021), to 30 June 2027; the Act's text
+        // was read on 24 November 2026.
+        "notice_period" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "work_expenses" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1449,6 +1462,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // starting on or after 1 July 2021, are unchanged to 2026-27.
         "rd_tax_offset" => vec![
             "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // Subdivision 360-A applies to shares issued from 1 July 2016; its
+        // text was read to 2026-27 on 24 November 2026.
+        "esic" => vec![
+            "2016-17", "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24",
+            "2024-25", "2025-26", "2026-27",
         ],
         "sb_cgt_concessions" => vec!["2025-26", "2026-27"],
         // The question's end date. GIC days run back to 1 July 1999 and SIC
@@ -1584,6 +1603,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-22",
             "ITAA 1997 ss 301-10 to 301-40, 301-90 to 301-115, 301-225, 302-60, 302-140, 302-145, 302-195, 303-10, 307-120, 307-125, 307-145, 307-150, 307-205, 307-275 to 307-290, 307-345, 307-350 and 960-285, from the ATO's legal database; the ATO's 'Payments from super' (last updated 16 September 2026, Tables 9, 10, 12 and 13), 'Tax on super benefits' (2 August 2023) and 'Tax rates – Australian resident' (13 August 2026); Schedule 12 of the Taxation Administration (Withholding Schedules) Instrument 2026 (F2026L00716) and the ATO's Schedule 12 from 13 October 2020 to 30 June 2024",
         ),
+        "foreign_purchaser_surcharge" => (
+            "2026-11-24",
+            "Duties Act 1997 (NSW) s 104U (AustLII, as at 29 June 2026); Duties Act 2000 (Vic) s 28A (authorised version 141); Duties Act 2001 (Qld) s 244 (current as at 22 October 2026); Duties Act 2008 (WA) s 205O (AustLII); Stamp Duties Act 1923 (SA) s 72 (version 15.9.2026); Duties Act 2001 (Tas) ss 30C and 30E; DI2026-155 (ACT); Land Tax Act 2005 (Vic) Sch 1 Tables 1.6 and 4.5 (version 086); Land Tax Act 2010 (Qld) Schs 2 and 3; Land Tax Rating Act 2000 (Tas) ss 6A and 7; Land Tax Act 2004 (ACT) s 17E with DI2026-152; and each revenue office's surcharge pages, with Revenue NSW's surcharge land tax page for the 5% rate (the Land Tax Act 1956 (NSW) could not be read)",
+        ),
         "dasp_tax" => (
             "2026-11-19",
             "Superannuation (Departing Australia Superannuation Payments Tax) Act 2007 ss 4 to 6 (compilation 5, 2 December 2016, Federal Register of Legislation); ITAA 1997 ss 301-170 and 301-175, from the ATO's legal database; the ATO's 'Payments from super' rates (last updated 16 September 2026) and 'Departing Australia superannuation payment (DASP)' (last updated 21 April 2026)",
@@ -1607,6 +1630,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "payroll_tax" => (
             "2026-11-19",
             "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
+        ),
+        "transfer_duty" => (
+            "2026-11-24",
+            "Duties Act 1997 (NSW) ss 32, 32A, 33AC to 33AF, 74, 78A and 273 (AustLII, as at 29 June 2026; legislation.nsw.gov.au served a challenge) with Revenue NSW's 2026-27 rates and First Home Buyers Assistance Scheme pages; Duties Act 2000 (Vic) ss 28 and 57JA (authorised version 141, 24 June 2026); Duties Act 2001 (Qld) ss 24, 91, 92 and 92A and Schs 3 and 4A (current as at 22 October 2026); Duties Act 2008 (WA) s 143 and Sch 2 (AustLII, with No. 18 of 2026); Stamp Duties Act 1923 (SA) s 71DD and Sch 2 (version 15.9.2026); Duties Act 2001 (Tas) ss 29, 57C and 57G; DI2026-155 and DI2026-157 (ACT, from 1 July 2026); Stamp Duty Act 1978 (NT) s 88A and Sch 1 cl 1(2) (reprint REPS013, as in force at 1 July 2025); and each revenue office's rates and first home pages",
         ),
         "gst_margin_scheme" => (
             "2026-11-19",
@@ -1836,9 +1863,13 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-16",
             "ITAA 1997 Division 32, s 27-5 and s 995-1, compilation 268 (1 October 2026); FBTAA ss 5E, 20, 37A to 37CF, 40, 41, 45, 58P and 135P(1) and s 136(1), compilation 97 (1 July 2026); Fringe Benefits Tax Assessment Regulations 2018, regulations 6 to 11, as made; ITAA 1936 ss 51AEA and 51AEB, compilation 193 (1 October 2026); GST Act s 69-5, compilation 96 (1 January 2026); TR 97/17, paras 7 to 143 and the Part A table, and TR 2007/12, paras 8 to 22 and examples 1 to 3, as the Commissioner's view",
         ),
+        "notice_period" => (
+            "2026-11-24",
+            "Fair Work Act 2009 ss 18, 22, 117, 118 and 123, compilation 73 (C2026C00355, 7 July 2026), with endnote 4's amendment history; Fair Work Amendment (Supporting Australia's Jobs and Economic Recovery) Act 2021 (No. 25, 2021) s 2 and Schedule 1 item 19, as made, and the transitional Schedule 1 Part 10 clause 46(9) it inserts in the Fair Work Act; Acts Interpretation Act 1901 s 2G",
+        ),
         "work_expenses" => (
-            "2026-11-22",
-            "ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and 28-125 (ATO legal database); the cents per kilometre instruments of 2020 (F2020L00676), 2022 (F2022L00813), 2023 (F2023L00767), 2024 (F2024L00697) and 2026 (F2026L00785); PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1; the ATO's 52 cent fixed rate, shortcut (PCG 2020/3), fixed rate, actual cost, cents per kilometre, log book and self-education pages; the 2022 D4 instructions; TR 98/9 paras 25 to 30 and 119 to 155 on ITAA 1936 s 82A; Act No. 84, 2022, Schedule 3 items 26 and 33",
+            "2026-11-24",
+            "ITAA 1997 s 25-130 (ATO legal database, and Act No. 49, 2026, Schedule 4 items 3 and 17 as made) with the explanatory memorandum's paras 4.11 to 4.19; ITAA 1997 ss 28-12, 28-25, 28-90, 28-95, 28-100, 28-110, 28-115, 28-120 and 28-125 (ATO legal database); the cents per kilometre instruments of 2020 (F2020L00676), 2022 (F2022L00813), 2023 (F2023L00767), 2024 (F2024L00697) and 2026 (F2026L00785); PCG 2023/1 as updated 16 April 2025, paras 14 to 28, 45 to 89 and Table 1; the ATO's 52 cent fixed rate, shortcut (PCG 2020/3), fixed rate, actual cost, cents per kilometre, log book and self-education pages; the 2022 D4 instructions; TR 98/9 paras 25 to 30 and 119 to 155 on ITAA 1936 s 82A; Act No. 84, 2022, Schedule 3 items 26 and 33",
         ),
         "ato_interest_penalties" => (
             "2026-11-22",
@@ -1899,6 +1930,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "voluntary_agreement_withholding" => (
             "2026-11-22",
             "Schedule 10 (voluntary agreements) of F2024L00664, F2025L00647, F2025L01016 and F2026L00716: using this schedule, how to work out the withholding amount, the CIR and GST rules, Francesca's example and rounding; TAA 1953 Sch 1 s 12-55 (ATO legal database)",
+        ),
+        "esic" => (
+            "2026-11-24",
+            "ITAA 1997 ss 360-10 to 360-50 with their history notes (ATO legal database): Act No. 54 of 2016 Sch 1 item 1, Act No. 8 of 2020 Sch 2 items 5 to 8, 12 and 13, Act No. 92 of 2020 Sch 5 item 37; Income Tax Assessment (1997 Act) Regulations 2021 compilation C16 (27 June 2026) and Income Tax Assessment Regulations 1997 (1 April 2020): nothing prescribed for Division 360; the ATO's early stage investor pages (16 August and 9 September 2024)",
         ),
         "rd_tax_offset" => (
             "2026-11-22",
@@ -2130,6 +2165,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-01",
             "2026-11-18",
         ),
+        "foreign_purchaser_surcharge" => (
+            "Revenue office foreign purchaser pages: Revenue NSW 'What is surcharge purchaser duty' and 'What is surcharge land tax'; SRO Victoria 'Calculating foreign purchaser additional duty' and its absentee owner surcharge pages; the DTF foreign transfer duty fact sheet; RevenueSA's foreign ownership surcharge page; the ACT Revenue Office's foreign ownership surcharge page",
+            "SRO Victoria's Emily ($16,000) and absentee corporation ($40,000); the DTF's Simon ($14,000); RevenueSA's $7,000 on a $100,000 interest; the ACT's 0.75% of the AUV",
+            "2026-10-22",
+            "2026-11-24",
+        ),
         "dasp_tax" => (
             "superannuation-superannuation-benefits-termination-payments",
             "8-420",
@@ -2165,6 +2206,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Revenue NSW's 2 examples; SRO Victoria example 2; QRO's annual deduction example; RevenueWA's $1,104,000; SRO Tasmania examples 1 and 2",
             "2026-07-01",
             "2026-11-19",
+        ),
+        "transfer_duty" => (
+            "Revenue office transfer duty pages: Revenue NSW 'How to calculate transfer duty' and the NSW Government's First Home Buyers Assistance Scheme table; SRO Victoria non-principal place of residence rates; QRO transfer duty and home concession rates; RevenueSA rate of stamp duty",
+            "Revenue NSW's $55,537, $203,237 and $14,437 and the 4 reduced rates from $9,796.75; SRO Victoria's $28,070 and $19,070; QRO's $31,275, $6,555 and $24,100; RevenueSA's $26,830 and $11,330",
+            "2026-10-06",
+            "2026-11-24",
         ),
         "gst_margin_scheme" => (
             "tax-examples-gst-and-other-indirect-taxes",
@@ -2460,11 +2507,17 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2026-06-30",
             "2026-11-15",
         ),
+        "notice_period" => (
+            "Fair Work Ombudsman: 'Dismissal', 'Notice of termination and redundancy pay' and 'Who doesn't get notice'",
+            "Gunter (5 months, 1 week from the day after notice) and Joan (5 years and 3 months with unpaid parental leave, 4 weeks)",
+            "2026-11-24",
+            "2026-11-24",
+        ),
         "work_expenses" => (
             "ATO working from home, car and self-education pages; PCG 2023/1; TR 98/9",
-            "Keisha, Yang and Wanda (fixed rate method), PCG 2023/1 examples 1 (Gerry) and 8 (Piruntha), Johan (cents per kilometre), Lana (log book), Maureen (self-education reduction) and TR 98/9 paras 145 to 155 (Con)",
+            "Keisha, Yang and Wanda (fixed rate method), PCG 2023/1 examples 1 (Gerry) and 8 (Piruntha), Johan (cents per kilometre), Lana (log book), Maureen (self-education reduction), TR 98/9 paras 145 to 155 (Con), the explanatory memorandum's examples 4.1 to 4.4 (Nicky) and the ATO's standard deduction examples (Simon and Yui)",
             "2026-08-12",
-            "2026-11-22",
+            "2026-11-24",
         ),
         "depreciation_low_value_pool" => (
             "ATO Low-value pool page and Guide to depreciating assets 2026",
@@ -2549,6 +2602,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Francesca's CIR of 16.44% applied by agreement, otherwise 20%",
             "2026-06-17",
             "2026-11-22",
+        ),
+        "esic" => (
+            "ATO Calculating the early stage investor tax offset; Qualifying as an early stage innovation company; Limits for investors who don't meet the sophisticated investor test",
+            "Thomas's $20,000; Savannah's $200,000 of $800,000; Georgia Co's affiliate cap; Jason's $150,000 of $190,000 with $50,000 carried forward; Tim's $10,000 and his $60,000",
+            "2024-09-09",
+            "2026-11-24",
         ),
         "rd_tax_offset" => (
             "ATO Calculate the clawback adjustment",
@@ -2998,6 +3057,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the day the return taking these credits into account is given, not before any line's acquisition: lines acquired more than 4 years before it are listed in time_limit_lines, with the s 47-5(2) warning",
             ),
         ],
+        "notice_period" => vec![
+            (
+                "to_avoid_division",
+                "boolean, with exclusion specified_period only, and then required: a substantial reason for employing the employee for a specified period, task or season was to avoid the Division (s 123(2)); true keeps the notice",
+            ),
+            (
+                "full_rate_of_pay",
+                "AUD an hour, with weekly_hours or not at all: the employee's full rate of pay (s 18: with incentive payments and bonuses, loadings, monetary allowances, overtime and penalty rates and other separately identifiable amounts) as the operator has worked it out",
+            ),
+            (
+                "weekly_hours",
+                "hours above 0 to 168, to at most 2 decimal places, with full_rate_of_pay or not at all: the hours the employee would have worked in each week of the notice period, taken as the same each week",
+            ),
+        ],
         "work_expenses" => vec![
             (
                 "hours",
@@ -3106,6 +3179,18 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "category_e",
                 "AUD, for self_education with prescribed_course true only, and then required: category E, expenses incurred for the course that are not deductible, such as child care for attendance or the capital cost of a computer",
+            ),
+            (
+                "assessable_labour_income",
+                "AUD, for 2026-27 only, with the other 2 standard deduction facts or none: the year's assessable labour income (ITAA 1997 s 25-130(4): salary and wages, director and office holder payments, payments to religious practitioners, return to work payments, termination and retirement payments, and parental leave pay)",
+            ),
+            (
+                "other_work_related_deductions",
+                "AUD, for 2026-27 only, with the other 2 standard deduction facts or none: the other deductions the return claims for the year that s 25-130(2)(c) to (g) covers (not expenses left unclaimed), besides this method's (other work expenses under s 8-1, car expenses, travel between workplaces, repairs, decline in value and balancing adjustments for assets used for work, COVID-19 tests); not income protection, sickness or accident premiums or union and association fees (s 25-130(3))",
+            ),
+            (
+                "australian_resident",
+                "boolean, for 2026-27 only, with the other 2 standard deduction facts or none: an Australian resident at any time in the year (s 25-130(1)(b))",
             ),
         ],
         "ato_interest_penalties" => vec![
@@ -3462,6 +3547,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, for a plug_in_hybrid_electric vehicle only and then required: true when a car benefit relating to the car was provided before 1 April 2025 and was exempt under s 8A as it then read (item 5(2)(d) and (e))",
             ),
         ],
+        "esic" => vec![
+            (
+                "amount_receivable",
+                "AUD, optional, nil if absent: money the company is entitled to receive for issuing the shares to the investor in the year but has not been paid, such as an unpaid call on partly paid shares; counted from 2018-19 (s 360-25(1)(a)) and not before (the total amount paid); where counting it as paid decides the $50,000 limit, refused",
+            ),
+            (
+                "other_companies_exempt",
+                "boolean, with other_companies_paid: s 708(8), (10) or (11) of the Corporations Act 2001 removed the need for a disclosure document for an offer of another ESIC's shares to the investor in the year, which the ATO reads as lifting the $50,000 limit (s 360-20(1)(a) looks at this company's offers only); where the readings differ, refused",
+            ),
+            (
+                "other_companies_paid",
+                "AUD, required when disclosure_exemption is false and refused otherwise: the total paid in the income year for shares other companies issued to the investor, for the ATO's reading that the $50,000 limit counts investments in all ESICs (s 360-20(1)(b) counts this company's); where the readings differ the case is refused",
+            ),
+        ],
         "land_tax" => vec![
             (
                 "surcharge_value",
@@ -3811,7 +3910,51 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "determination_date",
                 "YYYY-MM-DD, 2024-25 and 2025-26: the day the Commissioner is assumed to make the first excess non-concessional contributions determination for the year; adds associated_earnings, total_release_amount and associated_earnings_tax_offset for excess_non_concessional (TAA 1953 Sch 1 ss 97-25 and 97-30, ITAA 1997 s 292-30); omit for none",
             ),
+            (
+                "downsizer_contribution",
+                "AUD, with the other downsizer inputs or none of them: a contribution the person chose to treat as a downsizer contribution (ITAA 1997 s 292-102(1)(h) and (8)); the result adds downsizer_covered and downsizer_not_covered and leaves the other amounts unchanged",
+            ),
+            (
+                "downsizer_contribution_date",
+                "YYYY-MM-DD in the income year: the day the downsizer contribution was made",
+            ),
+            (
+                "downsizer_age",
+                "whole years at downsizer_contribution_date; at least 55 (s 292-102(1)(a), contributions from 1 January 2023)",
+            ),
+            (
+                "downsizer_contract_date",
+                "YYYY-MM-DD: the day the contract to dispose of the old interest was entered into; on or after 1 July 2018 (Act No. 132 of 2017 Sch 2 item 4)",
+            ),
+            (
+                "downsizer_settlement_date",
+                "YYYY-MM-DD: the day the change of ownership occurred; the contribution must be made within 90 days after it (s 292-102(1)(g))",
+            ),
+            (
+                "downsizer_longer_period_allowed",
+                "boolean: the Commissioner allowed a longer period under s 292-102(1)(g) that the contribution is within",
+            ),
+            (
+                "downsizer_capital_proceeds",
+                "AUD: the capital proceeds from the disposals of the old interest and any related spousal interest, as s 292-102(3)(b) and (3A) count them",
+            ),
+            (
+                "downsizer_earlier_own",
+                "AUD: other contributions already covered under s 292-102 for this person (s 292-102(3)(a)); 0.00 if none",
+            ),
+            (
+                "downsizer_earlier_from_proceeds",
+                "AUD: other contributions already covered under s 292-102 in relation to these disposals, for this person or their spouse (s 292-102(3)(b)); 0.00 if none",
+            ),
+            (
+                "downsizer_conditions_met",
+                "boolean: as the operator establishes, s 292-102(1)(b) to (f), (h) and (i) and the 10-year ownership condition of s 292-102(2) are met: an Australian dwelling that is not a mobile home, the main residence exemption, the choice given to the fund in the approved form, and no earlier downsizer contribution from another dwelling or interest",
+            ),
         ],
+        "pension_minimum" => vec![(
+            "transition_to_retirement",
+            "boolean: the pension is a transition to retirement income stream whose pensioner has not satisfied a condition of release with a nil cashing restriction; true adds maximum_payment, 10% of account_balance (SISR reg 6.01(2)), and leaves the minimum unchanged",
+        )],
         "private_health_insurance_rebate" => vec![
             (
                 "spouse_income_for_surcharge_purposes",
@@ -4695,6 +4838,33 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, the day the recipient receives the benefit, in the income year given",
             ),
         ],
+        "foreign_purchaser_surcharge" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "property_use",
+                "residential (residential property as the jurisdiction's surcharge defines it), primary_production (Tasmania's primary production property) or other",
+            ),
+            (
+                "dutiable_value",
+                "AUD, whole dollars, more than nil: the dutiable value of the foreign buyer's share or interest in the property",
+            ),
+            (
+                "foreign_purchaser",
+                "boolean: the buyer is a foreign person, foreign corporation or foreign trust under the jurisdiction's duty surcharge test, as established, not merely a non-resident or non-citizen",
+            ),
+            (
+                "land_value",
+                "AUD, whole dollars, nil or more: in nsw the foreign owner's share of the residential land's taxable value; in vic and qld the owner's total taxable value; in tas the foreign-owned residential land's assessed value; in act the parcel's AUV",
+            ),
+            (
+                "foreign_owner",
+                "boolean: the owner is a foreign person (nsw, tas, act) or an absentee or foreign company or trust (vic, qld) under the land tax surcharge test, as established; in tas, also that the land is subject to the surcharge (acquired by a foreign person, or held by a company or trust that became foreign, on or after 1 July 2022)",
+            ),
+            (
+                "owner",
+                "individual, company or trust (the trustee of any trust); a trust that is a foreign owner in vic is refused",
+            ),
+        ],
         "dasp_tax" => vec![
             (
                 "tax_free_component",
@@ -4797,6 +4967,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "employed_all_year",
                 "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
+            ),
+        ],
+        "transfer_duty" => vec![
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
+            (
+                "dutiable_value",
+                "AUD, whole dollars, more than nil: the dutiable value as the revenue office decides it (generally the greater of the consideration and the property's unencumbered or market value)",
+            ),
+            (
+                "buyer",
+                "general (the general rate), first_home_established or first_home_new: an eligible first home buyer of a home, established or new, bought as their principal place of residence, the dutiable property being that home and its land",
+            ),
+            (
+                "residential",
+                "boolean: true when the dutiable property is wholly residential land (in nsw one parcel of residential land under s 32A(3), no more than 2 hectares and not partly used for other purposes); false is refused for a first home buyer, in sa and act, and in nsw above $3,870,000 (ss 32B and 32C)",
             ),
         ],
         "gst_margin_scheme" => vec![
@@ -5599,6 +5784,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, whether the employer is exempt from income tax; true is refused, as fbt-tax-exempt-body-entertainment applies",
             ),
         ],
+        "notice_period" => vec![
+            ("notice_date", "YYYY-MM-DD in the year given, from 2021-03-27: the day the employer gives the written notice (s 117(1))"),
+            ("service_start", "YYYY-MM-DD, on or before notice_date: the first day of continuous service with the employer, earlier service with a first employer included where s 22(5) counts it"),
+            ("excluded_days", "whole number from 0 to 36,500, fewer than the days from service_start to notice_date: the days that do not count towards continuous service for notice (unauthorised absence and prescribed periods, s 22(4); casual employment with the employer, s 117(4)), as the operator has established them; unpaid leave counts. The worksheet takes them off the end of the period"),
+            ("date_of_birth", "YYYY-MM-DD, before service_start: the employee's, for s 117(3)(b)"),
+            ("exclusion", "none, specified_period (s 123(1)(a)), serious_misconduct (s 123(1)(b)), casual (s 123(1)(c)), training_arrangement (s 123(1)(d), not an apprentice), prescribed_division (s 123(1)(e)), daily_hire_building (s 123(3)(b)), daily_hire_meat (s 123(3)(c)), weekly_hire_meat_seasonal (s 123(3)(d)) or prescribed_notice (s 123(3)(e)): the exclusion the operator has established"),
+        ],
         "work_expenses" => vec![
             ("method", "home_office, car_cents_per_kilometre, car_log_book or self_education"),
             ("reimbursed", "boolean: any of the expenses was reimbursed or paid for by an employer or anyone else; true is refused, so an unknown reimbursement is too"),
@@ -5698,6 +5890,28 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("agreement_in_force", "boolean: a voluntary agreement in the approved form covering the payment is in force (not terminated under s 12-55(3)); false is refused"),
             ("abn_quoted", "boolean: the payee has an ABN in force and it is quoted in the agreement; false is refused"),
             ("agreement_applies_instalment_rate", "boolean: the agreement says the payee's Commissioner's instalment rate applies; true needs instalment_rate"),
+        ],
+        "esic" => vec![
+            ("investor", "individual, company, widely_held_company (a widely held company or a 100% subsidiary of one), esvclp, trust or partnership; trust and partnership, and esvclp before 2018-19, are refused (ITAA 1997 s 360-15(1)(a))"),
+            ("affiliate_of_company", "boolean: the investor and the company are affiliates of each other when the shares are issued (s 360-15(1)(d)); true means not entitled"),
+            ("ess_interests", "boolean: the issue is an acquisition of ESS interests under an employee share scheme (s 360-15(1)(e)); true means not entitled"),
+            ("more_than_30_percent", "boolean: immediately after the issue the investor holds equity interests in the company or a connected entity carrying more than 30% of income, capital or voting rights (s 360-15(1)(f)); before 2018-19, more than 30% of the equity interests; true means not entitled"),
+            ("amount_paid", "AUD: the money paid to the company for issuing the shares to the investor in the year (s 360-25(1)(a); before 2018-19, 'the total amount paid'); money the company is entitled to but has not received goes in amount_receivable"),
+            ("non_cash_benefit", "AUD: the market value, when the shares were issued, of any non-cash benefit the company received or is entitled to receive for the issue (s 360-25(1)(b)); above nil is refused before 2018-19"),
+            ("disclosure_exemption", "boolean: s 708(8), (10) or (11) of the Corporations Act 2001 removed the need for a disclosure document for at least one offer of the company's shares issued to the investor in the year; false applies the $50,000 limit (s 360-20)"),
+            ("incorporated_year", "the income year the company was incorporated in Australia, such as 2024-25, or none (s 360-40(1)(a)(i), (ii))"),
+            ("abr_registered_year", "the income year the company was registered in the Australian Business Register, such as 2024-25, or none (s 360-40(1)(a)(iii))"),
+            ("expenses_three_prior_years", "AUD: total expenses of the company and its 100% subsidiaries across the 3 income years before the current year, used only for s 360-40(1)(a)(ii); 0.00 if not needed"),
+            ("total_expenses_previous_year", "AUD: total expenses of the company and its 100% subsidiaries in the previous income year (s 360-40(1)(b))"),
+            ("assessable_income_previous_year", "AUD: total assessable income of the company and its 100% subsidiaries in the previous income year, including any grant and clawback amount below (s 360-40(1)(c))"),
+            ("accelerating_commercialisation_grant", "AUD: the part of assessable_income_previous_year that is an Accelerating Commercialisation Grant, disregarded (s 360-40(2)(a)); 0.00 if none"),
+            ("rd_clawback_income", "AUD: the part of assessable_income_previous_year included in the company's own assessable income under s 355-450(1), not a 100% subsidiary's, disregarded from 2022-23 (s 360-40(2)(b)); above nil is refused for 2021-22; 0.00 if none"),
+            ("listed", "boolean: at the test time an equity interest of the company is listed for quotation on a stock exchange in Australia or a foreign country (s 360-40(1)(d))"),
+            ("foreign_company", "boolean: at the test time the company is a foreign company within the meaning of the Corporations Act 2001 (s 360-40(1)(f), from 2018-19; not a test before)"),
+            ("innovation_items", "list of the s 360-45(1) table items, whole numbers from 1 to 8, that apply to the company at the test time, as stated facts; items 1 and 3 together are refused, and item 7 scores nothing beside item 6"),
+            ("principles_test", "boolean: the company meets s 360-40(1)(e)(i) to (v), the principles-based innovation test, at the test time, as established (for example by an ATO private ruling); stated, not evaluated"),
+            ("other_offsets", "AUD: the early stage investor tax offsets for the income year to which the investor and its affiliates are entitled, other than this one (s 360-25(2)(a)); 0.00 if none"),
+            ("carried_forward_offsets", "AUD: the early stage investor tax offsets the investor and its affiliates carry forward to the income year (s 360-25(2)(b)); 0.00 if none"),
         ],
         "rd_tax_offset" => vec![
             ("notional_deductions", "AUD: the total of the amounts the R&D entity can deduct for the year under ITAA 1997 ss 355-205, 355-305, 355-480, 355-520 and 355-580 (s 355-100(1)), as established"),
@@ -6310,6 +6524,17 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("low_rate_cap_used", Text("0.00")),
             ("other_lump_sums_this_year", Flag(false)),
         ],
+        // Revenue NSW's example: 9% of $1,000,000 and 5% of $1,200,000.
+        "foreign_purchaser_surcharge" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("property_use", Text("residential")),
+            ("dutiable_value", Text("1000000")),
+            ("foreign_purchaser", Flag(true)),
+            ("land_value", Text("1200000")),
+            ("foreign_owner", Flag(true)),
+            ("owner", Text("individual")),
+        ],
         "dasp_tax" => vec![
             ("tax_free_component", Text("25000.00")),
             ("taxed_element", Text("17000.00")),
@@ -6353,6 +6578,14 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("australian_wages", Text("3000000.00")),
             ("group_member", Flag(false)),
             ("employed_all_year", Flag(true)),
+        ],
+        // The NSW Government's first home buyer figure: $19,593.50 on $900,000.
+        "transfer_duty" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("nsw")),
+            ("dutiable_value", Text("900000")),
+            ("buyer", Text("first_home_established")),
+            ("residential", Flag(true)),
         ],
         // The Library's Joanne Black example (Tax Examples, GST, 12-200):
         // land bought in January 2000, worth $448,000 on 1 July 2000, sold
@@ -6899,6 +7132,16 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         // birthday, the turnover 2 years back and the net value are fabricated.
         // Keisha, the ATO's fixed rate method example: 843 hours in 2025-26.
         // Her actual expenses are fabricated.
+        // The Fair Work Ombudsman's Joan: 5 years and 3 months with unpaid
+        // parental leave, 4 weeks.
+        "notice_period" => vec![
+            ("year", Text("2026-27")),
+            ("notice_date", Text("2026-08-01")),
+            ("service_start", Text("2021-05-01")),
+            ("excluded_days", Whole(0)),
+            ("date_of_birth", Text("1991-01-01")),
+            ("exclusion", Text("none")),
+        ],
         "work_expenses" => vec![
             ("year", Text("2025-26")),
             ("method", Text("home_office")),
@@ -7058,6 +7301,32 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("agreement_in_force", Flag(true)),
             ("abn_quoted", Flag(true)),
             ("agreement_applies_instalment_rate", Flag(false)),
+        ],
+        // Calculating the early stage investor tax offset, Jason: $950,000 in
+        // 2017-18 with $50,000 carried forward; the company facts are
+        // fabricated.
+        "esic" => vec![
+            ("year", Text("2017-18")),
+            ("investor", Text("individual")),
+            ("affiliate_of_company", Flag(false)),
+            ("ess_interests", Flag(false)),
+            ("more_than_30_percent", Flag(false)),
+            ("amount_paid", Text("950000.00")),
+            ("non_cash_benefit", Text("0.00")),
+            ("disclosure_exemption", Flag(true)),
+            ("incorporated_year", Text("2016-17")),
+            ("abr_registered_year", Text("2016-17")),
+            ("expenses_three_prior_years", Text("0.00")),
+            ("total_expenses_previous_year", Text("400000.00")),
+            ("assessable_income_previous_year", Text("50000.00")),
+            ("accelerating_commercialisation_grant", Text("0.00")),
+            ("rd_clawback_income", Text("0.00")),
+            ("listed", Flag(false)),
+            ("foreign_company", Flag(false)),
+            ("innovation_items", Json("[1, 8]")),
+            ("principles_test", Flag(false)),
+            ("other_offsets", Text("0.00")),
+            ("carried_forward_offsets", Text("50000.00")),
         ],
         // Calculate the clawback adjustment, Company F; its turnover, given
         // only as under $20 million, is fabricated.

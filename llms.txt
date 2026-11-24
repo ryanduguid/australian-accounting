@@ -13,7 +13,7 @@ Ryan Duguid is not a registered tax agent or BAS agent. Fixtures and examples ar
 fabricated. Nothing here is tax, legal or financial advice. An MCP host sends every
 tool argument and result to its model provider.
 
-Each component keeps its own distribution, version, release notes, tests and `CITATION.cff`. The MCP server and lodgment-calendar are released on the tag `<component>/vX.Y.Z`; the 8 Rust engines have reserved tags and no publisher yet.
+Each component keeps its own distribution, version, release notes, tests and `CITATION.cff`. The MCP server and lodgment-calendar are released on the tag `<component>/vX.Y.Z`; 7 of the 8 Rust engines have reserved tags and no publisher yet, and `australian-tax-calculators` publishes executables to GitHub Releases.
 
 ## Start
 

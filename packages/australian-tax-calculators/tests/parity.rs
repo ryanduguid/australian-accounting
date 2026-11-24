@@ -14,7 +14,8 @@ use std::process::{Command, Stdio};
 /// `tests/borrowing_expenses.rs`, `tests/borrowing_expenses_schedule.rs`, `tests/hire_purchase.rs`,
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
-/// `tests/payroll_tax.rs`, `tests/land_tax.rs`, `tests/workers_compensation_premium.rs`, `tests/motor_vehicle_duty.rs`, `tests/insurance_duty.rs`,
+/// `tests/payroll_tax.rs`, `tests/land_tax.rs`, `tests/workers_compensation_premium.rs`, `tests/motor_vehicle_duty.rs`, `tests/insurance_duty.rs`, `tests/transfer_duty.rs`,
+/// `tests/foreign_purchaser_surcharge.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -40,7 +41,7 @@ use std::process::{Command, Stdio};
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
 /// `tests/psi_test.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
 /// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
-/// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`,
+/// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
 /// `tests/foreign_income_conversion.rs`,
@@ -50,7 +51,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 118] = [
+const NEW_KINDS: [(&str, &str); 122] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -66,6 +67,7 @@ const NEW_KINDS: [(&str, &str); 118] = [
     ("transfer-balance", "transfer_balance"),
     ("excess-contributions", "excess_contributions"),
     ("ppsr-timing", "ppsr_timing"),
+    ("foreign-purchaser-surcharge", "foreign_purchaser_surcharge"),
     ("dasp-tax", "dasp_tax"),
     ("fbt-minor-benefit-check", "fbt_minor_benefit_check"),
     ("gst-margin-scheme", "gst_margin_scheme"),
@@ -91,6 +93,7 @@ const NEW_KINDS: [(&str, &str); 118] = [
     ),
     ("balancing-adjustment", "balancing_adjustment"),
     ("trade-in", "trade_in"),
+    ("transfer-duty", "transfer_duty"),
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
     ("land-tax", "land_tax"),
@@ -108,6 +111,7 @@ const NEW_KINDS: [(&str, &str); 118] = [
     ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),
+    ("notice-period", "notice_period"),
     (
         "private-health-insurance-rebate",
         "private_health_insurance_rebate",
@@ -163,6 +167,7 @@ const NEW_KINDS: [(&str, &str); 118] = [
     ("residency-tests", "residency_tests"),
     ("lodgment-required", "lodgment_required"),
     ("rd-tax-offset", "rd_tax_offset"),
+    ("esic", "esic"),
     (
         "gst-creditable-purpose-change",
         "gst_creditable_purpose_change",
@@ -728,6 +733,11 @@ fn adapt_depreciation_years(command: &str, input: &Value, expected: &mut Value) 
 /// ATO's concessional contributions cap page and s 291-20, and the catalogue
 /// lists the new optional inputs. A supplied total gives the same amounts.
 fn adapt_contribution_caps(command: &str, expected: &mut Value) {
+    if command == "worksheet-catalogue" {
+        // pension-minimum lists its optional transition_to_retirement input.
+        expected["ok"]["pension_minimum"]["optional_inputs"] =
+            worksheet_catalogue()["pension_minimum"]["optional_inputs"].clone();
+    }
     let old_scope = "unused concessional cap is the established total of unexpired amounts from the previous 5 years. Excludes";
     let record = match command {
         "contribution-caps" => expected.pointer_mut("/ok"),

@@ -265,6 +265,36 @@ fn surcharge(
     })
 }
 
+/// The foreign or absentee owner surcharge alone on `value`, for an owner who
+/// is not a trustee, as this worksheet works it: the steps, the last being
+/// `surcharge` (Victoria's after the `land_tax` and `absentee_rate_tax` it is
+/// the difference of), and the rates applied; `None` where `code` charges no
+/// surcharge. `foreign-purchaser-surcharge` works its land tax surcharge with
+/// it, so the 2 commands share one set of tables.
+pub(super) fn surcharge_alone(code: &str, value: &Decimal) -> Result<Option<(Vec<Step>, Rates)>> {
+    let Some(place) = PLACES
+        .iter()
+        .find(|p| p.code == code && p.surcharge.is_some())
+    else {
+        return Ok(None);
+    };
+    let c = Choices {
+        trust: false,
+        foreign: true,
+        separate: value.clone(),
+        metro: false,
+    };
+    let rule = (place.fixed, place.payable);
+    let (land, general) = scale_step(("land_tax", ""), &place.general, value, rule)?;
+    let mut rates = Vec::new();
+    let mut steps = surcharge(place, value, &c, &land, &mut rates)?;
+    if matches!(place.surcharge, Some(Surcharge::Difference(..))) {
+        rates.extend(general);
+        steps.insert(0, land);
+    }
+    Ok(Some((steps, rates)))
+}
+
 /// Tasmania's FILTS land is residential general land, so for one owner its
 /// value is part of the taxable value. Section 7 rounds 'the amount of land
 /// tax payable', and FILTS is a component of land tax assessed folio by folio
