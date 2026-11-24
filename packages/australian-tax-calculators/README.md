@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-143 calculation worksheets for established facts; the sections below document
+144 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -163,6 +163,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `workers-compensation-premium` | `jurisdiction`, `wages`, `rate`, `group_member`, `year`, `scope_confirmed`; optionally `apprentice_wages` (qld, sa) and `actual_wages` (not qld); in New South Wales `dust_diseases_rate` and `safe_employer_reward`, in Victoria `employer`, `days_registered` and `excess_buy_out`, in Queensland `policy_start`, in South Australia `new_employer`, once established `claims_costs` and with actual wages `actual_apprentice_wages`; see [Workers compensation premium](#workers-compensation-premium) |
 | `motor-vehicle-duty` | `jurisdiction`, `vehicle_class`, `dutiable_value`, `duty_date`, `year`, `scope_confirmed`; in Queensland `engine`, in Victoria `green_car` and `primary_producer`, in the ACT `emissions_category` and `new_vehicle`, in Tasmania `fleet_discount`, in the Northern Territory `electric`; see [Motor vehicle duty](#motor-vehicle-duty) |
 | `insurance-duty` | `jurisdiction`, `class`, `premium`, `effected_date`, `year`, `scope_confirmed`; in the Northern Territory `term_over_one_year`; see [Insurance duty](#insurance-duty) |
+| `portable-lsl-levy` | `jurisdiction`, `scheme`, `year`, `scope_confirmed`; scheme-specific `ordinary_wages` (plus `paid_on_time` in Tasmania), `project_cost` (and optional `partial_exemption` in NSW, Qld and NT) or Coal LSL s 3B inputs (`reporting_month`, `branch`, `eligible_employee` and pay components); see [Portable LSL levy](#portable-lsl-levy) |
 | `fbt` | `type_one_value`, `type_two_value`, `year_ended`, `scope_confirmed` |
 | `fbt-car-statutory` | `cost_price`, `later_accessories`, `one_third_reduction`, `days_available`, `employee_contribution`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
 | `fbt-car-operating-cost` | `running_costs`, `lease_charges`, `depreciated_value`, `effective_life_years`, `days_held`, `business_use`, `employee_contribution`, `statutory_formula_taxable_value`, `electric_car_exempt`, `year_ended`, `scope_confirmed` |
@@ -2713,6 +2714,24 @@ above a band's bound less a cent and below the bound (ReturnToWorkSA's table
 and calculator differ there). The tests hold it to every case of the site's page
 and to the schemes' examples; see
 [calculation evidence](docs/calculation-evidence.md#workers-compensation-premium).
+
+## Portable LSL levy
+
+`portable-lsl-levy` calculates portable long service leave levies across 20
+verified Australian scheme combinations: national black coal mining (Coal LSL,
+mirroring `tools/coal-lsl-levy` under s 3B of the Payroll Levy Collection Act
+1992 and s 6 of the Payroll Levy Regulations 2018 at 2.7% from 1 July 2023) and
+state and territory construction, community services, contract cleaning and
+security schemes (NSW Long Service Corporation, Victoria LeavePlus and PLSA,
+Queensland QLeave, SA Portable Long Service Leave, WA MyLeave, ACT Leave,
+Tasmania TasBuild and NT Build). NSW construction rounds down to the whole
+dollar (verified on the LSC Building Levy Calculator); Queensland construction
+(s 72(2)) and Northern Territory construction (s 33(2)) round each statutory
+levy to the nearest whole dollar with 50 cents rounded downwards. Unavailable jurisdiction-scheme pairs,
+unverified historical periods, NT projects above $5 billion, partial project
+exemptions, ineligible Coal LSL employees, unconfirmed reimbursement exclusions
+on positive Coal LSL allowances and mismatched or unread branch fields are
+refused.
 
 ## Payroll tax
 

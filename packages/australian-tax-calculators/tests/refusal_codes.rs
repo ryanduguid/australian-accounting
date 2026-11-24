@@ -66,6 +66,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/tourist_refund",
         "engine/non_resident_withholding",
         "engine/residential_vacancy_fee",
+        "engine/portable_lsl_levy",
+        "engine/portable_lsl_levy/coal",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -214,7 +216,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 129);
+    assert_eq!(checked, 130);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

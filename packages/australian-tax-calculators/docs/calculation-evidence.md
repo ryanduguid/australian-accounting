@@ -60,6 +60,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
+| Portable LSL levy | Not a Library document: Coal LSL (`F2018L00217`, `C2004A04352`, `tools/coal-lsl-levy` parity vectors) and each state and territory portable LSL board's rates page and in-force legislation (NSW LSC, LeavePlus, PLSA, QLeave and Qld BCI Act/Reg, SA Portable LSL, MyLeave, ACT DI2024-12/15/16/224 and DI2026-228, TasBuild, NT Build) | 24 November 2026 (read) | 20 verified jurisdiction-scheme combinations across 2023-24 to 2026-27 (each scheme gated to its verified years); worker coverage, exemptions, apprentice exclusions, late interest and lodgement excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
@@ -2624,6 +2625,78 @@ the first and last day of the year.
 No Act sets a rounding rule for one premium's duty: insurers pay on a return
 of total premiums. The worksheet shows `duty` to the cent, as every amount in
 this crate is, and gives the exact figure in `rates.exact_duty`.
+
+## Portable LSL levy
+
+This worksheet was added on 24 November 2026. Primary statutory board pages and
+in-force legislation were read on 24 November 2026:
+
+- **Coal LSL (Commonwealth)**: Federal Register of Legislation OData API
+  confirmed `F2018L00217` (*Coal Mining Industry (Long Service Leave) Payroll
+  Levy Regulations 2018*, Compilation No. 1 `F2023C00557`, in force from 1 July
+  2023: 2.7% prescribed percentage under s 6) and `C2004A04352` (*Coal Mining
+  Industry (Long Service Leave) Payroll Levy Collection Act 1992*, Compilation
+  No. 12 `C2026C00364`, in force 1 September 2026: s 3B eligible wages) have no
+  unincorporated amendments; `coallsl.com.au/employer/administer-lsl/levy`
+  states 2.7%. Mirrors `ryanduguid.github.io/tools/coal-lsl-levy`
+  (`assets/levy.mjs`, `scripts/levy.test.mjs`,
+  `service/coal-lsl-levy/fixtures/cases.json`).
+- **New South Wales (Long Service Corporation)**: `nsw.gov.au` pages for BCI
+  (0.25% on works of $250,000 or more including GST from 1 January 2023), CCI
+  (1% of gross ordinary wages from 1 July 2021) and CSI (1.3% for 2025-26 and
+  1.7% from 1 July 2026). NSW BCI whole-dollar rounding downwards was verified
+  directly on 24 November 2026 against the official LSC Building Levy
+  Calculator (`longservice.my.site.com/bci/s/levy-calculator`): `$249,999` ->
+  `$0`, `$250,000` -> `$625`, `$250,399` (exact `$625.9975`) -> `$625`,
+  `$250,400` -> `$626` and `$300,200` (exact `$750.50`) -> `$750`. Note:
+  `legislation.nsw.gov.au` and `classic.austlii.edu.au` returned Cloudflare
+  challenges (HTTP 403), so the NSW statutory text itself was not read directly.
+- **Victoria**: LeavePlus `leaveplus.com.au/employers/charges/` (2.7% of gross
+  reportable ordinary pay) and Portable Long Service Authority
+  `plsa.vic.gov.au/employer-information/about-the-portable-long-service-benefits-scheme`
+  (1.65% community services, 1.80% contract cleaning and 1.80% security) for
+  2026-27.
+- **Queensland (QLeave)**: *Building and Construction Industry (Portable Long
+  Service Leave) Act 1991* (Qld) ss 72 and 73 and *Regulation 2024* (SL No. 162)
+  ss 8, 9 and 11 (read verbatim on `legislation.qld.gov.au`: $150,000 threshold
+  excluding GST; 0.35% LSL, 0.1% CSQ training and 0.125% WHSQ, each rounded to
+  the nearest dollar with 50c rounded downwards under s 72(2)); *Contract
+  Cleaning Industry (Portable Long Service Leave) Act 2005* (Qld) s 83 and
+  QLeave 'Employer obligations' (0.5% for 2026-27); QLeave community services
+  'Paying the levy' (1.35% for 2026-27).
+- **South Australia (SA Portable Long Service Leave)**:
+  `saplsl-construction.org.au/employers/how-to-complete-employer-returns`
+  (2.00% of gross remuneration, apprentices levy-free) and
+  `saplsl-community.org.au/employers-home/what-do-i-have-to-do` (2.2% of gross
+  remuneration, trainees exempt) for 2026-27.
+- **Western Australia (MyLeave)**: `wa.gov.au` public notice 'MyLeave - 2027
+  Employer Contribution Rate' (published 4 November 2026): 0.75% of ordinary
+  pay for both the 2026 and 2027 calendar years (apprentices levy-free),
+  covering all of 2026-27.
+- **Australian Capital Territory (ACT Leave)**: *Long Service Leave (Portable
+  Schemes) Act 2009* (ACT) Disallowable Instruments read verbatim from
+  `legislation.act.gov.au` PDFs: `DI2024-12` (construction 2.75% from 1 October
+  2024), `DI2024-16` (community sector 1.85% from 1 July 2024), `DI2024-15`
+  (security 1.47% from 1 July 2024), `DI2024-224` (services including contract
+  cleaning 1.07% from 1 April 2025) and `DI2026-228` (services 1.07% from
+  1 January 2027, with phased discounts for food and beverage services only).
+- **Tasmania (TasBuild)**: `tasbuild.com.au/employers-information/` FAQ: 2.5%
+  standard contribution rate on ordinary pay, or 1.8% discounted rate when
+  returns and invoices are lodged and paid by the due dates (2026-27).
+- **Northern Territory (NT Build)**: `ntbuild.com.au/levy-payers`: 0.1% on
+  eligible construction projects from $1 million to $5 billion inclusive of GST,
+  rounded to the nearest dollar with 50c rounded downwards (s 33(2) of the
+  *Construction Industry Long Service Leave and Benefits Act 2005* (NT));
+  projects above $5 billion face a two-tier ministerial levy and are refused.
+
+| Case | Basis | Expected |
+| --- | --- | --- |
+| Coal LSL base rate $6,000 + $3,000 OT + $500 allowances | s 3B(1) Formula B = 0.75 x $9,500 = $7,125; 2.7% = $192.375 | $192.38 |
+| Coal LSL base rate $100.03 + $300 OT | Formula B = $300.0225 exact; 2.7% = $8.1006075 | $8.10 |
+| NSW construction $250,399 incl. GST | 0.25% = $625.9975, rounded down to whole dollar (LSC calculator) | $625.00 |
+| Qld construction $150,000 excl. GST | s 72(2): LSL $525, training $150, WHS $187.50 -> $187 | $862.00 |
+| NT construction $1,000,500 incl. GST | s 33(2): $1,000.50 -> 50c rounded down | $1,000.00 |
+| Tas construction $50,000 on time vs standard | 1.8% vs 2.5% | $900.00 / $1,250.00 |
 
 ## Payroll tax
 

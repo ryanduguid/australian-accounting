@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 95] = [
+const DERIVED: [&str; 96] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -98,6 +98,7 @@ const DERIVED: [&str; 95] = [
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
+    "portable-lsl-levy",
     "cgt-parcels",
     "work-expenses",
     "gst-creditable-purpose-change",
@@ -629,6 +630,34 @@ fn cases() -> Vec<(&'static str, Value)> {
         // Victoria's surcharges on $80 million of $150 million (the State
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
         // of $3,000,000 (its guideline's example 2).
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "cth", "scheme": "coal", "year": "2025-26", "scope_confirmed": true, "reporting_month": "2026-06", "branch": "base_rate", "eligible_employee": true, "base_rate_of_pay": "6000.00", "overtime_and_penalty_rates": "3000.00", "allowances": "500.00", "allowances_exclude_expense_reimbursements": true, "bonuses": [{"amount": "400.00", "frequency": "monthly"}]}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "cth", "scheme": "coal", "year": "2025-26", "scope_confirmed": true, "reporting_month": "2026-06", "branch": "annual_salary", "eligible_employee": true, "annual_salary_paid": "10000.00", "salary_sacrificed": "500.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "cth", "scheme": "coal", "year": "2025-26", "scope_confirmed": true, "reporting_month": "2026-06", "branch": "casual", "eligible_employee": true, "instrument_specifies_loading": true, "loading_quantifiable": true, "base_rate_of_pay": "1800.00", "casual_loading": "450.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "nsw", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "250399.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "qld", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "150000.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "nt", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "1000500.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "tas", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "ordinary_wages": "50000.00", "paid_on_time": true}),
+        ),
         (
             "payroll-tax",
             json!({"jurisdiction": "vic", "taxable_wages": "80000000.00",
@@ -1612,6 +1641,15 @@ impl Evaluator<'_> {
                             Decimal::from_int(0)
                         } else {
                             a.clone()
+                        }
+                    }
+                    ("dollars_half_down", [a]) => {
+                        let down = a.quantize(0, Rounding::Down).unwrap();
+                        let frac = a.sub(&down).unwrap();
+                        if frac.gt(&dec("0.5")).unwrap() {
+                            down.add(&Decimal::from_int(1)).unwrap()
+                        } else {
+                            down
                         }
                     }
                     other => panic!("unknown function {other:?}"),
@@ -2841,7 +2879,7 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, land-tax, motor-vehicle-duty, insurance-duty, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, land-tax, motor-vehicle-duty, insurance-duty, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
          foreign-pension-upp, super-crystallisation, residential-vacancy-fee, not \"payg-gross-up\""
     );
 }

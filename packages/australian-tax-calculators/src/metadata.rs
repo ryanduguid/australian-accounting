@@ -1216,6 +1216,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Each Act, determination and revenue office's rates for transactions
         // in 2026-27, read on 24 November 2026.
         "transfer_duty" => vec!["2026-27"],
+        // Coal LSL 2.7% applies from 1 July 2023 (F2023L00772); individual
+        // state and territory schemes gate their own verified financial years.
+        "portable_lsl_levy" => vec!["2023-24", "2024-25", "2025-26", "2026-27"],
         // Tax periods from 1 July 2019, when the $10,000 refunds began
         // (Act No. 94 of 2019 Sch 2), to the last year whose thresholds the
         // ATO publishes (QC38161, 1 June 2026).
@@ -1655,6 +1658,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "insurance_duty" => (
             "2026-11-24",
             "Duties Act 2000 (Vic) ss 3(1) and 179 (authorised version 141); Duties Act 2001 (Qld) s 362 (current as at 22 October 2026); Duties Act 2008 (WA) s 215 (03-z0-00); Stamp Duties Act 1923 (SA) s 34 (version 15.9.2026); Duties Act 2001 (Tas) s 166 (in force 24 November 2026); Duties Act 1999 (ACT) republication 79 endnotes (ch 8 omitted by A2017-11 from 1 July 2017); Stamp Duty Act 1978 (NT) Sch 1 cl 6(3) (as in force at 1 July 2025); Revenue NSW's 'Types of insurance' (the NSW Act was not readable); and each revenue office's insurance duty page",
+        ),
+        "portable_lsl_levy" => (
+            "2026-11-24",
+            "Coal Mining Industry (Long Service Leave) Payroll Levy Collection Act 1992 s 3B (C2026C00364) and Payroll Levy Regulations 2018 s 6 (F2023C00557); NSW Long Service Corporation (BCI, CCI and CSI pages); LeavePlus (Vic) and Portable Long Service Authority (Vic); Building and Construction Industry (Portable Long Service Leave) Act 1991 (Qld) s 72 and Regulation 2024 ss 8, 9 and 11, Contract Cleaning Industry (Portable Long Service Leave) Act 2005 (Qld) s 83 and QLeave pages; SA Portable Long Service Leave (Construction and Community Services pages); MyLeave (WA) 2027 Employer Contribution Rate notice (4 November 2026); ACT Disallowable Instruments DI2024-12, DI2024-15, DI2024-16, DI2024-224 and DI2026-228; TasBuild Employers Information FAQ; NT Build Levy Payers guide and Construction Industry Long Service Leave and Benefits Act 2005 (NT) s 33",
         ),
         "payroll_tax" => (
             "2026-11-19",
@@ -2261,6 +2268,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
         "insurance_duty" => (
             "Revenue office insurance duty pages: Revenue NSW types of insurance; SRO Victoria insurance policies current rates; QRO insurance duty rates; RevenueWA self-assess and pay insurance duty; RevenueSA stamp duty on insurance; SRO Tasmania rates of duty; TRO stamp duty",
             "No revenue office publishes a worked general insurance example with figures; each rate is applied to hand-worked premiums",
+            "2026-11-24",
+            "2026-11-24",
+        ),
+        "portable_lsl_levy" => (
+            "Coal LSL eligible wages parity vectors (duguid.com.au/tools/coal-lsl-levy); NSW LSC, LeavePlus, PLSA, QLeave, SA Portable Long Service Leave, MyLeave, ACT Leave, TasBuild and NT Build levy pages and in-force legislation",
+            "Coal LSL D1 to D12 and F1 to F8 vectors; statutory threshold and rounding checks across NSW, Vic, Qld, SA, WA, ACT, Tas and NT",
             "2026-11-24",
             "2026-11-24",
         ),
@@ -3830,6 +3843,80 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "YYYY-MM-DD, for nsw type_c only and then required: the day the policy was taken out, as Revenue NSW uses the term (2.5% on or before 31 December 2017, exempt from 1 January 2018); whether a renewal took out a new policy is for the operator to establish",
             ),
         ],
+        "portable_lsl_levy" => vec![
+            (
+                "ordinary_wages",
+                "AUD, required for payroll-based state and territory schemes: reportable gross ordinary wages, ordinary pay or remuneration for the return period (excluding levy-free apprentices and trainees where exempt)",
+            ),
+            (
+                "paid_on_time",
+                "boolean, required for Tasmania construction (TasBuild) only: true for the 1.8% on-time discounted rate, false for the 2.5% standard rate",
+            ),
+            (
+                "project_cost",
+                "AUD, required for NSW, Queensland and Northern Territory building and construction project-cost levies (inclusive of GST in NSW and NT; exclusive of GST in Queensland under s 73(1))",
+            ),
+            (
+                "partial_exemption",
+                "boolean, optional for NSW, Queensland and Northern Territory project-cost schemes: true is refused because owner-builder, non-profit, church, Crown and local government reductions are outside this worksheet",
+            ),
+            (
+                "reporting_month",
+                "YYYY-MM string, required for Coal LSL: reporting month from 2023-07 onwards falling inside the supplied financial year",
+            ),
+            (
+                "branch",
+                "base_rate, annual_salary or casual, required for Coal LSL: selects the s 3B(1), s 3B(2) or s 3B(3) eligible wages method",
+            ),
+            (
+                "eligible_employee",
+                "boolean, required for Coal LSL: true asserts the worker is an eligible employee under s 4 of the Administration Act; false is refused",
+            ),
+            (
+                "base_rate_of_pay",
+                "AUD, Coal LSL base_rate (required) or casual (s 3B(3)(a) and pre-2024)",
+            ),
+            (
+                "annual_salary_paid",
+                "AUD, Coal LSL annual_salary branch (required)",
+            ),
+            (
+                "casual_loading",
+                "AUD, Coal LSL casual s 3B(3)(a) branch from January 2024",
+            ),
+            (
+                "ordinary_rate_of_pay",
+                "AUD, Coal LSL casual s 3B(3)(b) branch and pre-2024 legacy casual",
+            ),
+            (
+                "salary_sacrificed",
+                "AUD, Coal LSL optional amount grossed up onto base rate, ordinary rate or annual salary under s 3B(4)(a), (aa) and (b)",
+            ),
+            (
+                "overtime_and_penalty_rates",
+                "AUD, Coal LSL base_rate branch Formula B input",
+            ),
+            (
+                "allowances",
+                "AUD, Coal LSL base_rate branch Formula B input (excluding expense reimbursements under s 3B(1)(b)(iii))",
+            ),
+            (
+                "allowances_exclude_expense_reimbursements",
+                "boolean, required to be true on Coal LSL base_rate whenever allowances are positive",
+            ),
+            (
+                "bonuses",
+                "list of {amount, frequency} objects for Coal LSL: weekly, fortnightly and monthly count; quarterly, half_yearly (or halfYearly) and annually are excluded",
+            ),
+            (
+                "instrument_specifies_loading",
+                "boolean, required for Coal LSL casual from January 2024: true when the industrial instrument specifies a casual loading",
+            ),
+            (
+                "loading_quantifiable",
+                "boolean, required for Coal LSL casual from January 2024: true when the casual loading can be quantified separately",
+            ),
+        ],
         "payroll_tax" => vec![(
             "regional_employer",
             "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
@@ -5302,6 +5389,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "effected_date",
                 "YYYY-MM-DD in the year: the day the contract of insurance was effected or renewed",
+            ),
+        ],
+        "portable_lsl_levy" => vec![
+            ("jurisdiction", "cth, nsw, vic, qld, sa, wa, act, tas or nt"),
+            (
+                "scheme",
+                "coal, construction, community_services, contract_cleaning or security",
             ),
         ],
         "payroll_tax" => vec![
@@ -6995,6 +7089,18 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("class", Text("business")),
             ("premium", Text("1234.56")),
             ("effected_date", Text("2026-09-15")),
+        ],
+        "portable_lsl_levy" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("cth")),
+            ("scheme", Text("coal")),
+            ("reporting_month", Text("2026-10")),
+            ("branch", Text("base_rate")),
+            ("eligible_employee", Flag(true)),
+            ("base_rate_of_pay", Text("6000.00")),
+            ("overtime_and_penalty_rates", Text("3000.00")),
+            ("allowances", Text("500.00")),
+            ("allowances_exclude_expense_reimbursements", Flag(true)),
         ],
         "payroll_tax" => vec![
             ("year", Text("2026-27")),
