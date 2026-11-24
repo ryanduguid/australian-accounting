@@ -85,11 +85,14 @@ fn fields(line: &str, at: usize) -> Result<Vec<String>> {
 
 fn abn_ok(abn: &str) -> bool {
     const WEIGHTS: [u32; 11] = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
-    let digits: Vec<u32> = abn
-        .bytes()
-        .map(|b| u32::from(b.wrapping_sub(b'0')))
-        .collect();
-    if digits.len() != 11 || digits.iter().any(|d| *d > 9) || digits[0] == 0 {
+    let Some(digits) = abn
+        .chars()
+        .map(|c| c.to_digit(10))
+        .collect::<Option<Vec<u32>>>()
+    else {
+        return false;
+    };
+    if digits.len() != 11 || digits[0] == 0 {
         return false;
     }
     let total: u32 = digits.iter().zip(WEIGHTS).map(|(d, w)| d * w).sum();
@@ -218,6 +221,8 @@ fn header(last_modified: &str, sha256: &str, read: &Counts) -> serde_json::Value
 }
 
 fn arguments() -> Result<(String, String)> {
+    // The operator's own build flags, read as data and checked below.
+    // nosemgrep: rust.lang.security.args.args
     let args: Vec<String> = std::env::args().skip(1).collect();
     let value = |flag: &str| {
         let at = args.iter().position(|a| a == flag);
@@ -228,8 +233,8 @@ fn arguments() -> Result<(String, String)> {
     let last_modified = value("--last-modified")?;
     let sha256 = value("--sha256")?;
     let dated = last_modified.len() >= 10
-        && last_modified.as_bytes()[4] == b'-'
-        && last_modified.as_bytes()[7] == b'-';
+        && last_modified.get(4..5) == Some("-")
+        && last_modified.get(7..8) == Some("-");
     if !dated || sha256.len() != 64 || !sha256.bytes().all(|b| b.is_ascii_hexdigit()) {
         return Err("--last-modified takes YYYY-MM-DDTHH:MM:SS and --sha256 64 hex digits".into());
     }
