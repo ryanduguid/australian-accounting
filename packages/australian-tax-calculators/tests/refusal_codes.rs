@@ -59,10 +59,15 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/foreign_income_conversion",
         "engine/foreign_income_tax_offset",
         "engine/ess_discount",
+        "engine/aml_cdd_review",
         "engine/workers_compensation_premium",
         "engine/payroll_tax",
         "engine/payroll_tax/group",
         "engine/tourist_refund",
+        "engine/non_resident_withholding",
+        "engine/residential_vacancy_fee",
+        "engine/portable_lsl_levy",
+        "engine/portable_lsl_levy/coal",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -185,7 +190,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
     // payroll-tax-group,
-    // fuel-tax-credits, alcohol-excise, dasp-tax, ppsr-timing, cgt-parcels,
+    // fuel-tax-credits, alcohol-excise, dasp-tax, aml-cdd-review, ppsr-timing, cgt-parcels,
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
     // capital-works, ato-interest-penalties, work-expenses,
@@ -194,7 +199,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
     // first-home-owner-grant,
     // fbt-instalment, private-health-insurance-rebate, rental-property, super-benefit-tax and
-    // foreign-resident-withholding,
+    // foreign-resident-withholding, non-resident-withholding, residential-vacancy-fee,
     // horticulture-shearing-withholding, upward-variation-withholding,
     // daily-casual-withholding, no-abn-withholding, entertainer-withholding,
     // return-to-work-withholding, annuity-withholding,
@@ -211,7 +216,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge and esic.
-    assert_eq!(checked, 127);
+    assert_eq!(checked, 131);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

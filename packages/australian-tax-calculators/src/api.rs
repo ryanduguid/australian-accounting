@@ -529,6 +529,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "portable-lsl-levy",
+        &[
+            ("jurisdiction", Raw),
+            ("scheme", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1059,6 +1068,10 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "aml-cdd-review",
+        &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
         "ppsr-timing",
         &[("question", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -1137,6 +1150,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "residential-vacancy-fee",
+        &[
+            ("vacancy_year_start", Raw),
+            ("held_full_vacancy_year", Raw),
+            ("residentially_occupied_days", Raw),
+            ("return_lodged_on_time", Raw),
+            ("exemption", Raw),
+            ("acquisition_basis", Raw),
+            ("ownership", Raw),
+            ("application_fee_waiver", Raw),
+            ("vacancy_fee_waiver_or_remission", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "foreign-resident-withholding",
         &[
             ("payment", Raw),
@@ -1149,6 +1178,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("vendors", Json),
             ("exclusion", Raw),
             ("class_variation_to_nil", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "non-resident-withholding",
+        &[
+            ("payment_type", Raw),
+            ("payment", Dec),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -1689,7 +1727,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 95] = [
+const DERIVED: [&str; 97] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1769,6 +1807,7 @@ const DERIVED: [&str; 95] = [
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
+    "portable-lsl-levy",
     "cgt-parcels",
     "work-expenses",
     "rental-property",
@@ -1785,6 +1824,7 @@ const DERIVED: [&str; 95] = [
     "defined-benefit-income-cap",
     "foreign-pension-upp",
     "super-crystallisation",
+    "residential-vacancy-fee",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -2230,6 +2270,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment-register"
             | "fbt-minor-benefit-check"
             | "fhss"
+            | "aml-cdd-review"
             | "ppsr-timing"
             | "hire-purchase-schedule"
             | "chattel-mortgage-schedule"
@@ -2261,6 +2302,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "government-super-amounts"
             | "rental-property"
             | "foreign-resident-withholding"
+            | "non-resident-withholding"
+            | "residential-vacancy-fee"
             | "horticulture-shearing-withholding"
             | "upward-variation-withholding"
             | "daily-casual-withholding"
@@ -2304,6 +2347,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "workers-compensation-premium"
             | "motor-vehicle-duty"
             | "insurance-duty"
+            | "portable-lsl-levy"
             | "gst-margin-scheme"
             | "franking-account"
             | "cgt-parcels"
@@ -2908,6 +2952,52 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[4],
             scope_confirmed: &a[5],
         }),
+        "portable-lsl-levy" => {
+            let ordinary_wages = optional(v, "ordinary_wages", Dec)?;
+            let paid_on_time = optional(v, "paid_on_time", Raw)?;
+            let project_cost = optional(v, "project_cost", Dec)?;
+            let partial_exemption = optional(v, "partial_exemption", Raw)?;
+            let reporting_month = optional(v, "reporting_month", Raw)?;
+            let branch = optional(v, "branch", Raw)?;
+            let eligible_employee = optional(v, "eligible_employee", Raw)?;
+            let base_rate_of_pay = optional(v, "base_rate_of_pay", Dec)?;
+            let annual_salary_paid = optional(v, "annual_salary_paid", Dec)?;
+            let casual_loading = optional(v, "casual_loading", Dec)?;
+            let ordinary_rate_of_pay = optional(v, "ordinary_rate_of_pay", Dec)?;
+            let salary_sacrificed = optional(v, "salary_sacrificed", Dec)?;
+            let overtime_and_penalty_rates = optional(v, "overtime_and_penalty_rates", Dec)?;
+            let allowances = optional(v, "allowances", Dec)?;
+            let allowances_exclude_expense_reimbursements =
+                optional(v, "allowances_exclude_expense_reimbursements", Raw)?;
+            let bonuses = optional(v, "bonuses", Json)?;
+            let instrument_specifies_loading = optional(v, "instrument_specifies_loading", Raw)?;
+            let loading_quantifiable = optional(v, "loading_quantifiable", Raw)?;
+            engine::portable_lsl_levy(&engine::PortableLslLevyArgs {
+                jurisdiction: &a[0],
+                scheme: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                ordinary_wages: ordinary_wages.as_ref(),
+                paid_on_time: paid_on_time.as_ref(),
+                project_cost: project_cost.as_ref(),
+                partial_exemption: partial_exemption.as_ref(),
+                reporting_month: reporting_month.as_ref(),
+                branch: branch.as_ref(),
+                eligible_employee: eligible_employee.as_ref(),
+                base_rate_of_pay: base_rate_of_pay.as_ref(),
+                annual_salary_paid: annual_salary_paid.as_ref(),
+                casual_loading: casual_loading.as_ref(),
+                ordinary_rate_of_pay: ordinary_rate_of_pay.as_ref(),
+                salary_sacrificed: salary_sacrificed.as_ref(),
+                overtime_and_penalty_rates: overtime_and_penalty_rates.as_ref(),
+                allowances: allowances.as_ref(),
+                allowances_exclude_expense_reimbursements:
+                    allowances_exclude_expense_reimbursements.as_ref(),
+                bonuses: bonuses.as_ref(),
+                instrument_specifies_loading: instrument_specifies_loading.as_ref(),
+                loading_quantifiable: loading_quantifiable.as_ref(),
+            })
+        }
         "gst-margin-scheme" => {
             // Optional: each method's base, its valuation facts and a
             // subdivided lot's share.
@@ -3036,6 +3126,23 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "fbt-tax-exempt-body-entertainment" => {
             let given = benefit_inputs(v, params)?;
             engine::fbt_tax_exempt_body_entertainment(&a[0], &given, &a[1], &a[2])
+        }
+        "aml-cdd-review" => {
+            // The question's own inputs, by name: strings, booleans, integers and chain arrays.
+            let named: Vec<(String, Arg)> = v
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(key, _)| !params.iter().any(|(p, _)| p == key))
+                .map(|(key, value)| {
+                    let given = match value {
+                        Value::Array(_) => Arg::Json(value.clone()),
+                        other => arg(other),
+                    };
+                    (key.clone(), given)
+                })
+                .collect();
+            engine::aml_cdd_review(&a[0], &a[1], &a[2], &named)
         }
         "ppsr-timing" => {
             // The question's own inputs, by name: times stay text, day lists JSON.
@@ -3582,6 +3689,31 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[13],
             })
         }
+        "residential-vacancy-fee" => {
+            let given = engine::RESIDENTIAL_VACANCY_FEE_OPTIONAL.map(|key| {
+                let kind = match key {
+                    "application_fee_payable" | "consideration" => Dec,
+                    _ => Raw,
+                };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4] = given;
+            let given = [a0?, a1?, a2?, a3?, a4?];
+            engine::residential_vacancy_fee(&engine::ResidentialVacancyFeeArgs {
+                vacancy_year_start: &a[0],
+                held_full_vacancy_year: &a[1],
+                residentially_occupied_days: &a[2],
+                return_lodged_on_time: &a[3],
+                exemption: &a[4],
+                acquisition_basis: &a[5],
+                ownership: &a[6],
+                application_fee_waiver: &a[7],
+                vacancy_fee_waiver_or_remission: &a[8],
+                year: &a[9],
+                scope_confirmed: &a[10],
+                optional: given.each_ref().map(Option::as_ref),
+            })
+        }
         "foreign-resident-withholding" => {
             engine::foreign_resident_withholding(&engine::ForeignResidentWithholdingArgs {
                 payment: &a[0],
@@ -3596,6 +3728,31 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 class_variation_to_nil: &a[9],
                 year: &a[10],
                 scope_confirmed: &a[11],
+            })
+        }
+        "non-resident-withholding" => {
+            // Optional: the facts of the chosen payment_type, and only those.
+            let given = engine::NON_RESIDENT_WITHHOLDING_OPTIONAL.map(|key| {
+                let kind = match key {
+                    "franked_amount"
+                    | "conduit_foreign_income"
+                    | "clean_building_mit_amount"
+                    | "non_concessional_mit_income"
+                    | "already_withheld" => Dec,
+                    _ => Raw,
+                };
+                optional(v, key, kind)
+            });
+            let [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12] = given;
+            let given = [
+                a0?, a1?, a2?, a3?, a4?, a5?, a6?, a7?, a8?, a9?, a10?, a11?, a12?,
+            ];
+            engine::non_resident_withholding(&engine::NonResidentWithholdingArgs {
+                payment_type: &a[0],
+                payment: &a[1],
+                year: &a[2],
+                scope_confirmed: &a[3],
+                optional: given.each_ref().map(Option::as_ref),
             })
         }
         "sb-cgt-concessions" => {
