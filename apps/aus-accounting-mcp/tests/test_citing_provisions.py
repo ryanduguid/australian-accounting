@@ -165,3 +165,12 @@ def test_a_section_cited_by_nothing_returns_an_empty_list(citing):
 def test_a_row_that_cannot_be_cited_by_number_is_refused(citing, row_id):
     with pytest.raises(ToolError):
         call("find_citing_provisions", row_id=row_id)
+
+
+def test_an_index_that_is_not_utf8_stops_the_scan(citing):
+    broken = citing / "markdown" / "C9999A00008" / "sections.jsonl"
+    broken.parent.mkdir(parents=True)
+    broken.write_bytes(b'{"text": "section 5-10 \xff"}\n')
+
+    with pytest.raises(ToolError, match="UTF-8"):
+        call("find_citing_provisions", row_id=TARGET)
