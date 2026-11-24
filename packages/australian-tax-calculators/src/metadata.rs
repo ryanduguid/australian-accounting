@@ -1390,6 +1390,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // GST Act s 38-325, Subdivision 66-A, Division 21 and Subdivision
         // 136-A read the same in compilations 82 and 96.
+        // Returns lodged from 1 July 2024, under F2023L01284 and the GST Act
+        // compilation read on 24 November 2026.
+        "gst_error_correction" | "gst_credit_time_limit" => vec!["2024-25", "2025-26", "2026-27"],
         "gst_going_concern" | "gst_second_hand_goods" | "gst_bad_debt" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2022,6 +2025,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_second_hand_goods" => (
             "2026-11-22",
             "GST Act ss 66-5, 66-10, 66-15, 66-17 and 66-40 and the s 195-1 definitions of second-hand goods and valuable metal, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTD 2012/6 paras 1 to 13",
+        ),
+        "gst_error_correction" => (
+            "2026-11-24",
+            "F2023L01284 ss 4, 6, 7 and 8 (as made, read on the Federal Register of Legislation); TAA 1953 Sch 1 s 155-35(2); GST Act Division 93, compilation 96 (C2026C00081, from 1 January 2026)",
+        ),
+        "gst_credit_time_limit" => (
+            "2026-11-24",
+            "GST Act ss 29-10(1) to (6), 29-80(1), 93-5, 93-10 and 93-15, compilation 96 (C2026C00081, from 1 January 2026); GST Regulations 2019 reg 29-80.01, compilation 5 (F2025C01015)",
         ),
         "gst_bad_debt" => (
             "2026-11-22",
@@ -2728,6 +2739,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Finance Co's $5,500 vehicle: a notional credit of $500, 1/11 of the consideration (para 7)",
             "2012-08-01",
             "2026-11-22",
+        ),
+        "gst_error_correction" => (
+            "A New Tax System (Goods and Services Tax) (Correcting GST Errors) Determination 2023",
+            "Sections 6 and 7 and the s 7 table of debit error time and value limits by current GST turnover; no ATO example was read",
+            "2023-09-06",
+            "2026-11-24",
+        ),
+        "gst_credit_time_limit" => (
+            "GST Act Division 93 and s 29-10(3)",
+            "Sections 29-10(3), 29-80(1), 93-5(1) and 93-15, with reg 29-80.01; no ATO example was read",
+            "2026-01-01",
+            "2026-11-24",
         ),
         "gst_bad_debt" => (
             "GSTR 2000/2",
@@ -6150,6 +6173,29 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("valuable_metal", "boolean: the goods consist to any extent of gold, silver or platinum (s 195-1); true is refused"),
             ("leased_before_sale", "boolean: you lease the goods before you sell them (GSTD 2012/6); true is refused"),
         ],
+        "gst_error_correction" => vec![
+            ("error_kind", "credit or debit: a mistake that overstated (credit) or understated (debit) the earlier period's assessed net amount (F2023L01284 s 4)"),
+            ("earlier_period_start", "YYYY-MM-DD: the first day of the tax period in which the error was made"),
+            ("earlier_return_due", "YYYY-MM-DD: the due date of the GST return for that tax period"),
+            ("lodged", "YYYY-MM-DD: the day the later GST return correcting the error is lodged, in year"),
+            ("current_gst_turnover", "AUD: your current GST turnover (the group's for a GST group member), which picks the s 7 table row"),
+            ("net_debit_errors", "AUD: the debit error amounts less the credit error amounts you include in the later period (s 4 'net sum of the debit errors'); read for a debit error only"),
+            ("within_period_of_review", "boolean: the later return is lodged within the period of review for the earlier assessment (s 6(c); TAA 1953 Sch 1 s 155-35)"),
+            ("compliance_activity", "boolean: at lodgment the error relates to a matter, or the earlier period is, subject to a compliance activity you were notified of (s 6(d)(i))"),
+            ("commissioner_permits", "boolean: the Commissioner has notified you in writing that the error can be corrected under the determination (s 6(d)(ii))"),
+            ("already_corrected", "boolean: you have corrected the error, to any extent, in another tax period (s 6(e))"),
+            ("reckless_or_intentional", "boolean: the error resulted from recklessness as to, or intentional disregard of, a GST law (s 7(a)); read for a debit error only"),
+            ("credit_ceased_under_division_93", "boolean: the mistake relates to an input tax credit whose entitlement ceased under Division 93, which is not an error (s 4)"),
+        ],
+        "gst_credit_time_limit" => vec![
+            ("supply_value", "AUD: the value (GST exclusive) of the taxable supply the acquisition relates to; $75 or less needs no tax invoice (GST Act s 29-80(1), reg 29-80.01)"),
+            ("return_due", "YYYY-MM-DD: the day the GST return was required for the tax period the credit is attributable to apart from s 29-10(3) (s 93-5(1))"),
+            ("tax_invoice_held_from", "YYYY-MM-DD, or not_held: the day you first held the tax invoice"),
+            ("return_given", "YYYY-MM-DD: the day you give the GST return that takes the credit into account, in year"),
+            ("assessment_date", "YYYY-MM-DD: the day of the assessment that takes the credit into account, not before return_given"),
+            ("supplier_review_ended_without_invoice", "boolean: the period of review of the supplier's assessment for the related GST ended before you held a tax invoice (s 93-15)"),
+            ("special_attribution", "boolean: a Commissioner's determination under s 29-25, or under s 29-10(3) that no tax invoice is required, applies; true is refused"),
+        ],
         "gst_bad_debt" => vec![
             ("party", "supplier or recipient: you made the supply (ss 21-5 and 21-10) or the acquisition (ss 21-15 and 21-20)"),
             ("event", "written_off, overdue_12_months or recovered: the debt, or part of it, is written off as bad (by the supplier), has been overdue for 12 months or more, or is recovered by the supplier or paid by the recipient after the earlier adjustment"),
@@ -7699,6 +7745,34 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("divided_for_resupply", Flag(false)),
             ("valuable_metal", Flag(false)),
             ("leased_before_sale", Flag(false)),
+        ],
+        // A debit error of $4,000 by a small business, corrected 10 months
+        // after the earlier return was due.
+        "gst_error_correction" => vec![
+            ("year", Text("2025-26")),
+            ("error_kind", Text("debit")),
+            ("earlier_period_start", Text("2024-10-01")),
+            ("earlier_return_due", Text("2025-02-28")),
+            ("lodged", Text("2025-12-28")),
+            ("current_gst_turnover", Text("1500000")),
+            ("net_debit_errors", Text("4000.00")),
+            ("within_period_of_review", Flag(true)),
+            ("compliance_activity", Flag(false)),
+            ("commissioner_permits", Flag(false)),
+            ("already_corrected", Flag(false)),
+            ("reckless_or_intentional", Flag(false)),
+            ("credit_ceased_under_division_93", Flag(false)),
+        ],
+        // A $550 acquisition's tax invoice held before the return is given.
+        "gst_credit_time_limit" => vec![
+            ("year", Text("2025-26")),
+            ("supply_value", Text("500.00")),
+            ("return_due", Text("2025-10-28")),
+            ("tax_invoice_held_from", Text("2025-09-15")),
+            ("return_given", Text("2025-10-20")),
+            ("assessment_date", Text("2025-10-20")),
+            ("supplier_review_ended_without_invoice", Flag(false)),
+            ("special_attribution", Flag(false)),
         ],
         // GSTR 2000/2's Marcus (paras 49AA to 53), 20 years on.
         "gst_bad_debt" => vec![

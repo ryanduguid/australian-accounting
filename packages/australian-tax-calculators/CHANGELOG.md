@@ -4,6 +4,13 @@
 
 ### Added
 
+- `gst-error-correction` tests whether an earlier GST error may be corrected
+  in a later return under F2023L01284 ss 6 and 7, with the debit error time
+  and value limits by current GST turnover; `gst-credit-time-limit` tests
+  whether an input tax credit can be claimed under GST Act s 29-10(3) and
+  Division 93. New codes: `gst_error_correction.dates_invalid`,
+  `fact_invalid`, `lodged_outside_year`, `gst_credit_time_limit.dates_invalid`,
+  `return_given_outside_year` and `special_attribution`.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and

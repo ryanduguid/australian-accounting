@@ -522,6 +522,39 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
     (
+        "gst-error-correction",
+        &[
+            ("error_kind", Raw),
+            ("earlier_period_start", Raw),
+            ("earlier_return_due", Raw),
+            ("lodged", Raw),
+            ("current_gst_turnover", Dec),
+            ("net_debit_errors", Dec),
+            ("within_period_of_review", Raw),
+            ("compliance_activity", Raw),
+            ("commissioner_permits", Raw),
+            ("already_corrected", Raw),
+            ("reckless_or_intentional", Raw),
+            ("credit_ceased_under_division_93", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "gst-credit-time-limit",
+        &[
+            ("supply_value", Dec),
+            ("return_due", Raw),
+            ("tax_invoice_held_from", Raw),
+            ("return_given", Raw),
+            ("assessment_date", Raw),
+            ("supplier_review_ended_without_invoice", Raw),
+            ("special_attribution", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "vic-property-taxes",
         &[("tax", Raw), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -2143,6 +2176,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
             | "wine-equalisation-tax"
+            | "gst-error-correction"
+            | "gst-credit-time-limit"
             | "vic-property-taxes"
             | "fbt-debt-waiver"
             | "fbt-expense-payment"
@@ -3884,6 +3919,33 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[11],
             })
         }
+        "gst-error-correction" => engine::gst_error_correction(&engine::ErrorCorrectionArgs {
+            error_kind: &a[0],
+            earlier_period_start: &a[1],
+            earlier_return_due: &a[2],
+            lodged: &a[3],
+            current_gst_turnover: &a[4],
+            net_debit_errors: &a[5],
+            within_period_of_review: &a[6],
+            compliance_activity: &a[7],
+            commissioner_permits: &a[8],
+            already_corrected: &a[9],
+            reckless_or_intentional: &a[10],
+            credit_ceased_under_division_93: &a[11],
+            year: &a[12],
+            scope_confirmed: &a[13],
+        }),
+        "gst-credit-time-limit" => engine::gst_credit_time_limit(&engine::CreditTimeLimitArgs {
+            supply_value: &a[0],
+            return_due: &a[1],
+            tax_invoice_held_from: &a[2],
+            return_given: &a[3],
+            assessment_date: &a[4],
+            supplier_review_ended_without_invoice: &a[5],
+            special_attribution: &a[6],
+            year: &a[7],
+            scope_confirmed: &a[8],
+        }),
         "gst-bad-debt" => {
             // Optional: inputs used only for some parties and events.
             let raw = |key| optional(v, key, Raw);
