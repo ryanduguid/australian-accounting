@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-145 calculation worksheets for established facts; the sections below document
+146 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -136,6 +136,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | --- | --- |
 | `gst` | `amount`, `gst_inclusive`, `scope_confirmed`, `year` |
 | `fuel-tax-credits` | `lines`, `year`, `scope_confirmed`; `small_claimant` with a simplified method, `rate_at_period_end` and `return_date` optionally; see [Fuel tax credits](#fuel-tax-credits) |
+| `gst-food-retailer-sam` | `method`, `tax_period_start`, `tax_period_end`, `trading_stock_purchases`, `eligibility`, `year`, `scope_confirmed`; `total_sales` except for the restaurant method; each method's own inputs; see [GST food retailer simplified accounting methods](#gst-food-retailer-simplified-accounting-methods) |
 | `gst-margin-scheme` | `interest`, `agreement`, `acquisition`, `consideration`, `method`, `recipient_associate`, `year`, `scope_confirmed`; with method `consideration`, `acquisition_consideration` and `unpaid_acquisition_consideration`; with method `approved_valuation`, `approved_valuation`, `valuation_day`, `registered_on_1_july_2000`, `government_unimproved_on_1_july_2000` and the applicable date facts below; for part of the land, `subdivision_share` and `subdivision_whole`; see [GST margin scheme](#gst-margin-scheme) |
 | `resident-tax` | `taxable_income`, `year`, `scope_confirmed`; for a part-year resident `part_year_residency_months` with `eligible_pensioner`; see [Resident tax](#resident-tax) |
 | `foreign-resident-tax` | `taxable_income`, `year`, `scope_confirmed` |
@@ -285,9 +286,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `charity-check` | `abns`, a list of 1 to 10,000 ABNs, and `as_at`, the check date; see [Charity check](#charity-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), for a full-year resident `medicare-levy` and `medicare-levy-surcharge`, and for a part-year resident before 2027-28 `part_year_residency_months`, `eligible_pensioner` and `medicare-levy`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `portable-lsl-levy`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `rd-tax-offset`, `esic`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `deferred-tax`, `leave-provisions`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `cgt-cost-base-adjustments`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `vic-property-taxes`, `foreign-income-tax-offset`, `smsf-tax`, `fbt-instalment`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -421,6 +422,7 @@ DI2026-157).
 | Luxury car tax | Tax periods in 2019-20 to 2026-27, the years from the $10,000 refunds to the last thresholds the ATO publishes, with supplies from 2012-13 for adjustments; established cars, values, ratings, quotes and refund conditions |
 | GST | 2025-26 to 2027-28, one ordinary taxable supply at 10%; no classification or BAS |
 | Fuel tax credits | 2022-23 to 2026-27, fuel acquired from 1 July 2022 to 31 January 2027 at the ATO's 16 published rate periods; established entitlement, fuel, quantity and use |
+| GST food retailer simplified accounting methods | Tax periods from 28 September 2017 to 30 June 2027 (2017-18 to 2026-27), each method from its determination's commencement: F2017L01274 from 28 September 2017, the supermarket method from 9 September 2025 and the restaurant method from 24 September 2026 |
 | GST margin scheme | 2025-26 to 2027-28, one taxable supply of real property under a contract from 9 December 2008; the s 75-5 conditions, the consideration or a valuation under s 75-10(3) items 1 to 4, and a lot's share under s 75-15; acquisitions s 75-11 governs are refused |
 | Resident tax | 2024-25 to 2027-28; resident ordinary income, before offsets and levies, with a part-year resident's pro-rated tax-free threshold |
 | Foreign resident tax | 2024-25 to 2027-28; full-year foreign resident ordinary income, no tax-free threshold; no Medicare levy or low income tax offset applies |
@@ -2915,6 +2917,58 @@ policy falls in, exemptions, apportioning a premium between jurisdictions or
 classes, who is liable, returns and refunds. The tests hold it to figures
 worked by hand from each rate and to 644 cases from an oracle written from
 the Acts; see [calculation evidence](docs/calculation-evidence.md#insurance-duty).
+
+## GST food retailer simplified accounting methods
+
+`gst-food-retailer-sam` takes one tax period of a retailer who sells food and
+has chosen a simplified accounting method under GST Act s 123-10, and gives
+the GST-free share of trading sales and trading stock purchases the method
+gives. `method` is one of:
+
+| Method | Rule |
+|---|---|
+| `business_norms` | F2017L01274 s 5: the table's norms for a cake shop (2% of sales, 95% of purchases), continental delicatessen (85%, 90%), convenience store (converter 22.5%, 30%; reseller 30%, 30%), fresh fish shop (35%, 98%), health food shop (35%, 35%) and hot bread shop (50%, 75%); a rural convenience store after deducting fuel and Australia Post agency amounts; a pharmacy's PBS sales plus 98% of non-PBS prescription and 47.5% of over-the-counter sales, and 0% and 2% of those purchases |
+| `stock_purchases_every_period`, `stock_purchases_two_samples`, `stock_purchases_five_percent` | s 6, resellers only: actual GST-free purchases with sales in proportion; a 4-week sample in 1 June to 31 July or 1 December to 31 January; or, where projected GST-free resales are not more than 5%, sales from each product line's mark-up |
+| `snapshot_every_period`, `snapshot_two_samples`, `snapshot_five_percent` | s 7: purchases actual or by the 4-week sample, sales by a 2-week sales sample or, under the 5% basis, by mark-up |
+| `supermarket_sales_percentage` | F2025L01055 s 7: purchases times the point-of-sale GST-free sales share, then one-eleventh of the rest as trading stock input tax credits |
+| `restaurant_purchases_snapshot` | F2026L01275 s 7: purchases times the 4-week sample's GST-free proportion, then one-eleventh of the rest |
+
+`eligibility` holds each determination's conditions as stated facts (for the
+2017 methods, sales from the same premises, a SAM turnover of $2 million or
+less and no adequate point-of-sale equipment); a condition not met is refused
+and named. The operator establishes the facts: for `business_norms`,
+`retailer_type_definition_met` states that the business meets every part of
+its type's s 8 definition, and for the supermarket method
+`section_7_3_goods_left_out` states that purchases and sales leave out the
+goods s 7(3) sends to other credits. A projected GST-free share of exactly 5%
+qualifies for the 5% methods. A business that starts trading in the year
+samples its first 2 months under the 2017 methods only for July to December
+(a January to June tax period for a July to December starter uses `1 December to
+31 January` from `trading_started`, and one starting in January to June is
+refused), and under the restaurant method when trading starts during an
+eligible tax period and the ordinary window (`1 June to 31 July` or `1 December
+to 31 January`) cannot hold a 28-day sample from `trading_started` (s 7(c)),
+whilst starting to use the method during an eligible tax period when the
+ordinary window cannot apply uses `method_started` (s 7(d)).
+
+Under F2026L01275 s 7, the first eligible tax period in each 6-month half
+establishes the GST-free proportion via `purchases_sample` (under whichever of
+paragraphs (a) to (d) applies), and later tax periods in that half reuse that
+established sample via `first_tax_period_sample` rather than choosing a new
+`purchases_sample`; a commencement before the half's first eligible tax period
+where no ordinary sample fits is refused.
+
+The shares are exact and the amounts shown to the cent. It refuses
+a tax period before the method's determination commenced (an annual
+restaurant tax period cannot start on or after 24 September 2026 within
+2026-27), a sample of the wrong length or outside its window, a 2017 sample
+method for a period across 31 December, a converter under the stock purchases
+methods, a pharmacy whose components do not add up, and the prisons and
+detention determination. It leaves out the choice and its notice, GST on
+sales, other acquisitions' credits, adjustments and which goods are GST-free
+or trading stock. The tests hold it to the ATO's examples (Carlo, Connie,
+Andrew, Valda, Lee, Anita and Anil); see
+[calculation evidence](docs/calculation-evidence.md#gst-food-retailer-sam).
 
 ## Transfer duty
 
