@@ -161,7 +161,7 @@ UNDEFINED_NOTE = (
     "hold every word of it."
 )
 # A section number as a title prints it: "8-1", "40-880", "82KZM", "6".
-SECTION_LABEL = r"\d[0-9A-Za-z]*(?:[-.]\d+(?:[A-Za-z][0-9A-Za-z]*)?)*"
+SECTION_LABEL = r"\d+(?:[A-Za-z][0-9A-Za-z]*)?(?:[-.]\d+(?:[A-Za-z][0-9A-Za-z]*)?)*"
 LABEL_ONLY = re.compile(SECTION_LABEL)
 CITED_LABEL = SECTION_LABEL + r"(?:\([0-9A-Za-z]{1,6}\))*"
 SUBSECTIONS = re.compile(r"\([^()]*\)")
@@ -177,8 +177,8 @@ CITATION = re.compile(
 # A title the pattern cannot name ("of the Act" as a defined short title, "of
 # Schedule 1"): such a citation is not read as one of the citing title's own sections.
 OTHER_TITLE = re.compile(
-    r",?\s+(?:of|in)\s+(?:Schedule\b|(?:the\s+)?\*?"
-    r"(?:[A-Z][\w'-]*\s+){0,8}?(?:Act|Regulations?|Rules|Code|Ordinance)\b)"
+    r",?\s+(?:of|in)\s+(?:the\s+)?\*?(?:Schedule\b|"
+    r"(?:\(?[A-Z][\w'-]*\)?\s+){0,8}?(?:Act|Regulations?|Rules|Code|Ordinance)\b)"
 )
 # Only 1-for-1 replacements, so a citation's offsets stay valid in the stored text.
 CITE_PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " "})
