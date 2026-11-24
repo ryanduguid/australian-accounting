@@ -5182,6 +5182,8 @@ mod motor_vehicle_duty;
 pub use motor_vehicle_duty::{MotorVehicleDutyArgs, motor_vehicle_duty};
 mod insurance_duty;
 pub use insurance_duty::{InsuranceDutyArgs, insurance_duty};
+mod portable_lsl_levy;
+pub use portable_lsl_levy::{PortableLslLevyArgs, portable_lsl_levy};
 mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
@@ -6488,6 +6490,8 @@ mod gst_margin_scheme;
 pub use gst_margin_scheme::{MarginSchemeArgs, gst_margin_scheme};
 mod fhss;
 pub use fhss::{FhssArgs, fhss};
+mod aml_cdd_review;
+pub use aml_cdd_review::aml_cdd_review;
 mod ppsr_timing;
 pub use ppsr_timing::ppsr_timing;
 mod individual_offsets;
@@ -6540,6 +6544,14 @@ pub use rental_property::{RentalPropertyArgs, rental_property};
 mod foreign_resident_withholding;
 pub use foreign_resident_withholding::{
     ForeignResidentWithholdingArgs, foreign_resident_withholding,
+};
+mod non_resident_withholding;
+pub use non_resident_withholding::{
+    NON_RESIDENT_WITHHOLDING_OPTIONAL, NonResidentWithholdingArgs, non_resident_withholding,
+};
+mod residential_vacancy_fee;
+pub use residential_vacancy_fee::{
+    RESIDENTIAL_VACANCY_FEE_OPTIONAL, ResidentialVacancyFeeArgs, residential_vacancy_fee,
 };
 mod withholding_schedules;
 pub use withholding_schedules::{
@@ -6609,7 +6621,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 141] = [
+const KINDS: [&str; 145] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6639,6 +6651,7 @@ const KINDS: [&str; 141] = [
     "workers_compensation_premium",
     "motor_vehicle_duty",
     "insurance_duty",
+    "portable_lsl_levy",
     "fbt",
     "fbt_car_statutory",
     "fbt_car_operating_cost",
@@ -6688,6 +6701,7 @@ const KINDS: [&str; 141] = [
     "fbt_minor_benefit_check",
     "fhss",
     "income_tests",
+    "aml_cdd_review",
     "ppsr_timing",
     "wine_equalisation_tax",
     "vic_property_taxes",
@@ -6711,6 +6725,8 @@ const KINDS: [&str; 141] = [
     "government_super_amounts",
     "rental_property",
     "foreign_resident_withholding",
+    "non_resident_withholding",
+    "residential_vacancy_fee",
     "horticulture_shearing_withholding",
     "upward_variation_withholding",
     "daily_casual_withholding",

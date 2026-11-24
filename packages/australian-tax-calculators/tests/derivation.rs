@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 95] = [
+const DERIVED: [&str; 97] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -99,6 +99,7 @@ const DERIVED: [&str; 95] = [
     "motor-vehicle-duty",
     "insurance-duty",
     "gst-food-retailer-sam",
+    "portable-lsl-levy",
     "cgt-parcels",
     "work-expenses",
     "gst-creditable-purpose-change",
@@ -114,6 +115,7 @@ const DERIVED: [&str; 95] = [
     "defined-benefit-income-cap",
     "foreign-pension-upp",
     "super-crystallisation",
+    "residential-vacancy-fee",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -630,6 +632,34 @@ fn cases() -> Vec<(&'static str, Value)> {
         // Revenue Office's example 2) and Tasmania's 2 rates on $2,400,000
         // of $3,000,000 (its guideline's example 2).
         (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "cth", "scheme": "coal", "year": "2025-26", "scope_confirmed": true, "reporting_month": "2026-06", "branch": "base_rate", "eligible_employee": true, "base_rate_of_pay": "6000.00", "overtime_and_penalty_rates": "3000.00", "allowances": "500.00", "allowances_exclude_expense_reimbursements": true, "bonuses": [{"amount": "400.00", "frequency": "monthly"}]}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "cth", "scheme": "coal", "year": "2025-26", "scope_confirmed": true, "reporting_month": "2026-06", "branch": "annual_salary", "eligible_employee": true, "annual_salary_paid": "10000.00", "salary_sacrificed": "500.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "cth", "scheme": "coal", "year": "2025-26", "scope_confirmed": true, "reporting_month": "2026-06", "branch": "casual", "eligible_employee": true, "instrument_specifies_loading": true, "loading_quantifiable": true, "base_rate_of_pay": "1800.00", "casual_loading": "450.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "nsw", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "250399.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "qld", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "150000.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "nt", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "project_cost": "1000500.00"}),
+        ),
+        (
+            "portable-lsl-levy",
+            json!({"jurisdiction": "tas", "scheme": "construction", "year": "2026-27", "scope_confirmed": true, "ordinary_wages": "50000.00", "paid_on_time": true}),
+        ),
+        (
             "payroll-tax",
             json!({"jurisdiction": "vic", "taxable_wages": "80000000.00",
                    "australian_wages": "150000000.00", "regional_employer": false,
@@ -1090,6 +1120,67 @@ fn cases() -> Vec<(&'static str, Value)> {
                "undeducted_contributions": "0.00", "untaxed_source": false,
                "income_stream_before_july_2007": false}),
     ));
+    // Residential vacancy fee: stated fee (Myeong pre- and post-9 April 2024),
+    // schedule-derived established dwelling (GN10 Example 34), tenants in common
+    // (Sara 25% share), waived full fee, occupied >= 183 days, exempt, late return
+    // override, and 2026-27 exemption certificate (Rishi).
+    for facts in [
+        json!({
+            "year": "2023-24", "vacancy_year_start": "2023-08-01", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 100, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "13200.00", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2024-25", "vacancy_year_start": "2024-08-15", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 79, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "consideration": "1500000.00", "dwelling_kind": "established",
+            "application_date": "2024-07-02", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2026-27", "vacancy_year_start": "2026-08-01", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 0, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "developer_exemption_certificate", "ownership": "tenants_in_common",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "consideration": "1500000.00", "dwelling_kind": "new_or_near_new",
+            "application_date": "2026-08-01", "ownership_share": "0.25", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2026-27", "vacancy_year_start": "2026-11-02", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 100, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "other_exemption_certificate", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "31300.00", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2025-26", "vacancy_year_start": "2025-07-10", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 183, "return_lodged_on_time": true, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "full", "vacancy_fee_waiver_or_remission": false,
+            "dwelling_kind": "new_or_near_new", "application_date": "2025-07-01",
+            "scope_confirmed": true
+        }),
+        json!({
+            "year": "2025-26", "vacancy_year_start": "2025-07-10", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 50, "return_lodged_on_time": true,
+            "exemption": "substantial_repairs_or_renovations",
+            "acquisition_basis": "notifiable_action", "ownership": "joint_tenants",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "15100.00", "scope_confirmed": true
+        }),
+        json!({
+            "year": "2025-26", "vacancy_year_start": "2025-07-10", "held_full_vacancy_year": true,
+            "residentially_occupied_days": 250, "return_lodged_on_time": false, "exemption": null,
+            "acquisition_basis": "notifiable_action", "ownership": "sole",
+            "application_fee_waiver": "none", "vacancy_fee_waiver_or_remission": false,
+            "application_fee_payable": "15100.00", "scope_confirmed": true
+        }),
+    ] {
+        cases.push(("residential-vacancy-fee", facts));
+    }
     cases
 }
 
@@ -1590,6 +1681,15 @@ impl Evaluator<'_> {
                             Decimal::from_int(0)
                         } else {
                             a.clone()
+                        }
+                    }
+                    ("dollars_half_down", [a]) => {
+                        let down = a.quantize(0, Rounding::Down).unwrap();
+                        let frac = a.sub(&down).unwrap();
+                        if frac.gt(&dec("0.5")).unwrap() {
+                            down.add(&Decimal::from_int(1)).unwrap()
+                        } else {
+                            down
                         }
                     }
                     other => panic!("unknown function {other:?}"),
@@ -2819,8 +2919,8 @@ fn derive_refuses_what_it_does_not_explain() {
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
-         foreign-pension-upp, super-crystallisation, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
+         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, not \"payg-gross-up\""
     );
 }
 
