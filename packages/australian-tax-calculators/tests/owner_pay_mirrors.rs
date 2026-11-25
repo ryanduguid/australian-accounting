@@ -185,15 +185,23 @@ fn at<'a>(value: &'a Value, path: &str) -> &'a Value {
     path.split('.').fold(value, |v, key| &v[key])
 }
 
-/// A page figure and the command's, as numbers to the cent, or as given.
+/// A page figure and the command's, as the same decimal exactly, or as given.
 fn same(page: &Value, ours: &Value) -> bool {
-    let number = |v: &Value| match v {
-        Value::Number(n) => n.as_f64(),
-        Value::String(s) => s.parse::<f64>().ok(),
-        _ => None,
+    let decimal = |v: &Value| {
+        let text = match v {
+            Value::Number(n) => n.to_string(),
+            Value::String(s) if s.parse::<f64>().is_ok() => s.clone(),
+            _ => return None,
+        };
+        let text = if text.contains('.') {
+            text.trim_end_matches('0').trim_end_matches('.').to_string()
+        } else {
+            text
+        };
+        Some(if text == "-0" { "0".to_string() } else { text })
     };
-    match (number(page), number(ours)) {
-        (Some(a), Some(b)) => (a - b).abs() < 0.005,
+    match (decimal(page), decimal(ours)) {
+        (Some(a), Some(b)) => a == b,
         _ => page == ours,
     }
 }
@@ -202,11 +210,18 @@ fn same(page: &Value, ours: &Value) -> bool {
 fn ours(result: &Value, key: &str) -> Value {
     if key == "super_tax" {
         let a = &result["amounts"];
-        let sum: f64 = ["contributions_tax", "division_293_tax"]
+        let cents: i64 = ["contributions_tax", "division_293_tax"]
             .iter()
-            .map(|k| a[*k].as_str().unwrap().parse::<f64>().unwrap())
+            .map(|k| {
+                a[*k]
+                    .as_str()
+                    .unwrap()
+                    .replace('.', "")
+                    .parse::<i64>()
+                    .unwrap()
+            })
             .sum();
-        return json!(sum);
+        return json!(format!("{}.{:02}", cents / 100, cents % 100));
     }
     if key.contains('.') || !result["amounts"].get(key).is_some() {
         return at(result, key).clone();

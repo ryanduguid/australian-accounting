@@ -4415,7 +4415,9 @@ salary, less the tax on the other taxable income alone. Super keeps the super
 guarantee less 15% contributions tax and `division-293`'s tax. The amounts end
 with the totals kept with all salary and all dividends and the salary that
 keeps the most (`best_salary`, `best_kept`), ranked unrounded between the
-taxable incomes where the tax changes slope, as the page ranks them. A salary
+taxable incomes where the tax changes slope, as the page ranks them. Super
+counts after tax though preserved, and the low income super tax offset is
+not counted, as on the page. A salary
 whose super guarantee the profit cannot pay is refused
 (`salary_dividend.salary_too_large`). Years before 2024-25, which the page
 covers, are refused: the individual tax worksheets hold no earlier year.
@@ -4428,12 +4430,15 @@ page does: the income tax, Medicare levy, surcharge without hospital cover and
 study loan repayment that the profit adds to any wages, after the small
 business income tax offset (16% of the profit up to taxable income over
 taxable income times the basic income tax liability, at most $1,000, ITAA 1997
-s 328-360, applied after the low income tax offset), and the GST on the income
+s 328-360, applied after the low income tax offset), with no work-related
+deduction reducing the standard deduction (s 25-130(2)(c) to (g)), and the GST on the income
 less GST credits when registered. The business's tax is the year's total less
 the total on the wages and other deductions alone. The set-aside is also given
 as a share of each invoice with GST and per quarter, month and 52 weeks, with
 `payg_instalments_likely` and `gst_registration_required` against the ATO's
-$4,000 and $1,000 instalment entry figures and the $75,000 GST threshold. A
+$4,000 and $1,000 instalment entry figures (the ATO also tests notional tax)
+and the $75,000 GST threshold against the business income; both are
+indications. A
 loss, a GST refund and credits without registration are refused. Years before
 2024-25 are refused, and a study loan in 2024-25 as `study-loan-repayment`
 holds 2025-26 on.
@@ -4444,7 +4449,7 @@ holds 2025-26 on.
 FBTAA s 57A exempts, for the FBT year ending 31 March in an income year from
 2024-25 to 2026-27, as the site's salary packaging page does: the Type 1 and
 Type 2 taxable values grossed up by s 5B(1F) and (1G) and rounded half up to
-the dollar, less the $30,000 cap of a public benevolent institution or health
+the dollar as the ATO's guide rounds them (the Act states no rounding), less the $30,000 cap of a public benevolent institution or health
 promotion charity or the $17,000 cap of a hospital or ambulance service, less
 up to $5,000 of grossed-up meal entertainment (s 5B(1E)), at the 47% FBT rate;
 the reportable fringe benefits amount over $2,000 (s 135Q); and the tax before
@@ -4466,7 +4471,7 @@ decides the treatment from the stated facts: an exempt car's costs, net of the
 employer's GST credit, all come from pre-tax salary and its statutory formula
 value is reportable (s 135P(3)); any other car uses the employee contribution
 method, the after-tax contribution equal to the taxable value (s 9), with ten
-elevenths of it meeting the costs. `exempt_case` and `contribution_case` give
+elevenths of it meeting the costs, the employer taking the full GST credit. `exempt_case` and `contribution_case` give
 each way's pre-tax and after-tax amounts, reportable amount, tax and saving,
 `null` where the way does not apply. A cost price above the fuel-efficient
 luxury car tax threshold of the year of first retail sale is taken to show
