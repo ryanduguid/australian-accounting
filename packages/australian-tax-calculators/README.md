@@ -265,7 +265,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `billed`, `received`, `variable_consideration`, `significant_financing_component`, `estimate_changed`, `year`, `scope_confirmed`, and `milestones` when `pattern` is `milestones`; see [Deferred revenue](#deferred-revenue) |
 | `wip-lockup` | `entries`, `as_at`, `fee_revenue`, `receivables`, `billings`, `year`, `scope_confirmed`; optional `bucket_days` and `days`; see [WIP lock-up](#wip-lock-up) |
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
-| `thin-capitalisation` | `test`, `entity_class`, `plantation_forestry_entity`, `special_purpose_entity`, `outward_investor_only`, `associate_inclusive_debt_deductions`, `debt_deductions`, `year`, `scope_confirmed`; by test, `interest_income`, `taxable_income`, `division_40_43_deductions` and optional `franking_credits`, `associate_dividends`, `rd_notional_deductions`, `forestry_deductions`, `section_70_120_deductions`, `excess_tax_ebitda_amount`, `frt_disallowed_amounts` and the `gr_group_` figures; with an outward investor `average_australian_assets` and `average_total_assets`; see [Thin capitalisation](#thin-capitalisation) |
+| `thin-capitalisation` | `test`, `entity_class`, `plantation_forestry_entity`, `special_purpose_entity`, `outward_investor_only`, `associate_inclusive_debt_deductions`, `debt_deductions`, `year`, `scope_confirmed`; by test, `interest_and_equivalent_income`, `taxable_income`, `division_40_43_deductions` and optional `franking_credits`, `associate_dividends`, `rd_notional_deductions`, `forestry_deductions`, `section_70_120_deductions`, `excess_tax_ebitda_amount`, `frt_disallowed_amounts` and the `gr_group_` figures; with an outward investor `average_australian_assets` and `average_total_assets`; see [Thin capitalisation](#thin-capitalisation) |
 | `debt-forgiveness` | `debts`, `tax_losses`, `net_capital_losses`, `expenditures`, `cost_bases`, `partnership`, `attributable_income`, `year`, `scope_confirmed`; see [Debt forgiveness](#debt-forgiveness) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
@@ -519,7 +519,7 @@ DI2026-157).
 | Deferred revenue | Performance periods starting in 2020-21 to 2026-27 and of at most 120 months; one performance obligation satisfied over time, its price, allocation and pattern of progress (by day, by whole month or by milestone) established; no variable consideration, financing component, refund liability or changed estimate |
 | WIP lock-up | A date in 2020-21 to 2026-27; the firm's entries, valuation basis, receivables and flows as stated; a management measure, not an accounting or tax result; no recoverability or write-downs |
 | Impairment test | Reporting periods ending in 2020-21 to 2026-27; one asset or cash-generating unit with stated pre-tax cash flows, terminal value, pre-tax rate, fair value less costs of disposal, carrying amounts and floors; no revalued assets, goodwill with a non-controlling interest, reversals or deferred tax |
-| Thin capitalisation | 2023-24 to 2026-27; one company that is a general class investor, or not covered, at stated debt deductions, interest income, tax EBITDA lines, GR group figures, third party debt conditions and carried amounts; no financial entities, ADIs, plantation forestry entities, trusts, partnerships, Subdivision 820-EAA or consolidated group transfers |
+| Thin capitalisation | 2023-24 to 2026-27; one company that is a general class investor, or not covered, at stated debt deductions, s 820-50(3)(b) amounts, tax EBITDA lines, GR group figures, third party debt conditions and carried amounts; no financial entities, ADIs, plantation forestry entities, trusts, partnerships, Subdivision 820-EAA or consolidated group transfers |
 | Debt forgiveness | 2020-21 to 2026-27; one debtor's commercial debts forgiven in the year, at stated values, amounts offset, s 245-85 amounts, s 245-90 agreements and reducible amounts; no partnerships or attributable income |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
 | Long service leave | Last days from 1 July 2020 to 30 June 2027 and not before each Act's text as read; one employee under a state or territory's general Act; established dates, excluded days, leave taken, reason and ordinary weekly pay; no award, agreement or portable scheme |
@@ -5236,7 +5236,7 @@ an income year from 2023-24, by the test the company stated, and the special
 deduction for earlier fixed ratio test disallowed amounts.
 
 ```text
-net_debt_deductions        = debt_deductions - interest_income                       s 820-50(3)
+net_debt_deductions        = debt_deductions - interest_and_equivalent_income                       s 820-50(3)
 tax_ebitda                 = max(taxable_income - franking_credits - associate_dividends
                                  - rd_notional_deductions + net_debt_deductions
                                  + division_40_43_deductions + forestry_deductions
@@ -5254,6 +5254,10 @@ special_deduction          = min(max(limit - net_debt_deductions, 0),
                                  available carried amounts)  fixed ratio test only    s 820-56
 ```
 
+`interest_and_equivalent_income` is the sum of the assessable amounts in
+s 820-50(3)(b): interest, amounts in the nature of or economically equivalent
+to interest, amounts another entity incurred to obtain or keep the benefits of
+a debt interest and any prescribed expense, not interest alone.
 `taxable_income` is the taxable income or tax loss (negative) disregarding
 Division 820 other than Subdivision 820-EAA, with every tax loss of an
 earlier year deducted (s 820-52(1A)) and s 820-52(6), (6B) and (8) applied.
@@ -5303,7 +5307,11 @@ cost bases (s 245-185). Each amount given is the most that item may be
 reduced: for expenditure the base amount less what was deductible before the
 year (s 245-155(2)) or the undeducted balance (s 245-157), for a cost base the
 limit in s 245-190(3). A creditor's forgone amount may not exceed the
-provisional net forgiven amount (s 245-90). The result lists each debt and
+provisional net forgiven amount (s 245-90) and needs `section_245_90_agreement`
+true: the stated fact that debtor and creditor are companies under common
+ownership from when the debt was incurred until it was forgiven, that the
+creditor would otherwise have a capital loss or deduction of at least that
+amount and that the agreement meets s 245-90(4). The result lists each debt and
 each item with its reduction and what remains. The command refuses a
 partnership (Subdivision 245-F) and the attributable income of a
 non-resident trust estate or a CFC (s 245-100). See

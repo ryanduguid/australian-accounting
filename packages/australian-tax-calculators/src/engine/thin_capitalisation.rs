@@ -224,7 +224,7 @@ fn check_unused(a: &ThinCapitalisationArgs, t: Test) -> Result<()> {
             ),
             NIL_CARRY,
         ],
-        Test::ThirdParty => ["taxable_income", "interest_income"]
+        Test::ThirdParty => ["taxable_income", "interest_and_equivalent_income"]
             .into_iter()
             .chain(SUBTRACTED)
             .chain(ADDED)
@@ -360,7 +360,8 @@ const EBITDA: &str = "s 820-52(1), (1A), (2), (3) and (10): taxable income (loss
 const DISALLOWED: &str = "s 820-50(1): the amount by which net debt deductions (fixed ratio and group ratio tests) or debt deductions (third party debt test) exceed the earnings limit";
 const ALLOWED: &str = "s 820-50: debt deductions less the total disallowed amount";
 
-/// The year's debt deductions and, given interest income, net debt deductions.
+/// The year's debt deductions and, given the s 820-50(3)(b) amounts, net debt
+/// deductions.
 fn opening(items: &[Deduction], interest: Option<&Decimal>) -> Calc<Vec<Step>> {
     let amounts: Vec<&Decimal> = items.iter().map(|x| &x.amount).collect();
     let dd = sum_step("debt_deductions", DD, &amounts)?;
@@ -371,7 +372,7 @@ fn opening(items: &[Deduction], interest: Option<&Decimal>) -> Calc<Vec<Step>> {
     let net = step(
         "net_debt_deductions",
         NDD,
-        "debt_deductions - interest_income",
+        "debt_deductions - interest_and_equivalent_income",
         &[&dd.value, i],
         ndd,
     );
@@ -430,7 +431,7 @@ fn ebitda_lines(a: &ThinCapitalisationArgs) -> Result<(Decimal, Vec<(&'static st
 fn interest(a: &ThinCapitalisationArgs) -> Result<Decimal> {
     required(
         a,
-        "interest_income",
+        "interest_and_equivalent_income",
         "net debt deductions subtract it (s 820-50(3)(b)); state 0.00 if none",
     )
 }

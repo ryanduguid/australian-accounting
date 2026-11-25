@@ -1802,7 +1802,7 @@ pub fn commands() -> Vec<&'static str> {
 /// `thin-capitalisation`'s optional inputs: those of tax EBITDA, the group
 /// ratio test, the assets threshold and the carry-forward.
 const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
-    ("interest_income", Dec),
+    ("interest_and_equivalent_income", Dec),
     ("taxable_income", Dec),
     ("franking_credits", Dec),
     ("associate_dividends", Dec),

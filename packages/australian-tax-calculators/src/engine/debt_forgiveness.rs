@@ -68,7 +68,7 @@ fn amount(o: &Map<String, Value>, key: &str, default: &str) -> Option<Decimal> {
     }
 }
 
-const DEBT_KEYS: [&str; 10] = [
+const DEBT_KEYS: [&str; 11] = [
     "label",
     "commercial_debt",
     "excluded",
@@ -79,6 +79,7 @@ const DEBT_KEYS: [&str; 10] = [
     "deductions_reduced",
     "cost_bases_reduced",
     "forgone_by_creditor",
+    "section_245_90_agreement",
 ];
 
 fn debt(v: &Value, n: usize) -> Result<Debt> {
@@ -107,6 +108,10 @@ fn debt(v: &Value, n: usize) -> Result<Debt> {
     let brought = reductions
         .into_iter()
         .try_fold(d("0"), |sum, r| sum.add(&r?).ok());
+    let agreement = match o.get("section_245_90_agreement") {
+        None => Some(false),
+        Some(v) => v.as_bool(),
+    };
     let read = (
         label,
         commercial,
@@ -116,14 +121,32 @@ fn debt(v: &Value, n: usize) -> Result<Debt> {
         debtors,
         brought,
         amount(o, "forgone_by_creditor", "0"),
+        agreement,
     );
-    let (Some(l), Some(c), Some(x), Some(value), Some(offset), Some(debtors), Some(b), Some(f)) =
-        read
+    let (
+        Some(l),
+        Some(c),
+        Some(x),
+        Some(value),
+        Some(offset),
+        Some(debtors),
+        Some(b),
+        Some(f),
+        Some(agreed),
+    ) = read
     else {
         return wrong(
-            "needs a label, commercial_debt and excluded true or false and a value in AUD from 0; optionally amount_offset, assessable_income, deductions_reduced, cost_bases_reduced and forgone_by_creditor in AUD from 0 and debtors a whole number from 1 to 100.",
+            "needs a label, commercial_debt and excluded true or false and a value in AUD from 0; optionally amount_offset, assessable_income, deductions_reduced, cost_bases_reduced and forgone_by_creditor in AUD from 0, section_245_90_agreement true or false and debtors a whole number from 1 to 100.",
         );
     };
+    if !agreed && precise(|| Ok(f.gt(&d("0"))?))? {
+        return refuse(
+            "debt_forgiveness.forgone_not_eligible",
+            format!(
+                "debt {n} ({l}): forgone_by_creditor needs section_245_90_agreement true, the stated fact that debtor and creditor are companies under common ownership from when the debt was incurred until it was forgiven (s 245-90(1)), that the creditor would otherwise have a capital loss or a deduction under s 8-1 or s 25-35 of at least the agreed amount (s 245-90(2) and (3)) and that the agreement meets s 245-90(4)."
+            ),
+        );
+    }
     Ok(Debt {
         label: l.to_string(),
         applies: c && !x,

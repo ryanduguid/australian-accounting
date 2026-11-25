@@ -19,7 +19,8 @@
   forgiven amounts and the total's reduction of tax losses, net capital
   losses, expenditure and cost bases in the statutory order. `derive` takes
   it. New codes: `debt_forgiveness.attributable_income`, `debt_invalid`,
-  `forgone_exceeds_provisional`, `item_invalid` and `partnership`.
+  `forgone_exceeds_provisional`, `forgone_not_eligible`, `item_invalid` and
+  `partnership`.
 
 ## 1.4.0
 

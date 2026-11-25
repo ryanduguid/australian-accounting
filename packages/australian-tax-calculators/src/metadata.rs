@@ -3200,7 +3200,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
         ],
         "thin_capitalisation" => vec![
             (
-                "interest_income",
+                "interest_and_equivalent_income",
                 "AUD from 0: interest, amounts in the nature of interest or economically equivalent to it, and the other amounts in s 820-50(3)(b), included in assessable income; needed by the fixed ratio and group ratio tests",
             ),
             (
@@ -6909,7 +6909,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("debt_deductions", "list of 1 to 200 objects {label, amount} and, under the third party debt test, third_party: the year's debt deductions (s 820-40) after any disallowed under Subdivision 820-EAA (s 820-31), amounts in AUD from 0; third_party true where the deduction is attributable to a debt interest satisfying the third party debt conditions (s 820-427A(1) to (3))"),
         ],
         "debt_forgiveness" => vec![
-            ("debts", "list of 1 to 200 objects {label, commercial_debt, excluded, value} with optional amount_offset, debtors, assessable_income, deductions_reduced, cost_bases_reduced and forgone_by_creditor: commercial_debt whether s 245-10 or s 245-15 applies; excluded whether s 245-40 applies; value the debt's value when forgiven (ss 245-55, 245-60 and 245-61), amount_offset the amount offset (s 245-65), assessable_income, deductions_reduced and cost_bases_reduced the amounts in s 245-85(1)(a) to (c) and forgone_by_creditor the amount agreed under s 245-90, each in AUD from 0 (default nil); debtors the number of entities liable (s 245-77), a whole number from 1 to 100, default 1"),
+            ("debts", "list of 1 to 200 objects {label, commercial_debt, excluded, value} with optional amount_offset, debtors, assessable_income, deductions_reduced, cost_bases_reduced, forgone_by_creditor and section_245_90_agreement: commercial_debt whether s 245-10 or s 245-15 applies; excluded whether s 245-40 applies; value the debt's value when forgiven (ss 245-55, 245-60 and 245-61), amount_offset the amount offset (s 245-65), assessable_income, deductions_reduced and cost_bases_reduced the amounts in s 245-85(1)(a) to (c) and forgone_by_creditor the amount agreed under s 245-90, each in AUD from 0 (default nil); section_245_90_agreement true or false (default false), required true with any forgone_by_creditor: debtor and creditor are companies under common ownership from when the debt was incurred until it was forgiven (s 245-90(1)), the creditor would otherwise have a capital loss or a deduction under s 8-1 or s 25-35 of at least the agreed amount (s 245-90(2) and (3)) and the agreement meets s 245-90(4); debtors the number of entities liable (s 245-77), a whole number from 1 to 100, default 1"),
             ("tax_losses", "list of at most 200 objects {label, amount}: tax losses deductible in the forgiveness income year or later (s 245-115), in the order chosen (s 245-120), AUD from 0"),
             ("net_capital_losses", "list of at most 200 objects {label, amount}: net capital losses of earlier income years (s 245-130(2)), in the order chosen, AUD from 0"),
             ("expenditures", "list of at most 200 objects {label, item, amount}: expenditure in the table in s 245-145 incurred before the forgiveness income year and not covered by s 245-145(2), item its row from 1 to 8, amount the most it may be reduced (the base amount less what was deductible before the year, s 245-155(2), or the undeducted balance, s 245-157), in the order chosen, AUD from 0"),
@@ -8675,7 +8675,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "debt_deductions",
                 Json(r#"[{"label": "Interest", "amount": "5000000.00"}]"#),
             ),
-            ("interest_income", Text("1000000.00")),
+            ("interest_and_equivalent_income", Text("1000000.00")),
             ("taxable_income", Text("0.00")),
             ("division_40_43_deductions", Text("2000000.00")),
             ("excess_tax_ebitda_amount", Text("4000000.00")),

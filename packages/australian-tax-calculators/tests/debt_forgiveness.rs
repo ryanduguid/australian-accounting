@@ -89,6 +89,17 @@ fn d3_other_provisions_and_a_creditors_agreement_come_off() {
     d["deductions_reduced"] = json!("300.00");
     d["cost_bases_reduced"] = json!("200.00");
     d["forgone_by_creditor"] = json!("1500.00");
+    // Without the stated s 245-90 facts nothing may be forgone.
+    assert_eq!(
+        code(&input(json!([d.clone()]))),
+        "debt_forgiveness.forgone_not_eligible"
+    );
+    d["section_245_90_agreement"] = json!(false);
+    assert_eq!(
+        code(&input(json!([d.clone()]))),
+        "debt_forgiveness.forgone_not_eligible"
+    );
+    d["section_245_90_agreement"] = json!(true);
     let r = run(&input(json!([d.clone()])));
     assert_eq!(amount(&r, "gross_forgiven_amount"), "8000.00");
     assert_eq!(amount(&r, "brought_to_account"), "1500.00");
@@ -197,6 +208,8 @@ fn refusals() {
     zero_debtors["debtors"] = json!(0);
     let mut extra = debt("1.00", "0.00");
     extra["creditor"] = json!("Samara");
+    let mut agreement = debt("1.00", "0.00");
+    agreement["section_245_90_agreement"] = json!("yes");
     let mut flagless = debt("1.00", "0.00");
     flagless.as_object_mut().unwrap().remove("excluded");
     for bad in [
@@ -206,6 +219,7 @@ fn refusals() {
         json!([zero_debtors]),
         json!([extra]),
         json!([flagless]),
+        json!([agreement]),
         json!([debt("1.001", "0.00")]),
         json!(["Loan"]),
         json!(vec![debt("1.00", "0.00"); 201]),

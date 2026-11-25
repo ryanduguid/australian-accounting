@@ -36,7 +36,7 @@ fn base(test: &str, deductions: Value) -> Value {
 fn t1() -> Value {
     let mut i = base("fixed_ratio", json!([dd("Interest", "5000000.00")]));
     i["associate_inclusive_debt_deductions"] = json!("5000000.00");
-    i["interest_income"] = json!("1000000.00");
+    i["interest_and_equivalent_income"] = json!("1000000.00");
     i["taxable_income"] = json!("0.00");
     i["division_40_43_deductions"] = json!("2000000.00");
     i["excess_tax_ebitda_amount"] = json!("4000000.00");
@@ -58,7 +58,7 @@ fn column(r: &Value, list: &str, key: &str) -> Vec<String> {
 
 fn group(deductions: Value) -> Value {
     let mut i = base("group_ratio", deductions);
-    i["interest_income"] = json!("500000.00");
+    i["interest_and_equivalent_income"] = json!("500000.00");
     i["taxable_income"] = json!("4000000.00");
     i["division_40_43_deductions"] = json!("1000000.00");
     i["gr_group_net_third_party_interest_expense"] = json!("30000000.00");
@@ -109,7 +109,7 @@ fn the_de_minimis_threshold_a_cent_either_side() {
     );
     i["associate_inclusive_debt_deductions"] = json!("2000000.01");
     assert_eq!(code(&i), "thin_capitalisation.input_missing");
-    i["interest_income"] = json!("0.00");
+    i["interest_and_equivalent_income"] = json!("0.00");
     i["taxable_income"] = json!("1000000.00");
     i["division_40_43_deductions"] = json!("0.00");
     let r = run(&i);
@@ -121,7 +121,7 @@ fn the_de_minimis_threshold_a_cent_either_side() {
 fn t2_earlier_disallowed_amounts_are_deducted_earliest_first() {
     let mut i = base("fixed_ratio", json!([dd("Loan", "3000000.00")]));
     i["year"] = json!("2026-27");
-    i["interest_income"] = json!("0.00");
+    i["interest_and_equivalent_income"] = json!("0.00");
     i["taxable_income"] = json!("10000000.00");
     i["division_40_43_deductions"] = json!("2000000.00");
     i["frt_disallowed_amounts"] = json!([
@@ -154,7 +154,7 @@ fn negative_net_debt_deductions_widen_the_excess() {
     // the excess over net debt deductions is 2,200,000 (s 820-56(1)(b)).
     let mut i = base("fixed_ratio", json!([dd("Loan", "1000000.00")]));
     i["year"] = json!("2024-25");
-    i["interest_income"] = json!("2000000.00");
+    i["interest_and_equivalent_income"] = json!("2000000.00");
     i["taxable_income"] = json!("5000000.00");
     i["division_40_43_deductions"] = json!("0.00");
     i["frt_disallowed_amounts"] =
@@ -169,7 +169,7 @@ fn negative_net_debt_deductions_widen_the_excess() {
 #[test]
 fn a_negative_tax_ebitda_is_nil_and_every_adjustment_line_counts() {
     let mut i = base("fixed_ratio", json!([dd("Loan", "3000000.00")]));
-    i["interest_income"] = json!("0.00");
+    i["interest_and_equivalent_income"] = json!("0.00");
     i["taxable_income"] = json!("-10000000.00");
     i["division_40_43_deductions"] = json!("1000000.00");
     let r = run(&i);
@@ -287,7 +287,7 @@ fn the_third_party_debt_tests_inputs() {
     assert_eq!(code(&i), "thin_capitalisation.input_missing");
     for key in [
         "taxable_income",
-        "interest_income",
+        "interest_and_equivalent_income",
         "division_40_43_deductions",
         "gr_group_net_profit",
         "frt_disallowed_amounts",
@@ -443,7 +443,7 @@ fn entity_classes_and_scope() {
 #[test]
 fn missing_and_malformed_inputs() {
     for key in [
-        "interest_income",
+        "interest_and_equivalent_income",
         "taxable_income",
         "division_40_43_deductions",
     ] {
@@ -469,6 +469,6 @@ fn missing_and_malformed_inputs() {
         );
     }
     let mut i = t1();
-    i["interest_income"] = json!("-1.00");
+    i["interest_and_equivalent_income"] = json!("-1.00");
     assert_eq!(code(&i), "input.amount_invalid");
 }
