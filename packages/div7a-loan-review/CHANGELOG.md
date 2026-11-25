@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `rollforward` anchors: 4 cases of a fabricated $70,000 loan at the 2024-25
+  and 2025-26 benchmark rates, worked by hand from s 109E(7) and the ATO's
+  daily-balance day count (`tests/data/rollforward-anchors.json`). No result
+  changed.
+- A test that a substituted accounting period cannot be entered: the year of
+  income is a label, and its year runs 1 July to 30 June.
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
 ## 1.0.0 (unreleased)
