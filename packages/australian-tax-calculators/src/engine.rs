@@ -6852,6 +6852,7 @@ fn evidence_heading(kind: &str) -> String {
         "pcg_2021_4" => "pcg-20214".into(),
         "esic" => "early-stage-investor-tax-offset".into(),
         "wip_lockup" => "wip-lock-up".into(),
+        "cgt_rollover" => "cgt-roll-overs".into(),
         _ => kind.replace('_', "-"),
     }
 }
