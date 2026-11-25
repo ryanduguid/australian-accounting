@@ -5710,8 +5710,8 @@ aggregates add up to the benefits; see
 [calculation evidence](docs/calculation-evidence.md#fbt-return).
 
 A comparable commercial workbook bundle for 31 March 2026 sells for $1,400
-plus GST, whose product
-page (read on 16 November 2026) says it tracks reportable fringe benefits,
+plus GST; its product page (read on 16 November 2026) says it tracks
+reportable fringe benefits,
 summarises the benefits into a page that feeds the FBT return, shows a payroll
 tax gross-up, summarises employee contributions and links the ATO's employee
 declarations. `fbt-return` covers the return, reportable amounts and

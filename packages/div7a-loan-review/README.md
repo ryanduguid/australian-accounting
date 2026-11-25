@@ -190,8 +190,8 @@ A comparable commercial practice add-on announced on 15 July 2026 includes a
 Division 7A worksheet. This engine has not been compared with that worksheet,
 and nothing here describes how it calculates.
 
-The 2 overlap on Division 7A loan review but do different jobs. A commercial
-practice add-on sits inside a practice's ledger and compliance workflow, with ATO
+The 2 overlap on Division 7A loan review but do different jobs. That add-on
+sits inside a practice's ledger and compliance workflow, with ATO
 pre-population and AI extraction from bank and loan statements. This engine is
 licensed under the [AGPL-3.0-or-later](LICENSE), runs
 offline on a register you supply, shows the statutory trace
