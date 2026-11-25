@@ -168,7 +168,10 @@ complies, a benefit is reportable or that a reviewer should sign anything.
 
 - **Division 7A** (`src/trials/div7a.rs`): 6 conventions are aligned before
   any figure is compared, and the provider's `is_complying` label is recorded
-  and never mapped onto the local engine's verdict.
+  and never mapped onto the local engine's verdict. A case whose
+  `income_year_start_date` is not 1 July of the mapped year of income is
+  refused locally (`LOCAL_REFUSED`) and never sent: the local year runs 1 July
+  to 30 June, and a substituted accounting period is outside its scope.
 - **FBT** (`src/trials/fbt.rs`): one benefit category, the car statutory
   formula. Only the category taxable value crosses into the local aggregate
   worksheet. The single door that carries it refuses a grossed-up figure by its

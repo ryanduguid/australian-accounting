@@ -1,0 +1,40 @@
+{
+  "synthetic": true,
+  "note": "A fabricated $70,000 amalgamated loan with a 7-year term, worked one year at a time under ITAA 1936 s 109E(7). Each figure was worked by hand from the sources below before the engine was run.",
+  "sources": [
+    "ITAA 1936 s 109E(7) (ATO Legal Database, read 26 November 2026): interest 'is payable on the balance of the loan from time to time in a year of income at a rate equal to the benchmark interest rate for the year of income'.",
+    "ITAA 1936 s 109N(2) and the ATO's 'Division 7A - benchmark interest rate' (last updated 1 July 2026, read 26 November 2026): 8.77% for the income year ended 30 June 2025 and 8.37% for the income year ended 30 June 2026.",
+    "ATO, 'Loans by private companies' (last updated 2 July 2026, read 26 November 2026): interest 'is calculated annually in arrears by reference to the daily balance throughout the year', a repayment reducing the balance from its own date (61, 272 and 32 days over 365).",
+    "ATO Division 7A calculator, scripts unchanged on 26 November 2026 from the hashes in docs/ato-calculator-interest-comparison-2026-11-13.md: each period's interest rounded to cents half up."
+  ],
+  "cases": [
+    {
+      "case_id": "2024-25-no-repayments",
+      "input": {"year_of_income": "2024-25", "year_loan_made": "2023-24", "balance_at_start_of_year": "70000.00", "repayments": []},
+      "interest": "6139.00",
+      "amalgamated_loan_unpaid_at_end_of_year": "70000.00",
+      "derivation": "70000.00 x 0.0877 x 365 / 365 = 6139.00: every day from 1 July 2024 to 30 June 2025 counts. Nothing is repaid, so the unpaid interest is not added and 70000.00 stays unpaid."
+    },
+    {
+      "case_id": "2025-26-no-repayments",
+      "input": {"year_of_income": "2025-26", "year_loan_made": "2024-25", "balance_at_start_of_year": "70000.00", "repayments": []},
+      "interest": "5859.00",
+      "amalgamated_loan_unpaid_at_end_of_year": "70000.00",
+      "derivation": "70000.00 x 0.0837 x 365 / 365 = 5859.00, 1 July 2025 to 30 June 2026."
+    },
+    {
+      "case_id": "2024-25-one-repayment",
+      "input": {"year_of_income": "2024-25", "year_loan_made": "2023-24", "balance_at_start_of_year": "70000.00", "repayments": [{"date": "2024-12-31", "amount": "13801.18"}]},
+      "interest": "5535.48",
+      "amalgamated_loan_unpaid_at_end_of_year": "61734.30",
+      "derivation": "70000.00 x 0.0877 x 183 / 365 = 3077.909... -> 3077.91 (1 July to 30 December 2024); 56198.82 x 0.0877 x 182 / 365 = 2457.566... -> 2457.57 (31 December 2024 to 30 June 2025); 5535.48. 13801.18 - 5535.48 = 8265.70 repays the loan, leaving 61734.30. 13801.18 is the year's s 109E(6) minimum yearly repayment."
+    },
+    {
+      "case_id": "2024-25-two-repayments",
+      "input": {"year_of_income": "2024-25", "year_loan_made": "2023-24", "balance_at_start_of_year": "70000.00", "repayments": [{"date": "2024-12-31", "amount": "13801.18"}, {"date": "2025-06-30", "amount": "13801.18"}]},
+      "interest": "5532.16",
+      "amalgamated_loan_unpaid_at_end_of_year": "47929.80",
+      "derivation": "3077.91 (183 days on 70000.00) + 56198.82 x 0.0877 x 181 / 365 = 2444.063... -> 2444.06 + 42397.64 x 0.0877 x 1 / 365 = 10.187... -> 10.19 (30 June 2025); 5532.16. 27602.36 - 5532.16 = 22070.20 repays the loan, leaving 47929.80."
+    }
+  ]
+}
