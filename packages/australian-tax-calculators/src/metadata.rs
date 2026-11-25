@@ -1429,6 +1429,17 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "wip_lockup" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Planning arithmetic the site's pages mirror, with no statutory rate:
+        // the years the other management worksheets take.
+        "break_even" | "cash_forecast" | "hourly_rate" | "fixed_fee" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // The years the ATO's 'Super guarantee' tables 21, 23 and 24 give both
+        // the percentage and the maximum contribution base for (read on
+        // 26 November 2026).
+        "staff_cost" => vec![
+            "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // AASB 136 paras 6, 18 to 20, 30 to 33, 39, 50 to 57, 59 to 62, 104 and
         // 105 were not amended after 2015 (the compilation's tables of
         // amendments, read on 24 November 2026).
@@ -2122,6 +2133,26 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "wip_lockup" => (
             "2026-11-24",
             "Ozzit function reference v3.7.0 (oz.WIPDaysλ, oz.ReceivableDaysλ and oz.CashConversionCycleλ, with their examples), on duguid.com.au; the site's tools/wip-schedule page (construction WIP, no lock-up)",
+        ),
+        "break_even" => (
+            "2026-11-26",
+            "The site's break-even page (tools/business-calculators/break-even), its engine and test vectors, on ryanduguid.github.io main; Business Queensland's break-even and profit page as the page cites it",
+        ),
+        "cash_forecast" => (
+            "2026-11-26",
+            "The site's 13-week cash forecast page (tools/business-calculators/cash), its engine and test vectors, on ryanduguid.github.io main; business.gov.au's cash flow page as the page cites it",
+        ),
+        "hourly_rate" => (
+            "2026-11-26",
+            "The site's hourly pricing page (tools/business-calculators/hourly), its engine and test vectors, on ryanduguid.github.io main; Business Queensland's pricing page as the page cites it",
+        ),
+        "fixed_fee" => (
+            "2026-11-26",
+            "The site's fixed fee page (tools/business-calculators/fixed-fee), its engine and test vectors, on ryanduguid.github.io main; GST Act s 9-70 on the ATO's legal database",
+        ),
+        "staff_cost" => (
+            "2026-11-26",
+            "ATO 'Super guarantee' (QC18123, last updated 17 April 2026), tables 21, 23 and 24; SGAA compilation 78 (1 July 2026), s 17A(2) 'charge percentage'; the site's staff cost page (tools/business-calculators/staff) and its test vectors",
         ),
         "impairment_test" => (
             "2026-11-24",
@@ -3181,6 +3212,34 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "days",
                 "whole number from 1 to 3,660: the days fee_revenue and billings cover, 365 for a year, 90 for a rolling quarter; default 365",
+            ),
+        ],
+        "cash_forecast" => vec![
+            (
+                "delayed_receipt",
+                "object {week, amount, delay_weeks}: part of one week's receipts, already in that week's receipts, moved later by 0 to 13 whole weeks; week 1 to 13, amount in AUD from 0 up to that week's receipts; moved past week 13 it is reported as deferred_beyond_week_13 and leaves the balance",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD: week 1's first day; each week then shows its start_date and end_date, 7 days each",
+            ),
+        ],
+        "staff_cost" => vec![
+            (
+                "super_amount",
+                "AUD from 0: the super paid for the year, as the site's page takes it; give this or super_base, not both",
+            ),
+            (
+                "super_base",
+                "AUD from 0: the year's ordinary time earnings (to 2025-26) or qualifying earnings (2026-27) the super guarantee is worked on, at the year's percentage, capped by the maximum contribution base; give this or super_amount, not both",
+            ),
+            (
+                "payroll_tax_rate",
+                "per cent from 0 to 100, at most 4 dp, default 0: the operator's effective payroll tax rate on wages plus super (payroll-tax works the statutory figure)",
+            ),
+            (
+                "workers_compensation_rate",
+                "per cent from 0 to 100, at most 4 dp, default 0: the operator's effective workers compensation premium rate on wages plus super (workers-compensation-premium works the statutory figure)",
             ),
         ],
         "impairment_test" => vec![
@@ -6814,6 +6873,33 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("receivables", "AUD from 0: trade receivables, the closing balance or the average of opening and closing"),
             ("billings", "AUD above 0: credit sales billed over the days, on the receivables' GST basis (oz.ReceivableDaysλ's Sales)"),
         ],
+        "break_even" => vec![
+            ("fixed_costs", "AUD from 0: fixed costs for the period"),
+            ("price", "AUD from 0: selling price a unit, above variable_cost, on the same GST basis"),
+            ("variable_cost", "AUD from 0: variable cost a unit"),
+        ],
+        "cash_forecast" => vec![
+            ("opening", "AUD, may be negative: the bank balance at the start of week 1"),
+            ("buffer", "AUD from 0: the minimum cash to keep"),
+            ("weeks", "list of 13 objects {receipts, payments}, each in AUD from 0: the bank receipts and payments expected in each week, GST included where the cash includes it"),
+        ],
+        "hourly_rate" => vec![
+            ("annual_costs", "AUD from 0: annual costs to cover, owner remuneration included where it must be covered before profit"),
+            ("target_profit", "AUD from 0: target annual profit"),
+            ("billable_hours", "hours from 0.01 to 8,784, at most 2 dp: annual billable hours"),
+        ],
+        "fixed_fee" => vec![
+            ("hours", "hours from 0.01 to 8,784, at most 2 dp: the estimated hours for the work"),
+            ("rate", "AUD from 0: the hourly rate, or the cost an hour with a margin, before GST"),
+            ("margin_percent", "per cent from 0 to 99.99, at most 2 dp: the margin as a share of the fee; 0 when the rate already includes profit"),
+            ("round_to", "0.01, 10, 50 or 100, as a string: the step the fee rounds up to"),
+            ("add_gst", "boolean: add GST at 10% of the fee"),
+            ("instalments", "whole number from 1 to 24: monthly instalments; the first carries the cents left over"),
+        ],
+        "staff_cost" => vec![
+            ("wages", "AUD from 0: annual wages, paid leave included"),
+            ("other_costs", "AUD from 0: other annual costs (insurance, recruitment, relief staff, equipment), not paid leave already in wages"),
+        ],
         "impairment_test" => vec![
             ("cash_flows", "list of 1 to 50 decimal strings, AUD that may be negative: the stated pre-tax net cash flows of years 1 to n from continuing use, each at the end of its year (AASB 136 paras 33, 39(a) and (b), 50 and 51), excluding financing and tax"),
             ("discount_rate", "decimal fraction above 0 and at most 1 (100%), at most 6 places, limits of this worksheet rather than AASB 136: the stated pre-tax rate (paras 55, 56 and A20)"),
@@ -8555,6 +8641,53 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("fee_revenue", Text("300000.00")),
             ("receivables", Text("60000.00")),
             ("billings", Text("320000.00")),
+        ],
+        // The site's break-even example.
+        "break_even" => vec![
+            ("year", Text("2025-26")),
+            ("fixed_costs", Text("1000.00")),
+            ("price", Text("30.00")),
+            ("variable_cost", Text("18.00")),
+        ],
+        // The site's cash page example: $600.00 of week 13's receipts moved 1 week.
+        "cash_forecast" => vec![
+            ("year", Text("2025-26")),
+            ("opening", Text("-50.00")),
+            ("buffer", Text("100.00")),
+            (
+                "weeks",
+                Json(
+                    r#"[{"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "1000", "payments": "0"}]"#,
+                ),
+            ),
+            (
+                "delayed_receipt",
+                Json(r#"{"week": 13, "amount": "600", "delay_weeks": 1}"#),
+            ),
+        ],
+        // The site's hourly page boundary case: $100 over 3 hours.
+        "hourly_rate" => vec![
+            ("year", Text("2025-26")),
+            ("annual_costs", Text("100.00")),
+            ("target_profit", Text("0")),
+            ("billable_hours", Text("3")),
+        ],
+        // The site's fixed fee example.
+        "fixed_fee" => vec![
+            ("year", Text("2025-26")),
+            ("hours", Text("18.5")),
+            ("rate", Text("95.00")),
+            ("margin_percent", Text("40")),
+            ("round_to", Text("10")),
+            ("add_gst", Flag(true)),
+            ("instalments", Whole(12)),
+        ],
+        // Fabricated: $80,000.00 of wages, all ordinary time earnings.
+        "staff_cost" => vec![
+            ("year", Text("2025-26")),
+            ("wages", Text("80000.00")),
+            ("super_base", Text("80000.00")),
+            ("other_costs", Text("1000.00")),
         ],
         // AASB 136 Illustrative Example 2's Country A unit at the start of 20X2,
         // dated in 2025-26.

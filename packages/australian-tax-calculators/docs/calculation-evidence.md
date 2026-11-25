@@ -6366,6 +6366,58 @@ made-up figures worked independently in Python's `decimal`.
 `tests/deferred_revenue.rs` also covers each year boundary, the performance
 period's limits, whole-month boundaries and every refusal.
 
+## Break-even
+
+Added on 26 November 2026 from the site's break-even page, its engine
+(`assets/business-calculators.mjs`) and vectors on ryanduguid.github.io main,
+read that day. `tests/business_planning.rs` runs every site vector: the
+page's case of $1,000.00 fixed, $30.00 price and $18.00 variable (**84**
+units, **$2,520.00**), its peer case at $25.00 and $15.00 (**100** units,
+**$2,500.00**), a price equal to and below the variable cost (refused) and
+sales of $1e20 (refused). No statute applies.
+
+## Cash forecast
+
+Added on 26 November 2026 from the site's cash page and its vectors, read
+that day. `tests/business_planning.rs` runs both page cases (a receipt moved
+past week 13: closing **$350.00**, lowest **-$50.00**, gap **$150.00**,
+deferred **$600.00**; moved into week 13: closing **$950.00**, deferred nil),
+the engine tests' 7 further cases and refusals, and the tool test's week
+dates from 6 July 2026.
+
+## Hourly rate
+
+Added on 26 November 2026, with `fixed-fee`, from the site's hourly and fixed
+fee pages and their vectors, read that day. `tests/business_planning.rs` runs
+all 6 hourly vectors ($20.15 over 2 hours is **$10.08**; $100 over 3 is
+**$33.34**) and the fixed fee cases: 18.5 hours at $95 with a 40% margin up
+to $10 is **$2,930.00**, GST **$293.00**, 12 instalments of **$268.58** after
+**$268.62**; the 2 rounding-step edges, the 45% margin, the $1,000,000,000.00
+edge either side and the 63 instalment combinations. GST is 10% of the value
+of a taxable supply (GST Act s 9-70, read on the ATO's legal database on
+26 November 2026). The site's money fields also take '$' and grouped digits
+('80,000') and refuse '1e3'; these commands take the crate's decimal strings,
+so those are input formats, not calculations, and are not mirrored.
+
+## Fixed fee
+
+See [Hourly rate](#hourly-rate).
+
+## Staff cost
+
+Added on 26 November 2026. The site's 3 staff cost vectors (annual
+**$51.30**, monthly **$4.28**; **$90,600.00** and **$7,550.00**;
+**$93,600.00** and **$7,800.00**) pass with `super_amount`. The super
+guarantee percentages (table 21: 10, 10.5, 11, 11.5 and 12 for 2021-22 to
+2025-26, 12 from 1 July 2026), quarterly maximum contribution bases (table 24:
+$58,920, $60,220, $62,270, $65,070 and $62,500) and the 2026-27 annual base
+(table 23: $270,830) are from the ATO's 'Super guarantee' page (QC18123, last
+updated 17 April 2026), read on 26 November 2026; SGAA compilation 78 (1 July
+2026) defines the charge percentage as 12 (s 17A(2)). Synthetic cases:
+$300,000 of 2026-27 qualifying earnings gives **$32,499.60**; $80,000 in
+2025-26 with 5.45% payroll tax and 1.5% workers compensation on $89,600 gives
+**$4,883.20** and **$1,344.00**, annual **$96,827.20**.
+
 ## WIP lock-up
 
 Added on 24 November 2026. The site's `tools/wip-schedule` page, read that day

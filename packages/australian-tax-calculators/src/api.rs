@@ -1575,6 +1575,58 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "break-even",
+        &[
+            ("fixed_costs", Dec),
+            ("price", Dec),
+            ("variable_cost", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "cash-forecast",
+        &[
+            ("opening", Dec),
+            ("buffer", Dec),
+            ("weeks", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "hourly-rate",
+        &[
+            ("annual_costs", Dec),
+            ("target_profit", Dec),
+            ("billable_hours", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "fixed-fee",
+        &[
+            ("hours", Dec),
+            ("rate", Dec),
+            ("margin_percent", Dec),
+            ("round_to", Raw),
+            ("add_gst", Raw),
+            ("instalments", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "staff-cost",
+        &[
+            ("wages", Dec),
+            ("other_costs", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "impairment-test",
         &[
             ("cash_flows", Json),
@@ -1771,7 +1823,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 98] = [
+const DERIVED: [&str; 102] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1870,6 +1922,10 @@ const DERIVED: [&str; 98] = [
     "foreign-pension-upp",
     "super-crystallisation",
     "residential-vacancy-fee",
+    "break-even",
+    "hourly-rate",
+    "fixed-fee",
+    "staff-cost",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -2373,6 +2429,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "leave-provisions"
             | "deferred-revenue"
             | "wip-lockup"
+            | "break-even"
+            | "cash-forecast"
+            | "hourly-rate"
+            | "fixed-fee"
+            | "staff-cost"
             | "impairment-test"
             | "long-service-leave"
             | "foreign-income-conversion"
@@ -4382,6 +4443,65 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 days: days.as_ref(),
                 year: &a[5],
                 scope_confirmed: &a[6],
+            })
+        }
+        "break-even" => engine::break_even(&engine::BreakEvenArgs {
+            fixed_costs: &a[0],
+            price: &a[1],
+            variable_cost: &a[2],
+            year: &a[3],
+            scope_confirmed: &a[4],
+        }),
+        "cash-forecast" => {
+            // Optional: one receipt moved later, and week 1's first day.
+            let delayed = optional(v, "delayed_receipt", Json)?;
+            let start = optional(v, "start_date", Raw)?;
+            engine::cash_forecast(&engine::CashForecastArgs {
+                opening: &a[0],
+                buffer: &a[1],
+                weeks: &a[2],
+                delayed_receipt: delayed.as_ref(),
+                start_date: start.as_ref(),
+                year: &a[3],
+                scope_confirmed: &a[4],
+            })
+        }
+        "hourly-rate" => engine::hourly_rate(&engine::HourlyRateArgs {
+            annual_costs: &a[0],
+            target_profit: &a[1],
+            billable_hours: &a[2],
+            year: &a[3],
+            scope_confirmed: &a[4],
+        }),
+        "fixed-fee" => engine::fixed_fee(&engine::FixedFeeArgs {
+            hours: &a[0],
+            rate: &a[1],
+            margin_percent: &a[2],
+            round_to: &a[3],
+            add_gst: &a[4],
+            instalments: &a[5],
+            year: &a[6],
+            scope_confirmed: &a[7],
+        }),
+        "staff-cost" => {
+            // Optional: the super paid or its base, and the stated on-cost rates.
+            let [paid, base, payroll, workers] = [
+                "super_amount",
+                "super_base",
+                "payroll_tax_rate",
+                "workers_compensation_rate",
+            ]
+            .map(|key| optional(v, key, Dec));
+            let (paid, base, payroll, workers) = (paid?, base?, payroll?, workers?);
+            engine::staff_cost(&engine::StaffCostArgs {
+                wages: &a[0],
+                other_costs: &a[1],
+                super_amount: paid.as_ref(),
+                super_base: base.as_ref(),
+                payroll_tax_rate: payroll.as_ref(),
+                workers_compensation_rate: workers.as_ref(),
+                year: &a[2],
+                scope_confirmed: &a[3],
             })
         }
         "impairment-test" => {

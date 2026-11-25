@@ -6626,8 +6626,16 @@ mod super_crystallisation;
 pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation};
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
+mod break_even;
+pub use break_even::{BreakEvenArgs, break_even};
+mod cash_forecast;
+pub use cash_forecast::{CashForecastArgs, cash_forecast};
+mod pricing;
+pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
+mod staff_cost;
+pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 148] = [
+const KINDS: [&str; 153] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6776,6 +6784,11 @@ const KINDS: [&str; 148] = [
     "super_crystallisation",
     "endorsement_review",
     "first_home_owner_grant",
+    "break_even",
+    "cash_forecast",
+    "hourly_rate",
+    "fixed_fee",
+    "staff_cost",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.

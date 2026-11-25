@@ -1,5 +1,23 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost`
+  mirror the site's break-even, 13-week cash, hourly, fixed fee and staff
+  cost calculators and agree with every one of their vectors;
+  `staff-cost` can also work the super guarantee from a stated base at the
+  ATO's percentage and maximum contribution base for 2021-22 to 2026-27, and
+  add payroll tax and workers compensation at stated rates. New codes:
+  `break_even.no_contribution`, `break_even.sales_out_of_range`,
+  `cash_forecast.delay_above_receipts`,
+  `cash_forecast.delayed_receipt_invalid`, `cash_forecast.weeks_invalid`,
+  `pricing.fee_out_of_range`, `pricing.hours_invalid`,
+  `pricing.margin_invalid`, `pricing.round_to_invalid`,
+  `staff_cost.base_above_quarterly_cap`, `staff_cost.rate_invalid` and
+  `staff_cost.super_basis_invalid`.
+
 ## 1.4.0
 
 ### Added
