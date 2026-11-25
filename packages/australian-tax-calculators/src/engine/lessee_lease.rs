@@ -227,10 +227,9 @@ fn terms(a: &LesseeLeaseArgs, year: &str) -> Result<Terms> {
         direct: cents(a.initial_direct_costs)?,
         restoration: cents(a.restoration)?,
         ownership,
-        option: match a.purchase_option {
-            Some(v) => flag(v, "purchase_option")?,
-            None => false,
-        },
+        option: a
+            .purchase_option
+            .map_or(Ok(false), |v| flag(v, "purchase_option"))?,
         life: life(a.useful_life_months, ownership)?,
     })
 }
