@@ -6,7 +6,7 @@ Generate the supplied contract evidence in the `the-wip-tally` component of `aus
 cargo run --locked --example job_to_cash -- --output path/to/new-job-pack
 ```
 
-Then, from the `au-fpa-pack` repository:
+Then, from the `OzFPA` repository:
 
 ```powershell
 uv run --locked --extra dev python examples/job-to-cash/project_cash.py --pack path/to/new-job-pack
