@@ -43,7 +43,8 @@ fn htb() -> Value {
 #[test]
 fn help_to_buy_follows_the_s_25_example() {
     // s 25(3) example: 30% of a $500,000 price, valued at $475,000 for
-    // settlement, lifts the share to 31.58%, still worth $150,000.
+    // settlement, may be lifted to 31.58%, still worth $150,000; the increase
+    // is Housing Australia's to make, so the agreed share stays beside it.
     let out = run(
         "help-to-buy",
         &with(
@@ -52,7 +53,8 @@ fn help_to_buy_follows_the_s_25_example() {
         ),
     );
     assert_eq!(out["amounts"]["contribution"], "150000.00");
-    assert_eq!(out["share_percentage_at_settlement"], "31.58");
+    assert_eq!(out["share_percentage_if_increased"], "31.58");
+    assert_eq!(out["share_percentage"], "30");
     // s 16(2): 20% of $475,000 less the $10,000 deposit.
     assert_eq!(out["amounts"]["minimum_contribution"], "85000.00");
     assert_eq!(out["eligible"], true);
@@ -64,7 +66,8 @@ fn help_to_buy_tests_each_limit() {
     assert_eq!(out["amounts"]["contribution"], "210000.00");
     assert_eq!(out["amounts"]["price_cap"], "950000.00");
     assert_eq!(out["amounts"]["minimum_deposit"], "14000.00");
-    assert_eq!(out["share_percentage_at_settlement"], "30");
+    assert_eq!(out["share_percentage"], "30");
+    assert_eq!(out["share_percentage_if_increased"], Value::Null);
     assert_eq!(out["eligible"], true);
     let failed =
         |changes: Value| run("help-to-buy", &with(htb(), changes))["conditions_not_met"].clone();
@@ -170,6 +173,7 @@ fn help_to_buy_refuses_what_it_cannot_work() {
 fn review() -> Value {
     json!({"applicants": "single", "taxable_income": "110000", "previous_taxable_income": "104000",
            "share_percentage": "30", "property_value": "800000.00", "capacity_to_repay": true,
+           "repayment_triggers_lmi": false,
            "year": "2026-27", "scope_confirmed": true})
 }
 
@@ -200,6 +204,28 @@ fn help_to_buy_review_requires_the_s_37_repayment() {
         &with(review(), json!({"capacity_to_repay": false})),
     );
     assert_eq!(none["amounts"]["required_repayment"], "0.00");
+    // Not required where it would bring lenders' mortgage insurance (s 37(7)
+    // and (10)), for the 5% and the whole share alike.
+    let lmi = run(
+        "help-to-buy-review",
+        &with(review(), json!({"repayment_triggers_lmi": true})),
+    );
+    assert_eq!(lmi["amounts"]["required_repayment"], "0.00");
+    assert_eq!(lmi["amounts"]["minimum_voluntary_repayment"], "40000.00");
+    assert!(
+        lmi["outcome"]
+            .as_str()
+            .unwrap()
+            .contains("s 37(7) and (10)")
+    );
+    let lmi_small = with(
+        review(),
+        json!({"repayment_triggers_lmi": true, "share_percentage": "4"}),
+    );
+    assert_eq!(
+        run("help-to-buy-review", &lmi_small)["amounts"]["required_repayment"],
+        "0.00"
+    );
     // Rounded to the nearest $1,000: 5% of $812,345 is $40,617.25.
     let rounded = run(
         "help-to-buy-review",
@@ -239,6 +265,10 @@ fn help_to_buy_review_refuses_what_it_cannot_work() {
     );
     assert_eq!(
         refused(json!({"capacity_to_repay": "yes"})),
+        "input.flag_invalid"
+    );
+    assert_eq!(
+        refused(json!({"repayment_triggers_lmi": null})),
         "input.flag_invalid"
     );
     assert_eq!(
@@ -438,6 +468,20 @@ fn age_pension_deems_financial_assets() {
 }
 
 #[test]
+fn age_pension_deems_a_couples_combined_assets() {
+    // $110,600 at 1.75% and $89,400 at 3.75%: $5,288 a year, $203.385 a
+    // fortnight for the couple; with $300 ordinary income,
+    // ($503.385 - $396) x 0.25 = $26.846 each.
+    let out = run(
+        "age-pension",
+        &pension("couple", true, "300.00", "200000.00", "200000.00"),
+    );
+    assert_eq!(out["amounts"]["deemed_income"], "203.38");
+    assert_eq!(out["amounts"]["income_reduction"], "26.85");
+    assert_eq!(out["amounts"]["rate"], "906.15");
+}
+
+#[test]
 fn age_pension_uses_each_periods_amounts() {
     let on = |date: &str, year: &str, assets: &str| {
         with(
@@ -577,6 +621,8 @@ fn ftb_part_a_refuses_what_it_cannot_work() {
     let refused = |input: Value| code("ftb-part-a", &input);
     assert_eq!(refused(ftb(0, 0, "0.00")), "ftb_part_a.children_invalid");
     assert_eq!(refused(ftb(21, 0, "0.00")), "ftb_part_a.children_invalid");
+    assert_eq!(refused(ftb(20, 1, "0.00")), "ftb_part_a.children_invalid");
+    assert_ne!(part_a(&ftb(10, 10, "0.00")), "0.00");
     assert_eq!(
         refused(with(ftb(1, 0, "0.00"), json!({"children_13_plus": "1"}))),
         "ftb_part_a.children_invalid"

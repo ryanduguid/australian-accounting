@@ -17,7 +17,7 @@
 use serde_json::{Value, json};
 
 use super::stated;
-use super::{Arg, Result, int, money, refuse, result, scope, whole_dollars};
+use super::{Arg, Result, flag, int, money, refuse, result, scope, whole_dollars};
 use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 
@@ -129,6 +129,7 @@ pub struct HelpToBuyReviewArgs<'a> {
     pub share_percentage: &'a Arg,
     pub property_value: &'a Arg,
     pub capacity_to_repay: &'a Arg,
+    pub repayment_triggers_lmi: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
@@ -222,31 +223,15 @@ fn facts(given: &Arg) -> Result<()> {
             "facts must be an object of booleans.",
         );
     };
-    let keys: Vec<&str> = FACTS.iter().map(|(k, _)| *k).collect();
-    stated::known_keys(fields, "facts", "facts", &keys)?;
-    let mut missing = Vec::new();
-    for (key, text) in FACTS {
-        match fields.get(key) {
-            Some(Value::Bool(true)) => {}
-            None | Some(Value::Bool(false)) => missing.push(text),
-            Some(_) => {
-                return refuse(
-                    "input.flag_invalid",
-                    format!("facts: {key} must be a boolean."),
-                );
-            }
-        }
-    }
-    if missing.is_empty() {
-        return Ok(());
-    }
-    refuse(
-        "help_to_buy.facts_not_stated",
-        format!(
-            "Not computed: the arrangement needs every eligibility fact stated; not stated: {}.",
-            missing.join("; ")
+    match stated::unstated(fields, &FACTS, FACTS.len())? {
+        None => Ok(()),
+        Some(missing) => refuse(
+            "help_to_buy.facts_not_stated",
+            format!(
+                "Not computed: the arrangement needs every eligibility fact stated; not stated: {missing}."
+            ),
         ),
-    )
+    }
 }
 
 /// A percentage of `of`, in cents.
@@ -319,6 +304,18 @@ pub(super) fn set_conditions(out: &mut Value, tests: &[Test]) {
     );
 }
 
+/// The Commonwealth's contribution: `agreed` percent of `price` (s 16).
+fn contribution(price: &Decimal, agreed: &Decimal, deposit: &Decimal) -> Result<Decimal> {
+    let contribution = part(price, agreed)?;
+    if deposit.add(&contribution)?.gt(price)? {
+        return refuse(
+            "help_to_buy.deposit_exceeds_price",
+            "deposit and the Commonwealth's contribution together cannot be more than purchase_price.",
+        );
+    }
+    Ok(contribution)
+}
+
 pub fn help_to_buy(args: &HelpToBuyArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let (code, name, cap) = *area(args.area)?;
@@ -331,13 +328,7 @@ pub fn help_to_buy(args: &HelpToBuyArgs) -> Result<Value> {
     let income = dollars(args.taxable_income, "taxable_income", true)?;
     let date = application_date(args.application_date, &year)?;
     facts(args.facts)?;
-    let contribution = part(&price, &agreed)?;
-    if deposit.add(&contribution)?.gt(&price)? {
-        return refuse(
-            "help_to_buy.deposit_exceeds_price",
-            "deposit and the Commonwealth's contribution together cannot be more than purchase_price.",
-        );
-    }
+    let contribution = contribution(&price, &agreed, &deposit)?;
     let worked = entry(
         Entry {
             price: &price,
@@ -367,7 +358,8 @@ pub fn help_to_buy(args: &HelpToBuyArgs) -> Result<Value> {
     out["property"] = json!(if new_home { "new" } else { "existing" });
     out["applicants"] = json!(who);
     out["application_date"] = json!(date);
-    out["share_percentage_at_settlement"] = json!(worked.share.to_string());
+    out["share_percentage"] = json!(agreed.to_string());
+    out["share_percentage_if_increased"] = json!(worked.increased.map(|p| p.to_string()));
     set_conditions(&mut out, &tests);
     Ok(out)
 }
@@ -386,7 +378,7 @@ struct Worked {
     deposit_ok: bool,
     minimum: Decimal,
     min_deposit: Decimal,
-    share: Decimal,
+    increased: Option<Decimal>,
 }
 
 /// Sections 16, 17(f)(i) and 25(3) item 1 on the stated amounts.
@@ -398,15 +390,17 @@ fn entry(e: Entry, new_home: bool) -> Result<Worked> {
     let lmi_free = !e.contribution.lt(&minimum)?;
     let min_deposit = part(e.price, &int(2))?;
     let deposit_ok = !e.deposit.lt(&min_deposit)?;
-    // s 25(3) item 1: a valuation below the price lifts the share so that
-    // it is worth the contribution on the settlement date.
-    let share = if e.valuation.lt(e.price)? {
-        e.contribution
-            .mul(&int(100))?
-            .div(e.valuation)?
-            .quantize(-2, Rounding::HalfUp)?
+    // s 25(3) item 1: with a valuation below the price, Housing Australia
+    // may increase the share to one worth the contribution at settlement.
+    let increased = if e.valuation.lt(e.price)? {
+        Some(
+            e.contribution
+                .mul(&int(100))?
+                .div(e.valuation)?
+                .quantize(-2, Rounding::HalfUp)?,
+        )
     } else {
-        e.agreed.clone()
+        None
     };
     Ok(Worked {
         within,
@@ -414,7 +408,7 @@ fn entry(e: Entry, new_home: bool) -> Result<Worked> {
         deposit_ok,
         minimum,
         min_deposit,
-        share,
+        increased,
     })
 }
 
@@ -466,10 +460,8 @@ pub fn help_to_buy_review(args: &HelpToBuyReviewArgs) -> Result<Value> {
     let earlier = review_income(args.previous_taxable_income, "previous_taxable_income")?;
     let share = review_share(args.share_percentage)?;
     let value = review_value(args.property_value)?;
-    let capacity = match args.capacity_to_repay {
-        Arg::Bool(b) => *b,
-        _ => return refuse("input.flag_invalid", "capacity_to_repay must be a boolean."),
-    };
+    let capacity = flag(args.capacity_to_repay, "capacity_to_repay")?;
+    let lmi = flag(args.repayment_triggers_lmi, "repayment_triggers_lmi")?;
     let start: i64 = year[..4].parse().unwrap_or_default();
     let before = format!("{}-{:02}", start - 1, start % 100);
     let limits = [threshold(&year, joint), threshold(&before, joint)];
@@ -482,7 +474,7 @@ pub fn help_to_buy_review(args: &HelpToBuyReviewArgs) -> Result<Value> {
     } else {
         share_value.clone()
     };
-    let required = if exceeded && capacity {
+    let required = if exceeded && capacity && !lmi {
         minimum.clone()
     } else {
         int(0)
@@ -501,12 +493,15 @@ pub fn help_to_buy_review(args: &HelpToBuyReviewArgs) -> Result<Value> {
     )?;
     out["applicants"] = json!(who);
     out["income_exceeded_both_years"] = json!(exceeded);
-    out["outcome"] = json!(outcome(exceeded, capacity, over_five));
+    out["outcome"] = json!(outcome(exceeded, capacity && !lmi, over_five, lmi));
     Ok(out)
 }
 
-fn outcome(exceeded: bool, capacity: bool, over_five: bool) -> &'static str {
-    match (exceeded, capacity, over_five) {
+fn outcome(exceeded: bool, required: bool, over_five: bool, lmi: bool) -> &'static str {
+    match (exceeded, required, over_five) {
+        (true, false, _) if lmi => {
+            "Income exceeded the threshold in both years (ss 34 and 36(1)), but repaying would make the participant bear lenders' mortgage insurance: Housing Australia must not require the repayment, though it may allow it (s 37(7) and (10))."
+        }
         (false, _, _) => {
             "Taxable income did not exceed the threshold in both income years (s 34): the review requires no repayment for income."
         }

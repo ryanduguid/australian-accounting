@@ -48,68 +48,74 @@ const COUPLE_FACTS: [(&str, &str); 1] = [(
     "the partner also receives age pension and the couple are not illness separated, in respite care or apart because the partner is imprisoned",
 )];
 
-/// One period's annual amounts: `[single, partnered each]`, the income free
-/// area `[single, couple combined]` and the assets value limits
-/// `[single, couple combined]` for a homeowner then a non-homeowner.
+/// One day's annual amounts: MBR and pension supplement `[single, partnered
+/// each]`, the deeming rates `[below, above the threshold]`, the income free
+/// area and deeming threshold `[single, couple combined]` and the assets value
+/// limits `[single, couple combined]` for a homeowner then a non-homeowner.
 struct Period {
-    from: &'static str,
-    to: &'static str,
-    year: &'static str,
     mbr: [&'static str; 2],
     supplement: [&'static str; 2],
+    deeming: [&'static str; 2],
     free_area: [&'static str; 2],
     limits: [[&'static str; 2]; 2],
-    deeming: [&'static str; 2],
     thresholds: [&'static str; 2],
 }
 
 const ENERGY: [&str; 2] = ["366.60", "275.60"];
 
-const PERIODS: [Period; 4] = [
-    Period {
-        from: "2025-09-20",
-        to: "2026-03-19",
-        year: "2025-26",
-        mbr: ["28072.20", "21161.40"],
-        supplement: ["2207.40", "1664.00"],
-        free_area: ["5668", "9880"],
-        limits: [["321500", "481500"], ["579500", "739500"]],
-        deeming: ["0.0075", "0.0275"],
-        thresholds: ["64200", "106200"],
-    },
-    Period {
-        from: "2026-03-20",
-        to: "2026-06-30",
-        year: "2025-26",
-        mbr: ["28607.80", "21564.40"],
-        supplement: ["2249.00", "1695.20"],
-        free_area: ["5668", "9880"],
-        limits: [["321500", "481500"], ["579500", "739500"]],
-        deeming: ["0.0125", "0.0325"],
-        thresholds: ["64200", "106200"],
-    },
-    Period {
-        from: "2026-07-01",
-        to: "2026-09-19",
-        year: "2026-27",
-        mbr: ["28607.80", "21564.40"],
-        supplement: ["2249.00", "1695.20"],
-        free_area: ["5876", "10296"],
-        limits: [["333000", "499000"], ["600000", "766000"]],
-        deeming: ["0.0125", "0.0325"],
-        thresholds: ["66800", "110600"],
-    },
-    Period {
-        from: "2026-09-20",
-        to: "2027-03-19",
-        year: "2026-27",
-        mbr: ["29520.40", "22253.40"],
-        supplement: ["2293.20", "1729.00"],
-        free_area: ["5876", "10296"],
-        limits: [["333000", "499000"], ["600000", "766000"]],
-        deeming: ["0.0175", "0.0375"],
-        thresholds: ["66800", "110600"],
-    },
+/// The amounts indexed on 20 March and 20 September (SS Guide 5.1.8.10 and
+/// 4.4.1.10), each from its date to the next, the last to [`UNTIL`]: (from,
+/// MBR, pension supplement, deeming rates).
+type Indexed = (
+    &'static str,
+    [&'static str; 2],
+    [&'static str; 2],
+    [&'static str; 2],
+);
+const RATES: [Indexed; 3] = [
+    (
+        "2025-09-20",
+        ["28072.20", "21161.40"],
+        ["2207.40", "1664.00"],
+        ["0.0075", "0.0275"],
+    ),
+    (
+        "2026-03-20",
+        ["28607.80", "21564.40"],
+        ["2249.00", "1695.20"],
+        ["0.0125", "0.0325"],
+    ),
+    (
+        "2026-09-20",
+        ["29520.40", "22253.40"],
+        ["2293.20", "1729.00"],
+        ["0.0175", "0.0375"],
+    ),
+];
+const UNTIL: &str = "2027-03-19";
+
+/// The amounts indexed on 1 July (SS Guide 4.10.3, 4.4.1.10 and 5.2.2.10):
+/// (financial year, income free area, assets value limits, deeming
+/// thresholds).
+type Yearly = (
+    &'static str,
+    [&'static str; 2],
+    [[&'static str; 2]; 2],
+    [&'static str; 2],
+);
+const YEARS: [Yearly; 2] = [
+    (
+        "2025-26",
+        ["5668", "9880"],
+        [["321500", "481500"], ["579500", "739500"]],
+        ["64200", "106200"],
+    ),
+    (
+        "2026-27",
+        ["5876", "10296"],
+        [["333000", "499000"], ["600000", "766000"]],
+        ["66800", "110600"],
+    ),
 ];
 
 /// The facts as the command passes them; see the README for each.
@@ -129,22 +135,36 @@ fn d(text: &str) -> Decimal {
     super::d(text)
 }
 
-fn period(given: &Arg, year: &str) -> Result<&'static Period> {
-    let found = given
-        .text()
-        .filter(|t| dates::parse(t).is_some())
-        .and_then(|t| PERIODS.iter().find(|p| p.from <= t && t <= p.to));
-    match found {
-        Some(p) if p.year == year => Ok(p),
-        Some(_) => refuse(
-            "age_pension.date_invalid",
-            format!("date must be a YYYY-MM-DD day in {year}."),
-        ),
-        None => refuse(
+fn period(given: &Arg, year: &str) -> Result<Period> {
+    let date = given.text().filter(|t| dates::parse(t).is_some());
+    let Some((t, r)) = date
+        .filter(|t| RATES[0].0 <= *t && *t <= UNTIL)
+        .and_then(|t| Some((t, RATES.iter().rev().find(|r| r.0 <= t)?)))
+    else {
+        return refuse(
             "age_pension.date_uncovered",
             "Not computed: date must be a YYYY-MM-DD day from 20 September 2025 to 19 March 2027, the days the indexed rates were read for.",
-        ),
-    }
+        );
+    };
+    let start: i64 = year[..4].parse().unwrap_or_default();
+    let (first, last) = (format!("{start}-07-01"), format!("{}-06-30", start + 1));
+    let Some(y) = YEARS
+        .iter()
+        .find(|y| y.0 == year && first.as_str() <= t && t <= last.as_str())
+    else {
+        return refuse(
+            "age_pension.date_invalid",
+            format!("date must be a YYYY-MM-DD day in {year}."),
+        );
+    };
+    Ok(Period {
+        mbr: r.1,
+        supplement: r.2,
+        deeming: r.3,
+        free_area: y.1,
+        limits: y.2,
+        thresholds: y.3,
+    })
 }
 
 fn couple(given: &Arg) -> Result<bool> {
@@ -158,6 +178,10 @@ fn couple(given: &Arg) -> Result<bool> {
     }
 }
 
+fn all_facts() -> Vec<(&'static str, &'static str)> {
+    FACTS.iter().chain(&COUPLE_FACTS).copied().collect()
+}
+
 fn facts(given: &Arg, couple: bool) -> Result<()> {
     let Arg::Json(Value::Object(fields)) = given else {
         return refuse(
@@ -165,33 +189,15 @@ fn facts(given: &Arg, couple: bool) -> Result<()> {
             "facts must be an object of booleans.",
         );
     };
-    let all: Vec<(&str, &str)> = FACTS.iter().chain(&COUPLE_FACTS).copied().collect();
-    let keys: Vec<&str> = all.iter().map(|(k, _)| *k).collect();
-    stated::known_keys(fields, "facts", "facts", &keys)?;
-    let needed = FACTS.iter().chain(COUPLE_FACTS.iter().filter(|_| couple));
-    let mut missing = Vec::new();
-    for (key, text) in needed {
-        match fields.get(*key) {
-            Some(Value::Bool(true)) => {}
-            None | Some(Value::Bool(false)) => missing.push(*text),
-            Some(_) => {
-                return refuse(
-                    "input.flag_invalid",
-                    format!("facts: {key} must be a boolean."),
-                );
-            }
-        }
-    }
-    if missing.is_empty() {
-        return Ok(());
-    }
-    refuse(
-        "age_pension.facts_not_stated",
-        format!(
-            "Not computed: the worksheet covers only the stated case; not stated: {}.",
-            missing.join("; ")
+    match stated::unstated(fields, &all_facts(), FACTS.len() + usize::from(couple))? {
+        None => Ok(()),
+        Some(missing) => refuse(
+            "age_pension.facts_not_stated",
+            format!(
+                "Not computed: the worksheet covers only the stated case; not stated: {missing}."
+            ),
         ),
-    )
+    }
 }
 
 pub fn age_pension(args: &AgePensionArgs) -> Result<Value> {

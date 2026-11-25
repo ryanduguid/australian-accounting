@@ -6672,6 +6672,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("share_percentage", "percentage above 0 and at most 100, at most 2 decimal places: the Commonwealth share percentage now (s 25)"),
             ("property_value", "AUD above 0: the property's value Housing Australia accepts now (s 58)"),
             ("capacity_to_repay", "boolean: the participating lender assessed the participant able to repay 5% of the value, or the whole share where it is 5% or less (s 37(2))"),
+            ("repayment_triggers_lmi", "boolean: repaying the required amount would make the participant bear the cost of lenders' mortgage insurance (s 37(7) and (10))"),
         ],
         "home_guarantee" => vec![
             ("stream", "first_home or family_home: the First Home Guarantee (s 29I) or the Family Home Guarantee (s 29IB)"),
@@ -8342,6 +8343,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("share_percentage", Text("30")),
             ("property_value", Text("800000.00")),
             ("capacity_to_repay", Flag(true)),
+            ("repayment_triggers_lmi", Flag(false)),
         ],
         // Fabricated: a first home buyer in Brisbane with a 5% deposit.
         "home_guarantee" => vec![

@@ -39,6 +39,32 @@ pub(super) fn amount(fields: &Map<String, Value>, item: &str, key: &str) -> Resu
     }
 }
 
+/// The texts of the first `needed` of `facts` that `fields` does not state
+/// true, joined, or `None` when each is; refuses a key outside `facts` or a
+/// value that is not a boolean.
+pub(super) fn unstated(
+    fields: &Map<String, Value>,
+    facts: &[(&str, &'static str)],
+    needed: usize,
+) -> Result<Option<String>> {
+    let keys: Vec<&str> = facts.iter().map(|(k, _)| *k).collect();
+    known_keys(fields, "facts", "facts", &keys)?;
+    let mut missing = Vec::new();
+    for (key, text) in &facts[..needed] {
+        match fields.get(*key) {
+            Some(Value::Bool(true)) => {}
+            None | Some(Value::Bool(false)) => missing.push(*text),
+            Some(_) => {
+                return refuse(
+                    "input.flag_invalid",
+                    format!("facts: {key} must be a boolean."),
+                );
+            }
+        }
+    }
+    Ok((!missing.is_empty()).then(|| missing.join("; ")))
+}
+
 /// Refuses a key of `fields` outside `allowed`, `what` naming the object.
 pub(super) fn known_keys(
     fields: &Map<String, Value>,

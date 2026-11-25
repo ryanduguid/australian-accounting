@@ -105,31 +105,15 @@ fn facts(given: &Arg) -> Result<()> {
             "facts must be an object of booleans.",
         );
     };
-    let keys: Vec<&str> = FACTS.iter().map(|(k, _)| *k).collect();
-    stated::known_keys(fields, "facts", "facts", &keys)?;
-    let mut missing = Vec::new();
-    for (key, text) in FACTS {
-        match fields.get(key) {
-            Some(Value::Bool(true)) => {}
-            None | Some(Value::Bool(false)) => missing.push(text),
-            Some(_) => {
-                return refuse(
-                    "input.flag_invalid",
-                    format!("facts: {key} must be a boolean."),
-                );
-            }
-        }
-    }
-    if missing.is_empty() {
-        return Ok(());
-    }
-    refuse(
-        "ftb_part_a.facts_not_stated",
-        format!(
-            "Not computed: the worksheet covers only the stated case; not stated: {}.",
-            missing.join("; ")
+    match stated::unstated(fields, &FACTS, FACTS.len())? {
+        None => Ok(()),
+        Some(missing) => refuse(
+            "ftb_part_a.facts_not_stated",
+            format!(
+                "Not computed: the worksheet covers only the stated case; not stated: {missing}."
+            ),
         ),
-    )
+    }
 }
 
 struct Rates {
@@ -170,7 +154,7 @@ pub fn ftb_part_a(args: &FtbPartAArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let young = count(args.children_under_13, "children_under_13")?;
     let older = count(args.children_13_plus, "children_13_plus")?;
-    if young + older == 0 {
+    if young + older == 0 || young + older > 20 {
         return refuse(
             "ftb_part_a.children_invalid",
             "Not computed: a family with no FTB child has a Part A rate only for rent assistance (Method 3, clause 28A).",

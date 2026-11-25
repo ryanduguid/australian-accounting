@@ -185,6 +185,11 @@ fn cap(given: &Arg, date: &str) -> Result<(&'static str, &'static str, i64)> {
     }
 }
 
+fn needed(family: bool) -> Vec<(&'static str, &'static str)> {
+    let own: &[(&str, &str)] = if family { &FAMILY_FACTS } else { &FIRST_FACTS };
+    own.iter().chain(&LOAN_FACTS).copied().collect()
+}
+
 fn facts(given: &Arg, family: bool) -> Result<()> {
     let Arg::Json(Value::Object(fields)) = given else {
         return refuse(
@@ -192,33 +197,15 @@ fn facts(given: &Arg, family: bool) -> Result<()> {
             "facts must be an object of booleans.",
         );
     };
-    let own: &[(&str, &str)] = if family { &FAMILY_FACTS } else { &FIRST_FACTS };
-    let needed: Vec<(&str, &str)> = own.iter().chain(&LOAN_FACTS).copied().collect();
-    let keys: Vec<&str> = needed.iter().map(|(k, _)| *k).collect();
-    stated::known_keys(fields, "facts", "facts", &keys)?;
-    let mut missing = Vec::new();
-    for (key, text) in needed {
-        match fields.get(key) {
-            Some(Value::Bool(true)) => {}
-            None | Some(Value::Bool(false)) => missing.push(text),
-            Some(_) => {
-                return refuse(
-                    "input.flag_invalid",
-                    format!("facts: {key} must be a boolean."),
-                );
-            }
-        }
-    }
-    if missing.is_empty() {
-        return Ok(());
-    }
-    refuse(
-        "home_guarantee.facts_not_stated",
-        format!(
-            "Not computed: the guarantee needs every eligibility fact stated; not stated: {}.",
-            missing.join("; ")
+    match stated::unstated(fields, &needed(family), needed(family).len())? {
+        None => Ok(()),
+        Some(missing) => refuse(
+            "home_guarantee.facts_not_stated",
+            format!(
+                "Not computed: the guarantee needs every eligibility fact stated; not stated: {missing}."
+            ),
         ),
-    )
+    }
 }
 
 /// The loan-to-value ratio as a percentage, unrounded, and whether it is in

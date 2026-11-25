@@ -241,7 +241,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `minors-income` | `taxable_income`, `residency`, `under_18_on_30_june`, `excepted_person`, `excepted_income`, `trust_shares`, `other_assessable_income`, `deductions_exclusive`, `deductions_related`, `apportionable_deductions`, `special_income_component`, `year`, `scope_confirmed`; `full_time_occupation` or `dependent_on_relatives` for some grounds; see [Minors income](#minors-income) |
 | `first-home-owner-grant` | `jurisdiction`, `contract_date`, `home`, `total_value`, `facts`, `year`, `scope_confirmed`; in Western Australia, `north_of_26th`; in Queensland and Western Australia, optionally `cap_value`; for a home built, optionally `contract_price`; see [First home owner grant](#first-home-owner-grant) |
 | `help-to-buy` | `area`, `property`, `purchase_price`, `agreed_percentage`, `deposit`, `lender_valuation`, `applicants`, `taxable_income`, `application_date`, `facts`, `year`, `scope_confirmed`; see [Help to Buy](#help-to-buy) |
-| `help-to-buy-review` | `applicants`, `taxable_income`, `previous_taxable_income`, `share_percentage`, `property_value`, `capacity_to_repay`, `year`, `scope_confirmed`; see [Help to Buy](#help-to-buy) |
+| `help-to-buy-review` | `applicants`, `taxable_income`, `previous_taxable_income`, `share_percentage`, `property_value`, `capacity_to_repay`, `repayment_triggers_lmi`, `year`, `scope_confirmed`; see [Help to Buy](#help-to-buy) |
 | `home-guarantee` | `stream`, `area`, `issue_date`, `property_value`, `loan_amount`, `borrowers`, `facts`, `year`, `scope_confirmed`; see [Home Guarantee Scheme](#home-guarantee-scheme) |
 | `age-pension` | `date`, `relationship`, `homeowner`, `ordinary_income`, `financial_assets`, `assets`, `facts`, `year`, `scope_confirmed`; see [Age pension](#age-pension) |
 | `ftb-part-a` | `children_under_13`, `children_13_plus`, `adjusted_taxable_income`, `income_support`, `energy_supplement`, `facts`, `year`, `scope_confirmed`; see [Family tax benefit Part A](#family-tax-benefit-part-a) |
@@ -4419,9 +4419,11 @@ of at least 2% (s 17(f)(i)) and the income test (s 19), returning `eligible`,
 `single`, `single_parent` or `joint`; the money is whole dollars. The income
 threshold is $100,000 ($160,000 for a single parent or joint applicants) to
 2025-26 and Housing Australia's indexed $103,000 ($165,000) for 2026-27, by
-the financial year of `application_date`. A valuation below the price lifts
-the Commonwealth's share so that it is worth the contribution at settlement
-(s 25(3) item 1), returned as `share_percentage_at_settlement`.
+the financial year of `application_date`. With a valuation below the price, the
+Commonwealth's share may be increased so that it is worth the contribution at
+settlement (s 25(3) item 1): `share_percentage_if_increased` gives that
+percentage, which Housing Australia may adopt, and `share_percentage` the
+agreed one.
 
 `facts` must state every eligibility fact true: `citizen`,
 `financial_capacity` (Housing Australia's belief under s 20),
@@ -4436,7 +4438,9 @@ income above the threshold for both `taxable_income`, the review year, and
 requires: the Commonwealth's share of `property_value` if it is no more than
 5% of that value, otherwise 5% of the value rounded to the nearest $1,000
 (s 37(5)(e) and s 43(1)(a)), and nothing where the lender finds no capacity to
-repay (`capacity_to_repay` false, s 37(6)). It refuses 5% exactly midway
+repay (`capacity_to_repay` false, s 37(6)) or where repaying would make the
+participant bear lenders' mortgage insurance (`repayment_triggers_lmi` true,
+s 37(7) and (10)). It refuses 5% exactly midway
 between multiples of $1,000, which the Directions do not settle. See
 [calculation evidence](docs/calculation-evidence.md#government-schemes).
 
@@ -4493,7 +4497,7 @@ income of $80,000 or less, the energy supplement where `energy_supplement` is
 true, and a pension or benefit recipient (`income_support`) gets the maximum
 rate. `facts` must state `whole_year`, `no_maintenance`,
 `no_rent_assistance`, `no_newborn_or_multiple_birth` and `requirements_met`.
-It refuses a family with no child or more than 20. `derive` explains each
+It refuses a family with no child or more than 20 in all. `derive` explains each
 step. See
 [calculation evidence](docs/calculation-evidence.md#government-schemes).
 
