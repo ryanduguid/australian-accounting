@@ -413,15 +413,15 @@ fn the_best_salary_keeps_no_less_than_the_others() {
         ("2026-27", "900000", false, "50000"),
     ];
     for (year, profit, base, other) in facts {
-        for salary in ["0", "5000", "20000"] {
-            let facts = json!({"year": year, "profit": profit, "base_rate_entity": base, "salary": salary,
+        for paid in ["0", "5000", "20000"] {
+            let facts = json!({"year": year, "profit": profit, "base_rate_entity": base, "salary": paid,
                 "other_taxable_income": other});
             let r = run("salary-dividend", &owner(), facts.clone()).unwrap();
             let get = |k: &str| amount(&r, k).parse::<f64>().unwrap();
             for kept in ["all_salary_kept", "all_dividends_kept", "kept"] {
                 assert!(
                     get("best_kept") >= get(kept) - 0.005,
-                    "{year} {profit} {salary} {kept}"
+                    "{year} {profit} {paid} {kept}"
                 );
             }
             let mut best = facts;

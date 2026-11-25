@@ -341,7 +341,7 @@ fn law(year: String, base_rate: bool, other: &Decimal) -> Result<Law> {
     })
 }
 
-pub fn salary_dividend(args: &SalaryDividendArgs) -> Result<Value> {
+pub fn owner_pay_split(args: &SalaryDividendArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let base_rate = flag(args.base_rate_entity, "base_rate_entity")?;
     let profit = money(args.profit)?;

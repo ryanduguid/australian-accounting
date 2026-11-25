@@ -4104,7 +4104,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
-        "salary-dividend" => engine::salary_dividend(&engine::SalaryDividendArgs {
+        "salary-dividend" => engine::owner_pay_split(&engine::SalaryDividendArgs {
             profit: &a[0],
             base_rate_entity: &a[1],
             salary: &a[2],
@@ -4127,7 +4127,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[11],
             scope_confirmed: &a[12],
         }),
-        "salary-packaging" => engine::salary_packaging(&engine::SalaryPackagingArgs {
+        "salary-packaging" => engine::exempt_employer_package(&engine::SalaryPackagingArgs {
             residency: &a[0],
             employer: &a[1],
             salary: &a[2],
