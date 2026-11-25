@@ -397,5 +397,4 @@ compliance conclusion.
 
 Ryan Duguid, 31 August 2026. Written independently, in his own time, on his
 own equipment. Provisional member of Chartered Accountants Australia and New
-Zealand; that membership is not an endorsement of this software or this review
-by CA ANZ.
+Zealand.

@@ -186,16 +186,12 @@ $X', and neither should anything built on it.
 
 ## Next to a commercial Division 7A worksheet
 
-Xero said on 15 July 2026 that Xero Workpapers Plus, an optional paid add-on
-for Australian practices, includes a Division 7A worksheet, with early access
-from August 2026 for a small group of practices and wider access through the
-end of 2026
-([Xero blog](https://blog.xero.com/product-updates/xero-workpapers-updates-2026/)).
-This engine has not been compared with that worksheet, and nothing here
-describes how it calculates.
+A comparable commercial practice add-on announced on 15 July 2026 includes a
+Division 7A worksheet. This engine has not been compared with that worksheet,
+and nothing here describes how it calculates.
 
-The 2 overlap on Division 7A loan review but do different jobs. Workpapers
-Plus sits inside a practice's ledger and compliance workflow, with ATO
+The 2 overlap on Division 7A loan review but do different jobs. That add-on
+sits inside a practice's ledger and compliance workflow, with ATO
 pre-population and AI extraction from bank and loan statements. This engine is
 licensed under the [AGPL-3.0-or-later](LICENSE), runs
 offline on a register you supply, shows the statutory trace
@@ -746,8 +742,7 @@ Its native build in this repository links this crate and is not released yet.
 ## Author and licence
 
 Ryan Duguid. Written independently, in his own time, on his own equipment.
-Provisional member of Chartered Accountants Australia and New Zealand; that
-membership is not an endorsement of this software by CA ANZ.
+Provisional member of Chartered Accountants Australia and New Zealand.
 
 Ryan Duguid's code is licensed under [AGPL-3.0-or-later](LICENSE) with [section 7(b) attribution terms](NOTICE). If you redistribute this work or build on it, keep the copyright notices in [NOTICE](NOTICE).
 

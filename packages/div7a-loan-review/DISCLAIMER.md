@@ -9,9 +9,8 @@ and using it creates no professional relationship.
 **Its outputs are not a Division 7A determination and not an ATO assessment.**
 
 The author is a provisional member of Chartered Accountants Australia and New
-Zealand. That membership is not an endorsement of this software by CA ANZ.
-This work was written independently, in the author's own time, on the author's
-own equipment.
+Zealand. This work was written independently, in the author's own time, on the
+author's own equipment.
 
 ## Division 7A outputs are experimental
 

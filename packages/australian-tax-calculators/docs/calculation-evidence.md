@@ -7044,12 +7044,10 @@ reviewed 30 June 2025) deducts a $250 donation in 2024-25 to 'the Arthritis
 Foundation' under s 30-15; by name the check gives only candidates, and with
 the receipt's ABN it reads the entity as endorsed on the date.
 
-No rival read on 16 November 2026 (00:25 to 00:26) offers a DGR check:
-Nagaris's `llms.txt` and skills page, LodgeiT's `llms.txt` and calculators
-page, `au-compliance-kit` at e94cef24 and `william-laverty/ato-mcp` at
-d3d84941. ABN Lookup itself shows each ABN's DGR status and history, and its
-keyed web services, which need a registered GUID, would add both; this
-command uses only the open bulk data.
+No rival read on 16 November 2026 (00:25 to 00:26) offers a DGR check. ABN
+Lookup itself shows each ABN's DGR status and history, and its keyed web
+services, which need a registered GUID, would add both; this command uses only
+the open bulk data.
 ## aml-cdd-review
 
 Read on 24 November 2026:

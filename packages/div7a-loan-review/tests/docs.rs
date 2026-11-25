@@ -236,7 +236,6 @@ fn the_house_files_cover_the_required_ground() {
         "experimental review aid",
         "Do not publish private tax records",
         "using it creates no professional relationship",
-        "not an endorsement of this software by CA ANZ",
         "Outputs can be wrong, incomplete, stale, or unsuitable",
     ] {
         assert_in(phrase, &disclaimer, "DISCLAIMER");
@@ -244,7 +243,6 @@ fn the_house_files_cover_the_required_ground() {
     let readme = flat(README);
     for phrase in [
         "Provisional member of Chartered Accountants Australia and New Zealand",
-        "not an endorsement of this software by CA ANZ",
         "own time, on his own equipment",
         "keep the copyright notices in [NOTICE](NOTICE)",
     ] {
@@ -345,7 +343,6 @@ fn the_source_reviews_record_what_was_read() {
         "public companies",
         "AustLII",
         "respected rather than circumvented",
-        "not an endorsement of this software or this review by CA ANZ",
     ] {
         assert_in(phrase, &review, "the source review");
     }
