@@ -3231,7 +3231,7 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "super_base",
-                "AUD from 0: the year's ordinary time earnings (to 2025-26) or qualifying earnings (2026-27) the super guarantee is worked on, at the year's percentage, capped by the maximum contribution base; give this or super_amount, not both",
+                "AUD from 0: the year's ordinary time earnings (to 2025-26) or qualifying earnings (2026-27) the super guarantee is worked on, at the year's percentage; to 2025-26 at most one quarter's maximum contribution base, in 2026-27 capped at the annual base; give this or super_amount, not both",
             ),
             (
                 "payroll_tax_rate",
@@ -8684,7 +8684,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // Fabricated: $80,000.00 of wages, all ordinary time earnings.
         "staff_cost" => vec![
-            ("year", Text("2025-26")),
+            ("year", Text("2026-27")),
             ("wages", Text("80000.00")),
             ("super_base", Text("80000.00")),
             ("other_costs", Text("1000.00")),

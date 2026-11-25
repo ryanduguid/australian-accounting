@@ -5269,8 +5269,9 @@ monthly_average      = cents(annual_cost / 12)
 11%, 11.5%, then 12% from 2025-26 (SGAA s 17A(2) from 1 July 2026). For
 2026-27 the cap is the annual maximum contribution base, $270,830, on
 qualifying earnings. Before 2026-27 each quarter's ordinary time earnings are
-capped alone, so a base above 4 quarters' maximum contribution base is
-refused: give `super_amount`. The payroll tax and workers compensation rates
+capped alone, and an annual base cannot show how the quarters split it, so a
+base above one quarter's maximum contribution base is refused: give
+`super_amount`. The payroll tax and workers compensation rates
 are the operator's effective rates; `payroll-tax` and
 `workers-compensation-premium` work the statutory figures. See
 [calculation evidence](docs/calculation-evidence.md#staff-cost).

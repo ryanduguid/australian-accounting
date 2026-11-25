@@ -568,7 +568,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "staff_cost",
-        "One staff member's annual cost and monthly average in an income year from 2021-22 to 2026-27: wages plus super plus payroll tax plus workers compensation plus other annual costs, the month a twelfth rounded half up, as the site's staff cost page works it. Super is the stated amount or, from a stated base, the super guarantee at the year's percentage (10% in 2021-22 rising to 12% from 2025-26), rounded half up to the cent, on ordinary time earnings capped at 4 quarters' maximum contribution base to 2025-26 or on qualifying earnings capped at the annual maximum contribution base ($270,830) in 2026-27 (ATO 'Super guarantee' tables 21, 23 and 24; SGAA s 17A(2)). Payroll tax and workers compensation are the operator's stated effective rates on wages plus super, rounded half up to the cent. The operator establishes the base, that the super guarantee applies and the rates. Excludes Norfolk Island's transitional percentage, salary sacrifice arrangements, award pay, leave loading and the statutory payroll tax and premium calculations (payroll-tax, workers-compensation-premium). Refuses both or neither of super_amount and super_base, and a base above 4 quarters' maximum contribution base before 2026-27.",
+        "One staff member's annual cost and monthly average in an income year from 2021-22 to 2026-27: wages plus super plus payroll tax plus workers compensation plus other annual costs, the month a twelfth rounded half up, as the site's staff cost page works it. Super is the stated amount or, from a stated base, the super guarantee at the year's percentage (10% in 2021-22 rising to 12% from 2025-26), rounded half up to the cent, on ordinary time earnings no higher than one quarter's maximum contribution base to 2025-26 or on qualifying earnings capped at the annual maximum contribution base ($270,830) in 2026-27 (ATO 'Super guarantee' tables 21, 23 and 24; SGAA s 17A(2)). Payroll tax and workers compensation are the operator's stated effective rates on wages plus super, rounded half up to the cent. The operator establishes the base, that the super guarantee applies and the rates. Excludes Norfolk Island's transitional percentage, salary sacrifice arrangements, award pay, leave loading and the statutory payroll tax and premium calculations (payroll-tax, workers-compensation-premium). Refuses both or neither of super_amount and super_base, and, before 2026-27, a base above one quarter's maximum contribution base, since the quarters' split decides the cap.",
     ),
     (
         "impairment_test",
@@ -2824,7 +2824,6 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
         "staff_cost",
         &[
-            "Before 2026-27 each quarter's ordinary time earnings are capped alone: a base under 4 quarters' maximum contribution base can still cross it in one quarter, which lowers the super guarantee below the figure shown; give super_amount when earnings are uneven.",
             "Payroll tax and workers compensation are the operator's stated effective rates; each jurisdiction and scheme sets its own taxable wages, thresholds, exemptions and premium rules.",
         ],
     ),
@@ -6318,7 +6317,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "staff_cost.base_above_quarterly_cap",
-        "Before 2026-27, a super_base above 4 quarters' maximum contribution base: each quarter is capped alone, so super_amount must be given.",
+        "Before 2026-27, a super_base above one quarter's maximum contribution base: each quarter is capped alone, so super_amount must be given.",
     ),
     (
         "staff_cost.rate_invalid",

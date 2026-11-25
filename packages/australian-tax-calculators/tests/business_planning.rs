@@ -242,22 +242,29 @@ fn staff_cost_works_the_super_guarantee_and_stated_on_costs() {
         );
         amount(&out, "superannuation").to_string()
     };
-    // ATO table 21's percentages; 4 quarters of table 24's base before 2026-27.
+    // ATO table 21's percentages; before 2026-27 a base up to one quarter's
+    // maximum contribution base (table 24).
     assert_eq!(sg("10000", "2021-22"), "1000.00");
     assert_eq!(sg("10000", "2022-23"), "1050.00");
     assert_eq!(sg("10000", "2023-24"), "1100.00");
     assert_eq!(sg("10000.10", "2024-25"), "1150.01");
-    assert_eq!(sg("250000", "2025-26"), "30000.00");
+    assert_eq!(sg("62500", "2025-26"), "7500.00");
     // Table 23: the 2026-27 annual base of $270,830 caps qualifying earnings.
     assert_eq!(sg("270830", "2026-27"), "32499.60");
     assert_eq!(sg("300000", "2026-27"), "32499.60");
-    let above = with(staff("1", "0", "2025-26"), "super_base", "250000.01");
-    assert_eq!(
-        code("staff-cost", &above),
-        "staff_cost.base_above_quarterly_cap"
-    );
+    // $200,000.00 earned as $100,000.00 in each of 2 quarters owes $15,000.00,
+    // not 12% of the whole: the split decides it, so an annual base above one
+    // quarter's cap is refused.
+    for base in ["62500.01", "200000", "250000"] {
+        let above = with(staff("1", "0", "2025-26"), "super_base", base);
+        assert_eq!(
+            code("staff-cost", &above),
+            "staff_cost.base_above_quarterly_cap",
+            "{base}"
+        );
+    }
     // Stated rates on wages plus super: $89,600 at 5.45% and 1.5%.
-    let mut input = with(staff("80000", "1000", "2025-26"), "super_base", "80000");
+    let mut input = with(staff("80000", "1000", "2026-27"), "super_base", "80000");
     input = with(
         with(input, "payroll_tax_rate", "5.45"),
         "workers_compensation_rate",

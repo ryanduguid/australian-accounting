@@ -6415,8 +6415,12 @@ $58,920, $60,220, $62,270, $65,070 and $62,500) and the 2026-27 annual base
 updated 17 April 2026), read on 26 November 2026; SGAA compilation 78 (1 July
 2026) defines the charge percentage as 12 (s 17A(2)). Synthetic cases:
 $300,000 of 2026-27 qualifying earnings gives **$32,499.60**; $80,000 in
-2025-26 with 5.45% payroll tax and 1.5% workers compensation on $89,600 gives
-**$4,883.20** and **$1,344.00**, annual **$96,827.20**.
+2026-27 with 5.45% payroll tax and 1.5% workers compensation on $89,600 gives
+**$4,883.20** and **$1,344.00**, annual **$96,827.20**. Before 2026-27
+the cap is quarterly, so an annual base is taken only up to one quarter's
+base: $62,500.00 in 2025-26 gives **$7,500.00**, and $62,500.01 is refused,
+as is $200,000.00, which earned as $100,000.00 in each of 2 quarters would
+owe $15,000.00, not 12% of the whole.
 
 ## WIP lock-up
 

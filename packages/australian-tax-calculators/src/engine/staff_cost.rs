@@ -21,7 +21,7 @@ use crate::decimal::{Decimal, Rounding};
 const KIND: &str = "staff_cost";
 const PAGE: &str = "The site's staff cost page: annual cost = wages + super + other annual costs; monthly average = annual cost / 12, half up";
 const SG_2026: &str = "SGAA s 17A(2) (charge percentage 12, from 1 July 2026) and ATO 'Super guarantee' table 23: the annual maximum contribution base caps qualifying earnings";
-const SG_QUARTERLY: &str = "ATO 'Super guarantee' tables 21 and 24: the year's super guarantee percentage on ordinary time earnings, each quarter's capped by the quarterly maximum contribution base";
+const SG_QUARTERLY: &str = "ATO 'Super guarantee' tables 21 and 24: the year's super guarantee percentage on ordinary time earnings, a base no higher than one quarter's maximum contribution base, so no quarter can pass it";
 const STATED: &str = "The operator's stated rate on wages plus super; the scheme sets its own base, threshold and exemptions";
 
 /// (year, super guarantee percentage, maximum contribution base, annual).
@@ -108,12 +108,13 @@ fn guarantee(base: &Decimal, year: &str, rates: &mut Vec<(String, String)>) -> R
         ));
     }
     rates.push(rate("quarterly_contribution_base", &cap));
-    if base.gt(&cap.mul(&d("4"))?)? {
+    // An annual base above one quarter's cap may have crossed it in a quarter,
+    // which the annual figure cannot show.
+    if base.gt(&cap)? {
         return refuse(
             "staff_cost.base_above_quarterly_cap",
             format!(
-                "super_base is above 4 quarters' maximum contribution base ({}) for {year}: each quarter is capped alone, so give super_amount instead.",
-                cap.mul(&d("4"))?
+                "super_base is above the quarterly maximum contribution base ({cap}) for {year}: each quarter is capped alone, so give super_amount instead."
             ),
         );
     }
