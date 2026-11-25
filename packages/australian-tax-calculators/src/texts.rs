@@ -5741,10 +5741,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "objection_deadline.fact_invalid",
-        "A decision, date, s 170(1) item, original notice or holiday list is missing, invalid or not for this decision.",
-    ),
-    (
-        "An amended assessment under s 14ZW(1BA) had been amended before; which notice (1BA)(c) counts from is not settled.",
+        "A decision, date, s 170(1) item, earlier notice or holiday list is missing, invalid or not for this decision.",
     ),
     (
         "payg.extra_pays_not_weekly_or_fortnightly",
