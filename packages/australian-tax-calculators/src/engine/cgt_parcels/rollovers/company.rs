@@ -188,6 +188,13 @@ pub(super) fn work(f: &mut Fields, year: &str) -> Result<Outcome> {
     extra.insert("shares_acquired".into(), json!(dates::format(day)));
     extra.insert("company_authority".into(), json!(COMPANY_SIDE));
     extra.insert("assets".into(), rows);
+    extra.insert("warnings".into(), warnings(&all));
+    Ok((amounts, extra))
+}
+
+/// The warnings the stated assets call for.
+fn warnings(all: &[Asset]) -> Value {
+    let indexed = dates::parse(INDEXATION_LAST_DAY).expect("a date");
     let mut warnings = vec![json!(SHARES_DISCOUNT)];
     if all.iter().any(|a| a.precluded) {
         warnings.push(json!(PRECLUDED));
@@ -195,12 +202,8 @@ pub(super) fn work(f: &mut Fields, year: &str) -> Result<Outcome> {
     if all.iter().any(|a| a.proceeds.is_some()) {
         warnings.push(json!(PROCEEDS));
     }
-    if all
-        .iter()
-        .any(|a| a.acquired <= dates::parse(INDEXATION_LAST_DAY).expect("a date"))
-    {
+    if all.iter().any(|a| a.acquired <= indexed) {
         warnings.push(json!(INDEXED));
     }
-    extra.insert("warnings".into(), Value::Array(warnings));
-    Ok((amounts, extra))
+    Value::Array(warnings)
 }
