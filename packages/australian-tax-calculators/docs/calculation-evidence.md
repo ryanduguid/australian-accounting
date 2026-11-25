@@ -5711,6 +5711,38 @@ typed from the rules above.
 | Vic built, $900,000 total, contract $750,000 and $750,001 | Vic Act ss 13(1A), 13(7)(b), 18(1A) | $10,000; nil |
 | NSW built, contract $9,999 | Revenue NSW (Act unread) | refused |
 
+## Government schemes
+
+Added on 26 November 2026, when these were read:
+
+- Help to Buy: the Help to Buy Act 2024 (C2024A00124, compilation 1) and the
+  Help to Buy Program Directions 2025 (F2025L00682, as made, in force from
+  14 June 2025, no amendments), ss 7, 8, 9, 16, 17, 19, 21, 25, 34, 37 and
+  43; Housing Australia's 'Help to Buy income and threshold updates 2026-27'.
+  `tests/gov_schemes.rs` reproduces the s 25(3) example (30% of $500,000
+  valued at $475,000: 31.58%).
+- Home Guarantee Scheme: the Housing Australia Investment Mandate Direction
+  2018 (F2018L00994), compilation of 7 February 2026 (the text from 1 October
+  2025) and the latest compilation, and the amending instrument F2026L00542
+  (the caps and Northern Territory split from 1 July 2026), ss 29C, 29D, 29F,
+  44 and 46.
+- Age pension: the Social Security Act 1991 (C2004A04121, compilation 234),
+  ss 1064, 1076 and 1082; the Social Security Guide 4.4.1.10, 4.10.3,
+  5.1.8.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's assets test
+  page. The tests meet Services Australia's cut-off points from 20 September
+  2026 (assets $745,750 single and $1,121,000 a couple, homeowners; income
+  $2,701.40 and $4,128.00 a fortnight) to the cent.
+- Family tax benefit Part A: A New Tax System (Family Assistance) Act 1999
+  (C2004A00490, compilation 124 of 1 July 2026), Schedule 1; the Department
+  of Social Services' rates list for 1 July 2026; Services Australia's
+  'A guide to Australian Government payments' for 20 September to 31 December
+  2026. The tests meet its income limits for 7 mixes of children.
+
+The Department of Social Services' Family Assistance Guide was not read (a
+challenge page), so the Act and the published rates stand alone. The
+remaining figures in the tests are made up and worked by hand from the
+provisions.
+
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read

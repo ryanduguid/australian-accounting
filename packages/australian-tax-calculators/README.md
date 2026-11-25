@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-148 calculation worksheets for established facts; the sections below document
+153 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -240,6 +240,11 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `non-commercial-losses` | `activity`, `assessable_income`, `deductions`, `brought_forward`, `part_year`, `earlier_years`, `real_property_value`, `other_assets_value`, `taxable_income`, `business_losses`, `assessable_fhss_released_amount`, `reportable_fringe_benefits`, `reportable_super_contributions`, `total_net_investment_loss`, `net_exempt_income`, `year`, `scope_confirmed`; `assessable_income_estimate` for a part year and `other_income` for an excepted activity; see [Non-commercial losses](#non-commercial-losses) |
 | `minors-income` | `taxable_income`, `residency`, `under_18_on_30_june`, `excepted_person`, `excepted_income`, `trust_shares`, `other_assessable_income`, `deductions_exclusive`, `deductions_related`, `apportionable_deductions`, `special_income_component`, `year`, `scope_confirmed`; `full_time_occupation` or `dependent_on_relatives` for some grounds; see [Minors income](#minors-income) |
 | `first-home-owner-grant` | `jurisdiction`, `contract_date`, `home`, `total_value`, `facts`, `year`, `scope_confirmed`; in Western Australia, `north_of_26th`; in Queensland and Western Australia, optionally `cap_value`; for a home built, optionally `contract_price`; see [First home owner grant](#first-home-owner-grant) |
+| `help-to-buy` | `area`, `property`, `purchase_price`, `agreed_percentage`, `deposit`, `lender_valuation`, `applicants`, `taxable_income`, `application_date`, `facts`, `year`, `scope_confirmed`; see [Help to Buy](#help-to-buy) |
+| `help-to-buy-review` | `applicants`, `taxable_income`, `previous_taxable_income`, `share_percentage`, `property_value`, `capacity_to_repay`, `year`, `scope_confirmed`; see [Help to Buy](#help-to-buy) |
+| `home-guarantee` | `stream`, `area`, `issue_date`, `property_value`, `loan_amount`, `borrowers`, `facts`, `year`, `scope_confirmed`; see [Home Guarantee Scheme](#home-guarantee-scheme) |
+| `age-pension` | `date`, `relationship`, `homeowner`, `ordinary_income`, `financial_assets`, `assets`, `facts`, `year`, `scope_confirmed`; see [Age pension](#age-pension) |
+| `ftb-part-a` | `children_under_13`, `children_13_plus`, `adjusted_taxable_income`, `income_support`, `energy_supplement`, `facts`, `year`, `scope_confirmed`; see [Family tax benefit Part A](#family-tax-benefit-part-a) |
 | `psi-test` | `earner`, `mainly_personal_efforts`, `determination_in_force`, `payers`, `agent`, `principal_work_by_others`, `apprentice`, `premises`, `year`, `scope_confirmed`; `commission` and `principal_payments` for an agent; see [PSI test](#psi-test) |
 | `payg-instalment` | `method`, `year`, `scope_confirmed`; then `notified_amount` for `amount`; `instalment_number`, `estimated_tax`, `earlier_instalments` and `credits_entitled` for `varied_amount`; `instalment_income` and `instalment_rate` for `rate`; `instalment_income`, `previous_rate`, `estimated_tax`, `estimated_instalment_income`, `earlier_instalments`, `credits_claimed` and `earlier_instalment_income` for `varied_rate`; see [PAYG instalments](#payg-instalments) |
 | `pcg-2021-4` | `gateway_1`, `gateway_2`, `factor_3`, `year`, `scope_confirmed`; `recipients`, or `entitlement`, `returned` and `tax`; with `factor_3`, `benchmark` (and `remuneration` beside the totals) unless the IPP returns all of it; see [PCG 2021/4](#pcg-20214) |
@@ -288,9 +293,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `charity-check` | `abns`, a list of 1 to 10,000 ABNs, and `as_at`, the check date; see [Charity check](#charity-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), for a full-year resident `medicare-levy` and `medicare-levy-surcharge`, and for a part-year resident before 2027-28 `part_year_residency_months`, `eligible_pensioner` and `medicare-levy`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `deferred-tax`, `leave-provisions`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `rd-tax-offset`, `esic`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `smsf-tax`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `etp-tax-free-component`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `cgt-cost-base-adjustments`, `foreign-income-tax-offset`, `fbt-instalment`, `vic-property-taxes`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `deferred-tax`, `leave-provisions`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `rd-tax-offset`, `esic`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `smsf-tax`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `etp-tax-free-component`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `cgt-cost-base-adjustments`, `foreign-income-tax-offset`, `fbt-instalment`, `vic-property-taxes`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, `age-pension`, `ftb-part-a`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `help-to-buy`, `help-to-buy-review`, `home-guarantee`, `age-pension`, `ftb-part-a`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -507,6 +512,10 @@ DI2026-157).
 | PAYG instalments | 2025-26 and 2026-27; one quarterly instalment of a payer of 4 a year, by the T7 amount, a varied amount, T1 x T2 or a varied rate; no monthly, 2-a-year or annual instalments, multi-rate trustee or consolidated group; no GDP adjustment, GIC on a low variation or due date |
 | Minors income | 2024-25 to 2026-27; one individual's own return, full-year resident or prescribed non-resident; established excepted person facts, excepted income and trust share parts; basic income tax, no special income component or offsets |
 | PSI test | 2020-21 to 2026-27; one individual's PSI with the operator's answers to each test; no s 87-40 for an agent on 75% or more commission; a determination not decided |
+| Help to Buy | Applications dated 1 July 2025 to 26 November 2026 and reviews in 2025-26 and 2026-27; one arrangement for an existing dwelling or new home, with Housing Australia's judgements, the lender's valuation and the eligibility facts stated; no s 18 exception decided, no events other than the 5-yearly review |
+| Home Guarantee Scheme | Guarantees issued 1 October 2025 to 26 November 2026; First Home Guarantee and Family Home Guarantee only; the area, lender and borrower eligibility stated; no place count, lender's credit decision or Regional First Home Buyer or New Home Guarantee |
+| Age pension | Each day from 20 September 2025 to 19 March 2027; Pension Rate Calculator A for a single person or both members of a pensioner couple, not blind, no transitional rate, no rent assistance, no work bonus, income stream or gifting rules applied to the stated figures |
+| Family tax benefit Part A | 2025-26 and 2026-27; a whole year's rate for a family with every child in its full care, no maintenance, rent assistance, newborn supplement or multiple birth allowance, and the immunisation and health check requirements met |
 | HELP indexation | 2019-20 to 2025-26 (1 June 2020 to 1 June 2026); one person's HELP debt under HESA Division 140 at the ATO's published factor, with the 2025 20% reduction; no location-preferred debtor, other study loans or processing time |
 | PCG 2021/4 | 2020-21 (the guideline's examples) and 2022-23 to 2026-27; an arrangement the operator says passes both gateways; the scorer's stated totals, or up to 6 resident adult individuals and companies with the tax paragraph 85 counts; no offsets, super, FBT, trusts or non-residents |
 | Notice period | Notice given from 27 March 2021 to 30 June 2027; one national system employee's minimum notice of termination under Fair Work Act 2009 s 117; s 123 exclusions, days not counted and the full rate of pay as stated; employees aged 45 in completed years refused; awards, agreements and contracts not covered |
@@ -4392,6 +4401,101 @@ value, tested in place of `total_value` (Qld s 5(8), WA s 14AC(3)). A home
 bought for $20,000 and valued at $100,000 in Queensland gets $20,000.
 The tests hold it to the site page's 26 cases; see
 [calculation evidence](docs/calculation-evidence.md#first-home-owner-grant).
+
+## Help to Buy
+
+`help-to-buy` tests an application under the Help to Buy Program Directions
+2025 (made under the Help to Buy Act 2024) and gives the Commonwealth's
+contribution: `agreed_percentage` of `purchase_price`. It checks the area's
+price cap (s 7 and s 21(b)), the percentage limits (5% to 30% for an existing
+dwelling, 5% to 40% for a new home, s 16(1)), that the contribution and
+`deposit` together are at least 20% of `lender_valuation` (s 16(2)), a deposit
+of at least 2% (s 17(f)(i)) and the income test (s 19), returning `eligible`,
+`conditions` and `conditions_not_met`. `area` is one of the 16 s 7 items
+(`nsw_capital_regional`, `nsw_other`, `vic_capital_regional`, `vic_other`,
+`qld_capital_regional`, `qld_other`, `wa_capital`, `wa_other`, `sa_capital`,
+`sa_other`, `tas_capital`, `tas_other`, `act`, `nt`, `jervis_bay_norfolk`,
+`christmas_cocos`); `property` is `existing` or `new`; `applicants` is
+`single`, `single_parent` or `joint`; the money is whole dollars. The income
+threshold is $100,000 ($160,000 for a single parent or joint applicants) to
+2025-26 and Housing Australia's indexed $103,000 ($165,000) for 2026-27, by
+the financial year of `application_date`. A valuation below the price lifts
+the Commonwealth's share so that it is worth the contribution at settlement
+(s 25(3) item 1), returned as `share_percentage_at_settlement`.
+
+`facts` must state every eligibility fact true: `citizen`,
+`financial_capacity` (Housing Australia's belief under s 20),
+`principal_residence`, `no_other_assistance`, `no_property_interest`,
+`costs_covered`, `sole_owners` and `participating_jurisdiction`. It refuses a
+deposit and contribution above the price and an `application_date` outside
+the year or after 26 November 2026, when the caps were read.
+
+`help-to-buy-review` applies a 5-yearly review's income test (s 34: taxable
+income above the threshold for both `taxable_income`, the review year, and
+`previous_taxable_income`, the year before) and gives the repayment s 37
+requires: the Commonwealth's share of `property_value` if it is no more than
+5% of that value, otherwise 5% of the value rounded to the nearest $1,000
+(s 37(5)(e) and s 43(1)(a)), and nothing where the lender finds no capacity to
+repay (`capacity_to_repay` false, s 37(6)). It refuses 5% exactly midway
+between multiples of $1,000, which the Directions do not settle. See
+[calculation evidence](docs/calculation-evidence.md#government-schemes).
+
+## Home Guarantee Scheme
+
+`home-guarantee` tests a First Home Guarantee (`stream` `first_home`) or
+Family Home Guarantee (`family_home`) under the Housing Australia Investment
+Mandate Direction 2018 Part 5, as amended from 1 October 2025 and 1 July
+2026: the property's value against the area's price cap (s 29F(1)), a
+loan-to-value ratio above 80% and no more than 95% (98% for a Family Home
+Guarantee, s 29C(2)(i) and (2B)(c)) and no more than 2 borrowers (1 for a
+Family Home Guarantee). `area` is one of the s 29F(1) items as for
+`help-to-buy`, with `nsw_capital_regional` at $1,500,000 and, from 1 July 2026,
+`nt_capital` ($750,000) and `nt_other` ($600,000) in place of `nt`. The cap is
+the one in force on `issue_date`, the day Housing Australia issues the
+guarantee (ss 44 and 46). `facts` must state each borrower fact true
+(`no_property_10_years` and `adult_citizen_or_resident` for a First Home
+Guarantee; `single_with_dependant`, `property_interest_allowed`,
+`no_relevant_interest` and `adult_citizen_or_resident` for a Family Home
+Guarantee) and each loan fact (`eligible_lender`, `owner_occupied`,
+`principal_and_interest`, `term_30_years`). It refuses an `issue_date` before
+1 October 2025 or after 26 November 2026, and, before 1 July 2026, a ratio of
+exactly 80% or the top, which 'between' did not settle. See
+[calculation evidence](docs/calculation-evidence.md#government-schemes).
+
+## Age pension
+
+`age-pension` gives one fortnight's age pension rate on `date` under Pension
+Rate Calculator A (Social Security Act 1991 s 1064), for a single person or
+each member of a couple who both receive it (`relationship` `single` or
+`couple`): the maximum rate (MBR, pension supplement and energy supplement)
+less the greater of the income and assets reductions. Ordinary income per
+fortnight (`ordinary_income`, combined for a couple) has deemed income from
+`financial_assets` added (s 1082) and is reduced by 50% over the free area
+(25% of a couple's combined income over the combined free area). `assets`
+(financial assets included) above the limit for a homeowner or not
+(`homeowner`) reduce the rate by $19.50 a year for each whole $250 (s 1064-G).
+The amounts are the Social Security Guide's for each period from 20 September
+2025 to 19 March 2027, and it refuses dates outside them. `facts` must state
+`in_australia`, `not_blind`, `not_transitional` and `no_rent_assistance`, and
+for a couple `partner_pensioner`. `derive` explains each step. See
+[calculation evidence](docs/calculation-evidence.md#government-schemes).
+
+## Family tax benefit Part A
+
+`ftb-part-a` gives a family's annual FTB Part A rate for 2025-26 or 2026-27
+under the Family Assistance Act Schedule 1 income test. Method 1 applies to
+an `adjusted_taxable_income` up to the higher income free area: the maximum
+rate for `children_under_13` and `children_13_plus` less 20% of income over
+the lower free area, not below the base rate. Above it Method 2 gives the
+greater of the base rate less 30% of income over the higher free area and the
+Method 1 rate continued at 30%. The FTB Part A supplement is included at an
+income of $80,000 or less, the energy supplement where `energy_supplement` is
+true, and a pension or benefit recipient (`income_support`) gets the maximum
+rate. `facts` must state `whole_year`, `no_maintenance`,
+`no_rent_assistance`, `no_newborn_or_multiple_birth` and `requirements_met`.
+It refuses a family with no child or more than 20. `derive` explains each
+step. See
+[calculation evidence](docs/calculation-evidence.md#government-schemes).
 
 ## PSI test
 

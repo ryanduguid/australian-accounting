@@ -594,6 +594,26 @@ pub const SCOPES: &[(&str, &str)] = &[
         "endorsement_review",
         "One of the ATO's 3 endorsement review worksheets (income tax exempt charities, Worksheet 1 for a DGR endorsed as a whole, Worksheet 2 for a DGR endorsed for a fund, authority or institution) from the entity's own yes or no answers, each tied to the provision it tests as read on 24 November 2026, with what each 'No' means and what to do. It checks no register; use dgr-check for a recipient's listed DGR status.",
     ),
+    (
+        "help_to_buy",
+        "Whether a Help to Buy arrangement's numbers meet the Help to Buy Program Directions 2025 (F2025L00682, made under the Help to Buy Act 2024 s 24) for an application made from 1 July 2025 to 26 November 2026: the purchase price within the area's price cap (ss 7 and 21(b)); the agreed percentage within 5% to 30% for an existing dwelling or 5% to 40% for a new home (s 16(1)); the Commonwealth's contribution, the agreed percentage of the purchase price in cents; the contribution and deposit together at least 20% of the lender's valuation (s 16(2)); a deposit of at least 2% of the price (s 17(f)(i)); taxable income on the latest notice of assessment, combined for joint applicants, no more than the single threshold ($100,000 in 2025-26, $103,000 in 2026-27) or, for a single parent or joint applicants, the joint threshold ($160,000, then $165,000) for the financial year of application (ss 8, 9 and 19); and, where the lender values the property below the price, the Commonwealth share percentage raised at settlement so the share is worth the contribution (s 25(3) item 1), rounded to 2 decimal places. The area, the agreed percentage (s 16(3)), Housing Australia's financial capacity judgement (s 20) and every other eligibility fact are the operator's statements. Excludes places and their allocation (Part 5 Division 2), construction progress payments (s 59), mortgage requirements (s 22) and later variations.",
+    ),
+    (
+        "help_to_buy_review",
+        "The income test of a Help to Buy 5-yearly review (Help to Buy Program Directions 2025 s 34) in 2025-26 or 2026-27 and the repayment it leads to: taxable income for the 2 latest assessed income years, combined for joint participants, against the threshold for the review's financial year and the year before (single $100,000 to 2025-26 and $103,000 in 2026-27; single parent or joint $160,000 and $165,000; s 34(b)(ii)'s 'the income threshold' for a single parent is read as the joint threshold, which s 34(b)(i) names). Over both, s 36(1) requires the lender's assessment of capacity (s 37(1) and (2)); with capacity, a share above 5% of the property's value requires repaying 5% of the value rounded to the nearest $1,000 (s 37(5)(e)) and a share of 5% or less repaying it in full (s 37(8)), each within 90 days; without capacity, a further assessment follows (s 37(6) and (9)). The Commonwealth share is its percentage of the value now (s 25(2)); a voluntary repayment must be at least 5% of the value rounded to the nearest $1,000, or the whole share (s 43(1)). The share percentage, the value (s 58) and the lender's assessment are stated facts. Excludes non-compliance reviews (s 36(2)), the lenders' mortgage insurance limit on a required repayment (s 37(7)) and hardship (s 64). Refuses an amount exactly midway between 2 multiples of $1,000.",
+    ),
+    (
+        "home_guarantee",
+        "Whether a loan meets the price cap, loan-to-value ratio and borrower-count tests for a First Home Guarantee or Family Home Guarantee issued (approved, s 44(2)) from 1 October 2025 to 26 November 2026 under the Housing Australia Investment Mandate Direction 2018: the property's value no more than the price cap for its area (ss 29C(2)(g) and 29F(1), the caps from 1 October 2025 and, from 1 July 2026, the Northern Territory split into capital city $750,000 and other $600,000, s 46); a loan-to-value ratio above 80% and no more than 95% for a First Home Guarantee or 98% for a Family Home Guarantee (s 29C(2)(i) and (2B)(c)); and no more than 2 borrowers, or 1 for a Family Home Guarantee (s 29C(2)(b) and (2B)(a)). The deposit shown is the value less the loan. The area (capital city and regional centres, s 4A), the borrowers' eligibility (s 29D) and the loan's terms (s 29C(2)(a), (h), (j) and (k)) are the operator's statements. Excludes the New Home Guarantee and the closed Regional First Home Buyer Guarantee, the construction-loan requirements (ss 29CA and 29CB), refinancing (s 29C(4)) and the lender's own criteria (s 29C(1)(b)). Before 1 July 2026 the ratio band read 'between', so a ratio of exactly 80% or the top is refused for that period.",
+    ),
+    (
+        "age_pension",
+        "One fortnight's age pension rate for a single person, or for each member of a couple who both receive it, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064): the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income and the reduction for assets, not below nil. Income is the stated ordinary income per fortnight plus deemed income from financial assets (s 1082: the below threshold rate up to the deeming threshold and the above threshold rate on the rest, per year / 26); its reduction is 50% of income over the free area, or for a couple 25% of the couple's combined income over their combined free area (s 1064-E2). The assets reduction is $19.50 a year for each whole $250 of assets over the assets value limit for the person's home ownership, a couple's assets halved against each member's limit (s 1064-G2, G4 and G7), per year / 26. Rates are the DSS Social Security Guide's indexed amounts for the day. Excludes rent assistance, the work bonus (the stated income is after it), transitional rates, the blind (Calculator B), illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
+    ),
+    (
+        "ftb_part_a",
+        "A family's annual family tax benefit Part A rate for 2025-26 or 2026-27 under A New Tax System (Family Assistance) Act 1999 Schedule 1, for FTB children of the family all year in its full-time care: Method 1 (clauses 1(2)(a) and 3) where adjusted taxable income is at most the higher income free area, the maximum rate (the FTB child rate by age, clause 7, plus the FTB Part A supplement for each child where income is $80,000 or less, clause 38A, plus any kept energy supplement, clause 38AA) less 20% of income over the lower income free area (clauses 38M and 38N), not below the base rate (clause 4); for a pension or benefit recipient the maximum rate (clause 38L); and Method 2 (clauses 1(2)(b), 25 and 25D) above the higher income free area, the greater of the base rate less 30% of the income over it (clause 28) and the maximum rate less 20% of the band between the free areas and 30% of the income above it, not below nil. The indexed amounts are DSS's for 1 July 2025 and 1 July 2026. Excludes rent assistance, newborn supplement, multiple birth allowance, the maintenance income test, shared care, part-year entitlement, immunisation and health check reductions, FTB advances and Part B.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -1173,6 +1193,26 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "endorsement_review",
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/30-125",
+    ),
+    (
+        "help_to_buy",
+        "https://www.legislation.gov.au/F2025L00682/latest/text",
+    ),
+    (
+        "help_to_buy_review",
+        "https://www.legislation.gov.au/F2025L00682/latest/text",
+    ),
+    (
+        "home_guarantee",
+        "https://www.legislation.gov.au/F2018L00994/latest/text",
+    ),
+    (
+        "age_pension",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
+    ),
+    (
+        "ftb_part_a",
+        "https://www.legislation.gov.au/C2004A00490/latest/text",
     ),
 ];
 
@@ -2737,6 +2777,45 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/calculators-and-tools/charities-review-of-a-dgr-endorsed-as-a-part-of-an-organisation-worksheet-2",
         ],
     ),
+    (
+        "help_to_buy",
+        &[
+            "https://www.legislation.gov.au/C2024A00124/latest/text",
+            "https://firsthomebuyers.gov.au/HTB-thresholds",
+        ],
+    ),
+    (
+        "help_to_buy_review",
+        &[
+            "https://www.legislation.gov.au/C2024A00124/latest/text",
+            "https://firsthomebuyers.gov.au/HTB-thresholds",
+        ],
+    ),
+    (
+        "home_guarantee",
+        &[
+            "https://www.legislation.gov.au/F2018L00994/2026-02-07/text",
+            "https://www.legislation.gov.au/F2026L00542/asmade/text",
+        ],
+    ),
+    (
+        "age_pension",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
+            "https://guides.dss.gov.au/social-security-guide/4/10/3",
+            "https://guides.dss.gov.au/social-security-guide/4/4/1/10",
+            "https://www.servicesaustralia.gov.au/assets-test-for-age-pension",
+        ],
+    ),
+    (
+        "ftb_part_a",
+        &[
+            "https://www.dss.gov.au/system/files/documents/2026-05/rates-list-1-july-2026.pdf",
+            "https://www.servicesaustralia.gov.au/sites/default/files/2026-09/co029-2609.pdf",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -3269,6 +3348,36 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "The worksheets date from 2021; each answer is tied to the provision as read on 24 November 2026, and conditions they do not ask about are listed under not_asked.",
         ],
     ),
+    (
+        "help_to_buy",
+        &[
+            "Housing Australia decides each application and the agreed percentage; places are limited each year. The price caps are policy settings the Program Directions fix and the Government may change; they were read on 26 November 2026.",
+        ],
+    ),
+    (
+        "help_to_buy_review",
+        &[
+            "Housing Australia must not require, but may allow, a repayment that would leave the participant bearing lenders' mortgage insurance (s 37(7)); the property's value is the one Housing Australia accepts (s 58).",
+        ],
+    ),
+    (
+        "home_guarantee",
+        &[
+            "Housing Australia and the lender decide each guarantee; the price cap tests the property's value, and Housing Australia's pages say the purchase price must not exceed it either.",
+        ],
+    ),
+    (
+        "age_pension",
+        &[
+            "Services Australia assesses income, assets and deeming from its own records; the rate here is one fortnight's on the stated facts and rates change each 20 March, 1 July and 20 September.",
+        ],
+    ),
+    (
+        "ftb_part_a",
+        &[
+            "Services Australia reconciles family tax benefit after the year on the family's lodged income; the end of year supplement is paid only after that reconciliation, and the energy supplement only to families who have kept it since 2016.",
+        ],
+    ),
 ];
 
 /// A `foreign_resident_tax` warning for a year whose rates the ATO had not
@@ -3489,6 +3598,30 @@ pub const TTR_MAXIMUM_SCOPE: &[(&str, &str)] = &[
 pub const TTR_MAXIMUM_WARNING: &str = "maximum_payment is 10% of the account balance on 1 July, or on the commencement day in the first year, under SISR reg 6.01(2) 'transition to retirement income stream'; it is not reduced for a part year, it is shown down to the cent so a payment of it stays within the limit, it excludes commutations and includes payment splits, and it ends once the pensioner satisfies a condition of release with a nil cashing restriction.";
 
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
+    (
+        "age_pension.assets_inconsistent",
+        "financial_assets is more than assets, which include them.",
+    ),
+    (
+        "age_pension.date_invalid",
+        "date is not a YYYY-MM-DD day in the year.",
+    ),
+    (
+        "age_pension.date_uncovered",
+        "date is outside 20 September 2025 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "age_pension.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "age_pension.facts_not_stated",
+        "A fact the worksheet needs was not stated true: in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together.",
+    ),
+    (
+        "age_pension.relationship_invalid",
+        "relationship is not single or couple.",
+    ),
     (
         "alcohol_excise.classification_unsettled",
         "A line's labelled strength is above its actual strength and would put the goods in another subitem, which Excise Act 1901 s 77FA does not settle.",
@@ -4664,6 +4797,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The corporate tax rate for imputation purposes is not 0.25 or 0.30.",
     ),
     (
+        "ftb_part_a.children_invalid",
+        "A child count is not a whole number from 0 to 20, or there is no FTB child.",
+    ),
+    (
+        "ftb_part_a.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "ftb_part_a.facts_not_stated",
+        "A fact the worksheet needs was not stated true: children all year in full care, no maintenance, no rent assistance, no newborn supplement or multiple birth allowance, requirements met.",
+    ),
+    (
         "fuel_tax_credits.date_outside_year",
         "A line's acquisition day is outside the income year given.",
     ),
@@ -4956,6 +5101,59 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The repayments exceed the debts they reduce under HESA s 140-5(1) or s 140-25(1).",
     ),
     (
+        "help_to_buy.applicants_invalid",
+        "applicants is not single, single_parent or joint.",
+    ),
+    (
+        "help_to_buy.area_invalid",
+        "area is not one of the Program Directions s 7 areas.",
+    ),
+    (
+        "help_to_buy.date_invalid",
+        "application_date is not a YYYY-MM-DD date in the year.",
+    ),
+    (
+        "help_to_buy.date_uncovered",
+        "application_date is after 26 November 2026, the day the caps and thresholds were read.",
+    ),
+    (
+        "help_to_buy.deposit_exceeds_price",
+        "The deposit and the Commonwealth contribution together exceed the purchase price.",
+    ),
+    (
+        "help_to_buy.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "help_to_buy.facts_not_stated",
+        "An eligibility fact (Program Directions ss 17 and 20, Act ss 10 and 15) was not stated true.",
+    ),
+    (
+        "help_to_buy.percentage_invalid",
+        "agreed_percentage is not above 0 and at most 100.",
+    ),
+    (
+        "help_to_buy.property_invalid",
+        "property is not new or existing.",
+    ),
+    (
+        "help_to_buy.value_invalid",
+        "An amount is not whole dollars within its range.",
+    ),
+    (
+        "help_to_buy_review.applicants_invalid",
+        "applicants is not single, single_parent or joint.",
+    ),
+    (
+        "help_to_buy_review.rounding_midway",
+        "5% of the property value is exactly midway between 2 multiples of $1,000, which the Program Directions do not settle.",
+    ),
+    (
+        "help_to_buy_review.share_invalid",
+        "share_percentage is not a percentage above 0 and at most 100 with at most 2 decimal places.",
+    ),
+    ("help_to_buy_review.value_invalid", "property_value is 0."),
+    (
         "hire_purchase.amount_nil",
         "A hire purchase agreement's or chattel mortgage's amount financed or instalment is nil.",
     ),
@@ -5019,6 +5217,39 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "hire_purchase.start_outside_year",
         "A hire purchase agreement or chattel mortgage starts outside the income year given.",
     ),
+    (
+        "home_guarantee.area_invalid",
+        "area is not a s 29F(1) area on the issue date.",
+    ),
+    (
+        "home_guarantee.borrowers_invalid",
+        "borrowers is not a whole number of at least 1.",
+    ),
+    (
+        "home_guarantee.date_invalid",
+        "issue_date is not a YYYY-MM-DD date in the year.",
+    ),
+    (
+        "home_guarantee.date_uncovered",
+        "issue_date is outside 1 October 2025 to 26 November 2026.",
+    ),
+    (
+        "home_guarantee.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "home_guarantee.facts_not_stated",
+        "An eligibility fact (ss 29C and 29D) was not stated true.",
+    ),
+    (
+        "home_guarantee.ratio_boundary",
+        "Before 1 July 2026 the ratio band read 'between', which does not settle a ratio of exactly 80% or the top.",
+    ),
+    (
+        "home_guarantee.stream_invalid",
+        "stream is not first_home or family_home.",
+    ),
+    ("home_guarantee.value_invalid", "property_value is 0."),
     (
         "horticulture_shearing_withholding.labour_mobility_scheme",
         "The worker is employed under the Seasonal Worker Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme, to which Schedule 2 does not apply.",
@@ -5125,7 +5356,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

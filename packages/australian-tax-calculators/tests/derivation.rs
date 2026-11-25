@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 97] = [
+const DERIVED: [&str; 99] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -116,6 +116,8 @@ const DERIVED: [&str; 97] = [
     "foreign-pension-upp",
     "super-crystallisation",
     "residential-vacancy-fee",
+    "age-pension",
+    "ftb-part-a",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -1180,6 +1182,39 @@ fn cases() -> Vec<(&'static str, Value)> {
         }),
     ] {
         cases.push(("residential-vacancy-fee", facts));
+    }
+    let pension = json!({"in_australia": true, "not_blind": true, "not_transitional": true,
+                         "no_rent_assistance": true, "partner_pensioner": true});
+    for (relationship, homeowner, income, financial, assets) in [
+        ("single", true, "200.00", "100000.00", "100000.00"),
+        ("single", false, "0.00", "0.00", "745500.00"),
+        ("couple", true, "500.00", "150000.00", "800000.00"),
+    ] {
+        let mut facts = pension.clone();
+        if relationship == "single" {
+            facts.as_object_mut().unwrap().remove("partner_pensioner");
+        }
+        cases.push((
+            "age-pension",
+            json!({"date": "2026-10-01", "relationship": relationship, "homeowner": homeowner,
+                   "ordinary_income": income, "financial_assets": financial, "assets": assets,
+                   "facts": facts, "year": "2026-27", "scope_confirmed": true}),
+        ));
+    }
+    for (young, older, income, support) in [
+        (1, 0, "80000.00", false),
+        (3, 0, "140000.00", false),
+        (1, 1, "200000.00", true),
+    ] {
+        cases.push((
+            "ftb-part-a",
+            json!({"children_under_13": young, "children_13_plus": older,
+                   "adjusted_taxable_income": income, "income_support": support,
+                   "energy_supplement": true,
+                   "facts": {"whole_year": true, "no_maintenance": true, "no_rent_assistance": true,
+                             "no_newborn_or_multiple_birth": true, "requirements_met": true},
+                   "year": "2026-27", "scope_confirmed": true}),
+        ));
     }
     cases
 }
@@ -2920,7 +2955,7 @@ fn derive_refuses_what_it_does_not_explain() {
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
          lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
-         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, not \"payg-gross-up\""
+         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, age-pension, ftb-part-a, not \"payg-gross-up\""
     );
 }
 

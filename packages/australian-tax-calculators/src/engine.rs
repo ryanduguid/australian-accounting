@@ -6535,6 +6535,14 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod first_home_owner_grant;
 pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
+mod help_to_buy;
+pub use help_to_buy::{HelpToBuyArgs, HelpToBuyReviewArgs, help_to_buy, help_to_buy_review};
+mod home_guarantee;
+pub use home_guarantee::{HomeGuaranteeArgs, home_guarantee};
+mod age_pension;
+pub use age_pension::{AgePensionArgs, age_pension};
+mod ftb_part_a;
+pub use ftb_part_a::{FtbPartAArgs, ftb_part_a};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod pcg_2021_4;
@@ -6627,7 +6635,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 148] = [
+const KINDS: [&str; 153] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6776,6 +6784,11 @@ const KINDS: [&str; 148] = [
     "super_crystallisation",
     "endorsement_review",
     "first_home_owner_grant",
+    "help_to_buy",
+    "help_to_buy_review",
+    "home_guarantee",
+    "age_pension",
+    "ftb_part_a",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6845,6 +6858,9 @@ fn evidence_heading(kind: &str) -> String {
         "pcg_2021_4" => "pcg-20214".into(),
         "esic" => "early-stage-investor-tax-offset".into(),
         "wip_lockup" => "wip-lock-up".into(),
+        "help_to_buy" | "help_to_buy_review" | "home_guarantee" | "age_pension" | "ftb_part_a" => {
+            "government-schemes".into()
+        }
         _ => kind.replace('_', "-"),
     }
 }
