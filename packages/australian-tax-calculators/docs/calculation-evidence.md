@@ -6392,6 +6392,76 @@ O1 to O3 are the reference's published examples; W1 is made up and worked in
 Python's `decimal`. `tests/wip_lockup.rs` also covers stated buckets, each
 bound on buckets, days and entries, the year boundaries and every refusal.
 
+## Super projection
+
+Added on 26 November 2026, when the sources were read: ASIC Corporations
+(Superannuation Calculators and Retirement Estimates) Instrument 2022/603
+(F2022L00895, compilation no. 1 of 11 September 2024) s 4 'assumed retirement
+age' and 'present value'; ITAA 1997 s 295-160 item 1; Income Tax Rates Act
+1986 s 26(1)(a) (compilation no. 66 of 1 July 2026); the ATO's 'Super
+guarantee' (last updated 17 April 2026), Table 23, a 2026-27 maximum
+contribution base of $270,830; 'Contributions caps' (last updated
+11 September 2026), $32,500 and $130,000 for 2026-27; and 'When you can
+withdraw your super' (last updated 10 July 2026) for the preservation age. The
+command mirrors the site's `assets/super-projection.mjs` (main at d876df72).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| S1 | age 66, $50,000, salary $80,000 at 12%, return 6.1%, fees $59 and 0.11%, premiums $599 | contributed **$8,160.00**, earnings **$3,278.81**, fees **$609.56**, balance **$60,829.25**, present value **$58,658.87** |
+| S2 | S1 from age 30 to 67, wage growth 3.7% | **$2,068,319.69**, present value **$539,266.80** |
+| S3 | S2 retiring at 55 from 45 | retirement age **60**, 15 years |
+| S4 | salary $400,000 | employer **$32,499.60**, 12% of $270,830 |
+
+S1 is worked by hand in `tests/super_projection.rs`; S2 is the site's first
+case. `tests/site_mirrors.rs` runs all 13 of the site's cases and 60 seeded
+ones through the site's own engine and this command, and they agree to the
+cent.
+
+## Objection deadline
+
+Added on 26 November 2026, when the sources were read: Taxation
+Administration Act 1953 s 14ZW (compilation no. 227 of 1 October 2026);
+ITAA 1936 s 170(1) items 1, 2, 3 and 3A (compilation no. 193 of 1 October
+2026); and the Acts Interpretation Act 1901 ss 2G and 36 (compilation no. 39
+of 28 March 2026). The Act does not define a year: a period of years is
+counted as 12 months a year are under s 2G(2), which gives the site's own
+convention, including a 29 February start ending on 28 February. The command
+mirrors the site's `objectionDeadline` (main at d876df72).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | income tax assessment, item 1, notice 18 Nov 2026 | ends Sat **18 Nov 2028**, last day Mon **20 Nov 2028** |
+| D2 | other decision, notice 1 Jan 2027 | **2 Mar 2027** (the notice day not counted) |
+| D3 | income tax assessment, item 1, notice 28 Feb 2026 | **29 Feb 2028** |
+| D4 | amended, item 1, notice 2 Oct 2028, original 20 Oct 2026 | subsection (1BA): later of **1 Dec 2028** and 20 Oct 2028 |
+| D5 | other decision, notice 30 Jan 2029 | ends Sat 31 Mar 2029, last day Mon **2 Apr 2029**, the example in s 36(2) |
+
+`tests/site_mirrors.rs` runs the site's 8 cases and 80 seeded ones through the
+site's engine and this command, and they agree on every date and provision.
+
+## Lessee lease
+
+Added on 26 November 2026, when the sources were read: AASB 16 compilation
+no. 8 (31 December 2023; F2024C00049, the latest on the Federal Register)
+paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A, and the IFRS 16
+Illustrative Examples on the AASB's site. The command mirrors the site's
+`assets/lease.mjs` and the present value of `assets/finance-schedule.mjs`
+(main at d876df72). Rounding each period's interest to the cent, the last
+period taking the rest, and sharing a period across 30 June by days are the
+site's conventions, not rules of AASB 16.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| L1 | IFRS 16 Example 13: 10 yearly payments of 50,000 in advance at 5%, initial direct costs 20,000, incentive 5,000 | liability **355,391.08**, asset **420,391.08**, interest **17,770** and **16,158** in years 1 and 2, depreciation **42,039** a year |
+| L2 | 60 monthly payments of $1,000 in arrears at 7.5%, initial direct costs $500, from 1 Jul 2026 | liability **$49,905.31**, asset **$50,405.31**, interest **$10,094.69** |
+| L3 | L2 with a residual value guarantee of $10,000 | liability **$56,786.23** |
+
+Example 13's figures are to the nearest whole unit. `tests/site_mirrors.rs`
+runs the site's 8 cases and 80 seeded ones through the site's engine and this
+command and compares the liability, asset, interest, dates, every income year
+and the first and last schedule rows; a local run compared every schedule row
+as well, and all agreed to the cent.
+
 ## Impairment test
 
 Added on 24 November 2026, when the sources were read: AASB 136 compilation

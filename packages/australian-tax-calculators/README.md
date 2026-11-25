@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-148 calculation worksheets for established facts; the sections below document
+151 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -264,6 +264,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
 | `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `billed`, `received`, `variable_consideration`, `significant_financing_component`, `estimate_changed`, `year`, `scope_confirmed`, and `milestones` when `pattern` is `milestones`; see [Deferred revenue](#deferred-revenue) |
 | `wip-lockup` | `entries`, `as_at`, `fee_revenue`, `receivables`, `billings`, `year`, `scope_confirmed`; optional `bucket_days` and `days`; see [WIP lock-up](#wip-lock-up) |
+| `super-projection` | `age`, `balance`, `salary`, `employer_rate`, `salary_sacrifice`, `after_tax_contributions`, `return_rate`, `percent_fee`, `admin_fee`, `insurance`, `wage_growth`, `year`, `scope_confirmed`; optional `retirement_age` and `discount_rate`; see [Super projection](#super-projection) |
+| `objection-deadline` | `decision`, `notice_date`, `year`, `scope_confirmed`; `s170_item` for an income tax assessment, and `original_notice_date` and `amended_before` for an amended one; optional `holidays`; see [Objection deadline](#objection-deadline) |
+| `lessee-lease` | `payment`, `payments`, `frequency`, `timing`, `discount_rate`, `commencement`, `ownership_transfers`, `remeasurement`, `year`, `scope_confirmed`; optional `residual`, `prepaid`, `incentives`, `initial_direct_costs`, `restoration` and `useful_life_months`; see [Lessee lease](#lessee-lease) |
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
@@ -290,7 +293,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `deferred-tax`, `leave-provisions`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `rd-tax-offset`, `esic`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `smsf-tax`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `etp-tax-free-component`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `cgt-cost-base-adjustments`, `foreign-income-tax-offset`, `fbt-instalment`, `vic-property-taxes`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup`, `super-projection`, `objection-deadline`, `lessee-lease` and `impairment-test` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -5185,6 +5188,90 @@ the precision the reference publishes; `ageing` lists each bucket's bounds and
 total. It refuses a nil `fee_revenue` or `billings` (the reference's #DIV/0!),
 `days` below 1 (#NUM!) and an `as_at` outside 2020-21 to 2026-27. See
 [calculation evidence](docs/calculation-evidence.md#wip-lock-up).
+
+## Super projection
+
+`super-projection` projects one accumulation super account a whole year at a
+time from 2026-27 to the retirement age, as the site's super projection page
+does, and gives the balance then in future dollars and at its present value.
+The retirement age and the present value follow s 4 of ASIC Instrument
+2022/603: the greater of the age entered and the preservation age (60 for
+anyone born after 30 June 1964), or 67 when none is entered (the next
+birthday's age from 67); and the balance over (1 + rate) to the power of the
+years, at 3.7% unless `discount_rate` is given. Every other figure is the
+operator's assumption.
+
+```text
+employer       = cents(min(salary, base) x employer_rate)                base $270,830 in 2026-27
+concessional   = employer + salary_sacrifice                             ITAA 1997 s 295-160 item 1
+contributed    = concessional - cents(15% x concessional) + after_tax    ITRA 1986 s 26(1)(a)
+average x 2    = max(2 x opening + contributed - admin_fee - insurance, 0)
+earnings       = cents(average x return_rate)
+fees           = admin_fee + insurance + cents(average x percent_fee), less cents(15% of them); at most what the account holds
+closing        = opening + contributed + earnings - fees
+after 2026-27  : salary, base, salary_sacrifice, after_tax, admin_fee and insurance each x (1 + wage_growth), to the cent
+present_value  = cents(balance / (1 + discount_rate)^years)              Instrument 2022/603 s 4
+```
+
+Rates are decimal fractions (`0.12` for 12%) with at most 4 places. It
+refuses 2026-27 concessional contributions above $32,500 or after-tax
+contributions above $130,000, and a retirement age not after the age now. It
+does not compute Division 293 tax, the nil non-concessional cap at the transfer
+balance cap, the low income super tax offset, co-contributions, a pension
+account or varying returns. See
+[calculation evidence](docs/calculation-evidence.md#super-projection).
+
+## Objection deadline
+
+`objection-deadline` gives the last day to lodge a taxation objection under
+s 14ZW of the Taxation Administration Act 1953, as the site's objection
+deadline page does. Which item of the ITAA 1936 s 170(1) table applies is the
+operator's stated fact (`s170_item`).
+
+```text
+income tax assessment   2 years after notice if item 1, 2, 3 or 3A applies, else 4      s 14ZW(1)(aa)
+FBT assessment          4 years after notice                                           s 14ZW(1)(aaa)
+other decision          60 days after notice                                           s 14ZW(1)(c)
+amended assessment      the later of 60 days after its notice and the original         s 14ZW(1B), (1BA), (1C)
+                        period after the notice of the assessment amended
+start                   the day after notice                                           AIA s 36(1) item 6
+a period of years       to the day before the same day 12 x n months on, or the end    AIA s 2G(2), as for months
+                        of that month where it has no such day
+last day                the next day that is not a Saturday, Sunday or stated holiday  AIA s 36(2) and (3)
+```
+
+`provision` names the paragraph or subsection applied, `period_ends` the end
+of the period and `last_day` the day s 36(2) allows; an amended assessment
+also gives both ends. It refuses an amended assessment under subsection (1BA)
+that had been amended before (`amended_before`): subsection (1C) makes the
+first assessment's notice the start only for subsection (1B). Holidays are only
+those given in `holidays`. See
+[calculation evidence](docs/calculation-evidence.md#objection-deadline).
+
+## Lessee lease
+
+`lessee-lease` measures a lessee's lease under AASB 16 at commencement and
+sets out each income year to its end, as the site's AASB 16 lease page does.
+
+```text
+lease_liability     = cents(PV at the period rate of the payments after commencement      paras 26, 27
+                      and the residual at the term's end)
+right_of_use_asset  = lease_liability + prepaid + a payment in advance at commencement     para 24
+                      - incentives + initial_direct_costs + restoration
+interest            = cents(opening x discount_rate / payments a year); the last period    para 37
+                      takes payment - opening, so the liability closes on nil
+depreciation        = straight line over the lease term's periods, or over                 paras 31, 32
+                      useful_life_months where ownership transfers or it ends first
+30 June             = a period across 30 June is shared by days, half up
+```
+
+`income_years` gives each income year's interest, payments, depreciation and
+30 June balances, `schedule` each payment, and `journal` the entry at
+commencement. `short_term` is true for a lease term of 12 months or less with
+no purchase option (Appendix A). It refuses a remeasured lease (paras 36(c)
+and 39 to 46), incentives as large as the rest of the cost, ownership
+transferring without a useful life and a commencement outside 2024-25 to
+2026-27. See [calculation evidence](docs/calculation-evidence.md#lessee-lease).
 
 ## Impairment test
 

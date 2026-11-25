@@ -1,5 +1,25 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `super-projection` projects one accumulation super account from 2026-27 to
+  a retirement age, with the retirement age and present value of ASIC
+  Instrument 2022/603 s 4, mirroring the site's super projection page. New
+  codes: `super_projection.cap_exceeded`, `input_invalid` and
+  `retirement_not_after_age`.
+- `objection-deadline` gives the last day to lodge a taxation objection under
+  TAA 1953 s 14ZW for an income tax or FBT assessment, an amended one or
+  another decision, counted under the Acts Interpretation Act 1901 ss 2G and
+  36, mirroring the site's objection deadline page. New codes:
+  `objection_deadline.fact_invalid` and `unsettled`.
+- `lessee-lease` measures a lessee's lease under AASB 16 and sets out each
+  income year's interest, payments, depreciation and balances, mirroring the
+  site's AASB 16 lease page. New codes: `lessee_lease.cost_nil`,
+  `fact_invalid`, `remeasurement`, `rounding_negative` and
+  `useful_life_needed`.
+
 ## 1.4.0
 
 ### Added
