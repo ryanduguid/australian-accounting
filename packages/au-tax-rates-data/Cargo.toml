@@ -12,6 +12,11 @@ publish = false
 name = "rates"
 path = "src/main.rs"
 
+# Writes legislation-provisions.json from a local legislation corpus.
+[[example]]
+name = "build_provision_list"
+test = true
+
 [dependencies]
 num-bigint = "0.5.1"
 num-integer = "0.1"
