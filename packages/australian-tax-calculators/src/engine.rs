@@ -6594,6 +6594,10 @@ mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
 pub use impairment_test::{ImpairmentTestArgs, impairment_test};
+mod thin_capitalisation;
+pub use thin_capitalisation::{ThinCapitalisationArgs, thin_capitalisation};
+mod debt_forgiveness;
+pub use debt_forgiveness::{DebtForgivenessArgs, debt_forgiveness};
 mod leave_provisions;
 mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
@@ -6627,7 +6631,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 148] = [
+const KINDS: [&str; 150] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6761,6 +6765,8 @@ const KINDS: [&str; 148] = [
     "deferred_revenue",
     "wip_lockup",
     "impairment_test",
+    "thin_capitalisation",
+    "debt_forgiveness",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
