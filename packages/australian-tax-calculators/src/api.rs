@@ -1368,6 +1368,17 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "smsf-member-allocation",
+        &[
+            ("accounts", Json),
+            ("net_earnings", Dec),
+            ("income_tax", Dec),
+            ("allocation_method", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "smsf-tax",
         &[
             ("complying_fund", Raw),
@@ -2345,6 +2356,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "payg-instalment"
             | "pcg-2021-4"
             | "smsf-tax"
+            | "smsf-member-allocation"
             | "ess-discount"
             | "government-super-amounts"
             | "rental-property"
@@ -3941,6 +3953,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         "smsf-tax" => {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::smsf_tax(&named)
+        }
+        "smsf-member-allocation" => {
+            engine::smsf_member_allocation(&engine::SmsfMemberAllocationArgs {
+                accounts: &a[0],
+                net_earnings: &a[1],
+                income_tax: &a[2],
+                allocation_method: &a[3],
+                year: &a[4],
+                scope_confirmed: &a[5],
+            })
         }
         "small-business-income-offset" => {
             // Optional: the facts only net small business income of your own calls for.
