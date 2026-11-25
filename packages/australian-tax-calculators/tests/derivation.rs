@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 97] = [
+const DERIVED: [&str; 101] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -116,6 +116,10 @@ const DERIVED: [&str; 97] = [
     "foreign-pension-upp",
     "super-crystallisation",
     "residential-vacancy-fee",
+    "break-even",
+    "hourly-rate",
+    "fixed-fee",
+    "staff-cost",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -1181,6 +1185,21 @@ fn cases() -> Vec<(&'static str, Value)> {
     ] {
         cases.push(("residential-vacancy-fee", facts));
     }
+    // The site's pricing and staff cost vectors, and each super branch.
+    let staff = |extra: Value| {
+        let mut facts = json!({"wages": "80000", "other_costs": "1000", "year": "2026-27", "scope_confirmed": true});
+        merge(&mut facts, extra);
+        ("staff-cost", facts)
+    };
+    cases.extend([
+        ("break-even", json!({"fixed_costs": "0", "price": "2", "variable_cost": "1", "year": "2025-26", "scope_confirmed": true})),
+        ("hourly-rate", json!({"annual_costs": "20.15", "target_profit": "0", "billable_hours": "2", "year": "2025-26", "scope_confirmed": true})),
+        ("fixed-fee", json!({"hours": "3", "rate": "100", "margin_percent": "0", "round_to": "0.01", "add_gst": true, "instalments": 7, "year": "2025-26", "scope_confirmed": true})),
+        ("fixed-fee", json!({"hours": "1", "rate": "120", "margin_percent": "45", "round_to": "0.01", "add_gst": false, "instalments": 1, "year": "2025-26", "scope_confirmed": true})),
+        staff(json!({"super_amount": "9600"})),
+        staff(json!({"super_base": "300000", "payroll_tax_rate": "5.45", "workers_compensation_rate": "1.5"})),
+        staff(json!({"super_base": "10000", "year": "2021-22"})),
+    ]);
     cases
 }
 
@@ -2920,7 +2939,7 @@ fn derive_refuses_what_it_does_not_explain() {
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
          lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
-         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, not \"payg-gross-up\""
+         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, not \"payg-gross-up\""
     );
 }
 

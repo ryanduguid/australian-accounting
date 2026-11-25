@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-148 calculation worksheets for established facts; the sections below document
+153 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -264,6 +264,11 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `deferred-tax` | `items`, `unused_tax_losses`, `opening_unused_tax_losses`, `unrecognised_deductible`, `opening_unrecognised_deductible`, `unrecognised_used`, `accounting_profit`, `non_deductible_expenses`, `non_assessable_income`, `taxable_income`, `tax_offsets`, `base_rate_entity`, `expected_rate`, `opening_expected_rate`, `business_combination`, `uncertain_tax_treatment`, `tax_consolidated_group`, `outside_profit_or_loss`, `year`, `scope_confirmed`; see [Deferred tax](#deferred-tax) |
 | `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `billed`, `received`, `variable_consideration`, `significant_financing_component`, `estimate_changed`, `year`, `scope_confirmed`, and `milestones` when `pattern` is `milestones`; see [Deferred revenue](#deferred-revenue) |
 | `wip-lockup` | `entries`, `as_at`, `fee_revenue`, `receivables`, `billings`, `year`, `scope_confirmed`; optional `bucket_days` and `days`; see [WIP lock-up](#wip-lock-up) |
+| `break-even` | `fixed_costs`, `price`, `variable_cost`, `year`, `scope_confirmed`; see [Break-even](#break-even) |
+| `cash-forecast` | `opening`, `buffer`, `weeks`, `year`, `scope_confirmed`; optional `delayed_receipt` and `start_date`; see [Cash forecast](#cash-forecast) |
+| `hourly-rate` | `annual_costs`, `target_profit`, `billable_hours`, `year`, `scope_confirmed`; see [Hourly rate and fixed fee](#hourly-rate-and-fixed-fee) |
+| `fixed-fee` | `hours`, `rate`, `margin_percent`, `round_to`, `add_gst`, `instalments`, `year`, `scope_confirmed`; see [Hourly rate and fixed fee](#hourly-rate-and-fixed-fee) |
+| `staff-cost` | `wages`, `other_costs`, `year`, `scope_confirmed`, and `super_amount` or `super_base`; optional `payroll_tax_rate` and `workers_compensation_rate`; see [Staff cost](#staff-cost) |
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
@@ -290,7 +295,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `deferred-tax`, `leave-provisions`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `rd-tax-offset`, `esic`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `smsf-tax`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `etp-tax-free-component`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `cgt-cost-base-adjustments`, `foreign-income-tax-offset`, `fbt-instalment`, `vic-property-taxes`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup` and `impairment-test` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup`, `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee`, `staff-cost` and `impairment-test` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -516,6 +521,10 @@ DI2026-157).
 | Deferred tax | 2020-21 to 2026-27; one company at the s 23(2) rates, Australian income tax only; established carrying amounts, tax bases, losses, recognition judgement and taxable income; no business combinations, uncertain tax treatments, tax-consolidated group members or tax outside profit or loss |
 | Deferred revenue | Performance periods starting in 2020-21 to 2026-27 and of at most 120 months; one performance obligation satisfied over time, its price, allocation and pattern of progress (by day, by whole month or by milestone) established; no variable consideration, financing component, refund liability or changed estimate |
 | WIP lock-up | A date in 2020-21 to 2026-27; the firm's entries, valuation basis, receivables and flows as stated; a management measure, not an accounting or tax result; no recoverability or write-downs |
+| Break-even | A period in 2020-21 to 2026-27; one price and one variable cost a unit, above it; no demand or capacity test |
+| Cash forecast | A period in 2020-21 to 2026-27; 13 stated weeks of bank receipts and payments; one receipt may move later; a planning gap, not a lending decision |
+| Hourly rate and fixed fee | A period in 2020-21 to 2026-27; stated costs, profit, hours, rate and margin; GST at 10% (GST Act s 9-70) on a fee the operator has established is taxable |
+| Staff cost | 2021-22 to 2026-27; super stated or the super guarantee on a stated base (ATO tables 21, 23 and 24); payroll tax and workers compensation at stated rates; no Norfolk Island rate |
 | Impairment test | Reporting periods ending in 2020-21 to 2026-27; one asset or cash-generating unit with stated pre-tax cash flows, terminal value, pre-tax rate, fair value less costs of disposal, carrying amounts and floors; no revalued assets, goodwill with a non-controlling interest, reversals or deferred tax |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
 | Long service leave | Last days from 1 July 2020 to 30 June 2027 and not before each Act's text as read; one employee under a state or territory's general Act; established dates, excluded days, leave taken, reason and ordinary weekly pay; no award, agreement or portable scheme |
@@ -5185,6 +5194,87 @@ the precision the reference publishes; `ageing` lists each bucket's bounds and
 total. It refuses a nil `fee_revenue` or `billings` (the reference's #DIV/0!),
 `days` below 1 (#NUM!) and an `as_at` outside 2020-21 to 2026-27. See
 [calculation evidence](docs/calculation-evidence.md#wip-lock-up).
+
+## Break-even
+
+`break-even` works out the whole units, and the sales, that cover a period's
+fixed costs at one price and one variable cost a unit, as the site's
+[break-even page](https://duguid.com.au/tools/business-calculators/break-even/)
+does. No statute sets a figure.
+
+```text
+contribution = price - variable_cost
+units        = fixed_costs / contribution, rounded up to a whole unit
+sales        = units x price
+```
+
+`rates.whole_units` gives the units as a whole number. It refuses a price that
+does not exceed the variable cost and sales above 1000000000000.00. See
+[calculation evidence](docs/calculation-evidence.md#break-even).
+
+## Cash forecast
+
+`cash-forecast` works out a 13-week bank cash forecast as the site's
+[cash page](https://duguid.com.au/tools/business-calculators/cash/) does.
+
+```text
+closing (each week) = opening + receipts - payments; it opens the next week
+lowest_balance      = the lowest of the opening and every weekly close
+funding_gap         = max(buffer - lowest_balance, 0)
+```
+
+`delayed_receipt` moves part of one week's receipts (already in that week's
+total) later by 0 to 13 weeks; moved past week 13 it is
+`deferred_beyond_week_13` and leaves the balance. `start_date` dates each
+week. `weeks` in the result gives each week's opening, receipts, payments and
+closing. See [calculation evidence](docs/calculation-evidence.md#cash-forecast).
+
+## Hourly rate and fixed fee
+
+`hourly-rate` and `fixed-fee` price work as the site's
+[hourly](https://duguid.com.au/tools/business-calculators/hourly/) and
+[fixed fee](https://duguid.com.au/tools/business-calculators/fixed-fee/)
+pages do. Both round up, so the hours cover the total and the fee keeps its
+margin.
+
+```text
+hourly_rate      = (annual_costs + target_profit) / billable_hours, up to the cent
+fee              = hours x rate / (1 - margin_percent / 100), up to round_to
+gst              = cents(fee x 10%) when add_gst                    GST Act s 9-70
+total            = fee + gst
+instalment       = total / instalments, down to the cent
+first_instalment = total - instalment x (instalments - 1)
+effective_rate   = cents(fee / hours)
+```
+
+Hours run from 0.01 to 8,784; `round_to` is 0.01, 10, 50 or 100. It refuses a
+margin of 100% or more and a total above 1000000000.00. See
+[calculation evidence](docs/calculation-evidence.md#hourly-rate).
+
+## Staff cost
+
+`staff-cost` adds up one staff member's annual cost as the site's
+[staff cost page](https://duguid.com.au/tools/business-calculators/staff/)
+does, and can also work the super guarantee and stated on-costs.
+
+```text
+superannuation       = super_amount, or cents(sg_rate x min(super_base, cap))     ATO tables 21, 23, 24
+payroll_tax          = cents((wages + superannuation) x payroll_tax_rate / 100)
+workers_compensation = cents((wages + superannuation) x workers_compensation_rate / 100)
+annual_cost          = wages + superannuation + payroll_tax + workers_compensation + other_costs
+monthly_average      = cents(annual_cost / 12)
+```
+
+`sg_rate` is the year's super guarantee percentage: 10% in 2021-22, 10.5%,
+11%, 11.5%, then 12% from 2025-26 (SGAA s 17A(2) from 1 July 2026). For
+2026-27 the cap is the annual maximum contribution base, $270,830, on
+qualifying earnings. Before 2026-27 each quarter's ordinary time earnings are
+capped alone, and an annual base cannot show how the quarters split it, so a
+base above one quarter's maximum contribution base is refused: give
+`super_amount`. The payroll tax and workers compensation rates
+are the operator's effective rates; `payroll-tax` and
+`workers-compensation-premium` work the statutory figures. See
+[calculation evidence](docs/calculation-evidence.md#staff-cost).
 
 ## Impairment test
 

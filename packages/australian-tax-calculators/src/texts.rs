@@ -551,6 +551,26 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One professional firm's unbilled work in progress at a date in a financial year from 2020-21 to 2026-27, aged by the days from each entry's date to that date into stated buckets (by default 0 to 30, 31 to 60, 61 to 90 and over 90 days), with WIP days (WIP over fee revenue, or cost of sales, on WIP's valuation basis, times the days that revenue covers), receivable days (trade receivables over credit sales times those days) and lock-up days, their sum, as Ozzit's WIPDays and ReceivableDays functions define them (function reference v3.7.0). Days default to 365; each day count is shown to 2 decimal places in amounts and to 4 in rates. The firm establishes the entries and their valuation (AASB 15 contract assets or AASB 102 costs), the receivables and the flows, on one GST basis. No Standard or Act defines lock-up or the buckets: they are management measures. Excludes recoverability of WIP and receivables (AASB 9 and AASB 15 para 107), write-downs and billing decisions. Refuses a nil fee revenue or billings and days below 1.",
     ),
     (
+        "break_even",
+        "One product, or a stable mix priced as one, in a period from 2020-21 to 2026-27: contribution a unit is the price less the variable cost a unit; the whole units needed are the fixed costs over that contribution, rounded up to a whole unit; the sales needed are those units times the price, as the site's break-even page works them. Figures are the operator's, on one GST basis. No statutory rate or threshold applies. Excludes demand, capacity, stepped fixed costs and a changing mix. Refuses a price that does not exceed the variable cost and sales above 1000000000000.00.",
+    ),
+    (
+        "cash_forecast",
+        "One business's 13-week bank cash forecast in a period from 2020-21 to 2026-27, as the site's cash page works it: each week closes at its opening balance plus the stated receipts less the stated payments, each close opening the next week; the lowest balance is the lowest of the opening balance and every weekly close; the funding gap is the stated buffer less that lowest balance, never below nil. Part of one week's receipts may move later by whole weeks; moved past week 13 it is reported as deferred and leaves the balance. Figures are the operator's, GST included where the cash includes it. No statutory rate or threshold applies. Excludes forecasting receipts or payments, shortfalls within a week and lending decisions.",
+    ),
+    (
+        "hourly_rate",
+        "The hourly rate before GST, in a period from 2020-21 to 2026-27, that covers stated annual costs and a target annual profit over stated annual billable hours, rounded up to the next cent so the hours cover the total, as the site's hourly pricing page works it. No statutory rate or threshold applies. Excludes GST on the rate, market and award rates, and whether clients will pay it.",
+    ),
+    (
+        "fixed_fee",
+        "A fixed fee in a period from 2020-21 to 2026-27, as the site's fixed fee page works it: the estimated hours times the hourly rate, or times a cost an hour over 1 less a margin that is a share of the fee, rounded up to a cent or to $10, $50 or $100; GST, when added, at 10% of the fee rounded half up to the cent (GST Act s 9-70), on a fee the operator has established is a taxable supply; the total split into 1 to 24 monthly instalments, each the total over the count cut to the cent, the first carrying the cents left over; and the effective rate, the fee over the hours rounded half up. Excludes whether a supply is taxable, the estimate itself and payment terms. Refuses a margin of 100% or more, another rounding step and a total above 1000000000.00.",
+    ),
+    (
+        "staff_cost",
+        "One staff member's annual cost and monthly average in an income year from 2021-22 to 2026-27: wages plus super plus payroll tax plus workers compensation plus other annual costs, the month a twelfth rounded half up, as the site's staff cost page works it. Super is the stated amount or, from a stated base, the super guarantee at the year's percentage (10% in 2021-22 rising to 12% from 2025-26), rounded half up to the cent, on ordinary time earnings no higher than one quarter's maximum contribution base to 2025-26 or on qualifying earnings capped at the annual maximum contribution base ($270,830) in 2026-27 (ATO 'Super guarantee' tables 21, 23 and 24; SGAA s 17A(2)). Payroll tax and workers compensation are the operator's stated effective rates on wages plus super, rounded half up to the cent. The operator establishes the base, that the super guarantee applies and the rates. Excludes Norfolk Island's transitional percentage, salary sacrifice arrangements, award pay, leave loading and the statutory payroll tax and premium calculations (payroll-tax, workers-compensation-premium). Refuses both or neither of super_amount and super_base, and, before 2026-27, a base above one quarter's maximum contribution base, since the quarters' split decides the cap.",
+    ),
+    (
         "impairment_test",
         "One asset's or cash-generating unit's impairment test under AASB 136 at a reporting date ending in a financial year from 2020-21 to 2026-27, from figures the preparer has established. Value in use is the present value of the stated pre-tax net cash flows for years 1 to n, each at the end of its year, and of a stated terminal value at the end of year n, at one stated pre-tax discount rate above 0 and at most 100% (limits of this worksheet), rounded half up to the cent (paras 30, 31, 33, 39, 50 to 52, 55 and A21). Recoverable amount is the higher of value in use and any stated fair value less costs of disposal (paras 18 to 20). An impairment loss is the carrying amount less recoverable amount where positive (paras 59 and 104). It is allocated first to goodwill (para 104(a)), then to the other assets pro rata to their carrying amounts (para 104(b)), none below the higher of its own stated fair value less costs of disposal and value in use or nil, the excess passed pro rata to the others (para 105); any loss left once every asset is at its floor is shown unallocated, a liability only where another Standard requires one (para 62). Each share is rounded half up to the cent cumulatively. The preparer establishes the cash flows (paras 33 and 39 to 53), the rate (paras 55 to 57), the unit and its assets (paras 65 to 79), goodwill's allocation (paras 80 to 99), corporate assets (paras 100 to 103) and the floors. Excludes indications of impairment (paras 9 to 17), reversals (paras 109 to 125), deferred tax and disclosure. Refuses a revalued asset (para 60), a unit with goodwill and a non-controlling interest (Appendix C) and a goodwill line alone (para 81).",
     ),
@@ -1127,6 +1147,26 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://duguid.com.au/assets/ozzit-function-reference-v3.7.0.json",
     ),
     (
+        "break_even",
+        "https://duguid.com.au/tools/business-calculators/break-even/",
+    ),
+    (
+        "cash_forecast",
+        "https://duguid.com.au/tools/business-calculators/cash/",
+    ),
+    (
+        "hourly_rate",
+        "https://duguid.com.au/tools/business-calculators/hourly/",
+    ),
+    (
+        "fixed_fee",
+        "https://duguid.com.au/tools/business-calculators/fixed-fee/",
+    ),
+    (
+        "staff_cost",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+    ),
+    (
         "impairment_test",
         "https://standards.aasb.gov.au/sites/default/files/2026-10/AASB136_08-15_COMPjan26_07-26.pdf",
     ),
@@ -1200,6 +1240,31 @@ const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "break_even",
+        &["https://www.business.qld.gov.au/running-business/finance/essentials/break-even-profit"],
+    ),
+    (
+        "cash_forecast",
+        &["https://business.gov.au/finance/cash-flow/set-up-a-cash-flow-statement"],
+    ),
+    (
+        "hourly_rate",
+        &[
+            "https://www.business.qld.gov.au/running-business/marketing-sales/marketing/strategy-planning/pricing-products-services",
+        ],
+    ),
+    (
+        "fixed_fee",
+        &["https://www.ato.gov.au/law/view/document?docid=PAC/19990055/9-70"],
+    ),
+    (
+        "staff_cost",
+        &[
+            "https://www.legislation.gov.au/C2004A04402/latest/text",
+            "https://duguid.com.au/tools/business-calculators/staff/",
+        ],
+    ),
     (
         "vic_property_taxes",
         &[
@@ -2751,6 +2816,18 @@ const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
     (
+        "cash_forecast",
+        &[
+            "Weekly totals can hide a shortfall within a week, and the funding gap is a planning gap, not a lending decision.",
+        ],
+    ),
+    (
+        "staff_cost",
+        &[
+            "Payroll tax and workers compensation are the operator's stated effective rates; each jurisdiction and scheme sets its own taxable wages, thresholds, exemptions and premium rules.",
+        ],
+    ),
+    (
         "tourist_refund",
         &[
             "The ABF administers the claim and adds its own requirements, such as an original tax invoice naming the traveller for $1,000 or more and no claim for goods bought for a business; this worksheet does not test them.",
@@ -3767,6 +3844,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The deduction is restricted by s 26-50, or the facts needed to apply its exceptions are outside the worksheet's scope.",
     ),
     (
+        "break_even.no_contribution",
+        "price does not exceed variable_cost, so no number of units breaks even.",
+    ),
+    (
+        "break_even.sales_out_of_range",
+        "The sales needed to break even exceed 1000000000000.00.",
+    ),
+    (
         "business_capital.cgt_amount",
         "An item could be taken into account in working out a capital gain or loss (s 40-880(5)(f)) and s 40-880(6) does not apply.",
     ),
@@ -3813,6 +3898,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "capital_works.undeducted_above_expenditure",
         "The undeducted construction expenditure is more than the construction expenditure.",
+    ),
+    (
+        "cash_forecast.delay_above_receipts",
+        "The delayed receipt is more than its week's receipts.",
+    ),
+    (
+        "cash_forecast.delayed_receipt_invalid",
+        "delayed_receipt is not {week, amount, delay_weeks} with week 1 to 13, an amount from 0 at most 2 dp and 0 to 13 weeks.",
+    ),
+    (
+        "cash_forecast.weeks_invalid",
+        "weeks is not a list of 13 objects of receipts and payments, each from 0 at most 2 dp.",
     ),
     (
         "cgt_cost_base.below_reduced_cost_base",
@@ -5125,7 +5222,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5958,6 +6055,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "taxpayer is not small_business_entity, medium_business_entity or other.",
     ),
     (
+        "pricing.fee_out_of_range",
+        "A fixed fee with GST is above 1000000000.00.",
+    ),
+    (
+        "pricing.hours_invalid",
+        "Hours are outside 0.01 to 8,784 or have more than 2 dp.",
+    ),
+    (
+        "pricing.margin_invalid",
+        "A fixed fee's margin is outside 0 to 99.99 per cent or has more than 2 dp.",
+    ),
+    (
+        "pricing.round_to_invalid",
+        "A fixed fee's rounding step is not 0.01, 10, 50 or 100.",
+    ),
+    (
         "private_health_insurance_rebate.lhc_loading",
         "A statement line gave a lifetime health cover loading, which is outside the rebate (PHI Act s 22-15(6)) and is not worked out.",
     ),
@@ -6201,6 +6314,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "smsf_tax.proportion_invalid",
         "exempt_proportion is not a decimal from 0 to 1.",
+    ),
+    (
+        "staff_cost.base_above_quarterly_cap",
+        "Before 2026-27, a super_base above one quarter's maximum contribution base: each quarter is capped alone, so super_amount must be given.",
+    ),
+    (
+        "staff_cost.rate_invalid",
+        "A stated payroll tax or workers compensation rate is outside 0 to 100 per cent or has more than 4 dp.",
+    ),
+    (
+        "staff_cost.super_basis_invalid",
+        "Both or neither of super_amount and super_base were given.",
     ),
     (
         "super_benefit_tax.benefit_nil",
