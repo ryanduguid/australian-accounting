@@ -25,11 +25,11 @@ transmit anything.
   currently implemented are recorded in `docs/ato-source-notes-2026-08-13.md` with
   the page and QC number each came from.
 - Do not hand edit anything under `data`. Rebuild it with
-  `tools/build_dataset.py` from the ATO workbook so the SHA-256 in the file still
-  matches the file it came from, and rebuild the industry-page ranges with
-  `tools/build_other_benchmarks.py` from pages saved as text. The page file binds
-  to the workbook's SHA-256, so rebuild it after any workbook rebuild, and rebuild
-  the Excel workbook after either.
+  `cargo run --example build_dataset` from the ATO workbook so the SHA-256 in the
+  file still matches the file it came from, and rebuild the industry-page ranges
+  with `cargo run --example build_other_benchmarks` from pages saved as text. The
+  page file binds to the workbook's SHA-256, so rebuild it after any workbook
+  rebuild, and rebuild the Excel workbook after either.
 - When the ATO publishes a new benchmark year, add it as a new dataset file rather
   than replacing an existing one. A comparison run last year should still reproduce.
 - Cross check at least one industry against the ATO's own industry page before
@@ -48,10 +48,11 @@ cargo test --locked
 ```
 
 `tests/parity.rs` replays the frozen record of the Python 0.2.2 engine's answers;
-a change that alters any of them fails it. The data build tools in `tools/` are
-Python and are tested from the repository root; the workbook builder is the Rust
-`build_workbook` example, whose tests run under `cargo test`. CI runs the crate on
-Ubuntu and Windows. Keep runtime strings ASCII.
+a change that alters any of them fails it. The data and workbook builders are the
+Rust `build_dataset`, `build_other_benchmarks` and `build_workbook` examples, whose
+tests run under `cargo test --locked`; the shipped JSON datasets and workbook remain
+verified by root tests too. CI runs the crate on Ubuntu and Windows. Keep runtime
+strings ASCII.
 The original corpus remains unchanged. `tests/data/incomplete-income-expected.json`
 pins the intentional correction for one exact CLI input: nil confirmation cannot
 establish an unreadable account already mapped to other income. The parity test
