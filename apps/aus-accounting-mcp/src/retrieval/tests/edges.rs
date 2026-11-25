@@ -575,6 +575,23 @@ fn cited_by_follows_the_shared_range_case_table() {
             })
             .collect();
         fs::write(dir.join("sections.jsonl"), rows).unwrap();
+        let other = table["other_register_id"].as_str().unwrap();
+        let elsewhere = case.get("elsewhere").and_then(Value::as_object);
+        let rows: String = elsewhere
+            .into_iter()
+            .flatten()
+            .enumerate()
+            .map(|(i, (label, text))| {
+                let row = json!({"row_id": format!("{other}:{:04}:{label}", i + 1),
+                    "register_id": other, "act": table["other_act"], "section": label,
+                    "heading": format!("{label} Rule"), "text": text,
+                    "version_is_current": true});
+                format!("{row}\n")
+            })
+            .collect();
+        let other_dir = tree.0.join("markdown").join(other);
+        fs::create_dir_all(&other_dir).unwrap();
+        fs::write(other_dir.join("sections.jsonl"), rows).unwrap();
         for (cited, expected) in case["cited_by"].as_object().unwrap() {
             let n = texts.iter().position(|(label, _)| label == cited).unwrap() + 1;
             let res = corpus::evaluate(

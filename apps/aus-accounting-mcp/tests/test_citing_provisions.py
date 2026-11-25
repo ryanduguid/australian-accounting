@@ -156,6 +156,12 @@ def test_ranges_and_lists_follow_the_shared_case_table(corpus, case):
         [section(register_id, f"{n:04}", label, texts[label], act=act)
          for n, label in enumerate(labels, 1)],
     )
+    other = RANGES["other_register_id"]
+    synthetic_corpus.write(
+        corpus / "markdown" / other / "sections.jsonl",
+        [section(other, f"{n:04}", label, text, act=RANGES["other_act"])
+         for n, (label, text) in enumerate(case.get("elsewhere", {}).items(), 1)],
+    )
 
     for cited, expected in case["cited_by"].items():
         result = call("find_citing_provisions", row_id=row_ids[cited])
