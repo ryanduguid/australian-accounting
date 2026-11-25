@@ -5329,7 +5329,7 @@ Queensland (s 95(4)(d) needs facts it does not take), Tasmania, the ACT and the
 Northern Territory, a death under 10 years in the Northern Territory, leaving
 without notice between 7 and 10 years in South Australia (s 5(4)), a
 dismissal found unfair outside Queensland where the reason decides, leave
-taken in Tasmania with 15 years of service complete by 1 July 2012
+taken in Tasmania with 15 years of service complete before 1 July 2012
 (Schedule 3 cl 2(4); the old s 8(2)(a) gave leave only at 15 years), leave
 taken above the exact weeks, a start before 23 June 1990, and a last
 day before 1 July 2020, after 30 June 2027 or before the earliest text read

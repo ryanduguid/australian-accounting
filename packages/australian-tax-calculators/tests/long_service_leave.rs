@@ -462,7 +462,7 @@ fn qualifying_dismissals_and_the_tasmanian_transition() {
     assert_eq!(figures(&run(&qld)), ["0.0000", "0.0000", "0.00"]);
     // Tasmania: Schedule 3 cl 2(4) bites only where leave under the Act before
     // 1 July 2012 was used up, and its s 8(2)(a) gave that leave only at 15
-    // years: leave taken with 15 years complete by that day is refused; a
+    // years: leave taken with 15 years complete before that day is refused; a
     // later 15th anniversary, or none taken, is worked.
     let tas = |start: &str, taken: &str| {
         with(
@@ -474,7 +474,14 @@ fn qualifying_dismissals_and_the_tasmanian_transition() {
         code(&tas("1997-07-01", "1")),
         "long_service_leave.unsettled"
     );
-    assert!(!figures(&run(&tas("1997-07-02", "1")))[0].is_empty());
+    assert_eq!(
+        figures(&run(&tas("1997-07-01", "0"))),
+        ["21.6667", "21.6667", "32500.00"]
+    );
+    assert_eq!(
+        figures(&run(&tas("1997-07-02", "1"))),
+        ["21.6667", "20.6667", "31000.00"]
+    );
     assert_eq!(
         figures(&run(&tas("2012-06-30", "1")))[..2],
         ["8.6667", "7.6667"]

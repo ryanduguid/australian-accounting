@@ -192,10 +192,10 @@ fn checked(row: &Value) -> &'static str {
     }
 }
 
-/// Every row of the site's fixture gives the page's figures or refusal,
-/// except where a source is unsettled; the page's own 25 cases all agree.
+/// Every row of the site's fixture gives the page's figures or refusal;
+/// the page's own 25 cases all agree.
 #[test]
-fn the_site_cases_agree_except_where_a_source_is_unsettled() {
+fn the_site_cases_agree() {
     let data: Value =
         serde_json::from_str(include_str!("data/workers_compensation_site_cases.json")).unwrap();
     let rows = data["rows"].as_array().unwrap();

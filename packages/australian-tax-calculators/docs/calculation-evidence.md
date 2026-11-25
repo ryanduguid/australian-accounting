@@ -2532,8 +2532,8 @@ from 03:15 to 03:30 AEST:
   example); WorkSafe Tasmania, 'Workers compensation insurance'; the ACT's
   suggested reasonable premium rates; WorkCover WA's rates page.
 
-The site's workers compensation calculator (ryanduguid.github.io, draft #758
-at ee28c508b, which carries #755) was run on its 25 page cases, the 31 edge
+The site's workers compensation calculator (ryanduguid.github.io, main at
+e0cdd7f51 (#768, merging #758 and #755)) was run on its 25 page cases, the 31 edge
 inputs of its unit tests and a sweep of each scheme's edges, 1,326 rows in
 `tests/data/workers_compensation_site_cases.json` (regenerated on
 24 November 2026). The worksheet gives the same 6 figures on 849 rows and the
@@ -2913,8 +2913,8 @@ This worksheet was added on 24 November 2026. Each source was read that day:
 - Stamp Duty Act 1978 (NT), reprint REPS013 (in force at 1 July 2025), s 88A
   and Sch 1 cl 1(2); NT.GOV.AU's home owner assistance pages.
 
-The site's transfer duty calculator (ryanduguid.github.io, draft #758 at
-ee28c508b) was run through its own `transferDuty` and `firstHomeDuty` on its
+The site's transfer duty calculator (ryanduguid.github.io, main at e0cdd7f51
+(#768, merging #758)) was run through its own `transferDuty` and `firstHomeDuty` on its
 21 cases, its Node tests' figures, the 44 worked figures in its Rust oracle,
 every band and first home threshold edge (each edge less 1, the edge and the
 edge plus 1, for the 3 buyers) and 240 seeded values: 925 rows in
@@ -6536,19 +6536,20 @@ This worksheet was added on 24 November 2026. Each source was read that day:
 - The Northern Territory: Long Service Leave Act 1981 (as in force at
   14 October 2015) ss 8 and 10, s 10 last amended from 27 October 2004.
 
-The site's long service leave calculator (ryanduguid.github.io, draft #754 at
-314a91ac4) was run on its 39 page cases, its unit tests' inputs and a sweep of
+The site's long service leave calculator (ryanduguid.github.io, main at
+e0cdd7f51 (#768, merging #754)) was run on its 39 page cases, its unit tests' inputs and a sweep of
 every place, status, reason and threshold, 3,016 rows in
 `tests/data/long_service_leave_site_cases.json` (regenerated on 24 November
 2026). The worksheet gives the same service, weeks, balance and value on 2,750
-rows and refuses the 81 the page refuses; the other 185 it refuses where the
-page does not:
+rows, refuses the 81 the page refuses, and refuses the other 185 where the
+page does not; the table below records those 185 date refusals alongside the
+aligned rules:
 
 | Rule | Source | Rows |
 | --- | --- | --- |
-| Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | the same figures on the page |
+| Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | aligned on the page (part of 2,750 identical) |
 | A last day before 1 July 2020, after 30 June 2027 or before the earliest text read is refused | each Act's commencement and amendment history above | 185 refused (2 page cases) |
-| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with 15 years of service complete by 1 July 2012 (the old s 8(2)(a) gave leave only at 15 years) are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | refused alike on the page |
+| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with 15 years of service complete before 1 July 2012 (the old s 8(2)(a) gave leave only at 15 years) are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 6 Qld and 6 SA refused alike (part of 81 refused alike); Tas transition none in the fixture (tested in `tests/long_service_leave.rs`) |
 
 WorkSafe ACT's guidance note 067A rounds 7 years to 6.0667
 weeks before multiplying, giving $3,397.35 at $560 a week; the Act's 1/5 of a
