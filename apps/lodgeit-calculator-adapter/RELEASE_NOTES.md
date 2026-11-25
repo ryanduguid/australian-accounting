@@ -15,6 +15,8 @@ First cut. Not released, not published, not tagged.
   depreciation and Fano, with evaluation outcomes that are deliberately not
   accounting-review states.
 - A CLI.
+- A Division 7A case whose income year does not start on 1 July of its mapped
+  year is refused locally and never sent.
 - Ported from Python to Rust; the Python package is retired. The README
   lists the deliberate differences. The Python package's MCP surface was not
   ported.
