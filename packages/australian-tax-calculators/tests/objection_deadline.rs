@@ -90,7 +90,7 @@ fn an_amended_assessment_takes_the_later_end() {
     let early = run(
         "amended_assessment",
         "2027-01-04",
-        json!({"s170_item": "none", "original_notice_date": "2026-10-20", "amended_before": true}),
+        json!({"s170_item": "none", "original_notice_date": "2026-10-20", "amended_before": false}),
     );
     assert_eq!(early["provision"], "subsection 14ZW(1B)");
     assert_eq!(early["period_ends"], "2030-10-20");
@@ -102,6 +102,56 @@ fn an_amended_assessment_takes_the_later_end() {
     assert_eq!(
         (fbt["provision"].clone(), fbt["period_ends"].clone()),
         (json!("subsection 14ZW(1B)"), json!("2031-06-15"))
+    );
+}
+
+/// A later amendment: subsection (1C) puts (1B)'s start at the first
+/// assessment's notice; (1BA)(c) counts from the assessment amended, as (1C)
+/// does not reach it.
+#[test]
+fn a_later_amendment_counts_by_subsection() {
+    let later = json!({"original_notice_date": "2026-10-20", "amended_before": true});
+    let mut two = later.clone();
+    two["s170_item"] = json!("1");
+    let out = run("amended_assessment", "2027-01-04", two);
+    assert_eq!(out["provision"], "subsection 14ZW(1BA)");
+    assert_eq!(out["original_notice_period_ends"], "2028-10-20");
+    assert_eq!(out["period_ends"], "2028-10-20");
+    let mut four = later.clone();
+    four["s170_item"] = json!("none");
+    four["first_notice_date"] = json!("2026-03-01");
+    let out = run("amended_assessment", "2027-01-04", four);
+    assert_eq!(out["provision"], "subsection 14ZW(1B)");
+    assert_eq!(out["period_ends"], "2030-03-01");
+    let mut fbt = later;
+    fbt["first_notice_date"] = json!("2026-10-20");
+    assert_eq!(
+        run("amended_fbt_assessment", "2027-01-04", fbt)["period_ends"],
+        "2030-10-20"
+    );
+}
+
+/// Notices on the 29th to 31st: the period ends on the same day, or the
+/// month's last day where it has none.
+#[test]
+fn month_end_notices() {
+    for (notice, want) in [
+        ("2026-08-31", "2028-08-31"),
+        ("2026-12-31", "2028-12-31"),
+        ("2027-01-29", "2029-01-29"),
+        ("2027-01-30", "2029-01-30"),
+    ] {
+        let out = run("assessment", notice, json!({"s170_item": "1"}));
+        assert_eq!(out["period_ends"], want, "{notice}");
+    }
+    let held = run(
+        "other",
+        "2026-10-31",
+        json!({"holidays": ["2026-12-30", "2026-12-31", "2027-01-01"]}),
+    );
+    assert_eq!(
+        (held["period_ends"].clone(), held["last_day"].clone()),
+        (json!("2026-12-30"), json!("2027-01-04"))
     );
 }
 
@@ -125,14 +175,37 @@ fn leap_days_count_as_months_do() {
 
 #[test]
 fn refuses_what_it_does_not_settle() {
-    let amended =
-        json!({"s170_item": "2", "original_notice_date": "2026-10-20", "amended_before": true});
+    let amended = json!({"s170_item": "2", "original_notice_date": "2026-10-20", "amended_before": true, "first_notice_date": "2026-03-01"});
     for (decision, notice, extra, want) in [
         (
             "amended_assessment",
             "2027-01-04",
-            amended,
-            "objection_deadline.unsettled",
+            json!({"s170_item": "none", "original_notice_date": "2026-10-20", "amended_before": true}),
+            "objection_deadline.fact_invalid",
+        ),
+        (
+            "amended_assessment",
+            "2027-01-04",
+            amended.clone(),
+            "objection_deadline.fact_invalid",
+        ),
+        (
+            "amended_assessment",
+            "2027-01-04",
+            json!({"s170_item": "none", "original_notice_date": "2026-10-20", "amended_before": false, "first_notice_date": "2026-03-01"}),
+            "objection_deadline.fact_invalid",
+        ),
+        (
+            "amended_assessment",
+            "2027-01-04",
+            json!({"s170_item": "none", "original_notice_date": "2026-10-20", "amended_before": true, "first_notice_date": "2026-10-21"}),
+            "objection_deadline.fact_invalid",
+        ),
+        (
+            "other",
+            "2027-01-04",
+            json!({"first_notice_date": "2026-10-21"}),
+            "objection_deadline.fact_invalid",
         ),
         (
             "ruling",

@@ -59,6 +59,7 @@ pub struct LesseeLeaseArgs<'a> {
     pub restoration: Option<&'a Arg>,
     pub ownership_transfers: &'a Arg,
     pub useful_life_months: Option<&'a Arg>,
+    pub purchase_option: Option<&'a Arg>,
     pub remeasurement: &'a Arg,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
@@ -79,6 +80,8 @@ struct Terms {
     direct: i128,
     restoration: i128,
     ownership: bool,
+    /// The lease contains a purchase option, reasonably certain or not.
+    option: bool,
     life: Option<i64>,
 }
 
@@ -224,6 +227,10 @@ fn terms(a: &LesseeLeaseArgs, year: &str) -> Result<Terms> {
         direct: cents(a.initial_direct_costs)?,
         restoration: cents(a.restoration)?,
         ownership,
+        option: match a.purchase_option {
+            Some(v) => flag(v, "purchase_option")?,
+            None => false,
+        },
         life: life(a.useful_life_months, ownership)?,
     })
 }
@@ -445,7 +452,8 @@ pub fn lessee_lease(a: &LesseeLeaseArgs) -> Result<Value> {
     out["lease_term_ends"] = json!(dates::format(end));
     out["depreciated_to"] = json!(dates::format(depreciated_to));
     // Appendix A: a lease term of 12 months or less, with no purchase option.
-    out["short_term"] = json!(end <= periods_after(t.start, 12, MONTHLY) && !t.ownership);
+    let no_option = !t.ownership && !t.option;
+    out["short_term"] = json!(end <= periods_after(t.start, 12, MONTHLY) && no_option);
     out["income_years"] = Value::Array(income_years(&t, &rows, &charges, (owed, cost)));
     out["schedule"] = Value::Array(schedule(&rows, t.count));
     out["journal"] = Value::Array(journal(cost, owed, &t, at_start));

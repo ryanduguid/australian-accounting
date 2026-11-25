@@ -13,7 +13,7 @@
   TAA 1953 s 14ZW for an income tax or FBT assessment, an amended one or
   another decision, counted under the Acts Interpretation Act 1901 ss 2G and
   36, mirroring the site's objection deadline page. New codes:
-  `objection_deadline.fact_invalid` and `unsettled`.
+  `objection_deadline.fact_invalid`.
 - `lessee-lease` measures a lessee's lease under AASB 16 and sets out each
   income year's interest, payments, depreciation and balances, mirroring the
   site's AASB 16 lease page. New codes: `lessee_lease.cost_nil`,

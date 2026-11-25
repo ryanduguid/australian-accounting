@@ -34,6 +34,7 @@ pub struct ObjectionDeadlineArgs<'a> {
     pub s170_item: Option<&'a Arg>,
     pub original_notice_date: Option<&'a Arg>,
     pub amended_before: Option<&'a Arg>,
+    pub first_notice_date: Option<&'a Arg>,
     pub holidays: Option<&'a Arg>,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
@@ -118,25 +119,69 @@ fn holidays(given: Option<&Arg>) -> Result<BTreeSet<i64>> {
     )
 }
 
-/// The notice of the assessment amended, required and checked for an amended
-/// assessment and refused otherwise.
-fn original(a: &ObjectionDeadlineArgs, amended: bool, notice: i64) -> Result<Option<(i64, bool)>> {
+/// An amended assessment's earlier notices: the assessment it amends, whether
+/// that had itself been amended, and the first assessment's notice where given.
+struct Earlier {
+    amended: i64,
+    before: bool,
+    first: Option<i64>,
+}
+
+fn not_after(day: i64, limit: i64, name: &str, other: &str) -> Result<i64> {
+    if day > limit {
+        return fact_invalid(format!("{name} cannot be later than {other}."));
+    }
+    Ok(day)
+}
+
+/// The notices before an amended assessment's, required and checked for one and
+/// refused otherwise.
+fn earlier(a: &ObjectionDeadlineArgs, amended: bool, notice: i64) -> Result<Option<Earlier>> {
     match (amended, a.original_notice_date, a.amended_before) {
-        (true, Some(first), Some(before)) => {
-            let first = date_arg(first, "original_notice_date")?;
-            if first > notice {
-                return fact_invalid(
-                    "original_notice_date cannot be later than notice_date, the amended assessment's notice.",
-                );
-            }
-            Ok(Some((first, flag(before, "amended_before")?)))
+        (true, Some(original), Some(before)) => {
+            let original = date_arg(original, "original_notice_date")?;
+            let original = not_after(original, notice, "original_notice_date", "notice_date")?;
+            let first = match a.first_notice_date {
+                Some(day) => Some(not_after(
+                    date_arg(day, "first_notice_date")?,
+                    original,
+                    "first_notice_date",
+                    "original_notice_date",
+                )?),
+                None => None,
+            };
+            let before = flag(before, "amended_before")?;
+            Ok(Some(Earlier {
+                amended: original,
+                before,
+                first,
+            }))
         }
         (true, _, _) => {
             fact_invalid("An amended assessment needs original_notice_date and amended_before.")
         }
-        (false, None, None) => Ok(None),
+        (false, None, None) if a.first_notice_date.is_none() => Ok(None),
         (false, _, _) => fact_invalid(
-            "original_notice_date and amended_before apply only to an amended assessment.",
+            "original_notice_date, amended_before and first_notice_date apply only to an amended assessment.",
+        ),
+    }
+}
+
+/// The notice the years run from: under (1BA)(c) the assessment amended; under
+/// (1B)(c) the same, or the first assessment's where it had been amended more
+/// than once (s 14ZW(1C), which applies to (1B)(c) only).
+fn start(two_years: bool, e: &Earlier) -> Result<i64> {
+    match (two_years, e.before, e.first) {
+        (true, _, None) | (false, false, None) => Ok(e.amended),
+        (false, true, Some(first)) => Ok(first),
+        (false, true, None) => fact_invalid(
+            "The assessment had been amended before: s 14ZW(1C) counts subsection (1B)'s period from the first assessment's notice; give first_notice_date.",
+        ),
+        (true, _, Some(_)) => fact_invalid(
+            "first_notice_date applies only under subsection (1B): subsection (1BA) counts from the notice of the assessment amended, original_notice_date.",
+        ),
+        (false, false, Some(_)) => fact_invalid(
+            "first_notice_date applies only where the assessment had been amended before.",
         ),
     }
 }
@@ -146,12 +191,12 @@ fn period(
     kind: Decision,
     years: Option<i64>,
     notice: i64,
-    first: Option<(i64, bool)>,
+    earlier: Option<Earlier>,
 ) -> Result<(&'static str, i64, Option<[i64; 2]>)> {
     let Some(n) = years else {
         return Ok(("paragraph 14ZW(1)(c)", notice + SIXTY_DAYS, None));
     };
-    let Some((first, before)) = first else {
+    let Some(e) = earlier else {
         let rule = match (kind, n) {
             (Decision::Fbt, _) => "paragraph 14ZW(1)(aaa)",
             (_, 2) => "subparagraph 14ZW(1)(aa)(i)",
@@ -159,18 +204,13 @@ fn period(
         };
         return Ok((rule, years_after(notice, n), None));
     };
-    if n == 2 && before {
-        return refuse(
-            "objection_deadline.unsettled",
-            "The assessment had been amended before: s 14ZW(1C) makes the first assessment's notice the start only for subsection (1B), not (1BA), and this command does not settle which notice (1BA)(c) counts from.",
-        );
-    }
+    let from = start(n == 2, &e)?;
     let rule = if n == 2 {
         "subsection 14ZW(1BA)"
     } else {
         "subsection 14ZW(1B)"
     };
-    let ends = [notice + SIXTY_DAYS, years_after(first, n)];
+    let ends = [notice + SIXTY_DAYS, years_after(from, n)];
     Ok((rule, ends[0].max(ends[1]), Some(ends)))
 }
 
@@ -181,7 +221,7 @@ pub fn objection_deadline(a: &ObjectionDeadlineArgs) -> Result<Value> {
     let notice = date_arg(a.notice_date, "notice_date")?;
     let n = years(kind, a.s170_item)?;
     let amended = matches!(kind, Decision::AmendedAssessment | Decision::AmendedFbt);
-    let first = original(a, amended, notice)?;
+    let first = earlier(a, amended, notice)?;
     let listed = holidays(a.holidays)?;
     let (rule, ends, both) = period(kind, n, notice, first)?;
     let mut out = result(KIND, &year, vec![], vec![])?;

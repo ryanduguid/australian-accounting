@@ -81,6 +81,14 @@ fn depreciation_follows_paragraph_32() {
     let longer = run(json!({"useful_life_months": 96}));
     assert_eq!(longer["depreciated_to"], "2031-07-01");
     assert_eq!(longer["lease_term_ends"], "2031-07-01");
+    assert_eq!(
+        run(json!({"useful_life_months": 60}))["depreciated_to"],
+        "2031-07-01"
+    );
+    assert_eq!(
+        run(json!({"useful_life_months": 59}))["depreciated_to"],
+        "2031-06-01"
+    );
 }
 
 /// Appendix A: a lease term of 12 months or less with no purchase option.
@@ -89,9 +97,29 @@ fn a_short_term_lease_is_flagged() {
     assert_eq!(run(json!({"payments": 12}))["short_term"], true);
     assert_eq!(run(json!({"payments": 13}))["short_term"], false);
     assert_eq!(
+        run(json!({"payments": 12, "purchase_option": false}))["short_term"],
+        true
+    );
+    assert_eq!(
+        run(json!({"payments": 12, "purchase_option": true}))["short_term"],
+        false
+    );
+    assert_eq!(
         run(json!({"payments": 12, "ownership_transfers": true, "useful_life_months": 60}))["short_term"],
         false
     );
+}
+
+/// The discount rate's limits: 6 places, from nil to 100% a year.
+#[test]
+fn discount_rate_limits() {
+    let nil = run(json!({"discount_rate": "0"}));
+    assert_eq!(nil["amounts"]["lease_liability"], "60000.00");
+    assert_eq!(nil["amounts"]["total_interest"], "0.00");
+    for rate in ["1", "0.075001"] {
+        let out = api::evaluate("lessee-lease", &with(json!({"discount_rate": rate})));
+        assert!(out.is_ok(), "{rate}");
+    }
 }
 
 /// Para 24: an incentive above what was paid at commencement debits the bank.
@@ -121,6 +149,8 @@ fn a_large_residual_is_measured() {
     let rows = out["schedule"].as_array().unwrap();
     assert_eq!(rows.last().unwrap()["closing"], "0.00");
     assert_eq!(rows.last().unwrap()["paid"], "50100.00");
+    // 100 x (1 - v^12) / i + 50,000 x v^12 at i = 5% / 12 is 48,734.534...
+    assert_eq!(out["amounts"]["lease_liability"], "48734.53");
 }
 
 #[test]
@@ -155,6 +185,7 @@ fn refuses_what_it_does_not_compute() {
         ),
         (json!({"commencement": "2026-02-30"}), "input.date_invalid"),
         (json!({"remeasurement": "no"}), "input.flag_invalid"),
+        (json!({"purchase_option": "yes"}), "input.flag_invalid"),
         (
             json!({"year": "2023-24", "commencement": "2023-07-01"}),
             "period.unsupported",

@@ -3217,11 +3217,15 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "original_notice_date",
-                "YYYY-MM-DD, required for an amended assessment and refused otherwise: the day notice of the assessment amended was served, the first assessment's where it has been amended more than once (s 14ZW(1C)); not after notice_date",
+                "YYYY-MM-DD, required for an amended assessment and refused otherwise: the day notice of the assessment this one amends was served (s 14ZW(1B)(c) and (1BA)(c)); not after notice_date",
             ),
             (
                 "amended_before",
-                "boolean, required for an amended assessment and refused otherwise: the assessment had been amended before this amendment; true is refused under subsection (1BA)",
+                "boolean, required for an amended assessment and refused otherwise: the assessment this one amends had itself been amended, so this is a later amendment",
+            ),
+            (
+                "first_notice_date",
+                "YYYY-MM-DD, required under subsection (1B) where amended_before is true and refused otherwise: the day notice of the first assessment for the year was served (s 14ZW(1C)); not after original_notice_date",
             ),
             (
                 "holidays",
@@ -3239,19 +3243,23 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "incentives",
-                "AUD from 0: lease incentives received (para 24(b)); default 0",
+                "AUD from 0: lease incentives received at or before commencement (para 24(b)); incentives receivable later (para 27(a)) are outside the scope; default 0",
             ),
             (
                 "initial_direct_costs",
-                "AUD from 0: the lessee's initial direct costs (para 24(c)); default 0",
+                "AUD from 0: the lessee's initial direct costs (para 24(c)), paid at commencement; default 0",
             ),
             (
                 "restoration",
-                "AUD from 0: the estimated cost to dismantle, remove or restore (para 24(d)), a provision under AASB 137; default 0",
+                "AUD from 0: the estimated cost to dismantle, remove or restore (para 24(d)), as measured under AASB 137 by the operator, excluding costs incurred to produce inventories; default 0",
             ),
             (
                 "useful_life_months",
-                "whole number from 1 to 600, required when ownership_transfers is true: the underlying asset's useful life from commencement, in months",
+                "whole number from 1 to 600, required when ownership_transfers is true: the underlying asset's useful life from commencement, in months; where absent the operator confirms it is not shorter than the lease term",
+            ),
+            (
+                "purchase_option",
+                "boolean: the lease contains a purchase option, reasonably certain or not, so it is not a short-term lease (Appendix A); default false",
             ),
         ],
         "impairment_test" => vec![

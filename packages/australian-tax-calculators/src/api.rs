@@ -4454,10 +4454,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
         }
         "objection-deadline" => {
             // Optional: the s 170(1) item for an income tax assessment, the
-            // original notice for an amended one, and stated holidays.
+            // earlier notices for an amended one, and stated holidays.
             let item = optional(v, "s170_item", Raw)?;
             let original = optional(v, "original_notice_date", Raw)?;
             let before = optional(v, "amended_before", Raw)?;
+            let first = optional(v, "first_notice_date", Raw)?;
             let holidays = optional(v, "holidays", Json)?;
             engine::objection_deadline(&engine::ObjectionDeadlineArgs {
                 decision: &a[0],
@@ -4465,20 +4466,22 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 s170_item: item.as_ref(),
                 original_notice_date: original.as_ref(),
                 amended_before: before.as_ref(),
+                first_notice_date: first.as_ref(),
                 holidays: holidays.as_ref(),
                 year: &a[2],
                 scope_confirmed: &a[3],
             })
         }
         "lessee-lease" => {
-            // Optional: the residual, the amounts at commencement and the
-            // useful life; each amount absent is nil.
+            // Optional: the residual, the amounts at commencement, the useful
+            // life and a purchase option; each amount absent is nil.
             let residual = optional(v, "residual", Dec)?;
             let prepaid = optional(v, "prepaid", Dec)?;
             let incentives = optional(v, "incentives", Dec)?;
             let direct = optional(v, "initial_direct_costs", Dec)?;
             let restoration = optional(v, "restoration", Dec)?;
             let life = optional(v, "useful_life_months", Raw)?;
+            let option = optional(v, "purchase_option", Raw)?;
             engine::lessee_lease(&engine::LesseeLeaseArgs {
                 payment: &a[0],
                 payments: &a[1],
@@ -4493,6 +4496,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 restoration: restoration.as_ref(),
                 ownership_transfers: &a[6],
                 useful_life_months: life.as_ref(),
+                purchase_option: option.as_ref(),
                 remeasurement: &a[7],
                 year: &a[8],
                 scope_confirmed: &a[9],

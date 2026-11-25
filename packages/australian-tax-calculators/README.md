@@ -265,8 +265,8 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `deferred-revenue` | `contract_amount`, `start`, `end`, `pattern`, `period_ends`, `billed`, `received`, `variable_consideration`, `significant_financing_component`, `estimate_changed`, `year`, `scope_confirmed`, and `milestones` when `pattern` is `milestones`; see [Deferred revenue](#deferred-revenue) |
 | `wip-lockup` | `entries`, `as_at`, `fee_revenue`, `receivables`, `billings`, `year`, `scope_confirmed`; optional `bucket_days` and `days`; see [WIP lock-up](#wip-lock-up) |
 | `super-projection` | `age`, `balance`, `salary`, `employer_rate`, `salary_sacrifice`, `after_tax_contributions`, `return_rate`, `percent_fee`, `admin_fee`, `insurance`, `wage_growth`, `year`, `scope_confirmed`; optional `retirement_age` and `discount_rate`; see [Super projection](#super-projection) |
-| `objection-deadline` | `decision`, `notice_date`, `year`, `scope_confirmed`; `s170_item` for an income tax assessment, and `original_notice_date` and `amended_before` for an amended one; optional `holidays`; see [Objection deadline](#objection-deadline) |
-| `lessee-lease` | `payment`, `payments`, `frequency`, `timing`, `discount_rate`, `commencement`, `ownership_transfers`, `remeasurement`, `year`, `scope_confirmed`; optional `residual`, `prepaid`, `incentives`, `initial_direct_costs`, `restoration` and `useful_life_months`; see [Lessee lease](#lessee-lease) |
+| `objection-deadline` | `decision`, `notice_date`, `year`, `scope_confirmed`; `s170_item` for an income tax assessment, and `original_notice_date` and `amended_before` for an amended one, and `first_notice_date` under subsection (1B) where it had been amended before; optional `holidays`; see [Objection deadline](#objection-deadline) |
+| `lessee-lease` | `payment`, `payments`, `frequency`, `timing`, `discount_rate`, `commencement`, `ownership_transfers`, `remeasurement`, `year`, `scope_confirmed`; optional `residual`, `prepaid`, `incentives`, `initial_direct_costs`, `restoration`, `useful_life_months` and `purchase_option`; see [Lessee lease](#lessee-lease) |
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
@@ -5198,8 +5198,11 @@ The retirement age and the present value follow s 4 of ASIC Instrument
 2022/603: the greater of the age entered and the preservation age (60 for
 anyone born after 30 June 1964), or 67 when none is entered (the next
 birthday's age from 67); and the balance over (1 + rate) to the power of the
-years, at 3.7% unless `discount_rate` is given. Every other figure is the
-operator's assumption.
+years, at 3.7% unless `discount_rate` is given (the 'present value' formula's
+paragraph (b), with nil years after retirement). `employer_rate` is the rate
+the employer pays, not a check of the 12% super guarantee. Every other figure
+is the operator's assumption, and the 15% tax assumes a complying fund with no
+non-arm's length income.
 
 ```text
 employer       = cents(min(salary, base) x employer_rate)                base $270,830 in 2026-27
@@ -5215,7 +5218,9 @@ present_value  = cents(balance / (1 + discount_rate)^years)              Instrum
 
 Rates are decimal fractions (`0.12` for 12%) with at most 4 places. It
 refuses 2026-27 concessional contributions above $32,500 or after-tax
-contributions above $130,000, and a retirement age not after the age now. It
+contributions above $130,000 to this account, and a retirement age not after
+the age now; the operator confirms there are no other contributions counting
+towards a cap and that the general caps apply. It
 does not compute Division 293 tax, the nil non-concessional cap at the transfer
 balance cap, the low income super tax offset, co-contributions, a pension
 account or varying returns. See
@@ -5232,20 +5237,23 @@ operator's stated fact (`s170_item`).
 income tax assessment   2 years after notice if item 1, 2, 3 or 3A applies, else 4      s 14ZW(1)(aa)
 FBT assessment          4 years after notice                                           s 14ZW(1)(aaa)
 other decision          60 days after notice                                           s 14ZW(1)(c)
-amended assessment      the later of 60 days after its notice and the original         s 14ZW(1B), (1BA), (1C)
+amended assessment      the later of 60 days after its notice and the original         s 14ZW(1B), (1BA)
                         period after the notice of the assessment amended
+amended more than once  (1B): from the first assessment's notice; (1BA): from the      s 14ZW(1C)
+                        notice of the assessment amended
 start                   the day after notice                                           AIA s 36(1) item 6
-a period of years       to the day before the same day 12 x n months on, or the end    AIA s 2G(2), as for months
+a period of years       to the day before the same day 12 x n months on, or the end    s 2G(2)'s rule for months
                         of that month where it has no such day
 last day                the next day that is not a Saturday, Sunday or stated holiday  AIA s 36(2) and (3)
 ```
 
 `provision` names the paragraph or subsection applied, `period_ends` the end
 of the period and `last_day` the day s 36(2) allows; an amended assessment
-also gives both ends. It refuses an amended assessment under subsection (1BA)
-that had been amended before (`amended_before`): subsection (1C) makes the
-first assessment's notice the start only for subsection (1B). Holidays are only
-those given in `holidays`. See
+also gives both ends. Subsection (1C) makes the first assessment's notice
+(`first_notice_date`) the start only for subsection (1B); under (1BA) a later
+amendment counts from the notice of the assessment it amends, where the site
+counts from the first. The Act does not define a year: counting 12 months a
+year is a convention. Holidays are only those given in `holidays`. See
 [calculation evidence](docs/calculation-evidence.md#objection-deadline).
 
 ## Lessee lease
@@ -5265,10 +5273,16 @@ depreciation        = straight line over the lease term's periods, or over      
 30 June             = a period across 30 June is shared by days, half up
 ```
 
-`income_years` gives each income year's interest, payments, depreciation and
-30 June balances, `schedule` each payment, and `journal` the entry at
-commencement. `short_term` is true for a lease term of 12 months or less with
-no purchase option (Appendix A). It refuses a remeasured lease (paras 36(c)
+`income_years` gives each income year's interest, payments that reduce the
+liability, depreciation and 30 June balances, `schedule` each payment, and
+`journal` the entry at commencement, including any payment then. `short_term`
+is true for a lease term of 12 months or less with no purchase option
+(`purchase_option`, Appendix A). A residual value guarantee may exceed the
+payments' present value, which the site refuses. The operator confirms that
+incentives were received at or before commencement, the initial direct costs
+were paid then, the restoration amount is the AASB 137 provision of para 24(d)
+and, without `useful_life_months`, the useful life is not shorter than the
+lease term. It refuses a remeasured lease (paras 36(c)
 and 39 to 46), incentives as large as the rest of the cost, ownership
 transferring without a useful life and a commencement outside 2024-25 to
 2026-27. See [calculation evidence](docs/calculation-evidence.md#lessee-lease).

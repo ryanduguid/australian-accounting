@@ -102,6 +102,12 @@ fn the_instrument_sets_the_retirement_age_and_present_value_rate() {
         run(json!({"age": 70, "retirement_age": null}))["retirement_age"],
         71
     );
+    assert_eq!(
+        run(json!({"age": 67, "retirement_age": null}))["retirement_age"],
+        68
+    );
+    assert_eq!(run(json!({"age": 60, "retirement_age": 61}))["years"], 1);
+    assert_eq!(run(json!({"return_rate": "0.0612"}))["retirement_age"], 67);
     let flat = run(json!({"discount_rate": "0"}));
     assert_eq!(
         amount(&flat, "present_value"),
@@ -120,6 +126,14 @@ fn fees_never_overdraw_the_account() {
 #[test]
 fn refuses_what_it_does_not_compute() {
     for (changes, want) in [
+        (
+            json!({"age": 61, "retirement_age": 61}),
+            "super_projection.retirement_not_after_age",
+        ),
+        (
+            json!({"return_rate": "0.06120"}),
+            "super_projection.input_invalid",
+        ),
         (
             json!({"age": 60, "retirement_age": 59}),
             "super_projection.retirement_not_after_age",

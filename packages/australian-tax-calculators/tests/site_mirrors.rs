@@ -9,7 +9,7 @@
 //! pages, and 220 seeded cases, each run through the site's
 //! `superProjection`, `objectionDeadline` and `lease` and written with the
 //! site's figures as JSON pointers into this crate's output. A case the site
-//! refuses must be refused here too.
+//! refuses must be refused here too, with the code the fixture gives.
 use australian_tax_calculators::api;
 use serde_json::Value;
 
@@ -20,11 +20,12 @@ fn every_site_case_agrees() {
     assert_eq!(cases.len(), 249);
     for case in &cases {
         let (command, origin) = (case["command"].as_str().unwrap(), &case["origin"]);
-        let out = api::evaluate(command, &case["input"]);
-        if case.get("refused").is_some() {
-            assert!(out.is_err(), "{command} {origin}: the site refuses it");
+        if let Some(code) = case.get("code") {
+            let err = api::evaluate_coded(command, &case["input"]).unwrap_err();
+            assert_eq!(err.code, code, "{command} {origin}: the site refuses it");
             continue;
         }
+        let out = api::evaluate(command, &case["input"]);
         let out = out.unwrap_or_else(|e| panic!("{command} {origin}: {e}"));
         for (pointer, want) in case["expected"].as_object().unwrap() {
             let got = match pointer.as_str() {

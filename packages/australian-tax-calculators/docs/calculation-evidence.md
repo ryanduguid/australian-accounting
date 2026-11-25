@@ -6397,7 +6397,7 @@ bound on buckets, days and entries, the year boundaries and every refusal.
 Added on 26 November 2026, when the sources were read: ASIC Corporations
 (Superannuation Calculators and Retirement Estimates) Instrument 2022/603
 (F2022L00895, compilation no. 1 of 11 September 2024) s 4 'assumed retirement
-age' and 'present value'; ITAA 1997 s 295-160 item 1; Income Tax Rates Act
+age' and 'present value' paragraph (b), with nil years after retirement; ITAA 1997 s 295-160 item 1; Income Tax Rates Act
 1986 s 26(1)(a) (compilation no. 66 of 1 July 2026); the ATO's 'Super
 guarantee' (last updated 17 April 2026), Table 23, a 2026-27 maximum
 contribution base of $270,830; 'Contributions caps' (last updated
@@ -6423,10 +6423,14 @@ Added on 26 November 2026, when the sources were read: Taxation
 Administration Act 1953 s 14ZW (compilation no. 227 of 1 October 2026);
 ITAA 1936 s 170(1) items 1, 2, 3 and 3A (compilation no. 193 of 1 October
 2026); and the Acts Interpretation Act 1901 ss 2G and 36 (compilation no. 39
-of 28 March 2026). The Act does not define a year: a period of years is
-counted as 12 months a year are under s 2G(2), which gives the site's own
-convention, including a 29 February start ending on 28 February. The command
-mirrors the site's `objectionDeadline` (main at d876df72).
+of 28 March 2026). The Act does not define a year: counting a period of
+years as s 2G(2) counts 12 months a year is a convention, the site's own,
+including a 29 February start ending on 28 February. The command mirrors the
+site's `objectionDeadline` (main at d876df72), except that where the
+assessment amended had itself been amended, subsection (1BA) counts from that
+assessment's notice: subsection (1C), which substitutes the first
+assessment's, applies only to paragraph (1B)(c). The site counts both from
+the first.
 
 | Vector | Facts given | Result |
 | --- | --- | --- |
@@ -6435,6 +6439,7 @@ mirrors the site's `objectionDeadline` (main at d876df72).
 | D3 | income tax assessment, item 1, notice 28 Feb 2026 | **29 Feb 2028** |
 | D4 | amended, item 1, notice 2 Oct 2028, original 20 Oct 2026 | subsection (1BA): later of **1 Dec 2028** and 20 Oct 2028 |
 | D5 | other decision, notice 30 Jan 2029 | ends Sat 31 Mar 2029, last day Mon **2 Apr 2029**, the example in s 36(2) |
+| D6 | a later amendment, notice 4 Jan 2027, assessment amended 20 Oct 2026, first assessment 1 Mar 2026 | item 1, subsection (1BA) from 20 Oct 2026: **20 Oct 2028**; item none, (1B) from 1 Mar 2026: **1 Mar 2030** |
 
 `tests/site_mirrors.rs` runs the site's 8 cases and 80 seeded ones through the
 site's engine and this command, and they agree on every date and provision.
@@ -6446,7 +6451,9 @@ no. 8 (31 December 2023; F2024C00049, the latest on the Federal Register)
 paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A, and the IFRS 16
 Illustrative Examples on the AASB's site. The command mirrors the site's
 `assets/lease.mjs` and the present value of `assets/finance-schedule.mjs`
-(main at d876df72). Rounding each period's interest to the cent, the last
+(main at d876df72), except that a residual value guarantee above the
+payments' present value is measured: paras 26 and 27(c) set no such limit,
+and the site refuses it. Rounding each period's interest to the cent, the last
 period taking the rest, and sharing a period across 30 June by days are the
 site's conventions, not rules of AASB 16.
 
