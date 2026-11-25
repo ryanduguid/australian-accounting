@@ -499,7 +499,7 @@ fn victoria_reconciles_the_year_against_the_returns() {
         "vic",
         "4200000.00",
         "4200000.00",
-        &[("periodic_tax", "180000.00")],
+        &[("periodic_tax", "180000.00"), ("other_refunds", "0.00")],
     );
     assert_eq!(
         amounts(&short, SETTLED),
@@ -509,12 +509,27 @@ fn victoria_reconciles_the_year_against_the_returns() {
         "vic",
         "4200000.00",
         "4200000.00",
-        &[("periodic_tax", "190000.00")],
+        &[("periodic_tax", "190000.00"), ("other_refunds", "0.00")],
     );
     assert_eq!(
         amounts(&over, SETTLED),
         ["184300.00", "190000.00", "0.00", "5700.00"]
     );
+    // s 83(4): a refund already made for the year reduces this one.
+    let refunded = reconciled(
+        "vic",
+        "4200000.00",
+        "4200000.00",
+        &[("periodic_tax", "190000.00"), ("other_refunds", "5000.00")],
+    );
+    assert_eq!(refunded["amounts"]["adjustment_refund"], "700.00");
+    let spent = reconciled(
+        "vic",
+        "4200000.00",
+        "4200000.00",
+        &[("periodic_tax", "190000.00"), ("other_refunds", "6000.00")],
+    );
+    assert_eq!(spent["amounts"]["adjustment_refund"], "0.00");
 }
 
 /// Payroll Tax Act 2011 (ACT) s 83(3): a difference payable of less than
@@ -525,16 +540,24 @@ fn act_reconciliation_drops_a_shortfall_under_20_dollars() {
         "act",
         "3000000.00",
         "3000000.00",
-        &[("periodic_tax", "84355.01")],
+        &[("periodic_tax", "84355.01"), ("other_refunds", "0.00")],
     );
     assert_eq!(small["amounts"]["adjustment_payable"], "0.00");
     let due = reconciled(
         "act",
         "3000000.00",
         "3000000.00",
-        &[("periodic_tax", "84355.00")],
+        &[("periodic_tax", "84355.00"), ("other_refunds", "0.00")],
     );
     assert_eq!(due["amounts"]["adjustment_payable"], "20.00");
+    // s 83(5): $100 over, less $40 already refunded.
+    let back = reconciled(
+        "act",
+        "3000000.00",
+        "3000000.00",
+        &[("periodic_tax", "84475.00"), ("other_refunds", "40.00")],
+    );
+    assert_eq!(back["amounts"]["adjustment_refund"], "60.00");
 }
 
 /// Payroll Tax Act 1971 (Qld) ss 30, 31, 43J and 43K: payroll tax and levy
@@ -562,7 +585,12 @@ fn queensland_settles_tax_and_levy_apart_and_others_refund() {
         &[("periodic_tax", "7000.00")],
     );
     assert_eq!(wa["amounts"]["adjustment_refund"], "400.00");
-    let none = reconciled("sa", "0.00", "0.00", &[("periodic_tax", "100.00")]);
+    let none = reconciled(
+        "sa",
+        "0.00",
+        "0.00",
+        &[("periodic_tax", "100.00"), ("other_refunds", "0.00")],
+    );
     assert_eq!(none["amounts"]["adjustment_refund"], "100.00");
 }
 
@@ -597,5 +625,19 @@ fn reconciliation_refusals() {
     assert_eq!(
         with("wa", &[("periodic_tax", "-1.00")]),
         "input.amount_invalid"
+    );
+    // other_refunds: required where s 83 reduces the refund, refused
+    // elsewhere and without periodic_tax.
+    assert_eq!(
+        with("tas", &[("periodic_tax", "1.00")]),
+        "input.missing_field"
+    );
+    assert_eq!(
+        with("wa", &[("periodic_tax", "1.00"), ("other_refunds", "0.00")]),
+        "input.field_unknown"
+    );
+    assert_eq!(
+        with("nt", &[("other_refunds", "0.00")]),
+        "input.field_unknown"
     );
 }

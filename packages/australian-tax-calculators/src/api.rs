@@ -2932,6 +2932,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let regional = optional(v, "regional_employer", Raw)?;
             let periodic_tax = optional(v, "periodic_tax", Dec)?;
             let periodic_levy = optional(v, "periodic_levy", Dec)?;
+            let other_refunds = optional(v, "other_refunds", Dec)?;
             engine::payroll_tax(&engine::PayrollTaxArgs {
                 jurisdiction: &a[0],
                 taxable_wages: &a[1],
@@ -2941,6 +2942,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 employed_all_year: &a[4],
                 periodic_tax: periodic_tax.as_ref(),
                 periodic_levy: periodic_levy.as_ref(),
+                other_refunds: other_refunds.as_ref(),
                 year: &a[5],
                 scope_confirmed: &a[6],
             })
@@ -2987,6 +2989,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 regional_employer: o("regional_employer", Raw)?.as_ref(),
                 previous_interstate_wage_payer: o("previous_interstate_wage_payer", Raw)?.as_ref(),
                 stated_deduction: o("stated_deduction", Dec)?.as_ref(),
+                stated_primary_threshold: o("stated_primary_threshold", Dec)?.as_ref(),
+                stated_additional_threshold: o("stated_additional_threshold", Dec)?.as_ref(),
                 group_member: &a[6],
                 employed_all_year: &a[7],
                 year: &a[8],

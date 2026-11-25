@@ -20,8 +20,10 @@ use crate::engine::{
     scope, step,
 };
 
+mod qld;
 mod states;
-use states::{act, nt, qld, sa, vic, wa};
+use qld::qld;
+use states::{act, nt, sa, vic, wa};
 
 const KIND: &str = "payroll_tax_monthly";
 
@@ -36,6 +38,8 @@ pub struct PayrollTaxMonthlyArgs<'a> {
     pub regional_employer: Option<&'a Arg>,
     pub previous_interstate_wage_payer: Option<&'a Arg>,
     pub stated_deduction: Option<&'a Arg>,
+    pub stated_primary_threshold: Option<&'a Arg>,
+    pub stated_additional_threshold: Option<&'a Arg>,
     pub group_member: &'a Arg,
     pub employed_all_year: &'a Arg,
     pub year: &'a Arg,
@@ -44,7 +48,8 @@ pub struct PayrollTaxMonthlyArgs<'a> {
 
 /// One month's facts: the month's taxable (`tw`) and interstate (`iw`)
 /// wages, the year's estimated taxable (`etw`) and interstate (`eiw`) wages,
-/// and the days in the month.
+/// the days in the month, any stated deduction and, in Queensland, any
+/// determined primary and additional periodic thresholds.
 struct Month {
     tw: Decimal,
     iw: Decimal,
@@ -52,6 +57,7 @@ struct Month {
     eiw: Decimal,
     days: Decimal,
     stated: Option<Decimal>,
+    thresholds: [Option<Decimal>; 2],
     regional: bool,
     previous: bool,
 }
@@ -165,15 +171,62 @@ fn refuse_unsupported(args: &PayrollTaxMonthlyArgs, place: &str, number: u32) ->
     Ok(())
 }
 
-/// The stated deduction, required when `needed`.
-fn stated(args: &PayrollTaxMonthlyArgs, needed: bool) -> Result<Option<Decimal>> {
-    let stated = when(
-        needed,
-        args.stated_deduction,
-        "stated_deduction",
-        "for the Northern Territory and an interstate non-group employer in Western Australia (Payroll Tax Act 2009 (NT) Sch 2 cll 6 and 7; Pay-roll Tax Assessment Act 2002 (WA) s 15)",
-    )?;
+const STATED: &str = "for the Northern Territory and an interstate non-group employer in Western Australia (Payroll Tax Act 2009 (NT) Sch 2 cll 6 and 7; Pay-roll Tax Assessment Act 2002 (WA) s 15), and otherwise only as a notified or determined deductible amount: in Queensland (s 21), South Australia (Sch 2 cl 6), and with interstate wages in Victoria (Sch 2 cl 6) and the ACT (Sch 2 s 2.4)";
+
+/// The stated deduction: required when `needed`, taken when `allowed`.
+fn stated(args: &PayrollTaxMonthlyArgs, needed: bool, allowed: bool) -> Result<Option<Decimal>> {
+    let stated = if allowed && !needed {
+        args.stated_deduction
+    } else {
+        when(needed, args.stated_deduction, "stated_deduction", STATED)?
+    };
     stated.map(money).transpose()
+}
+
+/// Queensland's determined periodic thresholds, each optional; refused
+/// elsewhere.
+fn thresholds(args: &PayrollTaxMonthlyArgs, place: &str) -> Result<[Option<Decimal>; 2]> {
+    let mut out = [None, None];
+    let given = [
+        ("stated_primary_threshold", args.stated_primary_threshold),
+        (
+            "stated_additional_threshold",
+            args.stated_additional_threshold,
+        ),
+    ];
+    for (slot, (key, value)) in out.iter_mut().zip(given) {
+        let why = "for Queensland only (Payroll Tax Act 1971 (Qld) s 43E(1))";
+        let value = if place == "qld" {
+            value
+        } else {
+            when(false, value, key, why)?
+        };
+        *slot = value.map(money).transpose()?;
+    }
+    Ok(out)
+}
+
+/// Whether the employer is a regional employer (Vic and Qld) and, in a
+/// Queensland month without interstate wages (`local`), a previous interstate
+/// wage payer.
+fn flags(args: &PayrollTaxMonthlyArgs, place: &str, local: bool) -> Result<(bool, bool)> {
+    let regional = when(
+        matches!(place, "vic" | "qld"),
+        args.regional_employer,
+        "regional_employer",
+        "for Victoria and Queensland (Payroll Tax Act 2007 (Vic) s 3A; Payroll Tax Act 1971 (Qld) s 10A)",
+    )?;
+    let regional = regional.map(|r| flag(r, "regional_employer")).transpose()?;
+    let previous = when(
+        place == "qld" && local,
+        args.previous_interstate_wage_payer,
+        "previous_interstate_wage_payer",
+        "for Queensland when the month has no interstate wages (Payroll Tax Act 1971 (Qld) s 20(2)(b) and (3))",
+    )?;
+    let previous = previous
+        .map(|p| flag(p, "previous_interstate_wage_payer"))
+        .transpose()?;
+    Ok((regional == Some(true), previous == Some(true)))
 }
 
 /// The month's facts, with each jurisdiction's own inputs.
@@ -192,24 +245,14 @@ fn facts(args: &PayrollTaxMonthlyArgs, place: &str, days: i64) -> Result<Month> 
             "estimated_taxable_wages must be more than nil: each Act shares the deduction, or sets the rate, on the year's estimated wages.",
         );
     }
-    let regional = when(
-        matches!(place, "vic" | "qld"),
-        args.regional_employer,
-        "regional_employer",
-        "for Victoria and Queensland (Payroll Tax Act 2007 (Vic) s 3A; Payroll Tax Act 1971 (Qld) s 10A)",
-    )?;
-    let regional = regional.map(|r| flag(r, "regional_employer")).transpose()?;
-    let previous = when(
-        place == "qld" && iw.is_zero(),
-        args.previous_interstate_wage_payer,
-        "previous_interstate_wage_payer",
-        "for Queensland when the month has no interstate wages (Payroll Tax Act 1971 (Qld) s 20(2)(b) and (3))",
-    )?;
-    let previous = previous
-        .map(|p| flag(p, "previous_interstate_wage_payer"))
-        .transpose()?;
+    let (regional, previous) = flags(args, place, iw.is_zero())?;
     let wa_interstate = place == "wa" && !(iw.is_zero() && eiw.is_zero());
-    let stated = stated(args, place == "nt" || wa_interstate)?;
+    let notified = match place {
+        "qld" | "sa" => true,
+        "vic" | "act" => !iw.is_zero(),
+        _ => false,
+    };
+    let stated = stated(args, place == "nt" || wa_interstate, notified)?;
     Ok(Month {
         tw,
         iw,
@@ -217,8 +260,9 @@ fn facts(args: &PayrollTaxMonthlyArgs, place: &str, days: i64) -> Result<Month> 
         eiw,
         days: int(days),
         stated,
-        regional: regional == Some(true),
-        previous: previous == Some(true),
+        thresholds: thresholds(args, place)?,
+        regional,
+        previous,
     })
 }
 

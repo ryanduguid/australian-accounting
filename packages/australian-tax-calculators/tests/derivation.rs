@@ -683,6 +683,14 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "year": "2026-27", "scope_confirmed": true}),
         ),
         (
+            "payroll-tax",
+            json!({"jurisdiction": "vic", "taxable_wages": "4200000.00",
+                   "australian_wages": "4200000.00", "periodic_tax": "190000.00",
+                   "other_refunds": "5000.00", "regional_employer": false,
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
             "payroll-tax-monthly",
             json!({"jurisdiction": "vic", "month": "2026-11", "taxable_wages": "1000000.00",
                    "interstate_wages": "1.00", "estimated_taxable_wages": "30000000.00",

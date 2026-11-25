@@ -4068,6 +4068,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "periodic_levy",
                 "AUD, for Queensland only beside periodic_tax and then required: the combined periodic liability for the mental health levy (Payroll Tax Act 1971 (Qld) s 43H)",
             ),
+            (
+                "other_refunds",
+                "AUD, beside periodic_tax for vic, sa, tas, act and nt and then required (nil if none): any other refund of payroll tax already made to the employer for the year, which reduces the annual refund (s 83(4); in the ACT s 83(5))",
+            ),
         ],
         "payroll_tax_group" => vec![
             (
@@ -4110,7 +4114,15 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "stated_deduction",
-                "AUD, required for the Northern Territory (the deductible amount determined in the manner the Commissioner approves, at most $208,333.33) and for an interstate non-group employer in Western Australia (the deduction the Commissioner nominated, nil if none)",
+                "AUD, required for the Northern Territory (the deductible amount determined in the manner the Commissioner approves, at most $208,333.33) and for an interstate non-group employer in Western Australia (the deduction the Commissioner nominated, nil if none, at most the month's taxable wages); optional in Queensland (the commissioner's s 21 determination), South Australia (the amount in the employer's notice or the Commissioner's determination, at most $50,000) and, for a month with interstate wages, Victoria (at most the cl 5(1) amount) and the ACT (at most $145,833.33), where it replaces the formula amount",
+            ),
+            (
+                "stated_primary_threshold",
+                "AUD, for Queensland only and optional: the primary periodic threshold the commissioner determined for the month (Payroll Tax Act 1971 (Qld) s 43E(1)(a)), which replaces the formula amount",
+            ),
+            (
+                "stated_additional_threshold",
+                "AUD, for Queensland only and optional: the additional periodic threshold the commissioner determined for the month (s 43E(1)(b)), which replaces the formula amount",
             ),
         ],
         "vic_property_taxes" => vec![

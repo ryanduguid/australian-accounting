@@ -266,8 +266,11 @@ fn western_australia_monthly_threshold_taper_and_nominated_deduction() {
     );
     v["stated_deduction"] = json!("20000.00");
     assert_eq!(run(&v)["amounts"]["total"], "4400.00");
-    v["stated_deduction"] = json!("200000.00");
+    v["stated_deduction"] = json!("100000.00");
     assert_eq!(run(&v)["amounts"]["total"], "0.00");
+    // s 15(1) applies the rate to the difference; a negative one is refused.
+    v["stated_deduction"] = json!("100000.01");
+    assert_eq!(code(&v), "payroll_tax_monthly.nomination_above_wages");
 }
 
 /// Worked by hand from Payroll Tax Act 2009 (SA) Sch 2 cll 5 and 6: the
@@ -375,17 +378,80 @@ fn act_monthly_threshold_and_table_2_rates() {
 }
 
 /// Payroll Tax Act 2009 (NT) Sch 2 cll 5 to 7 and s 7A: the stated
-/// deduction, at most $2,500,000 / 12, at 5.5% or, with $100 million
-/// estimated, 6.5%.
+/// deduction, at most $2,500,000 / 12, at 5.5%; s 7A(2)'s 6.5% turns on
+/// the year's wages, so an estimate of $100 million or more is refused.
 #[test]
 fn northern_territory_stated_deduction_and_rate() {
     let mut v = input("nt", "2027-04", ["300000.00", "0.00", "3600000.00", "0.00"]);
     v["stated_deduction"] = json!("208333.33");
     assert_eq!(run(&v)["amounts"]["total"], "5041.67");
+    v["estimated_taxable_wages"] = json!("99999999.99");
+    assert_eq!(run(&v)["rates"]["rate"], "0.055");
     v["estimated_taxable_wages"] = json!("100000000.00");
-    assert_eq!(run(&v)["rates"]["rate"], "0.065");
+    assert_eq!(code(&v), "payroll_tax_monthly.rate_unsettled");
+    v["estimated_taxable_wages"] = json!("3600000.00");
     v["stated_deduction"] = json!("208333.34");
     assert_eq!(code(&v), "payroll_tax_monthly.deduction_above_cap");
+}
+
+/// A notified or determined amount, stated, replaces the formula: Vic Sch 2
+/// cl 6(1), Qld ss 20(2)(a) and 43E(1), SA Sch 2 cl 6(1) and ACT Sch 2
+/// s 2.4(1), each refused above the Act's cap.
+#[test]
+fn a_stated_amount_replaces_the_formula() {
+    let mut vic = input(
+        "vic",
+        "2026-11",
+        ["170000.00", "160000.00", "2000000.00", "2000000.00"],
+    );
+    vic["stated_deduction"] = json!("20000.00");
+    assert_eq!(run(&vic)["amounts"]["payroll_tax"], "7275.00");
+    vic["stated_deduction"] = json!("83333.01");
+    assert_eq!(code(&vic), "payroll_tax_monthly.deduction_above_cap");
+    let mut local = input(
+        "vic",
+        "2026-11",
+        ["170000.00", "0.00", "2000000.00", "0.00"],
+    );
+    local["stated_deduction"] = json!("20000.00");
+    assert_eq!(code(&local), "input.field_unknown");
+    let mut qld = input(
+        "qld",
+        "2026-07",
+        ["158521.00", "0.00", "1902252.00", "0.00"],
+    );
+    qld["stated_deduction"] = json!("50000.00");
+    qld["stated_primary_threshold"] = json!("100521.00");
+    qld["stated_additional_threshold"] = json!("150521.00");
+    assert_eq!(
+        amounts(
+            &run(&qld),
+            [
+                "payroll_tax",
+                "mental_health_levy_primary",
+                "mental_health_levy_additional",
+                "total"
+            ]
+        ),
+        ["5154.75", "145.00", "40.00", "5339.75"]
+    );
+    let mut sa = input("sa", "2026-10", ["140000.00", "0.00", "1600000.00", "0.00"]);
+    sa["stated_deduction"] = json!("40000.00");
+    assert_eq!(run(&sa)["amounts"]["payroll_tax"], "2475.00");
+    sa["stated_deduction"] = json!("50000.01");
+    assert_eq!(code(&sa), "payroll_tax_monthly.deduction_above_cap");
+    sa["stated_deduction"] = json!("40000.00");
+    sa["stated_primary_threshold"] = json!("1.00");
+    assert_eq!(code(&sa), "input.field_unknown");
+    let mut act = input(
+        "act",
+        "2027-03",
+        ["250000.00", "80000.00", "3000000.00", "1000000.00"],
+    );
+    act["stated_deduction"] = json!("100000.00");
+    assert_eq!(run(&act)["amounts"]["payroll_tax"], "10125.00");
+    act["stated_deduction"] = json!("145833.34");
+    assert_eq!(code(&act), "payroll_tax_monthly.deduction_above_cap");
 }
 
 #[test]

@@ -158,7 +158,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `super-benefit-tax` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `year`, `scope_confirmed`; optionally `date_of_birth`, `terminal_medical_condition`, `disability_superannuation_benefit`, `service_before_july_1983`, `low_rate_cap_used`, `untaxed_plan_cap_used`, `other_lump_sums_this_year`; see [Super benefit tax](#super-benefit-tax) |
 | `super-withholding` | `benefit`, `interest_value`, `interest_tax_free_component`, `untaxed_element`, `recipient`, `payment_date`, `tfn_provided`, `foreign_resident`, `year`, `scope_confirmed`; optionally the same facts as `super-benefit-tax`, and for an income stream `income_stream_period`, `tax_free_threshold_claimed`, `capped_defined_benefit` and `deceased_aged_60_or_over`; see [Super withholding](#super-withholding) |
 | `transfer-duty` | `jurisdiction`, `dutiable_value`, `buyer`, `residential`, `year`, `scope_confirmed`; see [Transfer duty](#transfer-duty) |
-| `payroll-tax` | `jurisdiction`, `taxable_wages`, `australian_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; in Victoria, `regional_employer`; for the annual reconciliation, `periodic_tax` and, in Queensland, `periodic_levy`; see [Payroll tax](#payroll-tax) |
+| `payroll-tax` | `jurisdiction`, `taxable_wages`, `australian_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; in Victoria, `regional_employer`; for the annual reconciliation, `periodic_tax` and, in Queensland, `periodic_levy` or elsewhere but Western Australia, `other_refunds`; see [Payroll tax](#payroll-tax) |
 | `payroll-tax-group` | `jurisdiction`, `employer`, `persons`, `employed_all_year`, `year`, `scope_confirmed`; optional stated facts; see [Payroll tax grouping](#payroll-tax-grouping) |
 | `payroll-tax-monthly` | `jurisdiction`, `month`, `taxable_wages`, `interstate_wages`, `estimated_taxable_wages`, `estimated_interstate_wages`, `group_member`, `employed_all_year`, `year`, `scope_confirmed`; each jurisdiction's own facts; see [Payroll tax monthly returns](#payroll-tax-monthly-returns) |
 | `land-tax` | `jurisdiction`, `taxable_value`, `trust_rates`, `foreign_owner`, `year`, `scope_confirmed`; `surcharge_value` for a foreign owner in New South Wales or Tasmania; `metropolitan_region` in Western Australia; see [Land tax](#land-tax) |
@@ -2795,8 +2795,10 @@ surcharge paid or payable on the year's periodic returns (and in Queensland
 payable and what is refunded, as s 83 of the Victorian, South Australian,
 Tasmanian, ACT and Northern Territory Acts, Pay-roll Tax Assessment Act 2002
 (WA) s 16 and Payroll Tax Act 1971 (Qld) ss 30, 31, 43J and 43K read (the ACT
-determines a shortfall under $20 to be nil). Queensland settles the tax and the
-levy apart. New South Wales's reconciliation is refused: its Act could not be
+determines a shortfall under $20 to be nil). Those 5 Acts reduce the refund by
+any other refund of payroll tax made for the year (s 83(4), in the ACT
+s 83(5)), so there `other_refunds` is required, nil if none. Queensland
+settles the tax and the levy apart. New South Wales's reconciliation is refused: its Act could not be
 read on 26 November 2026. The tests hold it to the examples
 Revenue NSW, the Victorian and Tasmanian State Revenue Offices, the Queensland
 Revenue Office, RevenueWA and RevenueSA publish, and to examples worked from
@@ -2857,7 +2859,12 @@ each Act's monthly provisions read. It takes:
 - in Victoria and Queensland, `regional_employer`; in Queensland, for a month
   without interstate wages, `previous_interstate_wage_payer`; in the Northern
   Territory and for an interstate employer in Western Australia,
-  `stated_deduction`.
+  `stated_deduction`;
+- optionally, a notified or determined amount that replaces the formula:
+  `stated_deduction` in Queensland (s 21), South Australia (Sch 2 cl 6) and,
+  with interstate wages, Victoria (Sch 2 cl 6) and the ACT (Sch 2 s 2.4), each
+  refused above its Act's cap; and in Queensland `stated_primary_threshold`
+  and `stated_additional_threshold` (s 43E(1)).
 
 | Jurisdiction | Monthly deduction | Rate, and any surcharge or levy |
 | --- | --- | --- |
@@ -2867,15 +2874,19 @@ each Act's monthly provisions read. It takes:
 | South Australia | $50,000 shared by the estimate (Sch 2 cl 6(3)) | phased in on the year's estimated wages from $1,500,000 to 4.95% at $1,700,000 (cl 5) |
 | Tasmania | The year's tax on the month's wages annualised by days, in the month's share of the year (Sch 2 cll 2 and 3) | Sch 1's 4% and 6.1% |
 | ACT | $145,833.33, shared by the estimate with interstate wages (Sch 2 ss 2.3 and 2.4; DI2026-151 s 5(b)) | DI2026-151 Table 2 by the month's total wages: 6.75% to 8.75% |
-| Northern Territory | The stated amount, at most $2,500,000 / 12 (Sch 2 cll 6 and 7) | 5.5%, or 6.5% when the year's estimated wages are $100 million or more (s 7A) |
+| Northern Territory | The stated amount, at most $2,500,000 / 12 (Sch 2 cll 6 and 7) | 5.5% (s 7A(1)) |
 
 New South Wales is refused: its Act could not be read on 26 November 2026. So
 are a member of a group, an employer paying wages for only part of the year,
 June in Queensland (its last periodic return period, worked by the annual
 return), a Queensland regional employer, a Tasmanian employer with interstate
 wages (Sch 2 cl 3 annualises only the taxable wages), a Victorian month whose
-cl 4(4) surcharge formula gives less than nil, an ACT month whose total wages
-Table 2 gives no rate for, and a Northern Territory deduction above its cap.
+cl 4(4) surcharge formula gives less than nil, a Western Australian
+nomination above the month's wages (s 15 does not say how a negative
+difference is treated), an ACT month whose total wages Table 2 gives no rate
+for, a stated deduction above its Act's cap, and a Northern Territory month
+whose estimate for the year reaches $100 million (s 7A(2)'s 6.5% turns on the
+year's actual wages, which the annual adjustment settles).
 The tests hold it to the Queensland Revenue Office's actual and fixed periodic
 deduction examples and to cases worked by hand from each Act; see
 [calculation evidence](docs/calculation-evidence.md#payroll-tax-monthly).

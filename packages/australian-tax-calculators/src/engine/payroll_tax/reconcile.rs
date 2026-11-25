@@ -13,11 +13,18 @@ use crate::engine::trade_in::when;
 use crate::engine::{Result, Step, cents, int, money, py_max, refuse, step};
 
 /// The payroll tax, and in Queensland the levy, on the year's periodic
-/// returns.
+/// returns, and where s 83 reduces a refund by them, the other refunds of
+/// payroll tax already made for the year.
 pub(super) struct Periodic {
     tax: Decimal,
     levy: Option<Decimal>,
+    other_refunds: Option<Decimal>,
 }
+
+/// The jurisdictions whose s 83 reduces the annual refund by any other
+/// refund of payroll tax made for the year: Vic, SA, Tas and NT s 83(4), ACT
+/// s 83(5).
+const REDUCED: [&str; 5] = ["vic", "sa", "tas", "act", "nt"];
 
 /// The stated periodic amounts, or the refusal for a jurisdiction whose
 /// adjustment provision was not read.
@@ -27,6 +34,12 @@ pub(super) fn periodic(args: &PayrollTaxArgs, place: &str) -> Result<Option<Peri
             false,
             args.periodic_levy,
             "periodic_levy",
+            "beside periodic_tax",
+        )?;
+        when(
+            false,
+            args.other_refunds,
+            "other_refunds",
             "beside periodic_tax",
         )?;
         return Ok(None);
@@ -43,9 +56,16 @@ pub(super) fn periodic(args: &PayrollTaxArgs, place: &str) -> Result<Option<Peri
         "periodic_levy",
         "for Queensland, beside periodic_tax (Payroll Tax Act 1971 (Qld) s 43H)",
     )?;
+    let other_refunds = when(
+        REDUCED.contains(&place),
+        args.other_refunds,
+        "other_refunds",
+        "beside periodic_tax for vic, sa, tas, act and nt, whose s 83 reduces the annual refund by any other refund of payroll tax made for the year (nil if none)",
+    )?;
     Ok(Some(Periodic {
         tax: money(tax)?,
         levy: levy.map(money).transpose()?,
+        other_refunds: other_refunds.map(money).transpose()?,
     }))
 }
 
@@ -58,7 +78,7 @@ fn adjustment(place: &str) -> (&'static str, &'static str) {
     match place {
         "vic" => (
             "Payroll Tax Act 2007 (Vic) s 83(2) and (3), authorised version 041: the correct amount for the year (s 82, Sch 1) less the amount paid or payable on the year's returns, payable with the June return",
-            "Payroll Tax Act 2007 (Vic) s 83(1): the amount paid or payable on the year's returns less the correct amount, refunded on application",
+            "Payroll Tax Act 2007 (Vic) s 83(1) and (4): the amount paid or payable on the year's returns less the correct amount, refunded on application and reduced by any other refund of payroll tax made for the year",
         ),
         "qld" => (
             "Payroll Tax Act 1971 (Qld) s 30(1)(a), current as at 22 October 2026: the annual adjustment amount, the annual payroll tax amount less the periodic liability",
@@ -70,19 +90,19 @@ fn adjustment(place: &str) -> (&'static str, &'static str) {
         ),
         "sa" => (
             "Payroll Tax Act 2009 (SA) s 83(2) and (3), version 31.3.2026: the correct amount for the year less the amount paid or payable on the year's returns, payable with the June return",
-            "Payroll Tax Act 2009 (SA) s 83(1): the amount paid or payable on the year's returns less the correct amount, refunded on application",
+            "Payroll Tax Act 2009 (SA) s 83(1) and (4): the amount paid or payable on the year's returns less the correct amount, refunded on application and reduced by any other refund of payroll tax made for the year",
         ),
         "tas" => (
             "Payroll Tax Act 2008 (Tas) s 83(2) and (3): the correct amount for the year less the amount paid or payable on the year's returns, payable with the June return",
-            "Payroll Tax Act 2008 (Tas) s 83(1): the amount paid or payable on the year's returns less the correct amount, refunded on application",
+            "Payroll Tax Act 2008 (Tas) s 83(1) and (4): the amount paid or payable on the year's returns less the correct amount, refunded on application and reduced by any other refund of payroll tax made for the year",
         ),
         "act" => (
             "Payroll Tax Act 2011 (ACT) s 83(2) to (4), republication R20: the correct amount for the year less the amount paid or payable on the year's returns, payable with the June return; a difference of less than $20 is determined to be $0",
-            "Payroll Tax Act 2011 (ACT) s 83(1): the amount paid or payable on the year's returns less the correct amount, refunded on application",
+            "Payroll Tax Act 2011 (ACT) s 83(1) and (5): the amount paid or payable on the year's returns less the correct amount, refunded on application and reduced by any other refund of payroll tax made for the year",
         ),
         _ => (
             "Payroll Tax Act 2009 (NT) s 83(2) and (3), as in force at 1 July 2026: the correct amount for the year less the amount paid or payable on the year's returns, payable with the June return",
-            "Payroll Tax Act 2009 (NT) s 83(1): the amount paid or payable on the year's returns less the correct amount, refunded on application",
+            "Payroll Tax Act 2009 (NT) s 83(1) and (4): the amount paid or payable on the year's returns less the correct amount, refunded on application and reduced by any other refund of payroll tax made for the year",
         ),
     }
 }
@@ -91,34 +111,54 @@ const LEVY_AMOUNT: &str = "Payroll Tax Act 1971 (Qld) s 43I: the annual levy amo
 const LEVY_DUE: &str = "Payroll Tax Act 1971 (Qld) s 43J(1)(a): the annual levy adjustment amount, the annual levy amount (s 43I) less the combined periodic liability";
 const LEVY_BACK: &str = "Payroll Tax Act 1971 (Qld) s 43K(1) and (2): the annual levy refund amount, the combined periodic liability less the annual levy amount";
 
-/// `paid` as a step, then what is payable and what is refunded on
-/// `annual`, which `name` works from the `operand` the working shows.
-fn settle(
-    (paid_id, paid_authority, paid): (&'static str, &'static str, &Decimal),
-    (due_id, back_id): (&'static str, &'static str),
-    (due_authority, back_authority): (&'static str, &'static str),
-    (name, annual, operand): (&str, &Decimal, &Decimal),
-    small: Option<&Decimal>,
-) -> Result<[Step; 3]> {
+/// One settlement: the amount paid (`paid`, its id, authority and value),
+/// the ids and authorities of what is payable and what is refunded, the
+/// year's amount `annual` that `name` works from the `operand` the working
+/// shows, the ACT's $20 floor (`small`) and the other refunds that reduce the
+/// refund.
+struct Settle<'a> {
+    paid: (&'static str, &'static str, &'a Decimal),
+    ids: (&'static str, &'static str),
+    authorities: (&'static str, &'static str),
+    name: &'a str,
+    annual: &'a Decimal,
+    operand: &'a Decimal,
+    small: Option<&'a Decimal>,
+    other_refunds: Option<&'a Decimal>,
+}
+
+/// `paid` as a step, then what is payable and what is refunded.
+fn settle(s: &Settle) -> Result<[Step; 3]> {
+    let (paid_id, paid_authority, paid) = s.paid;
+    let ((due_id, back_id), (due_authority, back_authority)) = (s.ids, s.authorities);
+    let (name, operand) = (s.name, s.operand);
     let shown = step(paid_id, paid_authority, paid_id, &[paid], paid.clone());
-    let mut owed = py_max(int(0), annual.sub(paid)?)?;
+    let mut owed = py_max(int(0), s.annual.sub(paid)?)?;
     let mut formula = format!("max(0, {name} - {paid_id})");
-    if let Some(small) = small
+    if let Some(small) = s.small
         && owed.lt(small)?
     {
         owed = int(0);
         formula = format!("0 (max(0, {name} - {paid_id}) < 20)");
     }
     let due = step(due_id, due_authority, &formula, &[operand, paid], owed);
-    let back_formula = format!("max(0, {paid_id} - {name})");
-    let excess = py_max(int(0), paid.sub(annual)?)?;
-    let back = step(
-        back_id,
-        back_authority,
-        &back_formula,
-        &[paid, operand],
-        excess,
-    );
+    let excess = py_max(int(0), paid.sub(s.annual)?)?;
+    let back = match s.other_refunds {
+        Some(other) => step(
+            back_id,
+            back_authority,
+            &format!("max(0, max(0, {paid_id} - {name}) - other_refunds)"),
+            &[paid, operand, other],
+            py_max(int(0), excess.sub(other)?)?,
+        ),
+        None => step(
+            back_id,
+            back_authority,
+            &format!("max(0, {paid_id} - {name})"),
+            &[paid, operand],
+            excess,
+        ),
+    };
     Ok([shown, due, back])
 }
 
@@ -131,28 +171,42 @@ fn held(steps: &[Step], id: &str) -> Result<(Decimal, Decimal)> {
     Ok((s.value.clone(), cents(s.value.clone())?))
 }
 
+const IDS: (&str, &str) = ("adjustment_payable", "adjustment_refund");
+
 /// The reconciliation's steps, after the year's `steps`.
 pub(super) fn steps(place: &str, year: &[Step], p: &Periodic) -> Result<Vec<Step>> {
     let threshold = int(20);
-    let small = (place == "act").then_some(&threshold);
     if place != "qld" {
         let (exact, annual) = held(year, "total")?;
-        let paid = ("periodic_tax", PERIODIC, &p.tax);
-        let ids = ("adjustment_payable", "adjustment_refund");
-        let name = ("total", &annual, &exact);
-        let settled = settle(paid, ids, adjustment(place), name, small)?;
+        let settled = settle(&Settle {
+            paid: ("periodic_tax", PERIODIC, &p.tax),
+            ids: IDS,
+            authorities: adjustment(place),
+            name: "total",
+            annual: &annual,
+            operand: &exact,
+            small: (place == "act").then_some(&threshold),
+            other_refunds: p.other_refunds.as_ref(),
+        })?;
         return Ok(settled.into());
     }
+    qld_steps(year, p)
+}
+
+/// Queensland's reconciliation: payroll tax (ss 30 and 31), then the levy
+/// (ss 43I to 43K).
+fn qld_steps(year: &[Step], p: &Periodic) -> Result<Vec<Step>> {
     let (exact, tax) = held(year, "payroll_tax")?;
-    let paid = ("periodic_tax", PERIODIC_QLD, &p.tax);
-    let ids = ("adjustment_payable", "adjustment_refund");
-    let mut out: Vec<Step> = settle(
-        paid,
-        ids,
-        adjustment(place),
-        ("cents(payroll_tax)", &tax, &exact),
-        None,
-    )?
+    let mut out: Vec<Step> = settle(&Settle {
+        paid: ("periodic_tax", PERIODIC_QLD, &p.tax),
+        ids: IDS,
+        authorities: adjustment("qld"),
+        name: "cents(payroll_tax)",
+        annual: &tax,
+        operand: &exact,
+        small: None,
+        other_refunds: None,
+    })?
     .into();
     let [primary, additional] = [
         "mental_health_levy_primary",
@@ -168,10 +222,16 @@ pub(super) fn steps(place: &str, year: &[Step], p: &Periodic) -> Result<Vec<Step
         primary.add(&additional)?,
     );
     let periodic_levy = p.levy.as_ref().expect("required for Queensland");
-    let paid = ("periodic_levy", PERIODIC_LEVY, periodic_levy);
-    let ids = ("levy_adjustment_payable", "levy_adjustment_refund");
-    let name = ("annual_levy_amount", &levy.value, &levy.value);
-    let settled = settle(paid, ids, (LEVY_DUE, LEVY_BACK), name, None)?;
+    let settled = settle(&Settle {
+        paid: ("periodic_levy", PERIODIC_LEVY, periodic_levy),
+        ids: ("levy_adjustment_payable", "levy_adjustment_refund"),
+        authorities: (LEVY_DUE, LEVY_BACK),
+        name: "annual_levy_amount",
+        annual: &levy.value,
+        operand: &levy.value,
+        small: None,
+        other_refunds: None,
+    })?;
     out.push(levy);
     out.extend(settled);
     Ok(out)

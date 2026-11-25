@@ -6,6 +6,8 @@
 //! its Act's monthly provisions read on 26 November 2026.
 
 use super::{Month, nil, taxed};
+
+pub(super) const SHARED: &str = "(estimated_taxable_wages + estimated_interstate_wages)";
 use crate::decimal::Decimal;
 use crate::engine::payroll_tax::Worked;
 use crate::engine::{Result, Step, d, int, py_max, py_min, rate, refuse, step};
@@ -13,11 +15,31 @@ use crate::engine::{Result, Step, d, int, py_max, py_min, rate, refuse, step};
 const VIC_LOCAL: &str = "Payroll Tax Act 2007 (Vic) Sch 2 cl 5(1) and (1A), authorised version 041 (in force from 1 May 2026), read on 26 November 2026: for a month without interstate wages, the lesser of BDA - (ETW - APT) / 12 x PR (nil if below nil) and BDA, where BDA is $83,333 (cl 1A, a month from 1 July 2025), APT $3,000,000 and PR 50% (Sch 1 cl 1) and ETW the estimated taxable wages for the year";
 const VIC_LIMIT: &str = "Payroll Tax Act 2007 (Vic) Sch 2 cl 5(1) and (1A): BDA - (ETW - APT) / 12 x PR (nil if below nil), and not more than BDA; cl 6(4) caps the deduction claimed at this amount";
 const VIC_CLAIM: &str = "Payroll Tax Act 2007 (Vic) Sch 2 cl 6(3), (3A) and (4): for a month with interstate wages, the lesser of [BDA x ETW / (ETW + EIW)] - [ETW - APT x ETW / (ETW + EIW)] x 1/12 x PR (nil if below nil) and BDA x ETW / (ETW + EIW), and not more than the cl 5(1) amount; the deductible amount the employer claims by notice under cl 6(2)";
+const VIC_STATED: &str = "Payroll Tax Act 2007 (Vic) Sch 2 cl 6(1): the deductible amount is the amount in the employer's most recent notice under cl 6(2), or in the Commissioner's determination under cl 6(5) while one is in force, as stated";
+const VIC_CAP: &str = "stated_deduction cannot be more than the cl 5(1) amount for the month (Payroll Tax Act 2007 (Vic) Sch 2 cl 6(4) and (5)).";
 const VIC_RATE: &str = "Payroll Tax Act 2007 (Vic) Sch 2 cl 4(1) and (2) ((TW - D) x R + S + T) and cl 2(h): 4.85%, or 1.2125% for a regional employer (s 3A)";
 const VIC_SURCHARGE: &str = "Payroll Tax Act 2007 (Vic) Sch 2 cl 4(3) (a month without interstate wages: nil to $833,333 of the month's taxable wages, (TW - 833,333) x 0.5% to $8,333,333, then TW x 1% - 45,833) or cl 4(4) (a month with interstate wages: nil while ETW + EIW is not more than $10 million, then [TW - ETW x 833,333 / (ETW + EIW)] x 0.5%, and above $100 million TW x 1% - [ETW x 833,333 + ETW x 8,333,333] / (ETW + EIW) x 0.5%): the mental health and wellbeing surcharge, S";
 const VIC_COVID: &str = "Payroll Tax Act 2007 (Vic) Sch 2 cl 1B: the COVID-19 debt temporary payroll tax surcharge, T, equal to S for a financial year from 1 July 2023 to 30 June 2033";
 
-const SHARED: &str = "(estimated_taxable_wages + estimated_interstate_wages)";
+/// The stated deduction as the month's deduction, citing `authority`, when
+/// one is stated; refused above `cap`, which `why` explains.
+pub(super) fn stated_deduction(
+    m: &Month,
+    authority: &'static str,
+    cap: Option<(&Decimal, &str)>,
+) -> Result<Option<Step>> {
+    let Some(stated) = &m.stated else {
+        return Ok(None);
+    };
+    if let Some((cap, why)) = cap
+        && stated.gt(cap)?
+    {
+        return refuse("payroll_tax_monthly.deduction_above_cap", why);
+    }
+    let value = stated.clone();
+    let deduction = step("deduction", authority, "stated_deduction", &[stated], value);
+    Ok(Some(deduction))
+}
 
 /// Victoria's cl 5(1) amount.
 fn vic_limit(m: &Month, authority: &'static str, id: &'static str) -> Result<Step> {
@@ -134,7 +156,11 @@ pub(super) fn vic(m: &Month) -> Result<Worked> {
         vic_limit(m, VIC_LOCAL, "deduction")?
     } else {
         let limit = vic_limit(m, VIC_LIMIT, "clause_5_amount")?;
-        let claim = vic_claim(m, &limit)?;
+        let cap = Some((&limit.value, VIC_CAP));
+        let claim = match stated_deduction(m, VIC_STATED, cap)? {
+            Some(stated) => stated,
+            None => vic_claim(m, &limit)?,
+        };
         return vic_charges(m, vec![limit], claim);
     };
     vic_charges(m, vec![], deduction)
@@ -167,113 +193,21 @@ fn vic_charges(m: &Month, mut steps: Vec<Step>, deduction: Step) -> Result<Worke
     })
 }
 
-const QLD_ACTUAL: &str = "Payroll Tax Act 1971 (Qld) ss 17 and 20(2)(c), current as at 22 October 2026, read on 26 November 2026: the actual periodic deduction, the greater of nil and FME / G - (TW - FME / G) / 7, with E $108,333 and a whole month (F = G, M = 1), for an employer that pays no interstate wages in the month and is not a previous interstate wage payer";
-const QLD_FIXED: &str = "Payroll Tax Act 1971 (Qld) ss 17 and 20(2)(a) and (b): the fixed periodic deduction, the greater of nil and QW / AW x (E - (AW / 12 - E) / 7) x M, with E $108,333, M = 1 and QW and AW the employer's estimated taxable wages and estimated taxable and interstate wages for the year, worked on the most recent calculation day (s 18)";
-const QLD_RATE: &str = "Payroll Tax Act 1971 (Qld) ss 10(1), (2) and (4) and 20(1)(b): 4.75%, or 4.95% when the month's taxable and interstate wages together are more than $541,666";
-const QLD_PRIMARY_T: &str = "Payroll Tax Act 1971 (Qld) ss 43C(1) and 43E(3): the primary periodic threshold, $10 million x C / D x M / 12, C and D the estimated taxable wages and estimated taxable and interstate wages for the year";
-const QLD_ADDITIONAL_T: &str = "Payroll Tax Act 1971 (Qld) ss 43D(1) and 43E(4): the additional periodic threshold, $100 million x C / D x M / 12";
-const QLD_PRIMARY: &str = "Payroll Tax Act 1971 (Qld) s 43F(2): the primary periodic liability, the greater of nil and (TW - PPT x A / B) x 0.25%, wages paid on every day of the month (A = B)";
-const QLD_ADDITIONAL: &str = "Payroll Tax Act 1971 (Qld) s 43F(3): the additional periodic liability, the greater of nil and (TW - APT x A / B) x 0.5%";
-
-/// Queensland's actual or fixed periodic deduction.
-fn qld_deduction(m: &Month, e: &Decimal) -> Result<Step> {
-    if m.iw.is_zero() && !m.previous {
-        let fall = m.tw.sub(e)?.div(&int(7))?;
-        let value = py_max(int(0), e.sub(&fall)?)?;
-        return Ok(step(
-            "deduction",
-            QLD_ACTUAL,
-            "max(0, maximum_monthly_deduction - (taxable_wages - maximum_monthly_deduction) / 7)",
-            &[e, &m.tw, e],
-            value,
-        ));
-    }
-    let aw = m.estimated()?;
-    let fall = aw.div(&int(12))?.sub(e)?.div(&int(7))?;
-    let value = py_max(int(0), m.shared(&e.sub(&fall)?)?)?;
-    let formula = format!(
-        "max(0, estimated_taxable_wages / {SHARED} x (maximum_monthly_deduction - ({SHARED} / 12 - maximum_monthly_deduction) / 7))"
-    );
-    let operands = [&m.etw, &m.etw, &m.eiw, e, &m.etw, &m.eiw, e];
-    Ok(step("deduction", QLD_FIXED, &formula, &operands, value))
-}
-
-/// A periodic threshold, `whole` x C / D / 12, and its levy at `charge`,
-/// the rate named `rate_name`.
-fn qld_levy(
-    m: &Month,
-    (threshold_id, threshold_authority): (&'static str, &'static str),
-    (id, authority): (&'static str, &'static str),
-    (whole, charge, rate_name): (&Decimal, &Decimal, &str),
-) -> Result<[Step; 2]> {
-    let value = m.shared(whole)?.div(&int(12))?;
-    let formula = format!("{whole} x estimated_taxable_wages / {SHARED} / 12");
-    let threshold = step(
-        threshold_id,
-        threshold_authority,
-        &formula,
-        &[&m.etw, &m.etw, &m.eiw],
-        value,
-    );
-    let levy = py_max(int(0), m.tw.sub(&threshold.value)?.mul(charge)?)?;
-    let formula = format!("max(0, (taxable_wages - {threshold_id}) x {rate_name})");
-    let operands = [&m.tw, &threshold.value, charge];
-    let levy = step(id, authority, &formula, &operands, levy);
-    Ok([threshold, levy])
-}
-
-pub(super) fn qld(m: &Month) -> Result<Worked> {
-    if m.regional {
-        return refuse(
-            "payroll_tax_monthly.regional_discount",
-            "A Queensland regional employer is not worked: the 1% discount on the rate (Payroll Tax Act 1971 (Qld) s 10A) turns on where its principal place of employment and employees are, which this worksheet does not take.",
-        );
-    }
-    let [e, upper, low, high] = ["108333", "541666", "0.0025", "0.005"].map(d);
-    let applied = d(if m.tw.add(&m.iw)?.gt(&upper)? {
-        "0.0495"
-    } else {
-        "0.0475"
-    });
-    let charged = taxed(m, qld_deduction(m, &e)?, (QLD_RATE, &applied))?;
-    let [pt, pl] = qld_levy(
-        m,
-        ("primary_periodic_threshold", QLD_PRIMARY_T),
-        ("mental_health_levy_primary", QLD_PRIMARY),
-        (&d("10000000"), &low, "levy_rate"),
-    )?;
-    let [at, al] = qld_levy(
-        m,
-        ("additional_periodic_threshold", QLD_ADDITIONAL_T),
-        ("mental_health_levy_additional", QLD_ADDITIONAL),
-        (&d("100000000"), &high, "additional_levy_rate"),
-    )?;
-    // The thresholds come first, so the 3 charges end the steps.
-    let mut steps = vec![pt, at];
-    steps.extend(charged);
-    steps.extend([pl, al]);
-    let rates = vec![
-        rate("maximum_monthly_deduction", &e),
-        rate("rate", &applied),
-        rate("levy_rate", &low),
-        rate("additional_levy_rate", &high),
-    ];
-    Ok(Worked {
-        steps,
-        charges: 3,
-        rates,
-    })
-}
-
 const WA_RATE: &str = "Pay-roll Tax Act 2002 (WA) s 5(4), version 00-d0-02, read on 26 November 2026: 5.5% on wages paid or payable on or after 1 July 2023";
 const WA_NIL: &str = "Pay-roll Tax Assessment Act 2002 (WA) s 11(1)(a) and s 12(1), version 04-d0-03, read on 26 November 2026: a local non-group employer whose WA taxable wages for the month are not more than the monthly threshold amount, $83,333 (s 8(2)), pays no pay-roll tax, so the whole of them is deducted";
 const WA_FULL: &str = "Pay-roll Tax Assessment Act 2002 (WA) s 11(1)(b) and s 12(2): at or above the apportioned upper threshold, $7,500,000 / 12 = $625,000 (s 8(3)), the rate applies to all the month's WA taxable wages";
 const WA_TAPER: &str = "Pay-roll Tax Assessment Act 2002 (WA) s 11(1)(c) and (2): the deductable amount AT - (W - AT) x TV, with AT the monthly threshold amount $83,333 (ss 8(2) and 12(1)) and TV the tapering value AT / (UT - AT) for the year, $1,000,000 / $6,500,000 (s 8(4))";
-const WA_NOMINATED: &str = "Pay-roll Tax Assessment Act 2002 (WA) s 15(1), (2) and (7): an interstate non-group employer's deduction is the amount the Commissioner nominated (nil if none), as stated; the rate applies to the month's WA taxable wages less it, never below nil";
+const WA_NOMINATED: &str = "Pay-roll Tax Assessment Act 2002 (WA) s 15(1), (2) and (7): an interstate non-group employer's deduction is the amount the Commissioner nominated (nil if none), as stated; the rate applies to the month's WA taxable wages less it";
 
 pub(super) fn wa(m: &Month) -> Result<Worked> {
     let applied = d("0.055");
     let deduction = if let Some(stated) = &m.stated {
+        if stated.gt(&m.tw)? {
+            return refuse(
+                "payroll_tax_monthly.nomination_above_wages",
+                "stated_deduction is more than the month's WA taxable wages, and Pay-roll Tax Assessment Act 2002 (WA) s 15(1) applies the rate to the difference between them without saying how a negative difference is treated.",
+            );
+        }
         step(
             "deduction",
             WA_NOMINATED,
@@ -313,6 +247,8 @@ pub(super) fn wa(m: &Month) -> Result<Worked> {
 }
 
 const SA_DEDUCTION: &str = "Payroll Tax Act 2009 (SA) Sch 2 cl 6(3) and (4), version 31.3.2026, read on 26 November 2026: D = T / (T + I) x the prescribed amount, $50,000 (cl 2), T and I the estimated taxable and interstate wages for the year; the deductible amount the employer claims by notice under cl 6(2)";
+const SA_STATED: &str = "Payroll Tax Act 2009 (SA) Sch 2 cl 6(1): the deductible amount is the amount in the employer's most recent notice under cl 6(2), or in the Commissioner's determination under cl 6(5) while one is in force, as stated";
+const SA_CAP: &str = "stated_deduction cannot be more than the prescribed amount, $50,000 (Payroll Tax Act 2009 (SA) Sch 2 cll 2, 6(4) and 6(5)).";
 const SA_NIL: &str = "Payroll Tax Act 2009 (SA) Sch 2 cl 5(1a)(b) sets a rate only when the total annualised relevant wages (the year's estimated taxable and interstate wages, cl 5(1b)) are more than $1,500,000, and Sch 1 cl 4 imposes no tax for a year at or below the threshold: nil";
 const SA_PHASED: &str = "Payroll Tax Act 2009 (SA) Sch 2 cl 5(1) and (1a)(b)(i): R = (TARW - $1,500,000) / $200,000 x 4.95% when the total annualised relevant wages are more than $1,500,000 and not more than $1,700,000";
 const SA_FULL: &str = "Payroll Tax Act 2009 (SA) Sch 2 cl 5(1) and (1a)(b)(ii): 4.95% when the total annualised relevant wages are more than $1,700,000";
@@ -322,7 +258,10 @@ pub(super) fn sa(m: &Month) -> Result<Worked> {
     let value = m.shared(&prescribed)?;
     let formula = format!("estimated_taxable_wages / {SHARED} x prescribed_amount");
     let operands = [&m.etw, &m.etw, &m.eiw, &prescribed];
-    let deduction = step("deduction", SA_DEDUCTION, &formula, &operands, value);
+    let deduction = match stated_deduction(m, SA_STATED, Some((&prescribed, SA_CAP)))? {
+        Some(stated) => stated,
+        None => step("deduction", SA_DEDUCTION, &formula, &operands, value),
+    };
     let tarw = m.estimated()?;
     let (authority, applied) = if !tarw.gt(&threshold)? {
         (SA_NIL, int(0))
@@ -354,6 +293,8 @@ pub(super) fn sa(m: &Month) -> Result<Worked> {
 
 const ACT_LOCAL: &str = "Payroll Tax Act 2011 (ACT) Sch 2 s 2.3(1) (republication R20, effective 26 December 2025) and the Taxation Administration (Amounts and Rates—Payroll Tax) Determination 2026 (DI2026-151) s 5(b), both read on 26 November 2026: for a month without interstate wages, the monthly threshold amount for s 86, $145,833.33";
 const ACT_SHARED: &str = "Payroll Tax Act 2011 (ACT) Sch 2 s 2.4(3) to (5): D = A x T / (T + I), A the s 86 amount ($145,833.33, DI2026-151 s 5(b)) and T and I the estimated taxable and interstate wages for the year; the deductible amount the employer claims by notice under s 2.4(2)";
+const ACT_STATED: &str = "Payroll Tax Act 2011 (ACT) Sch 2 s 2.4(1): the deductible amount is the amount in the employer's most recent notice under s 2.4(2), or in the commissioner's determination under s 2.4(6) while one is in force, as stated";
+const ACT_CAP: &str = "stated_deduction cannot be more than the s 2.3(1) amount, $145,833.33 (Payroll Tax Act 2011 (ACT) Sch 2 s 2.4(5) and (6); DI2026-151 s 5(b)).";
 const ACT_RATE: &str = "Payroll Tax Act 2011 (ACT) Sch 2 s 2.2 and DI2026-151 s 5(d)(ii) and Table 2, by the month's total wages (taxable and interstate): 6.75% to $1,666,666.66, 6.85% to $4,166,666.66, 7.35% to $8,333,333.33, 7.85% to $12,500,000 and 8.75% above";
 const ACT_NONE: &str = "Payroll Tax Act 2011 (ACT) Sch 2 s 2.2(2): the deduction is equal to or more than the month's taxable wages, so no payroll tax is payable (DI2026-151 Table 2 sets no rate for total wages of $145,833.33 or less)";
 
@@ -398,6 +339,8 @@ pub(super) fn act(m: &Month) -> Result<Worked> {
             &[&threshold],
             threshold.clone(),
         )
+    } else if let Some(stated) = stated_deduction(m, ACT_STATED, Some((&threshold, ACT_CAP)))? {
+        stated
     } else {
         let formula = format!("monthly_threshold x estimated_taxable_wages / {SHARED}");
         let operands = [&threshold, &m.etw, &m.etw, &m.eiw];
@@ -423,29 +366,20 @@ pub(super) fn act(m: &Month) -> Result<Worked> {
 }
 
 const NT_DEDUCTION: &str = "Payroll Tax Act 2009 (NT) Sch 2 cll 6(1) and 7, as in force at 1 July 2026, read on 26 November 2026: the deductible amount determined in a manner approved by the Commissioner, as stated, not more than TA / 12 (TA $2,500,000, Sch 1 cl 1)";
-const NT_RATE: &str = "Payroll Tax Act 2009 (NT) Sch 2 cl 5 ((TW - D) x R) and s 7A: 5.5%, or 6.5% when the taxable and interstate wages for the year (here as estimated) are equal to or greater than $100,000,000";
+const NT_RATE: &str = "Payroll Tax Act 2009 (NT) Sch 2 cl 5 ((TW - D) x R) and s 7A(1): 5.5%. Section 7A(2)'s 6.5% turns on the year's taxable and interstate wages reaching $100,000,000, so a month whose estimate for the year reaches it is refused, and the annual adjustment (s 83) settles a year that reaches it unforeseen";
+const NT_CAP: &str = "stated_deduction cannot be more than the threshold amount over 12, $208,333.33 (Payroll Tax Act 2009 (NT) Sch 2 cll 6(1) and 7(2)).";
 
 pub(super) fn nt(m: &Month) -> Result<Worked> {
-    let cap = d("2500000").div(&int(12))?;
-    let stated = m
-        .stated
-        .clone()
-        .expect("required for the Northern Territory");
-    if stated.gt(&cap)? {
+    if !m.estimated()?.lt(&d("100000000"))? {
         return refuse(
-            "payroll_tax_monthly.deduction_above_cap",
-            "stated_deduction cannot be more than the threshold amount over 12, $208,333.33 (Payroll Tax Act 2009 (NT) Sch 2 cll 6(1) and 7(2)).",
+            "payroll_tax_monthly.rate_unsettled",
+            "The year's estimated taxable and interstate wages reach $100,000,000, and Payroll Tax Act 2009 (NT) s 7A(2) sets 6.5% on the wages paid or payable for the year, not on an estimate, so the month's rate is not settled.",
         );
     }
-    let deduction = step(
-        "deduction",
-        NT_DEDUCTION,
-        "stated_deduction",
-        &[&stated],
-        stated.clone(),
-    );
-    let high = !m.estimated()?.lt(&d("100000000"))?;
-    let applied = d(if high { "0.065" } else { "0.055" });
+    let cap = d("2500000").div(&int(12))?;
+    let deduction = stated_deduction(m, NT_DEDUCTION, Some((&cap, NT_CAP)))?
+        .expect("required for the Northern Territory");
+    let applied = d("0.055");
     let steps = taxed(m, deduction, (NT_RATE, &applied))?;
     let rates = vec![rate("threshold", d("2500000")), rate("rate", &applied)];
     Ok(Worked {

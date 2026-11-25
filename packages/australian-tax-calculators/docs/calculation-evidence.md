@@ -2906,14 +2906,21 @@ Queensland's fixed periodic deduction and levy thresholds use them (ss 17 and
 43C to 43E); South Australia's deduction and rate (Sch 2 cll 5 and 6); and the
 ACT's deduction with interstate wages (Sch 2 s 2.4). Where an Act's
 deductible amount is the one the employer claims by notice (Vic cl 6, SA cl 6,
-ACT s 2.4), the worksheet works the amount the Act's formula gives. The
+ACT s 2.4), the worksheet works the amount the Act's formula gives unless
+an amount is stated, which it takes as the latest notice's or the
+Commissioner's determination (refused above the Act's cap); Queensland's
+s 21 deduction and s 43E(1) thresholds are taken the same way. The
 Northern Territory's monthly deduction is determined in a manner the
 Commissioner approves (Sch 2 cll 6 and 7), and Western Australia's for an
 interstate employer is the Commissioner's nomination (s 15), so both are
-stated. The Northern Territory's 6.5% rate turns on the year's wages (s 7A), so
-the month takes it on the year's estimate. Western Australia's s 15 applies
-the rate to the difference between the wages and the nomination; a
-nomination above the month's wages leaves nil.
+stated. The Northern Territory's 6.5% rate turns on the year's actual wages
+(s 7A(2)), so a month whose estimate reaches $100 million is refused and the
+others take 5.5% (s 7A(1)), the annual adjustment settling a year that reaches
+it unforeseen. Western Australia's s 15 applies the rate to the difference
+between the wages and the nomination and does not say how a negative
+difference is treated, so a nomination above the month's wages is refused.
+The annual refund is reduced by `other_refunds` where s 83(4) (s 83(5) in the
+ACT) so provides.
 
 `tests/payroll_tax_monthly.rs` and the reconciliation tests in
 `tests/payroll_tax.rs` hold these cases:

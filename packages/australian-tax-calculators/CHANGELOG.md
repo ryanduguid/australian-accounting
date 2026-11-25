@@ -10,11 +10,13 @@
   Northern Territory, from each Act's monthly provisions and the year's
   estimated wages. New codes: `payroll_tax_monthly.act_unread`,
   `deduction_above_cap`, `estimate_invalid`, `grouped`, `interstate_unworked`,
-  `jurisdiction_invalid`, `last_period`, `month_invalid`, `part_year`,
-  `rate_unset`, `regional_discount` and `surcharge_negative`. `derive` takes it.
-- `payroll-tax` takes `periodic_tax` (and in Queensland `periodic_levy`) and
-  reconciles the year against the periodic returns: what remains payable and
-  what is refunded, under each Act's annual adjustment. New code:
+  `jurisdiction_invalid`, `last_period`, `month_invalid`,
+  `nomination_above_wages`, `part_year`, `rate_unset`, `rate_unsettled`,
+  `regional_discount` and `surcharge_negative`. `derive` takes it.
+- `payroll-tax` takes `periodic_tax` (and in Queensland `periodic_levy`,
+  elsewhere but Western Australia `other_refunds`) and reconciles the year
+  against the periodic returns: what remains payable and what is refunded,
+  under each Act's annual adjustment. New code:
   `payroll_tax.reconciliation_unread` (New South Wales).
 
 ## 1.4.0

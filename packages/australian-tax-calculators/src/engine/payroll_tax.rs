@@ -42,6 +42,7 @@ pub struct PayrollTaxArgs<'a> {
     pub employed_all_year: &'a Arg,
     pub periodic_tax: Option<&'a Arg>,
     pub periodic_levy: Option<&'a Arg>,
+    pub other_refunds: Option<&'a Arg>,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }

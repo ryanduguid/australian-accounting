@@ -3112,13 +3112,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "payroll_tax",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
-            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads; New South Wales's is refused. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
+            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads; New South Wales's is refused. In Victoria, South Australia, Tasmania, the ACT and the Northern Territory the refund is reduced by other_refunds, any other refund of payroll tax made for the year. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
         ],
     ),
     (
         "payroll_tax_monthly",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable, and the deductible amount an employer may claim on estimates; this worksheet takes the wages, the year's estimates and any stated deduction as established.",
+            "A Commissioner's determination, or in Victoria, South Australia and the ACT the amount in the employer's latest notice, replaces the Act's formula for the deduction (and in Queensland for each periodic threshold): state it as stated_deduction (or stated_primary_threshold and stated_additional_threshold), or the formula amount is worked.",
             "A monthly return is provisional: the annual reconciliation (payroll-tax with periodic_tax) settles the year against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns.",
         ],
     ),
@@ -5857,7 +5858,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "payroll_tax_monthly.deduction_above_cap",
-        "stated_deduction is more than the Northern Territory's monthly cap, the threshold amount over 12.",
+        "stated_deduction is more than the cap the jurisdiction's Act sets on a monthly deductible amount.",
     ),
     (
         "payroll_tax_monthly.estimate_invalid",
@@ -5884,12 +5885,20 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "month is not a month of 2026-27 in the form YYYY-MM.",
     ),
     (
+        "payroll_tax_monthly.nomination_above_wages",
+        "Western Australia's nominated deduction is more than the month's taxable wages, and s 15 does not say how a negative difference is treated.",
+    ),
+    (
         "payroll_tax_monthly.part_year",
         "The employer did not pay wages on every day of the year.",
     ),
     (
         "payroll_tax_monthly.rate_unset",
         "The ACT's Table 2 sets no monthly rate for the month's total wages, yet tax would be payable.",
+    ),
+    (
+        "payroll_tax_monthly.rate_unsettled",
+        "The Northern Territory's estimate for the year reaches $100 million, and s 7A(2) sets 6.5% on the year's actual wages.",
     ),
     (
         "payroll_tax_monthly.regional_discount",
