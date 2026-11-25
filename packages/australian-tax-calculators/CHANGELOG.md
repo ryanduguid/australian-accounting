@@ -4,6 +4,30 @@
 
 ### Added
 
+- `gst-food-retailer-sam` works out, for one tax period from 28 September
+  2017 to 30 June 2027, the GST-free share of trading sales and trading stock
+  purchases under the food retailers' simplified accounting methods: the
+  business norms, stock purchases and snapshot methods of F2017L01274, the
+  supermarket and convenience store method of F2025L01055 and the restaurant,
+  cafe and caterer method of F2026L01275 (including s 7(d) and the 6-month
+  first-tax-period proportion rule), with trading stock input tax
+  credits for the last 2. New codes: `gst_food_retailer_sam.amount_exceeds_total`,
+  `components_unbalanced`, `first_period_sample_required`, `method_invalid`,
+  `method_not_in_force`, `new_business_unsettled`,
+  `not_eligible`, `retailer_type_invalid`, `sample_invalid`,
+  `stock_role_invalid`, `tax_period_invalid`, `tax_period_spans_halves` and
+  `total_nil`.
+- `gst-error-correction` tests whether an earlier GST error may be corrected
+  in a later return under F2023L01284 ss 4, 6 and 7, with the debit error time
+  and value limits by current GST turnover and excluding TAA 1953 Sch 1
+  s 105-65 amounts; `gst-credit-time-limit` tests whether an input tax credit
+  can be claimed under GST Act s 29-10(3) and Division 93 (including s 29-10(5)
+  attribution elections, s 93-15's supplier assessment qualification and
+  s 93-10(4) and (5) refusals). New codes:
+  `gst_error_correction.dates_invalid`, `fact_invalid`, `lodged_outside_year`,
+  `gst_credit_time_limit.dates_invalid`, `fact_invalid`,
+  `partial_supplier_gst`, `return_given_outside_year`,
+  `section_93_10_exception` and `special_attribution`.
 - `aml-cdd-review`: deterministic Australian AML/CTF Tranche 2 customer due
   diligence helper for 2026-27 with zero personal data (`country_risk` using
   AUSTRAC's Basel AML Index 0-5 / 5.01-6 / 6.01-10.00 bands and FATF/sanctions

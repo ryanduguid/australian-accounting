@@ -507,12 +507,24 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether an entity, or a GST group member, exceeds the financial acquisitions threshold at a time in a month in a year from 2020-21 to 2026-27 (GST Act Division 189): the current acquisitions test over the 12 months ending at the end of the month (s 189-5) and the future acquisitions test over the month and the next 11 months (s 189-10), each exceeded when the input tax credits for financial acquisitions, treated as solely for a creditable purpose, are more than $150,000 or more than 10% of the input tax credits for all acquisitions and importations of the same months. The operator establishes which acquisitions are financial acquisitions (s 189-15: relating to financial supplies other than borrowings) and the credit amounts, with a GST group's taken across every member. Excludes which supplies are financial supplies and the reduced credit acquisitions an entity over the threshold may still claim.",
     ),
     (
+        "gst_food_retailer_sam",
+        "For one tax period from 28 September 2017 to 30 June 2027 of a retailer that sells food and has chosen a simplified accounting method under GST Act s 123-10, the GST-free share of trading sales and trading stock purchases the method gives: the business norms, stock purchases and snapshot methods of F2017L01274, the supermarket and convenience store sales percentage method of F2025L01055 (from 9 September 2025) and the restaurant, cafe and caterer purchases snapshot method of F2026L01275 (from 24 September 2026), with the trading stock input tax credits where the method works them out. Under F2026L01275 s 7, the GST-free proportion worked out for the first tax period in a 6-month half applies to every tax period in that half (`first_tax_period_sample` for later tax periods), and s 7(d) applies when `method_started` is stated; omitting `method_started` establishes that starting to use the method did not prevent the ordinary window. Eligibility is stated, not tested. Excludes the choice and its revocation, GST on sales, other acquisitions' credits, adjustments, the prisons and detention determination and which goods are GST-free or trading stock.",
+    ),
+    (
         "gst_going_concern",
         "Whether one supply of a going concern is GST-free under GST Act s 38-325 in a year from 2020-21 to 2026-27, condition by condition, on facts the operator states: consideration, the recipient's registration, the written agreement and its timing (GSTR 2002/5 para 182), the supply of all things necessary for the continued operation of the enterprise and the supplier carrying it on until the day of the supply. The operator establishes each fact; the command never infers whether a supply is of a going concern from facts not stated. Excludes farm land supplied for farming (Subdivision 38-O), supplies partly outside the arrangement (s 9-80), the price and the recipient's s 135-5 and s 135-10 adjustments, which are noted, not worked out.",
     ),
     (
         "gst_second_hand_goods",
         "One acquisition of second-hand goods under GST Act Subdivision 66-A in a year from 2020-21 to 2026-27: the conditions of s 66-5 and the s 195-1 definition, and the notional input tax credit of s 66-10, 1/11 of the consideration, capped above $300 at the GST on your taxable supply of the goods. The operator establishes the facts, the consideration and that GST. Excludes goods divided for re-supply (Subdivision 66-B), goods of valuable metal, goods leased before sale (GSTD 2012/6), the tax period the credit is attributable to (s 66-15), which is noted, not worked out, and the records s 66-17 requires.",
+    ),
+    (
+        "gst_error_correction",
+        "Whether one error in an earlier GST tax period may be corrected in a GST return lodged in 2024-25 to 2026-27 under the A New Tax System (Goods and Services Tax) (Correcting GST Errors) Determination 2023 (F2023L01284) ss 4, 6 and 7: the conditions for every error (excluding credits ceased under Division 93 and amounts the Commissioner need not refund under TAA 1953 Sch 1 s 105-65) and, for a debit error, the time and value limits by current GST turnover. The operator establishes each fact, including the period of review and the net sum of the debit errors. It works no amount and does not amend or revise any assessment or activity statement (s 8 provides only that an earlier-period error cannot be corrected by amending a later period's assessment).",
+    ),
+    (
+        "gst_credit_time_limit",
+        "Whether one input tax credit can be taken into account in a GST return given in 2024-25 to 2026-27: a tax invoice held when the return is given (GST Act s 29-10(3), not needed for a supply of $75 or less under s 29-80(1) and reg 29-80.01), attribution to that return (no earlier attributable return or intervening return given whilst holding the invoice, unless moved by a s 29-10(5) election), the 4 years of s 93-5(1) and the supplier's period of review where GST on the related supply was not taken into account in full in the supplier's assessment (s 93-15). The operator establishes each date and fact. Refuses partial supplier GST accounting after that review period, the exceptions in s 93-10(1), (4) and (5) and s 29-10(3) attribution determinations, and works no amount.",
     ),
     (
         "tourist_refund",
@@ -529,6 +541,10 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "long_service_leave",
         "One employee's long service leave under the general long service leave Act of one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, at a last day from 1 July 2020 to 30 June 2027 and not before the Act's text as read (New South Wales 25 March 2021, Victoria 1 July 2021, Western Australia 20 June 2022): the weeks an employee still employed can take, or the weeks paid when employment ends for the reason given, less leave already taken or paid, and their value at the weekly pay. Service runs from the first day to the end of the last day, less excluded days, in completed years, then completed months, then days, an anniversary on a missing day falling on the 1st of the next month; a part year is months over 12 plus days over 365.25, or in Queensland days over 364. New South Wales s 4(2)(a): 8 2/3 weeks for 10 years and 4 1/3 for each further 5; on ending after 10 to 15 years for any reason a proportion on 3 months for 15 years, after 15 each completed year at 2 months for 10, and after 5 to 10 years for the employer ending it other than for serious and wilful misconduct, illness, incapacity or a pressing necessity, or death, a proportion on 2 months for 10. Victoria ss 6, 9 and 10: after 7 years 1/60 of the continuous employment. Queensland s 95: 8.6667 weeks for 10 years and the proportion for a further 5 or more, and on ending after 7 years a proportion on 8.6667 weeks for 10, before 10 only for the reasons in s 95(4). Western Australia s 8, South Australia s 5, Tasmania ss 8 and 9, the ACT ss 3, 4, 11A and 11C and the Northern Territory ss 8 and 10 as the README sets out. The operator establishes the dates, the excluded days, the leave taken, the reason and the ordinary weekly pay. Weeks are shown to 4 places, half up; the value is the exact weeks less leave taken times the pay, half up to the cent once. Refuses a fixed term ending before the full period in New South Wales, Queensland, Tasmania, the ACT and the Northern Territory, a death under 10 years in the Northern Territory, leaving without notice between 7 and 10 years in South Australia, a dismissal found unfair outside Queensland where the reason decides, leave taken in Tasmania with service from before 1 July 2012, leave taken above the exact weeks, a start before 23 June 1990 and a last day outside the dates covered. Excludes awards, agreements and portable schemes that displace the Act, Queensland's seasonal employees, mining and casual industry schemes, what counts as service or ordinary pay, leave in advance, cashing out and public holidays during leave.",
+    ),
+    (
+        "deferred_revenue",
+        "One performance obligation's revenue and contract balances under AASB 15 at each period end the operator states, for an obligation whose performance period starts in a financial year from 2020-21 to 2026-27, from the price allocated to it, its performance period and the pattern of progress the operator has established: time elapsed by day or by whole calendar month (an input method on a straight-line basis, paras 39, 40, B14 and B18) or the milestones reached with each one's amount (an output method, para B15). Revenue to date is the price times the days or whole months elapsed by the period end over those in the performance period, both ends counted, or the milestones dated on or before it, rounded half up to the cent; revenue in a period is the change in revenue to date. The receivable is what has been billed (become unconditionally due) and not received by the period end (paras 105 and 108), receipts settling billings first; consideration paid or due is the larger of billings and receipts to date, and the contract liability is that less revenue to date where positive (para 106), the contract asset revenue to date less it where positive (para 107, excluding the receivable). The daily and monthly patterns apply straight-line progress, which para B18 allows where the entity's efforts or inputs are expended evenly over the performance period; the monthly pattern counts whole calendar months ended, a calculation convention. Milestone amounts are the operator's measure of the progress each milestone depicts, not amounts AASB 15 sets. The schedule assumes the measure of progress and its estimates do not change over the periods shown (para 43). The operator establishes that the obligation is satisfied over time (paras 35 to 37), that the stated pattern faithfully depicts performance (paras 39 to 41 and B14 to B19), the transaction price (paras 47 to 72) and its allocation to the obligation (paras 73 to 90). Excludes contract costs (paras 91 to 104), modifications (paras 18 to 21), a changed measure of progress or estimate recognised prospectively in the period of the change and future periods (AASB 15 para 43; AASB 108 paras 36 to 38), impairment of a contract asset (para 107, AASB 9), GST and presentation. Refuses variable consideration (paras 50 to 59), a significant financing component (paras 60 to 65), consideration above the price (a refund liability, para 55), a changed measure of progress or estimate, monthly progress without whole calendar months and a performance period of more than 120 months.",
     ),
     (
         "wip_lockup",
@@ -1071,12 +1087,24 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
     (
+        "gst_food_retailer_sam",
+        "https://www.legislation.gov.au/F2017L01274/asmade/text",
+    ),
+    (
         "gst_going_concern",
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
         "gst_second_hand_goods",
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "gst_error_correction",
+        "https://www.legislation.gov.au/F2023L01284/latest/text",
+    ),
+    (
+        "gst_credit_time_limit",
+        "https://www.legislation.gov.au/C2004A00446/latest/text",
     ),
     (
         "tourist_refund",
@@ -1089,6 +1117,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "deferred_tax",
         "https://standards.aasb.gov.au/aasb-112-sep-2023",
+    ),
+    (
+        "deferred_revenue",
+        "https://standards.aasb.gov.au/sites/default/files/2026-11/AASB15_12-14_COMPdec22_07-26.pdf",
     ),
     (
         "wip_lockup",
@@ -2376,6 +2408,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "gst_food_retailer_sam",
+        &[
+            "https://www.legislation.gov.au/F2025L01055/asmade/text",
+            "https://www.legislation.gov.au/F2026L01275/asmade/text",
+            "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/in-detail/your-industry/gst-and-food/gst-for-food-retailers-simplified-accounting-methods",
+        ],
+    ),
+    (
         "gst_going_concern",
         &[
             "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_2/document_2.html",
@@ -2390,6 +2431,14 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A00446/2020-04-01/2020-04-01/text/original/epub/OEBPS/document_1/document_1.html",
             "https://www.ato.gov.au/law/view/document?docid=GSD/GSTD20126/NAT/ATO/00001",
         ],
+    ),
+    (
+        "gst_error_correction",
+        &["https://www.legislation.gov.au/C1953A00001/latest/text"],
+    ),
+    (
+        "gst_credit_time_limit",
+        &["https://www.legislation.gov.au/F2019L00417/latest/text"],
     ),
     (
         "tourist_refund",
@@ -2572,6 +2621,13 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "deferred_revenue",
+        &[
+            "https://www.aasb.gov.au/admin/file/content105/c9/AASB15_12-14_COMPdec22_01-23.pdf",
+            "https://www.legislation.gov.au/F2023C00187/latest/text",
+        ],
+    ),
+    (
         "impairment_test",
         &["https://www.aasb.gov.au/admin/file/content105/c9/AASB136_08-15_COMPdec22_01-23.pdf"],
     ),
@@ -2708,6 +2764,14 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "gst_food_retailer_sam",
+        &[
+            "The method applies only after the retailer notifies the Commissioner of its choice in the approved form (GST Act s 123-10); this worksheet takes the choice as made.",
+            "Amounts are shown to the cent from exact shares; the determinations set no rounding.",
+            "For pharmacies, F2017L01274 s 5(3)(b) is read as the ATO reads it: each purchases norm applies to that component's trading stock purchases.",
+        ],
+    ),
+    (
         "insurance_duty",
         &[
             "Each revenue office decides the class, any exemption and how a premium is apportioned between jurisdictions and classes; this worksheet takes the class and the apportioned premium as established.",
@@ -2719,6 +2783,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "long_service_leave",
         &[
             "An award, enterprise agreement, pre-modern federal award or portable long service leave scheme can displace the Act, and what counts as service and ordinary pay are the operator's facts: this worksheet applies the Act to them and does not decide them.",
+        ],
+    ),
+    (
+        "deferred_revenue",
+        &[
+            "The pattern of progress (for a straight line, that efforts are expended evenly, para B18), the milestone amounts, the price, billings and receipts are the operator's stated facts and judgements (AASB 15 paras 35 to 43 and B14 to B19); the worksheet schedules them and does not decide when the performance obligation is satisfied.",
         ],
     ),
     (
@@ -3906,6 +3976,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A worksheet step exceeded the decimal range.",
     ),
     (
+        "deferred_revenue.amount_invalid",
+        "contract_amount is 0.00: it must be above 0.",
+    ),
+    (
+        "deferred_revenue.consideration_invalid",
+        "billed or received is not a list of up to 500 objects, each a date and an amount above 0 and nothing else, totalling no more than contract_amount (AASB 15 para 55).",
+    ),
+    (
+        "deferred_revenue.dates_invalid",
+        "end is before start, the performance period is more than 120 months, or start is outside the year.",
+    ),
+    (
+        "deferred_revenue.estimate_changed",
+        "The measure of progress or an estimate in it changed over the periods shown: a change is recognised prospectively under AASB 15 para 43 and AASB 108 paras 36 to 38, which this worksheet does not model.",
+    ),
+    (
+        "deferred_revenue.financing_component",
+        "A significant financing component was stated (AASB 15 paras 60 to 65).",
+    ),
+    (
+        "deferred_revenue.milestones_invalid",
+        "milestones is not a list of 1 to 100 objects, each a label, a date in the performance period and an amount above 0, summing to contract_amount.",
+    ),
+    (
+        "deferred_revenue.month_boundary",
+        "Monthly progress was stated without whole calendar months: start is not a month's first day or end not a month's last day.",
+    ),
+    (
+        "deferred_revenue.pattern_invalid",
+        "pattern is not daily, monthly or milestones, or milestones is missing with milestones or given with another pattern.",
+    ),
+    (
+        "deferred_revenue.period_ends_invalid",
+        "period_ends is not a list of 1 to 120 dates in strictly ascending order.",
+    ),
+    (
+        "deferred_revenue.variable_consideration",
+        "Variable consideration was stated (AASB 15 paras 50 to 59).",
+    ),
+    (
         "deferred_tax.business_combination",
         "Deferred tax arising in a business combination was stated (AASB 112 paras 19 and 66 to 68).",
     ),
@@ -4658,6 +4768,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A special rule displaces or changes Division 21 for the debt: Subdivision 136-B, Division 126 (gambling), an assigned debt, GST Transition Act s 15G or Division 58 (representatives).",
     ),
     (
+        "gst_credit_time_limit.dates_invalid",
+        "assessment_date is before return_given.",
+    ),
+    (
+        "gst_credit_time_limit.fact_invalid",
+        "supplier_gst_accounted_for is not one of none, partial, full.",
+    ),
+    (
+        "gst_credit_time_limit.partial_supplier_gst",
+        "Only part of the GST on the related supply was accounted for after the supplier's review period ended without a tax invoice (GST Act s 93-15 ceases entitlement only to the shortfall).",
+    ),
+    (
+        "gst_credit_time_limit.return_given_outside_year",
+        "return_given is outside year.",
+    ),
+    (
+        "gst_credit_time_limit.section_93_10_exception",
+        "An exception under GST Act s 93-10(4) or (5) applies, preserving entitlement outside s 93-5(1).",
+    ),
+    (
+        "gst_credit_time_limit.special_attribution",
+        "A Commissioner's attribution determination applies, which sets other rules (GST Act s 93-10(1)).",
+    ),
+    (
         "gst_creditable_purpose_change.basis_missing",
         "application_basis is not text of 1 to 200 characters stating the method the applications rest on.",
     ),
@@ -4674,8 +4808,72 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "tax_period_months is not 1, 3 or 12.",
     ),
     (
+        "gst_error_correction.dates_invalid",
+        "earlier_return_due is before earlier_period_start, or lodged is before earlier_return_due.",
+    ),
+    (
+        "gst_error_correction.fact_invalid",
+        "error_kind is not credit or debit.",
+    ),
+    (
+        "gst_error_correction.lodged_outside_year",
+        "lodged is outside year.",
+    ),
+    (
         "gst_financial_acquisitions_threshold.fact_conflict",
         "The financial acquisitions' credits are more than the total credits that include them.",
+    ),
+    (
+        "gst_food_retailer_sam.amount_exceeds_total",
+        "A part given (fuel and post, actual GST-free purchases, GST-free sales or product line purchases) is more than the total it is part of.",
+    ),
+    (
+        "gst_food_retailer_sam.components_unbalanced",
+        "A pharmacy's sales components do not add up to total_sales, or its non-PBS and over-the-counter purchases to trading_stock_purchases.",
+    ),
+    (
+        "gst_food_retailer_sam.first_period_sample_required",
+        "Under F2026L01275 s 7, a later tax period in a 6-month half reuses the first tax period's sample (`first_tax_period_sample`) rather than taking a separate `purchases_sample`.",
+    ),
+    (
+        "gst_food_retailer_sam.method_invalid",
+        "method is not one of the 9 food retailer simplified accounting methods worked (the prisons and detention determination is not worked).",
+    ),
+    (
+        "gst_food_retailer_sam.method_not_in_force",
+        "The tax period starts before the method's determination commenced.",
+    ),
+    (
+        "gst_food_retailer_sam.new_business_unsettled",
+        "A 2017 sample method for a business that started trading in January to June, or a restaurant commencement before the half's first eligible tax period where paragraphs (a) and (b) cannot apply, which the determination does not settle.",
+    ),
+    (
+        "gst_food_retailer_sam.not_eligible",
+        "A stated eligibility condition of the method is not met.",
+    ),
+    (
+        "gst_food_retailer_sam.retailer_type_invalid",
+        "retailer_type is not one of the business norms retailers.",
+    ),
+    (
+        "gst_food_retailer_sam.sample_invalid",
+        "A sample period is not the required number of consecutive days, falls outside its window, or has a nil total or a GST-free figure above its total; or trading_started is outside the year or after the tax period.",
+    ),
+    (
+        "gst_food_retailer_sam.stock_role_invalid",
+        "stock_role is not converter or reseller, or a converter chose a stock purchases method.",
+    ),
+    (
+        "gst_food_retailer_sam.tax_period_invalid",
+        "The tax period is not within the year asked for.",
+    ),
+    (
+        "gst_food_retailer_sam.tax_period_spans_halves",
+        "A sample method's tax period runs across 31 December.",
+    ),
+    (
+        "gst_food_retailer_sam.total_nil",
+        "A total the method divides by is nil.",
     ),
     (
         "gst_going_concern.fact_invalid",
@@ -4927,7 +5125,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

@@ -141,6 +141,19 @@ const TAXABLE_INCOME_ARGS: &[(&str, Kind)] = &[
     ("scope_confirmed", Raw),
 ];
 
+/// Builds a static slice of `(name, Kind)` pairs, defaulting `Kind` to [`Raw`].
+macro_rules! cmd_args {
+    (@arg ($field:ident : $kind:ident)) => {
+        (stringify!($field), $kind)
+    };
+    (@arg $field:ident) => {
+        (stringify!($field), Raw)
+    };
+    ($($item:tt)+) => {
+        &[$(cmd_args!(@arg $item)),*]
+    };
+}
+
 /// Command, the worksheet's parameters in the original order.
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
@@ -163,6 +176,18 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
         "asic-fees",
         &[("fee", Raw), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
+        "gst-food-retailer-sam",
+        &[
+            ("method", Raw),
+            ("tax_period_start", Raw),
+            ("tax_period_end", Raw),
+            ("trading_stock_purchases", Dec),
+            ("eligibility", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
     ),
     (
         "gst-margin-scheme",
@@ -540,6 +565,25 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
         "wine-equalisation-tax",
         &[("dealings", Json), ("year", Raw), ("scope_confirmed", Raw)],
+    ),
+    (
+        "gst-error-correction",
+        cmd_args! {
+            error_kind earlier_period_start earlier_return_due lodged
+            (current_gst_turnover: Dec) (net_debit_errors: Dec) within_period_of_review
+            compliance_activity commissioner_permits already_corrected
+            reckless_or_intentional credit_ceased_under_division_93
+            unrefundable_under_section_105_65 year scope_confirmed
+        },
+    ),
+    (
+        "gst-credit-time-limit",
+        cmd_args! {
+            (supply_value: Dec) return_due tax_invoice_held_from return_given
+            assessment_date earlier_attributable_return_given section_29_10_5_election
+            supplier_review_ended_without_invoice supplier_gst_accounted_for
+            special_attribution section_93_10_exception year scope_confirmed
+        },
     ),
     (
         "tourist-refund",
@@ -1502,6 +1546,23 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "deferred-revenue",
+        &[
+            ("contract_amount", Dec),
+            ("start", Raw),
+            ("end", Raw),
+            ("pattern", Raw),
+            ("period_ends", Json),
+            ("billed", Json),
+            ("received", Json),
+            ("variable_consideration", Raw),
+            ("significant_financing_component", Raw),
+            ("estimate_changed", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "wip-lockup",
         &[
             ("entries", Json),
@@ -1710,7 +1771,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 97] = [
+const DERIVED: [&str; 98] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1790,6 +1851,7 @@ const DERIVED: [&str; 97] = [
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
+    "gst-food-retailer-sam",
     "portable-lsl-levy",
     "cgt-parcels",
     "work-expenses",
@@ -2239,6 +2301,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "fbt-meal-entertainment"
             | "fbt-car-parking"
             | "wine-equalisation-tax"
+            | "gst-error-correction"
+            | "gst-credit-time-limit"
             | "tourist-refund"
             | "vic-property-taxes"
             | "fbt-debt-waiver"
@@ -2307,6 +2371,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-bad-debt"
             | "deferred-tax"
             | "leave-provisions"
+            | "deferred-revenue"
             | "wip-lockup"
             | "impairment-test"
             | "long-service-leave"
@@ -2329,6 +2394,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "workers-compensation-premium"
             | "motor-vehicle-duty"
             | "insurance-duty"
+            | "gst-food-retailer-sam"
             | "portable-lsl-levy"
             | "gst-margin-scheme"
             | "franking-account"
@@ -2351,9 +2417,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             format!("{key} is not an input of {command}"),
         );
     }
+    let skip_debit_dec = command == "gst-error-correction"
+        && v.get("error_kind").and_then(Value::as_str) == Some("credit");
     let a: Vec<Arg> = params
         .iter()
-        .map(|(key, kind)| argument(v, key, *kind))
+        .map(|(key, kind)| {
+            let kind =
+                if skip_debit_dec && matches!(*key, "current_gst_turnover" | "net_debit_errors") {
+                    Raw
+                } else {
+                    *kind
+                };
+            argument(v, key, kind)
+        })
         .collect::<Result<_>>()?;
     // Optional: the study loan component's pay date, which selects the Schedule 8 coefficients.
     let pay_date = v.get("pay_date").map(arg);
@@ -2924,6 +3000,35 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 claims_costs: claims.as_ref(),
                 year: &a[4],
                 scope_confirmed: &a[5],
+            })
+        }
+        "gst-food-retailer-sam" => {
+            // Optional: each method's own inputs, which the method reads or
+            // refuses.
+            let given = engine::GST_FOOD_RETAILER_SAM_OPTIONAL
+                .iter()
+                .filter_map(|key| {
+                    let kind = match *key {
+                        "retailer_type" | "stock_role" | "trading_started" | "method_started" => {
+                            Raw
+                        }
+                        k if k.ends_with("sample") || k == "product_lines" => Json,
+                        _ => Dec,
+                    };
+                    optional(v, key, kind)
+                        .map(|found| found.map(|arg| (*key, arg)))
+                        .transpose()
+                })
+                .collect::<Result<Vec<_>>>()?;
+            engine::gst_food_retailer_sam(&engine::GstFoodRetailerSamArgs {
+                method: &a[0],
+                tax_period_start: &a[1],
+                tax_period_end: &a[2],
+                trading_stock_purchases: &a[3],
+                eligibility: &a[4],
+                given: &given,
+                year: &a[5],
+                scope_confirmed: &a[6],
             })
         }
         "transfer-duty" => engine::transfer_duty(&engine::TransferDutyArgs {
@@ -4137,6 +4242,38 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[11],
             })
         }
+        "gst-error-correction" => engine::gst_error_correction(&engine::ErrorCorrectionArgs {
+            error_kind: &a[0],
+            earlier_period_start: &a[1],
+            earlier_return_due: &a[2],
+            lodged: &a[3],
+            current_gst_turnover: &a[4],
+            net_debit_errors: &a[5],
+            within_period_of_review: &a[6],
+            compliance_activity: &a[7],
+            commissioner_permits: &a[8],
+            already_corrected: &a[9],
+            reckless_or_intentional: &a[10],
+            credit_ceased_under_division_93: &a[11],
+            unrefundable_under_section_105_65: &a[12],
+            year: &a[13],
+            scope_confirmed: &a[14],
+        }),
+        "gst-credit-time-limit" => engine::gst_credit_time_limit(&engine::CreditTimeLimitArgs {
+            supply_value: &a[0],
+            return_due: &a[1],
+            tax_invoice_held_from: &a[2],
+            return_given: &a[3],
+            assessment_date: &a[4],
+            earlier_attributable_return_given: &a[5],
+            section_29_10_5_election: &a[6],
+            supplier_review_ended_without_invoice: &a[7],
+            supplier_gst_accounted_for: &a[8],
+            special_attribution: &a[9],
+            section_93_10_exception: &a[10],
+            year: &a[11],
+            scope_confirmed: &a[12],
+        }),
         "tourist-refund" => engine::tourist_refund(&engine::TouristRefundArgs {
             departure_date: &a[0],
             departing_by: &a[1],
@@ -4212,6 +4349,25 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[18],
             scope_confirmed: &a[19],
         }),
+        "deferred-revenue" => {
+            // Optional: the milestones, taken only with pattern milestones.
+            let milestones = optional(v, "milestones", Json)?;
+            engine::deferred_revenue(&engine::DeferredRevenueArgs {
+                contract_amount: &a[0],
+                start: &a[1],
+                end: &a[2],
+                pattern: &a[3],
+                milestones: milestones.as_ref(),
+                period_ends: &a[4],
+                billed: &a[5],
+                received: &a[6],
+                variable_consideration: &a[7],
+                significant_financing_component: &a[8],
+                estimate_changed: &a[9],
+                year: &a[10],
+                scope_confirmed: &a[11],
+            })
+        }
         "wip-lockup" => {
             // Optional: the ageing buckets and the days the flows cover.
             let buckets = optional(v, "bucket_days", Json)?;

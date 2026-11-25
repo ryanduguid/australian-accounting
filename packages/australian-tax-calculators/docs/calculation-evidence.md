@@ -195,6 +195,39 @@ See [GST going concern](#gst-going-concern).
 
 See [GST going concern](#gst-going-concern).
 
+## GST error correction
+
+Added on 24 November 2026. Its sources were read that day through the Federal
+Register of Legislation: the A New Tax System (Goods and Services Tax)
+(Correcting GST Errors) Determination 2023 (F2023L01284, dated 6 September
+2023) ss 4 and 6 to 8, the GST Act compilation 96 (C2026C00081) ss 29-10,
+29-80, 93-5, 93-10 and 93-15, the GST Regulations 2019 compilation 5 reg
+29-80.01 and the Taxation Administration Act 1953 Sch 1 ss 105-65 (as referenced
+in F2023L01284 s 4(b)) and 155-35. No ATO example was read; the tests take each
+turnover band at its boundary, the last day of each time limit and $75.
+
+The debit error time limit is 'within' a number of months 'after the due
+date', so its last day counts: 18 months after 28 February 2025 is 28 August
+2026. The value limit is 'less than', so a net sum equal to it fails (and
+`net_debit_errors`, being debit error amounts less credit error amounts under s 4,
+may be negative). Section
+93-5(1)'s 4 years run from the day after the return's due day and end on the
+anniversary of it. Under s 29-10(1) to (5), `earlier_attributable_return_given`
+and `section_29_10_5_election` ensure an intervening return given whilst
+holding the invoice blocks claiming in a later return unless a valid s 29-10(5)
+election moved attribution to it. Section 93-15 takes `none`, `partial` or
+`full`: `full` preserves entitlement, `none` bars it when the supplier's review
+ended without a tax invoice, and `partial` in that case is refused because
+s 93-15 ceases entitlement only to the shortfall; s 93-10(1), (4)
+and (5) exceptions are refused explicitly. F2023L01284 s 8 provides only that
+an error cannot be corrected by amending a later period's assessment.
+
+`tests/gst_corrections.rs` holds each case, each boundary and each refusal.
+
+## GST credit time limit
+
+See [GST error correction](#gst-error-correction).
+
 ## Tourist refund
 
 Added on 24 November 2026. Its sources were read that day through the Federal
@@ -2572,6 +2605,53 @@ values, under every choice each jurisdiction asks.
 | ACT, new Category B, $80,000, 31 January and 1 February 2027 | Worked by hand from each determination | $3,177.00 and $3,419.00 |
 | Northern Territory, electric, $80,000 | Worked by hand: 300 lots of $100 above $50,000 | $900.00 |
 
+## GST food retailer SAM
+
+This worksheet was added on 24 November 2026. These were read that day
+through the Federal Register of Legislation's API (EPUB of each register ID):
+
+- A New Tax System (Goods and Services Tax) Act 1999 Div 123 (ss 123-5,
+  123-7, 123-10 and 123-15), compilation 96 (C2026C00081, from 1 January
+  2026).
+- Goods and Services Tax: Simplified Accounting Methods Determination 2017
+  for Retailers who sell Food (F2017L01274), as made: registered 27 September
+  2017, unamended, in force.
+- Simplified Accounting Methods - Supermarket and Convenience Stores
+  Determination 2025 (F2025L01055), registered 8 September 2025.
+- Simplified Accounting Method for Restaurants, Cafes and Caterers
+  Determination 2026 (F2026L01275), registered 23 September 2026; it repealed
+  the 2016 purchases snapshot determination, which is not worked.
+- The prisons and detention determination (F2025L00997) was read only to
+  leave it out.
+
+The ATO's 'GST for food retailers - simplified accounting methods' (pages
+last updated 23 October 2019) gives the examples the tests use: Carlo's hot
+bread shop ($60,000 and $71,250), Connie ($107,555), Andrew ($107,310 and
+$99,470), Valda ($1,005), Lee ($1,840), Anita ($30,000 of purchases GST-free)
+and Anil ($45,500 GST-free and credits of $1,772.73, which the ATO rounds to
+$1,773). Anita's and Anil's examples were written for the repealed
+determinations; the current ones repeat their arithmetic. For a pharmacy, s
+5(3)(b) applies 0% and 2% 'to total trading stock acquisitions'; the
+worksheet follows the ATO's reading, each norm to that component's
+purchases. Requiring the 2 components to make up all trading stock purchases,
+and so refusing a pharmacy with other purchases such as PBS stock, is the
+worksheet's own limit, not a requirement of s 5(3)(b).
+
+For a business that starts in the year, ss 6(4) and 7(3) of the 2017
+determination replace only the first sample period, the one for July to
+December, with a sample from the first 2 months of trading; a later half
+uses its ordinary window, and a business that starts in January to June is
+refused. F2026L01275 s 7 para (c) gives the first 2 months when trading
+starts during a tax period and paras (a) and (b) cannot be applied, and para
+(d) uses `method_started` for a retailer starting to use the method during a
+tax period outside the ordinary window. Once the first eligible tax period in a
+6-month half establishes its sample under para (a), (b), (c) or (d), later tax
+periods in that half reuse that sample through `first_tax_period_sample` so
+one proportion applies across the half rather than accepting a new
+`purchases_sample`; a commencement before the half's first eligible tax period
+(1 October 2026 for July to December 2026) where paras (a) and (b) cannot apply
+is refused.
+
 ## Insurance duty
 
 This worksheet was added on 24 November 2026. The Acts were read that day:
@@ -2869,9 +2949,10 @@ $10.50 and $52,805.50, and the refusals.
 
 ## Quoted source passages
 
-`transfer-duty`, `foreign-purchaser-surcharge`, `land-tax` and
-`first-home-owner-grant` add `source_quotes` to each result: for the
-jurisdiction given, the passage of the Act, determination or revenue office
+`transfer-duty`, `foreign-purchaser-surcharge`, `land-tax`,
+`first-home-owner-grant`, `motor-vehicle-duty`, `insurance-duty` and
+`vic-property-taxes` add `source_quotes` to each result: for the
+jurisdiction given (for `vic-property-taxes`, the tax given), the passage of the Act, determination or revenue office
 page that states the scale, rate or grant applied, with its provision, the
 document's title, its URL and `verified`, the day it was read. Their
 catalogue entries hold every jurisdiction's passages, which
@@ -2897,11 +2978,29 @@ land tax; no passage states in terms that it charges no foreign purchaser
 duty. The ACT's first home owner grant passage states that no grant is paid
 for a commencement date from 1 July 2019, which the command refuses.
 
-`tests/source_quotes.rs` checks that every jurisdiction of the 4 commands
-has a passage with a provision, an official URL and its date, that each
-passage states the figure the command applies, that each result carries
-its jurisdiction's passages, and that no other worksheet or command gains
-them.
+For motor vehicle duty, New South Wales carries both Revenue NSW's table and
+Service NSW's rule (part-$100 rounding and excess over $45,000), and Revenue
+NSW's insurance page stands for NSW insurance duty, because
+`legislation.nsw.gov.au` returned a Cloudflare challenge that day. The ACT's
+result carries Tables 1 to 3 of both determinations, DI2025-152 for duty dates
+to 31 January 2027 and DI2026-154 from 1 February 2027; the command applies the
+one in force on the duty date. The Northern Territory's motor vehicle duty
+result carries both the Sch 1 cl 5(2) rate and the s 92A electric vehicle
+exemption (for registrations to 30 June 2027). Queensland's motor vehicle
+passage is the Queensland Government's rate table for light vehicles, and the
+Victorian property tax passages are the State Revenue Office's. The ACT Revenue
+Office says insurance duty was abolished on 1 July 2016; the command gives
+1 July 2017, when A2017-11 omitted the Duties Act's insurance chapter, as the
+date the duty went. Both are nil for every year the command takes.
+
+`tests/source_quotes.rs` checks that every jurisdiction of the 6 commands
+that take one, and each of the 3 Victorian property taxes, has a non-empty
+provision, source and passage, an official URL and its date, that each
+passage states the figure the command applies, that ACT Tables 1 to 3, NT
+electric vehicle exemption ($50,000 and $60,000), NSW $45,001/$50,000 and
+CIPT nil-in-transition outcomes match their quoted evidence, that each result
+carries its jurisdiction's passages, and that no other worksheet or command
+gains them.
 
 ## Depreciation
 
@@ -6219,6 +6318,54 @@ and only the rest is remeasured (paras 47 and 60(a)).
 offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
+
+## Deferred revenue
+
+Added on 24 November 2026, when the sources were read: AASB 15 compilation
+COMPdec22_07-26 (periods beginning from 1 July 2026 to before 1 January 2027)
+with its table of amendments to the Standard, compilation COMPdec22_01-23
+for earlier periods, and AASB 108 compilation no. 3 (F2023C00187, paras 36 to
+38). The AASB 15 table lists no amendment to paras 35 to 45, 105 to
+108 or B14 to B19 since the December 2014 Standard (its amended paragraphs are
+5, 26, 27, 29, 97, B1, B34 to B38, B52, B53, B57, B58, B66, B70, Australian
+paragraphs and transition), so the rules applied read the same for every
+period from 2020-21.
+
+Under AASB 15 para 43 and AASB 108 paras 36 to 38, a change in the measure of
+progress or its estimates is recognised prospectively from the change without
+rewriting earlier periods (so a $12,000.00 monthly contract from 1 July 2025
+with $3,000.00 recognised in the September quarter and duration revised from
+12 to 18 months in December takes $4,000.00 cumulative less $3,000.00 already
+recognised = $1,000.00 for December, not $2,000.00 from restarting at 1 July);
+changed estimates are excluded and refused (`estimate_changed`).
+
+Para B18 allows revenue on a straight-line basis where the entity's efforts
+are expended evenly over the performance period; para B15 names milestones
+reached as an output method. Para 40 has progress remeasured at each period
+end, so each period's revenue is the change in revenue to date, rounded to the
+cent at each end. Paras 105 to 108 present the receivable (an unconditional
+right, billed and unpaid) apart from the contract liability (consideration
+paid or due before performance) and the contract asset (performance before
+payment or billing). Receipts settle billings first, so consideration paid or
+due is the larger of billings and receipts to date; with $100 recognised, $150
+billed and nothing received, the receivable is $150 and the contract liability
+$50 (D6).
+
+AASB 15 has no numeric straight-line or milestone example. D1 to D5 are
+made-up figures worked independently in Python's `decimal`.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | $12,000.00 daily, 1 Jul 2025 to 30 Jun 2026, billed and paid 1 Jul 2025; ends 30 Sep, 31 Dec, 31 Mar, 30 Jun | revenue to date **$3,024.66**, **$6,049.32**, **$9,008.22**, **$12,000.00**; liability $8,975.34, $5,950.68, $2,991.78, nil |
+| D2 | $36,000.00 monthly, 1 Jul 2025 to 30 Jun 2028, $18,000 paid 1 Jul 2025 and 1 Jul 2027; ends 31 Dec 2025, 30 Jun 2026, 15 Sep 2026, 31 Dec 2027, 30 Jun 2028 | revenue **$6,000**, **$12,000**, **$14,000**, **$30,000**, **$36,000**; liability $12,000, $6,000, $4,000, $6,000, nil |
+| D3 | $50,000.00 by milestones of $10,000, $30,000 and $10,000; $15,000 and $20,000 billed and paid | revenue **$10,000**, **$40,000**, **$50,000**; liability $5,000, then contract asset **$25,000** and **$15,000** |
+| D6 | $1,200.00 daily over 12 days; $150 billed on day 1, nothing received; end after 1 day ($100) | receivable **$150.00**, contract liability **$50.00** |
+| D7 | D6 with $100 billed on day 1 | receivable **$100.00**, no contract balance |
+| D4 | D1 with ends 30 Jun 2025 and 1 Jul 2025 | nil, then **$32.88** with liability $11,967.12 |
+| D5 | $1,000.00 daily, 15 Jul 2025 to 14 Jan 2026 (184 days); ends 31 Jul 2025, 31 Dec 2025, 30 Jun 2026 | **$92.39**, **$923.91**, **$1,000.00**; in period $92.39, $831.52, $76.09 |
+
+`tests/deferred_revenue.rs` also covers each year boundary, the performance
+period's limits, whole-month boundaries and every refusal.
 
 ## WIP lock-up
 

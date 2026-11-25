@@ -6578,10 +6578,20 @@ pub use gst_adjustments::{
     gst_creditable_purpose_change, gst_financial_acquisitions_threshold, gst_going_concern,
     gst_second_hand_goods,
 };
+mod gst_food_retailer_sam;
+pub use gst_food_retailer_sam::{
+    GST_FOOD_RETAILER_SAM_OPTIONAL, GstFoodRetailerSamArgs, gst_food_retailer_sam,
+};
+mod gst_corrections;
+pub use gst_corrections::{
+    CreditTimeLimitArgs, ErrorCorrectionArgs, gst_credit_time_limit, gst_error_correction,
+};
 mod tourist_refund;
 pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod deferred_revenue;
+pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
 pub use impairment_test::{ImpairmentTestArgs, impairment_test};
 mod leave_provisions;
@@ -6617,9 +6627,10 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 144] = [
+const KINDS: [&str; 148] = [
     "gst",
     "gst_margin_scheme",
+    "gst_food_retailer_sam",
     "fuel_tax_credits",
     "resident_tax",
     "foreign_resident_tax",
@@ -6740,11 +6751,14 @@ const KINDS: [&str; 144] = [
     "gst_going_concern",
     "gst_second_hand_goods",
     "gst_bad_debt",
+    "gst_error_correction",
+    "gst_credit_time_limit",
     "tourist_refund",
     "deferred_tax",
     "cgt_cost_base_adjustments",
     "payg_instalment",
     "leave_provisions",
+    "deferred_revenue",
     "wip_lockup",
     "impairment_test",
     "long_service_leave",

@@ -15,7 +15,7 @@ use std::process::{Command, Stdio};
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
 /// `tests/payroll_tax.rs`, `tests/land_tax.rs`, `tests/workers_compensation_premium.rs`, `tests/motor_vehicle_duty.rs`, `tests/insurance_duty.rs`, `tests/transfer_duty.rs`,
-/// `tests/foreign_purchaser_surcharge.rs`,
+/// `tests/foreign_purchaser_surcharge.rs`, `tests/gst_food_retailer_sam.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -42,7 +42,7 @@ use std::process::{Command, Stdio};
 /// `tests/psi_test.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
 /// `tests/foreign_resident_withholding.rs`, `tests/non_resident_withholding.rs`, `tests/residential_vacancy_fee.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
-/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`, `tests/wip_lockup.rs`, `tests/impairment_test.rs`,
+/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`, `tests/deferred_revenue.rs`, `tests/wip_lockup.rs`, `tests/impairment_test.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
@@ -51,7 +51,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 130] = [
+const NEW_KINDS: [(&str, &str); 134] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -105,6 +105,7 @@ const NEW_KINDS: [(&str, &str); 130] = [
     ),
     ("motor-vehicle-duty", "motor_vehicle_duty"),
     ("insurance-duty", "insurance_duty"),
+    ("gst-food-retailer-sam", "gst_food_retailer_sam"),
     ("portable-lsl-levy", "portable_lsl_levy"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("vic-property-taxes", "vic_property_taxes"),
@@ -185,9 +186,12 @@ const NEW_KINDS: [(&str, &str); 130] = [
     ("gst-going-concern", "gst_going_concern"),
     ("gst-second-hand-goods", "gst_second_hand_goods"),
     ("gst-bad-debt", "gst_bad_debt"),
+    ("gst-error-correction", "gst_error_correction"),
+    ("gst-credit-time-limit", "gst_credit_time_limit"),
     ("tourist-refund", "tourist_refund"),
     ("deferred-tax", "deferred_tax"),
     ("leave-provisions", "leave_provisions"),
+    ("deferred-revenue", "deferred_revenue"),
     ("wip-lockup", "wip_lockup"),
     ("impairment-test", "impairment_test"),
     ("long-service-leave", "long_service_leave"),

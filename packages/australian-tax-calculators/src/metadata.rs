@@ -1395,6 +1395,16 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         ],
         // GST Act s 38-325, Subdivision 66-A, Division 21 and Subdivision
         // 136-A read the same in compilations 82 and 96.
+        // Tax periods from 28 September 2017, when the 2017 food retailer
+        // determination (F2017L01274) commenced; the supermarket (F2025L01055)
+        // and restaurant (F2026L01275) methods from their own commencement.
+        "gst_food_retailer_sam" => vec![
+            "2017-18", "2018-19", "2019-20", "2020-21", "2021-22", "2022-23", "2023-24", "2024-25",
+            "2025-26", "2026-27",
+        ],
+        // Returns lodged from 1 July 2024, under F2023L01284 and the GST Act
+        // compilation read on 24 November 2026.
+        "gst_error_correction" | "gst_credit_time_limit" => vec!["2024-25", "2025-26", "2026-27"],
         // Departures from 1 November 2025, the GST Regulations 2019 compilation 5
         // read, to 30 June 2027.
         "tourist_refund" => vec!["2025-26", "2026-27"],
@@ -1408,6 +1418,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2018-2, periods from 1 January 2019) changed, and AASB 2022-9 changes
         // footnote Aus1 alone. AASB 101 para 69(d) changed for periods beginning
         // from 1 January 2024 (AASB 2020-1); the caller's right to defer follows it.
+        // AASB 15 paras 35 to 45, 105 to 108 and B14 to B18 were not amended
+        // after 2014 (the compilation's table of amendments, read on
+        // 24 November 2026), so they read the same for every year.
+        "deferred_revenue" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // A management measure with no statutory rate: the years the other
         // AASB worksheets take.
         "wip_lockup" => vec![
@@ -2067,6 +2083,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-22",
             "GST Act ss 11-15(4), 129-5(2), 189-5, 189-10 and 189-15, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GST Regulations 2019 compilation 5 (F2025C01015), which specify no other amount; GSTR 2003/9 paras 12 to 20C and 103 to 118",
         ),
+        "gst_food_retailer_sam" => (
+            "2026-11-24",
+            "GST Act Div 123 (ss 123-5, 123-7, 123-10 and 123-15), compilation 96 (C2026C00081, from 1 January 2026); Simplified Accounting Methods Determination 2017 for Retailers who sell Food (F2017L01274, as made); Simplified Accounting Methods - Supermarket and Convenience Stores Determination 2025 (F2025L01055); Simplified Accounting Method for Restaurants, Cafes and Caterers Determination 2026 (F2026L01275), each from the Federal Register of Legislation",
+        ),
         "gst_going_concern" => (
             "2026-11-22",
             "GST Act ss 38-325, 38-480, 135-5 and 135-10 and the s 195-1 definition of supply of a going concern, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTR 2002/5 paras 13, 14, 168, 169 and 182",
@@ -2074,6 +2094,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "gst_second_hand_goods" => (
             "2026-11-22",
             "GST Act ss 66-5, 66-10, 66-15, 66-17 and 66-40 and the s 195-1 definitions of second-hand goods and valuable metal, compilation 96 (C2026C00081, from 1 January 2026), against compilation 82 (C2020C00143, in force on 1 July 2020); GSTD 2012/6 paras 1 to 13",
+        ),
+        "gst_error_correction" => (
+            "2026-11-24",
+            "F2023L01284 ss 4, 6, 7 and 8 (as made, read on the Federal Register of Legislation); TAA 1953 Sch 1 ss 105-65 and 155-35(2); GST Act Division 93, compilation 96 (C2026C00081, from 1 January 2026)",
+        ),
+        "gst_credit_time_limit" => (
+            "2026-11-24",
+            "GST Act ss 29-10(1) to (6), 29-80(1), 93-5, 93-10 and 93-15, compilation 96 (C2026C00081, from 1 January 2026); GST Regulations 2019 reg 29-80.01, compilation 5 (F2025C01015)",
         ),
         "tourist_refund" => (
             "2026-11-24",
@@ -2086,6 +2114,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "long_service_leave" => (
             "2026-11-24",
             "Long Service Leave Act 1955 (NSW) s 4(2)(a) and (a3), in force from 25 March 2021 and from 1 July 2025 (legislation.nsw.gov.au's text in the Internet Archive's captures of 1 February 2022 and 16 December 2025), with NSW Industrial Relations' long service leave page and short guide (February 2026); Long Service Leave Act 2018 (Vic), authorised version 006, ss 6, 9 and 10; Industrial Relations Act 2016 (Qld) s 95, as amended by Act No. 19 of 2020 s 134 (assent 22 June 2020); Long Service Leave Act 1958 (WA) s 8, as amended by Act No. 30 of 2021 (from 20 June 2022); Long Service Leave Act 1987 (SA) s 5, version of 1 July 2017; Long Service Leave Act 1976 (Tas) ss 8, 9 and Schedule 3; Long Service Leave Act 1976 (ACT) R29 ss 3, 4, 11A and 11C, against R28, with WorkSafe ACT's calculation guidelines; Long Service Leave Act 1981 (NT) ss 8 and 10, as in force at 14 October 2015",
+        ),
+        "deferred_revenue" => (
+            "2026-11-24",
+            "AASB 15 compilations of December 2022 (COMPdec22_07-26 and COMPdec22_01-23) with the table of amendments to the Standard, paras 18 to 21, 35 to 45, 47 to 90, 91 to 104, 105 to 108 and B14 to B19; AASB 108 compilation no. 3 (F2023C00187), paras 36 to 38",
         ),
         "wip_lockup" => (
             "2026-11-24",
@@ -2811,6 +2843,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "2003-05-14",
             "2026-11-22",
         ),
+        "gst_food_retailer_sam" => (
+            "ATO 'GST for food retailers - simplified accounting methods'",
+            "Carlo (business norms), Connie (every tax period), Andrew (two 4-week samples), Valda and Lee (5% basis), Anita (sales percentage) and Anil (purchases snapshot)",
+            "2019-10-23",
+            "2026-11-24",
+        ),
         "gst_going_concern" => (
             "GSTR 2002/5",
             "The 5 conditions of s 38-325, the written agreement on or before the day of the supply (para 182) and the apportionment of a supply partly outside the arrangement (paras 168 and 169)",
@@ -2822,6 +2860,18 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "Finance Co's $5,500 vehicle: a notional credit of $500, 1/11 of the consideration (para 7)",
             "2012-08-01",
             "2026-11-22",
+        ),
+        "gst_error_correction" => (
+            "A New Tax System (Goods and Services Tax) (Correcting GST Errors) Determination 2023",
+            "Sections 4, 6, 7 and 8 and the s 7 table of debit error time and value limits by current GST turnover; no ATO example was read",
+            "2023-09-06",
+            "2026-11-24",
+        ),
+        "gst_credit_time_limit" => (
+            "GST Act Division 93 and s 29-10(3)",
+            "Sections 29-10(3), 29-80(1), 93-5(1), 93-10(1), (4) and (5) and 93-15, with reg 29-80.01; no ATO example was read",
+            "2026-01-01",
+            "2026-11-24",
         ),
         "tourist_refund" => (
             "GST Regulations 2019 Division 168 and WET Regulations 2019 Division 25",
@@ -3119,6 +3169,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "fraction, decimal string above 0 and at most 1, default 1: the extent you provide, or are liable to provide, the consideration (ss 11-30(3) and 131-40(2))",
             ),
         ],
+        "deferred_revenue" => vec![(
+            "milestones",
+            "list of 1 to 100 objects {label, date, amount}, required with pattern milestones and refused otherwise: each milestone's label, its date in the performance period and the part of contract_amount the operator has established it depicts as progress, the amounts summing to contract_amount (AASB 15 para B15)",
+        )],
         "wip_lockup" => vec![
             (
                 "bucket_days",
@@ -3831,6 +3885,77 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "electric",
                 "boolean, in nt only and then required: true for an electric motor vehicle under Stamp Duty Act 1978 (NT) s 92A(5) (an electric motor, charged from an external source, no hydrogen fuel cell; plug-in hybrids included)",
+            ),
+        ],
+        "gst_food_retailer_sam" => vec![
+            (
+                "total_sales",
+                "AUD: total trading sales for the tax period (F2017L01274 s 8 'trading sales'); for supermarket_sales_percentage the total consideration for all goods sold in the period; required except for restaurant_purchases_snapshot",
+            ),
+            (
+                "retailer_type",
+                "business_norms only: cake_shop, continental_delicatessen, convenience_store, fresh_fish_shop, health_food_shop, hot_bread_shop, rural_convenience_store or pharmacy, as F2017L01274 s 8 defines each",
+            ),
+            (
+                "stock_role",
+                "converter or reseller (F2017L01274 s 8): required for a convenience store or rural convenience store under business_norms and for the stock purchases methods, which take resellers only",
+            ),
+            (
+                "fuel_and_post_sales",
+                "AUD, rural_convenience_store only: trading sales for fuel and the Australia Post agency business, deducted first (s 5(2))",
+            ),
+            (
+                "fuel_and_post_purchases",
+                "AUD, rural_convenience_store only: trading stock acquisitions for fuel and the Australia Post agency business",
+            ),
+            ("pbs_sales", "AUD, pharmacy only: PBS prescription sales"),
+            (
+                "non_pbs_sales",
+                "AUD, pharmacy only: non-PBS prescription sales",
+            ),
+            (
+                "otc_sales",
+                "AUD, pharmacy only: over-the-counter sales; the 3 sales components add up to total_sales",
+            ),
+            (
+                "non_pbs_purchases",
+                "AUD, pharmacy only: non-PBS prescription trading stock purchases",
+            ),
+            (
+                "otc_purchases",
+                "AUD, pharmacy only: over-the-counter trading stock purchases; the 2 purchase components add up to trading_stock_purchases",
+            ),
+            (
+                "gst_free_purchases",
+                "AUD: actual GST-free trading stock acquisitions for the tax period, for the every tax period and 5% methods (for snapshot_five_percent, this or purchases_sample)",
+            ),
+            (
+                "gst_free_sales",
+                "AUD, supermarket_sales_percentage only: the total consideration for goods sold as GST-free supplies, from the point-of-sale equipment",
+            ),
+            (
+                "purchases_sample",
+                "object {start, end, gst_free, total}: a continuous 4-week (28-day) sample of trading stock acquisitions, total and GST-free, in 1 June to 31 July for a tax period in July to December or 1 December to 31 January for one in January to June; under restaurant_purchases_snapshot (F2026L01275 s 7), taken for the first tax period in the 6-month half (or the tax period of trading_started or method_started) and required only then",
+            ),
+            (
+                "first_tax_period_sample",
+                "object {start, end, gst_free, total}, restaurant_purchases_snapshot only: for a later tax period in the same 6-month half, the 4-week sample already worked out for the first tax period in that half (F2026L01275 s 7 applies that first tax period's GST-free proportion to every tax period in the half)",
+            ),
+            (
+                "sales_sample",
+                "object {start, end, gst_free, total}, snapshot_two_samples and snapshot_every_period only: a continuous 2-week (14-day) sample of trading sales in the same windows",
+            ),
+            (
+                "product_lines",
+                "list of 1 to 50 {gst_free_purchases, markup_percent}, the 5% methods only: each product line bought GST-free and resold GST-free in the tax period, with its mark-up as a percentage of cost",
+            ),
+            (
+                "trading_started",
+                "YYYY-MM-DD, for a business that started trading in the financial year (the 2017 sampled methods and restaurant_purchases_snapshot): under the 2017 methods, replaces only the July to December sample window (1 June to 31 July) with the first 2 months of trading; a January to June tax period for a July to December starter uses 1 December to 31 January (never before trading_started, so an August starter uses a December to January sample rather than September), and a business starting in January to June is refused. Under restaurant_purchases_snapshot, when no 28-day sample fits in 1 June to 31 July or 1 December to 31 January from trading_started, opens the first 2 months of trading when trading starts during the tax period (F2026L01275 s 7(c)), and later tax periods in that half reuse that first tax period's established proportion via first_tax_period_sample (trading starting before the half's first eligible tax period, such as 1 October 2026, is refused unless method_started applies); otherwise uses that ordinary window from trading_started",
+            ),
+            (
+                "method_started",
+                "YYYY-MM-DD, restaurant_purchases_snapshot only (F2026L01275 s 7(d)): when the retailer started using this method on or after 24 September 2026 in the year. When no 28-day sample fits in the ordinary window from method_started, opens any continuous 4-week period within the tax period in which the method starts (s 7(d)) for purchases_sample, and later tax periods in that half reuse that first tax period's established proportion via first_tax_period_sample (a start before the half's first eligible tax period is refused); omit only when paragraphs (a) and (b) were not prevented by starting to use the method",
             ),
         ],
         "insurance_duty" => vec![
@@ -6585,6 +6710,13 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("future_total_credits", "AUD: the input tax credits for all acquisitions and importations of those 12 months, the financial acquisitions included"),
             ("gst_group", "boolean: you are a GST group member and the 4 amounts are every member's, counting only acquisitions made, or likely to be made, whilst each was a member (ss 189-5(2) and 189-10(2); GSTR 2003/9 para 108)"),
         ],
+        "gst_food_retailer_sam" => vec![
+            ("method", "business_norms, stock_purchases_every_period, stock_purchases_two_samples, stock_purchases_five_percent, snapshot_every_period, snapshot_two_samples, snapshot_five_percent (F2017L01274), supermarket_sales_percentage (F2025L01055) or restaurant_purchases_snapshot (F2026L01275): the method the retailer has chosen under GST Act s 123-10"),
+            ("tax_period_start", "YYYY-MM-DD in the year: the first day of the tax period"),
+            ("tax_period_end", "YYYY-MM-DD in the year: the last day of the tax period"),
+            ("trading_stock_purchases", "AUD: total trading stock acquisitions for the tax period (on a cash basis, the consideration provided; otherwise, as each determination counts them)"),
+            ("eligibility", "object of stated facts: the 2017 methods take same_premises_taxable_and_gst_free_food, sam_turnover and adequate_point_of_sale_equipment, plus projected_gst_free_at_most_5_percent for the 5% methods and retailer_type_definition_met for business_norms; supermarket_sales_percentage takes registered_throughout, mainly_supermarket_or_convenience_range, converted_taxable_sales_under_5_percent, gst_turnover, adequate_point_of_sale_equipment, mainly_sells_fuel and section_7_3_goods_left_out; restaurant_purchases_snapshot takes registered_throughout, restaurant_cafe_or_catering and gst_turnover"),
+        ],
         "gst_going_concern" => vec![
             ("for_consideration", "boolean: the supply is for consideration (GST Act s 38-325(1)(a))"),
             ("recipient_registration", "registered, required_to_be_registered or neither: the recipient's GST registration status (s 38-325(1)(b))"),
@@ -6605,6 +6737,34 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("divided_for_resupply", "boolean: you can reasonably be expected to divide the goods before supplying them in 2 or more supplies (s 66-40); true is refused"),
             ("valuable_metal", "boolean: the goods consist to any extent of gold, silver or platinum (s 195-1); true is refused"),
             ("leased_before_sale", "boolean: you lease the goods before you sell them (GSTD 2012/6); true is refused"),
+        ],
+        "gst_error_correction" => vec![
+            ("error_kind", "credit or debit: a mistake that overstated (credit) or understated (debit) the earlier period's assessed net amount (F2023L01284 s 4)"),
+            ("earlier_period_start", "YYYY-MM-DD: the first day of the tax period in which the error was made"),
+            ("earlier_return_due", "YYYY-MM-DD: the due date of the GST return for that tax period"),
+            ("lodged", "YYYY-MM-DD: the day the later GST return correcting the error is lodged, in year"),
+            ("current_gst_turnover", "AUD: your current GST turnover (the group's for a GST group member), which picks the s 7 table row; read for a debit error only"),
+            ("net_debit_errors", "AUD: the debit error amounts less the credit error amounts you include in the later period (s 4 'net sum of the debit errors'); read for a debit error only"),
+            ("within_period_of_review", "boolean: the later return is lodged within the period of review for the earlier assessment (s 6(c); TAA 1953 Sch 1 s 155-35)"),
+            ("compliance_activity", "boolean: at lodgment the error relates to a matter, or the earlier period is, subject to a compliance activity you were notified of (s 6(d)(i))"),
+            ("commissioner_permits", "boolean: the Commissioner has notified you in writing that the error can be corrected under the determination (s 6(d)(ii))"),
+            ("already_corrected", "boolean: you have corrected the error, to any extent, in another tax period (s 6(e))"),
+            ("reckless_or_intentional", "boolean: the error resulted from recklessness as to, or intentional disregard of, a GST law (s 7(a)); read for a debit error only"),
+            ("credit_ceased_under_division_93", "boolean: the mistake relates to an input tax credit whose entitlement ceased under Division 93, which is not an error (s 4(a))"),
+            ("unrefundable_under_section_105_65", "boolean: the mistake relates to an amount the Commissioner need not refund under TAA 1953 Sch 1 s 105-65 (continuing to apply to overpaid GST for tax periods starting on or before 30 May 2014), which is not an error (s 4(b))"),
+        ],
+        "gst_credit_time_limit" => vec![
+            ("supply_value", "AUD: the value (GST exclusive) of the taxable supply the acquisition relates to; $75 or less needs no tax invoice (GST Act s 29-80(1), reg 29-80.01)"),
+            ("return_due", "YYYY-MM-DD: the day the GST return was required for the tax period the credit is attributable to apart from s 29-10(3) (s 93-5(1))"),
+            ("tax_invoice_held_from", "YYYY-MM-DD, or not_held: the day you first held the tax invoice"),
+            ("return_given", "YYYY-MM-DD: the day you give the GST return that takes the credit into account, in year"),
+            ("assessment_date", "YYYY-MM-DD: the day of the assessment that takes the credit into account, not before return_given"),
+            ("earlier_attributable_return_given", "boolean: before this return, you already gave a GST return for an earlier tax period to which the credit (with a tax invoice where required) would otherwise have been attributable under GST Act s 29-10(1), (2) or (3)(b) — e.g. an intervening return given whilst holding the tax invoice"),
+            ("section_29_10_5_election", "boolean: you notified the Commissioner in the approved form under GST Act s 29-10(4) and (5) electing for the credit (not taken into account in that earlier assessment) to be attributable to this later specified tax period"),
+            ("supplier_review_ended_without_invoice", "boolean: the period of review under TAA 1953 Sch 1 s 155-35 for the assessment of the supplier's net amount for the tax period to which GST on the related supply is attributable had ended when you first held a tax invoice (GST Act s 93-15(a) and (b))"),
+            ("supplier_gst_accounted_for", "none, partial or full: whether GST on the related supply has been taken into account in the assessment of the supplier's net amount for that tax period (GST Act s 93-15; full means s 93-15 does not bar the credit, none bars it when supplier_review_ended_without_invoice is true, and partial with review ended is refused)"),
+            ("special_attribution", "boolean: a Commissioner's determination under s 29-25, or under s 29-10(3) that no tax invoice is required, applies (s 93-10(1)); true is refused"),
+            ("section_93_10_exception", "boolean: an exception under s 93-10(4) (amended assessment reversing input-taxed treatment) or s 93-10(5) (timely s 29-70(1B) request to treat a document as a tax invoice agreed after 4 years) applies; true is refused"),
         ],
         "tourist_refund" => vec![
             ("departure_date", "YYYY-MM-DD: the actual day the traveller and every item leave the indirect tax zone (not a scheduled or booked date), from 1 November 2025 and in year; a later actual export day is refused by stating that day"),
@@ -6634,6 +6794,18 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("leave_taken", "weeks from 0 to 1,000, to at most 4 decimal places: long service leave already taken or paid that the Act deducts from this entitlement; leave in advance is not covered"),
             ("status", "employed or ends: whether the employee is still employed at end or employment ends on it"),
             ("weekly_pay", "AUD, no more than 1,000,000: the ordinary pay for a week as the Act defines it, already averaged where the Act averages hours or pay"),
+        ],
+        "deferred_revenue" => vec![
+            ("contract_amount", "AUD above 0: the transaction price allocated to the performance obligation (AASB 15 paras 47 to 90), established by the operator"),
+            ("start", "YYYY-MM-DD: the first day of the performance period, in the year"),
+            ("end", "YYYY-MM-DD: the last day of the performance period, on or after start, the period at most 120 months"),
+            ("pattern", "daily, monthly or milestones: the operator's measure of progress, time elapsed by day or by whole calendar month on a straight-line basis (paras B14 and B18, where the entity's efforts are expended evenly; monthly counts whole calendar months ended and needs start on a month's first day and end on a month's last day) or milestones reached (para B15)"),
+            ("period_ends", "list of 1 to 120 YYYY-MM-DD dates in strictly ascending order: the reporting dates the schedule shows"),
+            ("billed", "list of 0 to 500 objects {date, amount}: amounts that became unconditionally due on that date, as by an invoice (AASB 15 paras 106 and 108), in AUD above 0 totalling no more than contract_amount"),
+            ("received", "list of 0 to 500 objects {date, amount}: payments the customer made on that date, billed or not, in AUD above 0 totalling no more than contract_amount; receipts settle billings first"),
+            ("variable_consideration", "boolean: the price includes variable consideration (paras 50 to 59); true is refused"),
+            ("significant_financing_component", "boolean: the contract has a significant financing component (paras 60 to 65); true is refused"),
+            ("estimate_changed", "boolean: the measure of progress or an estimate in it changed over the periods shown (AASB 15 para 43; AASB 108 paras 36 to 38); true is refused"),
         ],
         "wip_lockup" => vec![
             ("entries", "list of 1 to 5,000 objects {label, date, amount}: unbilled work in progress, each dated when the work was done (on or before as_at), in AUD from 0 at the firm's valuation basis (charge-out value or cost)"),
@@ -8219,6 +8391,28 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("future_total_credits", Text("1220000.00")),
             ("gst_group", Flag(false)),
         ],
+        // The ATO's Andrew: a September quarter with a sample from 1 to 28 June.
+        "gst_food_retailer_sam" => vec![
+            ("year", Text("2025-26")),
+            ("method", Text("stock_purchases_two_samples")),
+            ("tax_period_start", Text("2025-07-01")),
+            ("tax_period_end", Text("2025-09-30")),
+            ("total_sales", Text("219000.00")),
+            ("trading_stock_purchases", Text("203000.00")),
+            ("stock_role", Text("reseller")),
+            (
+                "purchases_sample",
+                Json(
+                    r#"{"start": "2025-06-01", "end": "2025-06-28", "gst_free": "29400.00", "total": "60000.00"}"#,
+                ),
+            ),
+            (
+                "eligibility",
+                Json(
+                    r#"{"same_premises_taxable_and_gst_free_food": true, "sam_turnover": "850000.00", "adequate_point_of_sale_equipment": false}"#,
+                ),
+            ),
+        ],
         // The 5 conditions of GST Act s 38-325 all met.
         "gst_going_concern" => vec![
             ("year", Text("2025-26")),
@@ -8244,6 +8438,39 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("divided_for_resupply", Flag(false)),
             ("valuable_metal", Flag(false)),
             ("leased_before_sale", Flag(false)),
+        ],
+        // A debit error of $4,000 by a small business, corrected 10 months
+        // after the earlier return was due.
+        "gst_error_correction" => vec![
+            ("year", Text("2025-26")),
+            ("error_kind", Text("debit")),
+            ("earlier_period_start", Text("2024-10-01")),
+            ("earlier_return_due", Text("2025-02-28")),
+            ("lodged", Text("2025-12-28")),
+            ("current_gst_turnover", Text("1500000")),
+            ("net_debit_errors", Text("4000.00")),
+            ("within_period_of_review", Flag(true)),
+            ("compliance_activity", Flag(false)),
+            ("commissioner_permits", Flag(false)),
+            ("already_corrected", Flag(false)),
+            ("reckless_or_intentional", Flag(false)),
+            ("credit_ceased_under_division_93", Flag(false)),
+            ("unrefundable_under_section_105_65", Flag(false)),
+        ],
+        // A $550 acquisition's tax invoice held before the return is given.
+        "gst_credit_time_limit" => vec![
+            ("year", Text("2025-26")),
+            ("supply_value", Text("500.00")),
+            ("return_due", Text("2025-10-28")),
+            ("tax_invoice_held_from", Text("2025-09-15")),
+            ("return_given", Text("2025-10-20")),
+            ("assessment_date", Text("2025-10-20")),
+            ("earlier_attributable_return_given", Flag(false)),
+            ("section_29_10_5_election", Flag(false)),
+            ("supplier_review_ended_without_invoice", Flag(false)),
+            ("supplier_gst_accounted_for", Text("none")),
+            ("special_attribution", Flag(false)),
+            ("section_93_10_exception", Flag(false)),
         ],
         // An aircraft passenger 45 minutes early with $330 of goods and $100 of
         // wine from one supplier: $39.09 of GST and $14.50 of wine tax.
@@ -8291,6 +8518,29 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("status", Text("ends")),
             ("reason", Text("redundancy")),
             ("weekly_pay", Text("1500.00")),
+        ],
+        // Fabricated: a year's support contract paid in advance.
+        "deferred_revenue" => vec![
+            ("year", Text("2025-26")),
+            ("contract_amount", Text("12000.00")),
+            ("start", Text("2025-07-01")),
+            ("end", Text("2026-06-30")),
+            ("pattern", Text("daily")),
+            (
+                "period_ends",
+                Json(r#"["2025-09-30", "2025-12-31", "2026-03-31", "2026-06-30"]"#),
+            ),
+            (
+                "billed",
+                Json(r#"[{"date": "2025-07-01", "amount": "12000.00"}]"#),
+            ),
+            (
+                "received",
+                Json(r#"[{"date": "2025-07-01", "amount": "12000.00"}]"#),
+            ),
+            ("variable_consideration", Flag(false)),
+            ("significant_financing_component", Flag(false)),
+            ("estimate_changed", Flag(false)),
         ],
         // Fabricated: a practice's WIP at 30 June 2026.
         "wip_lockup" => vec![
