@@ -5188,7 +5188,10 @@ mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 mod cgt_parcels;
-pub use cgt_parcels::{CgtCostBaseArgs, CgtParcelsArgs, cgt_cost_base_adjustments, cgt_parcels};
+pub use cgt_parcels::{
+    CgtCostBaseArgs, CgtParcelsArgs, CgtRolloverArgs, cgt_cost_base_adjustments, cgt_parcels,
+    cgt_rollover,
+};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6590,6 +6593,8 @@ mod tourist_refund;
 pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod book_to_tax;
+pub use book_to_tax::{BookToTaxArgs, book_to_tax};
 mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
@@ -6627,7 +6632,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 148] = [
+const KINDS: [&str; 150] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6755,7 +6760,9 @@ const KINDS: [&str; 148] = [
     "gst_credit_time_limit",
     "tourist_refund",
     "deferred_tax",
+    "book_to_tax",
     "cgt_cost_base_adjustments",
+    "cgt_rollover",
     "payg_instalment",
     "leave_provisions",
     "deferred_revenue",

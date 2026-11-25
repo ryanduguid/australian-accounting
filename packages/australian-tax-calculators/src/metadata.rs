@@ -1450,6 +1450,20 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "deferred_tax" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // ITAA 1997 ss 4-15, 36-10, 36-17 and 36-20 apply alike to these
+        // years: their history notes, read on 26 November 2026, show only
+        // s 36-17(1)'s note 2 (Acts No. 92 of 2020, No. 8 of 2022 and No. 71
+        // of 2026) changed since 1 July 2020; the years match deferred_tax's.
+        "book_to_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // Subdivisions 122-A, 126-A and 152-E and ss 104-190 to 104-198,
+        // 115-25, 115-30 and 115-34 show no change since 1 July 2020 in their
+        // history notes, read on 26 November 2026, other than the wording of
+        // an example to s 126-15 (Act No. 13 of 2021).
+        "cgt_rollover" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         // ITAA 1997 s 960-50 and ss 770-70 to 770-80 read the same in
         // compilations 210 (1 July 2020) and 268 (1 October 2026); the worked
         // limit takes only the years of RESIDENT_TAX_SCALES.
@@ -1716,8 +1730,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "ITAA 1997 ss 102-5, 102-10, 102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to 115-25, 115-100 and 116-40, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 items 82 to 84; TD 33 (identical shares); the ATO's 'Keeping records of shares and units' (last updated 22 June 2026: Boris's example), 'CGT discount' (last updated 29 June 2026: the 12 months exclude the days of acquisition and the event) and the individual tax return instructions supplement 2026, question 18 (last updated 30 May 2026: Kathleen's examples 1 to 4)",
         ),
         "cgt_cost_base_adjustments" => (
-            "2026-11-22",
-            "ITAA 1997 ss 104-70, 104-71, 104-107A to 104-107E, 104-135, 109-5, 110-25, 110-55, 114-1, 115-25, 115-30 and 125-55 to 125-85, with their history notes, on the ATO's legal database; CR 2018/59 and CR 2021/50; the ATO's 'Wesfarmers Limited – demerger of Coles Group Limited (2018)' (last updated 28 June 2019: examples 1 to 4); the Guide to capital gains tax 2025 (examples 20, 30 and 45); the Personal investors guide to capital gains tax 2025, Part C (examples 26 to 28)",
+            "2026-11-26",
+            "ITAA 1997 ss 104-70, 104-71, 104-107A to 104-107E, 104-135, 109-5, 110-25, 110-55, 114-1, 115-25, 115-30 and 125-55 to 125-85 (read on 22 November 2026) and ss 124-780 to 124-795 (read on 26 November 2026), with their history notes, on the ATO's legal database; CR 2018/59 and CR 2021/50; the ATO's 'Wesfarmers Limited – demerger of Coles Group Limited (2018)' (last updated 28 June 2019: examples 1 to 4); the Guide to capital gains tax 2025 (examples 20, 30 and 45); the Personal investors guide to capital gains tax 2025, Part C (examples 26 to 28)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -2130,6 +2144,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "leave_provisions" => (
             "2026-11-23",
             "AASB 119 compilations of December 2022 (COMPdec22_01-23, no. 5, and COMPdec22_07-26, F2026C01064) with their tables of standards and amendments, paras 3, 8, 9, 10, 11, 13, 15 to 18, 26, 57, 67, 68, 70, 72, 75 to 87, 113 to 119 and 153 to 157; AASB 2018-2, AASB 2021-7 and AASB 2022-9; AASB 101 compilations of December 2022 (COMPdec22_01-24, no. 6, and ACOMPdec22_01-23), December 2021, March 2020 and May 2019, paras 69, 70, 72A, 72B, 75A and 139U to 139W with the table of amendments; AASB 2020-1, AASB 2020-6 and AASB 2022-6",
+        ),
+        "book_to_tax" => (
+            "2026-11-26",
+            "ITAA 1997 ss 4-15, 36-10, 36-17, 36-20, 36-55 and 160-10 with their history notes on the ATO's legal database; AASB 112 (September 2023 compilation) paras 5 and 17; the ATO's Company tax return 2025 instructions, worksheet 2: other reconciliation items (last updated 29 May 2025)",
+        ),
+        "cgt_rollover" => (
+            "2026-11-26",
+            "ITAA 1997 ss 104-185, 104-190, 104-197, 104-198, 109-55, 115-25, 115-30, 115-34, 122-15 to 122-70, 126-5, 126-15, 126-25, 152-10, 152-305, 152-410 and 152-415 with their history notes on the ATO's legal database",
         ),
         "deferred_tax" => (
             "2026-11-22",
@@ -5686,7 +5708,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "events",
-                "list of 1 to 1,000 objects, each with event and security: return_of_capital with date (the payment, s 104-135(2)) and per_unit (AUD a share, at most 6dp); tax_deferred with income_year and amount (the year's non-assessable part after s 104-71, a non-AMIT trust) and optionally tax_free (AUD, the s 104-71(3) amounts); amit_excess or amit_shortfall with income_year and amount (the AMMA statement's AMIT cost base net amount); the first 3 optionally with parcels (the parcel names the amount is for, required for a year's amount when a parcel of the security was acquired in that year); tax_deferred, amit_excess and amit_shortfall optionally with before_cgt_event (YYYY-MM-DD in income_year: another CGT event to the units after the payment, just before which the amount happens, ss 104-70(3)(b) and 104-107B(4)(b)); demerger with demerger (wesfarmers_coles_2018 or woolworths_endeavour_2021), new_security and rollover (boolean: roll-over chosen)",
+                "list of 1 to 1,000 objects, each with event and security: return_of_capital with date (the payment, s 104-135(2)) and per_unit (AUD a share, at most 6dp); tax_deferred with income_year and amount (the year's non-assessable part after s 104-71, a non-AMIT trust) and optionally tax_free (AUD, the s 104-71(3) amounts); amit_excess or amit_shortfall with income_year and amount (the AMMA statement's AMIT cost base net amount); the first 3 optionally with parcels (the parcel names the amount is for, required for a year's amount when a parcel of the security was acquired in that year); tax_deferred, amit_excess and amit_shortfall optionally with before_cgt_event (YYYY-MM-DD in income_year: another CGT event to the units after the payment, just before which the amount happens, ss 104-70(3)(b) and 104-107B(4)(b)); demerger with demerger (wesfarmers_coles_2018 or woolworths_endeavour_2021), new_security and rollover (boolean: roll-over chosen); scrip_for_scrip with date (the exchange), new_security, new_units_per_unit and market_value_per_new_unit (decimal strings above 0, at most 6dp), rollover (true: the roll-over chosen and its conditions met, ss 124-780 and 124-781; false is refused) and optionally cash_per_unit (ineligible proceeds per original share or unit, s 124-790) and parcels",
             ),
         ],
         "trade_in" => vec![
@@ -6825,6 +6847,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("lines", "list of 1 to 500 objects, each {label, leave, hours, hourly_rate, probability, settled_within_12_months} and, when settled_within_12_months is false, {years_to_settlement, salary_growth, discount_rate, can_defer_settlement}: leave is annual or long_service; hours the unused entitlement accumulated at the reporting date (AASB 119 paras 13(a) and 15); hourly_rate in AUD: on a short-term line the rate the entity expects to pay for the leave (para 16), on a long-term line the rate at the reporting date before future salary growth, which salary_growth projects (para 87(b)); probability from 0 to 1 that the entitlement vests and is paid (paras 15 and 72); settled_within_12_months whether the benefit the line belongs to is expected to be settled wholly before 12 months after the reporting date (para 8): the part of a benefit that is not, due within 12 months, is false; years_to_settlement a whole number from 1 to 50 (the part of a long-term benefit due within 12 months takes 1, the nearest whole year); salary_growth and discount_rate decimal fractions from 0 to 1 a year (paras 83 to 87); can_defer_settlement whether the entity has the right at the reporting date to defer settlement for at least 12 months (AASB 101 para 69(d)): for a period beginning before 1 January 2024 only an unconditional right counts (the earlier para 69(d)), and from 1 January 2024 a right with substance that exists at the reporting date (paras 72A and 75A, AASB 2020-1 and AASB 2022-6), so for every period ending in 2020-21 to 2023-24, and a 2024-25 period ending before 31 December 2024, a conditional right is false unless AASB 2020-1 and AASB 2022-6 were applied early"),
             ("defined_benefit_plan", "boolean: the obligation includes a defined benefit plan or other post-employment benefit (AASB 119 paras 26 to 152); true is refused"),
             ("plan_assets", "boolean: assets fund the long-term benefits or a reimbursement right exists (paras 113 to 119 and 155); true is refused"),
+        ],
+        "book_to_tax" => vec![
+            ("accounting_profit", "AUD, may be negative: the company's profit or loss before income tax expense (AASB 112 para 5; the company tax return's item 6 label T)"),
+            ("adjustments", "list of 0 to 500 objects, each {label, difference, effect, amount}: label 1 to 200 characters; difference permanent (it never reverses: an expense never deductible, exempt or non-assessable non-exempt income, assessable income or a deduction with no amount in profit) or temporary (it reverses in another year: AASB 112 paras 5 and 17); effect add or subtract, its effect on accounting profit in reaching taxable income; amount in AUD from 0"),
+            ("net_exempt_income", "AUD: the company's net exempt income for the year under ITAA 1997 s 36-20, which absorbs earlier tax losses first (s 36-17(3)(a) and (4)) and reduces a tax loss (s 36-10(3))"),
+            ("opening_tax_losses", "AUD: the company's earlier tax losses not yet utilised that it can deduct this year, having passed the continuity of ownership or business continuity test (Subdivisions 165-A and 166-A)"),
+            ("tax_losses_deducted", "AUD: the tax losses the company chooses to deduct from the excess of assessable income over deductions (s 36-17(2) and (3)(b)), at most that excess and the losses left after net exempt income; 0.00 for none"),
+            ("loss_carry_back", "boolean: the company makes a loss carry back choice (Division 160); true is refused"),
+            ("excess_franking_offsets", "boolean: the company would have excess franking offsets for the year, disregarding tax losses or with the tax losses deducted (ss 36-17(5) and 36-55); true is refused"),
+            ("subdivision_165_b", "boolean: the company failed to maintain continuity of ownership and control during the year and does not satisfy the business continuity test (s 4-15(2) item 1); true is refused"),
+            ("tax_consolidated_group", "boolean: the company is a member of a consolidated group (Part 3-90); true is refused"),
+        ],
+        "cgt_rollover" => vec![
+            ("rollover", "marriage_breakdown (ITAA 1997 Subdivision 126-A), small_business (Subdivision 152-E) or wholly_owned_company (Subdivision 122-A); a scrip for scrip roll-over is a scrip_for_scrip event of cgt-cost-base-adjustments"),
+            ("facts", "object; marriage_breakdown: transferor (individual, company or trustee), basis (court_order, maintenance_agreement, arbitral_award, financial_agreement, part_viiiab_financial_agreement or state_law_agreement, s 126-5(1)), with the last 3 separated_and_breakdown_connected (boolean, s 126-25), event (A1, B1, D1, D2, D3 or F1), event_date (in the year); for A1 and B1 trading_stock (boolean, true is no roll-over), for B1 title_passes (boolean), transferor_acquired, cost_base and reduced_cost_base (the transferor's when the transferee acquired the asset, AUD), asset_class (ordinary, collectable or personal_use) and optionally capital_proceeds (AUD); for D1 to F1 expenditure (AUD, s 126-5(8)). small_business: basic_conditions_met (boolean, Subdivision 152-A), capital_gain (AUD, after the discount and the other concessions), disregarded (AUD above 0, at most capital_gain), last_cgt_event (the last CGT event in the year for which the roll-over is obtained), optionally earnout_latest_due and replacement_assets (1 to 1,000 objects {label, date, first_element_cost_base, qualifies} and optionally incidental_costs and fourth_element_expenditure; qualifies: an active asset at the end of the period and, for a share or trust interest, the stakeholder test of s 104-197(2)(b)). wholly_owned_company: transferor (individual or trustee), case (asset or business), conditions_met (boolean, ss 122-20 and 122-25), event_date, shares (JSON integer from 1), assets (1 object for asset, 1 to 1,000 for business, each {label, acquired, asset_class, cost_base, reduced_cost_base, market_value, precluded} and optionally capital_proceeds) and optionally liabilities (AUD the company undertakes to discharge, s 122-37)"),
         ],
         "deferred_tax" => vec![
             ("items", "list of 1 to 500 objects, each {label, class, carrying_amount, tax_base, opening_carrying_amount, opening_tax_base}: class is asset or liability, amounts in AUD at the end and start of the year (0.00 when the item did not exist), the tax base the amount attributed for tax purposes (AASB 112 paras 7 and 8)"),
@@ -8589,6 +8626,37 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // Fabricated: plant, a leave provision and a prepayment of a company
         // that is not a base rate entity.
+        // The deferred_tax example's year reconciled from accounting profit:
+        // its plant, leave provision and prepayment differences.
+        "book_to_tax" => vec![
+            ("year", Text("2025-26")),
+            ("accounting_profit", Text("100000.00")),
+            (
+                "adjustments",
+                Json(
+                    r#"[{"label": "Entertainment", "difference": "permanent", "effect": "add", "amount": "4000.00"}, {"label": "Plant: tax depreciation above accounting depreciation", "difference": "temporary", "effect": "subtract", "amount": "5000.00"}, {"label": "Leave provision: expense above leave paid", "difference": "temporary", "effect": "add", "amount": "2000.00"}, {"label": "Prepayment deducted before it is expensed", "difference": "temporary", "effect": "subtract", "amount": "1000.00"}]"#,
+                ),
+            ),
+            ("net_exempt_income", Text("0.00")),
+            ("opening_tax_losses", Text("0.00")),
+            ("tax_losses_deducted", Text("0.00")),
+            ("loss_carry_back", Flag(false)),
+            ("excess_franking_offsets", Flag(false)),
+            ("subdivision_165_b", Flag(false)),
+            ("tax_consolidated_group", Flag(false)),
+        ],
+        // ITAA 1997 s 126-5(5) example: land with a $10,000 cost base
+        // transferred under a court order.
+        "cgt_rollover" => vec![
+            ("year", Text("2025-26")),
+            ("rollover", Text("marriage_breakdown")),
+            (
+                "facts",
+                Json(
+                    r#"{"transferor": "individual", "basis": "court_order", "event": "A1", "event_date": "2025-11-03", "trading_stock": false, "transferor_acquired": "2012-05-14", "cost_base": "10000.00", "reduced_cost_base": "10000.00", "asset_class": "ordinary"}"#,
+                ),
+            ),
+        ],
         "deferred_tax" => vec![
             ("year", Text("2025-26")),
             (

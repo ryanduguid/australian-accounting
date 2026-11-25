@@ -2370,6 +2370,41 @@ before a sale in the year, a G1 on a new share either side of 12 months from
 the head share's date, the parcels passed to `cgt-parcels`, each year boundary
 and each refusal.
 
+The `scrip_for_scrip` event was added on 26 November 2026, after reading
+ITAA 1997 ss 124-780, 124-781, 124-782, 124-785, 124-790 and 124-795 on the
+ATO's legal database (no change in substance since 1 July 2018).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| X1, s 124-790(2) example (Ken) | 100 shares, cost base $200, one new share worth $4 and $1 cash each | Gain **$60**, replacement cost base **$160** |
+| X2, s 124-785 examples (Lyn, Glenn) | One $10 share for one; $10 and $11 shares for half a share each | Cost base **$10**; **$21** in total |
+| S3 | Cost $300 and costs of owning $100, 2 new units at $4 and $2 cash a unit, held under 12 months | $240 and $80 carried, gain **$120**, not a discount gain |
+
+
+## CGT roll-overs
+
+Added on 26 November 2026, when the sources were read on the ATO's legal
+database with their history notes: ITAA 1997 ss 126-5, 126-15 and 126-25
+(marriage or relationship breakdown); ss 152-10, 152-305, 152-410 and 152-415
+(small business roll-over); ss 104-185, 104-190, 104-197 and 104-198 (CGT
+events J2, J5 and J6); ss 122-15 to 122-70 (wholly owned company); and
+ss 109-55, 115-25, 115-30 and 115-34. None changed in substance from
+1 July 2020; Act No. 13 of 2021 reworded an example in s 126-15. The vectors
+are the Act's examples where it has one.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| M1, s 126-5(5) example | Land, cost base $10,000, court order, A1 | Transferee's cost base **$10,000**, acquired at the event, for the discount when the transferor acquired it |
+| M2 | M1 with proceeds $25,000; reduced cost base $9,000 and proceeds $8,000 | Gain disregarded **$15,000**; loss disregarded **$1,000** |
+| S1, s 152-415 example | Gain $25,000 after the other concessions, $20,000 disregarded | Remaining gain **$5,000**; period 30 September 2024 to 30 September 2027 |
+| S2 | S1 with a $16,000 qualifying asset | J6 gain **$4,000** at the period's end; no qualifying asset: J5 gain **$20,000** |
+| C1, s 122-50(1) example (Nick) | Precluded assets $80,000 at market value, land cost base $120,000, liabilities $15,000, 10 shares | Shares' cost base **$185,000**, **$18,500** a share |
+| C2 | One asset, cost base $300,000, liabilities $50,000, 3 shares, proceeds $400,000 | Shares' cost base **$250,000**, **$83,333.33** a share, gain disregarded **$100,000**; liabilities above $300,000 refused |
+
+`tests/cgt_rollover.rs` also covers the agreement grounds, each refusal, the
+replacement period's bounds with an earnout and 29 February, and assets
+acquired before 21 September 1999.
+
 ## Trade-in
 
 This worksheet was added on 18 November 2026, beside the balancing adjustment,
@@ -6317,6 +6352,29 @@ and only the rest is remeasured (paras 47 and 60(a)).
 offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
+
+## Book to tax
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 ss 4-15,
+36-10, 36-17, 36-20, 36-55 and 160-10 on the ATO's legal database, with their
+history notes; AASB 112 paras 5 and 17 (September 2023 compilation); and the
+ATO's Company tax return instructions 2025 (item 7, labels R and V; worksheet
+2). None of the applied provisions changed in substance from 1 July 2020;
+Act No. 71 of 2026 made the loss carry back of s 160-10 permanent from
+2026-27, which the command refuses.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| B1, 2025-26 | Profit $100,000; $4,000 permanent add; temporary $5,000 and $1,000 subtract, $2,000 add | Taxable income **$100,000**, temporary change **$4,000**; `deferred-tax` with its own example's items finds a nil difference |
+| B2 | Loss $50,000, $2,000 permanent add, $1,500 losses brought forward | Tax loss **$48,000**, closing losses **$49,500** |
+| B3 | Loss $10,000, net exempt income $4,000, $3,000 losses | Tax loss **$6,000** (s 36-10(3)), closing **$9,000** |
+| B4 | Loss $2,000, net exempt income $5,000, $10,000 losses | $3,000 absorbed (s 36-17(4)(b)), closing **$7,000** |
+| B5 | Profit $18,000, $5,000 subtract, $7,000 add, net exempt income $5,000, $8,000 losses, $3,000 chosen | $5,000 absorbed, taxable income **$17,000**, closing **nil**; $3,000.01 refused |
+| B6 | Profit $4,000, $9,000 losses | Nil chosen: **$4,000**; $4,000 chosen: **nil**, closing $5,000; $4,000.01 refused |
+| B7 | Nil profit, no lines | Taxable income **nil** |
+
+`tests/book_to_tax.rs` also covers each refused flag, malformed lines, the
+500-line limit and the supported years.
 
 ## Deferred revenue
 

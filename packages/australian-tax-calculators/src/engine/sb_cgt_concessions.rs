@@ -539,9 +539,14 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
 /// the roll-over is obtained to the later of 2 years after it and, for this
 /// disposal, 6 months after an earnout's latest due time.
 fn replacement_asset_period(f: &Facts) -> Value {
-    let two_years = anniversary(f.last_event, 2);
-    let to = f
-        .earnout
-        .map_or(two_years, |due| two_years.max(dates::add_months(due, 6)));
-    json!({"from": dates::format(anniversary(f.last_event, -1)), "to": dates::format(to)})
+    let (from, to) = replacement_period(f.last_event, f.earnout);
+    json!({"from": dates::format(from), "to": dates::format(to)})
+}
+
+/// The replacement asset period's first and last days (s 104-190(1A)), from
+/// the last CGT event in the year and an earnout's latest due time.
+pub(super) fn replacement_period(last_event: i64, earnout: Option<i64>) -> (i64, i64) {
+    let two_years = anniversary(last_event, 2);
+    let to = earnout.map_or(two_years, |due| two_years.max(dates::add_months(due, 6)));
+    (anniversary(last_event, -1), to)
 }
