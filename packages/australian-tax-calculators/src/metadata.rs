@@ -1429,6 +1429,11 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "wip_lockup" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Mirrors of the site's pages: the first projected year's caps and
+        // base, and s 14ZW as compiled on 1 October 2026; AASB 16 compilation
+        // no. 8 applies to annual periods from 1 January 2024.
+        "super_projection" | "objection_deadline" => vec!["2026-27"],
+        "lessee_lease" => vec!["2024-25", "2025-26", "2026-27"],
         // AASB 136 paras 6, 18 to 20, 30 to 33, 39, 50 to 57, 59 to 62, 104 and
         // 105 were not amended after 2015 (the compilation's tables of
         // amendments, read on 24 November 2026).
@@ -2122,6 +2127,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "wip_lockup" => (
             "2026-11-24",
             "Ozzit function reference v3.7.0 (oz.WIPDaysλ, oz.ReceivableDaysλ and oz.CashConversionCycleλ, with their examples), on duguid.com.au; the site's tools/wip-schedule page (construction WIP, no lock-up)",
+        ),
+        "super_projection" => (
+            "2026-11-26",
+            "ASIC Corporations (Superannuation Calculators and Retirement Estimates) Instrument 2022/603 (F2022L00895, compilation no. 1) s 4 'assumed retirement age' and 'present value'; ITAA 1997 s 295-160 item 1; Income Tax Rates Act 1986 s 26(1)(a) (compilation no. 66); ATO 'Super guarantee' Table 23 and 'Contributions caps' Tables 1.1 and 4; ATO 'When you can withdraw your super' (preservation age); the site's assets/super-projection.mjs and its 13 cases",
+        ),
+        "objection_deadline" => (
+            "2026-11-26",
+            "TAA 1953 s 14ZW(1)(aa), (aaa) and (c), (1B), (1BA), (1C), (2) and (3) (compilation no. 227); ITAA 1936 s 170(1) items 1, 2, 3 and 3A (compilation no. 193); Acts Interpretation Act 1901 ss 2G and 36 (compilation no. 39); the site's objectionDeadline and its 8 cases",
+        ),
+        "lessee_lease" => (
+            "2026-11-26",
+            "AASB 16 compilation no. 8 (F2024C00049, the latest on the Federal Register) paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A 'short-term lease'; IFRS 16 Illustrative Examples, Example 13; the site's assets/lease.mjs and its 8 cases",
         ),
         "impairment_test" => (
             "2026-11-24",
@@ -3181,6 +3198,60 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "days",
                 "whole number from 1 to 3,660: the days fee_revenue and billings cover, 365 for a year, 90 for a rolling quarter; default 365",
+            ),
+        ],
+        "super_projection" => vec![
+            (
+                "retirement_age",
+                "whole number from 15 to 75: the retirement age entered, taken as the greater of it and the preservation age, 60 (Instrument 2022/603 s 4); default 67, or the next birthday's age from 67",
+            ),
+            (
+                "discount_rate",
+                "decimal fraction from 0 to 0.1, at most 4 places: the present value rate; default 0.037, the Instrument's",
+            ),
+        ],
+        "objection_deadline" => vec![
+            (
+                "s170_item",
+                "1, 2, 3, 3A or none, required for an income tax assessment and refused otherwise: the item of the ITAA 1936 s 170(1) table that applies to the assessment, as established",
+            ),
+            (
+                "original_notice_date",
+                "YYYY-MM-DD, required for an amended assessment and refused otherwise: the day notice of the assessment amended was served, the first assessment's where it has been amended more than once (s 14ZW(1C)); not after notice_date",
+            ),
+            (
+                "amended_before",
+                "boolean, required for an amended assessment and refused otherwise: the assessment had been amended before this amendment; true is refused under subsection (1BA)",
+            ),
+            (
+                "holidays",
+                "list of at most 100 YYYY-MM-DD dates: public holidays where the objection is lodged, or days the office is closed all day (AIA s 36(3)); default none",
+            ),
+        ],
+        "lessee_lease" => vec![
+            (
+                "residual",
+                "AUD from 0: a residual value guarantee expected to be payable, or the price of a purchase option reasonably certain to be exercised (para 27(c) and (d)), due at the end of the lease term; default 0",
+            ),
+            (
+                "prepaid",
+                "AUD from 0: lease payments made before commencement (para 24(b)); default 0",
+            ),
+            (
+                "incentives",
+                "AUD from 0: lease incentives received (para 24(b)); default 0",
+            ),
+            (
+                "initial_direct_costs",
+                "AUD from 0: the lessee's initial direct costs (para 24(c)); default 0",
+            ),
+            (
+                "restoration",
+                "AUD from 0: the estimated cost to dismantle, remove or restore (para 24(d)), a provision under AASB 137; default 0",
+            ),
+            (
+                "useful_life_months",
+                "whole number from 1 to 600, required when ownership_transfers is true: the underlying asset's useful life from commencement, in months",
             ),
         ],
         "impairment_test" => vec![
@@ -6814,6 +6885,33 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("receivables", "AUD from 0: trade receivables, the closing balance or the average of opening and closing"),
             ("billings", "AUD above 0: credit sales billed over the days, on the receivables' GST basis (oz.ReceivableDaysλ's Sales)"),
         ],
+        "super_projection" => vec![
+            ("age", "whole number from 15 to 74: the member's age now"),
+            ("balance", "AUD from 0: the account balance now"),
+            ("salary", "whole AUD from 0: 2026-27 salary before salary sacrifice, the qualifying earnings"),
+            ("employer_rate", "decimal fraction from 0 to 0.3, at most 4 places: employer contributions as a share of salary up to the maximum contribution base; 0.12 is the super guarantee, 0 if self-employed"),
+            ("salary_sacrifice", "AUD from 0: 2026-27 salary sacrifice and personal deductible contributions"),
+            ("after_tax_contributions", "AUD from 0: 2026-27 non-concessional contributions"),
+            ("return_rate", "decimal fraction from 0 to 0.2, at most 4 places: the yearly return after investment fees and tax on earnings"),
+            ("percent_fee", "decimal fraction from 0 to 0.05, at most 4 places: the administration fee as a share of the balance a year"),
+            ("admin_fee", "AUD from 0: the 2026-27 administration fee in dollars"),
+            ("insurance", "AUD from 0: 2026-27 insurance premiums"),
+            ("wage_growth", "decimal fraction from 0 to 0.1, at most 4 places: yearly growth after 2026-27 of the salary, contributions, the dollar fee, premiums and the maximum contribution base"),
+        ],
+        "objection_deadline" => vec![
+            ("decision", "assessment, amended_assessment, fbt_assessment, amended_fbt_assessment or other: the decision objected to; other is a decision for which s 14ZW sets no other period (paragraph (1)(c))"),
+            ("notice_date", "YYYY-MM-DD: the day notice of the decision, the amended assessment's if amended, was given or served"),
+        ],
+        "lessee_lease" => vec![
+            ("payment", "AUD above 0: the regular lease payment, excluding GST the lessee can claim"),
+            ("payments", "whole number from 1 to 50 years of payments at the frequency: the payments in the lease term"),
+            ("frequency", "weekly, fortnightly, monthly, quarterly or annual"),
+            ("timing", "arrears (each payment at the end of its period) or advance (at its start, the first at commencement)"),
+            ("discount_rate", "decimal fraction from 0 to 1, at most 6 places: the rate implicit in the lease or, if it cannot be readily determined, the lessee's incremental borrowing rate (para 26), nominal a year and divided by the payments a year"),
+            ("commencement", "YYYY-MM-DD: the commencement date, in the year"),
+            ("ownership_transfers", "boolean: ownership transfers by the end of the lease term or a purchase option is reasonably certain to be exercised (para 32)"),
+            ("remeasurement", "boolean: the liability has been or must be remeasured for a reassessment, modification, change in an index or rate or revised in-substance fixed payment (paras 36(c) and 39 to 46); true is refused"),
+        ],
         "impairment_test" => vec![
             ("cash_flows", "list of 1 to 50 decimal strings, AUD that may be negative: the stated pre-tax net cash flows of years 1 to n from continuing use, each at the end of its year (AASB 136 paras 33, 39(a) and (b), 50 and 51), excluding financing and tax"),
             ("discount_rate", "decimal fraction above 0 and at most 1 (100%), at most 6 places, limits of this worksheet rather than AASB 136: the stated pre-tax rate (paras 55, 56 and A20)"),
@@ -8555,6 +8653,41 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("fee_revenue", Text("300000.00")),
             ("receivables", Text("60000.00")),
             ("billings", Text("320000.00")),
+        ],
+        // The site's default projection.
+        "super_projection" => vec![
+            ("year", Text("2026-27")),
+            ("age", Whole(30)),
+            ("balance", Text("50000.00")),
+            ("salary", Text("80000")),
+            ("employer_rate", Text("0.12")),
+            ("salary_sacrifice", Text("0")),
+            ("after_tax_contributions", Text("0")),
+            ("return_rate", Text("0.061")),
+            ("percent_fee", Text("0.0011")),
+            ("admin_fee", Text("59")),
+            ("insurance", Text("599")),
+            ("wage_growth", Text("0.037")),
+        ],
+        // The site's example: notice given on 18 November 2026.
+        "objection_deadline" => vec![
+            ("year", Text("2026-27")),
+            ("decision", Text("assessment")),
+            ("notice_date", Text("2026-11-18")),
+            ("s170_item", Text("1")),
+        ],
+        // The site's example: 5 years of equipment.
+        "lessee_lease" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("1000.00")),
+            ("payments", Whole(60)),
+            ("frequency", Text("monthly")),
+            ("timing", Text("arrears")),
+            ("discount_rate", Text("0.075")),
+            ("commencement", Text("2026-07-01")),
+            ("initial_direct_costs", Text("500.00")),
+            ("ownership_transfers", Flag(false)),
+            ("remeasurement", Flag(false)),
         ],
         // AASB 136 Illustrative Example 2's Country A unit at the start of 20X2,
         // dated in 2025-26.

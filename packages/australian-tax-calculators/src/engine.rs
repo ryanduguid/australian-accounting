@@ -6598,6 +6598,12 @@ mod leave_provisions;
 mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
 pub use wip_lockup::{WipLockupArgs, wip_lockup};
+mod super_projection;
+pub use super_projection::{SuperProjectionArgs, super_projection};
+mod objection_deadline;
+pub use objection_deadline::{ObjectionDeadlineArgs, objection_deadline};
+mod lessee_lease;
+pub use lessee_lease::{LesseeLeaseArgs, lessee_lease};
 mod long_service_leave;
 pub use long_service_leave::{LongServiceLeaveArgs, long_service_leave};
 mod foreign_income_conversion;
@@ -6627,7 +6633,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 148] = [
+const KINDS: [&str; 151] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6760,6 +6766,9 @@ const KINDS: [&str; 148] = [
     "leave_provisions",
     "deferred_revenue",
     "wip_lockup",
+    "super_projection",
+    "objection_deadline",
+    "lessee_lease",
     "impairment_test",
     "long_service_leave",
     "foreign_income_conversion",
