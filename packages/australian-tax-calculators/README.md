@@ -5203,6 +5203,7 @@ which items differ, and how, is the preparer's (AASB 112 paras 5 and 17).
 net income   = accounting_profit + additions - subtractions                 ss 4-15(1), 36-10
 excess_deductions                = max(0 - net income, 0)                    s 36-10(1)
 net_exempt_income_left           = max(net_exempt_income - excess, 0)        s 36-17(4)(a)
+                                   nil when net income is nil                s 36-17(3), (4)
 tax_losses_against_exempt_income = min(left, opening_tax_losses)             s 36-17(3), (4)(b)
 taxable_income                   = max(net income, 0) - tax_losses_deducted  s 36-17(2)
 tax_loss_for_year                = max(excess - net_exempt_income, 0)        s 36-10(3)
@@ -5210,6 +5211,8 @@ closing_tax_losses = opening - against exempt income - deducted + tax loss for t
 net_taxable_temporary_difference_change = temporary subtractions - temporary additions
 ```
 
+`net_exempt_income` is under s 36-20, less 90% of any part directly relating
+to exempt shipping income under s 51-100 (ss 36-10(5) and 36-17(4A)).
 `tax_losses_deducted` is the company's choice, up to the lesser of its net
 income and the losses left after net exempt income; more is refused. The
 `deferred_tax` object gives `deferred-tax` its `accounting_profit`,

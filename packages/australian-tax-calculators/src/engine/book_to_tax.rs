@@ -233,8 +233,8 @@ const RULES: [(&str, &str, &str); 8] = [
     ),
     (
         "net_exempt_income_left",
-        "ITAA 1997 s 36-17(4)(a): net exempt income less any excess of deductions over assessable income",
-        "max(net_exempt_income - excess_deductions, 0)",
+        "ITAA 1997 s 36-17(3) and (4)(a): net exempt income, less any excess of deductions over assessable income; nil when assessable income equals deductions, as neither subsection then applies",
+        "min(max(net_exempt_income - excess_deductions, 0), net_exempt_income x min(max(net_income_before_tax_losses, 0 - net_income_before_tax_losses) x 100, 1))",
     ),
     (
         "tax_losses_against_exempt_income",
@@ -284,7 +284,11 @@ fn losses(f: &Facts, t: &[Step]) -> Result<Vec<Step>> {
     let [pa, ps, ta, ts] = [&t[0].value, &t[1].value, &t[2].value, &t[3].value];
     let net = f.profit.add(pa)?.sub(ps)?.add(ta)?.sub(ts)?;
     let excess = max0(Decimal::from_int(0).sub(&net)?)?;
-    let left = max0(f.exempt.sub(&excess)?)?;
+    let left = if net.is_zero() {
+        Decimal::from_int(0)
+    } else {
+        max0(f.exempt.sub(&excess)?)?
+    };
     let absorbed = lesser(left.clone(), &f.opening)?;
     check_choice(f, &net, &absorbed)?;
     let taxable = max0(net.clone())?.sub(&f.chosen)?;
@@ -294,7 +298,7 @@ fn losses(f: &Facts, t: &[Step]) -> Result<Vec<Step>> {
     let rows: [(&[&Decimal], Decimal); 8] = [
         (&[&f.profit, pa, ps, ta, ts], net.clone()),
         (&[&net], excess.clone()),
-        (&[&f.exempt, &excess], left.clone()),
+        (&[&f.exempt, &excess, &f.exempt, &net, &net], left.clone()),
         (&[&left, &f.opening], absorbed.clone()),
         (&[&net, &f.chosen], taxable),
         (&[&excess, &f.exempt], loss.clone()),

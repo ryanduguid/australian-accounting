@@ -134,6 +134,16 @@ fn b4_net_exempt_income_left_absorbs_earlier_losses_in_a_loss_year() {
     assert_eq!(amount(&r, "closing_tax_losses"), "7000.00");
 }
 
+/// Neither s 36-17(3) nor (4) applies when assessable income equals
+/// deductions: net exempt income absorbs nothing.
+#[test]
+fn b8_nil_net_income_absorbs_no_losses() {
+    let r = run(&input("0.00", json!([]), "5000.00", "10000.00", "0.00"));
+    assert_eq!(amount(&r, "net_exempt_income_left"), "0.00");
+    assert_eq!(amount(&r, "tax_losses_against_exempt_income"), "0.00");
+    assert_eq!(amount(&r, "closing_tax_losses"), "10000.00");
+}
+
 /// s 36-17(3): net exempt income first, then the chosen amount, up to the
 /// losses left.
 #[test]

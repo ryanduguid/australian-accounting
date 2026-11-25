@@ -6372,6 +6372,7 @@ Act No. 71 of 2026 made the loss carry back of s 160-10 permanent from
 | B5 | Profit $18,000, $5,000 subtract, $7,000 add, net exempt income $5,000, $8,000 losses, $3,000 chosen | $5,000 absorbed, taxable income **$17,000**, closing **nil**; $3,000.01 refused |
 | B6 | Profit $4,000, $9,000 losses | Nil chosen: **$4,000**; $4,000 chosen: **nil**, closing $5,000; $4,000.01 refused |
 | B7 | Nil profit, no lines | Taxable income **nil** |
+| B8 | Nil net income, net exempt income $5,000, $10,000 losses | Nothing absorbed (neither s 36-17(3) nor (4) applies), closing **$10,000** |
 
 `tests/book_to_tax.rs` also covers each refused flag, malformed lines, the
 500-line limit and the supported years.
