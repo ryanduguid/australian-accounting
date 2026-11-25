@@ -71,6 +71,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/residential_vacancy_fee",
         "engine/portable_lsl_levy",
         "engine/portable_lsl_levy/coal",
+        "engine/consolidation_eliminations",
+        "engine/tofa_accruals",
     ]
     .into_iter()
     .flat_map(|dir| {

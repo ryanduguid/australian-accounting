@@ -96,7 +96,7 @@ fn c1_partly_owned_subsidiary_with_upstream_unrealised_profit() {
     assert_eq!(a["equity_attributable_to_owners"], "193600.00");
     assert_eq!(a["total_assets"], "220500.00");
     assert_eq!(a["total_liabilities"], "0.00");
-    for (account, consolidated) in [
+    for (row, consolidated) in [
         ("Cash", "79000.00"),
         ("Investment in S Ltd", "0.00"),
         ("Inventory", "40000.00"),
@@ -109,7 +109,7 @@ fn c1_partly_owned_subsidiary_with_upstream_unrealised_profit() {
         ("Cost of sales", "145000.00"),
         ("Income tax expense", "34500.00"),
     ] {
-        assert_eq!(line(&r, account)["consolidated"], consolidated, "{account}");
+        assert_eq!(line(&r, row)["consolidated"], consolidated);
     }
 }
 
