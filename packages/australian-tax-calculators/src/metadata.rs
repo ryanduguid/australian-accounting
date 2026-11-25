@@ -7040,7 +7040,9 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
-        "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
+        // resident_tax's first year is 2019-20; its example stays in 2024-25.
+        "resident_tax" => vec![("year", Text("2024-25")), ("taxable_income", Text("45000"))],
+        "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
         "capital_gains" => vec![
             ("other_gains", Text("100.00")),
             ("discount_gains", Text("1000.00")),
