@@ -1576,55 +1576,28 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     ),
     (
         "break-even",
-        &[
-            ("fixed_costs", Dec),
-            ("price", Dec),
-            ("variable_cost", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
+        cmd_args! { (fixed_costs: Dec) (price: Dec) (variable_cost: Dec) year scope_confirmed },
     ),
     (
         "cash-forecast",
-        &[
-            ("opening", Dec),
-            ("buffer", Dec),
-            ("weeks", Json),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
+        cmd_args! { (opening: Dec) (buffer: Dec) (weeks: Json) year scope_confirmed },
     ),
     (
         "hourly-rate",
-        &[
-            ("annual_costs", Dec),
-            ("target_profit", Dec),
-            ("billable_hours", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
+        cmd_args! {
+            (annual_costs: Dec) (target_profit: Dec) (billable_hours: Dec) year scope_confirmed
+        },
     ),
     (
         "fixed-fee",
-        &[
-            ("hours", Dec),
-            ("rate", Dec),
-            ("margin_percent", Dec),
-            ("round_to", Raw),
-            ("add_gst", Raw),
-            ("instalments", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
+        cmd_args! {
+            (hours: Dec) (rate: Dec) (margin_percent: Dec) round_to add_gst instalments
+            year scope_confirmed
+        },
     ),
     (
         "staff-cost",
-        &[
-            ("wages", Dec),
-            ("other_costs", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
+        cmd_args! { (wages: Dec) (other_costs: Dec) year scope_confirmed },
     ),
     (
         "impairment-test",
