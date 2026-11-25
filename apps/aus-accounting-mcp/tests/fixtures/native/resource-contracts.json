@@ -22,6 +22,7 @@
       "search_tax_legislation": "Search an explicitly configured local legislation corpus; returns point-in-time provisions with their compilation and register citation. as_at answers for a date from each title's compilation window and refuses by name any title it cannot answer for; captured is not a finding that the text was the law on that date.",
       "read_tax_legislation_section": "Read one cited provision from that corpus in full, optionally with the provisions either side of it. as_at reports the title's status and window, and withholds the text unless the status is captured.",
       "define_tax_term": "Find an expression's statutory definitions in that corpus's dictionary sections; no match is not proof the expression is undefined.",
+      "find_citing_provisions": "List the provisions in that corpus whose text cites one section by number; an empty list is not proof that nothing cites it.",
       "search_tax_rates": "Find legislated rate, threshold and factor rows in that corpus; amounts are quoted text, not a calculation or a current-figure confirmation.",
       "search_ato_rulings": "Search an explicitly configured local folder of ATO rulings runs; returns point-in-time paragraphs with their docid, source page and fetch date, never a confirmation of the Commissioner's current view.",
       "read_ato_ruling": "Read one cited paragraph from the run its row_ref names, optionally with the same document's paragraphs either side of it."

@@ -17,7 +17,7 @@ static DICTIONARY: LazyLock<Regex> =
 static DEFINITION: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("DEFINITION_HEAD")));
 static SUBSECTION: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("SUBSECTION_LABEL")));
 
-fn plain(text: &str) -> String {
+pub(super) fn plain(text: &str) -> String {
     py::casefold(
         &text
             .replace('\u{2011}', "-")
@@ -144,23 +144,53 @@ fn read_index(
     Ok(())
 }
 
+fn distinct_heads(ranked: &[Value]) -> Vec<String> {
+    let mut seen = std::collections::HashSet::new();
+    ranked
+        .iter()
+        .filter_map(|v| v["head"].as_str())
+        .filter(|head| seen.insert(*head))
+        .map(str::to_owned)
+        .collect()
+}
+
 fn finish_definitions(term: &str, input: &Value, root: &Path, mut found: Found) -> Value {
     let maximum = found.maximum;
     found.exact.sort_by_key(|(p, _)| *p);
+    let defined = !found.exact.is_empty();
     let dropped = found.partial.len() > maximum;
+    let ranked: Vec<_> = found
+        .partial
+        .into_sorted_vec()
+        .into_iter()
+        .take(maximum)
+        .map(|v| v.value)
+        .collect();
+    let nearest_terms = if defined {
+        Vec::new()
+    } else {
+        distinct_heads(&ranked)
+    };
+    let defined_note = if defined {
+        Value::Null
+    } else {
+        json!(policy("UNDEFINED_NOTE"))
+    };
     let mut definitions: Vec<_> = found.exact.into_iter().map(|(_, v)| v).collect();
-    definitions.extend(
-        found
-            .partial
-            .into_sorted_vec()
-            .into_iter()
-            .take(maximum)
-            .map(|v| v.value),
-    );
+    definitions.extend(ranked);
     let limit = input["limit"].as_u64().unwrap() as usize;
     let more = dropped || definitions.len() > limit;
     definitions.truncate(limit);
-    json!({"term":term,"definitions":definitions,"has_more":more,"corpus":provenance(root),"notice":format!("{} {}",policy("NOTICE"),policy("DEFINITION_NOTICE"))})
+    json!({
+        "term": term,
+        "defined": defined,
+        "nearest_terms": nearest_terms,
+        "defined_note": defined_note,
+        "definitions": definitions,
+        "has_more": more,
+        "corpus": provenance(root),
+        "notice": format!("{} {}", policy("NOTICE"), policy("DEFINITION_NOTICE"))
+    })
 }
 
 pub(super) fn define(context: &Context, input: &Value) -> Result<Value, String> {

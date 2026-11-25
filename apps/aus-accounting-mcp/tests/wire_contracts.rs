@@ -255,7 +255,7 @@ fn unknown_arguments_and_expected_input_errors_leave_the_session_usable() {
             Some("misspelled_fact"),
         ));
     }
-    assert_eq!(cases.len(), 25);
+    assert_eq!(cases.len(), 26);
     let mut partial = payday.clone();
     partial["matched_amount"] = json!("50.00");
     cases.push((
@@ -318,7 +318,7 @@ fn unknown_arguments_and_expected_input_errors_leave_the_session_usable() {
         replay(vec![
             json!({"label":"original-boundary-errors-and-recovery","exchanges":exchanges})
         ]),
-        43
+        44
     );
 }
 
@@ -404,12 +404,11 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
         BTreeSet::from([
             "account-number-format".to_owned(),
             "bsb-format".to_owned(),
-            "citing-provision".to_owned(),
             "union-fees-paper-question".to_owned()
         ])
     );
-    assert_eq!(questions.len(), 40);
-    assert_eq!(calls, 46);
+    assert_eq!(questions.len(), 41);
+    assert_eq!(calls, 47);
     assert_eq!(selected, registered);
     let mut results: BTreeMap<String, Vec<Value>> = BTreeMap::new();
     replay_observed(
@@ -547,6 +546,7 @@ fn current_evaluation_answers_follow_actual_reference_calls_and_dependent_facts(
             }
             "legislated-rate" => r[0]["matches"][0]["amounts"][0].as_str().unwrap().into(),
             "statutory-definition" => r[0]["definitions"][0]["section"].as_str().unwrap().into(),
+            "citing-provision" => r[0]["cited_by"][0]["section"].as_str().unwrap().into(),
             "injected-instruction" => {
                 assert!(
                     r[0]["section"]["text"]

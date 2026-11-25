@@ -3,6 +3,7 @@
 // Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Point-in-time legislation indexes supplied by the operator. No downloads.
+mod cited_by;
 mod dated;
 mod define;
 mod query;
@@ -25,6 +26,7 @@ pub(super) fn evaluate(context: &Context, name: &str, input: &Value) -> Result<V
         "search_tax_rates" => search::search(context, input, true),
         "read_tax_legislation_section" => read::read(context, input),
         "define_tax_term" => define::define(context, input),
+        "find_citing_provisions" => cited_by::cited_by(context, input),
         _ => unreachable!("validated corpus tool"),
     }
 }
