@@ -5,7 +5,8 @@
 //! `rollforward` inputs it must refuse or disclose: a key printed raw could
 //! break the one-line error, a nil repayment splits a period and can move the
 //! rounded interest, and a balance floored at nil is an assumption the output
-//! has to state. The first-year readings' rounding exception is pinned too.
+//! has to state. The first-year readings' rounding exception is pinned too, as
+//! are hand-worked anchors and the 1 July to 30 June year.
 
 use div7a_loan_review::rollforward::rollforward;
 use serde_json::{Value, json};
@@ -86,4 +87,51 @@ fn the_first_year_readings_differ_by_rounding_alone_here() {
     with_early.insert(0, json!({"date": "2026-07-02", "amount": "8.13"}));
     assert_eq!(closing("436.48", Value::Array(with_early)), "215.09");
     assert_eq!(closing("428.35", later), "215.10");
+}
+
+/// A $70,000 loan worked by hand from s 109E(7), the 2024-25 and 2025-26
+/// benchmark rates and the ATO's daily-balance day count: every day of the
+/// year counts, and a repayment reduces the balance from its own date.
+#[test]
+fn the_hand_worked_anchors_hold() {
+    let file: Value = serde_json::from_str(include_str!("data/rollforward-anchors.json")).unwrap();
+    assert_eq!(file["synthetic"], true);
+    let cases = file["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 4);
+    for case in cases {
+        let id = &case["case_id"];
+        let result = rollforward(&case["input"]).unwrap_or_else(|e| panic!("{id}: {e}"));
+        assert_eq!(result["days_in_year"], 365, "{id}");
+        for key in ["interest", "amalgamated_loan_unpaid_at_end_of_year"] {
+            assert_eq!(result[key], case[key], "{id} {key}");
+        }
+    }
+}
+
+/// The year of income is a label, so a substituted accounting period cannot be
+/// entered: a start date in its place is refused, the year runs 1 July to
+/// 30 June, and the README says such a period is not modelled.
+#[test]
+fn a_substituted_accounting_period_cannot_be_entered() {
+    let mut input = loan(json!([]));
+    input["year_of_income"] = json!("2026-11-01");
+    let refused = rollforward(&input).unwrap_err();
+    assert!(
+        refused.starts_with("year_of_income '2026-11-01' must be written like 2026-27"),
+        "{refused}"
+    );
+    for (date, inside) in [
+        ("2026-06-30", false),
+        ("2026-07-01", true),
+        ("2027-06-30", true),
+        ("2027-07-01", false),
+    ] {
+        let result = rollforward(&loan(json!([{"date": date, "amount": "1.00"}])));
+        assert_eq!(result.is_ok(), inside, "{date}: {result:?}");
+    }
+    let readme = include_str!("../README.md")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    assert!(readme.contains("(a substituted accounting period is not modelled, and the ATO calculator does not take one either)"));
 }
