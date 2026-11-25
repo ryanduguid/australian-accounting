@@ -60,11 +60,12 @@ example evidence; it does not claim a fresh review of every supported period.
 | CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
+| Portable LSL levy | Not a Library document: Coal LSL (`F2018L00217`, `C2004A04352`, `tools/coal-lsl-levy` parity vectors) and each state and territory portable LSL board's rates page and in-force legislation (NSW LSC, LeavePlus, PLSA, QLeave and Qld BCI Act/Reg, SA Portable LSL, MyLeave, ACT DI2024-12/15/16/224 and DI2026-228, TasBuild, NT Build) | 24 November 2026 (read) | 20 verified jurisdiction-scheme combinations across 2023-24 to 2026-27 (each scheme gated to its verified years); worker coverage, exemptions, apprentice exclusions, late interest and lodgement excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
 | Contribution caps | `tax-examples-individuals` (tax-examples), ¶7-278, with ITAA 1997 s 291-20 (compilation 268, 1 October 2026) and the ATO's contributions caps and concessional contributions cap pages for the carry-forward by year | 30 June 2025; 11 September and 2 July 2026 (ATO pages) | First-year bring-forward for 2024–25 only; the later-year nil cap is outside the worksheet; unused concessional cap from 2018-19 worked out from each year's established contributions |
 | Pension minimum | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-500 | 30 June 2026 | Schedule 7 age factors; the pro-rated case is adapted arithmetic |
-| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, ITAA 1936 ss 251T and 251U, the ATO's single and family thresholds, its Ashton example and its Priya exemption example | 30 June 2026 (threshold pages); 22 June 2026 (exemption pages) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds, the s 8 family reduction and the s 9 exemption days for 2024-25 to 2026-27, on established SAPTO, spouse, dependant and exemption facts |
+| Medicare levy | Not a Library document: Medicare Levy Act 1986 compilations 52 and 53, ITAA 1936 ss 251T and 251U, the ATO's single and family thresholds, its Ashton example and its Priya exemption example | 30 June 2026 (threshold pages); 22 June 2026 (exemption pages); 24 November 2026 (non-resident days) | The 2% rate, the s 7 low-income reduction at the single or SAPTO thresholds, the s 8 family reduction and the s 9 exemption days for 2024-25 to 2026-27, on established SAPTO, spouse, dependant and exemption facts, including a part-year resident's non-resident days (ITAA 1936 s 251U(1)(d) and (2)) |
 | Medicare levy surcharge | Not a Library document: Medicare Levy Act 1986 ss 8B and 8D (compilations 52 and 53), the Medicare Levy Surcharge - Fringe Benefits Act 1999 (compilations 41 and 42), the ATO's thresholds page with its Tom example and its M2 2026 instructions with the Josh, Jacinta and Jill and Kevin examples | 22 June 2026 (thresholds page); 30 May 2026 (M2) | The tier, rate and share of the year for 2024-25 to 2026-27, for a person single without dependants or married all year, on established income for surcharge purposes, days without cover and spouse's income |
 | Low income tax offset | Not a Library document: ITAA 1997 s 61-115 compilation 266 and the ATO's worked example | 8 June 2026 (ATO page) | Offset amount from established taxable income for 2024-25 to 2026-27; not applied against tax payable |
 | Seniors and pensioners tax offset | Not a Library document: ITAA 1936 s 160AAAA (compilation 193, 1 October 2026), the Income Tax Assessment (1936 Act) Regulations 2025 and Regulation 2015 (compilation 8) ss 9 to 12, and the ATO's examples and thresholds | 2 October 2026 (ATO page) | One eligible individual's offset amount for 2024-25 to 2026-27 from established rebate income, status and spouse facts; not applied against tax payable |
@@ -194,6 +195,76 @@ See [GST going concern](#gst-going-concern).
 
 See [GST going concern](#gst-going-concern).
 
+## GST error correction
+
+Added on 24 November 2026. Its sources were read that day through the Federal
+Register of Legislation: the A New Tax System (Goods and Services Tax)
+(Correcting GST Errors) Determination 2023 (F2023L01284, dated 6 September
+2023) ss 4 and 6 to 8, the GST Act compilation 96 (C2026C00081) ss 29-10,
+29-80, 93-5, 93-10 and 93-15, the GST Regulations 2019 compilation 5 reg
+29-80.01 and the Taxation Administration Act 1953 Sch 1 ss 105-65 (as referenced
+in F2023L01284 s 4(b)) and 155-35. No ATO example was read; the tests take each
+turnover band at its boundary, the last day of each time limit and $75.
+
+The debit error time limit is 'within' a number of months 'after the due
+date', so its last day counts: 18 months after 28 February 2025 is 28 August
+2026. The value limit is 'less than', so a net sum equal to it fails (and
+`net_debit_errors`, being debit error amounts less credit error amounts under s 4,
+may be negative). Section
+93-5(1)'s 4 years run from the day after the return's due day and end on the
+anniversary of it. Under s 29-10(1) to (5), `earlier_attributable_return_given`
+and `section_29_10_5_election` ensure an intervening return given whilst
+holding the invoice blocks claiming in a later return unless a valid s 29-10(5)
+election moved attribution to it. Section 93-15 takes `none`, `partial` or
+`full`: `full` preserves entitlement, `none` bars it when the supplier's review
+ended without a tax invoice, and `partial` in that case is refused because
+s 93-15 ceases entitlement only to the shortfall; s 93-10(1), (4)
+and (5) exceptions are refused explicitly. F2023L01284 s 8 provides only that
+an error cannot be corrected by amending a later period's assessment.
+
+`tests/gst_corrections.rs` holds each case, each boundary and each refusal.
+
+## GST credit time limit
+
+See [GST error correction](#gst-error-correction).
+
+## Tourist refund
+
+Added on 24 November 2026. Its sources were read that day through the Federal
+Register of Legislation: the GST Act compilation 96 (C2026C00081) s 168-5, the
+GST Regulations 2019 compilation 5 (F2025C01015, from 1 November 2025) regs
+168-5.01 to 168-5.17, the WET Act compilation 32 (C2026C00149) ss 25-5 and
+31-10, and the WET Regulations 2019 as made (F2019L01154) regs 25-5.01 to
+25-5.07. The ABF's 'Tourist Refund Scheme (TRS)' and 'Making the claim' pages
+were read for context: they state the $300, the 60 days and the 30 minutes as
+the regulations do, and add that no cash refund is paid.
+
+Reg 168-5.04 sets the $300 for the acquisition Subdivision 168-A specifies;
+the 60 days are in Subdivision 168-C. Items failing a Subdivision 168-A
+condition never count. Where the qualifying items fall short of $300 but
+items failing only the 60 days would bring the total to $300, the command
+refuses (`tourist_refund.threshold_unsettled`): neither the regulations nor the
+ABF's pages settle whether such items count. The GST Regulations compilation 4
+(1 July 2023) and GST Act compilation 95 (1 November 2025) read the same for
+these provisions (checked by the review on 24 November 2026), so 1 November
+2025 marks the coverage of the law read, not a change in it. Reg
+168-5.09's 'within 60 days after the day on which they were acquired' counts
+from the next day, so goods bought on 19 January leave in time on 20 March.
+
+No ATO or ABF example with figures was found. The tests work the
+regulations' arithmetic:
+
+| Case | Facts given | Result |
+| --- | --- | --- |
+| One item | $330 with $30 GST | **$30.00** |
+| With wine | $330 and $100 of wine with $9.09 GST | GST **$39.09**, wine tax 29% x $50 = **$14.50** |
+| Wine at $49.99 | with $300 of goods | wine tax 7.24855, shown **$7.25** |
+| 2 items | $150 and $149.99 | below $300: **nil** |
+| 60 and 61 days | $200 each | the second fails; the $300 depends on it: **refused** |
+| 5-cent item | $299.95 with $27.27 GST and a taxable $0.05 with nil GST | **$27.27** |
+
+`tests/tourist_refund.rs` holds each case, each boundary and each refusal.
+
 ## GST margin scheme
 
 Added on 19 November 2026. Its sources were read that afternoon, 2.20 pm to
@@ -281,11 +352,9 @@ The Act states no rounding, so the threshold stays exact.
 | Eligible pensioner | s 18(2)(a) | 3 | $18,200 | as given | the full-year result |
 
 The ATO's John page says the thresholds for the other rates do not change, so
-only the first band's lower limit moves. `personal-tax-estimate` still refuses
-a part-year resident: under ITAA 1936 s 251U(1)(d) the days of non-residence
-can make the person a prescribed person for the Medicare levy, unless a
-dependant who is not one prevents it (s 251U(2)), which `medicare-levy` and
-`medicare-levy-surcharge` do not take. Tests: `tests/part_year_resident.rs`.
+only the first band's lower limit moves. `personal-tax-estimate` composes a part-year
+resident with `medicare-levy`'s non-resident days
+([Exemptions](#exemptions)). Tests: `tests/part_year_resident.rs`.
 
 ## Foreign resident tax
 
@@ -1379,9 +1448,13 @@ November 2026:
   concession is refused for 2025.
 - Interpretation of Legislation Act 1984 (Vic), authorised version 134: s 44(1)
   (a period expressed to begin on a day leaves that day out) and s 44(6)(a)
-  (midnight is the point at which the day ends). The transition period therefore
-  ends on the tenth anniversary of the entry date; an entry on 31 December, whose
-  period ends at the midnight that fixes liability, is refused.
+  (midnight is the point at which the day ends). Under the corresponding-date
+  reading, the transition period ends on the tenth anniversary of the entry
+  date (`2026-02-28` ends on `2036-02-28`; `29 February` clamps to `28 February`
+  in a non-leap year); an entry on 31 December, whose period ends at the
+  midnight that fixes liability, is refused. On 25 November 2026,
+  `content.legislation.vic.gov.au` `robots.txt` disallowed automated fetch of
+  the authorised version 134 PDF and DOCX.
 - Commercial and Industrial Property Tax Reform Act 2024 (Vic), authorised
   version 004: ss 2 (commencement 1 July 2024), 3 ('CIPT taxable land',
   'transition period' of 10 years from the entry date), 7, 17, 19 (1%; 0.5% for
@@ -1405,6 +1478,7 @@ November 2026:
 | Titles up $300,000 and $150,000 and down $50,000 | $450,000 taxable, $218,750.00 | ss 9, 16(3) |
 | Entry 1 July 2024 and 1 August 2034 | earliest possible tax years 2035 and 2045, nil in 2025 and 2026 | SRO; s 3 |
 | Entry 1 January 2025 | period ends 1 January 2035, earliest possible tax year 2036 | s 3; ILA s 44(1) |
+| Entry 28 February 2026 | period ends 28 February 2036, earliest possible tax year 2037 | s 3; ILA s 44(1)/(6) |
 | Entry 31 December 2024 | refused: the period ends at the midnight that fixes liability | s 3; ILA s 44(6)(a) |
 | Uplifts of $50,000 and $50,001 on 2 titles | $100,001 taxable, $0.63 | ss 9, 16(1) |
 | Vacant home at $800,000: no, 1 and 2 liable years | $8,000, $16,000, $24,000 | s 35(3)(b) |
@@ -2536,6 +2610,53 @@ values, under every choice each jurisdiction asks.
 | ACT, new Category B, $80,000, 31 January and 1 February 2027 | Worked by hand from each determination | $3,177.00 and $3,419.00 |
 | Northern Territory, electric, $80,000 | Worked by hand: 300 lots of $100 above $50,000 | $900.00 |
 
+## GST food retailer SAM
+
+This worksheet was added on 24 November 2026. These were read that day
+through the Federal Register of Legislation's API (EPUB of each register ID):
+
+- A New Tax System (Goods and Services Tax) Act 1999 Div 123 (ss 123-5,
+  123-7, 123-10 and 123-15), compilation 96 (C2026C00081, from 1 January
+  2026).
+- Goods and Services Tax: Simplified Accounting Methods Determination 2017
+  for Retailers who sell Food (F2017L01274), as made: registered 27 September
+  2017, unamended, in force.
+- Simplified Accounting Methods - Supermarket and Convenience Stores
+  Determination 2025 (F2025L01055), registered 8 September 2025.
+- Simplified Accounting Method for Restaurants, Cafes and Caterers
+  Determination 2026 (F2026L01275), registered 23 September 2026; it repealed
+  the 2016 purchases snapshot determination, which is not worked.
+- The prisons and detention determination (F2025L00997) was read only to
+  leave it out.
+
+The ATO's 'GST for food retailers - simplified accounting methods' (pages
+last updated 23 October 2019) gives the examples the tests use: Carlo's hot
+bread shop ($60,000 and $71,250), Connie ($107,555), Andrew ($107,310 and
+$99,470), Valda ($1,005), Lee ($1,840), Anita ($30,000 of purchases GST-free)
+and Anil ($45,500 GST-free and credits of $1,772.73, which the ATO rounds to
+$1,773). Anita's and Anil's examples were written for the repealed
+determinations; the current ones repeat their arithmetic. For a pharmacy, s
+5(3)(b) applies 0% and 2% 'to total trading stock acquisitions'; the
+worksheet follows the ATO's reading, each norm to that component's
+purchases. Requiring the 2 components to make up all trading stock purchases,
+and so refusing a pharmacy with other purchases such as PBS stock, is the
+worksheet's own limit, not a requirement of s 5(3)(b).
+
+For a business that starts in the year, ss 6(4) and 7(3) of the 2017
+determination replace only the first sample period, the one for July to
+December, with a sample from the first 2 months of trading; a later half
+uses its ordinary window, and a business that starts in January to June is
+refused. F2026L01275 s 7 para (c) gives the first 2 months when trading
+starts during a tax period and paras (a) and (b) cannot be applied, and para
+(d) uses `method_started` for a retailer starting to use the method during a
+tax period outside the ordinary window. Once the first eligible tax period in a
+6-month half establishes its sample under para (a), (b), (c) or (d), later tax
+periods in that half reuse that sample through `first_tax_period_sample` so
+one proportion applies across the half rather than accepting a new
+`purchases_sample`; a commencement before the half's first eligible tax period
+(1 October 2026 for July to December 2026) where paras (a) and (b) cannot apply
+is refused.
+
 ## Insurance duty
 
 This worksheet was added on 24 November 2026. The Acts were read that day:
@@ -2589,6 +2710,78 @@ the first and last day of the year.
 No Act sets a rounding rule for one premium's duty: insurers pay on a return
 of total premiums. The worksheet shows `duty` to the cent, as every amount in
 this crate is, and gives the exact figure in `rates.exact_duty`.
+
+## Portable LSL levy
+
+This worksheet was added on 24 November 2026. Primary statutory board pages and
+in-force legislation were read on 24 November 2026:
+
+- **Coal LSL (Commonwealth)**: Federal Register of Legislation OData API
+  confirmed `F2018L00217` (*Coal Mining Industry (Long Service Leave) Payroll
+  Levy Regulations 2018*, Compilation No. 1 `F2023C00557`, in force from 1 July
+  2023: 2.7% prescribed percentage under s 6) and `C2004A04352` (*Coal Mining
+  Industry (Long Service Leave) Payroll Levy Collection Act 1992*, Compilation
+  No. 12 `C2026C00364`, in force 1 September 2026: s 3B eligible wages) have no
+  unincorporated amendments; `coallsl.com.au/employer/administer-lsl/levy`
+  states 2.7%. Mirrors `ryanduguid.github.io/tools/coal-lsl-levy`
+  (`assets/levy.mjs`, `scripts/levy.test.mjs`,
+  `service/coal-lsl-levy/fixtures/cases.json`).
+- **New South Wales (Long Service Corporation)**: `nsw.gov.au` pages for BCI
+  (0.25% on works of $250,000 or more including GST from 1 January 2023), CCI
+  (1% of gross ordinary wages from 1 July 2021) and CSI (1.3% for 2025-26 and
+  1.7% from 1 July 2026). NSW BCI whole-dollar rounding downwards was verified
+  directly on 24 November 2026 against the official LSC Building Levy
+  Calculator (`longservice.my.site.com/bci/s/levy-calculator`): `$249,999` ->
+  `$0`, `$250,000` -> `$625`, `$250,399` (exact `$625.9975`) -> `$625`,
+  `$250,400` -> `$626` and `$300,200` (exact `$750.50`) -> `$750`. Note:
+  `legislation.nsw.gov.au` and `classic.austlii.edu.au` returned Cloudflare
+  challenges (HTTP 403), so the NSW statutory text itself was not read directly.
+- **Victoria**: LeavePlus `leaveplus.com.au/employers/charges/` (2.7% of gross
+  reportable ordinary pay) and Portable Long Service Authority
+  `plsa.vic.gov.au/employer-information/about-the-portable-long-service-benefits-scheme`
+  (1.65% community services, 1.80% contract cleaning and 1.80% security) for
+  2026-27.
+- **Queensland (QLeave)**: *Building and Construction Industry (Portable Long
+  Service Leave) Act 1991* (Qld) ss 72 and 73 and *Regulation 2024* (SL No. 162)
+  ss 8, 9 and 11 (read verbatim on `legislation.qld.gov.au`: $150,000 threshold
+  excluding GST; 0.35% LSL, 0.1% CSQ training and 0.125% WHSQ, each rounded to
+  the nearest dollar with 50c rounded downwards under s 72(2)); *Contract
+  Cleaning Industry (Portable Long Service Leave) Act 2005* (Qld) s 83 and
+  QLeave 'Employer obligations' (0.5% for 2026-27); QLeave community services
+  'Paying the levy' (1.35% for 2026-27).
+- **South Australia (SA Portable Long Service Leave)**:
+  `saplsl-construction.org.au/employers/how-to-complete-employer-returns`
+  (2.00% of gross remuneration, apprentices levy-free) and
+  `saplsl-community.org.au/employers-home/what-do-i-have-to-do` (2.2% of gross
+  remuneration, trainees exempt) for 2026-27.
+- **Western Australia (MyLeave)**: `wa.gov.au` public notice 'MyLeave - 2027
+  Employer Contribution Rate' (published 4 November 2026): 0.75% of ordinary
+  pay for both the 2026 and 2027 calendar years (apprentices levy-free),
+  covering all of 2026-27.
+- **Australian Capital Territory (ACT Leave)**: *Long Service Leave (Portable
+  Schemes) Act 2009* (ACT) Disallowable Instruments read verbatim from
+  `legislation.act.gov.au` PDFs: `DI2024-12` (construction 2.75% from 1 October
+  2024), `DI2024-16` (community sector 1.85% from 1 July 2024), `DI2024-15`
+  (security 1.47% from 1 July 2024), `DI2024-224` (services including contract
+  cleaning 1.07% from 1 April 2025) and `DI2026-228` (services 1.07% from
+  1 January 2027, with phased discounts for food and beverage services only).
+- **Tasmania (TasBuild)**: `tasbuild.com.au/employers-information/` FAQ: 2.5%
+  standard contribution rate on ordinary pay, or 1.8% discounted rate when
+  returns and invoices are lodged and paid by the due dates (2026-27).
+- **Northern Territory (NT Build)**: `ntbuild.com.au/levy-payers`: 0.1% on
+  eligible construction projects from $1 million to $5 billion inclusive of GST,
+  rounded to the nearest dollar with 50c rounded downwards (s 33(2) of the
+  *Construction Industry Long Service Leave and Benefits Act 2005* (NT));
+  projects above $5 billion face a two-tier ministerial levy and are refused.
+
+| Case | Basis | Expected |
+| --- | --- | --- |
+| Coal LSL base rate $6,000 + $3,000 OT + $500 allowances | s 3B(1) Formula B = 0.75 x $9,500 = $7,125; 2.7% = $192.375 | $192.38 |
+| Coal LSL base rate $100.03 + $300 OT | Formula B = $300.0225 exact; 2.7% = $8.1006075 | $8.10 |
+| NSW construction $250,399 incl. GST | 0.25% = $625.9975, rounded down to whole dollar (LSC calculator) | $625.00 |
+| Qld construction $150,000 excl. GST | s 72(2): LSL $525, training $150, WHS $187.50 -> $187 | $862.00 |
+| NT construction $1,000,500 incl. GST | s 33(2): $1,000.50 -> 50c rounded down | $1,000.00 |
+| Tas construction $50,000 on time vs standard | 1.8% vs 2.5% | $900.00 / $1,250.00 |
 
 ## Payroll tax
 
@@ -2658,6 +2851,35 @@ and refusals beside them.
 | $3,000,000 in the ACT | Worked by hand: ($3,000,000 - $1,750,000) x 6.75% | $84,375.00 |
 | $3,000,000 in the Northern Territory | Worked by hand from Sch 1 cl 3: $2,500,000 - $500,000 / 2 | $2,250,000.00 deduction, $41,250.00 |
 
+## Payroll tax group
+
+This worksheet was added on 24 November 2026. Each Act was read that day,
+from 12:10 to 12:50 AEDT, at its official legislation site: the Payroll Tax
+Act 2007 (Vic) Pt 5 and Sch 1 Pts 3 and 4 (authorised version 041, in force
+from 1 May 2026); the Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and
+Pt 4 (current reprint); the Pay-roll Tax Assessment Act 2002 (WA) s 17 and
+Pt 4 (version 04-d0-03, current from 1 July 2019); the Payroll Tax Act 2009
+(SA) Pt 5 and Sch 1 Pt 3 (version 31.3.2026); the Payroll Tax Act 2011 (ACT)
+Pt 5 and Sch 1 Pts 1.3 and 1.4; and the Payroll Tax Act 2008 (Tas) and
+Payroll Tax Act 2009 (NT) Pt 5. legislation.nsw.gov.au answered with a
+Cloudflare challenge, so New South Wales is refused; the Tasmanian (Sch 1
+cl 8 to 9B) and Northern Territory (Sch 1 cl 7) group formulas are images
+the text does not carry, so both are refused. SRO Victoria's 'Grouping' and
+QRO's 'Payroll tax deductions' were read the same day.
+
+| Case | Source | Result |
+|---|---|---|
+| 80% x 70% = 56% groups; x 40% = 22.4% does not | Payroll Tax Act 2007 (Vic) s 77(5) | B grouped, C not |
+| 40% + 25% x 60% = 55% | s 78(3) (here 40% + 30% x 50%) | grouped; 50% exactly is not |
+| Ian controls A, A controls Partnership B | SRO Victoria, 'Grouping' | A, B (and C) grouped; Ian not |
+| Lucy, object of a discretionary trust whose trustee holds 80% of Trading Co | SRO Victoria, 'Grouping' | Trading Co and Lucy's café grouped |
+| $2,000,000, $4,000,000 and $2,000,000 of $4,000,000 in Victoria | Sch 1 cl 7A | $1,000,000; $500,000; $250,000 |
+| $1,000,000 (DGE) and $400,000 in Queensland | s 33, ss 45 and 48(2); QRO | $1,285,714.29; DGE $1,000,000; B $285,714.29 |
+| $800,000 and $700,000 in Western Australia | s 17(3A) | $923,076.92, with or without a DGE |
+| $1,800,000 in South Australia; $2,500,000 in the ACT | SA Sch 1 cl 9(2); ACT Sch 1 s 1.9(2) | $600,000; $1,750,000 |
+
+`tests/payroll_tax_group.rs` holds these cases.
+
 ## Transfer duty
 
 This worksheet was added on 24 November 2026. Each source was read that day:
@@ -2723,6 +2945,61 @@ Revenue NSW's calculator does; s 78A prescribes no rounding.
 
 `tests/transfer_duty.rs` holds these cases, Victoria's rounding at $3.50,
 $10.50 and $52,805.50, and the refusals.
+
+## Quoted source passages
+
+`transfer-duty`, `foreign-purchaser-surcharge`, `land-tax`,
+`first-home-owner-grant`, `motor-vehicle-duty`, `insurance-duty` and
+`vic-property-taxes` add `source_quotes` to each result: for the
+jurisdiction given (for `vic-property-taxes`, the tax given), the passage of the Act, determination or revenue office
+page that states the scale, rate or grant applied, with its provision, the
+document's title, its URL and `verified`, the day it was read. Their
+catalogue entries hold every jurisdiction's passages, which
+`data/source-quotes.json` keeps. Both are added fields:
+a consumer that refuses unknown fields must allow `source_quotes`. Each
+passage was read at the official site on 24 November 2026 and extracted
+from the page's text, not retyped: line and table row breaks are newlines,
+table cells are joined by a tab, non-breaking spaces are spaces and
+zero-width characters are left out.
+
+An Act or a determination is the law; a revenue office page is the office's
+statement of it, quoted where the Act could not be read that day or the page
+states the current figure. Where a page and the Act differ the command
+follows the Act, as its steps say: Queensland's absentee surcharge page
+gives (taxable value - $350,000) x 3%, and the Act's 3.0 cents for each $1
+more than $349,999 is applied. Revenue NSW's pages stand for the NSW land
+tax and grant Acts, which could not be read that day; New South Wales's and
+Western Australia's duty surcharge passages are the revenue offices' because
+AustLII refused the request. The Northern Territory's surcharge passages
+are the Stamp Duty Act's conveyance scale, which sets no rate for a foreign
+purchaser, and the NT Government's statement that the Territory levies no
+land tax; no passage states in terms that it charges no foreign purchaser
+duty. The ACT's first home owner grant passage states that no grant is paid
+for a commencement date from 1 July 2019, which the command refuses.
+
+For motor vehicle duty, New South Wales carries both Revenue NSW's table and
+Service NSW's rule (part-$100 rounding and excess over $45,000), and Revenue
+NSW's insurance page stands for NSW insurance duty, because
+`legislation.nsw.gov.au` returned a Cloudflare challenge that day. The ACT's
+result carries Tables 1 to 3 of both determinations, DI2025-152 for duty dates
+to 31 January 2027 and DI2026-154 from 1 February 2027; the command applies the
+one in force on the duty date. The Northern Territory's motor vehicle duty
+result carries both the Sch 1 cl 5(2) rate and the s 92A electric vehicle
+exemption (for registrations to 30 June 2027). Queensland's motor vehicle
+passage is the Queensland Government's rate table for light vehicles, and the
+Victorian property tax passages are the State Revenue Office's. The ACT Revenue
+Office says insurance duty was abolished on 1 July 2016; the command gives
+1 July 2017, when A2017-11 omitted the Duties Act's insurance chapter, as the
+date the duty went. Both are nil for every year the command takes.
+
+`tests/source_quotes.rs` checks that every jurisdiction of the 6 commands
+that take one, and each of the 3 Victorian property taxes, has a non-empty
+provision, source and passage, an official URL and its date, that each
+passage states the figure the command applies, that ACT Tables 1 to 3, NT
+electric vehicle exemption ($50,000 and $60,000), NSW $45,001/$50,000 and
+CIPT nil-in-transition outcomes match their quoted evidence, that each result
+carries its jurisdiction's passages, and that no other worksheet or command
+gains them.
 
 ## Depreciation
 
@@ -3052,12 +3329,31 @@ example gives an amount for a half or part-year exemption, or for one combined
 with the low-income or family reduction; those cases in
 `tests/medicare_exemptions.rs` are worked from the Act. The worksheet takes
 the days as established facts and does not test entitlement: the categories,
-the dependants and any family agreement are the operator's. Foreign residents,
-whom s 251U(1)(d) also exempts, are outside a worksheet for full-year
-residents, and a spouse must still not be entitled to any exemption, since
+the dependants and any family agreement are the operator's. A person not resident at any
+time pays no levy (s 251S(1)(a)) and is outside the worksheet, and a spouse must still not be entitled to any exemption, since
 s 8(3) then turns on the spouse's own exemption. `tests/properties.rs` checks
 that another exemption day never raises the levy and that a full day never
 leaves more than a half one.
+
+Non-resident days, read on 24 November 2026: ITAA 1936 ss 251S(1)(a) and
+251U(1)(d), (2) and (3) on the ATO's Legal Database; Medicare Levy Act 1986
+s 9(1), compilation 53; and "M1 Medicare levy reduction or exemption 2026",
+category 2, which lets a part-year foreign resident claim a full exemption for
+the time not resident 'if either: you don't have any dependants for that
+period; all your dependants are in an exemption category for that period',
+counted at label V. A part-year resident gives those days as
+`non_resident_days`, at most the days in the year less 1, each counted once
+and not also as a full or half day. Each is a whole prescribed day, since
+s 251U(3) gives a half period only under paras (a), (b), (ca), (caa) and (cb):
+
+```text
+levy after s 9 = levy after s 8 x (2 x days in year
+                 - 2 x (full days + non-resident days) - half days)
+                 / (2 x days in year)
+```
+
+No ATO example gives an amount for one; the cases in
+`tests/medicare_exemptions.rs` are worked from the Act.
 
 ## Medicare levy surcharge
 
@@ -4613,6 +4909,81 @@ from the provisions: the 53% rounding, excess concessional contributions,
 the FHSS amount, family trust distribution amounts, child support and
 business deductions.
 
+## Residential vacancy fee
+
+`residential_vacancy_fee` was checked on 24 November 2026 against the Foreign
+Acquisitions and Takeovers Act 1975 Part 6A (ss 115A to 115T) and s 4
+definitions in compilation 35 (`C2025C00672`, 5 December 2025); the Foreign
+Acquisitions and Takeovers Regulation 2015 Division 4A (ss 43C and 43D) in
+compilation 20 (`F2025C01038`, 1 November 2025); the Foreign Acquisitions and
+Takeovers Fees Imposition Act 2015 ss 5 to 9 in compilations 4 (`C2021C00021`,
+1 January 2021), 5 (`C2022C00334`, 6 December 2022) and 6 (`C2024C00141`,
+9 April 2024); the Foreign Acquisitions and Takeovers Fees Imposition Amendment
+Act 2024 (No. 17, 2024, `C2024A00017`, Schedule 2); the Foreign Acquisitions
+and Takeovers Fees Imposition Regulations 2020 Part 2 Division 2 (ss 8 to 11),
+Part 3 (ss 42 to 46), ss 53, 57, 59 to 61A and 67 in compilations 1
+(`F2021C00683`), 2 (`F2022C00757`) and 4 (`F2024C01252`, 10 December 2024);
+the ATO's 'Vacancy fee return for foreign owners', 'Residential fees for a
+foreign person', 'Request waiver of an application fee', 'Types of property a
+foreign person can buy' and 'Consumer price index' pages; and Treasury's
+Guidance Note 6: Residential Land (v5, 1 July 2026), Guidance Note 10: Fees
+(v12, 18 September 2026) and Schedule of Fees (v8, June 2026).
+
+Statutory indexation across all 9 verified residential fee periods from
+1 January 2021 to 30 June 2027 (Fees Regulations ss 59 to 61 and Fees Act
+ss 7 to 9, All Groups CPI weighted average of 8 capital cities):
+
+| Effective period | Factor | Below $75,000 (s 53) | Up to $1m (s 10 item 1) | Step per $1m (s 10 items 2 to 3) | Residential cap | Statutory cap (Act s 6(3)) | Established 3x |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 Jan 2021 to 30 Jun 2021 | 1.000 | $2,000 | $6,350 | $12,700 | $500,000 | $1,000,000 | No |
+| 1 Jul 2021 to 30 Jun 2022 | 1.006 | $2,000 | $6,350 | $12,700 | $503,000 | $1,006,000 | No |
+| 1 Jul 2022 to 28 Jul 2022 | 1.045 | $2,000 | $6,600 | $13,200 | $522,500 | $1,045,000 | No |
+| 29 Jul 2022 to 30 Jun 2023 | 1.000 | $4,000 | $13,200 | $26,400 | $1,045,000 | $1,045,000 | No |
+| 1 Jul 2023 to 8 Apr 2024 | 1.071 | $4,200 | $14,100 | $28,200 | $1,119,100 | $1,119,100 | No |
+| 9 Apr 2024 to 30 Jun 2024 | 1.000 | $4,200 | $14,100 | $28,200 | $1,119,100 | $7,000,000 | Yes |
+| 1 Jul 2024 to 30 Jun 2025 | 1.047 | $4,300 | $14,700 | $29,500 | $1,171,600 | $7,329,000 | Yes |
+| 1 Jul 2025 to 30 Jun 2026 | 1.077 | $4,500 | $15,100 | $30,300 | $1,205,200 | $7,539,000 | Yes |
+| 1 Jul 2026 to 30 Jun 2027 | 1.113 | $4,600 | $15,600 | $31,300 | $1,245,500 | $7,791,000 | Yes |
+
+Choices the law leaves to the reader and boundaries refused:
+- FATA s 115C(1) triggers liability when a dwelling is residentially occupied
+  for fewer than 183 days in the vacancy year; in a 366-day leap year, 183
+  occupied days is not liable despite leaving 183 vacant days.
+- Occupancy, genuine rental availability (minimum 30-day terms), lodgment
+  timing and FATR s 43D exemption evidence are the operator's facts.
+- Build-to-rent developments receive case-by-case commercial-rate waivers
+  under FATA s 115 and bespoke Treasury reporting conditions (GN6 Section I,
+  GN10 Section L) and are refused, along with partial application fee waivers
+  and discretionary FATA s 115H vacancy fee waivers or remissions.
+- Consideration below $75,000 under a developer exemption certificate hits the
+  unsettled boundary between Fees Regulations s 44(2) (Division 2 of Part 2)
+  and s 53(1) (de minimis rule despite Part 2) and is refused.
+- Fees Regulations s 57(2) apportions a tenant in common's fee by ownership
+  share without stating a rounding rule; the worksheet rounds half up to cents.
+- Fees Imposition Act 2015 s 7(3) guarantees the s 6(3) statutory fee cap
+  (enforced by Fees Regulations s 61A) cannot decrease on any later 1 July
+  indexation. Because the Commissioner may issue a FATA s 115E notice of
+  liability after a subsequent 1 July (setting a s 115F due date at least 21
+  days later) and this worksheet takes no notice date, the cap in force at
+  `vacancy_year_end` (or `$7,791,000` for `2027-28` onwards) is treated as a
+  non-decreasing floor: any uncapped fee at or below that floor (including
+  every single residential dwelling under all 9 schedules, up to `$7,473,000`
+  for a 2026-27 established dwelling over `$40` million) is guaranteed uncapped
+  under every possible notice date, whilst any higher uncapped fee is refused
+  (`cap_unsettled`). Likewise, a pre-9 April 2024 full waiver with a late
+  return is refused (`pre_2024_waiver_boundary_unsettled`) because a delayed
+  notice can cross an indexation date.
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| Myeong, $850,000 new townhouse, $13,200 fee, 1 Aug 2022 and 1 Aug 2023 starts | ATO: $13,200 | $13,200.00 |
+| Myeong, 1 Aug 2024 to 31 Jul 2025 | ATO: $26,400 (doubled) | $26,400.00 |
+| Edmond, 5 Oct 2022 start | ATO: ends 4 Oct 2023, due 3 Nov 2023 | 2023-10-04, due 2023-11-03 |
+| Rishi, $31,300 exemption certificate, 2 Nov 2026 start | ATO: ends 1 Nov 2027, due 1 Dec 2027, $62,600 | $62,600.00 |
+| GN10 Example 34, $1.5m established, 2 Jul 2024, settled 15 Aug 2024 | Treasury GN10: $88,500 app fee, $177,000 vacancy fee | $88,500.00 / $177,000.00 |
+| Sara, 25% tenant in common of $1.5m new dwelling, 1 Aug 2026 | ATO: $7,825 app fee ($15,650 doubled vacancy fee) | $7,825.00 / $15,650.00 |
+| GN6 Example 27, Nikolai, 250 days occupied, late return | Treasury GN6: deemed liable (FATA s 115D(3)) | `deemed_liable_late_return` |
+
 ## Foreign resident withholding
 
 `foreign_resident_withholding` was checked on 22 November 2026 against TAA 1953
@@ -4668,6 +5039,77 @@ Choices the law leaves to the reader:
 | Maisie and Max, $650,000, both certificates; neither | nil; $97,500 ($48,750 each) | $0.00; $97,500.00 |
 | Zac and Jen, $1 million, Jen's certificate; Zac's 5% notice | $75,000; $25,000 | $75,000.00; $25,000.00 |
 | Kim, 3 vendors, $1.3 million, no certificates | $195,000 ($65,000 each) | $195,000.00 |
+
+## Non-resident withholding
+
+`non_resident_withholding` was checked on 24 November 2026 against the Federal
+Register of Legislation compilations in force that day: Taxation
+Administration Act 1953 Schedule 1 Subdivisions 12-F (ss 12-210 to 12-300),
+12-FB (ss 12-315 to 12-319), 12-H (ss 12-383 to 12-453) and ss 12-1, 15-10,
+15-15, 18-15, 18-30 and 18-32 in compilation 227 (C2026C00468, 1 October
+2026), including Act No. 138 of 2024 Schedule 1 (active build to rent
+exclusion in s 12-450(5) from 1 January 2025); Income Tax Assessment Act 1936
+Division 11A ss 128B to 128D in compilation 193 (C2026C00454, 1 October 2026);
+Income Tax (Dividends, Interest and Royalties Withholding Tax) Act 1974 s 7
+(C2007C00596, 24 September 2007); Income Tax (Managed Investment Trust
+Withholding Tax) Act 2008 s 4 in compilation 3 (C2019C00219, 1 July 2019);
+Taxation Administration Regulations 2017 ss 26, 31 to 34, 39 to 45 and 48 to
+51 in compilation 18 (F2026C01210, 14 November 2026, sunsetting 1 October 2027
+under Legislation Act 2003 s 50); and Income Tax Rates Act 1986 s 23(2) and
+Schedule 7 Part II clause 1 in compilation 66 (C2026C00300, 1 July 2026).
+
+Choices the law leaves to the reader:
+
+- Every legal classification is the operator's fact: residency, treaty
+  entitlement and rate (including TAR 2017 s 40(3) for US tax-exempt
+  dividends), permanent establishment attribution, information exchange
+  country status (TAR 2017 s 34), clean building MIT and NCMI/active build to
+  rent classification, statutory exemptions (s 128B(3), ss 128F/128FA/128GB,
+  Div 880, s 12-319) and Commissioner variations (s 15-15).
+- Under TAA Sch 1 s 15-10(2), Subdivision 12-F (TAR 2017 ss 39 to 42) and
+  Subdivision 12-FB (TAR 2017 ss 48 to 51) are worked out under Division 3 of
+  Part 3 of TAR 2017, so TAR 2017 s 26 applies to both the payment and the
+  worked-out withholding amount: amounts under $1 and cents above whole
+  dollars are disregarded.
+- Under TAA Sch 1 s 12-300(b), Subdivision 12-F cannot require withholding
+  exceeding the Division 11A withholding tax payable less amounts already
+  withheld under Subdivision 12-F. Where that statutory cap binds (for
+  example, an interest payment with a treaty rate below TAR 2017 s 41's 10%,
+  or an intermediary with `already_withheld` above nil), the cap is floored to
+  whole cents so the withheld amount never exceeds the statutory ceiling.
+- Under TAA Sch 1 s 15-10(3), Subdivision 12-H is worked out directly under
+  ss 12-385(2), 12-390(2) and 12-390(5) rather than under TAR 2017, and the
+  law sets no rounding rule. By the worksheet's convention, each statutory
+  rate part (15%, 10% and 30% for an information exchange country, or one 30%
+  amount otherwise) is rounded half up to the cent and summed so the
+  components always add up to `withholding`.
+- For Subdivision 12-H, s 12-385(5) and s 12-390(10)(b) exclude payments to
+  the extent no MIT withholding tax is payable, and s 12-390(10)(a) excludes
+  a company under s 12-390 unless it would (apart from s 12-420) be acting in
+  the capacity as agent for the recipient (`company_not_acting_as_agent`).
+- For Subdivision 12-FB, s 12-319(1) to (5) allows the Commissioner to grant
+  a written exemption based on established and likely future tax compliance
+  (having regard to Div 45 instalments, unpaid tax-related liabilities and
+  associates' compliance over the current and previous 2 income years).
+- For Subdivision 12-FB `construction`, TAR 2017 s 33(1) prescribes only a
+  payment made under a contract entered into after 30 June 2004, so
+  `contract_date` on or before `2004-06-30` is refused.
+- For Subdivision 12-FB `entertainment_or_sports`, TAR 2017 s 50(2)(a) cites
+  ITRA 1986 s 23 (company) and s 50(2)(b) cites ITRA 1986 Schedule 7 Part II
+  (individual). Special company classes under s 23(3) to (7) and s 23A and
+  non-company non-individual payees (such as trusts and partnerships) are
+  outside scope; non-individual non-company payees are refused.
+
+| Case | Basis | Worksheet |
+| --- | --- | --- |
+| Dividend $10,000 ($4,000 franked, $1,000 CFI), 15% treaty | 15% x $5,000 (s 128B(3)(ga), s 802-15, TAR s 40) | $750.00 |
+| Interest $1,000.90, domestic 10%; 5% treaty cap | TAR s 26 + s 41: $100; s 12-300(b) cap: floor_cents($50.045) = $50.04 | $100.00; $50.04 |
+| Royalty $25,000.95, no treaty (30%); 10% treaty | floor(0.30 x $25,000) = $7,500; floor(0.10 x $25,000) = $2,500 | $7,500.00; $2,500.00 |
+| MIT fund payment $100,000 EOI ($50,000 std, $30,000 clean, $20,000 NCMI) | $7,500 + $3,000 + $6,000 (s 12-385(3)(a), IT(MITWHT)A s 4) | $16,500.00 |
+| MIT fund payment $100,000 non-EOI | 30% x $100,000 (s 12-385(3)(b)) | $30,000.00 |
+| Gaming junket $33.99; $34.00; $10,000.90 (3%) | TAR s 26 + s 49: $0 (< $1), $1 ($1.02), $300 | $0.00; $1.00; $300.00 |
+| Construction $80,000.75 (5%), $1,000 already withheld | TAR ss 26, 48, 51: $4,000 - $1,000 | $3,000.00 |
+| Entertainment/sports: individual $200,000.75; BRE company $50,000; standard company $50,000 | Sch 7 Pt II: $40,500 + $20,350 + $4,500 = $65,350; 25% = $12,500; 30% = $15,000 | $65,350.00; $12,500.00; $15,000.00 |
 
 ## Rental property
 
@@ -5216,18 +5658,32 @@ differs, the Act is followed:
 - a Victorian, Western Australian or Northern Territory home bought for less
   than the grant gets the price (Vic s 18(1A), WA s 19(2CA), NT s 18(1));
   the page refuses;
-- a Victorian home built over $750,000 in total is refused, as the cap is on
-  the consideration for the building work (s 13(1A) and (7)(b)); the page
-  pays nil.
+- a Victorian home built over $750,000 in total is refused without
+  `contract_price`, as the cap is on the consideration for the building work
+  (s 13(1A) and (7)(b)); the page pays nil.
+
+A home built's optional `contract_price` (read again on 24 November 2026)
+is that consideration: 'the total consideration payable for the building
+work' (Qld schedule 'consideration' (b), WA s 14AB(b), Vic, SA and Tas
+s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b)). Each Act read pays the lesser of
+the consideration and the amount (Qld s 20(1) and s 25EB, Vic s 18(1A),
+WA s 19(2CA), SA, Tas, NT and ACT s 18(1); in the NT 'the amount of
+consideration actually paid'), so below the amount the grant is the contract
+price; the ACT still pays nil. In Victoria the contract price is the value
+the $750,000 cap tests. A New South Wales contract price below $10,000 is
+refused, as that Act could not be read. Owner builders, whose consideration
+is the actual costs less their own labour (s 13(7)(c) and its equivalents),
+stay outside the command.
 
 The value tested against the cap is the one each source names, kept apart
 from the consideration that limits the grant. For a home bought that is
 `total_value`, the price. For a home built every Act read on 24 November
 2026 makes it the building work alone (Qld schedule 'consideration' (b),
 WA s 14AB(b), Vic, SA and Tas s 13(7)(b), ACT s 13(6)(b), NT s 13(8)(b);
-the New South Wales Act could not be read), not the land and contract total: the command pays the amount only when
-`building_contract` states the contract is at least the grant, refuses
-without it, and never limits a built home's grant by `total_value`. In Queensland
+the New South Wales Act could not be read), not the land and contract total: the command pays the lesser of
+`contract_price` and the amount, or the amount when `building_contract`
+states the contract is at least the grant, refuses with neither, and never
+limits a built home's grant by `total_value`. In Queensland
 and Western Australia the optional `cap_value` carries the value the Act
 tests where it differs: for a home bought, the unencumbered value of the home
 and land at the contract date, tested with the price as the greater of the 2
@@ -5251,6 +5707,9 @@ typed from the rules above.
 | SA bought for $10,000 | RevenueSA's example | $10,000 |
 | Tas built on 30 June and 1 July 2026 | Tas Act ss 18L, 18M | $30,000; $20,000 |
 | NT established on 30 September and 1 October 2025 | NT Act ss 13(1)(a), 18(3D) | $10,000; nil |
+| Qld built, contract $29,999, $30,000 and $1 | Qld Act s 20(1), schedule 'consideration' (b) | $29,999; $30,000; $1 |
+| Vic built, $900,000 total, contract $750,000 and $750,001 | Vic Act ss 13(1A), 13(7)(b), 18(1A) | $10,000; nil |
+| NSW built, contract $9,999 | Revenue NSW (Act unread) | refused |
 
 ## PSI test
 
@@ -5859,6 +6318,119 @@ offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
 
+## Deferred revenue
+
+Added on 24 November 2026, when the sources were read: AASB 15 compilation
+COMPdec22_07-26 (periods beginning from 1 July 2026 to before 1 January 2027)
+with its table of amendments to the Standard, compilation COMPdec22_01-23
+for earlier periods, and AASB 108 compilation no. 3 (F2023C00187, paras 36 to
+38). The AASB 15 table lists no amendment to paras 35 to 45, 105 to
+108 or B14 to B19 since the December 2014 Standard (its amended paragraphs are
+5, 26, 27, 29, 97, B1, B34 to B38, B52, B53, B57, B58, B66, B70, Australian
+paragraphs and transition), so the rules applied read the same for every
+period from 2020-21.
+
+Under AASB 15 para 43 and AASB 108 paras 36 to 38, a change in the measure of
+progress or its estimates is recognised prospectively from the change without
+rewriting earlier periods (so a $12,000.00 monthly contract from 1 July 2025
+with $3,000.00 recognised in the September quarter and duration revised from
+12 to 18 months in December takes $4,000.00 cumulative less $3,000.00 already
+recognised = $1,000.00 for December, not $2,000.00 from restarting at 1 July);
+changed estimates are excluded and refused (`estimate_changed`).
+
+Para B18 allows revenue on a straight-line basis where the entity's efforts
+are expended evenly over the performance period; para B15 names milestones
+reached as an output method. Para 40 has progress remeasured at each period
+end, so each period's revenue is the change in revenue to date, rounded to the
+cent at each end. Paras 105 to 108 present the receivable (an unconditional
+right, billed and unpaid) apart from the contract liability (consideration
+paid or due before performance) and the contract asset (performance before
+payment or billing). Receipts settle billings first, so consideration paid or
+due is the larger of billings and receipts to date; with $100 recognised, $150
+billed and nothing received, the receivable is $150 and the contract liability
+$50 (D6).
+
+AASB 15 has no numeric straight-line or milestone example. D1 to D5 are
+made-up figures worked independently in Python's `decimal`.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | $12,000.00 daily, 1 Jul 2025 to 30 Jun 2026, billed and paid 1 Jul 2025; ends 30 Sep, 31 Dec, 31 Mar, 30 Jun | revenue to date **$3,024.66**, **$6,049.32**, **$9,008.22**, **$12,000.00**; liability $8,975.34, $5,950.68, $2,991.78, nil |
+| D2 | $36,000.00 monthly, 1 Jul 2025 to 30 Jun 2028, $18,000 paid 1 Jul 2025 and 1 Jul 2027; ends 31 Dec 2025, 30 Jun 2026, 15 Sep 2026, 31 Dec 2027, 30 Jun 2028 | revenue **$6,000**, **$12,000**, **$14,000**, **$30,000**, **$36,000**; liability $12,000, $6,000, $4,000, $6,000, nil |
+| D3 | $50,000.00 by milestones of $10,000, $30,000 and $10,000; $15,000 and $20,000 billed and paid | revenue **$10,000**, **$40,000**, **$50,000**; liability $5,000, then contract asset **$25,000** and **$15,000** |
+| D6 | $1,200.00 daily over 12 days; $150 billed on day 1, nothing received; end after 1 day ($100) | receivable **$150.00**, contract liability **$50.00** |
+| D7 | D6 with $100 billed on day 1 | receivable **$100.00**, no contract balance |
+| D4 | D1 with ends 30 Jun 2025 and 1 Jul 2025 | nil, then **$32.88** with liability $11,967.12 |
+| D5 | $1,000.00 daily, 15 Jul 2025 to 14 Jan 2026 (184 days); ends 31 Jul 2025, 31 Dec 2025, 30 Jun 2026 | **$92.39**, **$923.91**, **$1,000.00**; in period $92.39, $831.52, $76.09 |
+
+`tests/deferred_revenue.rs` also covers each year boundary, the performance
+period's limits, whole-month boundaries and every refusal.
+
+## WIP lock-up
+
+Added on 24 November 2026. The site's `tools/wip-schedule` page, read that day
+from the site's main branch, is the construction WIP page for The WIP Tally
+(AASB 15 cost-to-cost progress): it has no calculator script, no ageing and no
+lock-up, and its one worked example is The WIP Tally's own test. The
+definitions mirrored are Ozzit's, published on the site as
+`assets/ozzit-function-reference-v3.7.0.json`: `oz.WIPDaysλ(WIP,
+RelatedFlow, [Days])` and `oz.ReceivableDaysλ(Receivables, Sales, [Days])`,
+each balance / flow x Days with Days defaulting to 365, a nil flow giving
+#DIV/0! and Days of 0 or less #NUM!, and lock-up days as WIP days plus
+receivable days (the WIPDaysλ note). No Standard or Act defines lock-up or
+the ageing buckets.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| O1 | `=oz.WIPDaysλ(42000, 510000)` | **30.0588** |
+| O2 | `=oz.ReceivableDaysλ(125000, 1200000)` | **38.0208** |
+| O3 | `=oz.ReceivableDaysλ(125000, 330000, 90)` | **34.0909** |
+| O4 | O1 and O2 together | lock-up **68.0797** |
+| W1 | as at 30 Jun 2026: $5,000 (age 0), $7,500 (30), $2,500 (31), $4,000 (90), $3,000 (91), $1,250.50 (211); fees $300,000, receivables $60,000, billings $320,000 | buckets **$12,500.00**, **$2,500.00**, **$4,000.00**, **$4,250.50**; WIP days **28.29**, receivable days **68.44**, lock-up **96.73** |
+
+O1 to O3 are the reference's published examples; W1 is made up and worked in
+Python's `decimal`. `tests/wip_lockup.rs` also covers stated buckets, each
+bound on buckets, days and entries, the year boundaries and every refusal.
+
+## Impairment test
+
+Added on 24 November 2026, when the sources were read: AASB 136 compilation
+COMPjan26_07-26 (F2026C01108, periods beginning from 1 July 2026 to before
+1 January 2029) with its tables of amendments, and compilation COMPdec22_01-23
+for earlier periods. Since the August 2015 Standard the tables list changes to
+paras 2 and 140N (AASB 17), Aus2.1, Aus5.1, Aus6.1, Aus6.2, Aus32.1 and
+Aus32.2 (AASB 2016-4), Aus141.1, Appendix E (AASB 1060) and Illustrative
+Example 10 (AASB 2026-1) only; none of paras 6, 18 to 20, 30 to 33, 39, 50 to
+57, 59 to 62, 104 and 105 changed, so the rules applied read the same for
+every reporting period ending in 2020-21 to 2026-27.
+
+Illustrative Example 2 (IE23 to IE32) gives the Country A unit's cash flows
+for 20X2 to 20Y2 (230, 253, 273, 290, 304, 313, 307, 289, 245, 184 and 61) at
+15%, goodwill of 1,000 and identifiable assets of 1,833. Schedule 2 rounds
+each discounted flow to whole units (200, 191, 180, 166, 151, 135, 115, 94,
+70, 45 and 13) and totals 1,360; Schedule 3 recognises 1,473 (goodwill 1,000,
+identifiable assets 473). Unrounded, value in use is 1,361.20 and the loss
+1,471.80 (goodwill 1,000.00, identifiable assets 471.80): each year's present
+value rounds to Schedule 2's figure, and the totals differ only by Schedule
+2's rounding of each line. E2 so reconciles the 2 rounding conventions; it
+does not reproduce Schedule 3's 1,473. I2 to I7 are made up and worked in
+Python's `decimal`.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| E2 | Example 2 as above | value in use **$1,361.20**, loss **$1,471.80**: goodwill $1,000.00, other $471.80 |
+| I2 | goodwill 200, plant 600 with floor 550, building 400; fair value less costs of disposal 700 | loss **$500.00**: goodwill $200, plant $50 at its floor, building **$250** |
+| I3 | goodwill 100, A 500 floor 450, B 300 floor 280; recoverable nil | loss **$900.00**: goodwill $100, A $50, B $20, unallocated **$730** |
+| I4 | recoverable above carrying | no loss |
+| I5 | 12,000, 12,500, 13,000, 13,500, 14,000 and terminal 40,000 at 9.25% | value in use **$75,599.58** |
+| I6 | 3 assets of $100.00, loss $100.00 | **$33.33**, **$33.34**, **$33.33** |
+| I7 | A 300 floor 290, B 300 floor 295, nil, C 700, D 200; loss $100.00 | A and B reach their floors in one round (**$10.00**, **$5.00**); C **$66.11**, D **$18.89** |
+
+`tests/impairment_test.rs` also covers the year boundaries, negative cash
+flows and terminal values, an unmeasurable fair value, floors above carrying
+amount, losses a cent below goodwill and a cent above the carrying amount, a
+non-controlling interest without goodwill and every refusal.
+
 ## Leave provisions
 
 Added on 22 November 2026, when the sources were read: AASB 119 compilation
@@ -6170,6 +6742,29 @@ $19,830 of the guide's example 16 gives $5,949 in 2024-25 where a resident pays
 $260.80 and then nothing after the low income tax offset, and $250,000 gives
 $87,850, with Division 293 tax of 15% of $30,000, $4,500, outside the total.
 
+
+A part-year resident (read on 24 November 2026) is composed before 2027-28
+from `resident-tax` with the pro-rated tax-free threshold (Income Tax Rates Act
+1986 s 20(1), [Part-year tax-free threshold](#part-year-tax-free-threshold)),
+the low income tax offset in full (ITAA 1997 s 61-110(1)(a): 'an Australian
+resident at any time during the income year'; s 61-115 does not apportion it)
+and `medicare-levy` with its non-resident days ([Exemptions](#exemptions)).
+The estimate refuses more non-resident days than the year less the residency
+months, as the person was resident on at least 1 day of each month counted
+(s 18(1)). It refuses for a part-year resident the surcharge, whose worksheet
+is for a full-year resident; the seniors and pensioners tax offset, the
+private health insurance rebate and a study loan repayment, composed for a
+full-year resident only; tax withheld worked out from one regular pay, as the
+pays can fall under resident and foreign resident scales; and every year from
+2027-28, as s 61-155(1)(b) compares net labour income with 'the tax-free
+threshold (within the meaning of the Income Tax Rates Act 1986)', which s 3(1)
+sets at $18,200, whilst s 20(1) applies the pro-rated threshold to the
+person's year through the Schedule 7 table; the text points to the pro-rated
+threshold for the s 61-160 tax on net labour income alone, but no ATO guidance
+read on 24 November 2026 confirms it, so the estimate refuses rather than
+choose. The worked example (arrived 15 October 2025, 9 months, 106
+days, $60,000) gives basic tax $8,977.44, the offset $100, the levy $851.51
+and $9,728.95 in all. Tests: `tests/part_year_estimate.rs`.
 ## FBT return
 
 `fbt-return` adds one threshold, the $2,000 of FBTAA s 135P(1); every other
@@ -6348,6 +6943,25 @@ means the document bytes changed; it does not establish that the rule changed.
 | `Tax/Depreciation.md` | `395195f3422f9695fee4ea409e34b241384002091b9ea67a8bbd75197d1912e1` |
 | `Superannuation/Instant Reference – Rates, Thresholds and Checklists.md` | `de94931c47597286f33e0a952ff1686cbe7120bca48def74d1a44dd388922bf6` |
 
+## Charity check
+
+`charity-check` adds no rate. Read on 24 November 2026 (AEDT): the data.gov.au
+record for `acnc-register` (licence CC BY 3.0 AU; CSV resource last modified
+2026-11-22T17:39:55, 15,227,773 bytes, SHA-256
+`559c29245442d98abc473ffa60a2832b4d25ead3ebbf6734dd2857237fef328d`, 66,645
+rows); the dataset's user notes (December 2024), paras 4, 5, 7, 16 to 17 and
+29 to 32; the ACNC Act 2012 s 25-5(5) table (Compilation No. 11, 5 December
+2025); the CC BY 3.0 AU legal code, cl 4A and 4B; and ABN Lookup's page for ABN
+50 169 561 394, which showed Australian Red Cross Society registered with the
+ACNC from 3 December 2012, as the copy does. The CSV's subtype columns map to
+the table's items: Advancing_Health 1, Advancing_Education 2,
+Advancing_social_or_public_welfare 3, Advancing_Religion 4, Advancing_Culture 5,
+Promoting_reconciliation 6, Promoting_or_protecting_human_rights 7,
+Advancing_security_or_safety 8, Preventing_or_relieving_suffering_of_animals 9,
+Advancing_natual_environment 10, Purposes_beneficial_to_the_general_public 11,
+Promote_or_oppose_a_change_to_law 12 (para (l), shown in the table as advancing
+public debate), HPC 13 and PBI 14.
+
 ## DGR check
 
 `dgr-check` adds no rate; its rules and data were read on 16 November 2026
@@ -6435,3 +7049,50 @@ page, `au-compliance-kit` at e94cef24 and `william-laverty/ato-mcp` at
 d3d84941. ABN Lookup itself shows each ABN's DGR status and history, and its
 keyed web services, which need a registered GUID, would add both; this
 command uses only the open bulk data.
+## aml-cdd-review
+
+Read on 24 November 2026:
+
+- *Anti-Money Laundering and Counter-Terrorism Financing Act 2006* (`C2006A00169`,
+  compilation 63, 1 October 2026): s 5 ('beneficial owner': 25% or more direct
+  or indirect ownership, or direct or indirect control), s 11 ('Meaning of
+  control': s 11(1) body corporate >50% votes, >50% qualifying issued share
+  capital, board control or financial/operating policy control; s 11(2)
+  non-body corporate board/governing body or financial/operating policy
+  control), s 26C(3)(d), s 28(2)(d), s 30(2)(b)-(c) (business-relationship
+  ongoing CDD review at a frequency appropriate to ML/TF risk and on mandatory
+  triggers including unusual behaviours that may give rise to an SMR obligation
+  under s 30(2)(b)(ii), with no fixed statutory calendar interval; excludes
+  occasional-only transactions), s 31 (simplified CDD only when risk is low,
+  s 32 does not apply and Rules requirements are met), and s 32(a)-(f)
+  (mandatory enhanced CDD, including acting-representative foreign PEPs under
+  s 32(c) and physical-presence or formation connection under s 32(d)).
+- *Anti-Money Laundering and Counter-Terrorism Financing Rules 2025*
+  (`F2025L01026`, compilation 1, 31 March 2026): s 5-2(3) (AML/CTF policies
+  for ongoing CDD), s 6-7(1)-(1C) (beneficial owner CDD deemed established for
+  listed public companies subject to public disclosure requirements, government
+  bodies, customers controlled by them, and individuals whose beneficial
+  ownership arises solely through them), s 6-8(1)-(3) (CEO/equivalent fallback),
+  s 6-16 (AML/CTF policies prerequisite for simplified CDD under s 31(c)),
+  s 6-20 (unusual service request ECDD), s 6-21 (relevance-conditioned source
+  of wealth and funds under s 32(a), (b) or (d)), s 6-22 (physical currency in
+  item 50A virtual asset services), s 6-23 (PEP source of wealth and funds for
+  customer, beneficial owner or behalf person, excluding acting representatives)
+  and s 6-24 (mandatory KYC review on acquiring foreign PEP status, or
+  domestic/international organisation PEP status with high ML/TF risk).
+- AUSTRAC, *Step 2: Identify and assess your risks* (Country risk): Basel AML
+  Index bands `0-5` low, `5.01-6` medium, `6.01-10.00` high, with high-risk
+  override for FATF grey/blacklists and Australian sanctions regimes, verified
+  against AUSTRAC's worked table (Australia `4.04` -> low; Country A `5.75` ->
+  medium; Country B `5.25` with FATF/sanctions override -> high).
+- AUSTRAC, *Accountant program starter kit: Step 2 - Use your accounting
+  program*: client review defaults for small accounting practices adopting the
+  starter kit (High: Annual / 12 months; Medium: Every 2 years / 24 months;
+  Low: Every 3 years / 36 months), explicitly separated from statutory rules
+  under s 30(2)(c).
+- AUSTRAC, *Determining ownership and control structures* and *Reviewing and
+  updating customers' ML/TF risk and KYC information* (last updated 29 October
+  2026).
+
+`tests/aml_cdd_review.rs` holds the boundary, statutory-trigger, exact
+scaled-integer chain-tracing, duplicate-field and refusal cases.

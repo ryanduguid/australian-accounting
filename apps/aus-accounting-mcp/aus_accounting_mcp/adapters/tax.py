@@ -34,12 +34,12 @@ from ..errors import InputError
 
 CALCULATORS = "australian-tax-calculators"
 #: The only calculators release this server accepts.
-CALCULATORS_VERSION = "1.2.0"
+CALCULATORS_VERSION = "1.3.0"
 #: SHA-256 of the executables in that release's x86_64 Linux and Windows archives,
 #: whose own digests its SHA256SUMS lists. Change them with CALCULATORS_VERSION.
 RELEASED_DIGESTS = frozenset({
-    "08a034f58265eb32e49edafa2120f859a93c36ed3e53f2cf6a6d75018f8e7c37",  # linux-musl
-    "302507a9b6050473d7a71d5560a70e62db537974dadbfe9aba85f6711afc70f5",  # windows-msvc
+    "6473f5ed818d63cbd3091e279810062bc725a546bc214344ae7572925e3233d7",  # linux-musl
+    "e72e87389c5b5eadbaa0e9d67a7b42b52eeaf9a769206b601634ff3c2fa55914",  # windows-msvc
 })
 BINARY_VARIABLE = "AUS_TAX_CALCULATORS_BIN"
 DIGEST_VARIABLE = "AUS_TAX_CALCULATORS_SHA256"
@@ -54,11 +54,12 @@ INSTALL = (
 # A worksheet answers in milliseconds; this bounds a hung or wrong executable.
 TIMEOUT_SECONDS = 60
 #: The executable's commands that are not one worksheet: its catalogue, its period
-#: list, its derivation of another command's result, and 3 that combine several
+#: list, its derivation of another command's result, and 4 that combine several
 #: worksheets or checks into results of their own shape. Every other command is a
 #: worksheet in its catalogue, which calculate_tax_worksheet serves.
 NOT_WORKSHEETS = frozenset({"worksheet-catalogue", "periods", "derive",
-                            "personal-tax-estimate", "dgr-check", "fbt-return"})
+                            "personal-tax-estimate", "dgr-check", "charity-check",
+                            "fbt-return"})
 #: The release executables are under 8 MiB; a source build over this is refused unread.
 MAX_BYTES = 256 * 1024 * 1024
 COPY_CHUNK_BYTES = 1024 * 1024

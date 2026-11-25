@@ -4,6 +4,166 @@
 
 ### Added
 
+- `gst-food-retailer-sam` works out, for one tax period from 28 September
+  2017 to 30 June 2027, the GST-free share of trading sales and trading stock
+  purchases under the food retailers' simplified accounting methods: the
+  business norms, stock purchases and snapshot methods of F2017L01274, the
+  supermarket and convenience store method of F2025L01055 and the restaurant,
+  cafe and caterer method of F2026L01275 (including s 7(d) and the 6-month
+  first-tax-period proportion rule), with trading stock input tax
+  credits for the last 2. New codes: `gst_food_retailer_sam.amount_exceeds_total`,
+  `components_unbalanced`, `first_period_sample_required`, `method_invalid`,
+  `method_not_in_force`, `new_business_unsettled`,
+  `not_eligible`, `retailer_type_invalid`, `sample_invalid`,
+  `stock_role_invalid`, `tax_period_invalid`, `tax_period_spans_halves` and
+  `total_nil`.
+- `gst-error-correction` tests whether an earlier GST error may be corrected
+  in a later return under F2023L01284 ss 4, 6 and 7, with the debit error time
+  and value limits by current GST turnover and excluding TAA 1953 Sch 1
+  s 105-65 amounts; `gst-credit-time-limit` tests whether an input tax credit
+  can be claimed under GST Act s 29-10(3) and Division 93 (including s 29-10(5)
+  attribution elections, s 93-15's supplier assessment qualification and
+  s 93-10(4) and (5) refusals). New codes:
+  `gst_error_correction.dates_invalid`, `fact_invalid`, `lodged_outside_year`,
+  `gst_credit_time_limit.dates_invalid`, `fact_invalid`,
+  `partial_supplier_gst`, `return_given_outside_year`,
+  `section_93_10_exception` and `special_attribution`.
+- `aml-cdd-review`: deterministic Australian AML/CTF Tranche 2 customer due
+  diligence helper for 2026-27 with zero personal data (`country_risk` using
+  AUSTRAC's Basel AML Index 0-5 / 5.01-6 / 6.01-10.00 bands and FATF/sanctions
+  overrides plus statutory s 32(d) FATF Call-for-Action ECDD;
+  `beneficial_ownership` for exact 25% indirect ownership chains and s 11
+  control limbs with Rules ss 6-7 and 6-8; and `cdd_review` for statutory CDD
+  tiers, ECDD/SoW-SoF/immediate triggers and periodic review dates cleanly
+  distinguishing AUSTRAC Accountant Program Starter Kit 12/24/36-month defaults,
+  custom firm policies and statutory-only mode). New codes:
+  `aml_cdd_review.basel_score_invalid`,
+  `aml_cdd_review.cadence_basis_invalid`, `aml_cdd_review.chains_invalid`,
+  `aml_cdd_review.date_outside_year`, `aml_cdd_review.duplicate_field`,
+  `aml_cdd_review.entity_kind_invalid`,
+  `aml_cdd_review.exemption_inconsistent`, `aml_cdd_review.exemption_invalid`,
+  `aml_cdd_review.months_invalid`, `aml_cdd_review.ownership_above_100`,
+  `aml_cdd_review.pep_change_inconsistent`, `aml_cdd_review.pep_invalid`,
+  `aml_cdd_review.question_invalid`, `aml_cdd_review.risk_invalid` and
+  `aml_cdd_review.starter_kit_risk_inconsistent`.
+- `residential-vacancy-fee` works out the Australian federal annual vacancy fee
+  for a foreign owner of a residential dwelling for vacancy years starting in
+  2020-21 to 2026-27 under FATA 1975 Part 6A (ss 115A to 115T), FATR 2015
+  Division 4A (ss 43C and 43D), Fees Imposition Act 2015 ss 5 to 9 and Fees
+  Imposition Regulations 2020 Part 3 (ss 42 to 46), with the 183-day occupancy
+  test, late-return deemed liability (s 115D(3) and FATR s 43D(4)), 9 April
+  2024 fee doubling (s 67(2)), established dwelling 3x tripling (ss 10(2) and
+  53(1)(c)), 9 verified indexed schedules from 1 January 2021 to 30 June 2027,
+  joint tenancy and tenants in common apportionment (s 57), full-waiver
+  substitution (ss 43(b) and 46(b)), statutory fee cap (Act s 6(3), Regs
+  s 61A) and `derive` steps. New codes:
+  `residential_vacancy_fee.acquisition_basis_invalid`,
+  `residential_vacancy_fee.application_date_unsupported`,
+  `residential_vacancy_fee.application_fee_invalid`,
+  `residential_vacancy_fee.build_to_rent_unsupported`,
+  `residential_vacancy_fee.cap_unsettled`,
+  `residential_vacancy_fee.consideration_invalid`,
+  `residential_vacancy_fee.date_outside_year`,
+  `residential_vacancy_fee.days_invalid`,
+  `residential_vacancy_fee.de_minimis_developer_ec_unsettled`,
+  `residential_vacancy_fee.discretionary_waiver_unsupported`,
+  `residential_vacancy_fee.dwelling_kind_invalid`,
+  `residential_vacancy_fee.exemption_invalid`,
+  `residential_vacancy_fee.other_ec_waiver_unsupported`,
+  `residential_vacancy_fee.ownership_invalid`,
+  `residential_vacancy_fee.partial_waiver_unsupported`,
+  `residential_vacancy_fee.pre_2024_waiver_boundary_unsettled` and
+  `residential_vacancy_fee.waiver_invalid`. `tests/residential_vacancy_fee.rs`
+  holds it to the ATO's and Treasury's examples.
+- `portable-lsl-levy` works out portable long service leave levies for the
+  national black coal mining industry scheme (Coal LSL, mirroring
+  `tools/coal-lsl-levy` under s 3B of the Payroll Levy Collection Act 1992 and
+  s 6 of the Payroll Levy Regulations 2018 at 2.7% from 1 July 2023) and the
+  verified Australian state and territory portable LSL schemes across
+  construction, community services, contract cleaning and security (NSW LSC,
+  Vic LeavePlus and PLSA, Qld QLeave, SA Portable Long Service Leave, WA
+  MyLeave, ACT Leave, Tas TasBuild and NT Build), including NSW whole-dollar
+  rounding downwards (verified on the LSC Building Levy Calculator) and
+  statutory nearest-dollar rounding with 50 cents downwards under Qld s 72(2)
+  and NT s 33(2). New codes: `portable_lsl_levy.bonus_invalid`,
+  `portable_lsl_levy.branch_field_mismatch`, `portable_lsl_levy.branch_invalid`,
+  `portable_lsl_levy.employee_ineligible`,
+  `portable_lsl_levy.exemption_unsupported`,
+  `portable_lsl_levy.jurisdiction_invalid`,
+  `portable_lsl_levy.project_cost_above_tier`,
+  `portable_lsl_levy.reimbursements_unconfirmed`,
+  `portable_lsl_levy.reporting_month_invalid`,
+  `portable_lsl_levy.scheme_invalid`, `portable_lsl_levy.scheme_unavailable`
+  and `portable_lsl_levy.scheme_year_unsupported`. `tests/portable_lsl_levy.rs`
+  holds Coal LSL to the site parity vectors and checks all 19 state and
+  territory schemes.
+- `non-resident-withholding` works out PAYG withholding on monetary payments
+  to foreign residents for 2024-25 to 2026-27 under TAA 1953 Schedule 1
+  Subdivision 12-F (dividends, interest and royalties, with franked amounts,
+  conduit foreign income, stated treaty rates, TAR 2017 s 26 rounding and the
+  s 12-300 ceiling), Subdivision 12-H (withholding MIT fund payments including
+  clean building MIT and non-concessional MIT income components for EOI and
+  non-EOI recipients) and Subdivision 12-FB / s 12-315 (casino gaming junkets,
+  entertainment or sports activities for companies and individuals, and
+  construction and related activities, with s 12-319 exemptions, s 15-15
+  variations and s 48 prior-withholding reductions). New codes:
+  `non_resident_withholding.already_withheld_exceeds_payment`,
+  `non_resident_withholding.base_rate_entity_invalid`,
+  `non_resident_withholding.construction_contract_before_cutoff`,
+  `non_resident_withholding.exempt_exceeds_payment`,
+  `non_resident_withholding.mit_parts_exceed_payment`,
+  `non_resident_withholding.payee_entity_unsupported`,
+  `non_resident_withholding.payment_type_invalid`,
+  `non_resident_withholding.treaty_rate_invalid` and
+  `non_resident_withholding.variation_rate_invalid`.
+  `tests/non_resident_withholding.rs` verifies every statutory rate, rounding
+  boundary and refusal code.
+
+### Fixed
+
+- `vic-property-taxes` (`commercial_industrial`): ends the 10-year CIPT
+  transition period on the entry date's corresponding tenth anniversary under
+  Interpretation of Legislation Act 1984 (Vic) ss 44(1) and 44(6)(a), so an
+  entry on 28 February 2026 ends on 28 February 2036 (`29 February` clamps to
+  `28 February` in a non-leap year).
+
+## 1.3.0
+
+### Added
+
+- `wip-lockup` ages unbilled WIP and returns WIP, receivable and lock-up
+  days from stated figures; lock-up is a management measure, not an
+  accounting result.
+- `impairment-test` works out value in use, recoverable amount and loss
+  allocation under AASB 136 from stated cash flows and a stated pre-tax
+  discount rate.
+- `payroll-tax-group` works out, from stated facts, one employer's payroll tax
+  group for 2026-27 in Victoria, Queensland, Western Australia, South
+  Australia or the ACT under each Act's grouping Part (related bodies
+  corporate, common employees, common control, tracing and subsumed groups,
+  less excluded persons), its designated group employer and the group's single
+  deduction, with Queensland's excess deduction shared in order. New South
+  Wales, Tasmania and the Northern Territory are refused. New codes:
+  `payroll_tax_group.act_unread`, `business_unstated`, `dge_conflict`, `dge_not_member`,
+  `dge_wages_below_deduction`, `excess_order_invalid`,
+  `excess_unnominated`, `exclusion_barred`, `fact_invalid`, `formula_unread`,
+  `interest_cycle`, `jurisdiction_invalid`, `no_dge_unsettled`,
+  `not_grouped`, `part_year`, `percent_invalid`, `person_duplicate`,
+  `person_unknown` and `test_invalid`. `derive` takes it.
+- `charity-check`: whether each ABN is on the 22 November 2026 copy of the ACNC
+  Register of Australian charities, with its legal name, registration date and
+  ACNC Act s 25-5(5) subtypes, and the limits of one copy. The copy answers for
+  a check date up to 31 days after its own and refuses any other, with
+  `charity_check.as_at_before_snapshot` and `charity_check.snapshot_stale`.
+  `examples/acnc_register.rs` rebuilds it from the dataset's CSV.
+- `tourist-refund` tests one traveller's purchases from one registered
+  supplier against the tourist refund scheme (GST Act s 168-5(1), GST
+  Regulations 2019 Division 168) for departures from 1 November 2025 to
+  30 June 2027, and works the refund of GST and of the wine tax borne
+  (WET Act s 25-5(1), 29% of half the price). New codes:
+  `tourist_refund.date_invalid`, `departure_not_covered`,
+  `departure_outside_year`, `fact_invalid`, `gst_exceeds_price_share`,
+  `item_invalid`, `threshold_unsettled` and `wine_tax_reduced`.
 - `foreign-purchaser-surcharge`: the foreign purchaser duty surcharge on one
   buyer's share in 2026-27 and the foreign or absentee owner land tax
   surcharge for a full land tax year, in each of the 8 states and
@@ -118,9 +278,15 @@
   s 20(1), or keeps $18,200 for an eligible pensioner (s 18(2)(a)), for
   2024-25 to 2027-28. A near miss of either input name is refused as
   `input.field_unknown`; other unknown fields are still ignored.
-  `personal-tax-estimate` still refuses a part-year resident, now citing the
-  Medicare levy's non-resident days (ITAA 1936 s 251U(1)(d), subject to
-  s 251U(2)).
+- `medicare-levy` takes `non_resident_days`: a part-year resident's days not
+  resident on which every dependant was also a prescribed person (ITAA 1936
+  s 251U(1)(d) and (2)), each a whole day off the levy under Medicare Levy Act
+  1986 s 9(1). `personal-tax-estimate` composes a part-year resident before
+  2027-28 with `part_year_residency_months`, `eligible_pensioner` and those
+  days, and refuses for one the surcharge, the seniors and pensioners tax
+  offset, the private health insurance rebate, a study loan repayment, worked
+  tax withheld and every year from 2027-28. Full-year and foreign resident
+  results do not change.
 - `workers-compensation-premium`: one employer's workers compensation premium
   for a 2026-27 policy in each state and territory, with the adjustment on
   actual wages: icare's small employer formula, the Victorian Premiums Order
@@ -192,7 +358,10 @@
   the contract date, the value cap (with an optional `cap_value` where
   Queensland and Western Australia test a value other than the
   consideration) and the lesser-of-consideration rule, from eligibility
-  facts the operator states. New codes:
+  facts the operator states. An optional `contract_price` for a home built
+  is its consideration: below the amount, the grant is the contract price
+  in every state and territory but New South Wales, whose Act could not be
+  read, and the Victorian cap tests it. New codes:
   `first_home_owner_grant.below_grant`, `first_home_owner_grant.date_invalid`,
   `first_home_owner_grant.date_uncovered`, `first_home_owner_grant.fact_needed`,
   `first_home_owner_grant.facts_invalid`, `first_home_owner_grant.facts_not_stated`,

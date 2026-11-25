@@ -15,7 +15,7 @@ use std::process::{Command, Stdio};
 /// `tests/chattel_mortgage.rs`, `tests/loan_transactions.rs`,
 /// `tests/business_capital_expenditure.rs`, `tests/balancing_adjustment.rs`, `tests/trade_in.rs`, `tests/fuel_tax_credits.rs`,
 /// `tests/payroll_tax.rs`, `tests/land_tax.rs`, `tests/workers_compensation_premium.rs`, `tests/motor_vehicle_duty.rs`, `tests/insurance_duty.rs`, `tests/transfer_duty.rs`,
-/// `tests/foreign_purchaser_surcharge.rs`,
+/// `tests/foreign_purchaser_surcharge.rs`, `tests/gst_food_retailer_sam.rs`,
 /// `tests/gst_margin_scheme.rs`,
 /// `tests/cgt_parcels.rs`, `tests/cgt_cost_base_adjustments.rs`,
 /// `tests/division_296.rs`,
@@ -29,7 +29,7 @@ use std::process::{Command, Stdio};
 /// `tests/fbt_lafha.rs`, `tests/fbt_board.rs`,
 /// `tests/fbt_tax_exempt_body_entertainment.rs`, `tests/lump_sum_arrears_offset.rs`,
 /// `tests/fbt_entertainment_classifier.rs`, `tests/fbt_minor_benefit.rs`,
-/// `tests/fhss.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
+/// `tests/fhss.rs`, `tests/aml_cdd_review.rs`, `tests/ppsr_timing.rs`, `tests/dasp_tax.rs`, `tests/super_benefit_tax.rs`, `tests/super_withholding.rs`, `tests/super_income_stream.rs`,
 /// `tests/income_tests.rs`,
 /// `tests/franking_account.rs`, `tests/wine_equalisation_tax.rs`, `tests/vic_property_taxes.rs`, `tests/alcohol_excise.rs`, `tests/asic_fees.rs`,
 /// `tests/luxury_car_tax.rs`, `tests/sb_cgt_concessions.rs`,
@@ -40,9 +40,9 @@ use std::process::{Command, Stdio};
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
 /// `tests/psi_test.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
-/// `tests/foreign_resident_withholding.rs`, `tests/residency_tests.rs`,
+/// `tests/foreign_resident_withholding.rs`, `tests/non_resident_withholding.rs`, `tests/residential_vacancy_fee.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
-/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`,
+/// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`, `tests/deferred_revenue.rs`, `tests/wip_lockup.rs`, `tests/impairment_test.rs`,
 /// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
@@ -51,7 +51,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 122] = [
+const NEW_KINDS: [(&str, &str); 134] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -66,6 +66,7 @@ const NEW_KINDS: [(&str, &str); 122] = [
     ("ato-interest-penalties", "ato_interest_penalties"),
     ("transfer-balance", "transfer_balance"),
     ("excess-contributions", "excess_contributions"),
+    ("aml-cdd-review", "aml_cdd_review"),
     ("ppsr-timing", "ppsr_timing"),
     ("foreign-purchaser-surcharge", "foreign_purchaser_surcharge"),
     ("dasp-tax", "dasp_tax"),
@@ -96,6 +97,7 @@ const NEW_KINDS: [(&str, &str); 122] = [
     ("transfer-duty", "transfer_duty"),
     ("fuel-tax-credits", "fuel_tax_credits"),
     ("payroll-tax", "payroll_tax"),
+    ("payroll-tax-group", "payroll_tax_group"),
     ("land-tax", "land_tax"),
     (
         "workers-compensation-premium",
@@ -103,6 +105,8 @@ const NEW_KINDS: [(&str, &str); 122] = [
     ),
     ("motor-vehicle-duty", "motor_vehicle_duty"),
     ("insurance-duty", "insurance_duty"),
+    ("gst-food-retailer-sam", "gst_food_retailer_sam"),
+    ("portable-lsl-levy", "portable_lsl_levy"),
     ("wine-equalisation-tax", "wine_equalisation_tax"),
     ("vic-property-taxes", "vic_property_taxes"),
     ("alcohol-excise", "alcohol_excise"),
@@ -147,6 +151,8 @@ const NEW_KINDS: [(&str, &str); 122] = [
         "foreign-resident-withholding",
         "foreign_resident_withholding",
     ),
+    ("non-resident-withholding", "non_resident_withholding"),
+    ("residential-vacancy-fee", "residential_vacancy_fee"),
     (
         "horticulture-shearing-withholding",
         "horticulture_shearing_withholding",
@@ -180,8 +186,14 @@ const NEW_KINDS: [(&str, &str); 122] = [
     ("gst-going-concern", "gst_going_concern"),
     ("gst-second-hand-goods", "gst_second_hand_goods"),
     ("gst-bad-debt", "gst_bad_debt"),
+    ("gst-error-correction", "gst_error_correction"),
+    ("gst-credit-time-limit", "gst_credit_time_limit"),
+    ("tourist-refund", "tourist_refund"),
     ("deferred-tax", "deferred_tax"),
     ("leave-provisions", "leave_provisions"),
+    ("deferred-revenue", "deferred_revenue"),
+    ("wip-lockup", "wip_lockup"),
+    ("impairment-test", "impairment_test"),
     ("long-service-leave", "long_service_leave"),
     ("foreign-income-conversion", "foreign_income_conversion"),
     ("foreign-income-tax-offset", "foreign_income_tax_offset"),
@@ -594,7 +606,7 @@ fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
         "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/251U",
         "https://www.ato.gov.au/forms-and-instructions/individual-tax-return-2026-instructions/medicare-levy-questions-m1-m2-individual-tax-return-2026/m1-medicare-levy-reduction-or-exemption-2026",
     ];
-    let passage = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B";
+    let passage = "Medicare Levy Act 1986 ss 3(1) and (3), 6(1), 7(1) and (2) and 8, compilations 52 (2024-25) and 53; Treasury Laws Amendment (More Cost of Living Relief) Act 2025 Sch 2 item 14 (2024-25 and later years); Treasury Laws Amendment (Delivering an Efficient and Trusted Tax System) Act 2026 Sch 5 item 14 (2025-26 and later years); ATO Medicare levy reduction for low-income earners and Medicare levy reduction - family income, with the Ashton example (2025-26); myTax 2025 tables 2 and 3 and worksheet 2 (2024-25); exemptions: Medicare Levy Act 1986 s 9(1), ITAA 1936 ss 251T and 251U(1) to (3), ATO Medical exemption from Medicare levy (the Paul example), Not entitled to Medicare benefits (the Priya example) and M1 Medicare levy reduction or exemption 2026, part B; non-resident days (read 24 November 2026): ITAA 1936 ss 251S(1)(a) and 251U(1)(d), (2) and (3), and M1 2026, category 2";
     let year = json!({"id": "2026-27", "basis": "income year", "start": "2026-07-01",
         "end": "2027-06-30", "arguments": {"year": "2026-27"}});
     if command == "medicare-levy"
@@ -630,7 +642,7 @@ fn adapt_medicare(command: &str, input: &Value, expected: &mut Value) {
         .as_array_mut()
         .unwrap()
         .extend(added.map(|url| json!(url)));
-    record["source_checked"] = json!("2026-11-14");
+    record["source_checked"] = json!("2026-11-24");
     if command == "worksheet-catalogue" {
         record["source_passage"] = json!(passage);
         let evidence = &mut record["example_evidence"];
@@ -901,12 +913,13 @@ fn python_api_corpus_matches() {
         serde_json::from_str(include_str!("data/python-api.json")).expect("corpus parses");
     assert!(corpus.len() > 3000, "corpus too small: {}", corpus.len());
     for command in api::commands() {
-        // derive, personal-tax-estimate, dgr-check and fbt-return are new
-        // too; tests/derivation.rs, tests/personal_tax_estimate.rs,
-        // tests/dgr_check.rs and tests/fbt_return.rs cover them.
+        // derive, personal-tax-estimate, dgr-check, charity-check and
+        // fbt-return are new too; tests/derivation.rs,
+        // tests/personal_tax_estimate.rs, tests/dgr_check.rs,
+        // tests/charity_check.rs and tests/fbt_return.rs cover them.
         if matches!(
             command,
-            "derive" | "personal-tax-estimate" | "dgr-check" | "fbt-return"
+            "derive" | "personal-tax-estimate" | "dgr-check" | "charity-check" | "fbt-return"
         ) || NEW_KINDS.iter().any(|(c, _)| *c == command)
         {
             continue;

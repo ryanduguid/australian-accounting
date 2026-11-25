@@ -9,7 +9,7 @@
 
 </div>
 
-Australian accounting tools for Claude, Cursor, Codex and other MCP clients. The
+Australian accounting tools for Claude, Antigravity, Codex and other MCP clients. The
 server runs on your machine over stdio, needs no API key or account, and makes no
 network calls once installed.
 
@@ -23,7 +23,7 @@ The listing identifies the distribution; it does not prove a client's installed 
   and build a 4-file evidence pack for a practitioner's workpaper.
 - **Division 7A:** get the benchmark interest rate and review s 109N loan terms and
   s 109E minimum yearly repayments for one loan. Matters outside that scope are refused.
-- **102 tax and super worksheet kinds.** These include GST, resident basic tax, CGT, FBT, first-year
+- **140 tax and super worksheet kinds.** These include GST, resident basic tax, CGT, FBT, first-year
   depreciation, quarterly SG, Schedule 1 PAYG withholding, super contribution caps,
   account-based pension minimums, study and training loan repayments, Schedule 8 study
   loan withholding, a single person's Medicare levy, the low income tax offset and
@@ -110,7 +110,9 @@ Use the bundle release's `SHA256SUMS` and GitHub attestation to verify the file.
 The bundle settings offer the 3 optional research folders described under Tools.
 If Claude Desktop does not start the bundle, use the configuration below.
 
-For Claude Desktop, Cursor, Windsurf and other hosts that run local stdio servers:
+For Claude Desktop, Antigravity, Windsurf and other hosts that run local stdio servers
+(in Antigravity, the `mcp_config.json` that Customisations, Installed, MCP Servers,
+Copy Config File Path names):
 
 ```json
 {
@@ -172,7 +174,8 @@ Ask in plain English. Each of these fabricated requests resolves to one tool cal
 | `read_accounting_library` | Read cited lines from that library. |
 | `search_tax_legislation` | Find provisions in a configured local legislation corpus, best match first. A plain question works: stop words are dropped, and provisions holding at least 2 of the words but not all, a modal word's opposite form counting towards the 2, come back labelled as partial hits, never as matches. `as_at` answers for a date from each title's compilation window and refuses by name any title it cannot answer for. |
 | `read_tax_legislation_section` | Read one cited provision in full, in parts when it is long. `as_at` adds the title's status and window, and withholds the text unless the status is `captured`. |
-| `define_tax_term` | Find an expression's statutory definitions in that corpus. |
+| `define_tax_term` | Find an expression's statutory definitions in that corpus. `defined: false` says no entry for the term itself was found and lists the nearest longer defined terms. |
+| `find_citing_provisions` | List the provisions in that corpus whose text cites one section by number. |
 | `search_tax_rates` | Find legislated rates and thresholds with the provision that sets them. |
 | `search_ato_rulings` | Find paragraphs in a configured local ATO rulings corpus. |
 | `read_ato_ruling` | Read one cited ruling paragraph. |

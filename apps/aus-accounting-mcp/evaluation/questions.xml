@@ -233,6 +233,12 @@
     <calls>[{"name": "read_tax_legislation_section", "arguments": {"row_id": "C9999A00004:0005:5"}}]</calls>
     <tools><tool>read_tax_legislation_section</tool></tools>
   </qa_pair>
+  <qa_pair id="citing-provision">
+    <question>In the configured synthetic corpus, provision C9999A00004:0004:4 is section 4 of the Synthetic Glossary Act 2099. Which provision cites it? Return only the citing provision's section label.</question>
+    <answer>2</answer>
+    <calls>[{"name": "find_citing_provisions", "arguments": {"row_id": "C9999A00004:0004:4"}}]</calls>
+    <tools><tool>find_citing_provisions</tool></tools>
+  </qa_pair>
   <qa_pair id="undefined-term">
     <question>Look up the statutory definition of "quantum widget" in the configured synthetic corpus. If no definition is returned, answer only NONE_FOUND; never supply an ordinary meaning or say the term is undefined.</question>
     <answer>NONE_FOUND</answer>

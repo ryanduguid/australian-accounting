@@ -8,7 +8,7 @@
     "Withholding from one pay: `payg-withholding` (Schedule 1) by pay period and scale, `working-holiday-maker-withholding` (Schedule 15) or `seniors-pensioners-withholding` (Schedule 9). Never apply annual tax brackets to one pay.",
     "Other withholding tables: `horticulture-shearing-withholding` (Schedule 2), `upward-variation-withholding` (Schedule 14), `daily-casual-withholding` (daily and casual workers) and `no-abn-withholding` (a supplier who quotes no ABN).",
     "Withholding from particular payments: `entertainer-withholding` (Schedule 3), `return-to-work-withholding` (Schedule 4), `annuity-withholding` (Schedule 6), `voluntary-agreement-withholding` (Schedule 10) and `super-withholding` (Schedule 12).",
-    "Supply explicit supported years and every required scope confirmation. Never infer support for a future year. `foreign-resident-withholding` is a purchaser's capital gains withholding by contract date, not pay withholding.",
+    "Supply explicit supported years and scope confirmations. Never infer a future year. `foreign-resident-withholding` is CGT withholding by contract date; `non-resident-withholding` is Subdiv 12-F, 12-H and s 12-315 withholding.",
     "For withholding, give the pay's income year, and its pay date for a 2025-26 study loan in `study-loan-withholding`, `seniors-pensioners-withholding`, `schedule-5-method-a`, `schedule-5-method-b-ii` or `payg-gross-up`; `schedule-5-method-b-i` refuses one.",
     "Use decimal strings for money and ratios at the native JSON boundary. Respect the selected engine's rounding and output units rather than reimplementing tax formulas in an adapter.",
     "Retain engine version, sources, warnings and refusal codes. A refused or unsupported calculation stays refused; never replace it with a plausible estimate without explicitly changing the task and its stated assumptions.",
@@ -16,6 +16,9 @@
     "Use fabricated fixtures for examples. Do not send TFNs, client data or other private financial inputs to public calculators, URLs or hosted checkers.",
     "Super caps: `contribution-caps` for the year's caps and excess, `excess-contributions` for the concessional charge or the non-concessional release, `transfer-balance` for the transfer balance account. Each gives estimates, not determinations.",
     "A worksheet supports human review; it is not an assessment or lodgment. Distinguish a super accrual from evidence of receipt by a fund and distinguish a planning assumption from a statutory calculation.",
-    "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities."
+    "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities.",
+    "`deferred-revenue` (AASB 15) schedules revenue and the contract liability from a stated pattern of progress; it does not decide when a performance obligation is satisfied.",
+    "`wip-lockup` ages a firm's unbilled WIP and gives WIP, receivable and lock-up days as Ozzit's WIPDays and ReceivableDays define them; lock-up is a management measure, not an accounting result.",
+    "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow."
   ]
 }

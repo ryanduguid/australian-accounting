@@ -36,13 +36,13 @@ const MONEY: &[&str] = &[
 const NARROWED_SCOPE: [(&str, &str, &str); 7] = [
     (
         "medicare_levy",
-        "Australian resident individual for the full income year. The operator establishes the days in the year, if any, for which they qualified for a full or a half Medicare levy exemption: a full exemption as a prescribed person under ITAA 1936 s 251U(1) in the medical category (a blind pensioner, or entitled to full free medical treatment under Defence Force or Veterans' Affairs arrangements) or as one not entitled to Medicare benefits, with no dependant outside the exemption categories; a half exemption in the medical category with such a dependant (s 251U(3)); a foreign resident is outside this worksheet. The operator also establishes whether they are entitled to the seniors and pensioners tax offset (SAPTO) for the year at more than nil; whether they had a spouse on the last day of the year as s 3(3) reads it (a spouse living separately and apart does not count, but one living apart only because of illness, as in the ATO's Ashton example, does; so does one who died in the year), and if so the spouse's whole-dollar taxable income and SAPTO entitlement; without a spouse, whether they are entitled to the invalid and invalid carer tax offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent notional tax offset (Subdivision 961-B); and the number of dependent children and students (s 961-5(1)(c)) for whom they or their spouse are entitled to the Subdivision 961-A notional tax offset, counting, without a spouse, only those for whom family tax benefit was payable to them. A spouse must also be an Australian resident for the full year, not entitled to any exemption and not a person to whom s 9A applies. Omitting those inputs states a person without SAPTO, spouse or those offsets. The operator must also establish whether",
+        "Australian resident individual for the full income year, or for part of it. The operator establishes the days in the year, if any, for which they qualified for a full or a half Medicare levy exemption: a full exemption as a prescribed person under ITAA 1936 s 251U(1) in the medical category (a blind pensioner, or entitled to full free medical treatment under Defence Force or Veterans' Affairs arrangements) or as one not entitled to Medicare benefits, with no dependant outside the exemption categories; a half exemption in the medical category with such a dependant (s 251U(3)). For a part-year resident the operator also establishes the days they were not a resident on which every dependant was also a prescribed person (s 251U(1)(d) and (2)): each is a whole prescribed day, as s 251U(3) gives no half under para (d), and a day is counted once. A person not resident at any time in the year pays no levy (s 251S(1)(a)) and is outside this worksheet. The operator also establishes whether they are entitled to the seniors and pensioners tax offset (SAPTO) for the year at more than nil; whether they had a spouse on the last day of the year as s 3(3) reads it (a spouse living separately and apart does not count, but one living apart only because of illness, as in the ATO's Ashton example, does; so does one who died in the year), and if so the spouse's whole-dollar taxable income and SAPTO entitlement; without a spouse, whether they are entitled to the invalid and invalid carer tax offset for their child (ITAA 1997 Subdivision 61-A) or the sole parent notional tax offset (Subdivision 961-B); and the number of dependent children and students (s 961-5(1)(c)) for whom they or their spouse are entitled to the Subdivision 961-A notional tax offset, counting, without a spouse, only those for whom family tax benefit was payable to them. A spouse must also be an Australian resident for the full year, not entitled to any exemption and not a person to whom s 9A applies. Omitting those inputs states a person without SAPTO, spouse or those offsets. The operator must also establish whether",
         "Australian resident individual for the full income year, not entitled to any full or half Medicare levy exemption or to the seniors and pensioners tax offset, with no spouse on the last day of the year, and not entitled to the invalid and invalid carer tax offset for a child, the sole parent notional tax offset or a notional tax offset for dependent children or students. The operator establishes whether",
     ),
     (
         "medicare_levy",
-        ", at SAPTO thresholds for a person entitled to SAPTO. With a spouse or one of those offsets the family reduction (s 8) follows: no levy when family taxable income is at or below the family income threshold, which rises for each dependent child; above it the levy is reduced by 2% of the threshold less 8% of the excess, in the person's share of family taxable income when the spouse's own income is above the spouse's threshold amount, and any part of the spouse's reduction above the spouse's levy also reduces this levy (s 8(4)). The levy after ss 7 and 8 is then reduced by the share of the year's days for which the person was a prescribed person (s 9(1)): each full exemption day, and half of each half exemption day; a full exemption for the whole year leaves no levy (s 251T). Excludes foreign residents,",
-        ". Excludes exemptions,",
+        ", at SAPTO thresholds for a person entitled to SAPTO. With a spouse or one of those offsets the family reduction (s 8) follows: no levy when family taxable income is at or below the family income threshold, which rises for each dependent child; above it the levy is reduced by 2% of the threshold less 8% of the excess, in the person's share of family taxable income when the spouse's own income is above the spouse's threshold amount, and any part of the spouse's reduction above the spouse's levy also reduces this levy (s 8(4)). The levy after ss 7 and 8 is then reduced by the share of the year's days for which the person was a prescribed person (s 9(1)): each full exemption day, and half of each half exemption day; a full exemption for the whole year leaves no levy (s 251T). Excludes foreign residents, the Medicare levy surcharge and trustees.",
+        ". Excludes exemptions, the Medicare levy surcharge, trustees and part-year residence.",
     ),
     (
         "study_loan_withholding",
@@ -326,6 +326,27 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// The served Medicare levy scope excludes part-year residence exactly when the
+    /// published facts cannot give a part-year resident's `non_resident_days`, and the
+    /// engine's own scope, which takes them, no longer does: each narrowing matches.
+    #[test]
+    fn the_medicare_levy_scope_excludes_part_year_residence_only_without_its_days() {
+        let engine =
+            australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({})).unwrap();
+        let served = super::advertised_worksheets().unwrap();
+        for catalogue in [&engine, &served] {
+            let entry = &catalogue["medicare_levy"];
+            let takes_days = entry["optional_inputs"].get("non_resident_days").is_some();
+            let scope = entry["scope"].as_str().unwrap();
+            assert_eq!(
+                scope.contains("part-year residence."),
+                !takes_days,
+                "{scope}"
+            );
+        }
+        assert!(engine["medicare_levy"]["optional_inputs"]["non_resident_days"].is_string());
     }
 
     /// Each narrowing still finds its words in the engine's scope, so an engine change

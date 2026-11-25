@@ -154,6 +154,45 @@ SUBSECTION_LABEL = re.compile(r"^\(\d+[A-Za-z]*\)")
 # pad labels with U+00A0, a non-breaking space; a caller types the plain characters.
 PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " ", "*": ""})
 MAX_DEFINITIONS = 20
+UNDEFINED_NOTE = (
+    "No dictionary entry for this expression itself was found in the titles searched. "
+    "That is not a finding that the law leaves it undefined and never a reason to supply "
+    "an ordinary meaning; nearest_terms lists the longer defined expressions found that "
+    "hold every word of it."
+)
+# A section number as a title prints it: "8-1", "40-880", "82KZM", "6".
+SECTION_LABEL = r"\d+(?:[A-Za-z][0-9A-Za-z]*)?(?:[-.]\d+(?:[A-Za-z][0-9A-Za-z]*)?)*"
+LABEL_ONLY = re.compile(SECTION_LABEL)
+CITED_LABEL = SECTION_LABEL + r"(?:\([0-9A-Za-z]{1,6}\))*"
+SUBSECTIONS = re.compile(r"\([^()]*\)")
+# "section 5-10", "subsections 8-1(1) and (2)", "ss 26-55 or 26-60", optionally
+# followed by the title they belong to: "of this Act", "of the Income Tax Assessment
+# Act 1997" or "in Schedule 1 to the Taxation Administration Act 1953".
+CITATION = re.compile(
+    rf"\b(?i:(?:sub)?(?:sections?|ss?\.?))\s+(?P<labels>{CITED_LABEL}"
+    rf"(?:(?:\s*,\s*|\s+(?:and|or)\s+){CITED_LABEL})*)(?![0-9A-Za-z])"
+    r"(?:,?\s+(?:of|in)\s+(?:(?:Schedule|Part)\s+\w+\s+(?:to|of)\s+)?"
+    r"(?:(?P<this>this\s+Act\b)|(?:the\s+)?(?P<act>\*?[A-Z][^.;:\n]{0,150}?\bAct\s+\d{4})))?"
+)
+# A title the pattern cannot name ("of the Act" as a defined short title, "of
+# Schedule 1"): such a citation is not read as one of the citing title's own sections.
+OTHER_TITLE = re.compile(
+    r",?\s+(?:of|in)\s+(?:the\s+)?\*?(?:Schedule\b|"
+    r"(?:\(?[A-Z][\w'-]*\)?\s+){0,8}?(?:Act|Regulations?|Rules|Code|Ordinance)\b)"
+)
+# Only 1-for-1 replacements, so a citation's offsets stay valid in the stored text.
+CITE_PLAIN = str.maketrans({"\u2011": "-", "\u00a0": " "})
+CITING_TEXT_CHARS = 600
+CITED_BY_NOTICE = (
+    "A provision is listed when its text names the section by number after section, "
+    "subsection, s or ss, either within the cited title with no other title named, or "
+    "followed by the cited title's full name. A reference through a Division, "
+    "Subdivision or Part, a range such as sections 5-5 to 5-15, or an abbreviated or "
+    "defined short title is not found, and a bare section number in another title is "
+    "read as that title's own section, so an empty list is not proof that nothing cites "
+    "the section. Each entry's text is the paragraph holding its first citation; confirm "
+    "every citation in the provision before relying on it."
+)
 # Judges one row of the index at a path: its sort key, lower first, and its result, or
 # None to leave it out.
 Assessor = Callable[[Path, dict[str, Any]], tuple[tuple[int, ...], dict[str, Any]] | None]
@@ -1310,12 +1349,94 @@ def define_term(
     ranked = [entry for *_, entry in sorted(partial, key=lambda item: item[:2], reverse=True)]
     dropped = len(ranked) > MAX_DEFINITIONS
     found = [entry for _, entry in exact] + ranked[:MAX_DEFINITIONS]
+    heads = (entry["head"] for entry in ranked[:MAX_DEFINITIONS])
+    nearest = [] if exact else list(dict.fromkeys(heads))
     return {
         "term": term,
+        "defined": bool(exact),
+        "nearest_terms": nearest,
+        "defined_note": None if exact else UNDEFINED_NOTE,
         "definitions": found[:limit],
         "has_more": dropped or len(found) > limit,
         "corpus": _provenance(root),
         "notice": NOTICE + " " + DEFINITION_NOTICE,
+    }
+
+
+def _act_name(text: str) -> str:
+    return _plain(text).removeprefix("the ")
+
+
+def _cited_labels(text: str, label: str, act: str, internal: bool) -> Iterator[re.Match[str]]:
+    """Each citation in text of section label (or one of its subsections).
+
+    A citation followed by "of" or "in" and a title names that title: it counts only
+    when the title is act. One naming no title counts only inside the cited title, and
+    one followed by a title the pattern cannot name counts nowhere.
+    """
+    plain = text.translate(CITE_PLAIN)
+    for found in CITATION.finditer(plain):
+        items = LABEL_ONLY.findall(SUBSECTIONS.sub(" ", found.group("labels")))
+        if label not in items:
+            continue
+        named = found.group("act")
+        if named is None:
+            if internal and (found.group("this") or not OTHER_TITLE.match(plain, found.end())):
+                yield found
+        elif _act_name(named) == act:
+            yield found
+
+
+def _citing_entry(row: dict[str, Any], hits: list[re.Match[str]]) -> dict[str, Any]:
+    """The citing provision, cut to the paragraph holding its first citation."""
+    text = _string(row, "text") or ""
+    before = text.rfind("\n\n", 0, hits[0].start())
+    end = text.find("\n\n", hits[0].end())
+    paragraph = text[0 if before < 0 else before + 2:end if end >= 0 else len(text)].strip()
+    entry = _section({**row, "text": paragraph}, CITING_TEXT_CHARS)
+    written = (" ".join(text[hit.start():hit.end()].split()) for hit in hits)
+    entry["citations"] = list(dict.fromkeys(written))
+    return entry
+
+
+def cited_by(row_id: str, limit: int, in_force_only: bool = True) -> dict[str, Any]:
+    """The provisions whose text cites the section row_id holds, by section number.
+
+    A provision of the cited title counts when it names the section with no other
+    title; a provision of any title counts when it names the section followed by the
+    cited title's name. Within the result, the principal Acts come first, then other
+    titles in corpus order.
+    """
+    root, row, _, _, _ = _read_rows(row_id, 0)
+    label = (_string(row, "section") or "").translate(CITE_PLAIN).strip()
+    if not LABEL_ONLY.fullmatch(label):
+        raise InputError("That row has no section number that another provision can cite.")
+    register_id, act = row.get("register_id"), _act_name(_string(row, "act") or "")
+    # A title may print the label with U+2011; the raw line holds it either way.
+    variants = [label.casefold(), label.replace("-", "\u2011").casefold()]
+    found: list[tuple[int, int, dict[str, Any]]] = []
+    for path in _within_bounds(_index_files(root)):
+        try:
+            for citing in _rows(path, variants, any):
+                if in_force_only and citing.get("version_is_current") is False:
+                    continue
+                internal = citing.get("register_id") == register_id
+                own = (_string(citing, "section") or "").translate(CITE_PLAIN).strip()
+                if internal and own == label:
+                    continue
+                hits = list(_cited_labels(_string(citing, "text") or "", label, act, internal))
+                if hits:
+                    found.append((_priority(citing), len(found), _citing_entry(citing, hits)))
+        except (OSError, UnicodeError) as exc:
+            raise InputError("Cannot read a UTF-8 JSONL index in the configured corpus.") from exc
+    found.sort(key=lambda item: item[:2])
+    return {
+        "provision": {key: _string(row, key) for key in ("row_id", "register_id", "act",
+                                                          "section", "heading")},
+        "cited_by": [entry for *_, entry in found[:limit]],
+        "has_more": len(found) > limit,
+        "corpus": _provenance(root),
+        "notice": NOTICE + " " + CITED_BY_NOTICE,
     }
 
 
