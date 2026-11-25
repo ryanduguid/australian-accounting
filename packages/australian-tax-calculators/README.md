@@ -5251,7 +5251,8 @@ and the equity attributable to the owners of the parent.
 
 It refuses a subsidiary acquired in the period (para B88), fair value
 adjustments at acquisition (AASB 3 para 18), a combination achieved in stages,
-a bargain purchase (AASB 3 paras 34 to 36), a change in ownership (para 23),
+a bargain purchase (AASB 3 paras 34 to 36), an investment line not carried at
+the consideration, a change in ownership (para 23),
 intra-group dividends, an elimination larger than its line and years before
 2020-21 and after 2026-27. Indirect holdings, opening unrealised profit,
 profit in assets other than inventory, foreign operations and loss of control
@@ -5283,8 +5284,8 @@ approximate compounding accruals; both are shown by income year.
 It refuses the elective methods and portfolio treatment of fees, the effective
 interest method, particular gains and the realisation method (where accruals
 are neither chosen nor required by s 230-100(4)), a benefit inside an
-interval, shorter first or last intervals, benefits that change sign more
-than once and years before 2020-21 and after 2026-27. Re-estimation,
+interval, shorter first or last intervals, benefits that net to nil or change
+sign more than once and years before 2020-21 and after 2026-27. Re-estimation,
 reassessment and balancing adjustments are outside it. See
 [calculation evidence](docs/calculation-evidence.md#tofa-accruals).
 

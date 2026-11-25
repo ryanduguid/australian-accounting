@@ -318,6 +318,50 @@ fn refusals_of_malformed_items() {
     ]);
 }
 
+/// Assets less liabilities equal the owners' equity and the non-controlling
+/// interests, current profit included.
+fn balances(r: &Value) {
+    let a = |k: &str| r["amounts"][k].as_str().unwrap().parse::<f64>().unwrap();
+    let net = a("total_assets") - a("total_liabilities");
+    let equity = a("equity_attributable_to_owners") + a("non_controlling_interests");
+    assert!((net - equity).abs() < 0.005, "{net} {equity}");
+}
+
+#[test]
+fn every_accepted_case_balances() {
+    let mut downstream = c1();
+    downstream["unrealised_profits"][0]["seller"] = json!("P Ltd");
+    downstream["unrealised_profits"][0]["buyer"] = json!("S Ltd");
+    let mut whole = c1();
+    whole["subsidiaries"] = json!([subsidiary("1", "0.00")]);
+    let mut loss = c1();
+    loss["subsidiaries"][0]["lines"][5]["amount"] = json!("10000.00");
+    loss["subsidiaries"][0]["lines"][0]["amount"] = json!("13000.00");
+    for v in [
+        c1(),
+        with(c1(), "tax_rate", json!("0")),
+        downstream,
+        whole,
+        loss,
+    ] {
+        balances(&run(&v));
+    }
+}
+
+/// An investment line carrying more than the consideration would leave part
+/// of it in the consolidated assets (Alcuin S1).
+#[test]
+fn an_investment_line_above_the_consideration_is_refused() {
+    let v = edited(|v| {
+        v["parent"]["lines"][1]["amount"] = json!("90000.00");
+        v["parent"]["lines"][0]["amount"] = json!("36000.00");
+    });
+    assert_eq!(
+        code(&v),
+        "consolidation_eliminations.investment_not_eliminated"
+    );
+}
+
 #[test]
 fn refusals_of_eliminations() {
     let conflict = edited(|v| {

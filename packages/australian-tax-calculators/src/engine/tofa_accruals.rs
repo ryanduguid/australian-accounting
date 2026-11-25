@@ -105,7 +105,7 @@ fn entity(given: &Arg) -> Result<Entity> {
     }
 }
 
-fn under(given: Option<&Arg>, name: &str, limit: &str) -> Result<bool> {
+fn figure(given: Option<&Arg>, name: &str) -> Result<Decimal> {
     let Some(value) = given else {
         return refuse(
             "tofa_accruals.threshold_input",
@@ -114,7 +114,7 @@ fn under(given: Option<&Arg>, name: &str, limit: &str) -> Result<bool> {
             ),
         );
     };
-    Ok(money(value)?.lt(&d(limit))?)
+    money(value)
 }
 
 /// Section 230-455(2) to (4), on the values the operator states for the year
@@ -136,16 +136,17 @@ fn thresholds(a: &TofaAccrualsArgs) -> Result<Thresholds> {
             s4: false,
         });
     }
-    let assets_100 = under(a.assets, "assets", "100000000")?;
-    let turnover_20 = under(a.aggregated_turnover, "aggregated_turnover", "20000000")?;
-    let s4 = under(a.aggregated_turnover, "aggregated_turnover", "100000000")?
-        && under(a.financial_assets, "financial_assets", "100000000")?
-        && under(a.assets, "assets", "300000000")?;
+    let turnover = figure(a.aggregated_turnover, "aggregated_turnover")?;
+    let assets = figure(a.assets, "assets")?;
+    let financial = figure(a.financial_assets, "financial_assets")?;
+    let under = |v: &Decimal, limit: &str| v.lt(&d(limit));
     Ok(Thresholds {
         entity,
-        s2: assets_100,
-        s3: turnover_20,
-        s4,
+        s2: under(&assets, "100000000")?,
+        s3: under(&turnover, "20000000")?,
+        s4: under(&turnover, "100000000")?
+            && under(&financial, "100000000")?
+            && under(&assets, "300000000")?,
     })
 }
 
@@ -194,23 +195,20 @@ fn elections(given: &Arg) -> Result<()> {
             "elections must be a list.",
         );
     };
-    for item in items {
-        match item.as_str() {
-            Some(e) if KNOWN.contains(&e) => {
-                return refuse(
-                    "tofa_accruals.election_not_built",
-                    format!(
-                        "A {e} election displaces or changes the accruals method (s 230-40(4) and (5); Subdivisions 230-C to 230-F; s 230-150), which this worksheet does not apply."
-                    ),
-                );
-            }
-            _ => {
-                return refuse(
-                    "tofa_accruals.elections_invalid",
-                    format!("elections may hold only {}.", KNOWN.join(", ")),
-                );
-            }
-        }
+    let named: Option<Vec<&str>> = items.iter().map(Value::as_str).collect();
+    let Some(named) = named.filter(|n| n.iter().all(|e| KNOWN.contains(e))) else {
+        return refuse(
+            "tofa_accruals.elections_invalid",
+            format!("elections may hold only {}.", KNOWN.join(", ")),
+        );
+    };
+    if let Some(e) = named.first() {
+        return refuse(
+            "tofa_accruals.election_not_built",
+            format!(
+                "A {e} election displaces or changes the accruals method (s 230-40(4) and (5); Subdivisions 230-C to 230-F; s 230-150), which this worksheet does not apply."
+            ),
+        );
     }
     Ok(())
 }
@@ -534,11 +532,17 @@ struct Spread {
 }
 
 fn spread(t: &Term, net: &[Decimal], straight: bool) -> Result<Spread> {
-    let rate = rate_of_return(net)?;
     let mut gain = d("0");
     for c in net {
         gain = gain.add(c)?;
     }
+    if gain.is_zero() {
+        return refuse(
+            "tofa_accruals.no_gain_or_loss",
+            "The financial benefits net to nil, so there is no overall gain or loss for the accruals method to spread (s 230-100(2)(a)).",
+        );
+    }
+    let rate = rate_of_return(net)?;
     let exact = accruals(net, &rate, &gain)?;
     let parts: Vec<Decimal> = exact.iter().map(|(_, a)| a.clone()).collect();
     let shown = rounded(&parts)?;

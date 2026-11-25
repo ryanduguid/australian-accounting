@@ -453,6 +453,35 @@ fn investment(g: &mut Group, s: usize) -> Result<Decimal> {
     Ok(goodwill)
 }
 
+/// Para B86(b): each investment line naming a subsidiary is eliminated in full,
+/// so its carrying amount must equal the stated consideration (or, for a line
+/// carrying more than one subsidiary, their sum).
+fn investments_eliminated(g: &Group) -> Result<()> {
+    let parent = &g.entities[0];
+    for s in g.entities.iter().skip(1) {
+        let account = &s
+            .acquisition
+            .as_ref()
+            .expect("a subsidiary")
+            .investment_account;
+        let i = parent
+            .lines
+            .iter()
+            .position(|l| &l.account == account)
+            .expect("taken");
+        if !parent.lines[i].amount.equals(&g.used[0][i])? {
+            return bad(
+                "consolidation_eliminations.investment_not_eliminated",
+                format!(
+                    "{account} carries {}, not the consideration of the subsidiaries it holds; eliminating it in full (AASB 10 para B86(b)) needs the carrying amount at the consideration, which this worksheet does not reconcile.",
+                    parent.lines[i].amount
+                ),
+            );
+        }
+    }
+    Ok(())
+}
+
 /// Paras 22 and B94: the non-controlling interest's share of each equity line's
 /// movement since acquisition.
 fn nci_since(g: &mut Group, s: usize) -> Result<()> {
@@ -780,6 +809,7 @@ fn eliminate(a: &ConsolidationEliminationsArgs, rate: &Decimal) -> Result<Value>
         goodwill = goodwill.add(&investment(&mut g, s)?)?;
         nci_since(&mut g, s)?;
     }
+    investments_eliminated(&g)?;
     pairs(
         &mut g,
         a.intra_group_balances,

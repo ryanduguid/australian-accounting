@@ -232,7 +232,7 @@ fn section_230_455_thresholds_on_each_boundary() {
     assert!(applies(&sized("other", ("1", "1", "100000000"), false)));
     assert!(!applies(&sized(
         "super_or_scheme",
-        ("500000000", "99999999.99", "1"),
+        ("510000000", "99999999.99", "1"),
         false
     )));
     assert!(applies(&sized(
@@ -494,6 +494,36 @@ fn refusals_of_malformed_benefits() {
             "tofa_accruals.rate_out_of_range",
         ),
     ]);
+}
+
+/// Benefits that net to nil have no overall gain or loss (Alcuin S2).
+#[test]
+fn benefits_netting_to_nil_are_refused() {
+    let v = with(
+        chris(),
+        "financial_benefits",
+        json!([
+            flow("2021-07-01", "-10000.00"),
+            flow("2025-06-30", "10000.00")
+        ]),
+    );
+    assert_eq!(code(&v), "tofa_accruals.no_gain_or_loss");
+}
+
+/// Intervals run from the start under Acts Interpretation Act s 2G(2): from
+/// 31 August, 6 months end on 29 February in a leap year.
+#[test]
+fn intervals_from_a_month_end_follow_the_calendar() {
+    let v = input(
+        "2023-24",
+        "2023-08-31",
+        "2024-08-30",
+        6,
+        json!([flow("2023-08-31", "-100.00"), flow("2024-08-30", "121.00")]),
+    );
+    let r = run(&v);
+    assert_eq!(column(&r, "intervals", "end"), ["2024-02-29", "2024-08-30"]);
+    assert_eq!(column(&r, "intervals", "accrual"), ["10.00", "11.00"]);
 }
 
 #[test]
