@@ -5709,8 +5709,8 @@ reportable amounts, the examples in s 135P(1), and a seeded property that the
 aggregates add up to the benefits; see
 [calculation evidence](docs/calculation-evidence.md#fbt-return).
 
-Between The Spreadsheets sells a Full FBT Calculator for 31 March 2026, $1,400
-plus GST as a bundle with its car and entertainment calculators, whose product
+A comparable commercial workbook bundle for 31 March 2026 sells for $1,400
+plus GST, whose product
 page (read on 16 November 2026) says it tracks reportable fringe benefits,
 summarises the benefits into a page that feeds the FBT return, shows a payroll
 tax gross-up, summarises employee contributions and links the ATO's employee
