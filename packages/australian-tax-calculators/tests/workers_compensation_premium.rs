@@ -118,6 +118,13 @@ fn site_code(message: &str) -> &'static str {
         ("below icare", "below_minimum"),
         ("member of a group", "group_rated"),
         ("no apprentice deduction", "apprentice_unavailable"),
+        (
+            "after premium payable is calculated",
+            "apprentice_unsettled",
+        ),
+        ("no year-end adjustment", "adjustment_unsettled"),
+        ("rounds to $0", "remuneration_nil"),
+        ("lower discount band", "band_edge_unsettled"),
     ]
     .iter()
     .find(|(said, _)| message.contains(said))
@@ -185,10 +192,10 @@ fn checked(row: &Value) -> &'static str {
     }
 }
 
-/// Every row of the site's fixture gives the page's figures or refusal,
-/// except where a source is unsettled; the page's own 25 cases all agree.
+/// Every row of the site's fixture gives the page's figures or refusal;
+/// the page's own 25 cases all agree.
 #[test]
-fn the_site_cases_agree_except_where_a_source_is_unsettled() {
+fn the_site_cases_agree() {
     let data: Value =
         serde_json::from_str(include_str!("data/workers_compensation_site_cases.json")).unwrap();
     let rows = data["rows"].as_array().unwrap();
@@ -213,15 +220,7 @@ fn the_site_cases_agree_except_where_a_source_is_unsettled() {
     assert_eq!(tally, BTreeMap::from(TALLY));
 }
 
-const TALLY: [(&str, usize); 7] = [
-    ("identical", 849),
-    ("refused alike", 308),
-    ("NSW apprentice incentive refused", 61),
-    ("NSW exact APP over $30,000 refused", 12),
-    ("Qld actual wages refused", 48),
-    ("SA band edge refused", 24),
-    ("Vic nil remuneration refused", 24),
-];
+const TALLY: [(&str, usize); 2] = [("identical", 849), ("refused alike", 477)];
 
 #[test]
 fn each_scheme_matches_its_published_example() {

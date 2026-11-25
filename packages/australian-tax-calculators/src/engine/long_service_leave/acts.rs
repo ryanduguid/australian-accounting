@@ -403,16 +403,20 @@ fn unsettled(place: Place, reason: Reason) -> Result<()> {
     refuse("long_service_leave.unsettled", why)
 }
 
-/// Tasmania's 2011 transition: an employee with service before 1 July 2012
-/// who exhausted the old entitlements for a period gets no new leave for it
-/// (Schedule 3 cl 2(4)), which leave taken in weeks alone cannot show.
+/// Tasmania's 2011 transition: an employee who exhausted the old entitlements
+/// for a period gets no new leave for it (Schedule 3 cl 2(4)), which leave
+/// taken in weeks alone cannot show. The old s 8(2)(a) gave leave only on
+/// completing 15 years, so only 15 years complete by 1 July 2012 can have
+/// used it up. Excluded days are not dated, so the 15 years are counted
+/// without them, which can only refuse more.
 pub(super) fn transition(place: Place, start: i64, taken: i128) -> Result<()> {
     let transition_day = dates::parse("2012-07-01").expect("a literal date");
-    if place == Place::Tas && taken > 0 && start < transition_day {
+    if place == Place::Tas && taken > 0 && anniversary(start, 12 * 15) <= transition_day {
         return refuse(
             "long_service_leave.unsettled",
-            "Schedule 3 cl 2(4) gives no new leave for a period whose old entitlements were \
-             exhausted, and leave taken in weeks does not show which periods those were.",
+            "Schedule 3 cl 2(4) gives no new leave for a period whose leave under the Act \
+             before 1 July 2012 was used up, and with 15 years of service by then (old \
+             s 8(2)(a)), leave taken in weeks does not show which periods those were.",
         );
     }
     Ok(())

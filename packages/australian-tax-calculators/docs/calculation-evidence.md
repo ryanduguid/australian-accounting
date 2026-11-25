@@ -2533,22 +2533,22 @@ from 03:15 to 03:30 AEST:
   suggested reasonable premium rates; WorkCover WA's rates page.
 
 The site's workers compensation calculator (ryanduguid.github.io, main at
-dcc7ecbe) was run on its 25 page cases, the 31 edge inputs of its unit tests
-and a sweep of each scheme's edges, 1,326 rows in
-`tests/data/workers_compensation_site_cases.json`. The worksheet gives the
-same 6 figures on 849 rows and the same refusal on 308; it refuses the other
-169, where a source does not settle the case or the page goes further than
-its source (table below). Of the page's own 25 cases, 18 agree and 7 are
-refused alike.
+e0cdd7f51 (#768, merging #758 and #755)) was run on its 25 page cases, the 31 edge
+inputs of its unit tests and a sweep of each scheme's edges, 1,326 rows in
+`tests/data/workers_compensation_site_cases.json` (regenerated on
+24 November 2026). The worksheet gives the same 6 figures on 849 rows and the
+same refusal on the other 477, including the 169 where a source does not
+settle the case (table below), which the page now refuses too. Of the page's
+own 25 cases, 18 agree and 7 are refused alike.
 
 | Rule | Source | Rows |
 | --- | --- | --- |
 | A South Australian base premium above $9,999.99 and below $10,000 (and at each other bound) is refused | ReturnToWorkSA's table and calculator differ | 24 refused |
 | A New South Wales apprentice incentive is refused | icare says it is 'discounted from premium after premium payable is calculated', not whether before or after GST | 61 refused |
-| A New South Wales average performance premium is compared with $30,000 unrounded | icare does not say APP is rounded before the test; the page rounds it first | 12 refused |
-| Queensland actual wages are refused | the 2026-27 notice sets no year-end adjustment for a policy commencing in 2026-27 | 48 refused |
+| A New South Wales average performance premium is compared with $30,000 unrounded | icare does not say APP is rounded before the test, and the page now tests it unrounded too | 12 refused |
+| Queensland actual wages are refused | WorkCover Queensland Notice (No. 1) of 2026 (read 24 November 2026) works the 2026-27 estimated premium (s 5) and the 2025-26 actual premium (s 6), so the 2026-27 adjustment is for a later notice | 48 refused |
 | A Victorian remuneration that rounds to $0 is refused | Premiums Order (No. 34) cl 11 divides by the remuneration | 24 refused |
-| N / 365 is rounded to 6 places before the deductible | Premiums Order (No. 34) cl 6(1) and (4); the page uses the exact fraction | none in the fixture; $150,000 at 7.123% for 1 day gives $3.03, not $3.02, in the tests |
+| N / 365 is rounded to 6 places before the deductible | Premiums Order (No. 34) cl 6(1) and (4), as the page now does | none in the fixture; $150,000 at 7.123% for 1 day gives $3.03, not $3.02, in the tests |
 | A Queensland premium that rounding the estimated premium and the apprentice discount first would move is refused | the notice does not say which is rounded | none in the fixture; in the tests |
 
 ## Motor vehicle duty
@@ -2913,23 +2913,17 @@ This worksheet was added on 24 November 2026. Each source was read that day:
 - Stamp Duty Act 1978 (NT), reprint REPS013 (in force at 1 July 2025), s 88A
   and Sch 1 cl 1(2); NT.GOV.AU's home owner assistance pages.
 
-The site's transfer duty calculator (ryanduguid.github.io, main at dcc7ecbe)
-was run through its own `transferDuty` and `firstHomeDuty` on its 21 cases,
-its Node tests' figures, the 44 worked figures in its Rust oracle, every band
-and first home threshold edge (each edge less 1, the edge and the edge plus 1,
-for the 3 buyers) and 240 seeded values: 925 rows in
-`tests/data/transfer_duty_site_cases.json`. The worksheet gives the same duty,
-general duty and concession on 850 rows and refuses the 1 row the page
-refuses (cents). The other 74, all Victorian, differ only where the Act
-differs from the page:
-
-| Rule | Act | Rows |
-| --- | --- | --- |
-| Victoria's duty is chargeable to the nearest whole dollar, 50 cents down; the page shows the percentage in cents, and s 57JA's share is then of the rounded duty | Duties Act 2000 (Vic) s 28(1) | 74 moved, each by under $1 |
-
-Of the page's own figures, its 21 cases and the oracle's 44 agree; 3 of its
-Node tests' figures move ($350.02 to $350 on $25,001, and the general duty
-beside the first home figures on $600,001 and $750,001).
+The site's transfer duty calculator (ryanduguid.github.io, main at e0cdd7f51
+(#768, merging #758)) was run through its own `transferDuty` and `firstHomeDuty` on its
+21 cases, its Node tests' figures, the 44 worked figures in its Rust oracle,
+every band and first home threshold edge (each edge less 1, the edge and the
+edge plus 1, for the 3 buyers) and 240 seeded values: 925 rows in
+`tests/data/transfer_duty_site_cases.json` (regenerated on 24 November 2026).
+The worksheet gives the same duty, general duty and concession on 924 rows and
+refuses the 1 row the page refuses (cents). The page now takes Victoria's duty
+to the nearest whole dollar, 50 cents down, as Duties Act 2000 (Vic) s 28(1)
+charges it and the worksheet does, so the 74 Victorian rows that differed
+agree.
 
 Other amounts are worked exactly and shown to the cent, half up; the Northern
 Territory's formula is the only scale with fractions of a cent. New South
@@ -6543,20 +6537,21 @@ This worksheet was added on 24 November 2026. Each source was read that day:
   14 October 2015) ss 8 and 10, s 10 last amended from 27 October 2004.
 
 The site's long service leave calculator (ryanduguid.github.io, main at
-dcc7ecbe) was run on its 39 page cases, its unit tests' inputs and a sweep of
+e0cdd7f51 (#768, merging #754)) was run on its 39 page cases, its unit tests' inputs and a sweep of
 every place, status, reason and threshold, 3,016 rows in
-`tests/data/long_service_leave_site_cases.json`. The worksheet gives the same
-service, weeks, balance and value on 2,485 rows and refuses the 69 the page
-refuses. It departs on 462:
+`tests/data/long_service_leave_site_cases.json` (regenerated on 24 November
+2026). The worksheet gives the same service, weeks, balance and value on 2,750
+rows, refuses the 81 the page refuses, and refuses the other 185 where the
+page does not; the table below records those 185 date refusals alongside the
+aligned rules:
 
 | Rule | Source | Rows |
 | --- | --- | --- |
-| Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | 241 differ in the fourth place of the weeks or in cents (3 page cases) |
+| Queensland uses 8.6667 weeks for 10 years, not 8 2/3 | Industrial Relations Act 2016 s 95(2)(a) and (7) | aligned on the page (part of 2,750 identical) |
 | A last day before 1 July 2020, after 30 June 2027 or before the earliest text read is refused | each Act's commencement and amendment history above | 185 refused (2 page cases) |
-| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with service from before 1 July 2012 are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 42 refused (6, 6 and 30; 2 page cases) |
+| A Queensland fixed term ending before 10 years, a South Australian departure without notice between 7 and 10 years, and Tasmanian leave taken with 15 years of service complete before 1 July 2012 (the old s 8(2)(a) gave leave only at 15 years) are refused | Industrial Relations Act 2016 (Qld) s 95(4)(d); Long Service Leave Act 1987 (SA) s 5(4); Long Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) | 6 Qld and 6 SA refused alike (part of 81 refused alike); Tas transition none in the fixture (tested in `tests/long_service_leave.rs`) |
 
-The Queensland row count falls to 235 (2 page cases) because 6 of its rows
-are now refused. WorkSafe ACT's guidance note 067A rounds 7 years to 6.0667
+WorkSafe ACT's guidance note 067A rounds 7 years to 6.0667
 weeks before multiplying, giving $3,397.35 at $560 a week; the Act's 1/5 of a
 month a year gives 91/15 weeks exactly, $3,397.33, which the worksheet uses.
 The part year as days over 365.25 (over 364 in Queensland, as Business
