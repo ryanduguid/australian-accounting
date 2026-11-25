@@ -227,10 +227,12 @@ fn vacant(args: &VicPropertyTaxesArgs, year: &str) -> Result<(Vec<Step>, Rates)>
 /// The earliest tax year after the transition period of 10 years starting on
 /// `entry`: Interpretation of Legislation Act 1984 (Vic) s 44(1) leaves the
 /// entry date out, so the period runs from the next day and ends on the
-/// tenth anniversary. Liability is fixed at midnight on the 31 December
-/// before each tax year (s 3, 'CIPT taxable land'), so the earliest year is
-/// the one after the year the period ends in. A period ending on 31 December
-/// ends at that midnight, which the Acts do not settle, so it is refused.
+/// tenth anniversary (the corresponding date via `dates::add_months`, so
+/// `2026-02-28` ends on `2036-02-28` and `2028-02-29` clamps to `2038-02-28`).
+/// Liability is fixed at midnight on the 31 December before each tax year
+/// (s 3, 'CIPT taxable land'), so the earliest year is the one after the year
+/// the period ends in. A period ending on 31 December ends at that midnight
+/// (s 44(6)(a)), which the Acts do not settle, so it is refused.
 fn commercial(args: &VicPropertyTaxesArgs) -> Result<(Vec<Step>, Rates)> {
     let why = "for commercial_industrial";
     let given = when(true, args.entry_date, "entry_date", why)?.expect("required above");
@@ -246,7 +248,7 @@ fn commercial(args: &VicPropertyTaxesArgs) -> Result<(Vec<Step>, Rates)> {
             "entry_date is before 1 July 2024, when the Commercial and Industrial Property Tax Reform Act 2024 (Vic) commenced (s 2); no land entered the scheme before then.",
         );
     }
-    let ends = dates::months_end(entry + 1, 120);
+    let ends = dates::add_months(entry, 120);
     let (end_year, end_month, end_day) = dates::to_civil(ends);
     if (end_month, end_day) == (12, 31) {
         return refuse(

@@ -119,6 +119,14 @@
   `tests/non_resident_withholding.rs` verifies every statutory rate, rounding
   boundary and refusal code.
 
+### Fixed
+
+- `vic-property-taxes` (`commercial_industrial`): ends the 10-year CIPT
+  transition period on the entry date's corresponding tenth anniversary under
+  Interpretation of Legislation Act 1984 (Vic) ss 44(1) and 44(6)(a), so an
+  entry on 28 February 2026 ends on 28 February 2036 (`29 February` clamps to
+  `28 February` in a non-leap year).
+
 ## 1.3.0
 
 ### Added
