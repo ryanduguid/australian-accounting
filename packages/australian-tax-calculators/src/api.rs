@@ -4127,7 +4127,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[11],
             scope_confirmed: &a[12],
         }),
-        "salary-packaging" => engine::exempt_employer_package(&engine::SalaryPackagingArgs {
+        "salary-packaging" => engine::packaged_benefits(&engine::SalaryPackagingArgs {
             residency: &a[0],
             employer: &a[1],
             salary: &a[2],

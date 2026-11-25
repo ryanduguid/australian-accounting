@@ -222,7 +222,7 @@ fn rates() -> Vec<(String, String)> {
     ]
 }
 
-pub fn exempt_employer_package(args: &SalaryPackagingArgs) -> Result<Value> {
+pub fn packaged_benefits(args: &SalaryPackagingArgs) -> Result<Value> {
     let p = package(args)?;
     precise(|| {
         let packaged = p.two.add(&p.one)?.add(&p.meals)?;

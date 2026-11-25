@@ -6537,7 +6537,7 @@ pub use salary_dividend::{SalaryDividendArgs, owner_pay_split};
 mod sole_trader_set_aside;
 pub use sole_trader_set_aside::{SoleTraderSetAsideArgs, sole_trader_set_aside};
 mod salary_packaging;
-pub use salary_packaging::{SalaryPackagingArgs, exempt_employer_package};
+pub use salary_packaging::{SalaryPackagingArgs, packaged_benefits};
 mod novated_lease;
 pub use novated_lease::{NovatedLeaseArgs, novated_lease};
 mod psi_test;
