@@ -434,3 +434,111 @@ fn broken_utf8() -> Vec<(&'static [u8], &'static str)> {
         ),
     ]
 }
+
+fn edge_context(root: PathBuf) -> Context {
+    Context {
+        root: Some(root),
+        limits: Default::default(),
+        denied: false,
+        principal_acts: None,
+        fault: None,
+    }
+}
+
+fn write_def_act(dir: &Path, id: &str, act: &str, text: &str) {
+    fs::create_dir_all(dir.join(id)).unwrap();
+    let row = json!({
+        "row_id": format!("{id}:0001:2"),
+        "register_id": id,
+        "act": act,
+        "section": "2",
+        "heading": "2 Definitions",
+        "text": text,
+        "version_is_current": true,
+    });
+    fs::write(dir.join(id).join("sections.jsonl"), format!("{row}\n")).unwrap();
+}
+
+#[test]
+fn define_term_nearest_terms_keep_full_partial_heads_before_limit_and_clear_on_exact() {
+    let tree = relation_tree("define-nearest");
+    let dir = tree.0.join("markdown");
+    write_def_act(
+        &dir,
+        "C9999A00001",
+        "Synthetic Beta Act 2099",
+        "small cap means 1.\n\nsmall cap limit means 2.",
+    );
+    write_def_act(
+        &dir,
+        "C9999A00002",
+        "Income Tax Assessment Act 1997",
+        "small cap threshold means 3.\n\nsmall cap means 4.",
+    );
+    let ctx = edge_context(tree.0.clone());
+    let partial = corpus::evaluate(
+        &ctx,
+        "define_tax_term",
+        &json!({"term":"cap","act":null,"limit":1,"in_force_only":true}),
+    )
+    .unwrap();
+    assert_eq!(partial["defined"], false);
+    assert_eq!(partial["definitions"].as_array().unwrap().len(), 1);
+    assert_eq!(partial["has_more"], true);
+    assert!(partial["defined_note"].is_string());
+    assert_eq!(
+        partial["nearest_terms"],
+        json!(["small cap threshold", "small cap", "small cap limit"])
+    );
+    let exact = corpus::evaluate(
+        &ctx,
+        "define_tax_term",
+        &json!({"term":"small cap","act":"income tax assessment","limit":1,"in_force_only":true}),
+    )
+    .unwrap();
+    assert_eq!(exact["defined"], true);
+    assert_eq!(exact["nearest_terms"], json!([]));
+    assert!(exact["defined_note"].is_null());
+}
+
+#[test]
+fn cited_by_preserves_unicode_offsets_paragraph_cutoff_and_truncation() {
+    let tree = relation_tree("cited-by-edges");
+    let dir = tree.0.join("markdown");
+    fs::create_dir_all(dir.join("C9999A00001")).unwrap();
+    let target = json!({"row_id":"C9999A00001:0001:5-10","register_id":"C9999A00001",
+        "act":"Synthetic Levy Act 2099","section":"5\u{2011}10","heading":"5-10 Rate",
+        "text":"Rate is 7%.", "version_is_current":true});
+    let long_tail = " word".repeat(160);
+    let body = format!(
+        "Intro \u{2011}\u{00a0}ignore.\n\nSee s\u{00a0}5\u{2011}10, s 5\u{2011}10, and sections 5-5, 5-10(2)(a) and 5-15{long_tail}.\n\nClosing."
+    );
+    let citing = json!({"row_id":"C9999A00001:0002:5-20","register_id":"C9999A00001",
+        "act":"Synthetic Levy Act 2099","section":"5-20","heading":"5-20 Use",
+        "text":body,"version_is_current":true});
+    fs::write(
+        dir.join("C9999A00001/sections.jsonl"),
+        format!("{target}\n{citing}\n"),
+    )
+    .unwrap();
+    let res = corpus::evaluate(
+        &edge_context(tree.0.clone()),
+        "find_citing_provisions",
+        &json!({"row_id":"C9999A00001:0001:5-10","limit":20,"in_force_only":true}),
+    )
+    .unwrap();
+    let entry = &res["cited_by"][0];
+    assert_eq!(
+        entry["citations"],
+        json!(["s 5\u{2011}10", "sections 5-5, 5-10(2)(a) and 5-15"])
+    );
+    assert!(!entry["text"].as_str().unwrap().contains("Intro"));
+    assert!(!entry["text"].as_str().unwrap().contains("Closing"));
+    assert!(entry["total_chars"].as_u64().unwrap() > 600);
+    assert!(
+        entry["caveats"][0]
+            .as_str()
+            .unwrap()
+            .contains("truncated at 600")
+    );
+}
