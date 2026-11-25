@@ -22,10 +22,7 @@ use serde_json::{Map, Value, json};
 
 use inputs::*;
 
-use super::{
-    Arg, Result, Step, d, derived_result, flag, money, precise, rate, refuse, scope, signed_money,
-    step,
-};
+use super::{Arg, Result, Step, d, derived_result, flag, precise, rate, refuse, scope, step};
 use crate::decimal::{Calc, Decimal, Rounding};
 
 const KIND: &str = "thin_capitalisation";

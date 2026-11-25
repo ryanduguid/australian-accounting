@@ -2981,7 +2981,7 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          depreciation-low-value-pool, depreciation-small-business-pool, capital-works, instant-asset-write-off, deferred-tax, leave-provisions, \
-         horticulture-shearing-withholding, upward-variation-withholding, \
+         thin-capitalisation, debt-forgiveness, horticulture-shearing-withholding, upward-variation-withholding, \
          daily-casual-withholding, no-abn-withholding, \
          entertainer-withholding, return-to-work-withholding, \
          annuity-withholding, voluntary-agreement-withholding, \
