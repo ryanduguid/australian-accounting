@@ -1432,6 +1432,17 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // AASB 136 paras 6, 18 to 20, 30 to 33, 39, 50 to 57, 59 to 62, 104 and
         // 105 were not amended after 2015 (the compilation's tables of
         // amendments, read on 24 November 2026).
+        // AASB 10 paras 19 to 24 and B86 to B96 were not amended after July
+        // 2015 (the ACOMPnov24_01-26 compilation's table of amendments, read on
+        // 26 November 2026).
+        "consolidation_eliminations" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // ITAA 1997 Division 230 as compiled on 1 October 2026, read on 26
+        // November 2026: the year the taxpayer starts to have the arrangement.
+        "tofa_accruals" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "impairment_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2122,6 +2133,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "wip_lockup" => (
             "2026-11-24",
             "Ozzit function reference v3.7.0 (oz.WIPDaysλ, oz.ReceivableDaysλ and oz.CashConversionCycleλ, with their examples), on duguid.com.au; the site's tools/wip-schedule page (construction WIP, no lock-up)",
+        ),
+        "consolidation_eliminations" => (
+            "2026-11-26",
+            "AASB 10 compilation ACOMPnov24_01-26 with its tables of standards and amendments, paras 19 to 24, B86 to B88, B92 and B94 to B96; AASB 3 compilation no. 5 (F2023C00389), paras 18, 19, 32, 34 to 36 and 42",
+        ),
+        "tofa_accruals" => (
+            "2026-11-26",
+            "ITAA 1997 compilation no. 268 (1 October 2026), volume 5, and the ATO legal database, ss 230-15, 230-40, 230-45, 230-100 to 230-140, 230-150, 230-170, 230-445, 230-450 and 230-455; the ATO's Guide to the taxation of financial arrangements, Default methods (zero coupon bond and impairment on a loan examples)",
         ),
         "impairment_test" => (
             "2026-11-24",
@@ -3181,6 +3200,20 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "days",
                 "whole number from 1 to 3,660: the days fee_revenue and billings cover, 365 for a year, 90 for a rolling quarter; default 365",
+            ),
+        ],
+        "tofa_accruals" => vec![
+            (
+                "aggregated_turnover",
+                "AUD from 0, other than for an individual (required then): the aggregated turnover s 230-455(3) and (4) test, for the year the arrangement starts if the entity came into existence in it, otherwise for the year before, each worked out at that year's end",
+            ),
+            (
+                "assets",
+                "AUD from 0, other than for an individual (required then): the value of the entity's assets s 230-455(2) and (4) test, for the same year, valued under s 230-455(5)",
+            ),
+            (
+                "financial_assets",
+                "AUD from 0, other than for an individual (required then): the value of the entity's financial assets s 230-455(4) tests, for the same year, valued under s 230-455(5)",
             ),
         ],
         "impairment_test" => vec![
@@ -6814,6 +6847,33 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("receivables", "AUD from 0: trade receivables, the closing balance or the average of opening and closing"),
             ("billings", "AUD above 0: credit sales billed over the days, on the receivables' GST basis (oz.ReceivableDaysλ's Sales)"),
         ],
+        "consolidation_eliminations" => vec![
+            ("parent", "object {name, lines}: the parent's trial balance, lines a list of 1 to 500 objects {account, class, amount}, class asset, liability, equity, income or expense, amount AUD on the class's natural side (negative for a contra balance), at most 2 dp; the lines must balance"),
+            ("subsidiaries", "list of 1 to 20 objects {name, lines, ownership, investment_account, consideration, nci_at_acquisition, equity_at_acquisition}: each directly held subsidiary's trial balance; ownership the parent's interest, a fraction above 0 and at most 1; investment_account the parent's asset line carrying it; consideration and nci_at_acquisition in AUD (AASB 3 paras 19 and 32); equity_at_acquisition a list of {account, amount} naming its equity lines at acquisition"),
+            ("intra_group_balances", "list of up to 500 objects {receivable, payable, amount}: receivable and payable each {entity, account}, an asset line of one entity and a liability line of another, amount AUD above 0 (AASB 10 para B86(c))"),
+            ("intra_group_transactions", "list of up to 500 objects {income, expense, amount}: an income line of one entity and an expense line of another, each {entity, account}, amount AUD above 0 (para B86(c))"),
+            ("unrealised_profits", "list of up to 500 objects {seller, buyer, inventory_account, cost_of_sales_account, profit, income_tax_account, deferred_tax_account}: profit AUD above 0 in the buyer's closing inventory line, eliminated against the seller's cost of sales; the tax effect posts to the seller's income tax expense line and a deferred tax asset line (para B86(c); AASB 112)"),
+            ("tax_rate", "decimal fraction from 0 to below 1, at most 6 places: the stated rate for the deferred tax on eliminated unrealised profit, 0 where none is recognised"),
+            ("acquired_in_period", "boolean: a subsidiary was acquired during the period (AASB 10 para B88); true is refused"),
+            ("fair_value_adjustments", "boolean: a subsidiary's identifiable net assets at acquisition had fair values other than their carrying amounts (AASB 3 para 18); true is refused"),
+            ("previously_held_interest", "boolean: a combination was achieved in stages (AASB 3 para 42); true is refused"),
+            ("ownership_changed", "boolean: the parent's interest in a subsidiary changed without loss of control (AASB 10 para 23); true is refused"),
+            ("intra_group_dividends", "boolean: an entity declared or paid a dividend to another in the group; true is refused"),
+        ],
+        "tofa_accruals" => vec![
+            ("start", "YYYY-MM-DD: the day the taxpayer starts to have the arrangement, in the year (s 230-130(1)(a))"),
+            ("end", "YYYY-MM-DD: the day it will cease to have it, the last day of a whole number of intervals from start, at most 360 (s 230-130(1)(b))"),
+            ("interval_months", "whole number from 1 to 12: each interval's length (s 230-135(4))"),
+            ("financial_benefits", "list of 2 to 361 objects {date, amount}: each sufficiently certain financial benefit (s 230-115), dated start or an interval's last day, amount AUD received positive and provided negative, at most 2 dp"),
+            ("method", "compounding (s 230-135(2)(a)) or straight_line (s 230-135(2)(b)); effective_interest is refused"),
+            ("approximation_confirmed", "boolean: the operator has established that a straight line's results approximate compounding accruals over this period (s 230-135(2)(b)); needed for straight_line"),
+            ("accruals_chosen", "boolean: the taxpayer chooses the accruals method for the overall gain or loss (s 230-100(2)(c))"),
+            ("entity_type", "individual, super_or_scheme, adi_or_securitisation or other: s 230-455(1)(a)(i) to (iv)"),
+            ("qualifying_security", "boolean: the arrangement is a qualifying security (s 230-455(1)(e)(ii), s 230-100(4)(b))"),
+            ("threshold_failed_earlier", "boolean: the entity, not an individual, failed its s 230-455 subsection for an earlier income year (s 230-455(9))"),
+            ("division_230_election", "boolean: a s 230-455(7) election applies to the arrangement (s 230-455(6))"),
+            ("elections", "list of the elective methods applying to the arrangement: fair_value, foreign_exchange_retranslation, hedging, financial_reports or portfolio_fees; any is refused; [] for none"),
+        ],
         "impairment_test" => vec![
             ("cash_flows", "list of 1 to 50 decimal strings, AUD that may be negative: the stated pre-tax net cash flows of years 1 to n from continuing use, each at the end of its year (AASB 136 paras 33, 39(a) and (b), 50 and 51), excluding financing and tax"),
             ("discount_rate", "decimal fraction above 0 and at most 1 (100%), at most 6 places, limits of this worksheet rather than AASB 136: the stated pre-tax rate (paras 55, 56 and A20)"),
@@ -8558,6 +8618,70 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // AASB 136 Illustrative Example 2's Country A unit at the start of 20X2,
         // dated in 2025-26.
+        // Fabricated: an 80% subsidiary selling inventory to its parent.
+        "consolidation_eliminations" => vec![
+            ("year", Text("2025-26")),
+            (
+                "parent",
+                Json(
+                    r#"{"name": "P Ltd", "lines": [{"account": "Cash", "class": "asset", "amount": "46000.00"}, {"account": "Investment in S Ltd", "class": "asset", "amount": "80000.00"}, {"account": "Receivable from S Ltd", "class": "asset", "amount": "10000.00"}, {"account": "Inventory", "class": "asset", "amount": "30000.00"}, {"account": "Share capital", "class": "equity", "amount": "100000.00"}, {"account": "Retained earnings", "class": "equity", "amount": "50000.00"}, {"account": "Sales", "class": "income", "amount": "160000.00"}, {"account": "Cost of sales", "class": "expense", "amount": "120000.00"}, {"account": "Income tax expense", "class": "expense", "amount": "24000.00"}]}"#,
+                ),
+            ),
+            (
+                "subsidiaries",
+                Json(
+                    r#"[{"name": "S Ltd", "ownership": "0.8", "investment_account": "Investment in S Ltd", "consideration": "80000.00", "nci_at_acquisition": "20000.00", "equity_at_acquisition": [{"account": "Share capital", "amount": "60000.00"}, {"account": "Retained earnings", "amount": "20000.00"}], "lines": [{"account": "Cash", "class": "asset", "amount": "33000.00"}, {"account": "Inventory", "class": "asset", "amount": "15000.00"}, {"account": "Plant", "class": "asset", "amount": "80000.00"}, {"account": "Payable to P Ltd", "class": "liability", "amount": "10000.00"}, {"account": "Share capital", "class": "equity", "amount": "60000.00"}, {"account": "Retained earnings", "class": "equity", "amount": "30000.00"}, {"account": "Sales", "class": "income", "amount": "100000.00"}, {"account": "Cost of sales", "class": "expense", "amount": "60000.00"}, {"account": "Income tax expense", "class": "expense", "amount": "12000.00"}]}]"#,
+                ),
+            ),
+            (
+                "intra_group_balances",
+                Json(
+                    r#"[{"receivable": {"entity": "P Ltd", "account": "Receivable from S Ltd"}, "payable": {"entity": "S Ltd", "account": "Payable to P Ltd"}, "amount": "10000.00"}]"#,
+                ),
+            ),
+            (
+                "intra_group_transactions",
+                Json(
+                    r#"[{"income": {"entity": "S Ltd", "account": "Sales"}, "expense": {"entity": "P Ltd", "account": "Cost of sales"}, "amount": "40000.00"}]"#,
+                ),
+            ),
+            (
+                "unrealised_profits",
+                Json(
+                    r#"[{"seller": "S Ltd", "buyer": "P Ltd", "inventory_account": "Inventory", "cost_of_sales_account": "Cost of sales", "profit": "5000.00", "income_tax_account": "Income tax expense", "deferred_tax_account": "Deferred tax asset"}]"#,
+                ),
+            ),
+            ("tax_rate", Text("0.3")),
+            ("acquired_in_period", Flag(false)),
+            ("fair_value_adjustments", Flag(false)),
+            ("previously_held_interest", Flag(false)),
+            ("ownership_changed", Flag(false)),
+            ("intra_group_dividends", Flag(false)),
+        ],
+        // The ATO guide's loan example (Chris Co), moved to 2021-22.
+        "tofa_accruals" => vec![
+            ("year", Text("2021-22")),
+            ("start", Text("2021-07-01")),
+            ("end", Text("2025-06-30")),
+            ("interval_months", Whole(12)),
+            (
+                "financial_benefits",
+                Json(
+                    r#"[{"date": "2021-07-01", "amount": "-10000.00"}, {"date": "2025-06-30", "amount": "20736.00"}]"#,
+                ),
+            ),
+            ("method", Text("compounding")),
+            ("approximation_confirmed", Flag(false)),
+            ("accruals_chosen", Flag(true)),
+            ("entity_type", Text("other")),
+            ("aggregated_turnover", Text("150000000")),
+            ("assets", Text("400000000")),
+            ("financial_assets", Text("120000000")),
+            ("qualifying_security", Flag(true)),
+            ("threshold_failed_earlier", Flag(false)),
+            ("division_230_election", Flag(false)),
+            ("elections", Json("[]")),
+        ],
         "impairment_test" => vec![
             ("year", Text("2025-26")),
             (

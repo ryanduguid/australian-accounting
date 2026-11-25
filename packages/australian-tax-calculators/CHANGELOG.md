@@ -1,5 +1,23 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `consolidation-eliminations` combines a parent's and its directly held
+  subsidiaries' stated trial balances and makes the AASB 10 elimination
+  journals: the investment against equity at acquisition with goodwill and the
+  non-controlling interest (para B86(b); AASB 3 paras 19 and 32), the
+  non-controlling share since acquisition (paras 22 and B94), intra-group
+  balances and income and expenses, and unrealised profit in inventory with
+  its stated tax effect (para B86(c)), attributing profit to owners and the
+  non-controlling interests. New codes: `consolidation_eliminations.*`.
+- `tofa-accruals` says whether ITAA 1997 Division 230 reaches an arrangement
+  under s 230-455 on stated facts, and spreads a sufficiently certain overall
+  gain or loss by compounding accruals or, where stated to approximate them,
+  by straight line (s 230-135), allocated to income years (s 230-170). The
+  elective methods are refused. New codes: `tofa_accruals.*`.
+
 ## 1.4.0
 
 ### Added

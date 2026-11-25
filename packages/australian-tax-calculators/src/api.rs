@@ -1587,6 +1587,43 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "consolidation-eliminations",
+        &[
+            ("parent", Json),
+            ("subsidiaries", Json),
+            ("intra_group_balances", Json),
+            ("intra_group_transactions", Json),
+            ("unrealised_profits", Json),
+            ("tax_rate", Dec),
+            ("acquired_in_period", Raw),
+            ("fair_value_adjustments", Raw),
+            ("previously_held_interest", Raw),
+            ("ownership_changed", Raw),
+            ("intra_group_dividends", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "tofa-accruals",
+        &[
+            ("start", Raw),
+            ("end", Raw),
+            ("interval_months", Raw),
+            ("financial_benefits", Json),
+            ("method", Raw),
+            ("approximation_confirmed", Raw),
+            ("accruals_chosen", Raw),
+            ("entity_type", Raw),
+            ("qualifying_security", Raw),
+            ("threshold_failed_earlier", Raw),
+            ("division_230_election", Raw),
+            ("elections", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "leave-provisions",
         &[
             ("lines", Json),
@@ -2374,6 +2411,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "deferred-revenue"
             | "wip-lockup"
             | "impairment-test"
+            | "consolidation-eliminations"
+            | "tofa-accruals"
             | "long-service-leave"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
@@ -4399,6 +4438,48 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 non_controlling_interest: &a[4],
                 year: &a[5],
                 scope_confirmed: &a[6],
+            })
+        }
+        "consolidation-eliminations" => {
+            engine::consolidation_eliminations(&engine::ConsolidationEliminationsArgs {
+                parent: &a[0],
+                subsidiaries: &a[1],
+                intra_group_balances: &a[2],
+                intra_group_transactions: &a[3],
+                unrealised_profits: &a[4],
+                tax_rate: &a[5],
+                acquired_in_period: &a[6],
+                fair_value_adjustments: &a[7],
+                previously_held_interest: &a[8],
+                ownership_changed: &a[9],
+                intra_group_dividends: &a[10],
+                year: &a[11],
+                scope_confirmed: &a[12],
+            })
+        }
+        "tofa-accruals" => {
+            // Optional: the s 230-455 figures, which an individual omits.
+            let turnover = optional(v, "aggregated_turnover", Dec)?;
+            let assets = optional(v, "assets", Dec)?;
+            let financial = optional(v, "financial_assets", Dec)?;
+            engine::tofa_accruals(&engine::TofaAccrualsArgs {
+                start: &a[0],
+                end: &a[1],
+                interval_months: &a[2],
+                financial_benefits: &a[3],
+                method: &a[4],
+                approximation_confirmed: &a[5],
+                accruals_chosen: &a[6],
+                entity_type: &a[7],
+                aggregated_turnover: turnover.as_ref(),
+                assets: assets.as_ref(),
+                financial_assets: financial.as_ref(),
+                qualifying_security: &a[8],
+                threshold_failed_earlier: &a[9],
+                division_230_election: &a[10],
+                elections: &a[11],
+                year: &a[12],
+                scope_confirmed: &a[13],
             })
         }
         "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {
