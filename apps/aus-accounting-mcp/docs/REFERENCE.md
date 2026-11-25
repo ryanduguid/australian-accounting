@@ -858,9 +858,12 @@ Assessment Act 1997", counts in any title when that name is the cited title's. E
 entry carries the citing provision's citation fields, the paragraph holding its first
 citation (at most 600 characters) and `citations`, each citation as written. Principal
 Acts come first, then corpus order; `limit` defaults to 20, at most 50, with
-`has_more`. A reference through a Division, Subdivision or Part, a range such as
-"sections 5-5 to 5-15", or an abbreviated or defined short title is not found, so an
-empty list is not proof that nothing cites the section. Superseded provisions are
+`has_more`. A range such as "sections 5-5 to 5-15" counts for every section numbered
+between its ends, `5-12A` included, when the ends share everything before their last
+hyphen or full stop, as within one Division; any other range, such as "sections 5-15
+to 6-10", counts only for its 2 ends. A reference through a Division, Subdivision or
+Part, or an abbreviated or defined short title is not found, so an empty list is not
+proof that nothing cites the section. Superseded provisions are
 left out unless `in_force_only` is false.
 
 ### Dates

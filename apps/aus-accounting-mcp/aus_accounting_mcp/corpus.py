@@ -165,15 +165,19 @@ SECTION_LABEL = r"\d+(?:[A-Za-z][0-9A-Za-z]*)?(?:[-.]\d+(?:[A-Za-z][0-9A-Za-z]*)
 LABEL_ONLY = re.compile(SECTION_LABEL)
 CITED_LABEL = SECTION_LABEL + r"(?:\([0-9A-Za-z]{1,6}\))*"
 SUBSECTIONS = re.compile(r"\([^()]*\)")
-# "section 5-10", "subsections 8-1(1) and (2)", "ss 26-55 or 26-60", optionally
-# followed by the title they belong to: "of this Act", "of the Income Tax Assessment
-# Act 1997" or "in Schedule 1 to the Taxation Administration Act 1953".
+# "section 5-10", "subsections 8-1(1) and (2)", "ss 26-55 or 26-60", "sections 5-5 to
+# 5-15", optionally followed by the title they belong to: "of this Act", "of the Income
+# Tax Assessment Act 1997" or "in Schedule 1 to the Taxation Administration Act 1953".
 CITATION = re.compile(
     rf"\b(?i:(?:sub)?(?:sections?|ss?\.?))\s+(?P<labels>{CITED_LABEL}"
-    rf"(?:(?:\s*,\s*|\s+(?:and|or)\s+){CITED_LABEL})*)(?![0-9A-Za-z])"
+    rf"(?:(?:\s*,\s*|\s+(?:and|or|to)\s+){CITED_LABEL})*)(?![0-9A-Za-z])"
     r"(?:,?\s+(?:of|in)\s+(?:(?:Schedule|Part)\s+\w+\s+(?:to|of)\s+)?"
     r"(?:(?P<this>this\s+Act\b)|(?:the\s+)?(?P<act>\*?[A-Z][^.;:\n]{0,150}?\bAct\s+\d{4})))?"
 )
+# "5-5 to 5-15" within a citation's labels, its subsections already removed.
+CITED_RANGE = re.compile(rf"({SECTION_LABEL})\s+to\s+({SECTION_LABEL})")
+# A label's part before its last hyphen or full stop, then its last number and suffix.
+LABEL_PARTS = re.compile(r"(.*[-.])?0*(\d*)(.*)")
 # A title the pattern cannot name ("of the Act" as a defined short title, "of
 # Schedule 1"): such a citation is not read as one of the citing title's own sections.
 OTHER_TITLE = re.compile(
@@ -186,12 +190,14 @@ CITING_TEXT_CHARS = 600
 CITED_BY_NOTICE = (
     "A provision is listed when its text names the section by number after section, "
     "subsection, s or ss, either within the cited title with no other title named, or "
-    "followed by the cited title's full name. A reference through a Division, "
-    "Subdivision or Part, a range such as sections 5-5 to 5-15, or an abbreviated or "
-    "defined short title is not found, and a bare section number in another title is "
-    "read as that title's own section, so an empty list is not proof that nothing cites "
-    "the section. Each entry's text is the paragraph holding its first citation; confirm "
-    "every citation in the provision before relying on it."
+    "followed by the cited title's full name. A range such as sections 5-5 to 5-15 "
+    "lists every section numbered between its ends when the ends share everything "
+    "before their last hyphen or full stop, as within one Division; any other range "
+    "lists only its 2 ends. A reference through a Division, Subdivision or Part, or an "
+    "abbreviated or defined short title is not found, and a bare section number in "
+    "another title is read as that title's own section, so an empty list is not proof "
+    "that nothing cites the section. Each entry's text is the paragraph holding its first "
+    "citation; confirm every citation in the provision before relying on it."
 )
 # Judges one row of the index at a path: its sort key, lower first, and its result, or
 # None to leave it out.
@@ -1367,6 +1373,22 @@ def _act_name(text: str) -> str:
     return _plain(text).removeprefix("the ")
 
 
+def _label_key(label: str) -> tuple[str, int, str, str]:
+    """A label's prefix, then its last number's length, digits and suffix, for ordering."""
+    prefix, digits, suffix = LABEL_PARTS.findall(label.casefold())[0]
+    return prefix, len(digits), digits, suffix
+
+def _cites(labels: str, label: str) -> bool:
+    """Whether a citation's labels name label, alone or within a range of one Division."""
+    labels = SUBSECTIONS.sub(" ", labels)
+    if label in LABEL_ONLY.findall(labels):
+        return True
+    key = _label_key(label)
+    for start, end in (map(_label_key, pair) for pair in CITED_RANGE.findall(labels)):
+        if start[0] == end[0] == key[0] and start <= key <= end:
+            return True
+    return False
+
 def _cited_labels(text: str, label: str, act: str, internal: bool) -> Iterator[re.Match[str]]:
     """Each citation in text of section label (or one of its subsections).
 
@@ -1376,8 +1398,7 @@ def _cited_labels(text: str, label: str, act: str, internal: bool) -> Iterator[r
     """
     plain = text.translate(CITE_PLAIN)
     for found in CITATION.finditer(plain):
-        items = LABEL_ONLY.findall(SUBSECTIONS.sub(" ", found.group("labels")))
-        if label not in items:
+        if not _cites(found.group("labels"), label):
             continue
         named = found.group("act")
         if named is None:

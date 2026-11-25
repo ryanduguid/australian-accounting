@@ -542,3 +542,54 @@ fn cited_by_preserves_unicode_offsets_paragraph_cutoff_and_truncation() {
             .contains("truncated at 600")
     );
 }
+
+/// The case table `tests/test_citing_provisions.py` also reads: ranges, lists and single
+/// sections give the same citing provisions in both servers.
+#[test]
+fn cited_by_follows_the_shared_range_case_table() {
+    let table: Value =
+        serde_json::from_str(include_str!("../../../tests/fixtures/cited-ranges.json")).unwrap();
+    let (register_id, act) = (table["register_id"].as_str().unwrap(), &table["act"]);
+    for case in table["cases"].as_array().unwrap() {
+        let tree = relation_tree("cited-ranges");
+        let dir = tree.0.join("markdown").join(register_id);
+        fs::create_dir_all(&dir).unwrap();
+        let mut texts: Vec<(String, Value)> = table["sections"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|label| (label.as_str().unwrap().to_owned(), json!("Rate.")))
+            .collect();
+        for (label, text) in case["citing"].as_object().unwrap() {
+            texts.push((label.clone(), text.clone()));
+        }
+        let row_id = |n: usize, label: &str| format!("{register_id}:{n:04}:{label}");
+        let rows: String = texts
+            .iter()
+            .enumerate()
+            .map(|(i, (label, text))| {
+                let row = json!({"row_id": row_id(i + 1, label), "register_id": register_id,
+                    "act": act, "section": label, "heading": format!("{label} Rule"),
+                    "text": text, "version_is_current": true});
+                format!("{row}\n")
+            })
+            .collect();
+        fs::write(dir.join("sections.jsonl"), rows).unwrap();
+        for (cited, expected) in case["cited_by"].as_object().unwrap() {
+            let n = texts.iter().position(|(label, _)| label == cited).unwrap() + 1;
+            let res = corpus::evaluate(
+                &edge_context(tree.0.clone()),
+                "find_citing_provisions",
+                &json!({"row_id": row_id(n, cited), "limit": 20, "in_force_only": true}),
+            )
+            .unwrap();
+            let found: Vec<_> = res["cited_by"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|entry| entry["section"].clone())
+                .collect();
+            assert_eq!(json!(found), *expected, "{} {cited}", case["name"]);
+        }
+    }
+}
