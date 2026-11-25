@@ -92,7 +92,7 @@ fn the_example_shares_earnings_by_days_held() {
     assert_eq!(r["amounts"]["earnings_tax"], "4500.00");
     assert_eq!(r["amounts"]["closing_balances"], "859000.00");
     let p = &r["accounts"][1]["pension"];
-    assert_eq!(p["minimum_payment"], "25000");
+    assert_eq!(p["minimum_payment"], "25000.00");
     assert_eq!(p["minimum_met"], true);
     assert_eq!(p["shortfall"], "0.00");
     assert!(p.get("maximum_payment").is_none());
@@ -134,11 +134,11 @@ fn a_missed_standard_taxes_the_pension() {
     assert_eq!(field(&r, 0, "earnings_tax"), "1917.30");
     assert_eq!(field(&r, 1, "earnings_tax"), "1082.70");
     let c = &r["accounts"][0]["pension"];
-    assert_eq!(c["minimum_payment"], "8000");
+    assert_eq!(c["minimum_payment"], "8000.00");
     assert_eq!(c["maximum_payment"], "20000.00");
     assert_eq!(c["maximum_exceeded"], true);
     let d = &r["accounts"][1]["pension"];
-    assert_eq!(d["minimum_payment"], "7000");
+    assert_eq!(d["minimum_payment"], "7000.00");
     assert_eq!(d["shortfall"], "500.00");
     assert_eq!(d["one_twelfth_of_minimum"], "583.33");
     assert_eq!(d["minimum_met"], false);
@@ -205,7 +205,13 @@ fn withdrawals_and_roll_overs() {
 
 fn with(path: &str, v: Value) -> Value {
     let mut i = example();
-    *i.pointer_mut(path).unwrap() = v;
+    let (parent, key) = path.rsplit_once('/').unwrap();
+    match i.pointer_mut(parent).unwrap() {
+        Value::Object(o) => {
+            o.insert(key.to_string(), v);
+        }
+        list => list[key.parse::<usize>().unwrap()] = v,
+    }
     i
 }
 

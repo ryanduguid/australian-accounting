@@ -343,15 +343,18 @@ fn pension_check(a: &Account, days_in_year: i64) -> Result<(Value, bool)> {
     let minimum = value_of("minimum_payment").expect("the minimum");
     let maximum = value_of("maximum_payment");
     let paid = sum_of(a, "pension_payment")?;
-    let (shortfall, twelfth) = precise(|| {
+    let (shortfall, twelfth, minimum, maximum) = precise(|| {
         let short = if paid.lt(&minimum)? {
             minimum.sub(&paid)?
         } else {
             d("0.00")
         };
+        let cents = |v: &Decimal| v.quantize(-2, Rounding::HalfUp);
         Ok((
             short,
-            minimum.div(&int(12))?.quantize(-2, Rounding::HalfUp)?,
+            cents(&minimum.div(&int(12))?)?,
+            cents(&minimum)?,
+            maximum.as_ref().map(cents).transpose()?,
         ))
     })?;
     let met = shortfall.is_zero();

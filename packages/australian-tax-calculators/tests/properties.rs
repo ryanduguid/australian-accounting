@@ -8,8 +8,8 @@
 use australian_tax_calculators::api;
 use australian_tax_calculators::decimal::{Decimal, Rounding, with_precision};
 use australian_tax_calculators::metadata::{
-    PAYG_WITHHOLDING_COEFFICIENTS, RESIDENT_TAX_SCALES, STUDY_LOAN_WITHHOLDING_FROM,
-    supported_periods,
+    PAYG_WITHHOLDING_COEFFICIENTS, PRIOR_RESIDENT_TAX_SCALES, RESIDENT_TAX_SCALES,
+    STUDY_LOAN_WITHHOLDING_FROM, supported_periods,
 };
 use serde_json::{Value, json};
 
@@ -196,8 +196,10 @@ fn tax(income: i64, year: &str) -> Decimal {
 
 fn check_resident_tax(year: &str, low: i64, high: i64) {
     let (low, high) = sorted(low, high);
+    // As resident_tax looks a year up: the current table, then the earlier ones.
     let scale = RESIDENT_TAX_SCALES
         .iter()
+        .chain(PRIOR_RESIDENT_TAX_SCALES)
         .find(|(y, _)| *y == year)
         .unwrap()
         .1;
