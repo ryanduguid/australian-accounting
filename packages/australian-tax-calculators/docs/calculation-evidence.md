@@ -5917,6 +5917,14 @@ Choices the law leaves to the reader:
   guess.
 - An exception is a stated fact; the worksheet shows the shortfall and
   one-twelfth of the minimum but never decides it.
+- `transition_to_retirement` states that the recipient is not a reversionary
+  beneficiary and has met no condition of release in s 307-80(2)(c) all year.
+  Attaining 65 is one, so a recipient 64 or older on 1 July is refused rather
+  than taxed: at 65 or older the pension is in the retirement phase (state it
+  as `account_based_pension`), and at 64 it almost always gets there within
+  the year.
+- A closing balance below nil after the account's share of losses and tax is
+  refused, as a balance below nil before them is.
 
 `tests/smsf_member_allocation.rs` holds these cases, worked independently with
 exact fractions:

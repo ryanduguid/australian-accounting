@@ -6211,7 +6211,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "smsf_member_allocation.balance_negative",
-        "Withdrawals take an account's balance below nil before earnings and tax.",
+        "Withdrawals, or the account's share of losses and tax, take its balance below nil.",
     ),
     (
         "smsf_member_allocation.method_unsupported",
@@ -6240,6 +6240,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "smsf_member_allocation.transaction_not_allowed",
         "A contribution or roll-over into a pension, or a pension payment from an accumulation account, was given.",
+    ),
+    (
+        "smsf_member_allocation.transition_reaches_65",
+        "A transition to retirement pension's recipient is 64 or older on 1 July, so it enters the retirement phase by the end of the year.",
     ),
     (
         "smsf_tax.disregarded_small_fund_assets",

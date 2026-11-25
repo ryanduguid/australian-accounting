@@ -4562,8 +4562,11 @@ A missed standard is reported with the ATO's consequences, and one-twelfth of
 the minimum is shown for the Commissioner's exception.
 
 It refuses a pension that starts, is exhausted or is fully commuted in the
-year, contributions or roll-overs into a pension, a pension payment from an
-accumulation account, a balance below nil, earnings or tax with no balance to
+year, a transition to retirement pension whose recipient is 64 or older on
+1 July (attaining 65 puts it in the retirement phase, ITAA 1997
+s 307-80(3)(b)), contributions or roll-overs into a pension, a pension payment
+from an accumulation account, a balance below nil before or after its share of
+earnings and tax, earnings or tax with no balance to
 bear them, an earnings tax refund whilst a retirement phase pension is held
 and any other method. See
 [calculation evidence](docs/calculation-evidence.md#smsf-member-allocation).

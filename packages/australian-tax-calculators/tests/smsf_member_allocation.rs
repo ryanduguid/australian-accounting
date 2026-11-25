@@ -363,3 +363,37 @@ fn tax_and_earnings_with_nowhere_to_go() {
     i["income_tax"] = json!("0");
     assert_eq!(field(&run(&i), 0, "earnings"), "60000.00");
 }
+
+#[test]
+fn a_transition_to_retirement_pension_reaching_65_is_refused() {
+    // ITAA 1997 s 307-80(3)(b): attaining 65 ends a transition to retirement
+    // pension's non-retirement phase status, at 64 on 1 July within the year.
+    for age in [64, 65, 80] {
+        let mut i = shortfalls(None);
+        i["accounts"][0]["age"] = json!(age);
+        assert_eq!(
+            code(&i),
+            "smsf_member_allocation.transition_reaches_65",
+            "{age}"
+        );
+    }
+    let mut i = shortfalls(None);
+    i["accounts"][0]["age"] = json!(63);
+    assert_eq!(field(&run(&i), 0, "earnings_taxed"), true);
+}
+
+#[test]
+fn losses_and_tax_below_nil_are_refused() {
+    let acc = json!([{"label": "x", "kind": "accumulation", "opening_balance": "100.00"}]);
+    assert_eq!(
+        code(&input(acc.clone(), "-200.00", "0")),
+        "smsf_member_allocation.balance_negative"
+    );
+    assert_eq!(
+        code(&input(acc.clone(), "0", "100.01")),
+        "smsf_member_allocation.balance_negative"
+    );
+    let r = run(&input(acc, "-100.00", "0"));
+    assert_eq!(field(&r, 0, "closing_balance"), "0.00");
+    assert_eq!(r["amounts"]["closing_balances"], "0.00");
+}

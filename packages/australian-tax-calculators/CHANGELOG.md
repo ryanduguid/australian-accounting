@@ -11,8 +11,8 @@
   retirement pension's maximum) as `pension-minimum` works it. New codes:
   `smsf_member_allocation.account_invalid`, `balance_negative`,
   `method_unsupported`, `no_balance`, `pension_not_whole_year`,
-  `refund_with_retirement_phase`, `tax_unallocable`, `transaction_invalid`
-  and `transaction_not_allowed`.
+  `refund_with_retirement_phase`, `tax_unallocable`, `transaction_invalid`,
+  `transaction_not_allowed` and `transition_reaches_65`.
 
 ### Changed
 

@@ -82,13 +82,19 @@ fn year_days(year: &str) -> (i64, i64) {
     (day(first, "07-01"), day(first + 1, "06-30"))
 }
 
+const KIND_NAMES: [(Kind, &str); 3] = [
+    (Kind::Accumulation, "accumulation"),
+    (Kind::Pension, "account_based_pension"),
+    (Kind::TransitionToRetirement, "transition_to_retirement"),
+];
+
 fn kind_of(text: Option<&str>) -> Option<Kind> {
-    match text? {
-        "accumulation" => Some(Kind::Accumulation),
-        "account_based_pension" => Some(Kind::Pension),
-        "transition_to_retirement" => Some(Kind::TransitionToRetirement),
-        _ => None,
-    }
+    let text = text?;
+    KIND_NAMES.iter().find(|k| k.1 == text).map(|k| k.0)
+}
+
+fn kind_name(kind: Kind) -> &'static str {
+    KIND_NAMES.iter().find(|k| k.0 == kind).expect("a kind").1
 }
 
 fn amount_of(v: Option<&Value>) -> Option<Decimal> {
@@ -191,6 +197,17 @@ fn account(v: &Value, span: (i64, i64), n: usize) -> Result<Account> {
     let Some((age, exception)) = pension_facts(o, kind) else {
         return bad();
     };
+    // ITAA 1997 s 307-80(2)(c)(iv) and (3)(b): attaining 65 puts a transition
+    // to retirement income stream in the retirement phase; at 64 on 1 July
+    // that is almost always within the year.
+    if kind == Kind::TransitionToRetirement && age.is_some_and(|n| n >= 64) {
+        return refuse(
+            "smsf_member_allocation.transition_reaches_65",
+            format!(
+                "{at}: a transition to retirement pension whose recipient is 64 or older on 1 July reaches 65 by the end of the year, when it enters the retirement phase (ITAA 1997 s 307-80(3)(b)) and its 10% maximum ends; state it as account_based_pension if 65 or older on 1 July, or allocate the year by hand."
+            ),
+        );
+    }
     let moves = transactions(o.get("transactions"), span, &at)?;
     Ok(Account {
         label: label.to_owned(),
@@ -252,12 +269,7 @@ fn check_moves(a: &Account) -> Result<()> {
     }
     let mut balance = a.opening.clone();
     for (i, (day, t, amount)) in a.moves.iter().enumerate() {
-        let adds = allowed(a, *t)?;
-        balance = if adds {
-            balance.add(amount)?
-        } else {
-            balance.sub(amount)?
-        };
+        balance = moved(&balance, allowed(a, *t)?, amount)?;
         let last_today = a.moves.get(i + 1).is_none_or(|next| next.0 != *day);
         if last_today && balance.lt(&int(0))? {
             return refuse(
@@ -283,12 +295,7 @@ fn weighted(a: &Account, span: (i64, i64)) -> Result<Decimal> {
     precise(|| {
         let mut sum = a.opening.mul(&length)?;
         for (day, t, amount) in &a.moves {
-            let w = amount.mul(&int(span.1 - day + 1))?;
-            sum = if TYPES[*t].1 {
-                sum.add(&w)?
-            } else {
-                sum.sub(&w)?
-            };
+            sum = moved(&sum, TYPES[*t].1, &amount.mul(&int(span.1 - day + 1))?)?;
         }
         Ok(sum.div(&length)?)
     })
@@ -318,6 +325,15 @@ fn shares(total: &Decimal, weights: &[Decimal]) -> Result<Vec<Decimal>> {
             before = upto;
         }
         Ok(out)
+    })
+}
+
+/// `balance` moved up by `by` when `adds`, else down.
+fn moved(balance: &Decimal, adds: bool, by: &Decimal) -> Result<Decimal> {
+    Ok(if adds {
+        balance.add(by)?
+    } else {
+        balance.sub(by)?
     })
 }
 
@@ -493,16 +509,14 @@ pub fn smsf_member_allocation(a: &SmsfMemberAllocationArgs) -> Result<Value> {
     let ct_total = total(&ct)?;
     let rest = precise(|| Ok(tax.sub(&ct_total)?))?;
     let et = earnings_tax(&rest, &w)?;
-    let rows = all
+    let (rows, closing): (Vec<Value>, Vec<Decimal>) = all
         .iter()
         .enumerate()
         .map(|(i, acc)| row(acc, &w, i, [&earned[i], &ct[i], &et[i]]))
-        .collect::<Result<Vec<_>>>()?;
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .unzip();
     let opening: Vec<Decimal> = all.iter().map(|x| x.opening.clone()).collect();
-    let closing: Vec<Decimal> = rows
-        .iter()
-        .map(|r| d(r["closing_balance"].as_str().expect("closing")))
-        .collect();
     let amounts = vec![
         ("net_earnings", earnings),
         ("income_tax", tax),
@@ -534,38 +548,32 @@ fn finish(
 }
 
 fn total(values: &[Decimal]) -> Result<Decimal> {
-    let mut sum = d("0.00");
-    for v in values {
-        sum = sum.add(v)?;
-    }
-    Ok(sum)
-}
-
-fn kind_name(kind: Kind) -> &'static str {
-    match kind {
-        Kind::Accumulation => "accumulation",
-        Kind::Pension => "account_based_pension",
-        Kind::TransitionToRetirement => "transition_to_retirement",
-    }
+    Ok(values.iter().try_fold(d("0.00"), |sum, v| sum.add(v))?)
 }
 
 /// One account's movements, shares and closing balance: its earnings,
-/// contributions tax and earnings tax in `parts`.
-fn row(acc: &Account, w: &Worked, i: usize, parts: [&Decimal; 3]) -> Result<Value> {
+/// contributions tax and earnings tax in `parts`. A closing balance below nil
+/// is refused, as before earnings and tax.
+fn row(acc: &Account, w: &Worked, i: usize, parts: [&Decimal; 3]) -> Result<(Value, Decimal)> {
     let [earned, ct, et] = parts;
     let mut closing = acc.opening.clone();
     let mut row = json!({"label": acc.label, "kind": kind_name(acc.kind),
         "opening_balance": acc.opening.to_string()});
     for (name, adds) in TYPES {
         let s = sum_of(acc, name)?;
-        closing = if adds {
-            closing.add(&s)?
-        } else {
-            closing.sub(&s)?
-        };
+        closing = moved(&closing, adds, &s)?;
         row[name] = json!(s.to_string());
     }
     let closing = precise(|| Ok(closing.add(earned)?.sub(ct)?.sub(et)?))?;
+    if closing.lt(&int(0))? {
+        return refuse(
+            "smsf_member_allocation.balance_negative",
+            format!(
+                "{}: its share of losses and tax takes the closing balance below nil.",
+                acc.label
+            ),
+        );
+    }
     let weighted = precise(|| Ok(w.weights[i].quantize(-2, Rounding::HalfUp)?))?;
     row["weighted_balance"] = json!(weighted.to_string());
     row["earnings"] = json!(earned.to_string());
@@ -576,5 +584,5 @@ fn row(acc: &Account, w: &Worked, i: usize, parts: [&Decimal; 3]) -> Result<Valu
     if let Some(check) = &w.checks[i] {
         row["pension"] = check.clone();
     }
-    Ok(row)
+    Ok((row, closing))
 }
