@@ -383,6 +383,7 @@ fn pension_check(a: &Account, days_in_year: i64) -> Result<(Value, bool)> {
 const NOT_MET: &str = "did not meet the pension standards for the year: under the ATO's 'Income stream (pension) rules and payments' the income stream is taken to have ceased at the start of the year for income tax purposes, its payments are not super income stream benefits, the fund cannot claim exempt current pension income on it for this or later years and there are transfer balance account consequences, so this worksheet charges it earnings tax. For an account-based pension the Commissioner's exception may apply (an honest mistake giving an underpayment of no more than one-twelfth of the minimum, or matters outside the trustee's control, with a catch-up payment): state minimum_exception only once the trustee has self-assessed it or the ATO has allowed it.";
 
 /// Every account's movements, weighted balance and earnings exemption.
+#[derive(Default)]
 struct Worked {
     weights: Vec<Decimal>,
     taxed: Vec<bool>,
@@ -392,12 +393,7 @@ struct Worked {
 
 fn work(all: &[Account], span: (i64, i64)) -> Result<Worked> {
     let days_in_year = span.1 - span.0 + 1;
-    let mut w = Worked {
-        weights: Vec::new(),
-        taxed: Vec::new(),
-        checks: Vec::new(),
-        warnings: Vec::new(),
-    };
+    let mut w = Worked::default();
     for a in all {
         check_moves(a)?;
         w.weights.push(weighted(a, span)?);
@@ -412,8 +408,9 @@ fn work(all: &[Account], span: (i64, i64)) -> Result<Worked> {
         if failed {
             w.warnings.push(format!("{} {NOT_MET}", a.label));
         }
-        w.taxed
-            .push(!exempt || check["maximum_exceeded"] == json!(true));
+        // Only a transition to retirement pension has a maximum, and its
+        // earnings are taxed in any case (ITAA 1997 s 307-80(3)).
+        w.taxed.push(!exempt);
         w.checks.push(Some(check));
     }
     Ok(w)
