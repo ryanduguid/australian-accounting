@@ -654,7 +654,7 @@ fn exempt(items: &[Deduction], why: &'static str) -> Result<Worked> {
             ALLOWED,
             "debt_deductions - total_disallowed_amount",
             &[&dd, &d("0")],
-            dd,
+            dd.clone(),
         ));
         Ok(Worked {
             steps,
