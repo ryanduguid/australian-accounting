@@ -8,7 +8,7 @@
 
 | Python (`tools/build_dataset.py`) | Rust (`examples/build_dataset.rs`) | Notes |
 |---|---|---|
-| `openpyxl.load_workbook(..., data_only=True)` | `read_first_sheet_rows(payload)` | Uses existing dev-dependencies `zip` and `roxmltree`, reproducing openpyxl `_cast_number` (`Decimal(str(float))` via `raw::float_repr` for decimals/exponents, integer digits otherwise), `sharedStrings.xml`, `inlineStr`, bools and sparse row/column padding |
+| `openpyxl.load_workbook(..., data_only=True)` | `read_first_sheet_rows(payload)` | Uses existing dev-dependencies `zip` and `roxmltree`, storing columns `1..=16` sparsely in a `BTreeMap` with checked row/column indices, reproducing openpyxl `_cast_number` (`Decimal(str(float))` via `raw::float_repr` for decimals/exponents, integer digits otherwise), `sharedStrings.xml` (`x005F_` stripping), `inlineStr` (verbatim), bools and sparse row handling |
 | `money(text)` | `money(text)` | Uses `ato_benchmark_compare::decimal::Decimal` |
 | `ratio(value, where)` | `ratio(value, where_)` | Validates finite `[0, 10]` decimal range; preserves string decimals verbatim and IEEE floats via `raw::float_repr` |
 | `parse_range_label(label, where)` | `parse_range_label(label, where_)` | Matches `$low - $high` (`-`, `\u2013`, `\u2014`) and `More than $low` (case-insensitive) |
@@ -41,6 +41,7 @@
 ## Quirks kept
 
 - JSON output uses 1-space indentation (`indent=1`, `ensure_ascii=False`, trailing `\n`) via `write_json_indented` with `serde_json` `preserve_order`.
+- Stdout and stderr translate `\n` to `\r\n` on Windows via `cli::output_bytes`, whilst written JSON files stay LF-only; CLI paths print via `py::PyPath` and decode arguments via `cli::decode_os`.
 - `build_dataset` creates parent directories for `--out`; `build_other_benchmarks` writes directly to `--out` without creating missing parent directories, matching the original scripts.
 - CLI flags exit `2` on invalid or missing required arguments and `0` on `-h` / `--help`.
 

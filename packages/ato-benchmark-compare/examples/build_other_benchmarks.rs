@@ -16,12 +16,13 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
-use std::path::PathBuf;
+use std::io::Write;
 use std::process::ExitCode;
 
+use ato_benchmark_compare::cli::{decode_os, output_bytes};
 use ato_benchmark_compare::dataset::{canonical_digest, normalise};
 use ato_benchmark_compare::decimal::Decimal;
-use ato_benchmark_compare::py::{decimal_value, is_space, repr_str, split_whitespace};
+use ato_benchmark_compare::py::{PyPath, decimal_value, is_space, repr_str, split_whitespace};
 use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
 
@@ -59,16 +60,11 @@ impl Error {
 }
 
 struct CliArgs {
-    pages_dir: PathBuf,
-    dataset: PathBuf,
+    pages_dir: PyPath,
+    dataset: PyPath,
     retrieved: String,
-    out: PathBuf,
+    out: PyPath,
     expect_excluded: BTreeSet<String>,
-}
-
-enum CliAction {
-    Help,
-    Run(CliArgs),
 }
 
 struct ParsedPage {
@@ -124,9 +120,9 @@ fn next_flag_value(
     }
 }
 
-fn parse_cli(args: &[String]) -> Result<CliAction, String> {
+fn parse_cli(args: &[String]) -> Result<Option<CliArgs>, String> {
     if args.iter().any(|a| a == "-h" || a == "--help") {
-        return Ok(CliAction::Help);
+        return Ok(None);
     }
     let (mut pages_dir, mut dataset, mut retrieved, mut out) = (None, None, None, None);
     let mut expect_excluded = BTreeSet::new();
@@ -140,15 +136,12 @@ fn parse_cli(args: &[String]) -> Result<CliAction, String> {
             flag,
             "--pages-dir" | "--dataset" | "--retrieved" | "--out" | "--expect-excluded"
         ) {
-            if inline == Some("") && flag != "--retrieved" && flag != "--expect-excluded" {
-                return Err(cli_err(&format!("argument {flag}: expected one argument")));
-            }
             let val = next_flag_value(flag, inline, args, &mut i)?;
             match flag {
-                "--pages-dir" => pages_dir = Some(PathBuf::from(val)),
-                "--dataset" => dataset = Some(PathBuf::from(val)),
+                "--pages-dir" => pages_dir = Some(PyPath::new(&val)),
+                "--dataset" => dataset = Some(PyPath::new(&val)),
                 "--retrieved" => retrieved = Some(val),
-                "--out" => out = Some(PathBuf::from(val)),
+                "--out" => out = Some(PyPath::new(&val)),
                 "--expect-excluded" => {
                     expect_excluded.insert(val);
                 }
@@ -159,30 +152,28 @@ fn parse_cli(args: &[String]) -> Result<CliAction, String> {
         }
         i += 1;
     }
-    let mut missing = Vec::new();
-    if pages_dir.is_none() {
-        missing.push("--pages-dir");
-    }
-    if dataset.is_none() {
-        missing.push("--dataset");
-    }
-    if retrieved.is_none() {
-        missing.push("--retrieved");
-    }
-    if out.is_none() {
-        missing.push("--out");
-    }
-    if !missing.is_empty() {
+    let missing: Vec<&str> = [
+        pages_dir.is_none().then_some("--pages-dir"),
+        dataset.is_none().then_some("--dataset"),
+        retrieved.is_none().then_some("--retrieved"),
+        out.is_none().then_some("--out"),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
+    let (Some(pages_dir), Some(dataset), Some(retrieved), Some(out)) =
+        (pages_dir, dataset, retrieved, out)
+    else {
         return Err(cli_err(&format!(
             "the following arguments are required: {}",
             missing.join(", ")
         )));
-    }
-    Ok(CliAction::Run(CliArgs {
-        pages_dir: pages_dir.unwrap(),
-        dataset: dataset.unwrap(),
-        retrieved: retrieved.unwrap(),
-        out: out.unwrap(),
+    };
+    Ok(Some(CliArgs {
+        pages_dir,
+        dataset,
+        retrieved,
+        out,
         expect_excluded,
     }))
 }
@@ -808,10 +799,6 @@ fn check_section_agreements(
         .iter()
         .map(|b| label_key(b["label"].as_str().unwrap_or_default()))
         .collect();
-    let expected_labels: Vec<String> = bands
-        .iter()
-        .map(|b| b["label"].as_str().unwrap_or_default().to_string())
-        .collect();
     for (kind, section) in &page.sections {
         if section.year != year {
             if kind != "key" {
@@ -827,6 +814,10 @@ fn check_section_agreements(
         }
         let printed: Vec<String> = section.labels.iter().map(|l| label_key(l)).collect();
         if printed != expected {
+            let expected_labels: Vec<String> = bands
+                .iter()
+                .map(|b| b["label"].as_str().unwrap_or_default().to_string())
+                .collect();
             return Err(Error::Mismatch(format!(
                 "{where_}: {kind} bands {} do not match the dataset's {}",
                 py_repr_list(&section.labels),
@@ -1183,44 +1174,55 @@ fn count_filled_ranges(built: &Value) -> usize {
         .count()
 }
 
+fn write_stdout(text: &str) {
+    let _ = std::io::stdout().write_all(&output_bytes(text));
+}
+
+fn write_stderr(text: &str) {
+    let _ = std::io::stderr().write_all(&output_bytes(text));
+}
+
 fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    let args: Vec<String> = std::env::args_os().skip(1).map(|a| decode_os(&a)).collect();
     let cli = match parse_cli(&args) {
-        Ok(CliAction::Help) => {
-            println!("{}", help_text());
+        Ok(None) => {
+            write_stdout(&format!("{}\n", help_text()));
             return ExitCode::SUCCESS;
         }
-        Ok(CliAction::Run(cli)) => cli,
+        Ok(Some(cli)) => cli,
         Err(msg) => {
-            eprintln!("{msg}");
+            write_stderr(&format!("{msg}\n"));
             return ExitCode::from(2);
         }
     };
     let built = match build(
-        &cli.pages_dir,
-        &cli.dataset,
+        &cli.pages_dir.fs(),
+        &cli.dataset.fs(),
         &cli.retrieved,
         &cli.expect_excluded,
     ) {
         Ok(b) => b,
         Err(err) => {
-            eprintln!("error: {}", err.message());
+            write_stderr(&format!("error: {}\n", err.message()));
             return ExitCode::from(1);
         }
     };
     let text = to_json_indented(&built);
-    if let Err(e) = fs::write(&cli.out, text.as_bytes()) {
-        eprintln!("error: {}: {e}", cli.out.display());
+    if let Err(e) = fs::write(cli.out.fs(), text.as_bytes()) {
+        write_stderr(&format!("error: {}: {e}\n", cli.out.display()));
         return ExitCode::from(1);
     }
     let count = built["business_type_count"].as_u64().unwrap_or(0);
-    println!(
-        "wrote {}: {count} business types, {} ranges",
+    write_stdout(&format!(
+        "wrote {}: {count} business types, {} ranges\n",
         cli.out.display(),
         count_filled_ranges(&built)
-    );
+    ));
     for item in built["excluded_pages"].as_array().into_iter().flatten() {
-        eprintln!("excluded: {}", item["reason"].as_str().unwrap_or_default());
+        write_stderr(&format!(
+            "excluded: {}\n",
+            item["reason"].as_str().unwrap_or_default()
+        ));
     }
     ExitCode::SUCCESS
 }
@@ -1228,6 +1230,7 @@ fn main() -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     const ADDRESS: &str = "https://www.ato.gov.au/businesses-and-organisations/\

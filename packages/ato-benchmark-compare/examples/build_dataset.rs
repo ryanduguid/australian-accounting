@@ -16,21 +16,25 @@
 //!         --retrieved 2026-08-13 \
 //!         --out data/benchmarks-2023-24.json
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
-use std::io::{Cursor, Read};
-use std::path::{Path, PathBuf};
+use std::io::{Cursor, Read, Write};
+use std::path::Path;
 use std::process::ExitCode;
 
+use ato_benchmark_compare::cli::{decode_os, output_bytes};
 use ato_benchmark_compare::decimal::Decimal;
-use ato_benchmark_compare::py::{decimal_value, is_space, repr_str};
+use ato_benchmark_compare::py::{PyPath, decimal_value, is_space, repr_str};
 use ato_benchmark_compare::raw::float_repr;
 use num_bigint::BigInt;
 use roxmltree::{Document, Node};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use zip::ZipArchive;
+use zip::result::ZipError;
 
+const COLS_READ: usize = 16;
+const MAX_EXACT_F64_INT: f64 = 9_007_199_254_740_991.0;
 const REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const BAND_SPEC: [(&str, usize, usize, usize, usize, usize); 3] = [
     ("low", 1, 2, 7, 8, 13),
@@ -72,18 +76,13 @@ impl CellValue {
 }
 
 struct CliArgs {
-    xlsx: PathBuf,
+    xlsx: PyPath,
     year: String,
     resource_name: String,
     resource_url: String,
     resource_last_modified: String,
     retrieved: String,
-    out: PathBuf,
-}
-
-enum CliAction {
-    Help,
-    Run(CliArgs),
+    out: PyPath,
 }
 
 fn usage() -> &'static str {
@@ -111,9 +110,9 @@ fn cli_err(msg: &str) -> String {
     format!("{}\nbuild_dataset: error: {msg}", usage())
 }
 
-fn parse_cli(args: &[String]) -> Result<CliAction, String> {
+fn parse_cli(args: &[String]) -> Result<Option<CliArgs>, String> {
     if args.iter().any(|a| a == "-h" || a == "--help") {
-        return Ok(CliAction::Help);
+        return Ok(None);
     }
     let mut vals: HashMap<&'static str, String> = HashMap::new();
     let mut i = 0;
@@ -164,14 +163,14 @@ fn parse_cli(args: &[String]) -> Result<CliAction, String> {
             missing.join(", ")
         )));
     }
-    Ok(CliAction::Run(CliArgs {
-        xlsx: PathBuf::from(&vals["--xlsx"]),
+    Ok(Some(CliArgs {
+        xlsx: PyPath::new(&vals["--xlsx"]),
         year: vals["--year"].clone(),
         resource_name: vals["--resource-name"].clone(),
         resource_url: vals["--resource-url"].clone(),
         resource_last_modified: vals["--resource-last-modified"].clone(),
         retrieved: vals["--retrieved"].clone(),
-        out: PathBuf::from(&vals["--out"]),
+        out: PyPath::new(&vals["--out"]),
     }))
 }
 
@@ -227,8 +226,10 @@ fn read_zip_part(
     archive: &mut ZipArchive<Cursor<&[u8]>>,
     name: &str,
 ) -> Result<Option<String>, String> {
-    let Ok(mut file) = archive.by_name(name) else {
-        return Ok(None);
+    let mut file = match archive.by_name(name) {
+        Ok(file) => file,
+        Err(ZipError::FileNotFound) => return Ok(None),
+        Err(e) => return Err(format!("{name}: {e}")),
     };
     let mut text = String::new();
     file.read_to_string(&mut text)
@@ -272,6 +273,9 @@ fn extract_ooxml_text(node: Node<'_, '_>) -> String {
     out
 }
 
+// openpyxl 3.1.5 reader/strings.py replaces only literal `x005F_` in shared
+// strings; WorkSheetParser.parse_cell keeps inlineStr verbatim and neither
+// path calls openpyxl.utils.escape.unescape on cell values.
 fn read_shared_strings(
     archive: &mut ZipArchive<Cursor<&[u8]>>,
     part: &str,
@@ -303,7 +307,7 @@ fn parse_cell_coord(coord: &str) -> Option<(usize, usize)> {
             .checked_add((b.to_ascii_uppercase() - b'A') as usize + 1)?;
     }
     let row: usize = digits.parse().ok()?;
-    Some((row, col))
+    (row >= 1 && col >= 1).then_some((row, col))
 }
 
 fn cast_number(raw: &str) -> Result<CellValue, String> {
@@ -329,13 +333,17 @@ fn parse_cell_node(
     shared: &[String],
 ) -> Result<(usize, usize, CellValue), String> {
     let data_type = cell.attribute("t").unwrap_or("n");
-    let (row, col) = match cell.attribute("r").and_then(parse_cell_coord) {
-        Some((r, c)) => {
+    let (row, col) = match cell.attribute("r") {
+        Some(coord) => {
+            let (r, c) = parse_cell_coord(coord)
+                .ok_or_else(|| format!("invalid cell coordinate {coord:?}"))?;
             *col_counter = c;
             (r, c)
         }
         None => {
-            *col_counter += 1;
+            *col_counter = col_counter
+                .checked_add(1)
+                .ok_or_else(|| "column index overflow".to_string())?;
             (row_counter, *col_counter)
         }
     };
@@ -383,13 +391,17 @@ fn parse_cell_node(
 }
 
 fn parse_row_number(attr: &str) -> Result<usize, String> {
-    if let Ok(n) = attr.parse::<usize>() {
+    if let Ok(n) = attr.parse::<usize>()
+        && n >= 1
+    {
         return Ok(n);
     }
     if let Ok(f) = attr.parse::<f64>()
         && f.is_finite()
-        && f >= 0.0
+        && f >= 1.0
         && f.fract() == 0.0
+        && f <= MAX_EXACT_F64_INT
+        && f <= (usize::MAX as f64)
     {
         return Ok(f as usize);
     }
@@ -432,7 +444,14 @@ fn workbook_parts(archive: &mut ZipArchive<Cursor<&[u8]>>) -> Result<(String, St
     ))
 }
 
-fn read_first_sheet_rows(payload: &[u8]) -> Result<Vec<Vec<CellValue>>, String> {
+#[derive(Debug)]
+struct SheetRows {
+    max_row: usize,
+    max_col: usize,
+    rows: BTreeMap<usize, [CellValue; COLS_READ]>,
+}
+
+fn read_first_sheet_rows(payload: &[u8]) -> Result<SheetRows, String> {
     let mut archive =
         ZipArchive::new(Cursor::new(payload)).map_err(|e| format!("invalid xlsx archive: {e}"))?;
     let (sheet_part, shared_part) = workbook_parts(&mut archive)?;
@@ -441,33 +460,35 @@ fn read_first_sheet_rows(payload: &[u8]) -> Result<Vec<Vec<CellValue>>, String> 
         .ok_or_else(|| format!("missing worksheet part {sheet_part}"))?;
     let doc = Document::parse(&sheet_xml).map_err(|e| format!("{sheet_part}: {e}"))?;
 
-    let mut cells: Vec<(usize, usize, CellValue)> = Vec::new();
+    let mut rows: BTreeMap<usize, [CellValue; COLS_READ]> = BTreeMap::new();
     let (mut row_counter, mut max_row, mut max_col) = (0usize, 0usize, 0usize);
     if let Some(data) = doc.descendants().find(|n| n.has_tag_name("sheetData")) {
         for row in data.children().filter(|n| n.has_tag_name("row")) {
             row_counter = match row.attribute("r") {
                 Some(r) => parse_row_number(r)?,
-                None => row_counter + 1,
+                None => row_counter
+                    .checked_add(1)
+                    .ok_or_else(|| "row index overflow".to_string())?,
             };
             let mut col_counter = 0usize;
             for cell in row.children().filter(|n| n.has_tag_name("c")) {
                 let (r, c, val) = parse_cell_node(cell, row_counter, &mut col_counter, &shared)?;
                 max_row = max_row.max(r);
                 max_col = max_col.max(c);
-                cells.push((r, c, val));
+                if c <= COLS_READ {
+                    let entry = rows
+                        .entry(r)
+                        .or_insert_with(|| std::array::from_fn(|_| CellValue::Empty));
+                    entry[c - 1] = val;
+                }
             }
         }
     }
-    if max_row == 0 || max_col == 0 {
-        return Ok(Vec::new());
-    }
-    let mut rows = vec![vec![CellValue::Empty; max_col]; max_row];
-    for (r, c, val) in cells {
-        if r > 0 && c > 0 {
-            rows[r - 1][c - 1] = val;
-        }
-    }
-    Ok(rows)
+    Ok(SheetRows {
+        max_row,
+        max_col,
+        rows,
+    })
 }
 
 fn money(text: &str) -> Result<Decimal, String> {
@@ -658,15 +679,15 @@ fn build_bands(
     Ok(bands)
 }
 
-fn validate_header(header: &[CellValue]) -> Result<(), String> {
+fn validate_header(header: &[CellValue; COLS_READ], max_col: usize) -> Result<(), String> {
     if header[0].is_none() || !header[0].py_str().contains("BusinessType") {
         return Err(format!(
             "unexpected first header cell: {}",
             header[0].py_repr()
         ));
     }
-    if header.len() < 16 {
-        return Err(format!("expected 16 columns, found {}", header.len()));
+    if max_col < COLS_READ {
+        return Err(format!("expected 16 columns, found {max_col}"));
     }
     for &(_, lo, hi, _, _, _) in &BAND_SPEC {
         for col in [lo, hi] {
@@ -700,16 +721,18 @@ fn sha256_hex(bytes: &[u8]) -> String {
 
 fn build(xlsx: &Path, args: &CliArgs) -> Result<(Value, Vec<String>), String> {
     let payload = fs::read(xlsx).map_err(|e| format!("{}: {e}", xlsx.display()))?;
-    let rows = read_first_sheet_rows(&payload)?;
-    let Some(header) = rows.first() else {
+    let sheet = read_first_sheet_rows(&payload)?;
+    if sheet.max_row == 0 || sheet.max_col == 0 {
         return Err("workbook is empty".to_string());
-    };
-    validate_header(header)?;
+    }
+    let empty_header: [CellValue; COLS_READ] = std::array::from_fn(|_| CellValue::Empty);
+    let header = sheet.rows.get(&1).unwrap_or(&empty_header);
+    validate_header(header, sheet.max_col)?;
 
     let mut anomalies = Vec::new();
     let mut business_types = Vec::new();
     let mut seen = BTreeSet::new();
-    for row in &rows[1..] {
+    for row in sheet.rows.range(2..).map(|(_, row)| row) {
         if row[0].is_none() {
             continue;
         }
@@ -758,48 +781,57 @@ fn build(xlsx: &Path, args: &CliArgs) -> Result<(Value, Vec<String>), String> {
     Ok((dataset, anomalies))
 }
 
+fn write_stdout(text: &str) {
+    let _ = std::io::stdout().write_all(&output_bytes(text));
+}
+
+fn write_stderr(text: &str) {
+    let _ = std::io::stderr().write_all(&output_bytes(text));
+}
+
 fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    let args: Vec<String> = std::env::args_os().skip(1).map(|a| decode_os(&a)).collect();
     let cli = match parse_cli(&args) {
-        Ok(CliAction::Help) => {
-            println!("{}", help_text());
+        Ok(None) => {
+            write_stdout(&format!("{}\n", help_text()));
             return ExitCode::SUCCESS;
         }
-        Ok(CliAction::Run(cli)) => cli,
+        Ok(Some(cli)) => cli,
         Err(msg) => {
-            eprintln!("{msg}");
+            write_stderr(&format!("{msg}\n"));
             return ExitCode::from(2);
         }
     };
-    let (dataset, anomalies) = match build(&cli.xlsx, &cli) {
+    let (dataset, anomalies) = match build(&cli.xlsx.fs(), &cli) {
         Ok(res) => res,
         Err(msg) => {
-            eprintln!("error: {msg}");
+            write_stderr(&format!("error: {msg}\n"));
             return ExitCode::from(1);
         }
     };
     for line in &anomalies {
-        eprintln!("anomaly: {line}");
+        write_stderr(&format!("anomaly: {line}\n"));
     }
-    if let Some(parent) = cli.out.parent()
+    let out_fs = cli.out.fs();
+    if let Some(parent) = out_fs.parent()
         && !parent.as_os_str().is_empty()
         && let Err(e) = fs::create_dir_all(parent)
     {
-        eprintln!("error: {}: {e}", parent.display());
+        write_stderr(&format!("error: {}: {e}\n", parent.display()));
         return ExitCode::from(1);
     }
     let text = to_json_indented(&dataset);
-    if let Err(e) = fs::write(&cli.out, text.as_bytes()) {
-        eprintln!("error: {}: {e}", cli.out.display());
+    if let Err(e) = fs::write(&out_fs, text.as_bytes()) {
+        write_stderr(&format!("error: {}: {e}\n", cli.out.display()));
         return ExitCode::from(1);
     }
     let count = dataset["business_type_count"].as_u64().unwrap_or(0);
     let sha = dataset["source"]["sha256"].as_str().unwrap_or_default();
-    println!(
-        "wrote {}: {count} business types, sha256 {}",
+    write_stdout(&format!(
+        "wrote {}: {count} business types, sha256 {}\n",
         cli.out.display(),
         &sha[..16]
-    );
+    ));
     ExitCode::SUCCESS
 }
 
@@ -807,8 +839,30 @@ fn main() -> ExitCode {
 mod tests {
     use super::*;
     use rust_xlsxwriter::Workbook;
+    use std::path::PathBuf;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use zip::write::SimpleFileOptions;
+
+    fn ooxml_bytes(sheet_xml: &str, shared_xml: Option<&str>) -> Vec<u8> {
+        use std::io::Write;
+        let mut buf = Vec::new();
+        {
+            let mut z = zip::ZipWriter::new(Cursor::new(&mut buf));
+            let opts = SimpleFileOptions::default();
+            z.start_file("xl/workbook.xml", opts).unwrap();
+            z.write_all(br#"<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="S" sheetId="1" r:id="rId1"/></sheets></workbook>"#).unwrap();
+            z.start_file("xl/_rels/workbook.xml.rels", opts).unwrap();
+            z.write_all(br#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>"#).unwrap();
+            z.start_file("xl/worksheets/sheet1.xml", opts).unwrap();
+            z.write_all(sheet_xml.as_bytes()).unwrap();
+            if let Some(ss) = shared_xml {
+                z.start_file("xl/sharedStrings.xml", opts).unwrap();
+                z.write_all(ss.as_bytes()).unwrap();
+            }
+            z.finish().unwrap();
+        }
+        buf
+    }
 
     fn temp_path(name: &str) -> PathBuf {
         static NEXT: AtomicUsize = AtomicUsize::new(0);
@@ -866,15 +920,15 @@ mod tests {
         wb.save_to_buffer().unwrap()
     }
 
-    fn sample_args(xlsx: PathBuf, out: PathBuf) -> CliArgs {
+    fn sample_args(xlsx: &Path, out: &Path) -> CliArgs {
         CliArgs {
-            xlsx,
+            xlsx: PyPath::new(&xlsx.to_string_lossy()),
             year: "2023-24".into(),
             resource_name: "2023-24 Benchmarks".into(),
             resource_url: "https://data.gov.au/example.xlsx".into(),
             resource_last_modified: "2026-03-15T22:07:39.563377".into(),
             retrieved: "2026-08-13".into(),
-            out,
+            out: PyPath::new(&out.to_string_lossy()),
         }
     }
 
@@ -934,7 +988,7 @@ mod tests {
             CellValue::Empty,
         ];
         fs::write(&xlsx, write_workbook_bytes(&[header, row1, row2])).unwrap();
-        let args = sample_args(xlsx.clone(), out);
+        let args = sample_args(&xlsx, &out);
         let (dataset, anomalies) = build(&xlsx, &args).unwrap();
         assert_eq!(dataset["business_type_count"], 2);
         assert_eq!(
@@ -962,32 +1016,80 @@ mod tests {
 
     #[test]
     fn raw_ooxml_preserves_openpyxl_cast_number_and_inline_string_rules() {
-        use std::io::Write;
-        let mut buf = Vec::new();
-        {
-            let mut z = zip::ZipWriter::new(Cursor::new(&mut buf));
-            let opts = SimpleFileOptions::default();
-            z.start_file("xl/workbook.xml", opts).unwrap();
-            z.write_all(br#"<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="S" sheetId="1" r:id="rId1"/></sheets></workbook>"#).unwrap();
-            z.start_file("xl/_rels/workbook.xml.rels", opts).unwrap();
-            z.write_all(br#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>"#).unwrap();
-            z.start_file("xl/worksheets/sheet1.xml", opts).unwrap();
-            z.write_all(br#"<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Hdr</t></is></c><c r="B1"><v>0.45000000000000001</v></c><c r="C1"><v>007</v></c></row></sheetData></worksheet>"#).unwrap();
-            z.finish().unwrap();
-        }
-        let rows = read_first_sheet_rows(&buf).unwrap();
-        assert_eq!(rows.len(), 1);
-        assert_eq!(rows[0][0], CellValue::Str("Hdr".into()));
-        assert_eq!(ratio(&rows[0][1], "x").unwrap().as_deref(), Some("0.45"));
-        assert_eq!(ratio(&rows[0][2], "y").unwrap().as_deref(), Some("7"));
+        let buf = ooxml_bytes(
+            r#"<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>a_x000D_b _x005F_c x005F_d</t></is></c><c r="B1"><v>0.45000000000000001</v></c><c r="C1"><v>007</v></c><c r="D1" t="s"><v>0</v></c></row></sheetData></worksheet>"#,
+            Some(
+                r#"<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><si><t>a_x000D_b _x005F_c x005F_d</t></si></sst>"#,
+            ),
+        );
+        let sheet = read_first_sheet_rows(&buf).unwrap();
+        assert_eq!(sheet.max_row, 1);
+        assert_eq!(sheet.max_col, 4);
+        let row1 = &sheet.rows[&1];
+        assert_eq!(row1[0], CellValue::Str("a_x000D_b _x005F_c x005F_d".into()));
+        assert_eq!(row1[3], CellValue::Str("a_x000D_b _c d".into()));
+        assert_eq!(ratio(&row1[1], "x").unwrap().as_deref(), Some("0.45"));
+        assert_eq!(ratio(&row1[2], "y").unwrap().as_deref(), Some("7"));
+    }
+
+    #[test]
+    fn sparse_and_unbounded_ooxml_coordinates_do_not_oom_or_overflow() {
+        let sparse = ooxml_bytes(
+            r#"<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A1" t="inlineStr"><is><t>Hdr</t></is></c></row><row r="100000000"><c r="A100000000"><v>1</v></c><c r="XFD1048576"><v>1</v></c></row></sheetData></worksheet>"#,
+            None,
+        );
+        let sheet = read_first_sheet_rows(&sparse).unwrap();
+        assert_eq!(sheet.max_row, 100_000_000);
+        assert_eq!(sheet.max_col, 16_384);
+        assert_eq!(sheet.rows.len(), 2);
+
+        let bad_float = ooxml_bytes(
+            r#"<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1e25"><c r="A1"><v>1</v></c></row></sheetData></worksheet>"#,
+            None,
+        );
+        assert!(
+            read_first_sheet_rows(&bad_float)
+                .unwrap_err()
+                .contains("not a valid row number")
+        );
+
+        let zero_row = ooxml_bytes(
+            r#"<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="0"/></sheetData></worksheet>"#,
+            None,
+        );
+        assert!(
+            read_first_sheet_rows(&zero_row)
+                .unwrap_err()
+                .contains("not a valid row number")
+        );
+
+        let bad_coord = ooxml_bytes(
+            r#"<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1"><c r="A0"><v>1</v></c></row></sheetData></worksheet>"#,
+            None,
+        );
+        assert!(
+            read_first_sheet_rows(&bad_coord)
+                .unwrap_err()
+                .contains("invalid cell coordinate")
+        );
+
+        let doc = Document::parse(r#"<c><v>1</v></c>"#).unwrap();
+        let mut col = usize::MAX;
+        assert_eq!(
+            parse_cell_node(doc.root_element(), 1, &mut col, &[]).unwrap_err(),
+            "column index overflow"
+        );
+        assert!(parse_cell_coord("XFD1048576").is_some());
+        assert_eq!(parse_cell_coord("A0"), None);
     }
 
     #[test]
     fn header_and_value_refusals_match_build_dataset_messages() {
         let xlsx = temp_path("bad.xlsx");
+        let out = temp_path("o.json");
         let empty = write_workbook_bytes(&[]);
         fs::write(&xlsx, empty).unwrap();
-        let args = sample_args(xlsx.clone(), temp_path("o.json"));
+        let args = sample_args(&xlsx, &out);
         assert_eq!(build(&xlsx, &args).unwrap_err(), "workbook is empty");
 
         let mut bad_hdr: Vec<CellValue> = standard_headers()

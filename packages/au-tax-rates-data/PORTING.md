@@ -30,3 +30,4 @@
 - Heading tokens normalise U+2011 non-breaking hyphens to ASCII `-` whilst keeping all other characters verbatim, matching `tests/test_dated_rates.py`.
 - `sections.jsonl` lines split on CR, LF and CRLF (`bytes.splitlines()` semantics) and compute SHA-256 over raw file bytes before decoding.
 - Under `--features differential`, `RATES_ROOT` overrides the package folder path cleanly without touching `legislation-provisions.json` in the source checkout.
+- Stderr translates `\n` to `\r\n` on Windows via `output_bytes`, matching CPython text-mode stderr whilst `legislation-provisions.json` remains LF-only.

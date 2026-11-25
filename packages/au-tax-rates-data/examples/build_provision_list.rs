@@ -15,6 +15,7 @@
 
 use std::collections::BTreeSet;
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
@@ -250,11 +251,25 @@ fn run() -> Result<(), String> {
     Ok(())
 }
 
+fn output_bytes(text: &str) -> Vec<u8> {
+    if !cfg!(windows) {
+        return text.as_bytes().to_vec();
+    }
+    let mut out = Vec::with_capacity(text.len());
+    for &b in text.as_bytes() {
+        if b == b'\n' {
+            out.push(b'\r');
+        }
+        out.push(b);
+    }
+    out
+}
+
 fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(message) => {
-            eprintln!("{message}");
+            let _ = std::io::stderr().write_all(&output_bytes(&format!("{message}\n")));
             ExitCode::from(1)
         }
     }
