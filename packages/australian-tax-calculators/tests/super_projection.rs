@@ -87,14 +87,26 @@ fn employer_contributions_stop_at_the_maximum_contribution_base() {
 #[test]
 fn the_instrument_sets_the_retirement_age_and_present_value_rate() {
     let early = run(json!({"age": 45, "retirement_age": 55}));
-    assert_eq!((early["retirement_age"].clone(), early["years"].clone()), (json!(60), json!(15)));
-    assert_eq!(early["amounts"], run(json!({"age": 45, "retirement_age": 60}))["amounts"]);
+    assert_eq!(
+        (early["retirement_age"].clone(), early["years"].clone()),
+        (json!(60), json!(15))
+    );
+    assert_eq!(
+        early["amounts"],
+        run(json!({"age": 45, "retirement_age": 60}))["amounts"]
+    );
     let default = run(json!({"retirement_age": null, "discount_rate": null}));
     assert_eq!(default["retirement_age"], 67);
     assert_eq!(default["amounts"], run(json!({}))["amounts"]);
-    assert_eq!(run(json!({"age": 70, "retirement_age": null}))["retirement_age"], 71);
+    assert_eq!(
+        run(json!({"age": 70, "retirement_age": null}))["retirement_age"],
+        71
+    );
     let flat = run(json!({"discount_rate": "0"}));
-    assert_eq!(amount(&flat, "present_value"), amount(&flat, "balance_at_retirement"));
+    assert_eq!(
+        amount(&flat, "present_value"),
+        amount(&flat, "balance_at_retirement")
+    );
 }
 
 /// Fees and premiums take no more than the account holds.
@@ -108,18 +120,48 @@ fn fees_never_overdraw_the_account() {
 #[test]
 fn refuses_what_it_does_not_compute() {
     for (changes, want) in [
-        (json!({"age": 60, "retirement_age": 59}), "super_projection.retirement_not_after_age"),
-        (json!({"age": 70, "retirement_age": 66}), "super_projection.retirement_not_after_age"),
-        (json!({"salary_sacrifice": "22900.01"}), "super_projection.cap_exceeded"),
-        (json!({"after_tax_contributions": "130000.01"}), "super_projection.cap_exceeded"),
-        (json!({"retirement_age": 76}), "super_projection.input_invalid"),
+        (
+            json!({"age": 60, "retirement_age": 59}),
+            "super_projection.retirement_not_after_age",
+        ),
+        (
+            json!({"age": 70, "retirement_age": 66}),
+            "super_projection.retirement_not_after_age",
+        ),
+        (
+            json!({"salary_sacrifice": "22900.01"}),
+            "super_projection.cap_exceeded",
+        ),
+        (
+            json!({"after_tax_contributions": "130000.01"}),
+            "super_projection.cap_exceeded",
+        ),
+        (
+            json!({"retirement_age": 76}),
+            "super_projection.input_invalid",
+        ),
         (json!({"age": 75}), "super_projection.input_invalid"),
         (json!({"age": "30"}), "super_projection.input_invalid"),
-        (json!({"employer_rate": "0.30001"}), "super_projection.input_invalid"),
-        (json!({"return_rate": "0.21"}), "super_projection.input_invalid"),
-        (json!({"wage_growth": 0.03}), "super_projection.input_invalid"),
-        (json!({"discount_rate": "-0.01"}), "super_projection.input_invalid"),
-        (json!({"salary": "80000.50"}), "input.amount_not_whole_dollars"),
+        (
+            json!({"employer_rate": "0.30001"}),
+            "super_projection.input_invalid",
+        ),
+        (
+            json!({"return_rate": "0.21"}),
+            "super_projection.input_invalid",
+        ),
+        (
+            json!({"wage_growth": 0.03}),
+            "super_projection.input_invalid",
+        ),
+        (
+            json!({"discount_rate": "-0.01"}),
+            "super_projection.input_invalid",
+        ),
+        (
+            json!({"salary": "80000.50"}),
+            "input.amount_not_whole_dollars",
+        ),
         (json!({"year": "2025-26"}), "period.unsupported"),
         (json!({"scope_confirmed": false}), "scope.not_confirmed"),
         (json!({"spouse": true}), "input.field_unknown"),
@@ -132,8 +174,18 @@ fn refuses_what_it_does_not_compute() {
 /// $130,000 of after-tax contributions are within them.
 #[test]
 fn contributions_at_the_caps_are_projected() {
-    assert!(api::evaluate("super-projection", &with(json!({"salary_sacrifice": "22900"}))).is_ok());
     assert!(
-        api::evaluate("super-projection", &with(json!({"after_tax_contributions": "130000"}))).is_ok()
+        api::evaluate(
+            "super-projection",
+            &with(json!({"salary_sacrifice": "22900"}))
+        )
+        .is_ok()
+    );
+    assert!(
+        api::evaluate(
+            "super-projection",
+            &with(json!({"after_tax_contributions": "130000"}))
+        )
+        .is_ok()
     );
 }

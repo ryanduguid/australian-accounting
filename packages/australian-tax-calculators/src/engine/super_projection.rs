@@ -272,7 +272,10 @@ pub fn super_projection(a: &SuperProjectionArgs) -> Result<Value> {
     let years = u32::try_from(retire - now).expect("1 to 60 years");
     let amounts = vec![
         ("employer_contributions_2026_27", dollars(first.employer)),
-        ("concessional_contributions_2026_27", dollars(first.concessional)),
+        (
+            "concessional_contributions_2026_27",
+            dollars(first.concessional),
+        ),
         ("balance_at_retirement", dollars(balance)),
         ("present_value", present_value(balance, discount, years)),
         ("contributions_less_tax", dollars(contributed)),

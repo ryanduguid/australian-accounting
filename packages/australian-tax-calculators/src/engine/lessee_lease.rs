@@ -156,11 +156,12 @@ fn discount(value: &Arg) -> Result<i128> {
 }
 
 fn schedule_shape(a: &LesseeLeaseArgs) -> Result<((i64, i64, i64), i64, bool)> {
-    let Some(&(_, per_year, days, months, most)) = FREQUENCIES
-        .iter()
-        .find(|f| a.frequency.text() == Some(f.0))
+    let Some(&(_, per_year, days, months, most)) =
+        FREQUENCIES.iter().find(|f| a.frequency.text() == Some(f.0))
     else {
-        return fact_invalid("frequency must be one of weekly, fortnightly, monthly, quarterly, annual.");
+        return fact_invalid(
+            "frequency must be one of weekly, fortnightly, monthly, quarterly, annual.",
+        );
     };
     let count = match a.payments {
         Arg::Int(n) if (1..=most).contains(n) => *n,
@@ -240,8 +241,8 @@ fn liability(t: &Terms) -> i128 {
     let k = if t.advance { &den + &num } else { den.clone() };
     let growth = (&den + &num).pow(count);
     let scale = den.pow(count);
-    let worth = BigInt::from(t.payment) * k * (&growth - &scale)
-        + BigInt::from(t.residual) * &scale * &num;
+    let worth =
+        BigInt::from(t.payment) * k * (&growth - &scale) + BigInt::from(t.residual) * &scale * &num;
     let under = num * growth;
     let two = BigInt::from(2);
     let amount: BigInt = (&two * worth + &under) / (two * under);
@@ -253,7 +254,11 @@ fn liability(t: &Terms) -> i128 {
 /// the cents rounding leaves, so the liability closes on nil.
 fn rows(t: &Terms, liability: i128) -> Result<Vec<Row>> {
     let den = i128::from(t.freq.0) * 1_000_000;
-    let last = if t.advance && t.residual > 0 { t.count + 1 } else { t.count };
+    let last = if t.advance && t.residual > 0 {
+        t.count + 1
+    } else {
+        t.count
+    };
     let mut balance = liability;
     let mut out = Vec::new();
     for period in (if t.advance { 2 } else { 1 })..=last {
@@ -305,7 +310,10 @@ fn straight_line(cost: i128, start: i64, count: i64, freq: (i64, i64, i64)) -> B
     let n = i128::from(count);
     for k in 1..=count {
         let share = ratio(cost * i128::from(k), n) - ratio(cost * i128::from(k - 1), n);
-        let (from, to) = (periods_after(start, k - 1, freq), periods_after(start, k, freq));
+        let (from, to) = (
+            periods_after(start, k - 1, freq),
+            periods_after(start, k, freq),
+        );
         spread(&mut years, from, to, share);
     }
     years
@@ -315,8 +323,17 @@ fn straight_line(cost: i128, start: i64, count: i64, freq: (i64, i64, i64)) -> B
 fn interest_by_year(t: &Terms, rows: &[Row]) -> BTreeMap<i64, i128> {
     let mut years = BTreeMap::new();
     for row in rows.iter().filter(|r| r.interest != 0) {
-        let back = if t.advance { row.period - 2 } else { row.period - 1 };
-        spread(&mut years, periods_after(t.start, back, t.freq), row.date, row.interest);
+        let back = if t.advance {
+            row.period - 2
+        } else {
+            row.period - 1
+        };
+        spread(
+            &mut years,
+            periods_after(t.start, back, t.freq),
+            row.date,
+            row.interest,
+        );
     }
     years
 }
@@ -332,7 +349,12 @@ fn income_years(
     for row in rows {
         *paid.entry(year_starting(row.date)).or_default() += row.payment;
     }
-    let mut labels: Vec<i64> = depreciation.keys().chain(interest.keys()).chain(paid.keys()).copied().collect();
+    let mut labels: Vec<i64> = depreciation
+        .keys()
+        .chain(interest.keys())
+        .chain(paid.keys())
+        .copied()
+        .collect();
     labels.sort_unstable();
     labels.dedup();
     let (mut owed, mut carried) = opening;
@@ -368,7 +390,9 @@ fn journal(cost: i128, liability: i128, t: &Terms, at_start: i128) -> Vec<Value>
         json!({"entry": "Credit lease liability", "amount": text(liability)}),
     ];
     if t.restoration > 0 {
-        out.push(json!({"entry": "Credit provision for restoration", "amount": text(t.restoration)}));
+        out.push(
+            json!({"entry": "Credit provision for restoration", "amount": text(t.restoration)}),
+        );
     }
     if at_start != 0 {
         let entry = if at_start > 0 {

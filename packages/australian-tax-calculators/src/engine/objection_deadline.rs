@@ -131,9 +131,9 @@ fn original(a: &ObjectionDeadlineArgs, amended: bool, notice: i64) -> Result<Opt
             }
             Ok(Some((first, flag(before, "amended_before")?)))
         }
-        (true, _, _) => fact_invalid(
-            "An amended assessment needs original_notice_date and amended_before.",
-        ),
+        (true, _, _) => {
+            fact_invalid("An amended assessment needs original_notice_date and amended_before.")
+        }
         (false, None, None) => Ok(None),
         (false, _, _) => fact_invalid(
             "original_notice_date and amended_before apply only to an amended assessment.",
