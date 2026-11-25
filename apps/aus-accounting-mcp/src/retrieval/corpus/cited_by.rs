@@ -167,6 +167,23 @@ fn scan_index(
     Ok(())
 }
 
+/// The raw-line terms one of which every row citing `label` holds.
+fn variants(label: &str) -> Vec<String> {
+    let mut variants = vec![
+        py::casefold(label),
+        py::casefold(&label.replace('-', "\u{2011}")),
+    ];
+    // A range that spans the section holds its prefix, or at least "to" when it has none.
+    let prefix = label_key(label).0;
+    if prefix.is_empty() {
+        variants.push("to".into());
+    } else {
+        variants.push(prefix.replace('-', "\u{2011}"));
+        variants.push(prefix);
+    }
+    variants
+}
+
 pub(super) fn cited_by(context: &Context, input: &Value) -> Result<Value, String> {
     let row_id = input["row_id"].as_str().unwrap();
     let (root, row) = super::read::read_row(context, row_id)?;
@@ -177,18 +194,7 @@ pub(super) fn cited_by(context: &Context, input: &Value) -> Result<Value, String
         return Err("That row has no section number that another provision can cite.".into());
     }
     let act = act_name(string(&row, "act").unwrap_or(""));
-    let mut variants = vec![
-        py::casefold(&label),
-        py::casefold(&label.replace('-', "\u{2011}")),
-    ];
-    // A range that spans the section holds its prefix, or at least "to" when it has none.
-    let prefix = label_key(&label).0;
-    if prefix.is_empty() {
-        variants.push("to".into());
-    } else {
-        variants.push(prefix.replace('-', "\u{2011}"));
-        variants.push(prefix);
-    }
+    let variants = variants(&label);
     let target = Target {
         context,
         label: &label,
