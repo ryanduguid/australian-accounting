@@ -82,6 +82,44 @@ const DEBT_KEYS: [&str; 11] = [
     "section_245_90_agreement",
 ];
 
+/// One debt's fields, and whether the s 245-90 facts are stated; `None` when
+/// any is missing or malformed.
+fn read_debt(o: &Map<String, Value>) -> Option<(Debt, bool)> {
+    let label = o
+        .get("label")
+        .and_then(Value::as_str)
+        .filter(|l| !l.trim().is_empty())?;
+    let commercial = o.get("commercial_debt")?.as_bool()?;
+    let excluded = o.get("excluded")?.as_bool()?;
+    let debtors = match o.get("debtors") {
+        None => 1,
+        Some(v) => v.as_i64().filter(|n| (1..=100).contains(n))?,
+    };
+    let mut brought = d("0");
+    for key in [
+        "assessable_income",
+        "deductions_reduced",
+        "cost_bases_reduced",
+    ] {
+        brought = brought.add(&amount(o, key, "0")?).ok()?;
+    }
+    let agreed = match o.get("section_245_90_agreement") {
+        None => false,
+        Some(v) => v.as_bool()?,
+    };
+    o.get("value")?;
+    let debt = Debt {
+        label: label.to_string(),
+        applies: commercial && !excluded,
+        value: amount(o, "value", "0")?,
+        offset: amount(o, "amount_offset", "0")?,
+        debtors,
+        brought_to_account: brought,
+        forgone: amount(o, "forgone_by_creditor", "0")?,
+    };
+    Some((debt, agreed))
+}
+
 fn debt(v: &Value, n: usize) -> Result<Debt> {
     let wrong = |why: &str| refuse("debt_forgiveness.debt_invalid", format!("debt {n}: {why}"));
     let Some(o) = v.as_object() else {
@@ -90,72 +128,40 @@ fn debt(v: &Value, n: usize) -> Result<Debt> {
     if !o.keys().all(|k| DEBT_KEYS.contains(&k.as_str())) {
         return wrong(&format!("takes {} only.", DEBT_KEYS.join(", ")));
     }
-    let label = o
-        .get("label")
-        .and_then(Value::as_str)
-        .filter(|l| !l.trim().is_empty());
-    let commercial = o.get("commercial_debt").and_then(Value::as_bool);
-    let excluded = o.get("excluded").and_then(Value::as_bool);
-    let debtors = match o.get("debtors") {
-        None => Some(1),
-        Some(v) => v.as_i64().filter(|n| (1..=100).contains(n)),
-    };
-    let reductions = [
-        amount(o, "assessable_income", "0"),
-        amount(o, "deductions_reduced", "0"),
-        amount(o, "cost_bases_reduced", "0"),
-    ];
-    let brought = reductions
-        .into_iter()
-        .try_fold(d("0"), |sum, r| sum.add(&r?).ok());
-    let agreement = match o.get("section_245_90_agreement") {
-        None => Some(false),
-        Some(v) => v.as_bool(),
-    };
-    let read = (
-        label,
-        commercial,
-        excluded,
-        o.get("value").and_then(|_| amount(o, "value", "0")),
-        amount(o, "amount_offset", "0"),
-        debtors,
-        brought,
-        amount(o, "forgone_by_creditor", "0"),
-        agreement,
-    );
-    let (
-        Some(l),
-        Some(c),
-        Some(x),
-        Some(value),
-        Some(offset),
-        Some(debtors),
-        Some(b),
-        Some(f),
-        Some(agreed),
-    ) = read
-    else {
+    let Some((x, agreed)) = read_debt(o) else {
         return wrong(
             "needs a label, commercial_debt and excluded true or false and a value in AUD from 0; optionally amount_offset, assessable_income, deductions_reduced, cost_bases_reduced and forgone_by_creditor in AUD from 0, section_245_90_agreement true or false and debtors a whole number from 1 to 100.",
         );
     };
-    if !agreed && precise(|| Ok(f.gt(&d("0"))?))? {
+    if !agreed && precise(|| Ok(x.forgone.gt(&d("0"))?))? {
         return refuse(
             "debt_forgiveness.forgone_not_eligible",
             format!(
-                "debt {n} ({l}): forgone_by_creditor needs section_245_90_agreement true, the stated fact that debtor and creditor are companies under common ownership from when the debt was incurred until it was forgiven (s 245-90(1)), that the creditor would otherwise have a capital loss or a deduction under s 8-1 or s 25-35 of at least the agreed amount (s 245-90(2) and (3)) and that the agreement meets s 245-90(4)."
+                "debt {n} ({}): forgone_by_creditor needs section_245_90_agreement true, the stated fact that debtor and creditor are companies under common ownership from when the debt was incurred until it was forgiven (s 245-90(1)), that the creditor would otherwise have a capital loss or a deduction under s 8-1 or s 25-35 of at least the agreed amount (s 245-90(2) and (3)) and that the agreement meets s 245-90(4).",
+                x.label
             ),
         );
     }
-    Ok(Debt {
-        label: l.to_string(),
-        applies: c && !x,
-        value,
-        offset,
-        debtors,
-        brought_to_account: b,
-        forgone: f,
-    })
+    Ok(x)
+}
+
+/// An item's tag: 0 for none, the s 245-145 row for expenditure, 1 for an
+/// investment in an associate.
+fn tag_of(tag: Option<&str>, given: Option<&Value>) -> Option<i64> {
+    match (tag, given) {
+        (None, _) | (Some("associate"), None) => Some(0),
+        (Some("item"), Some(v)) => v.as_i64().filter(|n| (1..=8).contains(n)),
+        (Some("associate"), Some(Value::Bool(b))) => Some(i64::from(*b)),
+        _ => None,
+    }
+}
+
+fn tag_needs(tag: Option<&str>) -> &'static str {
+    match tag {
+        Some("item") => ", and item a whole number from 1 to 8 (the row of the table in s 245-145)",
+        Some(_) => ", and optionally associate true or false (s 245-185)",
+        None => "",
+    }
 }
 
 fn items(given: &Arg, name: &str, tag: Option<&str>) -> Result<Vec<Item>> {
@@ -180,13 +186,7 @@ fn items(given: &Arg, name: &str, tag: Option<&str>) -> Result<Vec<Item>> {
         let value = o
             .filter(|o| o.contains_key("amount"))
             .and_then(|o| amount(o, "amount", "0"));
-        let given = tag.and_then(|t| o.and_then(|o| o.get(t)));
-        let tagged = match (tag, given) {
-            (None, _) | (Some("associate"), None) => Some(0),
-            (Some("item"), Some(v)) => v.as_i64().filter(|n| (1..=8).contains(n)),
-            (Some("associate"), Some(Value::Bool(b))) => Some(i64::from(*b)),
-            _ => None,
-        };
+        let tagged = tag_of(tag, tag.and_then(|t| o.and_then(|o| o.get(t))));
         match (label, value, tagged) {
             (Some(l), Some(amount), Some(tag)) if known => out.push(Item {
                 label: l.to_string(),
@@ -194,16 +194,10 @@ fn items(given: &Arg, name: &str, tag: Option<&str>) -> Result<Vec<Item>> {
                 tag,
             }),
             _ => {
-                let extra = match tag {
-                    Some("item") => {
-                        ", and item a whole number from 1 to 8 (the row of the table in s 245-145)"
-                    }
-                    Some(_) => ", and optionally associate true or false (s 245-185)",
-                    None => "",
-                };
                 return wrong(format!(
-                    "entry {}: needs a label and an amount in AUD from 0{extra}, and nothing else.",
-                    i + 1
+                    "entry {}: needs a label and an amount in AUD from 0{}, and nothing else.",
+                    i + 1,
+                    tag_needs(tag)
                 ));
             }
         }
@@ -374,35 +368,8 @@ const CLASSES: [(&str, &str); 4] = [
 /// Division 245 for one debtor and one forgiveness income year.
 pub fn debt_forgiveness(a: &DebtForgivenessArgs) -> Result<Value> {
     let year = scope(a.scope_confirmed, a.year, KIND)?;
-    if flag(a.partnership, "partnership")? {
-        return refuse(
-            "debt_forgiveness.partnership",
-            "A partnership's unapplied net forgiven amount passes to its partners (Subdivision 245-F), which this worksheet does not apply.",
-        );
-    }
-    if flag(a.attributable_income, "attributable_income")? {
-        return refuse(
-            "debt_forgiveness.attributable_income",
-            "Subdivision 245-E does not apply in working out the attributable income of a non-resident trust estate or a CFC (s 245-100).",
-        );
-    }
-    let Arg::Json(Value::Array(list)) = a.debts else {
-        return refuse(
-            "debt_forgiveness.debt_invalid",
-            format!("debts must be a list of 1 to {MOST} objects."),
-        );
-    };
-    if list.is_empty() || list.len() > MOST {
-        return refuse(
-            "debt_forgiveness.debt_invalid",
-            format!("debts must be a list of 1 to {MOST} objects."),
-        );
-    }
-    let debts = list
-        .iter()
-        .enumerate()
-        .map(|(i, v)| debt(v, i + 1))
-        .collect::<Result<Vec<_>>>()?;
+    refused_cases(a)?;
+    let debts = debts(a.debts)?;
     let losses = items(a.tax_losses, "tax_losses", None)?;
     let capital = items(a.net_capital_losses, "net_capital_losses", None)?;
     let spend = items(a.expenditures, "expenditures", Some("item"))?;
@@ -421,32 +388,7 @@ pub fn debt_forgiveness(a: &DebtForgivenessArgs) -> Result<Value> {
         ordered,
     ];
     precise(|| {
-        let shares: Vec<&Decimal> = worked.iter().map(|w| &w.1).collect();
-        let brought: Vec<&Decimal> = debts.iter().map(|x| &x.brought_to_account).collect();
-        let forgone: Vec<&Decimal> = debts.iter().map(|x| &x.forgone).collect();
-        let nets: Vec<&Decimal> = worked.iter().map(|w| &w.2).collect();
-        let mut steps = vec![
-            sum_step(
-                "gross_forgiven_amount",
-                "ss 245-75 and 245-77: each debt's value less the amount offset, nil if not more, shared equally between the debtors (in cents, half up), nil where Division 245 does not apply (ss 245-10 and 245-40)",
-                &shares,
-            )?,
-            sum_step(
-                "brought_to_account",
-                "s 245-85(1): amounts included in assessable income, deductions reduced and cost bases reduced by other provisions because of the forgiveness",
-                &brought,
-            )?,
-            sum_step(
-                "forgone_by_creditors",
-                "s 245-90: capital losses and deductions creditors under common ownership agreed to forgo",
-                &forgone,
-            )?,
-            sum_step(
-                "total_net_forgiven_amount",
-                "ss 245-85(2), 245-90 and 245-105(1): the debts' net forgiven amounts, each nil rather than negative",
-                &nets,
-            )?,
-        ];
+        let mut steps = totals(&debts, &worked)?;
         let mut applied = Vec::with_capacity(4);
         let mut earlier = Vec::with_capacity(3);
         for ((id, authority), class) in CLASSES.iter().zip(&classes) {
@@ -455,21 +397,7 @@ pub fn debt_forgiveness(a: &DebtForgivenessArgs) -> Result<Value> {
             applied.push(each);
             earlier.push(*id);
         }
-        let mut formula = String::from("total_net_forgiven_amount");
-        let mut operands = vec![&steps[3].value];
-        let mut left = steps[3].value.clone();
-        for s in &steps[4..] {
-            formula.push_str(&format!(" - {}", s.id));
-            operands.push(&s.value);
-            left = left.sub(&s.value)?;
-        }
-        let unapplied = step(
-            "unapplied_net_forgiven_amount",
-            "s 245-195(1): any part left after the 4 reductions is disregarded",
-            &formula,
-            &operands,
-            left,
-        );
+        let unapplied = unapplied(&steps)?;
         steps.push(unapplied);
         let mut out = derived_result(KIND, &year, steps, vec![])?;
         out["debts"] = debt_rows(&debts, &worked)?;
@@ -479,4 +407,86 @@ pub fn debt_forgiveness(a: &DebtForgivenessArgs) -> Result<Value> {
         out["cost_bases"] = item_rows(&classes[3], &applied[3], Some("associate"))?;
         Ok(out)
     })
+}
+
+/// Subdivision 245-F and s 245-100 cases, which the worksheet does not apply.
+fn refused_cases(a: &DebtForgivenessArgs) -> Result<()> {
+    if flag(a.partnership, "partnership")? {
+        return refuse(
+            "debt_forgiveness.partnership",
+            "A partnership's unapplied net forgiven amount passes to its partners (Subdivision 245-F), which this worksheet does not apply.",
+        );
+    }
+    if flag(a.attributable_income, "attributable_income")? {
+        return refuse(
+            "debt_forgiveness.attributable_income",
+            "Subdivision 245-E does not apply in working out the attributable income of a non-resident trust estate or a CFC (s 245-100).",
+        );
+    }
+    Ok(())
+}
+
+fn debts(given: &Arg) -> Result<Vec<Debt>> {
+    let list = match given {
+        Arg::Json(Value::Array(list)) if (1..=MOST).contains(&list.len()) => list,
+        _ => {
+            return refuse(
+                "debt_forgiveness.debt_invalid",
+                format!("debts must be a list of 1 to {MOST} objects."),
+            );
+        }
+    };
+    list.iter()
+        .enumerate()
+        .map(|(i, v)| debt(v, i + 1))
+        .collect()
+}
+
+/// The gross, brought to account, forgone and net totals over the debts.
+fn totals(debts: &[Debt], worked: &[(Decimal, Decimal, Decimal)]) -> Calc<Vec<Step>> {
+    let shares: Vec<&Decimal> = worked.iter().map(|w| &w.1).collect();
+    let brought: Vec<&Decimal> = debts.iter().map(|x| &x.brought_to_account).collect();
+    let forgone: Vec<&Decimal> = debts.iter().map(|x| &x.forgone).collect();
+    let nets: Vec<&Decimal> = worked.iter().map(|w| &w.2).collect();
+    Ok(vec![
+        sum_step(
+            "gross_forgiven_amount",
+            "ss 245-75 and 245-77: each debt's value less the amount offset, nil if not more, shared equally between the debtors (in cents, half up), nil where Division 245 does not apply (ss 245-10 and 245-40)",
+            &shares,
+        )?,
+        sum_step(
+            "brought_to_account",
+            "s 245-85(1): amounts included in assessable income, deductions reduced and cost bases reduced by other provisions because of the forgiveness",
+            &brought,
+        )?,
+        sum_step(
+            "forgone_by_creditors",
+            "s 245-90: capital losses and deductions creditors under common ownership agreed to forgo",
+            &forgone,
+        )?,
+        sum_step(
+            "total_net_forgiven_amount",
+            "ss 245-85(2), 245-90 and 245-105(1): the debts' net forgiven amounts, each nil rather than negative",
+            &nets,
+        )?,
+    ])
+}
+
+/// What is left after the 4 reductions (s 245-195(1)).
+fn unapplied(steps: &[Step]) -> Calc<Step> {
+    let mut formula = String::from("total_net_forgiven_amount");
+    let mut operands = vec![&steps[3].value];
+    let mut left = steps[3].value.clone();
+    for s in &steps[4..] {
+        formula.push_str(&format!(" - {}", s.id));
+        operands.push(&s.value);
+        left = left.sub(&s.value)?;
+    }
+    Ok(step(
+        "unapplied_net_forgiven_amount",
+        "s 245-195(1): any part left after the 4 reductions is disregarded",
+        &formula,
+        &operands,
+        left,
+    ))
 }
