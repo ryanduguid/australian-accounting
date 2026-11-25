@@ -99,21 +99,24 @@ fn count(given: &Arg, name: &str) -> Result<i64> {
 }
 
 fn facts(given: &Arg) -> Result<()> {
-    let Arg::Json(Value::Object(fields)) = given else {
-        return refuse(
-            "ftb_part_a.facts_invalid",
-            "facts must be an object of booleans.",
-        );
+    let missing = match given {
+        Arg::Json(Value::Object(fields)) => stated::unstated(fields, &FACTS, FACTS.len())?,
+        _ => {
+            return refuse(
+                "ftb_part_a.facts_invalid",
+                "facts must be an object of booleans.",
+            );
+        }
     };
-    match stated::unstated(fields, &FACTS, FACTS.len())? {
-        None => Ok(()),
-        Some(missing) => refuse(
+    if let Some(missing) = missing {
+        return refuse(
             "ftb_part_a.facts_not_stated",
             format!(
                 "Not computed: the worksheet covers only the stated case; not stated: {missing}."
             ),
-        ),
+        );
     }
+    Ok(())
 }
 
 struct Rates {
