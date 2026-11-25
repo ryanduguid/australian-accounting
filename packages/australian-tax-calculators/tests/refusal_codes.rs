@@ -66,6 +66,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/gst_corrections",
         "engine/payroll_tax",
         "engine/payroll_tax/group",
+        "engine/payroll_tax/monthly",
         "engine/tourist_refund",
         "engine/non_resident_withholding",
         "engine/residential_vacancy_fee",
@@ -192,7 +193,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // etp-tax-free-component, fbt-meal-entertainment-register,
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
-    // payroll-tax-group,
+    // payroll-tax-group, payroll-tax-monthly,
     // fuel-tax-credits, alcohol-excise, dasp-tax, aml-cdd-review, ppsr-timing, cgt-parcels,
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
@@ -221,7 +222,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
     // gst-food-retailer-sam.
-    assert_eq!(checked, 134);
+    assert_eq!(checked, 135);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

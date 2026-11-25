@@ -510,6 +510,21 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "payroll-tax-monthly",
+        &[
+            ("jurisdiction", Raw),
+            ("month", Raw),
+            ("taxable_wages", Dec),
+            ("interstate_wages", Dec),
+            ("estimated_taxable_wages", Dec),
+            ("estimated_interstate_wages", Dec),
+            ("group_member", Raw),
+            ("employed_all_year", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "land-tax",
         &[
             ("jurisdiction", Raw),
@@ -1771,7 +1786,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 98] = [
+const DERIVED: [&str; 99] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1848,6 +1863,7 @@ const DERIVED: [&str; 98] = [
     "etp-tax-free-component",
     "payroll-tax",
     "payroll-tax-group",
+    "payroll-tax-monthly",
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
@@ -2390,6 +2406,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "super-withholding"
             | "payroll-tax"
             | "payroll-tax-group"
+            | "payroll-tax-monthly"
             | "land-tax"
             | "workers-compensation-premium"
             | "motor-vehicle-duty"
@@ -2910,8 +2927,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             })
         }
         "payroll-tax" => {
-            // Optional: whether a Victorian employer is a regional employer.
+            // Optional: whether a Victorian employer is a regional employer,
+            // and the year's periodic returns for the annual reconciliation.
             let regional = optional(v, "regional_employer", Raw)?;
+            let periodic_tax = optional(v, "periodic_tax", Dec)?;
+            let periodic_levy = optional(v, "periodic_levy", Dec)?;
             engine::payroll_tax(&engine::PayrollTaxArgs {
                 jurisdiction: &a[0],
                 taxable_wages: &a[1],
@@ -2919,6 +2939,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 regional_employer: regional.as_ref(),
                 group_member: &a[3],
                 employed_all_year: &a[4],
+                periodic_tax: periodic_tax.as_ref(),
+                periodic_levy: periodic_levy.as_ref(),
                 year: &a[5],
                 scope_confirmed: &a[6],
             })
@@ -2950,6 +2972,25 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 employed_all_year: &a[3],
                 year: &a[4],
                 scope_confirmed: &a[5],
+            })
+        }
+        "payroll-tax-monthly" => {
+            // Optional: each jurisdiction's own facts.
+            let o = |key, kind| optional(v, key, kind);
+            engine::payroll_tax_monthly(&engine::PayrollTaxMonthlyArgs {
+                jurisdiction: &a[0],
+                month: &a[1],
+                taxable_wages: &a[2],
+                interstate_wages: &a[3],
+                estimated_taxable_wages: &a[4],
+                estimated_interstate_wages: &a[5],
+                regional_employer: o("regional_employer", Raw)?.as_ref(),
+                previous_interstate_wage_payer: o("previous_interstate_wage_payer", Raw)?.as_ref(),
+                stated_deduction: o("stated_deduction", Dec)?.as_ref(),
+                group_member: &a[6],
+                employed_all_year: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
             })
         }
         "workers-compensation-premium" => {
