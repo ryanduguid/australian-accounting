@@ -1435,6 +1435,9 @@ def cited_by(row_id: str, limit: int, in_force_only: bool = True) -> dict[str, A
     register_id, act = row.get("register_id"), _act_name(_string(row, "act") or "")
     # A title may print the label with U+2011; the raw line holds it either way.
     variants = [label.casefold(), label.replace("-", "\u2011").casefold()]
+    # A range that spans the section holds its prefix, or at least "to" when it has none.
+    prefix = _label_key(label)[0]
+    variants += [prefix, prefix.replace("-", "\u2011")] if prefix else ["to"]
     found: list[tuple[int, int, dict[str, Any]]] = []
     for path in _within_bounds(_index_files(root)):
         try:
