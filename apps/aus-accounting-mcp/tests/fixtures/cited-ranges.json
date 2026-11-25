@@ -1,0 +1,54 @@
+{
+  "about": "Shared by tests/test_citing_provisions.py and src/retrieval/tests/edges.rs: each case writes the sections below plus its citing provisions into one synthetic title, and its elsewhere provisions into a second title, then asks find_citing_provisions which provisions cite each listed section.",
+  "register_id": "C9999A00001",
+  "act": "Synthetic Levy Act 2099",
+  "other_register_id": "C9999A00009",
+  "other_act": "Synthetic Other Act 2099",
+  "sections": ["5-5", "5-10", "5-12", "5-12A", "5-12AA", "5-12b", "5-15", "5-15A", "5-20",
+               "5-١٢", "6-10", "9-0", "9-01", "9-2", "9-3"],
+  "cases": [
+    {
+      "name": "single section",
+      "citing": {"7": "Section 5-10 applies."},
+      "cited_by": {"5-5": [], "5-10": ["7"], "5-15": []}
+    },
+    {
+      "name": "range",
+      "citing": {"7": "See sections 5-5 to 5-15."},
+      "cited_by": {"5-5": ["7"], "5-10": ["7"], "5-12A": ["7"], "5-15": ["7"],
+                   "5-15A": [], "5-20": [], "5-١٢": []}
+    },
+    {
+      "name": "range by suffix, case and leading zeros",
+      "citing": {"7": "See sections 5-12A to 5-12C and sections 9-0 to 9-2."},
+      "cited_by": {"5-12": [], "5-12A": ["7"], "5-12AA": ["7"], "5-12b": ["7"], "5-15": [],
+                   "9-0": ["7"], "9-01": ["7"], "9-2": ["7"], "9-3": []}
+    },
+    {
+      "name": "list",
+      "citing": {"7": "See sections 5-5, 5-10 and 5-15."},
+      "cited_by": {"5-5": ["7"], "5-10": ["7"], "5-12A": [], "5-15": ["7"]}
+    },
+    {
+      "name": "range whose first section is also cited alone",
+      "citing": {"7": "See sections 5-5 to 5-15.", "8": "Section 5-5 applies."},
+      "cited_by": {"5-5": ["7", "8"], "5-10": ["7"], "5-15": ["7"], "5-20": []}
+    },
+    {
+      "name": "range across Divisions lists only its ends",
+      "citing": {"7": "See sections 5-15 to 6-10."},
+      "cited_by": {"5-15": ["7"], "5-20": [], "6-10": ["7"]}
+    },
+    {
+      "name": "range in another title",
+      "citing": {"7": "See sections 5-5 to 5-15 of the Synthetic Other Act 2099."},
+      "cited_by": {"5-5": [], "5-10": [], "5-15": []}
+    },
+    {
+      "name": "range from another title naming this one",
+      "citing": {},
+      "elsewhere": {"3": "See sections 5-5 to 5-15 of the Synthetic Levy Act 2099."},
+      "cited_by": {"5-5": ["3"], "5-10": ["3"], "5-15": ["3"], "5-15A": [], "9-2": []}
+    }
+  ]
+}

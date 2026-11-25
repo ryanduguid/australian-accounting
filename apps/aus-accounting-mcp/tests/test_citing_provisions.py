@@ -9,6 +9,8 @@ enters this repository.
 """
 
 import asyncio
+import json
+from pathlib import Path
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -21,6 +23,8 @@ from synthetic_corpus import LEVY_ACT, section
 SCHEMAS = {tool.name: tool.output_schema for tool in asyncio.run(mcp.list_tools())}
 OTHER_ACT = "Synthetic Other Act 2099"
 TARGET = "C9999A00001:0002:5-10"
+RANGES = json.loads((Path(__file__).parent / "fixtures" / "cited-ranges.json")
+                    .read_text(encoding="utf-8"))
 
 
 def call(name, **arguments):
@@ -120,6 +124,7 @@ def test_a_term_defined_only_in_a_superseded_compilation_is_not_defined_in_force
     ("Apply section 5-10 in Part 2.", True),
     ("See sections 5-5, 5-10 and 5-15.", True),
     ("See section 5-5 or 5-10.", True),
+    ("See sections 5-5 to 5-15.", True),
     # A further digit, here U+0663, makes it another section.
     ("The rate in section 5-10٣ applies.", False),
     ("The rate in section 5-10 of the Schedule applies.", False),
@@ -138,6 +143,29 @@ def test_ordinary_forms_are_read_and_a_title_it_cannot_name_is_not(corpus, wordi
     result = call("find_citing_provisions", row_id=TARGET)
 
     assert [entry["section"] for entry in result["cited_by"]] == (["5-15"] if cited else [])
+
+
+@pytest.mark.parametrize("case", RANGES["cases"], ids=lambda case: case["name"])
+def test_ranges_and_lists_follow_the_shared_case_table(corpus, case):
+    register_id, act = RANGES["register_id"], RANGES["act"]
+    labels = RANGES["sections"] + list(case["citing"])
+    texts = {**{label: "Rate." for label in RANGES["sections"]}, **case["citing"]}
+    row_ids = {label: f"{register_id}:{n:04}:{label}" for n, label in enumerate(labels, 1)}
+    synthetic_corpus.write(
+        corpus / "markdown" / register_id / "sections.jsonl",
+        [section(register_id, f"{n:04}", label, texts[label], act=act)
+         for n, label in enumerate(labels, 1)],
+    )
+    other = RANGES["other_register_id"]
+    synthetic_corpus.write(
+        corpus / "markdown" / other / "sections.jsonl",
+        [section(other, f"{n:04}", label, text, act=RANGES["other_act"])
+         for n, (label, text) in enumerate(case.get("elsewhere", {}).items(), 1)],
+    )
+
+    for cited, expected in case["cited_by"].items():
+        result = call("find_citing_provisions", row_id=row_ids[cited])
+        assert [entry["section"] for entry in result["cited_by"]] == expected, cited
 
 
 @pytest.mark.parametrize("cited", ["C9999A00001:0002:2", "C9999A00001:0003:6"])
@@ -181,7 +209,7 @@ def test_citations_follow_the_title_they_name(citing):
             for entry in result["cited_by"]] == [
         ("C9999A00001", "5-15", ["subsection 5-10(2)"]),
         ("C9999A00001", "5-20", ["s 5‑10"]),
-        ("C9999A00001", "5-30", ["section 5-10 of this Act"]),
+        ("C9999A00001", "5-30", ["sections 5-5 to 5-15", "section 5-10 of this Act"]),
         ("C9999A00009", "3", ["section 5-10 of the Synthetic Levy Act 2099"]),
     ]
     # The paragraph holding the citation, not the whole provision.

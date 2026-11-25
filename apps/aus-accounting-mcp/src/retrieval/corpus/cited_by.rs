@@ -13,6 +13,8 @@ static LABEL_ONLY: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("SECT
 static LABEL_SEARCH: LazyLock<Regex> =
     LazyLock::new(|| Regex::python(&format!("({})", policy("SECTION_LABEL"))));
 static SUBSECTIONS: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("SUBSECTIONS")));
+static CITED_RANGE: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("CITED_RANGE")));
+static LABEL_PARTS: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("LABEL_PARTS")));
 static OTHER_TITLE: LazyLock<Regex> = LazyLock::new(|| Regex::python(policy("OTHER_TITLE")));
 static CITATION: LazyLock<Regex> = LazyLock::new(|| {
     let prefix = concat!(
@@ -48,11 +50,32 @@ fn char_to_byte(text: &str, char_index: usize) -> usize {
         .map_or(text.len(), |(byte, _)| byte)
 }
 
+/// A label's prefix, then its last number's length, digits and suffix, for ordering.
+fn label_key(label: &str) -> (String, usize, String, String) {
+    let parts = LABEL_PARTS.captures(&py::casefold(label)).unwrap();
+    let group = |i| parts.group(i).unwrap_or_default();
+    let digits = group(2);
+    (group(1), digits.chars().count(), digits, group(3))
+}
+
+/// Whether a citation's labels name `wanted`, alone or within a range of one Division.
 fn labels_contain(labels: &str, wanted: &str) -> bool {
     let stripped = SUBSECTIONS.sub(" ", labels);
     let found = std::cell::Cell::new(false);
     LABEL_SEARCH.sub_with(&stripped, |item| {
         if item.group(1).as_deref() == Some(wanted) {
+            found.set(true);
+        }
+        String::new()
+    });
+    if found.get() {
+        return true;
+    }
+    let key = label_key(wanted);
+    CITED_RANGE.sub_with(&stripped, |pair| {
+        let start = label_key(&pair.group(1).unwrap());
+        let end = label_key(&pair.group(2).unwrap());
+        if start.0 == key.0 && end.0 == key.0 && start <= key && key <= end {
             found.set(true);
         }
         String::new()
@@ -144,6 +167,23 @@ fn scan_index(
     Ok(())
 }
 
+/// The raw-line terms one of which every row citing `label` holds.
+fn variants(label: &str) -> Vec<String> {
+    let mut variants = vec![
+        py::casefold(label),
+        py::casefold(&label.replace('-', "\u{2011}")),
+    ];
+    // A range that spans the section holds its prefix, or at least "to" when it has none.
+    let prefix = label_key(label).0;
+    if prefix.is_empty() {
+        variants.push("to".into());
+    } else {
+        variants.push(prefix.replace('-', "\u{2011}"));
+        variants.push(prefix);
+    }
+    variants
+}
+
 pub(super) fn cited_by(context: &Context, input: &Value) -> Result<Value, String> {
     let row_id = input["row_id"].as_str().unwrap();
     let (root, row) = super::read::read_row(context, row_id)?;
@@ -154,10 +194,7 @@ pub(super) fn cited_by(context: &Context, input: &Value) -> Result<Value, String
         return Err("That row has no section number that another provision can cite.".into());
     }
     let act = act_name(string(&row, "act").unwrap_or(""));
-    let variants = [
-        py::casefold(&label),
-        py::casefold(&label.replace('-', "\u{2011}")),
-    ];
+    let variants = variants(&label);
     let target = Target {
         context,
         label: &label,
