@@ -415,6 +415,29 @@ fn a_nil_remaining_term_is_refused_by_the_local_engine_not_divided() {
 }
 
 #[test]
+fn a_year_not_starting_on_1_july_is_refused_locally_and_never_sent() {
+    // The local year of income runs 1 July to 30 June; a substituted
+    // accounting period, or a start date belonging to another year, is
+    // outside its scope.
+    for start in ["2025-11-01", "2024-07-01", "2025-06-30"] {
+        let stub = Stub::start();
+        let mut case = case("D7A-1-met-first-real-year");
+        case.income_year_start_date = start.to_owned();
+        let (verdict, values, reasons) = trial::run_local(&case).expect("the local side runs");
+        assert_eq!(verdict, "REFUSED", "{start}");
+        assert!(values.is_empty());
+        assert!(
+            mentions(&reasons, "is not 1 July of 2025-26 (2025-07-01)"),
+            "{start}"
+        );
+        let comparison = with_client(&stub, |client| trial::evaluate(&case, Some(client)))
+            .expect("a comparison");
+        assert_eq!(comparison.evaluation, Evaluation::LocalRefused);
+        assert_eq!(stub.request_count(), 0);
+    }
+}
+
+#[test]
 fn a_matching_provider_answer_is_a_match() {
     let stub = Stub::start();
     let case = case("D7A-1-met-first-real-year");

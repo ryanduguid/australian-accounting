@@ -285,6 +285,25 @@ pub fn run_local(case: &Case) -> R<(String, Money, Vec<S>)> {
             .map_err(|m| Exc::msg("div7aloan.years.YearError", &m))
     };
     let year = year_of(label)?;
+    // The local year of income runs 1 July to 30 June; a substituted
+    // accounting period is outside its scope, so another start is refused
+    // rather than compared as if it were the mapped year.
+    if case.income_year_start_date != year.starts_on() {
+        return Ok((
+            "REFUSED".into(),
+            Money::new(),
+            vec![p!(
+                "income_year_start_date ",
+                case.income_year_start_date,
+                " is not 1 July of ",
+                label,
+                " (",
+                year.starts_on(),
+                "). The local engine's year of income runs from 1 July to 30 June; a \
+                 substituted accounting period is outside its scope, so nothing is compared."
+            )],
+        ));
+    }
     let made = year_of(&origination_year_label(case)?)?;
     // The s 109N gate is supplied as COMPLYING on the case's own asserted
     // facts: the scope alignment, never a conclusion the provider handed over.
