@@ -278,7 +278,7 @@ entry must reach `main` in its own pull request first.
 `joined-fixtures.yml` checks the close-to-forecast, quarter and WIP-to-cash examples
 on pull requests, pushes to `main` and manual runs, on Linux and Windows.
 It uses this repository's proposed
-checkout with full commit pins for Accounting Review Pipeline and au-fpa-pack.
+checkout with full commit pins for Accounting Review Pipeline and OzFPA.
 Update companion pins deliberately when adopting compatible changes.
 
 `readme-quick-start.yml` follows the root README's "Try one contribution" in an empty
