@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-148 calculation worksheets for established facts; the sections below document
+152 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -240,6 +240,10 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `non-commercial-losses` | `activity`, `assessable_income`, `deductions`, `brought_forward`, `part_year`, `earlier_years`, `real_property_value`, `other_assets_value`, `taxable_income`, `business_losses`, `assessable_fhss_released_amount`, `reportable_fringe_benefits`, `reportable_super_contributions`, `total_net_investment_loss`, `net_exempt_income`, `year`, `scope_confirmed`; `assessable_income_estimate` for a part year and `other_income` for an excepted activity; see [Non-commercial losses](#non-commercial-losses) |
 | `minors-income` | `taxable_income`, `residency`, `under_18_on_30_june`, `excepted_person`, `excepted_income`, `trust_shares`, `other_assessable_income`, `deductions_exclusive`, `deductions_related`, `apportionable_deductions`, `special_income_component`, `year`, `scope_confirmed`; `full_time_occupation` or `dependent_on_relatives` for some grounds; see [Minors income](#minors-income) |
 | `first-home-owner-grant` | `jurisdiction`, `contract_date`, `home`, `total_value`, `facts`, `year`, `scope_confirmed`; in Western Australia, `north_of_26th`; in Queensland and Western Australia, optionally `cap_value`; for a home built, optionally `contract_price`; see [First home owner grant](#first-home-owner-grant) |
+| `salary-dividend` | `profit`, `base_rate_entity`, `salary`, `other_taxable_income`, `year`, `scope_confirmed`; see [Salary against dividends](#salary-against-dividends) |
+| `sole-trader-set-aside` | `business_income`, `business_expenses`, `wages`, `other_deductions`, `personal_super_deducted`, `small_business_offset`, `study_loan`, `hospital_cover`, `gst_registered`, `gst_credits`, `invoice`, `year`, `scope_confirmed`; see [Sole trader set-aside](#sole-trader-set-aside) |
+| `salary-packaging` | `residency`, `employer`, `salary`, `type_two_benefits`, `type_one_benefits`, `meal_entertainment`, `meal_entertainment_type_one`, `study_loan`, `hospital_cover`, `year`, `scope_confirmed`; see [Salary packaging](#salary-packaging) |
+| `novated-lease` | `residency`, `salary`, `study_loan`, `hospital_cover`, `car`, `first_used`, `commitment`, `first_sale_year`, `cost_price`, `other_lct_supply`, `lct_timing`, `one_third_reduction`, `days_available`, `costs_with_gst`, `costs_without_gst`, `year`, `scope_confirmed`; see [Novated lease](#novated-lease) |
 | `psi-test` | `earner`, `mainly_personal_efforts`, `determination_in_force`, `payers`, `agent`, `principal_work_by_others`, `apprentice`, `premises`, `year`, `scope_confirmed`; `commission` and `principal_payments` for an agent; see [PSI test](#psi-test) |
 | `payg-instalment` | `method`, `year`, `scope_confirmed`; then `notified_amount` for `amount`; `instalment_number`, `estimated_tax`, `earlier_instalments` and `credits_entitled` for `varied_amount`; `instalment_income` and `instalment_rate` for `rate`; `instalment_income`, `previous_rate`, `estimated_tax`, `estimated_instalment_income`, `earlier_instalments`, `credits_claimed` and `earlier_instalment_income` for `varied_rate`; see [PAYG instalments](#payg-instalments) |
 | `pcg-2021-4` | `gateway_1`, `gateway_2`, `factor_3`, `year`, `scope_confirmed`; `recipients`, or `entitlement`, `returned` and `tax`; with `factor_3`, `benchmark` (and `remuneration` beside the totals) unless the IPP returns all of it; see [PCG 2021/4](#pcg-20214) |
@@ -4392,6 +4396,83 @@ value, tested in place of `total_value` (Qld s 5(8), WA s 14AC(3)). A home
 bought for $20,000 and valued at $100,000 in Queensland gets $20,000.
 The tests hold it to the site page's 26 cases; see
 [calculation evidence](docs/calculation-evidence.md#first-home-owner-grant).
+
+## Salary against dividends
+
+`salary_dividend` compares, for one company owner and an income year from
+2024-25 to 2026-27, a salary with fully franked dividends of the rest of the
+company's profit, as the site's salary and dividends page does. The company
+pays the salary, its super guarantee (the year's rate on the salary up to the
+year's maximum contribution base for a year's earnings paid evenly: SGAA 1992
+s 17A(2) and the annual base of s 10A(5) from 2026-27, 4 quarterly bases
+before), company tax at 25% for a base rate entity or 30%, and the rest as a
+dividend whose franking credit is the maximum at the same rate, rounded down
+to the cent (ITAA 1997 s 202-60). The owner, a single full-year resident with
+hospital cover, includes the credit and gets an equal offset (s 207-20); the
+owner's tax is `resident-tax`, `low-income-tax-offset` and `medicare-levy` on
+taxable income in whole dollars after the 2026-27 standard deduction on the
+salary, less the tax on the other taxable income alone. Super keeps the super
+guarantee less 15% contributions tax and `division-293`'s tax. The amounts end
+with the totals kept with all salary and all dividends and the salary that
+keeps the most (`best_salary`, `best_kept`), ranked unrounded between the
+taxable incomes where the tax changes slope, as the page ranks them. A salary
+whose super guarantee the profit cannot pay is refused
+(`salary_dividend.salary_too_large`). Years before 2024-25, which the page
+covers, are refused: the individual tax worksheets hold no earlier year.
+
+## Sole trader set-aside
+
+`sole_trader_set_aside` works out what a single full-year resident sole trader
+sets aside from one income year's business income, as the site's sole trader
+page does: the income tax, Medicare levy, surcharge without hospital cover and
+study loan repayment that the profit adds to any wages, after the small
+business income tax offset (16% of the profit up to taxable income over
+taxable income times the basic income tax liability, at most $1,000, ITAA 1997
+s 328-360, applied after the low income tax offset), and the GST on the income
+less GST credits when registered. The business's tax is the year's total less
+the total on the wages and other deductions alone. The set-aside is also given
+as a share of each invoice with GST and per quarter, month and 52 weeks, with
+`payg_instalments_likely` and `gst_registration_required` against the ATO's
+$4,000 and $1,000 instalment entry figures and the $75,000 GST threshold. A
+loss, a GST refund and credits without registration are refused. Years before
+2024-25 are refused, and a study loan in 2024-25 as `study-loan-repayment`
+holds 2025-26 on.
+
+## Salary packaging
+
+`salary_packaging` works out one employee's salary packaging with an employer
+FBTAA s 57A exempts, for the FBT year ending 31 March in an income year from
+2024-25 to 2026-27, as the site's salary packaging page does: the Type 1 and
+Type 2 taxable values grossed up by s 5B(1F) and (1G) and rounded half up to
+the dollar, less the $30,000 cap of a public benevolent institution or health
+promotion charity or the $17,000 cap of a hospital or ambulance service, less
+up to $5,000 of grossed-up meal entertainment (s 5B(1E)), at the 47% FBT rate;
+the reportable fringe benefits amount over $2,000 (s 135Q); and the tax before
+and after, with the standard deduction from 2026-27 for a resident. The
+gross-ups use the Act's formulas, as `fbt` does, not the ATO's 4-place
+2.0802 and 1.8868. Both give the guide's example at 6.10 ($7,700 Type 1,
+$9,000 Type 2 and $3,300 Type 2 meal entertainment for a health promotion
+charity: $16,018, $23,208 and FBT of $1,986.22), but $15,900.21 of Type 2
+benefits is $30,000.40 by the formula and $30,000.62 at 1.8868, so the
+page's case of a cent more than $15,900.20 is within the cap here. A foreign
+resident's study loan is refused, as `personal-tax-estimate` refuses it.
+
+## Novated lease
+
+`novated_lease` compares a car under a novated lease with paying the same
+costs from after-tax pay, for the FBT year ending 31 March in an income year
+from 2024-25 to 2026-27, as the site's novated lease page does. FBTAA s 8A
+decides the treatment from the stated facts: an exempt car's costs, net of the
+employer's GST credit, all come from pre-tax salary and its statutory formula
+value is reportable (s 135P(3)); any other car uses the employee contribution
+method, the after-tax contribution equal to the taxable value (s 9), with ten
+elevenths of it meeting the costs. `exempt_case` and `contribution_case` give
+each way's pre-tax and after-tax amounts, reportable amount, tax and saving,
+`null` where the way does not apply. A cost price above the fuel-efficient
+luxury car tax threshold of the year of first retail sale is taken to show
+luxury car tax on that sale; `lct_timing` says whether luxury car tax first
+became payable before or after all the year's benefits where that decides
+s 8A(1)(c). The tax is `salary-packaging`'s.
 
 ## PSI test
 

@@ -6531,6 +6531,15 @@ mod prepayments;
 pub use prepayments::{PrepaymentsArgs, prepayments};
 mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
+mod individual_owed;
+mod salary_dividend;
+pub use salary_dividend::{SalaryDividendArgs, salary_dividend};
+mod sole_trader_set_aside;
+pub use sole_trader_set_aside::{SoleTraderSetAsideArgs, sole_trader_set_aside};
+mod salary_packaging;
+pub use salary_packaging::{SalaryPackagingArgs, salary_packaging};
+mod novated_lease;
+pub use novated_lease::{NovatedLeaseArgs, novated_lease};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod first_home_owner_grant;
@@ -6627,7 +6636,7 @@ pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation}
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
 
-const KINDS: [&str; 148] = [
+const KINDS: [&str; 152] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6727,6 +6736,10 @@ const KINDS: [&str; 148] = [
     "small_business_income_offset",
     "non_commercial_losses",
     "psi_test",
+    "salary_dividend",
+    "sole_trader_set_aside",
+    "salary_packaging",
+    "novated_lease",
     "pcg_2021_4",
     "government_super_amounts",
     "rental_property",

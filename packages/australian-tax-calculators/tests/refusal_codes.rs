@@ -220,8 +220,9 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
-    // gst-food-retailer-sam.
-    assert_eq!(checked, 134);
+    // gst-food-retailer-sam, salary-dividend, sole-trader-set-aside,
+    // salary-packaging and novated-lease.
+    assert_eq!(checked, 138);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -19,6 +19,7 @@
     "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities.",
     "`deferred-revenue` (AASB 15) schedules revenue and the contract liability from a stated pattern of progress; it does not decide when a performance obligation is satisfied.",
     "`wip-lockup` ages a firm's unbilled WIP and gives WIP, receivable and lock-up days as Ozzit's WIPDays and ReceivableDays define them; lock-up is a management measure, not an accounting result.",
-    "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow."
+    "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow.",
+    "`salary-dividend`, `sole-trader-set-aside`, `salary-packaging` and `novated-lease` mirror the site's pages for 2024-25 to 2026-27: comparisons of stated facts, not advice; FBT gross-ups use FBTAA s 5B's formulas."
   ]
 }

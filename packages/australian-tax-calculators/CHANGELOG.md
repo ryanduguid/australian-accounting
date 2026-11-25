@@ -1,5 +1,23 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `salary-dividend`, `sole-trader-set-aside`, `salary-packaging` and
+  `novated-lease` mirror the site's salary and dividends, sole trader,
+  salary packaging and novated lease pages for 2024-25 to 2026-27, composing
+  the individual tax parts from `resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `medicare-levy-surcharge` and `study-loan-repayment`.
+  `salary-packaging` grosses up by FBTAA s 5B(1F) and (1G)'s formulas, not the
+  ATO's 4-place rates. New codes: `salary_dividend.salary_too_large`,
+  `sole_trader_set_aside.business_loss`, `credits_unregistered`,
+  `deductions_exceed_income`, `gst_refund`, `salary_packaging.employer_invalid`,
+  `packaged_exceeds_salary`, `residency_invalid`, `novated_lease.car_invalid`,
+  `contribution_short`, `cost_price_nil`, `costs_exceed_salary`,
+  `first_used_late`, `hybrid_commitment`, `lct_timing_invalid`,
+  `residency_invalid` and `sale_year_invalid`.
+
 ## 1.4.0
 
 ### Added

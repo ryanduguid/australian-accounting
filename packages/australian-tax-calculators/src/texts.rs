@@ -431,6 +431,22 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The first home owner grant in one of the 8 states and territories for a new home bought or built under a contract made from 1 July 2025 to 22 November 2026: the amount on the contract date, the value cap and the lesser-of-consideration rule each Act sets, from 4 eligibility facts the operator states and does not have tested; no grant for an established home except a Northern Territory contract from 1 July to 30 September 2025. Owner-builders, substantially renovated homes, exemptions, the Commissioner's discretions, transfer duty and other home buyer schemes are outside it.",
     ),
     (
+        "salary_dividend",
+        "One company owner who is a full-year Australian resident individual, single, with private patient hospital cover all year, no study loan and no other concessional contributions, and one company that pays out its whole profit for an income year from 2024-25 to 2026-27: a salary and its super guarantee at the year's general rate on the salary up to the year's maximum contribution base for a full year of earnings paid evenly (SGAA 1992 ss 12(2), 17A(2) and 10A(5); 4 quarterly bases before 1 July 2026), company tax at 25% for a base rate entity or 30% (Income Tax Rates Act 1986 s 23) on the profit left, and the rest as a fully franked dividend whose franking credit is the maximum at the same rate (ITAA 1997 s 202-60), included in the owner's assessable income with an equal tax offset (s 207-20). Whether the company is a base rate entity, and its corporate tax rate for imputation purposes, are the operator's stated fact, taken as one rate. The owner's tax is resident-tax, low-income-tax-offset and medicare-levy on taxable income in whole dollars, less the $1,000 standard deduction on the salary from 2026-27 (s 25-130), compared with the tax on the other taxable income alone. Super keeps the super guarantee less 15% contributions tax (Rates Act s 26(1)(a)) and division-293's tax. Also gives the totals kept with all salary, all dividends and the salary to the dollar that keeps the most, ranked as the site's salary and dividends page ranks them; super counts at its value after tax though it is preserved, and the low income super tax offset is not counted. Payroll tax, workers compensation, Division 7A, the company's other income and retained profits are outside it.",
+    ),
+    (
+        "sole_trader_set_aside",
+        "One full-year Australian resident individual, single, carrying on a business as a sole trader with a profit for an income year from 2024-25 to 2026-27: business income and expenses exclusive of GST, wages from a job, other deductions that are not the business's (such as tax agent fees and gifts) and personal super contributions claimed as a deduction, each established by the operator, with taxable income their net in whole dollars less the standard deduction on the wages from 2026-27 (ITAA 1997 s 25-130). Whether the business qualifies for the small business income tax offset is the operator's stated fact; the offset is 16% of the net small business income (the profit in whole dollars, s 328-365) up to taxable income over taxable income times the basic income tax liability, at most $1,000 (s 328-360), applied after the low income tax offset and never below nil. The tax parts are resident-tax, low-income-tax-offset, medicare-levy, medicare-levy-surcharge for a person without hospital cover all year, and study-loan-repayment from 2025-26, the deducted contributions being reportable super contributions. The business's tax is the year's total less the total on the wages and other deductions alone, which takes the wages as withheld from as though they were the only income. A GST-registered business adds 10% of its income less its GST credits. The set-aside is that tax and GST, also as a share of each invoice with GST and per quarter, month and 52 weeks. A business loss, a GST refund, a partnership or trust, non-commercial losses, PAYG instalments paid and the study loan for 2024-25 are outside it.",
+    ),
+    (
+        "salary_packaging",
+        "One employee of an employer whose benefits FBTAA s 57A exempts, a registered public benevolent institution or health promotion charity (the $30,000 cap of s 5B(1E) step 3) or a public or not-for-profit hospital or public ambulance service (the $17,000 cap of step 2), as the operator states, with the benefits packaged in the FBT year ending 31 March in an income year from 2024-25 to 2026-27 taken as paid from that year's whole-dollar salary. The Type 1 and Type 2 taxable values, meal entertainment in the group the operator states, are each grossed up by the formulas of s 5B(1F) and (1G) at the 47% FBT rate and 10% GST rate and rounded half up to the dollar; the cap comes off, then up to $5,000 of grossed-up salary packaged meal entertainment (step 4), and FBT is 47% of what is left. The reportable fringe benefits amount is the total taxable value over 0.53 with the cents dropped, when that value is more than $2,000 (s 135Q). The employee is single, a full-year Australian resident or foreign resident, and the tax with and without the packaging is resident-tax or foreign-resident-tax, low-income-tax-offset, medicare-levy, medicare-levy-surcharge and study-loan-repayment, all the salary being labour income for the standard deduction from 2026-27 (ITAA 1997 s 25-130). The gain is the tax saved less the FBT, which an employer usually recovers from the package. Rebatable employers, s 58 employers, other benefits from other employers and a foreign resident's study loan are outside it.",
+    ),
+    (
+        "novated_lease",
+        "One employee's car under a novated lease for the FBT year ending 31 March in an income year from 2024-25 to 2026-27, against paying the same car costs from after-tax pay. The car's kind (battery electric, hydrogen fuel cell, plug-in hybrid or other), first use, cost price, year of first retail sale, any other taxable supply or importation for luxury car tax and when luxury car tax first became payable against the benefits, a plug-in hybrid's financially binding commitment, the days available for private use and the year's costs are the operator's stated facts. FBTAA s 8A exempts a battery electric or hydrogen fuel cell car, or a plug-in hybrid only under the ATO's transitional treatment, first held and used from 1 July 2022 with no luxury car tax payable before the benefits; a cost price above the fuel-efficient luxury car tax threshold of the year of first retail sale is taken to show luxury car tax on that sale. An exempt car's costs come from pre-tax salary and its statutory formula value (s 9: the cost price, two-thirds of it from the s 9(2)(c) date, x 20% x private-use days / days in the year) is reportable (s 135P(3)); any other car uses the employee contribution method, the employee paying the taxable value from after-tax pay, of which ten elevenths meets the costs, and the rest from pre-tax salary. Costs with GST are taken net of the employer's credit of one eleventh. The tax is worked as salary-packaging works it for a single full-year resident or foreign resident. The operating cost method, FBT left after a contribution, residual values and lease terms are outside it.",
+    ),
+    (
         "psi_test",
         "Whether the personal services income rules (ITAA 1997 Part 2-42) apply to one individual's personal services income for an income year from 2020-21 to 2026-27, from the operator's answers: whether the income is mainly a reward for personal efforts or skills, who receives it, a determination in force, each payer with its associates and what it paid for, the principal work by others, an apprentice and the business premises; s 87-40 is not applied to an agent on 75% or more commission, Australian government agencies are entered as s 87-35 treats them, and whether the Commissioner would make a determination is not decided.",
     ),
@@ -997,6 +1013,22 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "first_home_owner_grant",
         "https://www.revenue.nsw.gov.au/grants-schemes/first-home-owner-new-homes-grant",
+    ),
+    (
+        "salary_dividend",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/207-20",
+    ),
+    (
+        "sole_trader_set_aside",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/328-360",
+    ),
+    (
+        "salary_packaging",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/5B",
+    ),
+    (
+        "novated_lease",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/8A",
     ),
     (
         "psi_test",
@@ -2539,6 +2571,45 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "salary_dividend",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/202-60",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19920111/10A",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19920111/17A",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860107/23",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860107/26",
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+        ],
+    ),
+    (
+        "sole_trader_set_aside",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/328-365",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/25-130",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/payg-instalments/starting-payg-instalments",
+        ],
+    ),
+    (
+        "salary_packaging",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/57A",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/135Q",
+            "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00007",
+        ],
+    ),
+    (
+        "novated_lease",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/9",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/135P",
+            "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/fbt-on-plug-in-hybrid-electric-vehicles",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
+        ],
+    ),
+    (
         "psi_test",
         &[
             "https://www.legislation.gov.au/C2004A05138/2020-07-01/2020-07-01/text/original/epub/OEBPS/document_3/document_3.html",
@@ -2961,6 +3032,30 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "first_home_owner_grant",
         &[
             "The grant is paid only on an application the revenue office or an approved agent decides; confirm it with them before relying on it. The New South Wales rules rest on Revenue NSW's page: the Act could not be read on 23 November 2026.",
+        ],
+    ),
+    (
+        "salary_dividend",
+        &[
+            "The split that keeps the most is a comparison of the stated facts, not advice: super stays in the fund until retirement, and Division 7A, payroll tax, the company's own franking account and other owners are not considered.",
+        ],
+    ),
+    (
+        "sole_trader_set_aside",
+        &[
+            "The set-aside is an estimate for cash planning: the year's assessment, PAYG instalments and the GST on each activity statement are what is payable. payg_instalments_likely and gst_registration_required compare the year's figures with the ATO's entry and registration thresholds only.",
+        ],
+    ),
+    (
+        "salary_packaging",
+        &[
+            "The grossed-up amounts use the formulas of FBTAA s 5B(1F) and (1G), not the 4-place 2.0802 and 1.8868 the ATO's guide multiplies by, so a grossed-up amount can be a dollar less than the guide's working gives. The gain is before any administration fee the employer charges.",
+        ],
+    ),
+    (
+        "novated_lease",
+        &[
+            "The comparison takes the year's costs as stated and assumes the employer recovers no FBT; the exemption and the luxury car tax timing are the operator's facts, and a lease's residual and term are not considered.",
         ],
     ),
     (
@@ -5125,7 +5220,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5658,6 +5753,42 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The notice day does not fall in the year given.",
     ),
     (
+        "novated_lease.car_invalid",
+        "car is not bev, fcev, phev or other.",
+    ),
+    (
+        "novated_lease.contribution_short",
+        "A car not exempt costs less in the year than its taxable value, so an after-tax contribution cannot cover the value.",
+    ),
+    (
+        "novated_lease.cost_price_nil",
+        "The car's cost price is nil.",
+    ),
+    (
+        "novated_lease.costs_exceed_salary",
+        "The car's costs are more than the salary.",
+    ),
+    (
+        "novated_lease.first_used_late",
+        "The car was first held and used after the FBT year ended.",
+    ),
+    (
+        "novated_lease.hybrid_commitment",
+        "A plug-in hybrid under the earlier exemption was first used, or first sold, too late for it.",
+    ),
+    (
+        "novated_lease.lct_timing_invalid",
+        "The luxury car tax timing is missing, unknown where the year needs one treatment, or contradicts the year of first retail sale.",
+    ),
+    (
+        "novated_lease.residency_invalid",
+        "residency is not resident or foreign_resident.",
+    ),
+    (
+        "novated_lease.sale_year_invalid",
+        "first_sale_year is not an income year from 2021-22 to 2026-27.",
+    ),
+    (
         "payg.extra_pays_not_weekly_or_fortnightly",
         "Additional withholding for 53 or 27 pays was asked for on a pay that is not weekly or fortnightly.",
     ),
@@ -6123,6 +6254,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "application_fee_waiver is not none, full or partial, or full was given for a developer exemption certificate.",
     ),
     (
+        "salary_dividend.salary_too_large",
+        "The salary and its super guarantee are more than the profit.",
+    ),
+    (
+        "salary_packaging.employer_invalid",
+        "employer is not charity or hospital.",
+    ),
+    (
+        "salary_packaging.packaged_exceeds_salary",
+        "The benefits packaged are more than the salary.",
+    ),
+    (
+        "salary_packaging.residency_invalid",
+        "residency is not resident or foreign_resident.",
+    ),
+    (
         "sb_cgt_concessions.active_period_unclear",
         "The asset was owned for more than 15 years and its active days, 2,737 to 2,740, may or may not be 7.5 years.",
     ),
@@ -6201,6 +6348,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "smsf_tax.proportion_invalid",
         "exempt_proportion is not a decimal from 0 to 1.",
+    ),
+    (
+        "sole_trader_set_aside.business_loss",
+        "Business expenses are more than business income: a loss is not worked out.",
+    ),
+    (
+        "sole_trader_set_aside.credits_unregistered",
+        "GST credits were given for a business not registered for GST.",
+    ),
+    (
+        "sole_trader_set_aside.deductions_exceed_income",
+        "Other deductions and deducted super contributions are more than the profit and wages less any standard deduction.",
+    ),
+    (
+        "sole_trader_set_aside.gst_refund",
+        "GST credits are more than the GST on the business income: a refund is not worked out.",
     ),
     (
         "super_benefit_tax.benefit_nil",
