@@ -20,6 +20,6 @@
     "`deferred-revenue` (AASB 15) schedules revenue and the contract liability from a stated pattern of progress; it does not decide when a performance obligation is satisfied.",
     "`wip-lockup` ages a firm's unbilled WIP and gives WIP, receivable and lock-up days as Ozzit's WIPDays and ReceivableDays define them; lock-up is a management measure, not an accounting result.",
     "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow.",
-    "`payroll-tax-monthly` works one monthly return from each Act's monthly provisions and the employer's stated estimates for the year; `payroll-tax` with `periodic_tax` reconciles the year against the returns."
+    "`payroll-tax-monthly` works one monthly return from each Act's monthly provisions and the employer's stated estimates for the year; `payroll-tax`, given the tax paid on those returns, reconciles the year against them."
   ]
 }
