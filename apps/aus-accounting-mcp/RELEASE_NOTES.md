@@ -1,17 +1,39 @@
-# Unreleased
+# v0.13.0
 
 ## Added
 
 - `find_citing_provisions` lists the provisions in the configured corpus whose text
   cites one section by number, within its own title or by the title's full name.
   An empty list is not proof that nothing cites the section.
+- `itr_label` looks up the paper question and label or the myTax heading for domestic
+  employee union fees in 2025-26, leaving an unmapped item or year open
+  ([#830](https://github.com/ryanduguid/australian-accounting/pull/830)).
 
 ## Changed
 
+- `calculate_tax_worksheet` runs the `australian-tax-calculators` 1.4.0 executable
+  (released on 25 November 2026) and serves the 148 worksheet kinds in its catalogue,
+  where 0.12.0 served 102. The additions span
+  [1.3.0](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.3.0)
+  (140 kinds) and
+  [1.4.0](https://github.com/ryanduguid/australian-accounting/releases/tag/australian-tax-calculators/v1.4.0)
+  (148 kinds, including simplified food-retailer GST methods, GST error correction and
+  credit time limits, AML/CTF Tranche 2 due diligence, the residential vacancy fee,
+  portable LSL levies, non-resident PAYG withholding and AASB 15 deferred revenue). The
+  server accepts only the verified x86_64 Linux or Windows executable from 1.4.0, or a
+  source build whose SHA-256 is given in `AUS_TAX_CALCULATORS_SHA256`, so install 1.4.0
+  in place of 1.2.0
+  ([#895](https://github.com/ryanduguid/australian-accounting/pull/895),
+  [#902](https://github.com/ryanduguid/australian-accounting/pull/902)).
 - `define_tax_term` says whether the term itself was found: `defined` is false when
   no entry for it was, with `nearest_terms`, the longer defined expressions holding
   every word of it, and `defined_note`, which says false is not a finding that the
   expression is undefined.
+- The Claude Desktop bundle carries the 1.4.0 calculator executable for x86-64 Linux
+  and Windows.
+- The published engine pins are unchanged: `payday-super-checker` 0.2.3,
+  `ato-benchmark-compare` 0.2.2, `div7a-loan-review` 0.3.2, `gst-review` 0.1.0 and
+  `lodgment-calendar` 0.2.0.
 
 # v0.12.0
 
