@@ -1448,9 +1448,13 @@ November 2026:
   concession is refused for 2025.
 - Interpretation of Legislation Act 1984 (Vic), authorised version 134: s 44(1)
   (a period expressed to begin on a day leaves that day out) and s 44(6)(a)
-  (midnight is the point at which the day ends). The transition period therefore
-  ends on the tenth anniversary of the entry date; an entry on 31 December, whose
-  period ends at the midnight that fixes liability, is refused.
+  (midnight is the point at which the day ends). Under the corresponding-date
+  reading, the transition period ends on the tenth anniversary of the entry
+  date (`2026-02-28` ends on `2036-02-28`; `29 February` clamps to `28 February`
+  in a non-leap year); an entry on 31 December, whose period ends at the
+  midnight that fixes liability, is refused. On 25 November 2026,
+  `content.legislation.vic.gov.au` `robots.txt` disallowed automated fetch of
+  the authorised version 134 PDF and DOCX.
 - Commercial and Industrial Property Tax Reform Act 2024 (Vic), authorised
   version 004: ss 2 (commencement 1 July 2024), 3 ('CIPT taxable land',
   'transition period' of 10 years from the entry date), 7, 17, 19 (1%; 0.5% for
@@ -1474,6 +1478,7 @@ November 2026:
 | Titles up $300,000 and $150,000 and down $50,000 | $450,000 taxable, $218,750.00 | ss 9, 16(3) |
 | Entry 1 July 2024 and 1 August 2034 | earliest possible tax years 2035 and 2045, nil in 2025 and 2026 | SRO; s 3 |
 | Entry 1 January 2025 | period ends 1 January 2035, earliest possible tax year 2036 | s 3; ILA s 44(1) |
+| Entry 28 February 2026 | period ends 28 February 2036, earliest possible tax year 2037 | s 3; ILA s 44(1)/(6) |
 | Entry 31 December 2024 | refused: the period ends at the midnight that fixes liability | s 3; ILA s 44(6)(a) |
 | Uplifts of $50,000 and $50,001 on 2 titles | $100,001 taxable, $0.63 | ss 9, 16(1) |
 | Vacant home at $800,000: no, 1 and 2 liable years | $8,000, $16,000, $24,000 | s 35(3)(b) |
