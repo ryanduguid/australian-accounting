@@ -75,6 +75,13 @@ fn section_path(context: &Context, id: &str) -> Result<(PathBuf, PathBuf), Strin
     Ok((root, path))
 }
 
+pub(super) fn read_row(context: &Context, id: &str) -> Result<(PathBuf, Value), String> {
+    let (root, path) = section_path(context, id)?;
+    let (found, _, _) = around(&path, id, 0)?;
+    let found = found.ok_or("No section with that row_id in the configured corpus.")?;
+    Ok((root, found))
+}
+
 type AgreedRows = (Value, Vec<Value>, Vec<Value>, Option<Value>);
 
 fn agreed_rows(

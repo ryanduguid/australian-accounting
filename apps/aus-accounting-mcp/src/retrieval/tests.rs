@@ -254,6 +254,7 @@ fn replay_corpus_call(tree: &Path, item: &Value, blobs: &Value, function: &str, 
         "search_sections" => "search_tax_legislation",
         "read_section" => "read_tax_legislation_section",
         "define_term" => "define_tax_term",
+        "cited_by" => "find_citing_provisions",
         "search_rates" => "search_tax_rates",
         other => panic!("Unknown corpus function {other}"),
     };
@@ -307,7 +308,7 @@ fn frozen_corpus_contracts() {
         replay_corpus(&tree.0, item, &fixture["blobs"]);
         count += 1;
     }
-    assert_eq!(count, 659);
+    assert_eq!(count, 688);
 }
 
 #[test]

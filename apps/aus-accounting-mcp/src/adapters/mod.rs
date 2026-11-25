@@ -15,7 +15,35 @@ pub(crate) mod tax;
 
 use serde_json::{Value, json};
 
+const PAYDAY_TOOLS: &[&str] = &[
+    "calc_payday_super_deadline",
+    "review_payday_super_contributions",
+    "build_payday_super_evidence_pack",
+];
+
+const RETRIEVAL_TOOLS: &[&str] = &[
+    "read_accounting_library",
+    "search_accounting_library",
+    "search_tax_legislation",
+    "read_tax_legislation_section",
+    "define_tax_term",
+    "find_citing_provisions",
+    "search_tax_rates",
+    "search_ato_rulings",
+    "read_ato_ruling",
+];
+
 pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
+    if PAYDAY_TOOLS.contains(&name) {
+        return payday::evaluate(name, input);
+    }
+    if RETRIEVAL_TOOLS.contains(&name) {
+        return crate::retrieval::evaluate(name, input);
+    }
+    evaluate_domain(name, input)
+}
+
+fn evaluate_domain(name: &str, input: &Value) -> Result<Value, String> {
     match name {
         "refuse_div7a" => Ok(json!({"ok":false,"available":false,"reviewed_engine":true,
             "code":"ERR_POLICY_DIV7A_SCOPE_REFUSED",
@@ -37,17 +65,6 @@ pub fn evaluate(name: &str, input: &Value) -> Result<Value, String> {
         "review_gst_coding" => gst::coding(input),
         "reconcile_bas" => gst::bas(input),
         "generate_synthetic_sbr_fixture" => synthetic::generate(input),
-        "calc_payday_super_deadline"
-        | "review_payday_super_contributions"
-        | "build_payday_super_evidence_pack" => payday::evaluate(name, input),
-        "read_accounting_library"
-        | "search_accounting_library"
-        | "search_tax_legislation"
-        | "read_tax_legislation_section"
-        | "define_tax_term"
-        | "search_tax_rates"
-        | "search_ato_rulings"
-        | "read_ato_ruling" => crate::retrieval::evaluate(name, input),
         _ => Err(format!(
             "{name}: native migration is incomplete; use the existing Python server"
         )),

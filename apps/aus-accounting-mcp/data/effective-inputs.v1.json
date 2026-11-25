@@ -3138,6 +3138,50 @@
       }
     }
   },
+  "find_citing_provisions": {
+    "type": "model",
+    "name": "find_citing_provisionsArguments",
+    "config": {
+      "title": "find_citing_provisionsArguments"
+    },
+    "schema": {
+      "type": "model-fields",
+      "fields": {
+        "row_id": {
+          "type": "model-field",
+          "schema": {
+            "type": "str",
+            "min_length": 1,
+            "max_length": 300
+          }
+        },
+        "limit": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": 20,
+            "schema": {
+              "type": "int",
+              "strict": true,
+              "ge": 1,
+              "le": 50
+            }
+          }
+        },
+        "in_force_only": {
+          "type": "model-field",
+          "schema": {
+            "type": "default",
+            "default": true,
+            "schema": {
+              "type": "bool",
+              "strict": true
+            }
+          }
+        }
+      }
+    }
+  },
   "search_tax_rates": {
     "type": "model",
     "name": "search_tax_ratesArguments",
