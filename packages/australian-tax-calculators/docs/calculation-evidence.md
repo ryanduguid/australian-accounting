@@ -5770,7 +5770,7 @@ held by `luxury-car-tax`) and 'FBT on plug-in hybrid electric vehicles'. The
 command follows the site's novated lease page (`assets/novated-lease.mjs`)
 step for step, with the tax from `salary-packaging`'s composition.
 `tests/owner_pay_mirrors.rs` runs the page's 13 cases: the cases from 2024-25
-agree on every figure and on whether the car is exempt; the 2023-24 cases are
+agree on every figure and on whether the car is exempt; the 2023-24 case is
 refused.
 
 ## PSI test
