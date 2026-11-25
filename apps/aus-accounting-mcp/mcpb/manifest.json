@@ -3,8 +3,8 @@
   "name": "aus-accounting-mcp",
   "display_name": "Aus Accounting MCP",
   "version": "0.12.0",
-  "description": "Reviews, 140 bounded tax and super worksheets, cited retrieval from your local Markdown. Not advice.",
-  "long_description": "Australian accounting tools that run on your machine: ATO small business benchmarks, Payday Super and Division 7A reviews, 140 bounded tax and super worksheets, GST and BAS checks, lodgment due dates, reviewed ATO rates and cited search of folders you choose. The server makes no network calls once installed, but Claude still sends tool arguments and results to its model provider, so use fabricated data.\n\nThe bundle includes the pinned australian-tax-calculators executable for x86-64 Linux and Windows. On other platforms, build the matching calculators from source as described in the server release notes and make them available to Claude Desktop. Without a usable calculator, the tax worksheets give an install message and the other tools work.\n\nNot tax, legal or financial advice. Results need human review before consequential accounting action. See the [disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).",
+  "description": "Reviews, 148 bounded tax and super worksheets, cited retrieval from your local Markdown. Not advice.",
+  "long_description": "Australian accounting tools that run on your machine: ATO small business benchmarks, Payday Super and Division 7A reviews, 148 bounded tax and super worksheets, GST and BAS checks, lodgment due dates, reviewed ATO rates and cited search of folders you choose. The server makes no network calls once installed, but Claude still sends tool arguments and results to its model provider, so use fabricated data.\n\nThe bundle includes the pinned australian-tax-calculators executable for x86-64 Linux and Windows. On other platforms, build the matching calculators from source as described in the server release notes and make them available to Claude Desktop. Without a usable calculator, the tax worksheets give an install message and the other tools work.\n\nNot tax, legal or financial advice. Results need human review before consequential accounting action. See the [disclaimer](https://github.com/ryanduguid/australian-accounting/blob/main/apps/aus-accounting-mcp/DISCLAIMER.md).",
   "author": {
     "name": "Ryan Duguid",
     "url": "https://github.com/ryanduguid"
@@ -35,7 +35,7 @@
     { "name": "calc_payday_super_deadline", "description": "Review timing for one super contribution." },
     { "name": "review_payday_super_contributions", "description": "Review related contributions together for one employer." },
     { "name": "build_payday_super_evidence_pack", "description": "Return 4 review files in memory for a practitioner's workpaper." },
-    { "name": "calculate_tax_worksheet", "description": "Calculate one of 140 worksheets with established scope and period." },
+    { "name": "calculate_tax_worksheet", "description": "Calculate one of 148 worksheets with established scope and period." },
     { "name": "get_div7a_benchmark_rate", "description": "Get a reviewed Division 7A benchmark rate, or UNKNOWN." },
     { "name": "review_div7a_loan", "description": "Review s 109N terms and s 109E minimum yearly repayments for one loan." },
     { "name": "refuse_div7a", "description": "Explain unsupported Division 7A matters." },

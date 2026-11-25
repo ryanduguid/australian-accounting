@@ -1,6 +1,6 @@
 # Australian tax calculators
 
-Australian Tax Calculators 1.3.0 is a standalone Rust binary with a JSON
+Australian Tax Calculators 1.4.0 is a standalone Rust binary with a JSON
 stdin interface. It replaces the Python `austaxcalc` import API. The MCP
 server through 0.9.0 used the 0.2.0 Python package from PyPI. Later versions
 run the calculator executable and require the exact version they were
@@ -48,7 +48,7 @@ install` does not install this binary.
 ## Install
 
 These commands install 1.2.0, the release the published MCP server 0.12.0
-accepts. For 1.3.0, give the tag `australian-tax-calculators/v1.3.0` instead.
+accepts. For 1.3.0, give the tag `australian-tax-calculators/v1.3.0` instead; to use 1.4.0 from this source tree, follow Build and check above.
 
 Each `australian-tax-calculators/v*` release on GitHub Releases carries the
 executable for x86_64 Linux (static, musl) and x86_64 Windows, built and
@@ -100,7 +100,7 @@ echo '{"amount": "1100.00", "gst_inclusive": true, "scope_confirmed": true, "yea
 ```
 
 ```json
-{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.3.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
+{"ok":true,"engine":"australian-tax-calculators","engine_version":"1.4.0","calculation":"gst","period":"2025-26","amounts":{"gst":"100.00","exclusive":"1000.00","inclusive":"1100.00"},"rates":{"gst_rate":"0.10"},"scope":"One ordinary taxable supply at 10%, already classified by the operator. Excludes mixed supplies, exemptions, margin schemes, adjustments, tax invoice rounding across line items, input-credit entitlement and BAS preparation.","sources":["https://smallbusiness.taxsuperandyou.gov.au/goods-and-services-tax/fast-facts"],"source_checked":"2026-09-10","warnings":["Operator-confirmed facts and scope; eligibility is not independently verified.","Worksheet only, not advice, an assessment or a lodgment. Obtain human review."]}
 ```
 
 Amounts come back as quoted decimal strings rather than numbers, so an amount

@@ -1,3 +1,32 @@
+# v1.4.0
+
+The standalone calculator now serves 148 worksheet kinds, up from 140 in
+1.3.0. New commands cover food retailers' simplified GST accounting
+methods (`gst-food-retailer-sam`), GST error correction and input tax
+credit time limits (`gst-error-correction` and `gst-credit-time-limit`),
+AML/CTF Tranche 2 customer due diligence (`aml-cdd-review`), the federal
+annual vacancy fee (`residential-vacancy-fee`), portable long service leave
+levies across Coal LSL and state and territory schemes
+(`portable-lsl-levy`), non-resident PAYG withholding under Subdivisions
+12-F, 12-H and 12-FB (`non-resident-withholding`) and AASB 15 deferred
+revenue schedules (`deferred-revenue`).
+
+`motor-vehicle-duty`, `insurance-duty` and `vic-property-taxes` now attach
+quoted primary-source passages (`source_quotes`). `vic-property-taxes`
+ends the 10-year commercial and industrial property tax transition period on
+the entry date's corresponding tenth anniversary, and `long-service-leave`
+narrows the Tasmanian transition refusal to leave taken with 15 years of
+service complete before 1 July 2012 alongside updated site parity fixtures.
+
+See [CHANGELOG.md](CHANGELOG.md) for each command's scope, sources and
+refusal codes.
+
+GitHub Releases provides attested x86-64 Linux (static musl) and Windows
+executables. Other platforms can build from source. The command
+`australian-tax-calculators --version` prints
+`australian-tax-calculators 1.4.0`. See [README.md](README.md) for
+installation and verification.
+
 # v1.3.0
 
 The standalone calculator now serves 140 worksheet kinds, up from 102 in
