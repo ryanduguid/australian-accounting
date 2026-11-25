@@ -1,6 +1,6 @@
 # GitHub discovery metadata
 
-Description: Australian tax calculators: 140 bounded worksheets for GST, income tax, CGT, FBT and fringe benefit values, depreciation, super guarantee, PAYG withholding, super caps and pension minimums, study loans, the Medicare levy and surcharge, tax offsets, Division 293 and 296 tax, termination payments and the income tests, each stating its own scope, exclusions and sources. Review aid, not advice.
+Description: Australian tax calculators: 148 bounded worksheets for GST, income tax, CGT, FBT and fringe benefit values, depreciation, super guarantee, PAYG withholding, super caps and pension minimums, study loans, the Medicare levy and surcharge, tax offsets, Division 293 and 296 tax, termination payments and the income tests, each stating its own scope, exclusions and sources. Review aid, not advice.
 
 Homepage: https://github.com/ryanduguid/australian-accounting/tree/main/packages/australian-tax-calculators
 

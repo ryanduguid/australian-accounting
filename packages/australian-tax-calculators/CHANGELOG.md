@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased
+## 1.4.0
 
 ### Added
 
@@ -16,7 +16,7 @@
   `method_not_in_force`, `new_business_unsettled`,
   `not_eligible`, `retailer_type_invalid`, `sample_invalid`,
   `stock_role_invalid`, `tax_period_invalid`, `tax_period_spans_halves` and
-  `total_nil`.
+  `total_nil`. `derive` takes it.
 - `gst-error-correction` tests whether an earlier GST error may be corrected
   in a later return under F2023L01284 ss 4, 6 and 7, with the debit error time
   and value limits by current GST turnover and excluding TAA 1953 Sch 1
@@ -74,7 +74,7 @@
   `residential_vacancy_fee.partial_waiver_unsupported`,
   `residential_vacancy_fee.pre_2024_waiver_boundary_unsettled` and
   `residential_vacancy_fee.waiver_invalid`. `tests/residential_vacancy_fee.rs`
-  holds it to the ATO's and Treasury's examples.
+  holds it to the ATO's and Treasury's examples. `derive` takes it.
 - `portable-lsl-levy` works out portable long service leave levies for the
   national black coal mining industry scheme (Coal LSL, mirroring
   `tools/coal-lsl-levy` under s 3B of the Payroll Levy Collection Act 1992 and
@@ -96,7 +96,7 @@
   `portable_lsl_levy.scheme_invalid`, `portable_lsl_levy.scheme_unavailable`
   and `portable_lsl_levy.scheme_year_unsupported`. `tests/portable_lsl_levy.rs`
   holds Coal LSL to the site parity vectors and checks all 19 state and
-  territory schemes.
+  territory schemes. `derive` takes it.
 - `non-resident-withholding` works out PAYG withholding on monetary payments
   to foreign residents for 2024-25 to 2026-27 under TAA 1953 Schedule 1
   Subdivision 12-F (dividends, interest and royalties, with franked amounts,
@@ -118,6 +118,22 @@
   `non_resident_withholding.variation_rate_invalid`.
   `tests/non_resident_withholding.rs` verifies every statutory rate, rounding
   boundary and refusal code.
+- `deferred-revenue` schedules, for 2020-21 to 2026-27, the revenue
+  recognised and the contract asset, contract liability and receivable
+  balances at each stated period end for one performance obligation over time
+  under AASB 15 (daily straight-line, whole-month straight-line or stated
+  milestones under paras 39, 40, 105 to 108, B14, B15 and B18), refusing
+  variable consideration, significant financing components and changed
+  estimates (para 43; AASB 108 paras 36 to 38). New codes:
+  `deferred_revenue.amount_invalid`, `consideration_invalid`, `dates_invalid`,
+  `estimate_changed`, `financing_component`, `milestones_invalid`,
+  `month_boundary`, `pattern_invalid`, `period_ends_invalid` and
+  `variable_consideration`. `tests/deferred_revenue.rs` checks D1 to D7 and
+  every boundary and refusal.
+- `source_quotes`: `motor-vehicle-duty`, `insurance-duty` and
+  `vic-property-taxes` now return verbatim primary-source rate, scale and
+  grant or tax passages in each result and in `worksheet-catalogue`
+  (`data/source-quotes.json`, `tests/source_quotes.rs`).
 
 ### Fixed
 
@@ -126,6 +142,12 @@
   Interpretation of Legislation Act 1984 (Vic) ss 44(1) and 44(6)(a), so an
   entry on 28 February 2026 ends on 28 February 2036 (`29 February` clamps to
   `28 February` in a non-leap year).
+- `long-service-leave`: narrows the Tasmanian transition refusal under Long
+  Service Leave Act 1976 (Tas) Schedule 3 cl 2(4) and old s 8(2)(a) to leave
+  taken where 15 years of service were complete before 1 July 2012, and updates
+  the `long-service-leave`, `workers-compensation-premium` and `transfer-duty`
+  site parity fixtures and evidence notes against the site's `main` at
+  `e0cdd7f51`.
 
 ## 1.3.0
 

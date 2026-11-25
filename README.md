@@ -191,7 +191,7 @@ The tools list ATO benchmark industries, compare supplied expense buckets,
 review Payday Super timing, look up reviewed Division 7A rates, review an
 operator-supplied Division 7A loan, refuse unsupported Division 7A matters and
 generate synthetic CTR/BAS fixtures. They also assess related Payday contributions,
-build a Payday Super evidence pack, calculate 140 bounded tax and super worksheets,
+build a Payday Super evidence pack, calculate 148 bounded tax and super worksheets,
 review GST coding, reconcile BAS figures with the ledger, list lodgment due dates,
 test ABN and ACN check digits, report data freshness and retrieve cited excerpts
 from a local Markdown library, legislation corpus or ATO rulings corpus.
