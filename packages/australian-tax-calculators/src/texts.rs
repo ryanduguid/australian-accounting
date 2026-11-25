@@ -2654,7 +2654,9 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
     ),
     (
         "debt_forgiveness",
-        &["https://www.ato.gov.au/forms-and-instructions/company-tax-return-2022-instructions/appendixes/appendix-1-commercial-debt-forgiveness"],
+        &[
+            "https://www.ato.gov.au/forms-and-instructions/company-tax-return-2022-instructions/appendixes/appendix-1-commercial-debt-forgiveness",
+        ],
     ),
     (
         "impairment_test",

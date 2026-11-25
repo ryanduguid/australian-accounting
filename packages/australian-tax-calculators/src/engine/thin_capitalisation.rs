@@ -20,8 +20,8 @@ mod carry;
 use serde_json::{Map, Value, json};
 
 use super::{
-    Arg, Result, Step, d, derived_result, flag, money, precise, rate, refuse, scope,
-    signed_money, step,
+    Arg, Result, Step, d, derived_result, flag, money, precise, rate, refuse, scope, signed_money,
+    step,
 };
 use crate::decimal::{Calc, Decimal, Rounding};
 
@@ -317,9 +317,9 @@ fn assets_ratio(a: &ThinCapitalisationArgs, outward: bool) -> Result<Option<Deci
         (true, Some(aus), Some(all)) if all.gt(&d("0"))? && !all.lt(&aus)? => {
             Ok(Some(precise(|| Ok(aus.div(&all)?))?))
         }
-        (true, Some(_), Some(_)) => {
-            fact("average_total_assets must be above nil and not less than average_australian_assets.")
-        }
+        (true, Some(_), Some(_)) => fact(
+            "average_total_assets must be above nil and not less than average_australian_assets.",
+        ),
         (true, _, _) => refuse(
             "thin_capitalisation.input_missing",
             "average_australian_assets and average_total_assets are needed for an outward investor (s 820-37(1)(c)).",
@@ -519,7 +519,11 @@ fn fixed_ratio(a: &ThinCapitalisationArgs, items: &[Deduction], year: &str) -> R
             limit,
         );
         steps.extend([ebitda, limit]);
-        closing(&mut steps, "fixed_ratio_earnings_limit", "net_debt_deductions")?;
+        closing(
+            &mut steps,
+            "fixed_ratio_earnings_limit",
+            "net_debt_deductions",
+        )?;
         let (special, rows) = carry::apply(&steps, &carried)?;
         steps.push(special);
         Ok(Worked {
@@ -579,7 +583,11 @@ fn group_ratio(a: &ThinCapitalisationArgs, items: &[Deduction]) -> Result<Worked
             ratio.mul(&ebitda.value)?,
         );
         steps.extend([ebitda, gr, limit]);
-        closing(&mut steps, "group_ratio_earnings_limit", "net_debt_deductions")?;
+        closing(
+            &mut steps,
+            "group_ratio_earnings_limit",
+            "net_debt_deductions",
+        )?;
         Ok(Worked {
             steps,
             rates: vec![rate("group_ratio", ratio)],

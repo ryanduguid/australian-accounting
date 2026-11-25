@@ -1,5 +1,26 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `thin-capitalisation` works out the debt deductions a company that is a
+  general class investor has disallowed under ITAA 1997 Subdivision 820-AA
+  for 2023-24 to 2026-27, by the fixed ratio, group ratio or third party
+  debt test, with each deduction's share, the special deduction for earlier
+  fixed ratio test disallowed amounts and the ss 820-35, 820-37 and 820-39
+  exemptions. `derive` takes it. New codes: `thin_capitalisation.carry_forward_invalid`,
+  `carry_forward_unsettled`, `debt_deductions_invalid`,
+  `entity_class_not_built`, `fact_invalid`, `gr_group_ebitda_not_positive`,
+  `group_ratio_negative`, `input_missing`, `input_not_used` and
+  `plantation_forestry`.
+- `debt-forgiveness` applies ITAA 1997 Division 245 to one debtor's
+  commercial debts forgiven in 2020-21 to 2026-27: each debt's gross and net
+  forgiven amounts and the total's reduction of tax losses, net capital
+  losses, expenditure and cost bases in the statutory order. `derive` takes
+  it. New codes: `debt_forgiveness.attributable_income`, `debt_invalid`,
+  `forgone_exceeds_provisional`, `item_invalid` and `partnership`.
+
 ## 1.4.0
 
 ### Added

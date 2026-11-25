@@ -119,8 +119,7 @@ pub(super) fn apply(steps: &[Step], carried: &[Carried]) -> Calc<(Step, Value)> 
             .collect::<Vec<_>>()
             .join(" + ")
     };
-    let formula =
-        format!("min(max(fixed_ratio_earnings_limit - net_debt_deductions, 0), {terms})");
+    let formula = format!("min(max(fixed_ratio_earnings_limit - net_debt_deductions, 0), {terms})");
     let mut left = special.clone();
     let mut rows = Vec::with_capacity(carried.len());
     for c in carried {

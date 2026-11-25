@@ -101,7 +101,12 @@ fn the_unscaled_example_is_under_the_de_minimis_threshold() {
 fn the_de_minimis_threshold_a_cent_either_side() {
     let mut i = base("fixed_ratio", json!([dd("Interest", "2000000.00")]));
     i["associate_inclusive_debt_deductions"] = json!("2000000.00");
-    assert!(run(&i)["exemption"].as_str().unwrap().starts_with("s 820-35"));
+    assert!(
+        run(&i)["exemption"]
+            .as_str()
+            .unwrap()
+            .starts_with("s 820-35")
+    );
     i["associate_inclusive_debt_deductions"] = json!("2000000.01");
     assert_eq!(code(&i), "thin_capitalisation.input_missing");
     i["interest_income"] = json!("0.00");
@@ -204,7 +209,12 @@ fn t3_the_group_ratio_test() {
     assert_eq!(amount(&r, "group_ratio_earnings_limit"), "3000000.00");
     assert_eq!(amount(&r, "total_disallowed_amount"), "2500000.00");
     assert_eq!(amount(&r, "allowed_debt_deductions"), "3500000.00");
-    assert!(r["rates"]["group_ratio"].as_str().unwrap().starts_with("0.2857142857"));
+    assert!(
+        r["rates"]["group_ratio"]
+            .as_str()
+            .unwrap()
+            .starts_with("0.2857142857")
+    );
     assert_eq!(
         column(&r, "debt_deductions", "disallowed"),
         ["1666666.67", "833333.33"]
@@ -243,7 +253,9 @@ fn the_group_ratio_tests_refusals() {
     }
     // Without the negative member list the GR group EBITDA is 100,000,000.
     let mut i = group(json!([dd("Loan", "6000000.00")]));
-    i.as_object_mut().unwrap().remove("gr_group_negative_member_ebitda");
+    i.as_object_mut()
+        .unwrap()
+        .remove("gr_group_negative_member_ebitda");
     assert_eq!(amount(&run(&i), "gr_group_ebitda"), "100000000.00");
 }
 
@@ -302,7 +314,12 @@ fn the_other_exemptions() {
     let mut i = t1();
     i["associate_inclusive_debt_deductions"] = json!("50000000.00");
     i["special_purpose_entity"] = json!(true);
-    assert!(run(&i)["exemption"].as_str().unwrap().starts_with("s 820-39"));
+    assert!(
+        run(&i)["exemption"]
+            .as_str()
+            .unwrap()
+            .starts_with("s 820-39")
+    );
     let mut i = t1();
     i["associate_inclusive_debt_deductions"] = json!("50000000.00");
     i["entity_class"] = json!("not_covered");
@@ -353,18 +370,24 @@ fn carried_amounts_and_their_refusals() {
             {"year": "2024-25", "amount": "1.00", "available": true},
             {"year": "2024-25", "amount": "2.00", "available": true}
         ]),
-        json!(vec![json!({"year": "2024-25", "amount": "1.00", "available": true}); 16]),
+        json!(vec![
+            json!({"year": "2024-25", "amount": "1.00", "available": true});
+            16
+        ]),
         json!("2024-25"),
     ] {
         let mut i = t1();
         i["frt_disallowed_amounts"] = bad.clone();
-        assert_eq!(code(&i), "thin_capitalisation.carry_forward_invalid", "{bad}");
+        assert_eq!(
+            code(&i),
+            "thin_capitalisation.carry_forward_invalid",
+            "{bad}"
+        );
     }
     // In 2023-24, the first year, there is no earlier year to carry from.
     let mut i = t1();
     i["year"] = json!("2023-24");
-    i["frt_disallowed_amounts"] =
-        json!([{"year": "2023-24", "amount": "1.00", "available": true}]);
+    i["frt_disallowed_amounts"] = json!([{"year": "2023-24", "amount": "1.00", "available": true}]);
     assert_eq!(code(&i), "thin_capitalisation.carry_forward_invalid");
 }
 
@@ -378,7 +401,11 @@ fn entity_classes_and_scope() {
     ] {
         let mut i = t1();
         i["entity_class"] = json!(class);
-        assert_eq!(code(&i), "thin_capitalisation.entity_class_not_built", "{class}");
+        assert_eq!(
+            code(&i),
+            "thin_capitalisation.entity_class_not_built",
+            "{class}"
+        );
     }
     let mut i = t1();
     i["entity_class"] = json!("bank");
@@ -415,7 +442,11 @@ fn entity_classes_and_scope() {
 
 #[test]
 fn missing_and_malformed_inputs() {
-    for key in ["interest_income", "taxable_income", "division_40_43_deductions"] {
+    for key in [
+        "interest_income",
+        "taxable_income",
+        "division_40_43_deductions",
+    ] {
         let mut i = t1();
         i.as_object_mut().unwrap().remove(key);
         assert_eq!(code(&i), "thin_capitalisation.input_missing", "{key}");
@@ -431,7 +462,11 @@ fn missing_and_malformed_inputs() {
     ] {
         let mut i = t1();
         i["debt_deductions"] = bad.clone();
-        assert_eq!(code(&i), "thin_capitalisation.debt_deductions_invalid", "{bad}");
+        assert_eq!(
+            code(&i),
+            "thin_capitalisation.debt_deductions_invalid",
+            "{bad}"
+        );
     }
     let mut i = t1();
     i["interest_income"] = json!("-1.00");

@@ -172,7 +172,9 @@ fn items(given: &Arg, name: &str, tag: Option<&str>) -> Result<Vec<Item>> {
             }),
             _ => {
                 let extra = match tag {
-                    Some("item") => ", and item a whole number from 1 to 8 (the row of the table in s 245-145)",
+                    Some("item") => {
+                        ", and item a whole number from 1 to 8 (the row of the table in s 245-145)"
+                    }
                     Some(_) => ", and optionally associate true or false (s 245-185)",
                     None => "",
                 };

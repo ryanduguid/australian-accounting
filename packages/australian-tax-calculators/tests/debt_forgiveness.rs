@@ -96,9 +96,18 @@ fn d3_other_provisions_and_a_creditors_agreement_come_off() {
     assert_eq!(amount(&r, "total_net_forgiven_amount"), "5000.00");
     // The provisional amount is 6,500.00: a cent more cannot be forgone.
     d["forgone_by_creditor"] = json!("6500.00");
-    assert_eq!(amount(&run(&input(json!([d.clone()]))), "total_net_forgiven_amount"), "0.00");
+    assert_eq!(
+        amount(
+            &run(&input(json!([d.clone()]))),
+            "total_net_forgiven_amount"
+        ),
+        "0.00"
+    );
     d["forgone_by_creditor"] = json!("6500.01");
-    assert_eq!(code(&input(json!([d]))), "debt_forgiveness.forgone_exceeds_provisional");
+    assert_eq!(
+        code(&input(json!([d]))),
+        "debt_forgiveness.forgone_exceeds_provisional"
+    );
 }
 
 #[test]
@@ -127,7 +136,10 @@ fn d5_reductions_beyond_the_share_leave_nil() {
     let mut d = debt("100.00", "0.00");
     d["assessable_income"] = json!("150.00");
     let r = run(&input(json!([d, debt("40.00", "0.00")])));
-    assert_eq!(column(&r, "debts", "net_forgiven_amount"), ["0.00", "40.00"]);
+    assert_eq!(
+        column(&r, "debts", "net_forgiven_amount"),
+        ["0.00", "40.00"]
+    );
     assert_eq!(amount(&r, "total_net_forgiven_amount"), "40.00");
 }
 
@@ -148,7 +160,10 @@ fn d6_order_within_and_between_classes() {
     assert_eq!(amount(&r, "expenditure_reduced"), "150.00");
     assert_eq!(amount(&r, "cost_bases_reduced"), "250.00");
     // Section 245-185: the associate's shares are reduced last.
-    assert_eq!(column(&r, "cost_bases", "label"), ["Land", "Shares in an associate"]);
+    assert_eq!(
+        column(&r, "cost_bases", "label"),
+        ["Land", "Shares in an associate"]
+    );
     assert_eq!(column(&r, "cost_bases", "reduced_by"), ["100.00", "150.00"]);
     assert_eq!(r["cost_bases"][1]["associate"], true);
     assert_eq!(amount(&r, "unapplied_net_forgiven_amount"), "0.00");
@@ -200,11 +215,20 @@ fn refusals() {
     }
     for (list, bad) in [
         ("tax_losses", json!([{"label": "A"}])),
-        ("tax_losses", json!([{"label": "A", "amount": "1.00", "item": 1}])),
+        (
+            "tax_losses",
+            json!([{"label": "A", "amount": "1.00", "item": 1}]),
+        ),
         ("net_capital_losses", json!("A")),
-        ("expenditures", json!([{"label": "A", "amount": "1.00", "item": 9}])),
+        (
+            "expenditures",
+            json!([{"label": "A", "amount": "1.00", "item": 9}]),
+        ),
         ("expenditures", json!([{"label": "A", "amount": "1.00"}])),
-        ("cost_bases", json!([{"label": "A", "amount": "1.00", "associate": "yes"}])),
+        (
+            "cost_bases",
+            json!([{"label": "A", "amount": "1.00", "associate": "yes"}]),
+        ),
         ("cost_bases", json!([{"label": "", "amount": "1.00"}])),
         ("cost_bases", json!(vec![item("A", "1.00"); 201])),
     ] {
