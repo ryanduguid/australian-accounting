@@ -434,12 +434,16 @@ fn an_undated_schedule_uses_the_live_date_in_console_and_csv() {
 
 /// The live date is the calendar date in the machine's time zone: at UTC+14 and
 /// at UTC-12 it is the UTC clock's date moved by that offset, which differs from
-/// the UTC date for at least one of them at any moment.
-#[cfg(unix)]
+/// the UTC date for at least one of them at any moment. `TZ` sets the zone on
+/// every platform, Windows included, as a POSIX rule or an IANA name; a `TZ`
+/// that names no zone gives UTC's date.
 #[test]
 fn an_undated_schedule_uses_the_date_in_the_local_time_zone() {
     undated_schedule(Some(("XYZ-14", 14)));
     undated_schedule(Some(("XYZ+12", -12)));
+    undated_schedule(Some(("Pacific/Kiritimati", 14)));
+    undated_schedule(Some(("Etc/GMT+12", -12)));
+    undated_schedule(Some(("Not/A_Zone", 0)));
 }
 
 /// Runs the frozen undated schedule, with `TZ` set to a POSIX zone at the given
