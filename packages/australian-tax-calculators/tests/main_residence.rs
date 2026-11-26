@@ -366,6 +366,45 @@ fn refuses_what_it_cannot_establish() {
 }
 
 #[test]
+fn refuses_malformed_periods_dates_and_the_20_august_1996_start() {
+    let base = json!({"capital_gain": "1000.00", "ownership_start": "2020-01-01", "ownership_end": "2025-12-31"});
+    let with = |extra: Value| {
+        let mut input = base.clone();
+        for (k, v) in extra.as_object().unwrap() {
+            input[k] = v.clone();
+        }
+        refusal(input)
+    };
+    let many = vec![lived("2020-01-01", "2020-01-01"); 1001];
+    assert!(with(json!({"lived_periods": many})).contains("lived_periods: at most 1000 periods."));
+    assert!(
+        with(json!({"lived_periods": [lived("2020-01-01", "2020-13-01")]}))
+            .contains("lived_periods: start and end must be YYYY-MM-DD dates")
+    );
+    assert!(
+        with(json!({"absence_choice_periods": "none"}))
+            .contains("absence_choice_periods: must be a list of periods.")
+    );
+    assert!(
+        with(json!({"ownership_start": "2026-01-01", "ownership_end": "2025-12-31"}))
+            .contains("ownership_end must not be before ownership_start.")
+    );
+    assert!(
+        with(json!({"new_home_acquired": 20251231}))
+            .contains("new_home_acquired must be null or a YYYY-MM-DD date")
+    );
+    // Lived in from acquisition, then part used for income from 20 August 1996.
+    assert!(
+        with(json!({
+            "ownership_start": "1990-01-01",
+            "lived_periods": [lived("1990-01-01", "2025-12-31")],
+            "income_use_periods": [used("1996-08-20", "2025-12-31", "0.25")],
+        }))
+        .contains("Income use first started on 20 August 1996")
+    );
+}
+
+#[test]
 fn the_catalogue_lists_the_worksheet_with_a_runnable_example() {
     let catalogue = api::evaluate("worksheet-catalogue", &json!({})).unwrap();
     let entry = &catalogue["main_residence"];
