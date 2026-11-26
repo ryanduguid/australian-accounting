@@ -1220,7 +1220,7 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "payroll_tax" => vec!["2026-27"],
         "payroll_tax_group" => vec!["2026-27"],
         // Monthly returns for the months of 2026-27, under each Act read on 26
-        // November 2026.
+        // November 2026 (New South Wales's on 27 November 2026).
         "payroll_tax_monthly" => vec!["2026-27"],
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
@@ -1766,7 +1766,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "payroll_tax" => (
             "2026-11-19",
-            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page; for the annual reconciliation, read on 26 November 2026, s 83 of the Vic, SA, Tas, ACT and NT Acts, Payroll Tax Act 1971 (Qld) ss 29 to 31, 43H, 43J and 43K and Pay-roll Tax Assessment Act 2002 (WA) s 16",
+            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026) and s 83 (AustLII consolidation as at 22 October 2026, read 27 November 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page; for the annual reconciliation, read on 26 November 2026, s 83 of the Vic, SA, Tas, ACT and NT Acts, Payroll Tax Act 1971 (Qld) ss 29 to 31, 43H, 43J and 43K and Pay-roll Tax Assessment Act 2002 (WA) s 16",
         ),
         "payroll_tax_group" => (
             "2026-11-24",
@@ -1774,7 +1774,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "payroll_tax_monthly" => (
             "2026-11-26",
-            "Payroll Tax Act 2007 (Vic) Sch 2 Pt 2 cll 1A to 6 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 17 to 21 and 43C to 43F (current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8, 11, 12 and 15 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5 (00-d0-02); Payroll Tax Act 2009 (SA) Sch 2 cll 2, 5 and 6 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 4 and Sch 2 cll 2 and 3; Payroll Tax Act 2011 (ACT) Sch 2 Pt 2.1 (R20) with DI2026-151 s 5(b) and (d); Payroll Tax Act 2009 (NT) s 7A and Sch 2 cll 5 to 7 (as in force at 1 July 2026); NSW refused: its Act served a Cloudflare challenge",
+            "Payroll Tax Act 2007 (Vic) Sch 2 Pt 2 cll 1A to 6 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 17 to 21 and 43C to 43F (current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8, 11, 12 and 15 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5 (00-d0-02); Payroll Tax Act 2009 (SA) Sch 2 cll 2, 5 and 6 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 4 and Sch 2 cll 2 and 3; Payroll Tax Act 2011 (ACT) Sch 2 Pt 2.1 (R20) with DI2026-151 s 5(b) and (d); Payroll Tax Act 2009 (NT) s 7A and Sch 2 cll 5 to 7 (as in force at 1 July 2026); Payroll Tax Act 2007 (NSW) Sch 1 cll 1, 4 and 5, Sch 2 cll 2, 3 and 3B to 3D and s 83 (AustLII consolidation as at 22 October 2026, read 27 November 2026; legislation.nsw.gov.au served a challenge) with Revenue NSW's 'Payroll tax thresholds and rates' (last updated 1 July 2026) and 'Calculate and pay your monthly payroll tax return' (last updated 26 October 2026)",
         ),
         "transfer_duty" => (
             "2026-11-24",

@@ -4,11 +4,14 @@
 
 //! `payroll_tax_monthly`: the payroll tax, and any surcharge or levy, one
 //! employer outside a group owes on one monthly return in 2026-27, as each
-//! Act's monthly provisions read: Victoria, Queensland, Western Australia,
-//! South Australia, Tasmania, the ACT and the Northern Territory. Each Act and
-//! the ACT's DI2026-151 were read at the official legislation site on 26
-//! November 2026; docs/calculation-evidence.md#payroll-tax-monthly lists the
-//! versions. New South Wales is refused: its Act could not be read that day.
+//! Act's monthly provisions read: New South Wales, Victoria, Queensland,
+//! Western Australia, South Australia, Tasmania, the ACT and the Northern
+//! Territory. Each Act other than New South Wales's, and the ACT's
+//! DI2026-151, were read at the official legislation site on 26 November
+//! 2026; the Payroll Tax Act 2007 (NSW) was read at AustLII (consolidation as
+//! at 22 October 2026) on 27 November 2026, as legislation.nsw.gov.au served a
+//! Cloudflare challenge. docs/calculation-evidence.md#payroll-tax-monthly
+//! lists the versions.
 
 use serde_json::Value;
 
@@ -139,11 +142,7 @@ const JURISDICTIONS: &str = "jurisdiction must be nsw, vic, qld, wa, sa, tas, ac
 /// The jurisdiction, or the refusal for one not worked.
 fn place(given: Option<&str>) -> Result<&str> {
     match given {
-        Some(place @ ("vic" | "qld" | "wa" | "sa" | "tas" | "act" | "nt")) => Ok(place),
-        Some("nsw") => refuse(
-            "payroll_tax_monthly.act_unread",
-            "New South Wales is not worked: the Payroll Tax Act 2007 (NSW) could not be read at legislation.nsw.gov.au on 26 November 2026 (a Cloudflare challenge, still served after one change of network), so its monthly provisions are unconfirmed.",
-        ),
+        Some(place @ ("nsw" | "vic" | "qld" | "wa" | "sa" | "tas" | "act" | "nt")) => Ok(place),
         _ => refuse("payroll_tax_monthly.jurisdiction_invalid", JURISDICTIONS),
     }
 }
@@ -166,6 +165,12 @@ fn refuse_unsupported(args: &PayrollTaxMonthlyArgs, place: &str, number: u32) ->
         return refuse(
             "payroll_tax_monthly.last_period",
             "June is the last periodic return period of the year in Queensland, for which no periodic liability or periodic levy liability arises (Payroll Tax Act 1971 (Qld) ss 20(2A) and 43F(4)): the annual return works out June's payroll tax and levy. Use payroll-tax with periodic_tax and periodic_levy.",
+        );
+    }
+    if place == "nsw" && number == 6 {
+        return refuse(
+            "payroll_tax_monthly.last_period",
+            "June is not worked in New South Wales: Revenue NSW's 'Calculate and pay your monthly payroll tax return' (last updated 26 October 2026, read on 27 November 2026) says the month of June is incorporated into the annual return, which settles the year under Payroll Tax Act 2007 (NSW) s 83. Use payroll-tax with periodic_tax and other_refunds.",
         );
     }
     Ok(())
@@ -347,6 +352,65 @@ fn tas(m: &Month) -> Result<Worked> {
     })
 }
 
+const NSW_YEAR: &str = "Payroll Tax Act 2007 (NSW) Sch 2 cl 3(b) (AustLII consolidation as at 22 October 2026, read on 27 November 2026): the year's taxable wages are taken to be the month's multiplied by the days in the financial year (365 in 2026-27) over the days the return relates to, and cl 3(a): wages are taken to be paid all year";
+const NSW_ABOVE: &str = "Payroll Tax Act 2007 (NSW) Sch 1 cll 4 and 5 with cl 1 (TA: $1,200,000 for the financial year commencing on 1 July 2020 and subsequent financial years), as at 22 October 2026, and Revenue NSW's 'Payroll tax thresholds and rates' (last updated 1 July 2026: $1,200,000 for 1 July 2026 to 30 June 2027; 'The payroll tax rate is applied to the wages amount above the threshold'), both read on 27 November 2026: the annualised wages above the threshold, nil at or below it. The cl 5 formula is published as an image, which could not be read; with no interstate wages Revenue NSW's page gives the amount taxed";
+const NSW_ANNUAL: &str = "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (R: 5.45% on and from 1 July 2022) and Revenue NSW's 'Payroll tax thresholds and rates' (5.45% for 1 July 2026 to 30 June 2027), both read on 27 November 2026: the payroll tax for the whole year on the annualised wages";
+const NSW_MONTH: &str = "Payroll Tax Act 2007 (NSW) Sch 2 cl 2: the month's payroll tax is the year's in the ratio of the days the return relates to over the days in the financial year. This is the tax on the month's actual wages: an eligible taxpayer that opts under Sch 2 cl 3B to pay estimated monthly payroll tax pays the cl 3D amount instead, which is not worked";
+
+/// New South Wales: the year's tax on the annualised wages, in the month's
+/// share (Sch 2 cll 2 and 3).
+fn nsw(m: &Month) -> Result<Worked> {
+    if !(m.iw.is_zero() && m.eiw.is_zero()) {
+        return refuse(
+            "payroll_tax_monthly.interstate_unworked",
+            "A New South Wales employer that pays interstate wages in the year is not worked: Payroll Tax Act 2007 (NSW) Sch 2 cl 3 annualises only the taxable wages, and says nothing of the interstate wages Sch 1 cll 4 and 5 share the threshold by.",
+        );
+    }
+    let (year, threshold, applied) = (int(365), d("1200000"), d("0.0545"));
+    let annual = m.tw.mul(&year)?.div(&m.days)?;
+    let annualised = step(
+        "annualised_wages",
+        NSW_YEAR,
+        "taxable_wages x days_in_year / days_in_month",
+        &[&m.tw, &year, &m.days],
+        annual.clone(),
+    );
+    let above = step(
+        "taxable_amount",
+        NSW_ABOVE,
+        "max(0, annualised_wages - threshold)",
+        &[&annual, &threshold],
+        py_max(int(0), annual.sub(&threshold)?)?,
+    );
+    let year_tax = step(
+        "annual_payroll_tax",
+        NSW_ANNUAL,
+        "taxable_amount x rate",
+        &[&above.value, &applied],
+        above.value.mul(&applied)?,
+    );
+    let tax = year_tax.value.mul(&m.days)?.div(&year)?;
+    let operands = [&year_tax.value, &m.days, &year];
+    let payroll = step(
+        "payroll_tax",
+        NSW_MONTH,
+        "annual_payroll_tax x days_in_month / days_in_year",
+        &operands,
+        tax,
+    );
+    let rates = vec![
+        rate("threshold", &threshold),
+        rate("rate", &applied),
+        rate("days_in_month", &m.days),
+        rate("days_in_year", &year),
+    ];
+    Ok(Worked {
+        steps: vec![annualised, above, year_tax, payroll],
+        charges: 1,
+        rates,
+    })
+}
+
 const MONTH_TOTAL: &str =
     "The payroll tax and any surcharge or levy, each to the cent, payable for the month";
 
@@ -358,6 +422,7 @@ pub fn payroll_tax_monthly(args: &PayrollTaxMonthlyArgs) -> Result<Value> {
     let m = facts(args, place, days)?;
     let worked = precise(|| {
         let worked = match place {
+            "nsw" => nsw(&m),
             "vic" => vic(&m),
             "qld" => qld(&m),
             "wa" => wa(&m),

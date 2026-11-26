@@ -87,6 +87,14 @@
 
 ### Changed
 
+- `payroll-tax-monthly` works New South Wales, from the Payroll Tax Act 2007
+  (NSW) Sch 1 and Sch 2 cll 2 and 3 as read at AustLII on 27 November 2026:
+  the year's tax on the month's wages annualised by days, in the month's
+  share. A New South Wales employer with interstate wages and June are
+  refused. `payroll-tax` reconciles a New South Wales year under its s 83, so
+  `other_refunds` is required there beside `periodic_tax`. Codes removed:
+  `payroll_tax_monthly.act_unread` and `payroll_tax.reconciliation_unread`.
+  No other jurisdiction's result changes.
 - `resident-tax` also takes 2019-20 to 2023-24, from Income Tax Rates Act 1986
   Schedule 7 Part I as in force in those years (compilations 54, 57 and 62).
   The Python 0.2.0 corpus's 2 refused 2023-24 inputs now give $8,286.75 and

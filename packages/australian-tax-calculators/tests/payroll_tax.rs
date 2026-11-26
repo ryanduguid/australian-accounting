@@ -619,6 +619,55 @@ fn tasmania_and_the_northern_territory_reconcile_under_s_83() {
     }
 }
 
+/// Payroll Tax Act 2007 (NSW) s 83, read at AustLII on 27 November 2026:
+/// $1,500,000 of NSW wages owes $16,350.00 for the year; $16,000 paid leaves
+/// $350.00 payable (s 83(2)); $17,000 paid is $650.00 over, refunded less a
+/// $100.00 refund already made (s 83(1) and (4)).
+#[test]
+fn new_south_wales_reconciles_under_s_83() {
+    let short = reconciled(
+        "nsw",
+        "1500000.00",
+        "1500000.00",
+        &[("periodic_tax", "16000.00"), ("other_refunds", "0.00")],
+    );
+    assert_eq!(
+        amounts(&short, SETTLED),
+        ["16350.00", "16000.00", "350.00", "0.00"]
+    );
+    let over = reconciled(
+        "nsw",
+        "1500000.00",
+        "1500000.00",
+        &[("periodic_tax", "17000.00"), ("other_refunds", "100.00")],
+    );
+    assert_eq!(
+        amounts(&over, SETTLED),
+        ["16350.00", "17000.00", "0.00", "550.00"]
+    );
+    let envelope = json!({"command": "payroll-tax", "input": over_input()});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    let refund = doc["steps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|s| s["id"] == "adjustment_refund")
+        .unwrap();
+    assert!(
+        refund["authority"]
+            .as_str()
+            .unwrap()
+            .starts_with("Payroll Tax Act 2007 (NSW) s 83(1) and (4)")
+    );
+}
+
+fn over_input() -> Value {
+    let mut v = input("nsw", "1500000.00", "1500000.00");
+    v["periodic_tax"] = json!("17000.00");
+    v["other_refunds"] = json!("100.00");
+    v
+}
+
 #[test]
 fn reconciliation_refusals() {
     let with = |place: &str, periodic: &[(&str, &str)]| {
@@ -630,7 +679,18 @@ fn reconciliation_refusals() {
     };
     assert_eq!(
         with("nsw", &[("periodic_tax", "1.00")]),
-        "payroll_tax.reconciliation_unread"
+        "input.missing_field"
+    );
+    assert_eq!(
+        with(
+            "nsw",
+            &[
+                ("periodic_tax", "1.00"),
+                ("periodic_levy", "1.00"),
+                ("other_refunds", "0.00")
+            ]
+        ),
+        "input.field_unknown"
     );
     assert_eq!(
         with("vic", &[("periodic_levy", "1.00")]),
