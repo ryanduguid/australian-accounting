@@ -986,6 +986,37 @@ fn global_bank_inward_adi() {
     assert_eq!(code(&i), "thin_capitalisation.input_not_used");
 }
 
+/// What a class's Subdivision does not provide, or this worksheet does not
+/// apply, is refused with the provision named, for each of the 4 classes.
+#[test]
+fn unmodelled_tests_and_periods_are_refused_with_the_provision() {
+    let classes = [
+        (glm(), "s 820-90 or 820-190"),
+        (investor(), "s 820-90 or 820-190"),
+        (southern_cross(), "s 820-305 or 820-400"),
+        (global_bank(), "s 820-305 or 820-400"),
+    ];
+    for (base, provision) in classes {
+        let class = base["entity_class"].clone();
+        for test in ["fixed_ratio", "group_ratio"] {
+            let mut i = base.clone();
+            i["test"] = json!(test);
+            let e = refusal(&i);
+            assert_eq!(e.code, "thin_capitalisation.fact_invalid", "{class} {test}");
+            assert!(e.message.contains(provision), "{class} {test}");
+        }
+        let mut i = base;
+        i["whole_year"] = json!(false);
+        let e = refusal(&i);
+        assert_eq!(e.code, "thin_capitalisation.part_year_not_built", "{class}");
+        assert!(
+            e.message
+                .contains("ss 820-120, 820-225, 820-330 or 820-420"),
+            "{class}"
+        );
+    }
+}
+
 /// Every general class result recorded on main before Subdivisions 820-B to
 /// 820-E were built (4df634bb) is unchanged: amounts, rates, each deduction's
 /// share and every refusal. Only the descriptive scope, sources, date read
