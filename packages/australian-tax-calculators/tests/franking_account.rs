@@ -579,9 +579,7 @@ fn income_tax_refusals_name_the_missing_or_unknown_field() {
     assert!(
         unknown
             .message
-            .contains("income_tax: rate is not an input of franking-account"),
-        "{}",
-        unknown.message
+            .contains("income_tax: rate is not an input of franking-account")
     );
     // A private company must say whether it had an earlier year's liability.
     assert!(

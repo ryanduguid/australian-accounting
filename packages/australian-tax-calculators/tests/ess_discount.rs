@@ -778,9 +778,7 @@ fn malformed_facts_say_what_they_must_be() {
     assert!(
         error
             .message
-            .ends_with("last_exercise_day is before acquired."),
-        "{}",
-        error.message
+            .ends_with("last_exercise_day is before acquired.")
     );
 }
 
