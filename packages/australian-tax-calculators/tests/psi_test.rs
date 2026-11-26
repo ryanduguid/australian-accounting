@@ -449,7 +449,7 @@ fn refusals() {
             "input.missing_field",
         ),
         (
-            json!({"payers": [{"amount": "1.00", "associate": false, "offer": false, "result": false, "tools": false, "defects": false, "client": true}]}),
+            json!({"payers": [{"amount": "1.00", "associate": false, "offer": false, "result": false, "tools": false, "defects": false, "payer_name": true}]}),
             "input.field_unknown",
         ),
         (
