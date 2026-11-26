@@ -107,7 +107,8 @@
   `remote_area`, `pension_supplement_election` and
   `quarterly_energy_supplement` true or false; a call without them is refused
   with `age_pension.facts_not_stated`. With all 6 false every result is
-  unchanged.
+  unchanged. `disability-support-pension` and `carer-payment` keep refusing
+  these cases through their own facts and do not take the circumstances.
 
 - `luxury-car-tax` requires `supplied_in` on a refund line. It used to take
   the tax period's year when the field was blank, so a car supplied before

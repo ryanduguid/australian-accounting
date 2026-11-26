@@ -83,7 +83,11 @@ fn the_armed_services_limit_caps_the_rate() {
     assert_eq!(rate(&case("couple", "0", limited.clone())), "124.90");
     // Income of 2,501.40: (2,501.40 - 5,876 / 26) x 0.5 = 1,137.70 off
     // 1,237.70 leaves 100.00, under the limit.
-    assert_eq!(rate(&case("single", "2501.40", limited)), "100.00");
+    assert_eq!(rate(&case("single", "2501.40", limited.clone())), "100.00");
+    // At the limit and a cent over it: 1,112.80 off leaves 124.90 exactly;
+    // 1,112.75 off leaves 124.95, held to 124.90.
+    assert_eq!(rate(&case("single", "2451.60", limited.clone())), "124.90");
+    assert_eq!(rate(&case("single", "2451.50", limited)), "124.90");
 }
 
 #[test]
@@ -122,6 +126,11 @@ fn an_election_takes_the_minimum_pension_supplement_amount_out() {
     let out = amounts(&case("single", "2626.00", remote));
     assert_eq!(out["provisional_rate"], "0.00");
     assert_eq!(out["rate"], "18.20");
+    // Without the remote area the election's rate is nil from 1,190.20 off
+    // (income 2,606.40), and 10 cents less income leaves 0.05.
+    let elected = json!({"pension_supplement_election": true});
+    assert_eq!(rate(&case("single", "2606.40", elected.clone())), "0.00");
+    assert_eq!(rate(&case("single", "2606.30", elected)), "0.05");
 }
 
 #[test]
