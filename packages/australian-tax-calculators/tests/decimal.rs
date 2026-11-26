@@ -193,3 +193,19 @@ fn rounding_carry_at_emax_overflows() {
         format!("9.{}E+999999", "9".repeat(27))
     );
 }
+
+#[test]
+fn a_trapped_signal_as_an_engine_error_reads_as_python_names_it() {
+    use australian_tax_calculators::engine::Error;
+    let cases = [
+        (Signal::InvalidOperation, "decimal.InvalidOperation", "decimal.invalid_operation"),
+        (Signal::DivisionByZero, "decimal.DivisionByZero", "decimal.division_by_zero"),
+        (Signal::Overflow, "decimal.Overflow", "decimal.overflow"),
+    ];
+    for (signal, shown, code) in cases {
+        let error = Error::from(signal);
+        assert_eq!(error, Error::Decimal(signal));
+        assert_eq!(error.to_string(), shown);
+        assert_eq!(error.code(), code);
+    }
+}
