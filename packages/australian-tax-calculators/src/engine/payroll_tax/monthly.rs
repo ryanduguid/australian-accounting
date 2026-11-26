@@ -113,6 +113,30 @@ fn nil(id: &'static str, authority: &'static str) -> Step {
     step(id, authority, NO_LEVY, &[], int(0))
 }
 
+/// `annualised_wages`: the month's taxable wages over the 365 days of 2026-27.
+fn annualise(m: &Month, authority: &'static str) -> Result<Step> {
+    let year = int(365);
+    let annual = m.tw.mul(&year)?.div(&m.days)?;
+    let operands = [&m.tw, &year, &m.days];
+    let formula = "taxable_wages x days_in_year / days_in_month";
+    Ok(step(
+        "annualised_wages",
+        authority,
+        formula,
+        &operands,
+        annual,
+    ))
+}
+
+/// `payroll_tax`: the month's share of the year's tax.
+fn month_share(m: &Month, year_tax: &Step, authority: &'static str) -> Result<Step> {
+    let year = int(365);
+    let tax = year_tax.value.mul(&m.days)?.div(&year)?;
+    let operands = [&year_tax.value, &m.days, &year];
+    let formula = "annual_payroll_tax x days_in_month / days_in_year";
+    Ok(step("payroll_tax", authority, formula, &operands, tax))
+}
+
 /// Days in each month of 2026-27, by its number.
 fn month_days(month: Option<&str>) -> Result<(u32, i64)> {
     let parsed = month.and_then(|m| {
@@ -317,15 +341,8 @@ fn tas(m: &Month) -> Result<Worked> {
         );
     }
     let year = int(365);
-    let annual = m.tw.mul(&year)?.div(&m.days)?;
-    let annualised = step(
-        "annualised_wages",
-        TAS_YEAR,
-        "taxable_wages x days_in_year / days_in_month",
-        &[&m.tw, &year, &m.days],
-        annual.clone(),
-    );
-    let ([lower, higher], mut rates) = tas_rates(&annual)?;
+    let annualised = annualise(m, TAS_YEAR)?;
+    let ([lower, higher], mut rates) = tas_rates(&annualised.value)?;
     rates.extend([rate("days_in_month", &m.days), rate("days_in_year", &year)]);
     let operands = [&lower.value, &higher.value];
     let sum = lower.value.add(&higher.value)?;
@@ -336,15 +353,7 @@ fn tas(m: &Month) -> Result<Worked> {
         &operands,
         sum,
     );
-    let tax = year_tax.value.mul(&m.days)?.div(&year)?;
-    let operands = [&year_tax.value, &m.days, &year];
-    let payroll = step(
-        "payroll_tax",
-        TAS_MONTH,
-        "annual_payroll_tax x days_in_month / days_in_year",
-        &operands,
-        tax,
-    );
+    let payroll = month_share(m, &year_tax, TAS_MONTH)?;
     Ok(Worked {
         steps: vec![annualised, lower, higher, year_tax, payroll],
         charges: 1,
@@ -367,19 +376,13 @@ fn nsw(m: &Month) -> Result<Worked> {
         );
     }
     let (year, threshold, applied) = (int(365), d("1200000"), d("0.0545"));
-    let annual = m.tw.mul(&year)?.div(&m.days)?;
-    let annualised = step(
-        "annualised_wages",
-        NSW_YEAR,
-        "taxable_wages x days_in_year / days_in_month",
-        &[&m.tw, &year, &m.days],
-        annual.clone(),
-    );
+    let annualised = annualise(m, NSW_YEAR)?;
+    let annual = &annualised.value;
     let above = step(
         "taxable_amount",
         NSW_ABOVE,
         "max(0, annualised_wages - threshold)",
-        &[&annual, &threshold],
+        &[annual, &threshold],
         py_max(int(0), annual.sub(&threshold)?)?,
     );
     let year_tax = step(
@@ -389,15 +392,7 @@ fn nsw(m: &Month) -> Result<Worked> {
         &[&above.value, &applied],
         above.value.mul(&applied)?,
     );
-    let tax = year_tax.value.mul(&m.days)?.div(&year)?;
-    let operands = [&year_tax.value, &m.days, &year];
-    let payroll = step(
-        "payroll_tax",
-        NSW_MONTH,
-        "annual_payroll_tax x days_in_month / days_in_year",
-        &operands,
-        tax,
-    );
+    let payroll = month_share(m, &year_tax, NSW_MONTH)?;
     let rates = vec![
         rate("threshold", &threshold),
         rate("rate", &applied),
