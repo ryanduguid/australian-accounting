@@ -304,6 +304,15 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "cgt-rollover",
+        &[
+            ("rollover", Raw),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "cgt-cost-base-adjustments",
         &[
             ("entity", Raw),
@@ -1907,6 +1916,22 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "book-to-tax",
+        &[
+            ("accounting_profit", Dec),
+            ("adjustments", Json),
+            ("net_exempt_income", Dec),
+            ("opening_tax_losses", Dec),
+            ("tax_losses_deducted", Dec),
+            ("loss_carry_back", Raw),
+            ("excess_franking_offsets", Raw),
+            ("subdivision_165_b", Raw),
+            ("tax_consolidated_group", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "foreign-income-conversion",
         &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -2064,7 +2089,7 @@ const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
     ("average_total_assets", Dec),
 ];
 
-const DERIVED: [&str; 106] = [
+const DERIVED: [&str; 107] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -2171,6 +2196,7 @@ const DERIVED: [&str; 106] = [
     "staff-cost",
     "age-pension",
     "ftb-part-a",
+    "book-to-tax",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -2676,6 +2702,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-second-hand-goods"
             | "gst-bad-debt"
             | "deferred-tax"
+            | "book-to-tax"
             | "leave-provisions"
             | "deferred-revenue"
             | "wip-lockup"
@@ -2718,6 +2745,7 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "franking-account"
             | "cgt-parcels"
             | "cgt-cost-base-adjustments"
+            | "cgt-rollover"
             | "help-indexation"
             | "defined-benefit-income-cap"
             | "foreign-pension-upp"
@@ -2917,6 +2945,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[4],
             })
         }
+        "cgt-rollover" => engine::cgt_rollover(&engine::CgtRolloverArgs {
+            rollover: &a[0],
+            facts: &a[1],
+            year: &a[2],
+            scope_confirmed: &a[3],
+        }),
         "help-indexation" => {
             // Optional: the balance (refused with its own code when absent),
             // the dated debts and repayments, and the other step amounts.
@@ -4761,6 +4795,19 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[7],
             })
         }
+        "book-to-tax" => engine::book_to_tax(&engine::BookToTaxArgs {
+            accounting_profit: &a[0],
+            adjustments: &a[1],
+            net_exempt_income: &a[2],
+            opening_tax_losses: &a[3],
+            tax_losses_deducted: &a[4],
+            loss_carry_back: &a[5],
+            excess_franking_offsets: &a[6],
+            subdivision_165_b: &a[7],
+            tax_consolidated_group: &a[8],
+            year: &a[9],
+            scope_confirmed: &a[10],
+        }),
         "deferred-tax" => engine::deferred_tax(&engine::DeferredTaxArgs {
             items: &a[0],
             unused_tax_losses: &a[1],
