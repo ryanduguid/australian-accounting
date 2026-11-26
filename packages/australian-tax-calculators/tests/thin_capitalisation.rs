@@ -730,6 +730,22 @@ fn inward_investor_and_inward_investment_vehicle() {
         amount(&run(&i), "worldwide_gearing_debt_amount"),
         "80000000.00"
     );
+    // Without the statement figures an excess is refused, and below the safe
+    // harbour debt amount nothing more is needed.
+    let mut i = investor();
+    drop(
+        &mut i,
+        &[
+            "statement_worldwide_debt",
+            "statement_worldwide_equity",
+            "statement_worldwide_assets",
+            "statement_average_australian_assets",
+            "audited_consolidated_statements",
+        ],
+    );
+    assert_eq!(code(&i), "thin_capitalisation.amount_not_worked_out");
+    i["average_debt_capital"] = json!("80000000.00");
+    assert_eq!(amount(&run(&i), "total_disallowed_amount"), "0.00");
     // Inward entities have no controlled foreign entity figures or s 820-37.
     let mut i = investor();
     i["average_controlled_foreign_entity_debt"] = json!("1.00");
@@ -759,7 +775,7 @@ fn financial_entity_edges() {
     ] {
         i[k] = json!("0.00");
     }
-    i["average_borrowed_securities_amount"] = json!("100000000.00");
+    i["average_borrowed_securities_amount"] = json!("200000000.00");
     assert_eq!(code(&i), "thin_capitalisation.fact_invalid");
     // The third party debt choice (ss 820-85(2C) and 820-185(2C)).
     let mut i = older(
@@ -955,14 +971,14 @@ fn global_bank_inward_adi() {
 
 /// Every general class result recorded on main before Subdivisions 820-B to
 /// 820-E were built (4df634bb) is unchanged: amounts, rates, each deduction's
-/// share and every refusal. Only the descriptive scope, sources and warnings
-/// text may differ.
+/// share and every refusal. Only the descriptive scope, sources, date read
+/// and warnings text may differ.
 #[test]
 fn general_class_results_unchanged() {
     let rows: Vec<Value> =
         serde_json::from_str(include_str!("data/thin_capitalisation_general.json")).unwrap();
     assert_eq!(rows.len(), 11);
-    let text = ["scope", "sources", "warnings"];
+    let text = ["scope", "sources", "source_checked", "warnings"];
     for row in rows {
         let input = &row["input"];
         match api::evaluate_coded(CMD, input) {

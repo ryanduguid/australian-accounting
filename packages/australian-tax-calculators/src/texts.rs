@@ -7488,12 +7488,12 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "An input the stated test or exemption needs is missing.",
     ),
     (
-        "thin_capitalisation.part_year_not_built",
-        "A financial entity or ADI in its class for only part of the income year was stated; the part-year rules (ss 820-120, 820-225, 820-330 and 820-420) are not applied.",
-    ),
-    (
         "thin_capitalisation.input_not_used",
         "An input the stated test does not use was given.",
+    ),
+    (
+        "thin_capitalisation.part_year_not_built",
+        "A financial entity or ADI in its class for only part of the income year was stated; the part-year rules (ss 820-120, 820-225, 820-330 and 820-420) are not applied.",
     ),
     (
         "thin_capitalisation.plantation_forestry",
