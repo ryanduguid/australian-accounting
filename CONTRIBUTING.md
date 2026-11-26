@@ -88,10 +88,11 @@ include Cargo. Each crate's `cargo audit` fails a pull request or push on a vuln
 or an unsound or yanked crate; an unmaintained crate fails only the weekly scheduled run
 (Ryan's decision, 18 November 2026). All candidate builds have read-only permissions.
 
-The former PyPI publishers of these engines are retired. Native publication is not
-configured: no workflow here publishes the binaries. Publishing them means adopting
-Release Policy's `release-binary.yml`, which builds Windows and Linux executables, in
-a separate authorised release change. Other components retain their Python publishers.
+The former PyPI publishers of these engines are retired. A binary release adopts
+Release Policy's `release-binary.yml`, which builds and attests Windows and Linux
+executables, in a separate authorised release change. The Australian Tax Calculators'
+release workflow also wraps those 2 executables, byte for byte, in PyPI wheels in its
+`pypi` job. Other components retain their Python publishers.
 
 ## Command routing
 
@@ -354,7 +355,7 @@ Registry through `publish-mcp.yml`.
 | the-exchequer-tally (Rust) | reserved `the-exchequer-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | solomons-sword (Rust) | reserved `solomons-sword/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | the-wip-tally (Rust) | reserved `the-wip-tally/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
-| australian-tax-calculators (Rust) | `australian-tax-calculators/vX.Y.Z` | `release-australian-tax-calculators.yml`, GitHub Releases only | `Cargo.toml` and `VERSION` | none |
+| australian-tax-calculators (Rust) | `australian-tax-calculators/vX.Y.Z` | `release-australian-tax-calculators.yml`, GitHub Releases, then the release's own executables as PyPI wheels | `Cargo.toml` and `VERSION` | `pypi-australian-tax-calculators` |
 | div7a-loan-review (Rust) | reserved `div7a-loan-review/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | ato-benchmark-compare (Rust) | reserved `ato-benchmark-compare/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |
 | payday-super-checker (Rust) | reserved `payday-super-checker/vX.Y.Z` | native publisher pending | `Cargo.toml` | none |

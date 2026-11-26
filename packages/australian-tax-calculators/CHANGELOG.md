@@ -4,6 +4,10 @@
 
 ### Added
 
+- The release also publishes its x86_64 Linux and Windows executables, byte
+  for byte, as wheels of the PyPI distribution `australian-tax-calculators`,
+  so `uvx australian-tax-calculators` runs this binary. The 1.x wheels hold no
+  Python module: the 0.2.0 `austaxcalc` import API stays retired.
 - `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost`
   mirror the site's break-even, 13-week cash, hourly, fixed fee and staff
   cost calculators and agree with every one of their vectors;

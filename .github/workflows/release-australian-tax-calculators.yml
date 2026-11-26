@@ -5,7 +5,10 @@ name: Release australian-tax-calculators
 # release-policy workflow binds the tag, the crate directory, VERSION, the
 # literal Cargo.toml version, the RELEASE_NOTES.md header, Cargo.lock and the
 # main commit before it builds the Linux and Windows executables, attests them
-# and publishes the immutable GitHub release. Nothing goes to crates.io.
+# and publishes the immutable GitHub release. The pypi job then wraps those 2
+# attested executables, byte for byte, in wheels of the PyPI distribution
+# australian-tax-calculators through its trusted publisher. Nothing goes to
+# crates.io.
 
 on:
   push:
@@ -39,3 +42,69 @@ jobs:
         .github/workflows/codeql.yml: codeql-gates
       source-directory: packages/australian-tax-calculators
       tag-prefix: australian-tax-calculators
+
+  pypi:
+    name: publish to PyPI
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi-australian-tax-calculators
+      url: https://pypi.org/p/australian-tax-calculators
+    permissions:
+      attestations: read # Verify the release assets' attestations.
+      contents: read # Download the published release assets.
+      id-token: write # Mint the OIDC token PyPI Trusted Publishing verifies.
+    steps:
+      - name: Check out the wheel script and the release-policy pin
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/ci/calculators_wheel.py
+            .github/workflows/release-australian-tax-calculators.yml
+          sparse-checkout-cone-mode: false
+
+      - name: Wrap the attested release executables in wheels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#australian-tax-calculators/v}"
+          policy="$(sed -n 's/.*release-binary\.yml@\([0-9a-f]\{40\}\)$/\1/p' .github/workflows/release-australian-tax-calculators.yml)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$policy" =~ ^[0-9a-f]{40}$ ]]
+          archives=("australian-tax-calculators-$version-x86_64-unknown-linux-musl.tar.gz"
+                    "australian-tax-calculators-$version-x86_64-pc-windows-msvc.zip")
+          pins=(--repo "$GITHUB_REPOSITORY" --source-ref "$GITHUB_REF" --source-digest "$GITHUB_SHA"
+                --signer-workflow ryanduguid/release-policy/.github/workflows/release-binary.yml
+                --signer-digest "$policy")
+          mkdir dist "$RUNNER_TEMP/assets"
+          cd "$RUNNER_TEMP/assets"
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --pattern SHA256SUMS --pattern "${archives[0]}" --pattern "${archives[1]}"
+          gh attestation verify SHA256SUMS "${pins[@]}"
+          sha256sum --check --ignore-missing --strict SHA256SUMS
+          for archive in "${archives[@]}"; do
+            gh attestation verify "$archive" "${pins[@]}"
+            python3 -I "$GITHUB_WORKSPACE/.github/ci/calculators_wheel.py" "$archive" "$GITHUB_WORKSPACE/dist"
+          done
+
+      - name: Publish to PyPI via trusted publishing
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+
+      - name: Read the published wheels back from PyPI
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#australian-tax-calculators/v}"
+          (cd dist && sha256sum ./*.whl | sed 's|  \./|  |') | sort > built
+          for _ in $(seq 30); do
+            if curl -fsS "https://pypi.org/pypi/australian-tax-calculators/$version/json" -o pypi.json \
+              && jq -r '.urls[] | "\(.digests.sha256)  \(.filename)"' pypi.json | sort | diff built -; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "PyPI does not list exactly the built wheels for $version" >&2
+          exit 1
