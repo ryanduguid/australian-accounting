@@ -11,19 +11,18 @@
 | `heading_number(row)` | `heading_number(row)` | Replaces U+2011 with ASCII `-` and splits on CPython Unicode whitespace (`py::is_space`) |
 | `main()` | `build(package, corpus)` + `run()` | Reads `sources.json` and `markdown/<title_id>/sections.jsonl`, hashes raw bytes with SHA-256, checks `found.len() == 1`, writes `legislation-provisions.json` (`indent=2`, `ensure_ascii=False`, trailing `\n`) |
 
-## Test correspondence
+## Tests and parity
 
-- `tests/test_dated_rates.py::LegislationCitationTests` at the repository root continues to check `legislation-provisions.json` against `data/*.json`.
-- `examples/build_provision_list.rs` (`[[example]] test = true`, run under `cargo test --locked`) tests `heading_number`, round-tripping `legislation-provisions.json` byte-for-byte, `citations` against the checked-in list, end-to-end writing and 0-row / 2-row refusal messages.
+- `tests/test_dated_rates.py::LegislationCitationTests` at the repository root still checks `legislation-provisions.json` against `data/*.json`.
+- `tests/data/build_provision_list-python.json` holds the answers `tools/build_provision_list.py` gave, recorded under CPython 3.15 on 7 cases: the shipped records against a corpus built from the shipped list, CRLF lines, Unicode spaces in headings, a provision with no row and one with 2 rows, a corpus without `sources.json` and no arguments. The example's `port_answers_as_the_python_script_did` test (`[[example]] test = true`, run by `cargo test --locked`) lays out each case, runs the port and compares the exit code, stderr and the written `legislation-provisions.json` byte for byte. Other tests cover `heading_number`, the shipped file's byte-exact round trip and its citations.
 
 ## Verification
 
-- `cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings`, `cargo clippy --locked --all-targets --all-features -- -D warnings`, `cargo test --locked`, `cargo test --locked --features differential --example build_provision_list`, and `cargo llvm-cov --locked --fail-under-lines 77` on Linux (`ll`).
-- Differential parity harness: 31 inputs compared against `origin/main` `tools/build_provision_list.py` (including the shipped `data/*.json` records and 30 seeded generated corpora with CRLF/LF lines, Unicode spaces, U+2011 hyphens, missing rows and duplicate rows), 0 unexplained differences.
+`cargo fmt --check`, `cargo clippy --locked --all-targets -- -D warnings` and `cargo test --locked` in this folder; CI runs them on Ubuntu and Windows.
 
 ## Intended divergences
 
-- Missing or extra CLI arguments print `usage: build_provision_list <corpus folder>` to stderr and exit `1` instead of raising an uncaught Python `IndexError` traceback.
+- Missing or extra arguments print `usage: build_provision_list <corpus folder>` and exit 1, where Python raised an `IndexError` traceback (also exit 1). A missing or unreadable corpus file is one error line instead of a traceback.
 
 ## Quirks kept
 

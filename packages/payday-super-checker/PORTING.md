@@ -1,8 +1,8 @@
 # Porting notes: `generate_calendar.py`
 
-`tools/generate_calendar.py` stays in Python under **Constraint 2** (external dependency without an approved/adequate Rust equivalent).
+`tools/generate_calendar.py` stays in Python: it depends on a library with no adequate Rust equivalent.
 
-## Constraint details
+## Why it stays
 
 1. **External upstream dependency (`python-holidays`):** `tools/generate_calendar.py` imports `holidays` (`holidays==0.108` pinned in root `uv.lock` / `pyproject.toml`) to compute national, state and territory Australian statutory holiday calendars (`holidays.Australia(subdiv=..., years=..., categories=("public",))`) before applying the project's SGAA 1992 s 6(1) exclusions and 2028 WA overrides.
 2. **Dependency policy:** Neither `Cargo.lock` nor `tests/test_boundaries.py::APPROVED_CRATES` includes an Australian public-holiday crate, and reimplementing multi-decade statutory holiday rules (movable Easter, state proclamations and substitution rules across 8 jurisdictions) in-house would diverge from the pinned `holidays` source without independent authority.

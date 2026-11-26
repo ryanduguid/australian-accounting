@@ -1,0 +1,755 @@
+{
+ "about": "Answers of the deleted Python tools/build_other_benchmarks.py on these inputs, recorded by running it under CPython 3.15 (openpyxl 3.1.5 for build_dataset). `check` says what the Rust port must match: exact = exit code, stdout, stderr and outputs; raised = the message of an uncaught BuildError, which the port prints as `error: <message>`; argparse = exit code and the text after `error:`; exit = exit code only (a Python traceback); help = exit code only. Paths are relative to the case folder, with `/` separators and LF line ends.",
+ "cases": [
+  {
+   "name": "agrees",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 1 business types, 6 ranges\n",
+   "stderr": "",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"ba5a993fd21a4e5b59fee8895f31458a3e8fa1d31696442f42b4ab40b6400e8a\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   }
+  },
+  {
+   "name": "crlf-and-quotes",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\r\nLast updated 16 March 2026\r\nKey benchmarks for 2023–24\r\nAnnual turnover range\r\n$50,000 – $150,000\r\nMore than $150,000\r\n´Total expenses' divided 'Annual turnover'\r\n54% to 73%\r\n79% to 89%\r\nAverage total expenses\r\n63%\r\nOther benchmarks for 2023–24\r\nAnnual turnover range\r\n$50,000 – $150,000\r\nMore than $150,000\r\n‘Labour’ divided by ‘Annual turnover’\r\n20% to 30%\r\n25% to 35%\r\nRent/turnover\r\n0% to 1%\r\n1%\r\nMotor vehicle expenses / turnover\r\n2% to 4%\r\n3% to 5%\r\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 1 business types, 6 ranges\n",
+   "stderr": "",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"74d500dd8a6f6fcb4e1fb80df2c094cec0da2213d83e87f3d78901b9c4b4280d\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   }
+  },
+  {
+   "name": "range-disagrees",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json",
+    "--expect-excluded",
+    "Fabricated services"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 0 business types, 0 ranges\n",
+   "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\n",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\"\n  }\n ]\n}\n"
+   }
+  },
+  {
+   "name": "key-ratio-missing",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Cost of sales' divided by 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json",
+    "--expect-excluded",
+    "Fabricated services"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 0 business types, 0 ranges\n",
+   "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page does not print the dataset's total_expenses_to_turnover range\n",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page does not print the dataset's total_expenses_to_turnover range\"\n  }\n ]\n}\n"
+   }
+  },
+  {
+   "name": "other-year",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2022–23\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json",
+    "--expect-excluded",
+    "Fabricated services"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 0 business types, 0 ranges\n",
+   "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: other benchmarks are for 2022-23, dataset is 2023-24\n",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: other benchmarks are for 2022-23, dataset is 2023-24\"\n  }\n ]\n}\n"
+   }
+  },
+  {
+   "name": "page-year",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2022–23 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json",
+    "--expect-excluded",
+    "Fabricated services"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 0 business types, 0 ranges\n",
+   "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page covers 2022-23, dataset is 2023-24\n",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page covers 2022-23, dataset is 2023-24\"\n  }\n ]\n}\n"
+   }
+  },
+  {
+   "name": "bands-differ",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $200,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $200,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json",
+    "--expect-excluded",
+    "Fabricated services"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 0 business types, 0 ranges\n",
+   "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: key bands ['$50,000 – $150,000', 'More than $200,000'] do not match the dataset's ['$50,000 - $150,000', 'More than $150,000']\n",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: key bands ['$50,000 – $150,000', 'More than $200,000'] do not match the dataset's ['$50,000 - $150,000', 'More than $150,000']\"\n  }\n ]\n}\n"
+   }
+  },
+  {
+   "name": "unexpected-exclusion",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: excluded pages ['Fabricated services'] differ from --expect-excluded []. https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\n",
+   "outputs": {}
+  },
+  {
+   "name": "mistyped-key-year",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–23\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 1 business types, 6 ranges\n",
+   "stderr": "",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"0cb5d6b08ec49e5b6e1b1c07e6fecb0e1d61588a9b639f3d24a2ee34c9d796b4\",\n   \"page_anomalies\": [\n    \"key table heading says 2023-23; the page and its ranges are 2023-24\"\n   ],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   }
+  },
+  {
+   "name": "second-key-range",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\n70%\n'Cost of sales' divided by 'Annual turnover'\n10% to 20%\n15% to 25%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 1 business types, 6 ranges\n",
+   "stderr": "",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"2860092ebc3e79ff42f83a6d338bdee57d55aa4a0c68ec410a32e35dcb5d48d3\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   }
+  },
+  {
+   "name": "no-qc",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\n",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page carries no last-updated date or QC reference\n",
+   "outputs": {}
+  },
+  {
+   "name": "unrecognised-heading",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent as a share of turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): unrecognised benchmark heading 'Rent as a share of turnover'\n",
+   "outputs": {}
+  },
+  {
+   "name": "unknown-key-heading",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nWages/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): unrecognised benchmark heading 'Wages/turnover'\n",
+   "outputs": {}
+  },
+  {
+   "name": "range-unreadable",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20 to 30 per cent\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): expected a range such as '22% to 38%' under labour_to_turnover, found '20 to 30 per cent'\n",
+   "outputs": {}
+  },
+  {
+   "name": "range-backwards",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n30% to 20%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): labour_to_turnover range '30% to 20%' runs backwards\n",
+   "outputs": {}
+  },
+  {
+   "name": "heading-twice",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nRent/turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): 'Rent/turnover' appears twice\n",
+   "outputs": {}
+  },
+  {
+   "name": "two-key-tables",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345\nKey benchmarks for 2023–24\nAnnual turnover range\n$1 - $2\nRent/turnover\n1% to 2%",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: two key benchmark tables\n",
+   "outputs": {}
+  },
+  {
+   "name": "no-year-sentence",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page does not state which financial year it covers\n",
+   "outputs": {}
+  },
+  {
+   "name": "no-key-table",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nBenchmarks\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: no key benchmark table\n",
+   "outputs": {}
+  },
+  {
+   "name": "status-404",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 404, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: page was not saved whole (status 404)\n",
+   "outputs": {}
+  },
+  {
+   "name": "truncated",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": true, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: page was not saved whole (status 200)\n",
+   "outputs": {}
+  },
+  {
+   "name": "bad-title",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: unexpected page title 'Fabricated services'\n",
+   "outputs": {}
+  },
+  {
+   "name": "unknown-business",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/mystery\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/mystery\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Mystery | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/mystery: 'Mystery' is not a business type in 2023-24\n",
+   "outputs": {}
+  },
+  {
+   "name": "address-title-clash",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 2,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Other thing\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/other-thing\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/other-thing\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/other-thing: address and title name different business types\n",
+   "outputs": {}
+  },
+  {
+   "name": "second-page",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/002.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}, {\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services-2\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services-2\", \"file\": \"002.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services-2: 'Fabricated services' has a second page\n",
+   "outputs": {}
+  },
+  {
+   "name": "missing-page",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 2,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Absent one\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: no page for 1 business types: ['Absent one']\n",
+   "outputs": {}
+  },
+  {
+   "name": "alias-address",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Motor vehicle retail - new and used car\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/motor-vehicle-retail-new-and-used\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/motor-vehicle-retail-new-and-used\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Car sales | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 0,
+   "stdout": "wrote out.json: 1 business types, 6 ranges\n",
+   "stderr": "",
+   "outputs": {
+    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"dfcfb36ab834d0fc54ec3774d75b8eb577453ea3e492219b598658093f0a06ab\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Motor vehicle retail - new and used car\",\n   \"page_title\": \"Car sales\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/motor-vehicle-retail-new-and-used\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"ba5a993fd21a4e5b59fee8895f31458a3e8fa1d31696442f42b4ab40b6400e8a\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   }
+  },
+  {
+   "name": "too-many-excluded",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 7,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Industry A\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Industry B\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Industry C\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Industry D\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Industry E\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Industry F\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Industry G\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/002.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/003.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/004.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/005.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/006.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/007.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n55% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-a\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-a\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Industry A | Australian Taxation Office\"}, {\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-b\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-b\", \"file\": \"002.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Industry B | Australian Taxation Office\"}, {\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-c\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-c\", \"file\": \"003.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Industry C | Australian Taxation Office\"}, {\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-d\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-d\", \"file\": \"004.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Industry D | Australian Taxation Office\"}, {\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-e\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-e\", \"file\": \"005.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Industry E | Australian Taxation Office\"}, {\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-f\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-f\", \"file\": \"006.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Industry F | Australian Taxation Office\"}, {\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-g\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-g\", \"file\": \"007.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Industry G | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json",
+    "--expect-excluded",
+    "Industry A",
+    "--expect-excluded",
+    "Industry B",
+    "--expect-excluded",
+    "Industry C",
+    "--expect-excluded",
+    "Industry D",
+    "--expect-excluded",
+    "Industry E",
+    "--expect-excluded",
+    "Industry F",
+    "--expect-excluded",
+    "Industry G"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: 7 pages disagree with the dataset: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-a: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset; https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-b: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset; https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-c: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\n",
+   "outputs": {}
+  },
+  {
+   "name": "shared-address",
+   "files": {
+    "benchmarks-2023-24.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 2,\n \"source\": {\n  \"sha256\": \"abababababababababababababababababababababababababababababababab\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fab services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  },\n  {\n   \"name\": \"Fab-services\",\n   \"key_ratio\": \"total_expenses_to_turnover\",\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"label\": \"$50,000 - $150,000\",\n     \"turnover_from\": \"50000\",\n     \"turnover_from_inclusive\": true,\n     \"turnover_to\": \"150000\",\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.54\",\n      \"max\": \"0.73\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    },\n    {\n     \"band\": \"high\",\n     \"label\": \"More than $150,000\",\n     \"turnover_from\": \"150000\",\n     \"turnover_from_inclusive\": false,\n     \"turnover_to\": null,\n     \"total_expenses_to_turnover\": {\n      \"min\": \"0.79\",\n      \"max\": \"0.89\"\n     },\n     \"cost_of_sales_to_turnover\": null\n    }\n   ]\n  }\n ]\n}\n",
+    "pages/001.txt": "Performance benchmarks use information reported on tax returns for the 2023–24 financial year and are updated each year.\nLast updated 16 March 2026\nKey benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n'Total expenses' divided 'Annual turnover'\n54% to 73%\n79% to 89%\nAverage total expenses\n63%\nOther benchmarks for 2023–24\nAnnual turnover range\n$50,000 – $150,000\nMore than $150,000\n‘Labour’ divided by ‘Annual turnover’\n20% to 30%\n25% to 35%\nRent/turnover\n0% to 1%\n1%\nMotor vehicle expenses / turnover\n2% to 4%\n3% to 5%\nQC12345",
+    "pages/index.json": "[{\"url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"final_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\", \"file\": \"001.txt\", \"status\": 200, \"truncated\": false, \"title\": \"Fabricated services | Australian Taxation Office\"}]"
+   },
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/benchmarks-2023-24.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exact",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "error: two business types share a page address\n",
+   "outputs": {}
+  },
+  {
+   "name": "missing-required",
+   "files": {},
+   "args": [
+    "--pages-dir",
+    "{dir}/pages"
+   ],
+   "check": "argparse",
+   "exit": 2,
+   "stderr": "the following arguments are required: --dataset, --retrieved, --out",
+   "stdout": "",
+   "outputs": {}
+  },
+  {
+   "name": "missing-dataset",
+   "files": {},
+   "args": [
+    "--pages-dir",
+    "{dir}/pages",
+    "--dataset",
+    "{dir}/absent.json",
+    "--retrieved",
+    "2026-09-29",
+    "--out",
+    "{dir}/out.json"
+   ],
+   "check": "exit",
+   "exit": 1,
+   "stdout": "",
+   "stderr": "",
+   "outputs": {}
+  }
+ ]
+}

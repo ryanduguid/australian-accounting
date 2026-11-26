@@ -14,6 +14,7 @@
 //!     cargo run --example build_provision_list -- <corpus folder>
 
 use std::collections::BTreeSet;
+use std::ffi::OsString;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -239,16 +240,19 @@ pub fn build(package: &Path, corpus: &Path) -> Result<Vec<u8>, String> {
     Ok(output)
 }
 
-fn run() -> Result<(), String> {
-    let mut args = std::env::args_os().skip(1);
-    let corpus = args
-        .next()
-        .ok_or_else(|| "usage: build_provision_list <corpus folder>".to_string())?;
-    if args.next().is_some() {
-        return Err("usage: build_provision_list <corpus folder>".to_string());
+const USAGE: &str = "usage: build_provision_list <corpus folder>";
+
+/// The exit code and stderr of one run against `package`.
+fn run(package: &Path, args: &[OsString]) -> (u8, String) {
+    let [corpus] = args else {
+        return (1, format!("{USAGE}
+"));
+    };
+    match build(package, Path::new(corpus)) {
+        Ok(_) => (0, String::new()),
+        Err(message) => (1, format!("{message}
+")),
     }
-    build(&package_root(), Path::new(&corpus))?;
-    Ok(())
 }
 
 fn output_bytes(text: &str) -> Vec<u8> {
@@ -266,34 +270,86 @@ fn output_bytes(text: &str) -> Vec<u8> {
 }
 
 fn main() -> ExitCode {
-    match run() {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(message) => {
-            let _ = std::io::stderr().write_all(&output_bytes(&format!("{message}\n")));
-            ExitCode::from(1)
-        }
-    }
+    // The corpus folder is the operator's own local path.
+    let raw = std::env::args_os(); // nosemgrep: rust.lang.security.args-os.args-os
+    let args: Vec<OsString> = raw.skip(1).collect();
+    let (code, stderr) = run(&package_root(), &args);
+    let _ = std::io::stderr().write_all(&output_bytes(&stderr));
+    ExitCode::from(code)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicUsize, Ordering};
 
-    fn temp_dir(label: &str) -> PathBuf {
-        static NEXT: AtomicUsize = AtomicUsize::new(0);
-        let n = NEXT.fetch_add(1, Ordering::Relaxed);
-        let dir = std::env::temp_dir().join(format!(
-            "au-tax-rates-build-provision-list-{label}-{}-{n}",
-            std::process::id()
-        ));
+    const RECORDED: &str = include_str!("../tests/data/build_provision_list-python.json");
+
+    /// A fresh scratch folder for one case; test-only, holding nothing secret.
+    fn scratch(case: &str) -> PathBuf {
+        let base = std::env::temp_dir(); // nosemgrep: rust.lang.security.temp-dir.temp-dir
+        let dir = base.join(format!("build-provision-list-{}-{case}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        fs::create_dir_all(dir.join("pkg/data")).unwrap();
         dir
     }
 
-    fn write_record(data_dir: &Path, name: &str, body: &str) {
-        fs::write(data_dir.join(name), body.as_bytes()).unwrap();
+    /// Lays out one recorded case: the package's own records and the case's corpus.
+    fn write_case(dir: &Path, case: &Json) {
+        let data = Path::new(env!("CARGO_MANIFEST_DIR")).join("data");
+        for entry in fs::read_dir(data).unwrap() {
+            let path = entry.unwrap().path();
+            fs::copy(&path, dir.join("pkg/data").join(path.file_name().unwrap())).unwrap();
+        }
+        let Json::Object(files) = case.at("files") else {
+            panic!("files must be an object");
+        };
+        for (rel, text) in files {
+            let path = dir.join(rel.as_str().unwrap());
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, text.as_str().unwrap()).unwrap();
+        }
+    }
+
+    fn text(value: &Json) -> String {
+        value.as_str().unwrap().to_string()
+    }
+
+    /// Every recorded answer of the Python `build_provision_list.py`, replayed.
+    #[test]
+    fn port_answers_as_the_python_script_did() {
+        let doc = loads_standard(RECORDED).unwrap();
+        let Json::Array(cases) = doc.at("cases") else {
+            panic!("cases must be an array");
+        };
+        assert!(cases.len() >= 7, "recorded cases");
+        for case in cases {
+            let name = text(case.at("name"));
+            let dir = scratch(&name);
+            write_case(&dir, case);
+            let root = dir.to_string_lossy().replace('\', "/");
+            let Json::Array(raw_args) = case.at("args") else {
+                panic!("args must be an array");
+            };
+            let args: Vec<OsString> = raw_args
+                .iter()
+                .map(|a| text(a).replace("{dir}", &root).into())
+                .collect();
+            let (code, stderr) = run(&dir.join("pkg"), &args);
+            let Json::Int(exit) = case.at("exit") else {
+                panic!("exit must be an integer");
+            };
+            assert_eq!(code.to_string(), exit.to_string(), "{name}: {stderr}");
+            if text(case.at("check")) == "exact" {
+                assert_eq!(stderr, text(case.at("stderr")), "{name}");
+            }
+            if let Json::Object(outputs) = case.at("outputs") {
+                for (rel, expected) in outputs {
+                    let path = dir.join("pkg").join(rel.as_str().unwrap());
+                    assert_eq!(fs::read_to_string(path).unwrap(), text(expected), "{name}");
+                }
+            }
+            let _ = fs::remove_dir_all(&dir);
+        }
     }
 
     #[test]
@@ -334,64 +390,5 @@ mod tests {
             })
             .collect();
         assert_eq!(pairs, expected);
-    }
-
-    #[test]
-    fn build_writes_expected_json_and_rejects_ambiguous_rows() {
-        let root = temp_dir("build");
-        let pkg = root.join("pkg");
-        let corpus = root.join("corpus");
-        fs::create_dir_all(pkg.join("data")).unwrap();
-        fs::create_dir_all(corpus.join("markdown/C1")).unwrap();
-        write_record(
-            &pkg.join("data"),
-            "b.json",
-            r#"{"id":"b","legislation":[{"title_id":"C1","provision":"5B"}]}"#,
-        );
-        write_record(
-            &pkg.join("data"),
-            "a.json",
-            r#"{"id":"a","legislation":[{"title_id":"C1","provision":"5B"}]}"#,
-        );
-        fs::write(
-            corpus.join("sources.json"),
-            br#"{"corpus":"Test Corpus","retrieved":"2026-08-04"}"#,
-        )
-        .unwrap();
-        let jsonl = concat!(
-            "{\"act\":\"Test Act\",\"compilation_number\":\"1\",",
-            "\"compilation_date\":\"2026-07-01\",\"row_id\":\"C1:0001:5B\",",
-            "\"heading\":\"5B Employer\u{2019}s amount\"}\n"
-        );
-        fs::write(corpus.join("markdown/C1/sections.jsonl"), jsonl.as_bytes()).unwrap();
-
-        let written = build(&pkg, &corpus).unwrap();
-        assert_eq!(
-            written,
-            fs::read(pkg.join("legislation-provisions.json")).unwrap()
-        );
-        let doc = read_json_utf8(&pkg.join("legislation-provisions.json")).unwrap();
-        assert_eq!(doc.at("corpus").at("name").as_str(), Some("Test Corpus"));
-        let Json::Array(items) = doc.at("provisions") else {
-            panic!("provisions must be an array");
-        };
-        assert_eq!(items.len(), 1);
-
-        let doubled = format!("{jsonl}{jsonl}");
-        fs::write(
-            corpus.join("markdown/C1/sections.jsonl"),
-            doubled.as_bytes(),
-        )
-        .unwrap();
-        assert_eq!(
-            build(&pkg, &corpus).unwrap_err(),
-            "C1 has 2 rows for 5B in this corpus"
-        );
-        fs::write(corpus.join("markdown/C1/sections.jsonl"), b"").unwrap();
-        assert_eq!(
-            build(&pkg, &corpus).unwrap_err(),
-            "C1 has 0 rows for 5B in this corpus"
-        );
-        let _ = fs::remove_dir_all(&root);
     }
 }

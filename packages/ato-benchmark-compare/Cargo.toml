@@ -30,11 +30,13 @@ test = true
 # Rebuilds data/benchmarks-<year>.json from the ATO's workbook; dev-dependencies only.
 [[example]]
 name = "build_dataset"
+path = "examples/build_dataset/main.rs"
 test = true
 
 # Rebuilds data/other-benchmarks-<year>.json from saved industry pages; dev-dependencies only.
 [[example]]
 name = "build_other_benchmarks"
+path = "examples/build_other_benchmarks/main.rs"
 test = true
 
 # Builds workbooks/ato-benchmark-compare.xlsx; dev-dependencies only, so the
