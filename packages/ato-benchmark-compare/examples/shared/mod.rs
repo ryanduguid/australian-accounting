@@ -172,6 +172,11 @@ impl Spec {
                 }
             }
         }
+        self.finish(values, &extras)
+    }
+
+    /// argparse's checks after the last argument: required flags, then extras.
+    fn finish(&self, values: Values, extras: &[String]) -> Result<Option<Values>, String> {
         let missing: Vec<&str> = self
             .flags
             .iter()
