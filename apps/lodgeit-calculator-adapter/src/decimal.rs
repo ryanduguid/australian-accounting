@@ -562,57 +562,6 @@ impl Decimal {
         Ok(rescale(self, 0, rounding))
     }
 
-    /// `self ** exponent` for a finite base in (0, 1] and a finite, positive,
-    /// integral exponent, as libmpdec's `mpd_qpow` computes it: the power-of-one
-    /// and certain-underflow checks, then `_mpd_qpow_uint`'s left-to-right binary
-    /// exponentiation at the context precision plus the exponent's integer
-    /// digits plus 2, rounded half even, and one final rounding to the context.
-    pub fn pow_integral(&self, exponent: &Decimal) -> Calc<Decimal> {
-        let one = Decimal::from_int(1);
-        debug_assert!(self.is_finite() && !self.negative && !self.is_zero());
-        debug_assert!(exponent.is_finite() && !exponent.negative && !exponent.is_zero());
-        if self.order(&one) == Ordering::Equal {
-            // _qcheck_pow_one: 1.000**3 is 1.000000000, capped at prec - 1 places.
-            let shift = pow_one_shift(exponent, -self.exp, prec() - 1);
-            return Ok(finite(
-                false,
-                format!("1{}", "0".repeat(shift as usize)),
-                -shift,
-            ));
-        }
-        // _qcheck_pow_bounds, underflow side (|x| < 1, y > 0).
-        let lb_theta = exponent.adjusted();
-        let lb_zeta = if self.adjusted() < -1 {
-            exp_digits(self.adjusted() + 1) - 1
-        } else {
-            let gap = with_precision(MAX_PREC, || self.sub(&one))?;
-            gap.adjusted() - if self.adjusted() == 0 { 2 } else { 1 }
-        };
-        if self.adjusted() < 0 && exp_digits(etiny()) < lb_zeta + lb_theta {
-            return fix(finite(false, "1".into(), etiny() - 1), Rounding::HalfEven);
-        }
-        if self.adjusted() >= 0 && exp_digits(EMAX) < lb_zeta + lb_theta {
-            return Err(Signal::Overflow);
-        }
-        let work = prec() + exponent.digits.len() as i128 + exponent.exp + 2;
-        let n = big(&exponent.digits) * ten_pow(exponent.exp.max(0) as usize)
-            / ten_pow((-exponent.exp).max(0) as usize);
-        let result = with_precision(work, || -> Calc<Decimal> {
-            let mut result = self.clone();
-            for bit in (0..n.bits().saturating_sub(1)).rev() {
-                result = result.mul(&result)?;
-                if n.bit(bit) {
-                    result = result.mul(self)?;
-                }
-                if result.is_zero() {
-                    break;
-                }
-            }
-            Ok(result)
-        })?;
-        fix(result, Rounding::HalfEven)
-    }
-
     /// `str(self)`, Python's to-sci-string with a capital `E`.
     pub fn to_sci_string(&self) -> String {
         let sign = if self.negative { "-" } else { "" };
@@ -758,27 +707,6 @@ impl Decimal {
         } else {
             magnitude
         }
-    }
-}
-
-/// libmpdec's `mpd_exp_digits`: the decimal digits of `|n|`.
-fn exp_digits(n: i128) -> i128 {
-    n.unsigned_abs().to_string().len() as i128
-}
-
-/// `_qcheck_pow_one`'s shift for `1**exponent` where the one carries
-/// `places` fractional zeros: `exponent * places`, capped at `cap`.
-fn pow_one_shift(exponent: &Decimal, places: i128, cap: i128) -> i128 {
-    if places == 0 {
-        return 0;
-    }
-    let n = big(&exponent.digits) * ten_pow(exponent.exp.max(0) as usize)
-        / ten_pow((-exponent.exp).max(0) as usize);
-    let product = n * BigUint::from(places as u128);
-    if product > BigUint::from(cap as u128) {
-        cap
-    } else {
-        product.to_string().parse().expect("small shift")
     }
 }
 

@@ -180,7 +180,21 @@ ATO_BENCHMARK = "packages/ato-benchmark-compare"
 DIV7A = "packages/div7a-loan-review"
 PAYDAY = "packages/payday-super-checker"
 WIP_TALLY = "packages/the-wip-tally"
+GST_REVIEW = "packages/gst-review"
+TAX_CALCULATORS = "packages/australian-tax-calculators"
+SOLOMONS_SWORD = "packages/solomons-sword"
+EXCHEQUER_TALLY = "packages/the-exchequer-tally"
 PYTHON_COPIES = {
+    "decimal.rs": (
+        (ATO_BENCHMARK, GST_REVIEW, PAYDAY),
+        (RATES_DATA,),
+        (LODGEIT_ADAPTER,),
+        (TAX_CALCULATORS,),
+        (DIV7A,),
+        (SOLOMONS_SWORD,),
+        (EXCHEQUER_TALLY,),
+        (WIP_TALLY,),
+    ),
     "pyunicode.rs": (
         (RATES_DATA, LODGEIT_ADAPTER),
         (ATO_BENCHMARK, DIV7A, PAYDAY, WIP_TALLY),

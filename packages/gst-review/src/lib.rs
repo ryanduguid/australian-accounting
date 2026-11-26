@@ -48,8 +48,7 @@ fn field<'a>(value: &'a Value, key: &str) -> &'a Value {
 fn date(value: &Value) -> Option<Date> {
     let text = value.as_str()?;
     let date = Date::strptime("%Y-%m-%d", text).ok()?;
-    (date.strftime("%Y-%m-%d").to_string() == text && text.len() == 10 && date.year() > 0)
-        .then_some(date)
+    (date.strftime("%Y-%m-%d").to_string() == text && date.year() > 0).then_some(date)
 }
 fn optional_date(value: &Value) -> bool {
     value.is_null() || date(value).is_some()
@@ -130,5 +129,28 @@ fn codes<'a>(
         Some(value) => value
             .as_object()
             .ok_or_else(|| format!("{key} must be an object or null")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    /// The round trip and the positive year alone keep a date to 10
+    /// characters: jiff writes `%Y` with at least 4 digits.
+    #[test]
+    fn a_date_is_ten_characters_without_a_length_check() {
+        for text in ["2024-01-05", "0999-12-31", "9999-12-31"] {
+            assert!(super::date(&json!(text)).is_some(), "{text}");
+        }
+        for text in [
+            "999-12-31",
+            "2024-1-05",
+            "02024-01-05",
+            "0000-01-01",
+            "2024-01-05 ",
+        ] {
+            assert!(super::date(&json!(text)).is_none(), "{text}");
+        }
     }
 }
