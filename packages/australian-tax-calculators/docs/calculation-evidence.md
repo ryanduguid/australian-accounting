@@ -5868,6 +5868,18 @@ Added on 26 November 2026, when these were read:
   limits for 6 situations and its $1,440 partner income free area.
   Pharmaceutical allowance is indexed on 1 January (the guides' indexation
   dates), so it is refused for days from 1 January 2027.
+- Disability support pension and carer payment, added on 27 November 2026:
+  the Social Security Act 1991 s 1064(1) and (2), Modules A, BA, C, E, F and
+  G, and ss 1065 and 1066A for what they exclude (compilation 234); Social
+  Security Guide 5.1.8.10 (version 1.345), whose common pension rates cover
+  age pension, disability support pension at 21 or over or with a dependent
+  child, and carer payment; Services Australia's carer payment rate and assets
+  test pages (last updated 20 September 2026). Both commands work
+  `age-pension`'s calculator and amounts; the tests meet the guide's maximum
+  rates and the carer payment page's part pension cut-off points, and give
+  `age-pension`'s amounts on the first and last day of every dated period.
+  Services Australia's disability support pension rate page refused the
+  plain reader and a browser (an error page), so it was not read.
 
 The Department of Social Services' Family Assistance Guide was not read (a
 challenge page), so the Act and the published rates stand alone. The

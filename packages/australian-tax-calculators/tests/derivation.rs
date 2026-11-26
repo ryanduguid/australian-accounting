@@ -129,6 +129,8 @@ const DERIVED: [&str; 110] = [
     "ftb-part-b",
     "rent-assistance",
     "jobseeker-payment",
+    "disability-support-pension",
+    "carer-payment",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -1322,6 +1324,40 @@ fn cases() -> Vec<(&'static str, Value)> {
             "age-pension",
             json!({"date": "2026-10-01", "relationship": relationship, "homeowner": homeowner,
                    "ordinary_income": income, "financial_assets": financial, "assets": assets,
+                   "facts": facts, "year": "2026-27", "scope_confirmed": true}),
+        ));
+    }
+    let dsp = json!({"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true,
+                     "in_australia": true, "not_transitional": true, "no_rent_assistance": true,
+                     "no_quarterly_election": true});
+    let carer = json!({"carer_payment_only": true, "in_australia": true, "not_transitional": true,
+                       "no_rent_assistance": true, "no_quarterly_election": true});
+    for (command, base, relationship, income, assets) in [
+        (
+            "disability-support-pension",
+            &dsp,
+            "single",
+            "300.00",
+            "50000.00",
+        ),
+        (
+            "disability-support-pension",
+            &dsp,
+            "couple",
+            "500.00",
+            "800000.00",
+        ),
+        ("carer-payment", &carer, "single", "150.00", "380000.00"),
+        ("carer-payment", &carer, "couple", "0.00", "1120500.00"),
+    ] {
+        let mut facts = base.clone();
+        if relationship == "couple" {
+            facts["partner_pensioner"] = json!(true);
+        }
+        cases.push((
+            command,
+            json!({"date": "2026-10-01", "relationship": relationship, "homeowner": true,
+                   "ordinary_income": income, "financial_assets": "20000.00", "assets": assets,
                    "facts": facts, "year": "2026-27", "scope_confirmed": true}),
         ));
     }
@@ -3122,7 +3158,7 @@ fn derive_refuses_what_it_does_not_explain() {
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
          lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, payroll-tax-monthly, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
-         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, age-pension, ftb-part-a, book-to-tax, ftb-part-b, rent-assistance, jobseeker-payment, not \"payg-gross-up\""
+         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, age-pension, ftb-part-a, book-to-tax, ftb-part-b, rent-assistance, jobseeker-payment, disability-support-pension, carer-payment, not \"payg-gross-up\""
     );
 }
 

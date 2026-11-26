@@ -706,6 +706,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "jobseeker_payment",
         "One fortnight's jobseeker payment on a day from 1 July 2026 to 19 March 2027 under Benefit Rate Calculator B (Social Security Act 1991 s 1068): the maximum basic rate for the family situation, the energy supplement and any pharmaceutical allowance, less the partner income reduction (60% over the partner income free area) and the ordinary income reduction (50% then 60% over $150, or 40% for a single principal carer). The working credit, rent assistance, the assets test, waiting periods, compensation, the exempt principal carer rate and a partner on a benefit or under 22 are out of scope.",
     ),
+    (
+        "disability_support_pension",
+        "One fortnight's disability support pension rate for a person who has turned 21 or has a dependent child, single or each member of a couple, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064(1)(b)), worked exactly as age-pension works it: the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income (stated income plus deemed income from financial assets, s 1082; 50% over the free area, or 25% of a couple's combined income over their combined free area) and the reduction for assets ($19.50 a year for each whole $250 over the assets value limit, a couple's assets halved against each member's limit). The amounts are age-pension's: the DSS Social Security Guide's common pension rates are one table for age pension, this pension and carer payment. Excludes the under-21 rates of Pension Rate Calculator D (s 1066A), the permanently blind (s 1065), leave and termination payments that Module F spreads over an income maintenance period, rent assistance, the work bonus (the stated income is after it), transitional rates, quarterly supplements, illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
+    ),
+    (
+        "carer_payment",
+        "One fortnight's carer payment rate, single or each member of a couple, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064(1)(d)), worked exactly as age-pension works it: the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income (stated income plus deemed income from financial assets, s 1082; 50% over the free area, or 25% of a couple's combined income over their combined free area) and the reduction for assets ($19.50 a year for each whole $250 over the assets value limit, a couple's assets halved against each member's limit). The amounts are age-pension's: the DSS Social Security Guide's common pension rates are one table for age pension, disability support pension and this payment. The care receiver's income and assets tests and every other qualification are the operator's to establish. Excludes carer allowance (Part 2.19) and carer supplement, rent assistance, the work bonus (the stated income is after it), transitional rates, quarterly supplements, illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -1396,6 +1404,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "jobseeker_payment",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
+    ),
+    (
+        "disability_support_pension",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
+    ),
+    (
+        "carer_payment",
         "https://www.legislation.gov.au/C2004A04121/latest/text",
     ),
 ];
@@ -3193,6 +3209,28 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.servicesaustralia.gov.au/sites/default/files/2026-07/co029-2607.pdf",
         ],
     ),
+    (
+        "disability_support_pension",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
+            "https://guides.dss.gov.au/social-security-guide/4/10/3",
+            "https://guides.dss.gov.au/social-security-guide/4/4/1/10",
+        ],
+    ),
+    (
+        "carer_payment",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
+            "https://guides.dss.gov.au/social-security-guide/4/10/3",
+            "https://guides.dss.gov.au/social-security-guide/4/4/1/10",
+            "https://www.servicesaustralia.gov.au/how-much-carer-payment-you-can-get",
+            "https://www.servicesaustralia.gov.au/assets-test-for-carer-payment",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -3877,6 +3915,19 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "Services Australia assesses income from its own records each fortnight; the working credit, which can reduce employment income, is left out, and the rates change each 20 March and 20 September.",
         ],
     ),
+    (
+        "disability_support_pension",
+        &[
+            "Services Australia assesses income, assets and deeming from its own records; the rate here is one fortnight's on the stated facts and rates change each 20 March, 1 July and 20 September.",
+        ],
+    ),
+    (
+        "carer_payment",
+        &[
+            "Services Australia assesses income, assets and deeming from its own records; the rate here is one fortnight's on the stated facts and rates change each 20 March, 1 July and 20 September.",
+            "Carer allowance and carer supplement are other payments and are not in this rate; qualification, including the care receiver's own income and assets tests, is for Services Australia.",
+        ],
+    ),
 ];
 
 /// A `foreign_resident_tax` warning for a year whose rates the ATO had not
@@ -4480,6 +4531,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The undeducted construction expenditure is more than the construction expenditure.",
     ),
     (
+        "carer_payment.assets_inconsistent",
+        "financial_assets is more than assets, which include them.",
+    ),
+    (
+        "carer_payment.date_invalid",
+        "date is not a YYYY-MM-DD day in the year.",
+    ),
+    (
+        "carer_payment.date_uncovered",
+        "date is outside 20 September 2025 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "carer_payment.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "carer_payment.facts_not_stated",
+        "A fact the carer payment worksheet needs is not stated true, such as the amount asked for being carer payment, not carer allowance or carer supplement.",
+    ),
+    (
+        "carer_payment.relationship_invalid",
+        "relationship is not single or couple.",
+    ),
+    (
         "cash_forecast.delay_above_receipts",
         "The delayed receipt is more than its week's receipts.",
     ),
@@ -4860,6 +4935,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "derivation.unsupported",
         "derive was asked to explain a command whose amounts it does not derive.",
+    ),
+    (
+        "disability_support_pension.assets_inconsistent",
+        "financial_assets is more than assets, which include them.",
+    ),
+    (
+        "disability_support_pension.date_invalid",
+        "date is not a YYYY-MM-DD day in the year.",
+    ),
+    (
+        "disability_support_pension.date_uncovered",
+        "date is outside 20 September 2025 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "disability_support_pension.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "disability_support_pension.facts_not_stated",
+        "A fact the disability support pension worksheet needs is not stated true, such as the person being 21 or over or having a dependent child (s 1066A), not blind (s 1065) or without a Module F leave or termination payment.",
+    ),
+    (
+        "disability_support_pension.relationship_invalid",
+        "relationship is not single or couple.",
     ),
     (
         "downsizer.contribution_before_settlement",
@@ -6029,7 +6128,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, ftb-part-b, rent-assistance, jobseeker-payment, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, ftb-part-b, rent-assistance, jobseeker-payment, disability-support-pension, carer-payment, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),

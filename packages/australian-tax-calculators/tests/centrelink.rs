@@ -3,7 +3,9 @@
 // Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! Family tax benefit Part B, rent assistance and jobseeker payment, read on
-//! 26 November 2026. The vectors are the sources' published limits: the FTB
+//! 26 November 2026, and disability support pension and carer payment, read
+//! on 27 November 2026 (SS Guide 5.1.8.10's common pension rates and Services
+//! Australia's carer payment rates and cut-off points from 20 September 2026). The vectors are the sources' published limits: the FTB
 //! Part B secondary earner income limits in the DSS rates list for 1 July
 //! 2026 (and its previous amounts for 2025-26); the rent ceilings and maximum
 //! rates in SS Guide 5.1.7.10 and 'A guide to Australian Government payments'
@@ -452,4 +454,173 @@ fn jobseeker_payment_refuses_what_it_cannot_work() {
         paid(&with(base.clone(), json!({"date": "2027-03-19"}))),
         "833.70"
     );
+}
+
+// ---- Disability support pension and carer payment --------------------------
+
+const DSP_FACTS: &str = r#"{"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true,
+    "in_australia": true, "not_transitional": true, "no_rent_assistance": true,
+    "no_quarterly_election": true}"#;
+const CARER_FACTS: &str = r#"{"carer_payment_only": true, "in_australia": true,
+    "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true}"#;
+const AGE_FACTS: &str = r#"{"in_australia": true, "not_blind": true, "not_transitional": true,
+    "no_rent_assistance": true}"#;
+
+/// One Calculator A case for `command` on 1 October 2026.
+fn calc_a(command: &str, relationship: &str, homeowner: bool, income: &str, assets: &str) -> Value {
+    let mut facts: Value = serde_json::from_str(match command {
+        "disability-support-pension" => DSP_FACTS,
+        "carer-payment" => CARER_FACTS,
+        _ => AGE_FACTS,
+    })
+    .unwrap();
+    if relationship == "couple" {
+        facts["partner_pensioner"] = json!(true);
+    }
+    json!({"date": "2026-10-01", "relationship": relationship, "homeowner": homeowner,
+           "ordinary_income": income, "financial_assets": "0", "assets": assets,
+           "facts": facts, "year": "2026-27", "scope_confirmed": true})
+}
+
+#[test]
+fn dsp_and_carer_payment_meet_the_common_pension_rates_and_cut_off_points() {
+    for command in ["disability-support-pension", "carer-payment"] {
+        let rate = |relationship, homeowner, income, assets| {
+            let out = run(
+                command,
+                &calc_a(command, relationship, homeowner, income, assets),
+            );
+            out["amounts"]["rate"].as_str().unwrap().to_owned()
+        };
+        // SS Guide 5.1.8.10 and Services Australia's carer payment rates from
+        // 20 September 2026: $1,237.70 single, $933.00 each of a couple.
+        assert_eq!(rate("single", true, "0", "333000"), "1237.70", "{command}");
+        assert_eq!(rate("couple", false, "0", "766000"), "933.00", "{command}");
+        // Services Australia's carer payment part pension cut-off points.
+        assert_eq!(rate("single", true, "0", "745750"), "0.00", "{command}");
+        assert_eq!(rate("single", true, "0", "745500"), "0.20", "{command}");
+        assert_eq!(rate("single", false, "0", "1012750"), "0.00", "{command}");
+        assert_eq!(rate("couple", true, "0", "1121000"), "0.00", "{command}");
+        assert_eq!(rate("couple", false, "0", "1388000"), "0.00", "{command}");
+        // ($2,701.40 - $226) x 0.5 = $1,237.70: nil at the single income cut-off.
+        assert_eq!(rate("single", true, "2701.40", "0"), "0.00", "{command}");
+        let out = run(command, &calc_a(command, "single", true, "0", "0"));
+        assert_eq!(out["calculation"], command.replace('-', "_"));
+        let sources = out["sources"].as_array().unwrap();
+        let dss = json!("https://guides.dss.gov.au/social-security-guide/5/1/8/10");
+        assert!(sources.contains(&dss), "{command}");
+    }
+}
+
+/// Neither command holds an amount of its own: on the first and last day of
+/// every dated period age-pension reads, each gives age-pension's amounts and
+/// rates for the same facts.
+#[test]
+fn dsp_and_carer_payment_take_every_amount_from_age_pensions_dated_rates() {
+    let days = [
+        ("2025-09-20", "2025-26"),
+        ("2026-03-19", "2025-26"),
+        ("2026-03-20", "2025-26"),
+        ("2026-06-30", "2025-26"),
+        ("2026-07-01", "2026-27"),
+        ("2026-09-19", "2026-27"),
+        ("2026-09-20", "2026-27"),
+        ("2027-03-19", "2026-27"),
+    ];
+    for (date, year) in days {
+        for relationship in ["single", "couple"] {
+            let on = |command| {
+                with(
+                    calc_a(command, relationship, false, "250.00", "650000.00"),
+                    json!({"date": date, "year": year, "financial_assets": "120000.00"}),
+                )
+            };
+            let age = run("age-pension", &on("age-pension"));
+            for command in ["disability-support-pension", "carer-payment"] {
+                let out = run(command, &on(command));
+                assert_eq!(out["amounts"], age["amounts"], "{command} {date}");
+                assert_eq!(out["rates"], age["rates"], "{command} {date}");
+            }
+        }
+    }
+}
+
+/// The commands' own source holds no amount: every rate is age-pension's,
+/// whose tables carry each amount's dates and source.
+#[test]
+fn dsp_and_carer_payment_hard_code_no_rate() {
+    let path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/src/engine/pension_calculator_a.rs"
+    );
+    let source = std::fs::read_to_string(path).unwrap();
+    let code: String = source
+        .lines()
+        .filter(|line| !line.trim_start().starts_with("//"))
+        .collect();
+    let quoted_amount = code
+        .split('"')
+        .skip(1)
+        .step_by(2)
+        .any(|text| text.starts_with(|c: char| c.is_ascii_digit() || c == '$'));
+    assert!(!quoted_amount, "a quoted amount in {path}");
+    assert!(!code.contains("d(") && !code.contains("int("), "{path}");
+}
+
+#[test]
+fn dsp_and_carer_payment_refuse_what_they_do_not_model() {
+    let not_stated = |command: &str, fact: &str| {
+        let mut input = calc_a(command, "single", true, "0", "0");
+        input["facts"][fact] = json!(false);
+        let e = api::evaluate_coded(command, &input).unwrap_err();
+        (e.code, e.message)
+    };
+    for (fact, cites) in [
+        ("aged_21_or_with_child", "s 1066A"),
+        ("not_blind", "s 1065"),
+        ("no_module_f_payment", "Module F"),
+        ("no_quarterly_election", "1064-C2"),
+    ] {
+        let (refusal, message) = not_stated("disability-support-pension", fact);
+        assert_eq!(refusal, "disability_support_pension.facts_not_stated");
+        assert!(message.starts_with("Not computed"), "{message}");
+        assert!(message.contains(cites), "{message}");
+    }
+    let (refusal, message) = not_stated("carer-payment", "carer_payment_only");
+    assert_eq!(refusal, "carer_payment.facts_not_stated");
+    assert!(message.contains("carer allowance (Part 2.19)"), "{message}");
+    // Carer payment of a blind person is still Calculator A's (s 1064(2)), so
+    // the command takes no not_blind fact.
+    let mut blind = calc_a("carer-payment", "single", true, "0", "0");
+    blind["facts"]["not_blind"] = json!(true);
+    assert_eq!(code("carer-payment", &blind), "input.field_unknown");
+}
+
+#[test]
+fn dsp_and_carer_payment_refuse_dates_outside_the_rates_and_bad_input() {
+    for (command, kind) in [
+        ("disability-support-pension", "disability_support_pension"),
+        ("carer-payment", "carer_payment"),
+    ] {
+        let base = calc_a(command, "single", true, "0", "0");
+        let refused = |changes: Value| code(command, &with(base.clone(), changes));
+        let cases = [
+            (
+                json!({"date": "2025-09-19", "year": "2025-26"}),
+                "date_uncovered",
+            ),
+            (json!({"date": "2027-03-20"}), "date_uncovered"),
+            (json!({"date": "2026-05-01"}), "date_invalid"),
+            (json!({"relationship": "widowed"}), "relationship_invalid"),
+            (json!({"financial_assets": "1.00"}), "assets_inconsistent"),
+            (json!({"relationship": "couple"}), "facts_not_stated"),
+            (json!({"facts": 1}), "facts_invalid"),
+        ];
+        for (changes, suffix) in cases {
+            let want = format!("{kind}.{suffix}");
+            assert_eq!(refused(changes.clone()), want, "{changes}");
+        }
+        assert_eq!(refused(json!({"homeowner": "yes"})), "input.flag_invalid");
+        assert_eq!(refused(json!({"year": "2024-25"})), "period.unsupported");
+    }
 }
