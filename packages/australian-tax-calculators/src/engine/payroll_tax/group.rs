@@ -132,7 +132,7 @@ const TAS: Act = Act {
     name: "Payroll Tax Act 2008 (Tas)",
     sections: HARMONISED,
     deduction: "Payroll Tax Act 2008 (Tas) Sch 1 cl 8(1), 9A(2) and 9B(2) (current version, read 27 November 2026): GTW / (GTW + GIW) x TA x C / FY, the initial threshold shared by the group's taxable wages over its taxable and interstate wages; each other member pays TW x R1 (cl 9A(3)), or TW x R2 when the group's wages are more than the subsequent threshold (cl 9B(3))",
-    claim: "Payroll Tax Act 2008 (Tas) Sch 1 cl 8(2) and 9B(2): above the subsequent threshold (TTB x C / FY) the designated group employer pays [TTB - TA] x GTW / (GTW + GIW) x C / FY x R1 + [TW - GTW / (GTW + GIW) x TTB x C / FY] x R2; the second deduction is the top bracket threshold shared the same way",
+    claim: "Payroll Tax Act 2008 (Tas) Sch 1 cl 8(2) and 9B(2): above the subsequent threshold (TTB x C / FY) the designated group employer pays [TTB - TA] x GTW / (GTW + GIW) x C / FY x R1 + [TW - GTW / (GTW + GIW) x TTB x C / FY] x R2. top_bracket_deduction is the top bracket threshold's share, GTW / (GTW + GIW) x TTB x C / FY, taken from the employer's wages taxed at R2; it is not the cl 9B(2) tax, which this worksheet does not work",
     none: "Payroll Tax Act 2008 (Tas) Sch 1 Pt 4 cl 12: with no designated group employer each member pays TW x R2, so no member deducts",
     nil: "Payroll Tax Act 2008 (Tas) Sch 1 cl 9: the group's taxable and interstate wages are not more than the initial threshold (TA x C / FY, cl 8(1)), so no member is liable to pay payroll tax for the year",
 };
@@ -361,6 +361,33 @@ fn group_steps(
     Ok(((steps, worked.rates), true))
 }
 
+/// GIW is the group's actual interstate wages (Sch 1 cl 7), so in the Acts
+/// with a `nil` clause a member's omitted interstate wages are refused, not
+/// taken as nil.
+fn giw_stated(persons: &Arg, f: &Facts, members: &[usize], act: &Act) -> Result<()> {
+    let list = if let Arg::Json(Value::Array(l)) = persons {
+        l.as_slice()
+    } else {
+        &[]
+    };
+    for &p in members.iter().filter(|_| !act.nil.is_empty()) {
+        let id = f.persons[p].id.as_str();
+        if !list
+            .iter()
+            .any(|v| v["id"] == id && v.get("interstate_wages").is_some())
+        {
+            return refuse(
+                "payroll_tax_group.fact_invalid",
+                format!(
+                    "{id}'s interstate_wages is not stated: {} Sch 1 cl 7 counts the group's actual interstate wages (GIW), so state \"0.00\" where a member paid none.",
+                    act.name
+                ),
+            );
+        }
+    }
+    Ok(())
+}
+
 /// Tasmania above the subsequent threshold: the DGE also deducts the top
 /// bracket threshold, shared as the initial one is, from its R2 wages (Sch 1
 /// cl 8(2) and 9B(2)); refused when its wages are less.
@@ -565,6 +592,7 @@ pub fn payroll_tax_group(args: &PayrollTaxGroupArgs) -> Result<Value> {
     let (f, index, employer) = gather(args)?;
     let excluded = named(&index, args.exclusions, "exclusions")?;
     let (members, mut groups) = group_of(&f, employer, &excluded, (place, act))?;
+    giw_stated(args.persons, &f, &members, act)?;
     let stated_dges = named(
         &index,
         args.designated_group_employers,

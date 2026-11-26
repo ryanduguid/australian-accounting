@@ -2967,7 +2967,11 @@ when its wages are less. A Northern Territory group above its threshold with a
 designated group employer needs `annual_calculation_allowed: true` (Sch 1
 cl 9(1)(c)); otherwise Sch 2 cl 14 applies and it is refused. A group paying
 wages for only part of the year, and a South Australian group with no
-designated group employer, are refused. See
+designated group employer, are refused. In these 3 jurisdictions each
+member's `interstate_wages` must be stated (`"0.00"` where it paid none), as
+GIW is the group's actual interstate wages (Sch 1 cl 7). A New South Wales
+group arising from former entities (s 74A) is not a stated fact this
+worksheet takes, so such a group is not worked. See
 [calculation evidence](docs/calculation-evidence.md#payroll-tax-group).
 
 ## Payroll tax monthly returns

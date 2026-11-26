@@ -333,6 +333,7 @@ fn south_australia_and_the_act_deduct_through_the_dge() {
 /// interstate wages, with the DGEs `dge`.
 fn pair(place: &str, a: &str, b: &str, giw: &str, dge: Value) -> Value {
     let mut persons = wages(&[("A", a), ("B", b)]);
+    persons[0]["interstate_wages"] = json!("0.00");
     persons[1]["interstate_wages"] = json!(giw);
     let v = with(
         input(place, "A", persons),
@@ -405,8 +406,29 @@ fn tasmania_works_both_thresholds() {
     let none = pair("tas", "3000000.00", "1000000.00", "0", json!([]));
     assert_eq!(amount(&run(&none), "group_deduction"), "0.00");
     assert!(authority(&none, "group_deduction").contains("cl 12"));
-    let short = pair("tas", "1500000.00", "2500000.00", "0", dge);
+    let short = pair("tas", "1500000.00", "2500000.00", "0", dge.clone());
     assert_eq!(code(&short), "payroll_tax_group.dge_wages_below_deduction");
+    // At exactly the subsequent threshold cl 9A, not 9B, applies.
+    let at = run(&pair("tas", "1500000.00", "500000.00", "0", dge));
+    assert_eq!(amount(&at, "group_deduction"), "1250000.00");
+    assert!(at["amounts"].get("top_bracket_deduction").is_none());
+}
+
+/// Sch 1 cl 7: GIW is the group's actual interstate wages, so a member's
+/// omitted interstate wages are refused; a stated nil is worked.
+#[test]
+fn interstate_wages_must_be_stated() {
+    for place in ["nsw", "tas", "nt"] {
+        let mut v = pair(place, "2000000.00", "1000000.00", "0.00", json!([]));
+        assert_eq!(run(&v)["members_liable"], true);
+        v["persons"][1]
+            .as_object_mut()
+            .unwrap()
+            .remove("interstate_wages");
+        let err = api::evaluate_coded("payroll-tax-group", &v).unwrap_err();
+        assert_eq!(err.code, "payroll_tax_group.fact_invalid");
+        assert!(err.message.contains("Sch 1 cl 7"), "{}", err.message);
+    }
 }
 
 /// Payroll Tax Act 2009 (NT) Sch 1 cl 7: AD = $2,500,000 - ($5,000,000 -
