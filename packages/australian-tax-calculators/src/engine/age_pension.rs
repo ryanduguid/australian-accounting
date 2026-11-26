@@ -401,7 +401,8 @@ pub fn age_pension(args: &AgePensionArgs) -> Result<Value> {
 struct Rates {
     mbr: Decimal,
     supplement: Decimal,
-    energy: Decimal,
+    /// The energy supplement, none where quarterly energy supplement is payable.
+    energy: Option<Decimal>,
     threshold: Decimal,
     lower: Decimal,
     upper: Decimal,
@@ -579,8 +580,19 @@ fn working(
             assets_reduction.clone(),
         ),
     ];
+    steps.extend(rate_steps(
+        r,
+        [&max_rate, &income_reduction, &assets_reduction],
+        pension,
+    )?);
+    Ok(steps)
+}
+
+/// Step 11's rate from the maximum payment rate and the 2 reductions, then
+/// step 12 where it changes anything (`provisional_rate` then `rate`).
+fn rate_steps(r: &Rates, operands: [&Decimal; 3], pension: Decimal) -> Result<Vec<Step>> {
     let provisional = r.remote_area.is_some() || r.rate_limit.is_some();
-    steps.push(step(
+    let mut steps = vec![step(
         if provisional {
             "provisional_rate"
         } else {
@@ -588,10 +600,11 @@ fn working(
         },
         AUTH[4],
         "max(max_rate - max(income_reduction, assets_reduction), 0)",
-        &[&max_rate, &income_reduction, &assets_reduction],
+        &operands,
         pension.clone(),
-    ));
+    )];
     if provisional {
+        let reduction = super::py_max(operands[1].clone(), operands[2].clone())?;
         let allowance = allowance(r, &reduction, &pension)?;
         steps.extend(step_12(r, pension, allowance)?);
     }
