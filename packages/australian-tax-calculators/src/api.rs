@@ -155,6 +155,19 @@ macro_rules! cmd_args {
 }
 
 /// Command, the worksheet's parameters in the original order.
+/// The inputs of the 3 commands Pension Rate Calculator A works out.
+const PENSION_ARGS: &[(&str, Kind)] = &[
+    ("date", Raw),
+    ("relationship", Raw),
+    ("homeowner", Raw),
+    ("ordinary_income", Dec),
+    ("financial_assets", Dec),
+    ("assets", Dec),
+    ("facts", Json),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
         "gst",
@@ -1407,20 +1420,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "age-pension",
-        &[
-            ("date", Raw),
-            ("relationship", Raw),
-            ("homeowner", Raw),
-            ("ordinary_income", Dec),
-            ("financial_assets", Dec),
-            ("assets", Dec),
-            ("facts", Json),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("age-pension", PENSION_ARGS),
     (
         "ftb-part-a",
         &[
@@ -1474,34 +1474,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "disability-support-pension",
-        &[
-            ("date", Raw),
-            ("relationship", Raw),
-            ("homeowner", Raw),
-            ("ordinary_income", Dec),
-            ("financial_assets", Dec),
-            ("assets", Dec),
-            ("facts", Json),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
-        "carer-payment",
-        &[
-            ("date", Raw),
-            ("relationship", Raw),
-            ("homeowner", Raw),
-            ("ordinary_income", Dec),
-            ("financial_assets", Dec),
-            ("assets", Dec),
-            ("facts", Json),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("disability-support-pension", PENSION_ARGS),
+    ("carer-payment", PENSION_ARGS),
     (
         "salary-dividend",
         &[
