@@ -961,9 +961,12 @@ pub const SAPTO_RULES: [(&str, &str); 6] = [
 
 /// Resident tax rates for the income years before [`RESIDENT_TAX_SCALES`], in
 /// its form, for the recent accrual years of `lump_sum_arrears_tax_offset`
-/// only: the ATO's "Tax rates – Australian resident" (last updated 13 August
-/// 2026), read on 16 November 2026, for a full-year resident entitled to the
-/// whole tax-free threshold. In 2014-15 to 2016-17, the temporary budget repair
+/// and, from 2019-20, for `resident_tax`: the ATO's "Tax rates – Australian
+/// resident" (last updated 13 August 2026), read on 16 November 2026, for a
+/// full-year resident entitled to the whole tax-free threshold. The 2019-20 to
+/// 2023-24 rows equal Income Tax Rates Act 1986 Schedule 7 Part I clause 1's
+/// tables in compilations 54 (6 July 2019, in force through 2019-20), 57
+/// (15 October 2020) and 62 (1 April 2024), read on 26 November 2026. In 2014-15 to 2016-17, the temporary budget repair
 /// levy years (Income Tax (Transitional Provisions) Act 1997 s 4-11(5)), the
 /// last row is that levy: extra income tax of 2% on taxable income above
 /// $180,000 (s 4-11(1) and Income Tax Rates Act 1986 s 34), which the ATO's
@@ -1139,7 +1142,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "asic_fees" => vec!["2026-27"],
         "capital_gains" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
-        "resident_tax" => keys(RESIDENT_TAX_SCALES),
+        // 2019-20 to 2023-24 from PRIOR_RESIDENT_TAX_SCALES, checked against
+        // the Rates Act compilations in force in those years.
+        "resident_tax" => [PRIOR_RESIDENT_TAX_SCALES, RESIDENT_TAX_SCALES]
+            .into_iter()
+            .flat_map(keys)
+            .filter(|year| *year >= "2019-20")
+            .collect(),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // ITAA 1997 s 25-25 sets no figure by year; its step 1 was last
@@ -1210,6 +1219,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "insurance_duty" => vec!["2026-27"],
         "payroll_tax" => vec!["2026-27"],
         "payroll_tax_group" => vec!["2026-27"],
+        // Monthly returns for the months of 2026-27, under each Act read on 26
+        // November 2026.
+        "payroll_tax_monthly" => vec!["2026-27"],
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
         "workers_compensation_premium" => vec!["2026-27"],
@@ -1353,6 +1365,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "smsf_tax" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // SISR reg 5.03 and Schedule 7, Rates Act s 26(1)(a) and ITAA 1997
+        // s 307-80 read the same for each year; the years pension_minimum and
+        // smsf_tax (for the stated tax) share.
+        "smsf_member_allocation" => vec!["2024-25", "2025-26", "2026-27"],
         // Division 83A reads the same in compilations 234 (1 July 2022) and
         // 268 (1 October 2026); compilation 210 (1 July 2020) adds only the
         // cessation taxing point, applied before 1 July 2022.
@@ -1362,6 +1378,21 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Contracts from 1 July 2025 to 22 November 2026, the day the
         // site page's rules were read.
         "first_home_owner_grant" => vec!["2025-26", "2026-27"],
+        // Help to Buy: the Program Directions from 14 June 2025 and the
+        // 2026-27 thresholds; applications to 26 November 2026, the day read.
+        "help_to_buy" | "help_to_buy_review" => vec!["2025-26", "2026-27"],
+        // Guarantees issued from 1 October 2025 to 26 November 2026.
+        "home_guarantee" => vec!["2025-26", "2026-27"],
+        // Days from 20 September 2025 to 19 March 2027.
+        "age_pension" => vec!["2025-26", "2026-27"],
+        // The 2025-26 and 2026-27 indexed amounts.
+        "ftb_part_a" => vec!["2025-26", "2026-27"],
+        // The years the site page covers whose individual tax parts
+        // (resident-tax, low-income-tax-offset, medicare-levy and
+        // medicare-levy-surcharge) are held: 2024-25 to 2026-27.
+        "salary_dividend" | "sole_trader_set_aside" | "salary_packaging" | "novated_lease" => {
+            vec!["2024-25", "2025-26", "2026-27"]
+        }
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1429,9 +1460,43 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "wip_lockup" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Planning arithmetic the site's pages mirror, with no statutory rate:
+        // the years the other management worksheets take.
+        "break_even" | "cash_forecast" | "hourly_rate" | "fixed_fee" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // The years the ATO's 'Super guarantee' tables 21, 23 and 24 give both
+        // the percentage and the maximum contribution base for (read on
+        // 26 November 2026).
+        "staff_cost" => vec![
+            "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // Mirrors of the site's pages: the first projected year's caps and
+        // base, and s 14ZW as compiled on 1 October 2026; AASB 16 compilation
+        // no. 8 applies to annual periods from 1 January 2024.
+        "super_projection" | "objection_deadline" => vec!["2026-27"],
+        "lessee_lease" => vec!["2024-25", "2025-26", "2026-27"],
         // AASB 136 paras 6, 18 to 20, 30 to 33, 39, 50 to 57, 59 to 62, 104 and
         // 105 were not amended after 2015 (the compilation's tables of
         // amendments, read on 24 November 2026).
+        // AASB 10 paras 19 to 24 and B86 to B96 were not amended after July
+        // 2015 (the ACOMPnov24_01-26 compilation's table of amendments, read on
+        // 26 November 2026).
+        "consolidation_eliminations" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // ITAA 1997 Division 230 as compiled on 1 October 2026, read on 26
+        // November 2026: the year the taxpayer starts to have the arrangement.
+        "tofa_accruals" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // Subdivision 820-AA applies to income years starting on or after
+        // 1 July 2023 (Act No. 23, 2024 Schedule 2 item 144); Division 245 reads
+        // the same for every year shown (s 245-145 last amended by No. 93, 2011).
+        "thin_capitalisation" => vec!["2023-24", "2024-25", "2025-26", "2026-27"],
+        "debt_forgiveness" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "impairment_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -1448,6 +1513,20 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // 2023, AASB 18 Appendix D), and the s 23(2) rates are on the ATO's
         // tables for 2020-21 to 2025-26 and in compilation 66 for 2026-27.
         "deferred_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // ITAA 1997 ss 4-15, 36-10, 36-17 and 36-20 apply alike to these
+        // years: their history notes, read on 26 November 2026, show only
+        // s 36-17(1)'s note 2 (Acts No. 92 of 2020, No. 8 of 2022 and No. 71
+        // of 2026) changed since 1 July 2020; the years match deferred_tax's.
+        "book_to_tax" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
+        // Subdivisions 122-A, 126-A and 152-E and ss 104-190 to 104-198,
+        // 115-25, 115-30 and 115-34 show no change since 1 July 2020 in their
+        // history notes, read on 26 November 2026, other than the wording of
+        // an example to s 126-15 (Act No. 13 of 2021).
+        "cgt_rollover" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
         // ITAA 1997 s 960-50 and ss 770-70 to 770-80 read the same in
@@ -1612,8 +1691,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Fuel Tax Act 2006 ss 41-5, 41-20, 43-5, 43-10, 47-5 and 47-10 at the ATO's legal database; the ATO's 'Rates - business' (QC44494, last updated 29 July 2026) and its pages for 2022-23 to 2026-27 (QC69964 and QC72768, last updated 27 June 2024; QC102637, 29 January 2025; QC105117, 28 April 2026; QC107638, 29 July 2026), their 192 rates equal to data.gov.au's 'Historical FTC rates' (August 2026); 'Working out your fuel tax credits' (QC44511, last updated 6 July 2021, step 3); 'Simplified fuel tax credits' (QC48520, 6 July 2021); 'Basic method for heavy vehicles' (QC64655, 2 June 2021: Table 1 and Jim's example); PCG 2016/2 paras 4 and 9 to 13; PCG 2021/2 paras 4 to 12 and its We Deliver example (paras 19 to 24)",
         ),
         "resident_tax" => (
-            "2026-11-23",
-            "Income Tax Rates Act 1986, Schedule 7 Part I clause 1; ss 3(1), 16, 18 and 20 for a part-year resident's tax-free threshold (compilation 66, compared with the compilations of 1 July 2024 and 28 March 2025)",
+            "2026-11-26",
+            "Income Tax Rates Act 1986, Schedule 7 Part I clause 1; ss 3(1), 16, 18 and 20 for a part-year resident's tax-free threshold (compilation 66, compared with the compilations of 1 July 2024 and 28 March 2025); for 2019-20 to 2023-24, compilations 54 (6 July 2019), 57 (15 October 2020) and 62 (1 April 2024), whose s 20(1) and $18,200 threshold read the same, with the ATO's myTax 'Part-year tax-free threshold' pages for 2020 to 2024 ($13,464 plus $4,736 pro-rated by months)",
         ),
         "foreign_resident_tax" => (
             "2026-11-14",
@@ -1681,11 +1760,15 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "payroll_tax" => (
             "2026-11-19",
-            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
+            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page; for the annual reconciliation, read on 26 November 2026, s 83 of the Vic, SA, Tas, ACT and NT Acts, Payroll Tax Act 1971 (Qld) ss 29 to 31, 43H, 43J and 43K and Pay-roll Tax Assessment Act 2002 (WA) s 16",
         ),
         "payroll_tax_group" => (
             "2026-11-24",
             "Payroll Tax Act 2007 (Vic) Pt 5 (ss 67 to 80) and Sch 1 Pts 3 and 4 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and Pt 4 (ss 67 to 75; current reprint); Pay-roll Tax Assessment Act 2002 (WA) s 17 and Pt 4 (ss 30 to 39; 04-d0-03); Payroll Tax Act 2009 (SA) Pt 5 and Sch 1 Pt 3 (31.3.2026); Payroll Tax Act 2011 (ACT) Pt 5 and Sch 1 Pts 1.3 and 1.4 (current republication); with SRO Victoria's 'Grouping' and QRO's 'Payroll tax deductions'. NSW (a Cloudflare challenge) and the Tasmanian and Northern Territory group formulas (images) could not be read and are refused",
+        ),
+        "payroll_tax_monthly" => (
+            "2026-11-26",
+            "Payroll Tax Act 2007 (Vic) Sch 2 Pt 2 cll 1A to 6 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 17 to 21 and 43C to 43F (current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8, 11, 12 and 15 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5 (00-d0-02); Payroll Tax Act 2009 (SA) Sch 2 cll 2, 5 and 6 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 4 and Sch 2 cll 2 and 3; Payroll Tax Act 2011 (ACT) Sch 2 Pt 2.1 (R20) with DI2026-151 s 5(b) and (d); Payroll Tax Act 2009 (NT) s 7A and Sch 2 cll 5 to 7 (as in force at 1 July 2026); NSW refused: its Act served a Cloudflare challenge",
         ),
         "transfer_duty" => (
             "2026-11-24",
@@ -1716,8 +1799,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "ITAA 1997 ss 102-5, 102-10, 102-15, 104-10, 109-5, 110-25, 110-35, 110-55, 112-30, 114-1, 114-10, 115-5 to 115-25, 115-100 and 116-40, compilation 264 (21 May 2026), the text for 2025-26 and 2026-27 under Act No. 49 of 2026 Schedule 1 items 82 to 84; TD 33 (identical shares); the ATO's 'Keeping records of shares and units' (last updated 22 June 2026: Boris's example), 'CGT discount' (last updated 29 June 2026: the 12 months exclude the days of acquisition and the event) and the individual tax return instructions supplement 2026, question 18 (last updated 30 May 2026: Kathleen's examples 1 to 4)",
         ),
         "cgt_cost_base_adjustments" => (
-            "2026-11-22",
-            "ITAA 1997 ss 104-70, 104-71, 104-107A to 104-107E, 104-135, 109-5, 110-25, 110-55, 114-1, 115-25, 115-30 and 125-55 to 125-85, with their history notes, on the ATO's legal database; CR 2018/59 and CR 2021/50; the ATO's 'Wesfarmers Limited – demerger of Coles Group Limited (2018)' (last updated 28 June 2019: examples 1 to 4); the Guide to capital gains tax 2025 (examples 20, 30 and 45); the Personal investors guide to capital gains tax 2025, Part C (examples 26 to 28)",
+            "2026-11-26",
+            "ITAA 1997 ss 104-70, 104-71, 104-107A to 104-107E, 104-135, 109-5, 110-25, 110-55, 114-1, 115-25, 115-30 and 125-55 to 125-85 (read on 22 November 2026) and ss 124-780 to 124-795 (read on 26 November 2026), with their history notes, on the ATO's legal database; CR 2018/59 and CR 2021/50; the ATO's 'Wesfarmers Limited – demerger of Coles Group Limited (2018)' (last updated 28 June 2019: examples 1 to 4); the Guide to capital gains tax 2025 (examples 20, 30 and 45); the Personal investors guide to capital gains tax 2025, Part C (examples 26 to 28)",
         ),
         "trade_in" => (
             "2026-11-18",
@@ -2023,6 +2106,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-22",
             "ITAA 1936 Division 6AA (ss 102AA to 102AGA), compilation 193 (1 October 2026), against compilation 169 (1 July 2020), which reads the same; Income Tax Rates Act 1986 ss 3, 13 and 15 and Schedules 7 and 11, compilation 66 (1 July 2026), against compilation 55 (1 July 2020), the same but for editorial changes; ITAA 1997 ss 61-115 and 995-1 (apportionable deductions), compilation 268 (1 October 2026); the ATO's 'Tax rates if you're under 18 years old' (last updated 1 June 2026) and 'A1 Under 18 2026' (30 May 2026)",
         ),
+        "smsf_member_allocation" => (
+            "2026-11-26",
+            "SISR regs 5.03 and 6.01(2) and Schedule 7, compilation of 1 July 2026; ITAA 1997 ss 295-160, 295-385, 295-390 and 307-80, compilation 268 (1 October 2026); Income Tax Rates Act 1986 s 26(1)(a), compilation 66 (1 July 2026); the ATO's 'Income stream (pension) rules and payments' (last updated 30 April 2026) and 'Exception to minimum pension payment requirements' (5 November 2025)",
+        ),
         "smsf_tax" => (
             "2026-11-22",
             "ITAA 1997 ss 295-10, 295-160, 295-385, 295-387, 295-390, 295-545, 295-550, 295-605 and 295-610 on the ATO legal database with their history notes (s 295-545 last amended by Act No. 52 of 2024, whose Schedule 7 item 5 applies it to income derived from 2018-19); Income Tax Rates Act 1986 ss 26 and 29 and Schedule 7 Part I, compilation 66 (1 July 2026); Superannuation (Self Managed Superannuation Funds) Supervisory Levy Imposition Act 1991 s 6 and Regulations 2018 s 6; the ATO's Instructions to complete your SMSF annual return 2026 Sections B and D and Appendix 1 (30 May 2026), SAR 2021 levy questions (6 August 2024), Exempt current pension income (16 September 2025) and Tax rates - Australian residents (13 August 2026)",
@@ -2034,6 +2121,38 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "first_home_owner_grant" => (
             "2026-11-23",
             "The First Home Owner Grant Acts of Victoria (version 053), Queensland (22 October 2026), Western Australia (22 October 2026), South Australia (4.12.2025), Tasmania (9 October 2026), the Northern Territory (1 July 2026) and the ACT (republication 37); Revenue NSW, SRO Victoria, QRO, DTF WA, RevenueSA, SRO Tasmania, NT Government and ACT Revenue Office pages; the site's grant page and its 26 cases (checked 23 November 2026)",
+        ),
+        "help_to_buy" | "help_to_buy_review" => (
+            "2026-11-26",
+            "Help to Buy Act 2024 compilation 1 (21 February 2025), s 24; Help to Buy Program Directions 2025 (F2025L00682) as made, in force from 14 June 2025 with no compilation or amending instrument on the register, ss 7 to 9, 16, 17, 19 to 21, 25, 34, 36, 37 and 43; Housing Australia's 'Help to Buy income and threshold updates 2026-27' page",
+        ),
+        "home_guarantee" => (
+            "2026-11-26",
+            "Housing Australia Investment Mandate Direction 2018, compilations 20 (from 7 February 2026, the text in force from 1 October 2025 to 30 June 2026) and 22 (18 July 2026), ss 4A, 28ZF, 29C, 29D, 29F, 44 and 46; the Investment Mandate Amendment (2026 Measures No. 2) Direction 2026 (F2026L00542) as made",
+        ),
+        "age_pension" => (
+            "2026-11-26",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064 Modules A, E and G; DSS Social Security Guide version 1.345 (3 November 2026), 4.2.1.10, 4.2.3, 4.4.1.10, 4.10.3, 5.1.8.10, 5.1.9.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's age pension income and assets test pages (cut-off points from 20 September 2026)",
+        ),
+        "ftb_part_a" => (
+            "2026-11-26",
+            "A New Tax System (Family Assistance) Act 1999 compilation 124 (1 July 2026), Schedule 1 clauses 1 to 4, 7, 25, 25D, 26, 28, 38A, 38AA, 38AF and 38L to 38N; DSS rates list for 1 July 2026; Services Australia's 'A guide to Australian Government payments' for 20 September to 31 December 2026 (FTB Part A rates and income limits)",
+        ),
+        "salary_dividend" => (
+            "2026-11-26",
+            "ITAA 1997 ss 25-130, 202-60, 207-20 and 293-20, SGAA 1992 ss 10A and 17A and Income Tax Rates Act 1986 ss 23 and 26 on the ATO's legal database; the ATO's 'Super guarantee' page (QC18123, last updated 17 April 2026), Tables 21, 23 and 24; the site's salary and dividends page and its 10 cases (checked 19 November 2026)",
+        ),
+        "sole_trader_set_aside" => (
+            "2026-11-26",
+            "ITAA 1997 ss 25-130, 328-360 and 328-365 on the ATO's legal database; the ATO's 'Registering for GST' (last updated 14 September 2026) and 'Starting PAYG instalments' (last updated 17 December 2024); the site's sole trader page and its 7 cases (checked 19 November 2026)",
+        ),
+        "salary_packaging" => (
+            "2026-11-26",
+            "FBTAA ss 5B(1D) to (1M), 57A, 135P and 135Q and ITAA 1997 s 25-130 on the ATO's legal database; the ATO's 'Fringe benefits tax - rates and thresholds' (last updated 20 May 2026) and Fringe benefits tax - a guide for employers, chapter 6 and its example at 6.10; the site's salary packaging page and its 12 cases (checked 19 November 2026)",
+        ),
+        "novated_lease" => (
+            "2026-11-26",
+            "FBTAA ss 8A, 9 and 135P on the ATO's legal database; the ATO's 'Fringe benefits tax - rates and thresholds' (last updated 20 May 2026), 'Luxury car tax rate and thresholds' (QC38161, last updated 1 June 2026) and 'FBT on plug-in hybrid electric vehicles'; Fringe benefits tax - a guide for employers, chapter 7; the site's novated lease page and its 13 cases (checked 19 November 2026)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -2123,6 +2242,54 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-24",
             "Ozzit function reference v3.7.0 (oz.WIPDaysλ, oz.ReceivableDaysλ and oz.CashConversionCycleλ, with their examples), on duguid.com.au; the site's tools/wip-schedule page (construction WIP, no lock-up)",
         ),
+        "break_even" => (
+            "2026-11-26",
+            "The site's break-even page (tools/business-calculators/break-even), its engine and test vectors, on ryanduguid.github.io main; Business Queensland's break-even and profit page as the page cites it",
+        ),
+        "cash_forecast" => (
+            "2026-11-26",
+            "The site's 13-week cash forecast page (tools/business-calculators/cash), its engine and test vectors, on ryanduguid.github.io main; business.gov.au's cash flow page as the page cites it",
+        ),
+        "hourly_rate" => (
+            "2026-11-26",
+            "The site's hourly pricing page (tools/business-calculators/hourly), its engine and test vectors, on ryanduguid.github.io main; Business Queensland's pricing page as the page cites it",
+        ),
+        "fixed_fee" => (
+            "2026-11-26",
+            "The site's fixed fee page (tools/business-calculators/fixed-fee), its engine and test vectors, on ryanduguid.github.io main; GST Act s 9-70 on the ATO's legal database",
+        ),
+        "staff_cost" => (
+            "2026-11-26",
+            "ATO 'Super guarantee' (QC18123, last updated 17 April 2026), tables 21, 23 and 24; SGAA compilation 78 (1 July 2026), s 17A(2) 'charge percentage'; the site's staff cost page (tools/business-calculators/staff) and its test vectors",
+        ),
+        "consolidation_eliminations" => (
+            "2026-11-26",
+            "AASB 10 compilation ACOMPnov24_01-26 with its tables of standards and amendments, paras 19 to 24, B86 to B88, B92 and B94 to B96; AASB 3 compilation no. 5 (F2023C00389), paras 18, 19, 32, 34 to 36 and 42",
+        ),
+        "tofa_accruals" => (
+            "2026-11-26",
+            "ITAA 1997 compilation no. 268 (1 October 2026), volume 5, and the ATO legal database, ss 230-15, 230-40, 230-45, 230-100 to 230-140, 230-150, 230-170, 230-445, 230-450 and 230-455; the ATO's Guide to the taxation of financial arrangements, Default methods (zero coupon bond and impairment on a loan examples)",
+        ),
+        "super_projection" => (
+            "2026-11-26",
+            "ASIC Corporations (Superannuation Calculators and Retirement Estimates) Instrument 2022/603 (F2022L00895, compilation no. 1) s 4 'assumed retirement age' and 'present value'; ITAA 1997 s 295-160 item 1; Income Tax Rates Act 1986 s 26(1)(a) (compilation no. 66); ATO 'Super guarantee' Table 23 and 'Contributions caps' Tables 1.1 and 4; ATO 'When you can withdraw your super' (preservation age); the site's assets/super-projection.mjs and its 13 cases",
+        ),
+        "objection_deadline" => (
+            "2026-11-26",
+            "TAA 1953 s 14ZW(1)(aa), (aaa) and (c), (1B), (1BA), (1C), (2) and (3) (compilation no. 227); ITAA 1936 s 170(1) items 1, 2, 3 and 3A (compilation no. 193); Acts Interpretation Act 1901 ss 2G and 36 (compilation no. 39); the site's objectionDeadline and its 8 cases",
+        ),
+        "lessee_lease" => (
+            "2026-11-26",
+            "AASB 16 compilation no. 8 (F2024C00049, the latest on the Federal Register) paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A 'short-term lease'; IFRS 16 Illustrative Examples, Example 13; the site's assets/lease.mjs and its 8 cases",
+        ),
+        "thin_capitalisation" => (
+            "2026-11-26",
+            "ITAA 1997 compilation 268 (C2026C00471, from 1 October 2026) ss 820-1 to 820-60 and 820-427 to 820-427E with the endnotes' amendment history (Subdivisions 820-AA and 820-EAB added by No. 23, 2024 and not amended since); Treasury Laws Amendment (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 items 144 to 146; Income Tax Assessment (1997 Act) Regulations 2021 compilation 16 (F2026C00602), which makes no regulation for ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d); the ATO's fixed ratio test (12 December 2025), group ratio test (24 July 2024) and third party debt test (24 July 2024) pages",
+        ),
+        "debt_forgiveness" => (
+            "2026-11-26",
+            "ITAA 1997 compilation 268 (C2026C00471) Division 245, ss 245-1 to 245-265, with the endnotes' amendment history (substituted by No. 79, 2010; s 245-145 amended by No. 93, 2011, nothing since); the ATO's Company tax return 2022 instructions, Appendix 1 (19 December 2023)",
+        ),
         "impairment_test" => (
             "2026-11-24",
             "AASB 136 compilations COMPjan26_07-26 (F2026C01108) and COMPdec22_01-23 with their tables of amendments, paras 6, 9 to 20, 30 to 33, 39 to 57, 59 to 62, 65 to 105, 109 to 125, A20, A21, Appendix C and Illustrative Example 2 (IE23 to IE32)",
@@ -2130,6 +2297,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "leave_provisions" => (
             "2026-11-23",
             "AASB 119 compilations of December 2022 (COMPdec22_01-23, no. 5, and COMPdec22_07-26, F2026C01064) with their tables of standards and amendments, paras 3, 8, 9, 10, 11, 13, 15 to 18, 26, 57, 67, 68, 70, 72, 75 to 87, 113 to 119 and 153 to 157; AASB 2018-2, AASB 2021-7 and AASB 2022-9; AASB 101 compilations of December 2022 (COMPdec22_01-24, no. 6, and ACOMPdec22_01-23), December 2021, March 2020 and May 2019, paras 69, 70, 72A, 72B, 75A and 139U to 139W with the table of amendments; AASB 2020-1, AASB 2020-6 and AASB 2022-6",
+        ),
+        "book_to_tax" => (
+            "2026-11-26",
+            "ITAA 1997 ss 4-15, 36-10, 36-17, 36-20, 36-55 and 160-10 with their history notes on the ATO's legal database; AASB 112 (September 2023 compilation) paras 5 and 17; the ATO's Company tax return 2025 instructions, worksheet 2: other reconciliation items (last updated 29 May 2025)",
+        ),
+        "cgt_rollover" => (
+            "2026-11-26",
+            "ITAA 1997 ss 104-185, 104-190, 104-197, 104-198, 109-55, 115-25, 115-30, 115-34, 122-15 to 122-70, 126-5, 126-15, 126-25, 152-10, 152-305, 152-410 and 152-415 with their history notes on the ATO's legal database",
         ),
         "deferred_tax" => (
             "2026-11-22",
@@ -2320,6 +2495,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "The Acts' tracing examples (Payroll Tax Act 2007 (Vic) ss 77(5) and 78(3)); SRO Victoria's Ian and Lucy examples",
             "2026-05-01",
             "2026-11-24",
+        ),
+        "payroll_tax_monthly" => (
+            "Each Act's monthly provisions at its official legislation site; QRO 'Payroll tax deductions' (its actual and fixed periodic deduction examples)",
+            "QRO's actual periodic deduction on $158,521 ($101,163) and fixed periodic deduction on $387,524 of $1,500,000 ($27,373); cases worked by hand from each Act",
+            "2026-07-01",
+            "2026-11-26",
         ),
         "transfer_duty" => (
             "Revenue office transfer duty pages: Revenue NSW 'How to calculate transfer duty' and the NSW Government's First Home Buyers Assistance Scheme table; SRO Victoria non-principal place of residence rates; QRO transfer duty and home concession rates; RevenueSA rate of stamp duty",
@@ -3183,6 +3364,180 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "whole number from 1 to 3,660: the days fee_revenue and billings cover, 365 for a year, 90 for a rolling quarter; default 365",
             ),
         ],
+        "cash_forecast" => vec![
+            (
+                "delayed_receipt",
+                "object {week, amount, delay_weeks}: part of one week's receipts, already in that week's receipts, moved later by 0 to 13 whole weeks; week 1 to 13, amount in AUD from 0 up to that week's receipts; moved past week 13 it is reported as deferred_beyond_week_13 and leaves the balance",
+            ),
+            (
+                "start_date",
+                "YYYY-MM-DD: week 1's first day; each week then shows its start_date and end_date, 7 days each",
+            ),
+        ],
+        "staff_cost" => vec![
+            (
+                "super_amount",
+                "AUD from 0: the super paid for the year, as the site's page takes it; give this or super_base, not both",
+            ),
+            (
+                "super_base",
+                "AUD from 0: the year's ordinary time earnings (to 2025-26) or qualifying earnings (2026-27) the super guarantee is worked on, at the year's percentage; to 2025-26 at most one quarter's maximum contribution base, in 2026-27 capped at the annual base; give this or super_amount, not both",
+            ),
+            (
+                "payroll_tax_rate",
+                "per cent from 0 to 100, at most 4 dp, default 0: the operator's effective payroll tax rate on wages plus super (payroll-tax works the statutory figure)",
+            ),
+            (
+                "workers_compensation_rate",
+                "per cent from 0 to 100, at most 4 dp, default 0: the operator's effective workers compensation premium rate on wages plus super (workers-compensation-premium works the statutory figure)",
+            ),
+        ],
+        "tofa_accruals" => vec![
+            (
+                "aggregated_turnover",
+                "AUD from 0, other than for an individual (required then): the aggregated turnover s 230-455(3) and (4) test, for the year the arrangement starts if the entity came into existence in it, otherwise for the year before, each worked out at that year's end",
+            ),
+            (
+                "assets",
+                "AUD from 0, other than for an individual (required then): the value of the entity's assets s 230-455(2) and (4) test, for the same year, valued under s 230-455(5)",
+            ),
+            (
+                "financial_assets",
+                "AUD from 0, other than for an individual (required then): the value of the entity's financial assets s 230-455(4) tests, for the same year, valued under s 230-455(5)",
+            ),
+        ],
+        "super_projection" => vec![
+            (
+                "retirement_age",
+                "whole number from 15 to 75: the retirement age entered, taken as the greater of it and the preservation age, 60 (Instrument 2022/603 s 4); default 67, or the next birthday's age from 67",
+            ),
+            (
+                "discount_rate",
+                "decimal fraction from 0 to 0.1, at most 4 places: the present value rate; default 0.037, the Instrument's",
+            ),
+        ],
+        "objection_deadline" => vec![
+            (
+                "s170_item",
+                "1, 2, 3, 3A or none, required for an income tax assessment and refused otherwise: the item of the ITAA 1936 s 170(1) table that applies to the assessment, as established",
+            ),
+            (
+                "original_notice_date",
+                "YYYY-MM-DD, required for an amended assessment and refused otherwise: the day notice of the assessment this one amends was served (s 14ZW(1B)(c) and (1BA)(c)); not after notice_date",
+            ),
+            (
+                "amended_before",
+                "boolean, required for an amended assessment and refused otherwise: the assessment this one amends had itself been amended, so this is a later amendment",
+            ),
+            (
+                "first_notice_date",
+                "YYYY-MM-DD, required under subsection (1B) where amended_before is true and refused otherwise: the day notice of the first assessment for the year was served (s 14ZW(1C)); not after original_notice_date",
+            ),
+            (
+                "holidays",
+                "list of at most 100 YYYY-MM-DD dates: public holidays where the objection is lodged, or days the office is closed all day (AIA s 36(3)); default none",
+            ),
+        ],
+        "lessee_lease" => vec![
+            (
+                "residual",
+                "AUD from 0: a residual value guarantee expected to be payable, or the price of a purchase option reasonably certain to be exercised (para 27(c) and (d)), due at the end of the lease term; default 0",
+            ),
+            (
+                "prepaid",
+                "AUD from 0: lease payments made before commencement (para 24(b)); default 0",
+            ),
+            (
+                "incentives",
+                "AUD from 0: lease incentives received at or before commencement (para 24(b)); incentives receivable later (para 27(a)) are outside the scope; default 0",
+            ),
+            (
+                "initial_direct_costs",
+                "AUD from 0: the lessee's initial direct costs (para 24(c)), paid at commencement; default 0",
+            ),
+            (
+                "restoration",
+                "AUD from 0: the estimated cost to dismantle, remove or restore (para 24(d)), as measured under AASB 137 by the operator, excluding costs incurred to produce inventories; default 0",
+            ),
+            (
+                "useful_life_months",
+                "whole number from 1 to 600, required when ownership_transfers is true: the underlying asset's useful life from commencement, in months; where absent the operator confirms it is not shorter than the lease term",
+            ),
+            (
+                "purchase_option",
+                "boolean: the lease contains a purchase option, reasonably certain or not, so it is not a short-term lease (Appendix A); default false",
+            ),
+        ],
+        "thin_capitalisation" => vec![
+            (
+                "interest_and_equivalent_income",
+                "AUD from 0: interest, amounts in the nature of interest or economically equivalent to it, and the other amounts in s 820-50(3)(b), included in assessable income; needed by the fixed ratio and group ratio tests",
+            ),
+            (
+                "taxable_income",
+                "AUD that may be negative: taxable income or a tax loss (negative), disregarding Division 820 other than Subdivision 820-EAA, with all tax losses of earlier loss years deducted (s 820-52(1)(a) and (1A)) and s 820-52(6), (6B) and (8) applied; needed by the fixed ratio and group ratio tests",
+            ),
+            (
+                "franking_credits",
+                "AUD from 0: franking credits included in assessable income under Division 207, which s 820-52(2) disregards; default nil",
+            ),
+            (
+                "associate_dividends",
+                "AUD from 0: dividends and non-share dividends from associate entities (s 820-52(9)) included under ITAA 1936 s 44, which s 820-52(3) disregards; default nil",
+            ),
+            (
+                "rd_notional_deductions",
+                "AUD from 0: Division 355 notional deductions, which s 820-52(10) subtracts; default nil",
+            ),
+            (
+                "division_40_43_deductions",
+                "AUD from 0: Division 40 and 43 deductions other than for the entire amount of an expense (s 820-52(1)(c)(ii)); needed by the fixed ratio and group ratio tests",
+            ),
+            (
+                "forestry_deductions",
+                "AUD from 0: general deductions for forestry establishment and preparation costs, other than for clearing native forests (s 820-52(1)(c)(i)); default nil",
+            ),
+            (
+                "section_70_120_deductions",
+                "AUD from 0: deductions under s 70-120 (s 820-52(1)(c)(iii)); default nil",
+            ),
+            (
+                "excess_tax_ebitda_amount",
+                "AUD from 0: the excess tax EBITDA amount worked out under s 820-60(3) for a controlling entity; fixed ratio test only; default nil",
+            ),
+            (
+                "frt_disallowed_amounts",
+                "list of at most 15 objects {year, amount, available}: each earlier income year's fixed ratio test disallowed amount (s 820-57) not yet applied under s 820-56, year from 2023-24 and within the 15 years before this one, available false where s 820-58 or s 820-59 treats it as nil; fixed ratio test only",
+            ),
+            (
+                "gr_group_net_third_party_interest_expense",
+                "AUD from 0: the GR group net third party interest expense (s 820-54(1) and (2)); group ratio test",
+            ),
+            (
+                "gr_group_net_profit",
+                "AUD that may be negative: the GR group's net profit disregarding tax expenses (s 820-55(2)(a) and (4)); group ratio test",
+            ),
+            (
+                "gr_group_adjusted_net_third_party_interest_expense",
+                "AUD that may be negative: the GR group's adjusted net third party interest expense (s 820-54(4)(b)); group ratio test",
+            ),
+            (
+                "gr_group_depreciation_and_amortisation",
+                "AUD from 0: the GR group's depreciation and amortisation expenses (s 820-55(2)(c)); group ratio test",
+            ),
+            (
+                "gr_group_negative_member_ebitda",
+                "list of at most 200 decimal strings below nil: each GR group member's entity EBITDA that is less than zero, which s 820-55(3) disregards; group ratio test; default none",
+            ),
+            (
+                "average_australian_assets",
+                "AUD from 0: the average Australian assets of the entity and its associates (s 820-37(1)); with outward_investor_only true",
+            ),
+            (
+                "average_total_assets",
+                "AUD above 0: the average total assets of the entity and its associates (s 820-37(1)); with outward_investor_only true",
+            ),
+        ],
         "impairment_test" => vec![
             (
                 "terminal_value",
@@ -4042,10 +4397,24 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, required for Coal LSL casual from January 2024: true when the casual loading can be quantified separately",
             ),
         ],
-        "payroll_tax" => vec![(
-            "regional_employer",
-            "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
-        )],
+        "payroll_tax" => vec![
+            (
+                "regional_employer",
+                "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
+            ),
+            (
+                "periodic_tax",
+                "AUD, for the annual reconciliation (refused for nsw): the payroll tax, with any Victorian surcharge, paid or payable on the year's periodic returns (in Queensland, the periodic liability, with no June return)",
+            ),
+            (
+                "periodic_levy",
+                "AUD, for Queensland only beside periodic_tax and then required: the combined periodic liability for the mental health levy (Payroll Tax Act 1971 (Qld) s 43H)",
+            ),
+            (
+                "other_refunds",
+                "AUD, beside periodic_tax for vic, sa, tas, act and nt and then required (nil if none): any other refund of payroll tax already made to the employer for the year, which reduces the annual refund (s 83(4); in the ACT s 83(5))",
+            ),
+        ],
         "payroll_tax_group" => vec![
             (
                 "related_bodies_corporate",
@@ -4074,6 +4443,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "excess_deduction_order",
                 "list of person ids, Queensland only and with a designated group employer, required when the deduction exceeds that employer's wages: the order, nominated by the DGE or determined by the commissioner, in which entitled group members share the excess (Payroll Tax Act 1971 (Qld) ss 44, 46 and 47)",
+            ),
+        ],
+        "payroll_tax_monthly" => vec![
+            (
+                "regional_employer",
+                "boolean, for Victoria and Queensland only and then required: true when the employer is a regional employer (Payroll Tax Act 2007 (Vic) s 3A; in Queensland, s 10A, true is refused)",
+            ),
+            (
+                "previous_interstate_wage_payer",
+                "boolean, for Queensland only when interstate_wages is nil and then required: true when the employer paid interstate wages in this or the last financial year and intends to resume (Payroll Tax Act 1971 (Qld) s 20(3)), which takes the fixed periodic deduction",
+            ),
+            (
+                "stated_deduction",
+                "AUD, required for the Northern Territory (the deductible amount determined in the manner the Commissioner approves, at most $208,333.33) and for an interstate non-group employer in Western Australia (the deduction the Commissioner nominated, nil if none, at most the month's taxable wages); optional in Queensland (the commissioner's s 21 determination), South Australia (the amount in the employer's notice or the Commissioner's determination, at most $50,000) and, for a month with interstate wages, Victoria (at most the cl 5(1) amount) and the ACT (at most $145,833.33), where it replaces the formula amount",
+            ),
+            (
+                "stated_primary_threshold",
+                "AUD, for Queensland only and optional: the primary periodic threshold the commissioner determined for the month (Payroll Tax Act 1971 (Qld) s 43E(1)(a)), which replaces the formula amount",
+            ),
+            (
+                "stated_additional_threshold",
+                "AUD, for Queensland only and optional: the additional periodic threshold the commissioner determined for the month (s 43E(1)(b)), which replaces the formula amount",
             ),
         ],
         "vic_property_taxes" => vec![
@@ -5554,6 +5945,37 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, true when at least one member paid or was liable to pay wages on every day of the financial year; false is refused",
             ),
         ],
+        "payroll_tax_monthly" => vec![
+            ("jurisdiction", "vic, qld, wa, sa, tas, act or nt; nsw is refused"),
+            (
+                "month",
+                "YYYY-MM, a month of 2026-27 from 2026-07 to 2027-06; 2027-06 is refused in Queensland",
+            ),
+            (
+                "taxable_wages",
+                "AUD, the employer's taxable wages in the jurisdiction paid or payable in the month, after that jurisdiction's exemptions",
+            ),
+            (
+                "interstate_wages",
+                "AUD, the employer's wages taxable in other Australian jurisdictions paid or payable in the month",
+            ),
+            (
+                "estimated_taxable_wages",
+                "AUD, more than nil: the employer's estimate of its taxable wages in the jurisdiction for the year, by which Victoria, Queensland, South Australia and the ACT share the deduction and Victoria phases it out",
+            ),
+            (
+                "estimated_interstate_wages",
+                "AUD, the employer's estimate of its interstate wages for the year; in Western Australia more than nil makes it an interstate non-group employer, and in Tasmania more than nil is refused",
+            ),
+            (
+                "group_member",
+                "boolean, true when the employer is a member of a group for payroll tax; true is refused",
+            ),
+            (
+                "employed_all_year",
+                "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
+            ),
+        ],
         "transfer_duty" => vec![
             ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             (
@@ -5686,7 +6108,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
             (
                 "events",
-                "list of 1 to 1,000 objects, each with event and security: return_of_capital with date (the payment, s 104-135(2)) and per_unit (AUD a share, at most 6dp); tax_deferred with income_year and amount (the year's non-assessable part after s 104-71, a non-AMIT trust) and optionally tax_free (AUD, the s 104-71(3) amounts); amit_excess or amit_shortfall with income_year and amount (the AMMA statement's AMIT cost base net amount); the first 3 optionally with parcels (the parcel names the amount is for, required for a year's amount when a parcel of the security was acquired in that year); tax_deferred, amit_excess and amit_shortfall optionally with before_cgt_event (YYYY-MM-DD in income_year: another CGT event to the units after the payment, just before which the amount happens, ss 104-70(3)(b) and 104-107B(4)(b)); demerger with demerger (wesfarmers_coles_2018 or woolworths_endeavour_2021), new_security and rollover (boolean: roll-over chosen)",
+                "list of 1 to 1,000 objects, each with event and security: return_of_capital with date (the payment, s 104-135(2)) and per_unit (AUD a share, at most 6dp); tax_deferred with income_year and amount (the year's non-assessable part after s 104-71, a non-AMIT trust) and optionally tax_free (AUD, the s 104-71(3) amounts); amit_excess or amit_shortfall with income_year and amount (the AMMA statement's AMIT cost base net amount); the first 3 optionally with parcels (the parcel names the amount is for, required for a year's amount when a parcel of the security was acquired in that year); tax_deferred, amit_excess and amit_shortfall optionally with before_cgt_event (YYYY-MM-DD in income_year: another CGT event to the units after the payment, just before which the amount happens, ss 104-70(3)(b) and 104-107B(4)(b)); demerger with demerger (wesfarmers_coles_2018 or woolworths_endeavour_2021), new_security and rollover (boolean: roll-over chosen); scrip_for_scrip with date (the exchange), new_security, new_units_per_unit and market_value_per_new_unit (decimal strings above 0, at most 6dp), rollover (true: the roll-over chosen and its conditions met, ss 124-780 and 124-781; false is refused) and optionally cash_per_unit (ineligible proceeds per original share or unit, s 124-790) and parcels",
             ),
         ],
         "trade_in" => vec![
@@ -6593,6 +7015,12 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("apportionable_deductions", "AUD: your apportionable deductions (ITAA 1997 s 995-1: gifts under s 30-15 items 1, 2, 7 and 8 and rates and land tax under s 25-75), apportioned by s 102AD(c)"),
             ("special_income_component", "boolean: your taxable income includes a special income component (an abnormal income amount, Income Tax Rates Act 1986 s 3(1)); true is refused"),
         ],
+        "smsf_member_allocation" => vec![
+            ("accounts", "list of 1 to 30 objects, one per member account (interest), each {label, kind, opening_balance} and optional transactions: kind accumulation, account_based_pension (in the retirement phase) or transition_to_retirement (not in it, ITAA 1997 s 307-80(3); refused once its recipient is 64 or older on 1 July, as attaining 65 ends that); opening_balance AUD from 0, the balance on 1 July, and for a pension SISR Schedule 7 cl 1(2)'s account balance (the withdrawal benefit if higher); a pension also takes age, a whole number from 0 to 150 on 1 July, and optional minimum_exception, a boolean: the trustee has self-assessed, or the ATO has allowed, the Commissioner's exception for a shortfall; transactions a list of at most 1,000 objects {date, type, amount}, date YYYY-MM-DD in the year, amount AUD above nil, type concessional_contribution (an assessable contribution, s 295-160), non_concessional_contribution, rollover_in, pension_payment (a pension only), lump_sum or rollover_out; contributions and roll-overs in are refused on a pension"),
+            ("net_earnings", "AUD that may be negative: the fund's investment return for the year after its costs and before income tax, to share by weighted balance"),
+            ("income_tax", "AUD that may be negative: the fund's income tax for the year as worked out (for example by smsf-tax, before the supervisory levy), contributions tax included"),
+            ("allocation_method", "text: daily_weighted_balance, the trustee's stated method under SISR reg 5.03(2); any other is refused"),
+        ],
         "smsf_tax" => vec![
             ("complying_fund", "boolean: the fund is a complying superannuation fund for the year; false is refused"),
             ("australian_superannuation_fund", "boolean: the fund is an Australian superannuation fund for the year; false is refused"),
@@ -6627,6 +7055,104 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("home", "bought (a new home, including off the plan), built (under a comprehensive home building contract, including a house and land package) or established"),
             ("total_value", "AUD, whole dollars from 1 to 1,000,000,000, the value tested against the cap unless cap_value is given or, in vic, contract_price. For a home bought, the price, which is also the consideration that limits the grant. For a home built, the land and the building contract with its variations; there the consideration is the building contract alone (Qld schedule, WA s 14AB, s 13 in Vic, SA, Tas, ACT and NT; the NSW Act was not read), which contract_price gives or building_contract states is at least the grant, so the land never limits the grant"),
             ("facts", "object of booleans, each your statement, not tested: person (every applicant is a person aged 18 or over), citizen (an applicant is an Australian citizen or permanent resident), first_home (no applicant or spouse is excluded by the prior grant and ownership rules) and residence (the residence requirement will be met), all 4 required; building_contract (a home built: the contract price without the land is at least the grant); nt_no_replacement (nt: the contract replaces none signed before 1 October 2024); tas_conditions (tas: the completion and replacement conditions of s 18L or 18M)"),
+        ],
+        "help_to_buy" => vec![
+            ("area", "nsw_capital_regional, nsw_other, vic_capital_regional, vic_other, qld_capital_regional, qld_other, wa_capital, wa_other, sa_capital, sa_other, tas_capital, tas_other, act, nt, jervis_bay_norfolk or christmas_cocos: the Program Directions s 7 area the property is in, which you establish (a capital city is the Greater Capital City Statistical Area; the regional centres are the SA4 areas s 7(2) lists)"),
+            ("property", "new or existing: a new home or an existing dwelling (s 16(1))"),
+            ("purchase_price", "AUD, whole dollars from 1 to 1,000,000,000: the purchase price, for a home built the land price plus the construction contract price (s 5)"),
+            ("agreed_percentage", "percentage above 0 and at most 100, at most 2 decimal places: the percentage of the purchase price Housing Australia agreed to contribute (s 16(3))"),
+            ("deposit", "AUD, whole dollars from 0: the applicants' deposit"),
+            ("lender_valuation", "AUD, whole dollars from 1: the participating lender's valuation of the property for settlement (ss 16(2) and 25(3))"),
+            ("applicants", "single, single_parent or joint (s 19)"),
+            ("taxable_income", "AUD, whole dollars from 0: taxable income on the most recent notice of assessment, the 2 applicants' combined for joint (s 19)"),
+            ("application_date", "date, YYYY-MM-DD, within year and no later than 2026-11-26: the day of application, whose financial year sets the threshold"),
+            ("facts", "object of booleans, each your statement, not tested: citizen, financial_capacity, principal_residence, no_other_assistance, no_property_interest, costs_covered, sole_owners and participating_jurisdiction (ss 17 and 20; Act ss 10 and 15), every one required true"),
+        ],
+        "help_to_buy_review" => vec![
+            ("applicants", "single, single_parent or joint (s 34)"),
+            ("taxable_income", "AUD, whole dollars: taxable income for the most recent income year with a notice of assessment, combined for joint participants (s 34)"),
+            ("previous_taxable_income", "AUD, whole dollars: taxable income for the income year before it (s 34)"),
+            ("share_percentage", "percentage above 0 and at most 100, at most 2 decimal places: the Commonwealth share percentage now (s 25)"),
+            ("property_value", "AUD above 0: the property's value Housing Australia accepts now (s 58)"),
+            ("capacity_to_repay", "boolean: the participating lender assessed the participant able to repay 5% of the value, or the whole share where it is 5% or less (s 37(2))"),
+            ("repayment_triggers_lmi", "boolean: repaying the required amount would make the participant bear the cost of lenders' mortgage insurance (s 37(7) and (10))"),
+        ],
+        "home_guarantee" => vec![
+            ("stream", "first_home or family_home: the First Home Guarantee (s 29I) or the Family Home Guarantee (s 29IB)"),
+            ("area", "nsw_capital_regional, nsw_other, vic_capital_regional, vic_other, qld_capital_regional, qld_other, wa_capital, wa_other, sa_capital, sa_other, tas_capital, tas_other, act, nt (before 1 July 2026), nt_capital or nt_other (from 1 July 2026), jervis_bay_norfolk or christmas_cocos: the s 29F(1) area the property is in, which you establish (s 4A)"),
+            ("issue_date", "date, YYYY-MM-DD, within year, from 2025-10-01 to 2026-11-26: the day Housing Australia approved the guarantee's issue (s 44(2)(a))"),
+            ("property_value", "AUD above 0: the value of the residential property (s 29C(2)(g))"),
+            ("loan_amount", "AUD: the loan amount, giving the loan-to-value ratio (s 29C(2)(i))"),
+            ("borrowers", "integer from 1: the borrowers under the loan agreement"),
+            ("facts", "object of booleans, each your statement, not tested: for first_home no_property_10_years and adult_citizen_or_resident; for family_home single_with_dependant, property_interest_allowed, no_relevant_interest and adult_citizen_or_resident; for both eligible_lender, owner_occupied, principal_and_interest and term_30_years; every one required true"),
+        ],
+        "age_pension" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2025-09-20 to 2027-03-19: the day the fortnightly rate is for"),
+            ("relationship", "single or couple: a couple both receiving age pension"),
+            ("homeowner", "boolean: the person or partner is a homeowner (s 11)"),
+            ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
+            ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
+            ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
+            ("facts", "object of booleans, each your statement, not tested: in_australia, not_blind, not_transitional and no_rent_assistance, and for a couple partner_pensioner; every one required true"),
+        ],
+        "ftb_part_a" => vec![
+            ("children_under_13", "integer from 0 to 20: FTB children under 13 all year"),
+            ("children_13_plus", "integer from 0 to 20: FTB children aged 13 or over all year (to 15, or 16 to 19 in secondary study)"),
+            ("adjusted_taxable_income", "AUD: the family's adjusted taxable income for the year, a couple's combined (Schedule 3)"),
+            ("income_support", "boolean: the individual or partner receives a social security pension or benefit, a service pension, income support supplement or a veteran payment (clause 38L)"),
+            ("energy_supplement", "boolean: the family keeps the energy supplement, entitled to FTB on 19 September 2016 without a break since (clauses 6A and 25C)"),
+            ("facts", "object of booleans, each your statement, not tested: whole_year, no_maintenance, no_rent_assistance, no_newborn_or_multiple_birth and requirements_met; every one required true"),
+        ],
+        "salary_dividend" => vec![
+            ("profit", "AUD: the company's profit before the owner's salary, its super guarantee and company tax, all paid out"),
+            ("base_rate_entity", "boolean: the company is a base rate entity for the year and its corporate tax rate for imputation purposes is 25% (Income Tax Rates Act 1986 s 23(2)); false for 30%"),
+            ("salary", "AUD: the owner's salary, whose super guarantee the profit also pays"),
+            ("other_taxable_income", "AUD: the owner's other taxable income; the cents are dropped"),
+            ("year", "income year: 2024-25, 2025-26 or 2026-27"),
+        ],
+        "sole_trader_set_aside" => vec![
+            ("business_income", "AUD, exclusive of GST: the business's assessable income for the year"),
+            ("business_expenses", "AUD, exclusive of GST: the business's deductions, no more than business_income"),
+            ("wages", "AUD: salary and wages from a job (assessable labour income, ITAA 1997 s 25-130(4))"),
+            ("other_deductions", "AUD: deductions that are not the business's and not work-related (s 25-130(2)(c) to (g) would reduce the standard deduction by those), such as tax agent fees and gifts"),
+            ("personal_super_deducted", "AUD: personal super contributions claimed as a deduction, reportable super contributions"),
+            ("small_business_offset", "boolean: the individual is a small business entity whose net small business income is the profit (ITAA 1997 ss 328-355 and 328-365)"),
+            ("study_loan", "boolean: the individual has a study or training loan; refused for 2024-25"),
+            ("hospital_cover", "boolean: private patient hospital cover all year; false for none all year"),
+            ("gst_registered", "boolean: the business is registered for GST"),
+            ("gst_credits", "AUD: the year's GST credits, 0 unless registered and no more than the GST on business_income"),
+            ("invoice", "AUD, with GST: one invoice to split into the set-aside and the rest"),
+            ("year", "income year: 2024-25, 2025-26 or 2026-27"),
+        ],
+        "salary_packaging" => vec![
+            ("residency", "resident or foreign_resident: for the full year"),
+            ("employer", "charity (a registered public benevolent institution or health promotion charity, $30,000 cap) or hospital (a public or not-for-profit hospital or public ambulance service, $17,000 cap)"),
+            ("salary", "AUD in whole dollars: the year's salary before packaging"),
+            ("type_two_benefits", "AUD: the taxable value of benefits packaged that are not GST-creditable (Type 2)"),
+            ("type_one_benefits", "AUD: the taxable value of GST-creditable benefits packaged (Type 1)"),
+            ("meal_entertainment", "AUD: the taxable value of salary packaged meal entertainment (FBTAA s 5B(1M))"),
+            ("meal_entertainment_type_one", "boolean: the meal entertainment is GST-creditable (Type 1)"),
+            ("study_loan", "boolean: the employee has a study or training loan; refused for a foreign resident and for 2024-25"),
+            ("hospital_cover", "boolean: private patient hospital cover all year; false for none all year"),
+            ("year", "income year: 2024-25, 2025-26 or 2026-27"),
+        ],
+        "novated_lease" => vec![
+            ("residency", "resident or foreign_resident: for the full year"),
+            ("salary", "AUD in whole dollars: the year's salary before the lease"),
+            ("study_loan", "boolean: the employee has a study or training loan; refused for a foreign resident and for 2024-25"),
+            ("hospital_cover", "boolean: private patient hospital cover all year; false for none all year"),
+            ("car", "bev, fcev, phev or other: a battery electric, hydrogen fuel cell or plug-in hybrid electric car, or any other car (FBTAA s 8A(2) to (4))"),
+            ("first_used", "date, YYYY-MM-DD: when the car was first held and used, no later than 31 March of the FBT year"),
+            ("commitment", "boolean: a plug-in hybrid was used before 1 April 2025 under a financially binding commitment that continues unchanged"),
+            ("first_sale_year", "income year, 2021-22 to 2026-27: the year of the car's first retail sale, for the fuel-efficient luxury car tax threshold"),
+            ("cost_price", "AUD, more than 0: the car's cost price (FBTAA s 136(1)), including GST"),
+            ("other_lct_supply", "boolean: luxury car tax became payable on another supply, lease or hire, or an importation of the car"),
+            ("lct_timing", "before_all, after_all, mixed_or_unknown or null: when luxury car tax first became payable against the year's benefits; required as before_all or after_all where the year needs one treatment"),
+            ("one_third_reduction", "boolean: the base value is reduced by one-third (FBTAA s 9(2)(c))"),
+            ("days_available", "integer: the days in the FBT year the car was available for private use, from first use"),
+            ("costs_with_gst", "AUD: the year's car costs that include GST and for which the employer is entitled to a full GST credit, such as lease payments, fuel or charging, servicing and tyres"),
+            ("costs_without_gst", "AUD: the year's car costs without GST, such as registration and insurance stamp duty"),
+            ("year", "income year: 2024-25, 2025-26 or 2026-27"),
         ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
@@ -6814,6 +7340,105 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("receivables", "AUD from 0: trade receivables, the closing balance or the average of opening and closing"),
             ("billings", "AUD above 0: credit sales billed over the days, on the receivables' GST basis (oz.ReceivableDaysλ's Sales)"),
         ],
+        "break_even" => vec![
+            ("fixed_costs", "AUD from 0: fixed costs for the period"),
+            ("price", "AUD from 0: selling price a unit, above variable_cost, on the same GST basis"),
+            ("variable_cost", "AUD from 0: variable cost a unit"),
+        ],
+        "cash_forecast" => vec![
+            ("opening", "AUD, may be negative: the bank balance at the start of week 1"),
+            ("buffer", "AUD from 0: the minimum cash to keep"),
+            ("weeks", "list of 13 objects {receipts, payments}, each in AUD from 0: the bank receipts and payments expected in each week, GST included where the cash includes it"),
+        ],
+        "hourly_rate" => vec![
+            ("annual_costs", "AUD from 0: annual costs to cover, owner remuneration included where it must be covered before profit"),
+            ("target_profit", "AUD from 0: target annual profit"),
+            ("billable_hours", "hours from 0.01 to 8,784, at most 2 dp: annual billable hours"),
+        ],
+        "fixed_fee" => vec![
+            ("hours", "hours from 0.01 to 8,784, at most 2 dp: the estimated hours for the work"),
+            ("rate", "AUD from 0: the hourly rate, or the cost an hour with a margin, before GST"),
+            ("margin_percent", "per cent from 0 to 99.99, at most 2 dp: the margin as a share of the fee; 0 when the rate already includes profit"),
+            ("round_to", "0.01, 10, 50 or 100, as a string: the step the fee rounds up to"),
+            ("add_gst", "boolean: add GST at 10% of the fee"),
+            ("instalments", "whole number from 1 to 24: monthly instalments; the first carries the cents left over"),
+        ],
+        "staff_cost" => vec![
+            ("wages", "AUD from 0: annual wages, paid leave included"),
+            ("other_costs", "AUD from 0: other annual costs (insurance, recruitment, relief staff, equipment), not paid leave already in wages"),
+        ],
+        "consolidation_eliminations" => vec![
+            ("parent", "object {name, lines}: the parent's trial balance, lines a list of 1 to 500 objects {account, class, amount}, class asset, liability, equity, income or expense, amount AUD on the class's natural side (negative for a contra balance), at most 2 dp; the lines must balance"),
+            ("subsidiaries", "list of 1 to 20 objects {name, lines, ownership, investment_account, consideration, nci_at_acquisition, equity_at_acquisition}: each directly held subsidiary's trial balance; ownership the parent's interest, a fraction above 0 and at most 1; investment_account the parent's asset line carrying it; consideration and nci_at_acquisition in AUD (AASB 3 paras 19 and 32); equity_at_acquisition a list of {account, amount} naming its equity lines at acquisition"),
+            ("intra_group_balances", "list of up to 500 objects {receivable, payable, amount}: receivable and payable each {entity, account}, an asset line of one entity and a liability line of another, amount AUD above 0 (AASB 10 para B86(c))"),
+            ("intra_group_transactions", "list of up to 500 objects {income, expense, amount}: an income line of one entity and an expense line of another, each {entity, account}, amount AUD above 0 (para B86(c))"),
+            ("unrealised_profits", "list of up to 500 objects {seller, buyer, inventory_account, cost_of_sales_account, profit, income_tax_account, deferred_tax_account}: profit AUD above 0 in the buyer's closing inventory line, eliminated against the seller's cost of sales; the tax effect posts to the seller's income tax expense line and a deferred tax asset line (para B86(c); AASB 112)"),
+            ("tax_rate", "decimal fraction from 0 to below 1, at most 6 places: the stated rate for the deferred tax on eliminated unrealised profit, 0 where none is recognised"),
+            ("acquired_in_period", "boolean: a subsidiary was acquired during the period (AASB 10 para B88); true is refused"),
+            ("fair_value_adjustments", "boolean: a subsidiary's identifiable net assets at acquisition had fair values other than their carrying amounts (AASB 3 para 18); true is refused"),
+            ("previously_held_interest", "boolean: a combination was achieved in stages (AASB 3 para 42); true is refused"),
+            ("ownership_changed", "boolean: the parent's interest in a subsidiary changed without loss of control (AASB 10 para 23); true is refused"),
+            ("intra_group_dividends", "boolean: an entity declared or paid a dividend to another in the group; true is refused"),
+        ],
+        "tofa_accruals" => vec![
+            ("start", "YYYY-MM-DD: the day the taxpayer starts to have the arrangement, in the year (s 230-130(1)(a))"),
+            ("end", "YYYY-MM-DD: the day it will cease to have it, the last day of a whole number of intervals from start, at most 360 (s 230-130(1)(b))"),
+            ("interval_months", "whole number from 1 to 12: each interval's length (s 230-135(4))"),
+            ("financial_benefits", "list of 2 to 361 objects {date, amount}: each sufficiently certain financial benefit (s 230-115), dated start or an interval's last day, amount AUD received positive and provided negative, at most 2 dp"),
+            ("method", "compounding (s 230-135(2)(a)) or straight_line (s 230-135(2)(b)); effective_interest is refused"),
+            ("approximation_confirmed", "boolean: the operator has established that a straight line's results approximate compounding accruals over this period (s 230-135(2)(b)); needed for straight_line"),
+            ("accruals_chosen", "boolean: the taxpayer chooses the accruals method for the overall gain or loss (s 230-100(2)(c))"),
+            ("entity_type", "individual, super_or_scheme, adi_or_securitisation or other: s 230-455(1)(a)(i) to (iv)"),
+            ("qualifying_security", "boolean: the arrangement is a qualifying security (s 230-455(1)(e)(ii), s 230-100(4)(b))"),
+            ("threshold_failed_earlier", "boolean: the entity, not an individual, failed its s 230-455 subsection for an earlier income year (s 230-455(9))"),
+            ("division_230_election", "boolean: a s 230-455(7) election applies to the arrangement (s 230-455(6))"),
+            ("elections", "list of the elective methods applying to the arrangement: fair_value, foreign_exchange_retranslation, hedging, financial_reports or portfolio_fees; any is refused; [] for none"),
+        ],
+        "super_projection" => vec![
+            ("age", "whole number from 15 to 74: the member's age now"),
+            ("balance", "AUD from 0: the account balance now"),
+            ("salary", "whole AUD from 0: 2026-27 salary before salary sacrifice, the qualifying earnings"),
+            ("employer_rate", "decimal fraction from 0 to 0.3, at most 4 places: employer contributions as a share of salary up to the maximum contribution base; 0.12 is the super guarantee, 0 if self-employed"),
+            ("salary_sacrifice", "AUD from 0: 2026-27 salary sacrifice and personal deductible contributions"),
+            ("after_tax_contributions", "AUD from 0: 2026-27 non-concessional contributions"),
+            ("return_rate", "decimal fraction from 0 to 0.2, at most 4 places: the yearly return after investment fees and tax on earnings"),
+            ("percent_fee", "decimal fraction from 0 to 0.05, at most 4 places: the administration fee as a share of the balance a year"),
+            ("admin_fee", "AUD from 0: the 2026-27 administration fee in dollars"),
+            ("insurance", "AUD from 0: 2026-27 insurance premiums"),
+            ("wage_growth", "decimal fraction from 0 to 0.1, at most 4 places: yearly growth after 2026-27 of the salary, contributions, the dollar fee, premiums and the maximum contribution base"),
+        ],
+        "objection_deadline" => vec![
+            ("decision", "assessment, amended_assessment, fbt_assessment, amended_fbt_assessment or other: the decision objected to; other is a decision for which s 14ZW sets no other period (paragraph (1)(c))"),
+            ("notice_date", "YYYY-MM-DD: the day notice of the decision, the amended assessment's if amended, was given or served"),
+        ],
+        "lessee_lease" => vec![
+            ("payment", "AUD above 0: the regular lease payment, excluding GST the lessee can claim"),
+            ("payments", "whole number from 1 to 50 years of payments at the frequency: the payments in the lease term"),
+            ("frequency", "weekly, fortnightly, monthly, quarterly or annual"),
+            ("timing", "arrears (each payment at the end of its period) or advance (at its start, the first at commencement)"),
+            ("discount_rate", "decimal fraction from 0 to 1, at most 6 places: the rate implicit in the lease or, if it cannot be readily determined, the lessee's incremental borrowing rate (para 26), nominal a year and divided by the payments a year"),
+            ("commencement", "YYYY-MM-DD: the commencement date, in the year"),
+            ("ownership_transfers", "boolean: ownership transfers by the end of the lease term or a purchase option is reasonably certain to be exercised (para 32)"),
+            ("remeasurement", "boolean: the liability has been or must be remeasured for a reassessment, modification, change in an index or rate or revised in-substance fixed payment (paras 36(c) and 39 to 46); true is refused"),
+        ],
+        "thin_capitalisation" => vec![
+            ("test", "fixed_ratio (no choice made, s 820-46(1)(b)(i)), group_ratio (a choice under s 820-46(3)) or third_party_debt (a choice under s 820-46(4), or taken to be made under s 820-46(5) and s 820-48)"),
+            ("entity_class", "general_class_investor (s 820-46(2)) or not_covered (no Subdivision of Division 820 applies); outward_investing_financial_entity, inward_investing_financial_entity, outward_investing_adi and inward_investing_adi are refused"),
+            ("plantation_forestry_entity", "boolean: an Australian plantation forestry entity for all or part of the year, kept under the older law (Act No. 23, 2024 Schedule 2 item 146); true is refused"),
+            ("special_purpose_entity", "boolean: the entity meets the conditions in s 820-39(3) throughout the income year"),
+            ("outward_investor_only", "boolean: assuming it were a financial entity all year, the entity would be an outward investing financial entity (non-ADI) and not an inward investing one (s 820-37(1)(a)(ii) and (b)); true needs average_australian_assets and average_total_assets"),
+            ("associate_inclusive_debt_deductions", "AUD from 0: the total debt deductions of the entity and all its associate entities for the year (s 820-35)"),
+            ("debt_deductions", "list of 1 to 200 objects {label, amount} and, under the third party debt test, third_party: the year's debt deductions (s 820-40) after any disallowed under Subdivision 820-EAA (s 820-31), amounts in AUD from 0; third_party true where the deduction is attributable to a debt interest satisfying the third party debt conditions (s 820-427A(1) to (3))"),
+        ],
+        "debt_forgiveness" => vec![
+            ("debts", "list of 1 to 200 objects {label, commercial_debt, excluded, value} with optional amount_offset, debtors, assessable_income, deductions_reduced, cost_bases_reduced, forgone_by_creditor and section_245_90_agreement: commercial_debt whether s 245-10 or s 245-15 applies; excluded whether s 245-40 applies; value the debt's value when forgiven (ss 245-55, 245-60 and 245-61), amount_offset the amount offset (s 245-65), assessable_income, deductions_reduced and cost_bases_reduced the amounts in s 245-85(1)(a) to (c) and forgone_by_creditor the amount agreed under s 245-90, each in AUD from 0 (default nil); section_245_90_agreement true or false (default false), required true with any forgone_by_creditor: debtor and creditor are companies under common ownership from when the debt was incurred until it was forgiven (s 245-90(1)), the creditor would otherwise have a capital loss or a deduction under s 8-1 or s 25-35 of at least the agreed amount (s 245-90(2) and (3)) and the agreement meets s 245-90(4); debtors the number of entities liable (s 245-77), a whole number from 1 to 100, default 1"),
+            ("tax_losses", "list of at most 200 objects {label, amount}: tax losses deductible in the forgiveness income year or later (s 245-115), in the order chosen (s 245-120), AUD from 0"),
+            ("net_capital_losses", "list of at most 200 objects {label, amount}: net capital losses of earlier income years (s 245-130(2)), in the order chosen, AUD from 0"),
+            ("expenditures", "list of at most 200 objects {label, item, amount}: expenditure in the table in s 245-145 incurred before the forgiveness income year and not covered by s 245-145(2), item its row from 1 to 8, amount the most it may be reduced (the base amount less what was deductible before the year, s 245-155(2), or the undeducted balance, s 245-157), in the order chosen, AUD from 0"),
+            ("cost_bases", "list of at most 200 objects {label, amount} with optional associate: CGT assets not excluded by s 245-175(2), amount the most its cost base and reduced cost base may be reduced (s 245-190(3)), associate true for an investment in an associate, reduced last (s 245-185), in the order chosen, AUD from 0"),
+            ("partnership", "boolean: the debtor is a partnership (Subdivision 245-F); true is refused"),
+            ("attributable_income", "boolean: the calculation is of the attributable income of a non-resident trust estate or a CFC (s 245-100); true is refused"),
+        ],
         "impairment_test" => vec![
             ("cash_flows", "list of 1 to 50 decimal strings, AUD that may be negative: the stated pre-tax net cash flows of years 1 to n from continuing use, each at the end of its year (AASB 136 paras 33, 39(a) and (b), 50 and 51), excluding financing and tax"),
             ("discount_rate", "decimal fraction above 0 and at most 1 (100%), at most 6 places, limits of this worksheet rather than AASB 136: the stated pre-tax rate (paras 55, 56 and A20)"),
@@ -6825,6 +7450,21 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("lines", "list of 1 to 500 objects, each {label, leave, hours, hourly_rate, probability, settled_within_12_months} and, when settled_within_12_months is false, {years_to_settlement, salary_growth, discount_rate, can_defer_settlement}: leave is annual or long_service; hours the unused entitlement accumulated at the reporting date (AASB 119 paras 13(a) and 15); hourly_rate in AUD: on a short-term line the rate the entity expects to pay for the leave (para 16), on a long-term line the rate at the reporting date before future salary growth, which salary_growth projects (para 87(b)); probability from 0 to 1 that the entitlement vests and is paid (paras 15 and 72); settled_within_12_months whether the benefit the line belongs to is expected to be settled wholly before 12 months after the reporting date (para 8): the part of a benefit that is not, due within 12 months, is false; years_to_settlement a whole number from 1 to 50 (the part of a long-term benefit due within 12 months takes 1, the nearest whole year); salary_growth and discount_rate decimal fractions from 0 to 1 a year (paras 83 to 87); can_defer_settlement whether the entity has the right at the reporting date to defer settlement for at least 12 months (AASB 101 para 69(d)): for a period beginning before 1 January 2024 only an unconditional right counts (the earlier para 69(d)), and from 1 January 2024 a right with substance that exists at the reporting date (paras 72A and 75A, AASB 2020-1 and AASB 2022-6), so for every period ending in 2020-21 to 2023-24, and a 2024-25 period ending before 31 December 2024, a conditional right is false unless AASB 2020-1 and AASB 2022-6 were applied early"),
             ("defined_benefit_plan", "boolean: the obligation includes a defined benefit plan or other post-employment benefit (AASB 119 paras 26 to 152); true is refused"),
             ("plan_assets", "boolean: assets fund the long-term benefits or a reimbursement right exists (paras 113 to 119 and 155); true is refused"),
+        ],
+        "book_to_tax" => vec![
+            ("accounting_profit", "AUD, may be negative: the company's profit or loss before income tax expense (AASB 112 para 5; the company tax return's item 6 label T)"),
+            ("adjustments", "list of 0 to 500 objects, each {label, difference, effect, amount}: label 1 to 200 characters; difference permanent (it never reverses: an expense never deductible, exempt or non-assessable non-exempt income, assessable income or a deduction with no amount in profit) or temporary (it reverses in another year: AASB 112 paras 5 and 17); effect add or subtract, its effect on accounting profit in reaching taxable income; amount in AUD from 0"),
+            ("net_exempt_income", "AUD: the company's net exempt income for the year under ITAA 1997 s 36-20, less 90% of any part directly relating to exempt shipping income under s 51-100 (ss 36-10(5) and 36-17(4A)), which absorbs earlier tax losses first (s 36-17(3)(a) and (4)) and reduces a tax loss (s 36-10(3))"),
+            ("opening_tax_losses", "AUD: the company's earlier tax losses not yet utilised that it can deduct this year, having passed the continuity of ownership or business continuity test (Subdivisions 165-A and 166-A)"),
+            ("tax_losses_deducted", "AUD: the tax losses the company chooses to deduct from the excess of assessable income over deductions (s 36-17(2) and (3)(b)), at most that excess and the losses left after net exempt income; 0.00 for none"),
+            ("loss_carry_back", "boolean: the company makes a loss carry back choice (Division 160); true is refused"),
+            ("excess_franking_offsets", "boolean: the company would have excess franking offsets for the year, disregarding tax losses or with the tax losses deducted (ss 36-17(5) and 36-55); true is refused"),
+            ("subdivision_165_b", "boolean: the company failed to maintain continuity of ownership and control during the year and does not satisfy the business continuity test (s 4-15(2) item 1); true is refused"),
+            ("tax_consolidated_group", "boolean: the company is a member of a consolidated group (Part 3-90); true is refused"),
+        ],
+        "cgt_rollover" => vec![
+            ("rollover", "marriage_breakdown (ITAA 1997 Subdivision 126-A), small_business (Subdivision 152-E) or wholly_owned_company (Subdivision 122-A); a scrip for scrip roll-over is a scrip_for_scrip event of cgt-cost-base-adjustments"),
+            ("facts", "object; marriage_breakdown: transferor (individual, company or trustee), basis (court_order, maintenance_agreement, arbitral_award, financial_agreement, part_viiiab_financial_agreement or state_law_agreement, s 126-5(1)), with the last 3 separated_and_breakdown_connected (boolean, s 126-25), event (A1, B1, D1, D2, D3 or F1), event_date (in the year); for A1 and B1 trading_stock (boolean, true is no roll-over), for B1 title_passes (boolean), transferor_acquired, cost_base and reduced_cost_base (the transferor's when the transferee acquired the asset, AUD), asset_class (ordinary, collectable or personal_use) and optionally capital_proceeds (AUD); for D1 to F1 expenditure (AUD, s 126-5(8)). small_business: basic_conditions_met (boolean, Subdivision 152-A), capital_gain (AUD, after the discount and the other concessions), disregarded (AUD above 0, at most capital_gain), last_cgt_event (the last CGT event in the year for which the roll-over is obtained), optionally earnout_latest_due and replacement_assets (1 to 1,000 objects {label, date, first_element_cost_base, qualifies} and optionally incidental_costs and fourth_element_expenditure; qualifies: an active asset at the end of the period and, for a share or trust interest, the stakeholder test of s 104-197(2)(b)). wholly_owned_company: transferor (individual or trustee), case (asset or business), conditions_met (boolean, ss 122-20 and 122-25), event_date, shares (JSON integer from 1), assets (1 object for asset, 1 to 1,000 for business, each {label, acquired, asset_class, cost_base, reduced_cost_base, market_value, precluded} and optionally capital_proceeds) and optionally liabilities (AUD the company undertakes to discharge, s 122-37)"),
         ],
         "deferred_tax" => vec![
             ("items", "list of 1 to 500 objects, each {label, class, carrying_amount, tax_base, opening_carrying_amount, opening_tax_base}: class is asset or liability, amounts in AUD at the end and start of the year (0.00 when the item did not exist), the tax base the amount attributed for tax purposes (AASB 112 paras 7 and 8)"),
@@ -7017,7 +7657,9 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
-        "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
+        // resident_tax's first year is 2019-20; its example stays in 2024-25.
+        "resident_tax" => vec![("year", Text("2024-25")), ("taxable_income", Text("45000"))],
+        "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
         "capital_gains" => vec![
             ("other_gains", Text("100.00")),
             ("discount_gains", Text("1000.00")),
@@ -7295,6 +7937,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("related_bodies_corporate", Json(r#"[["A", "B"]]"#)),
             ("designated_group_employers", Json(r#"["A"]"#)),
             ("excess_deduction_order", Json(r#"["B"]"#)),
+            ("employed_all_year", Flag(true)),
+        ],
+        // The QRO's actual periodic deduction example: $158,521 of monthly wages.
+        "payroll_tax_monthly" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("qld")),
+            ("month", Text("2026-07")),
+            ("taxable_wages", Text("158521.00")),
+            ("interstate_wages", Text("0.00")),
+            ("estimated_taxable_wages", Text("1902252.00")),
+            ("estimated_interstate_wages", Text("0.00")),
+            ("regional_employer", Flag(false)),
+            ("previous_interstate_wage_payer", Flag(false)),
+            ("group_member", Flag(false)),
             ("employed_all_year", Flag(true)),
         ],
         // The NSW Government's first home buyer figure: $19,593.50 on $900,000.
@@ -8165,6 +8821,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("net_exempt_income", Text("0.00")),
             ("other_income", Text("60000.00")),
         ],
+        // Fabricated: one accumulation and one pension account in 2025-26.
+        "smsf_member_allocation" => vec![
+            ("year", Text("2025-26")),
+            (
+                "accounts",
+                Json(
+                    r#"[{"label": "Member A accumulation", "kind": "accumulation", "opening_balance": "300000.00", "transactions": [{"date": "2025-10-01", "type": "concessional_contribution", "amount": "10000.00"}, {"date": "2026-01-15", "type": "non_concessional_contribution", "amount": "20000.00"}]}, {"label": "Member B pension", "kind": "account_based_pension", "opening_balance": "500000.00", "age": 68, "transactions": [{"date": "2025-12-31", "type": "pension_payment", "amount": "15000.00"}, {"date": "2026-06-15", "type": "pension_payment", "amount": "10000.00"}]}]"#,
+                ),
+            ),
+            ("net_earnings", Text("60000.00")),
+            ("income_tax", Text("6000.00")),
+            ("allocation_method", Text("daily_weighted_balance")),
+        ],
         // The ATO's SAR 2026 Appendix 1 example 1: $234,200 of income, an
         // actuary's 50% and $62,000 of franking credits, a $44,176 refund.
         "smsf_tax" => vec![
@@ -8242,6 +8911,134 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "facts",
                 Json(r#"{"person": true, "citizen": true, "first_home": true, "residence": true}"#),
             ),
+        ],
+        // Fabricated: a single applicant buying an existing home in Melbourne.
+        "help_to_buy" => vec![
+            ("year", Text("2026-27")),
+            ("area", Text("vic_capital_regional")),
+            ("property", Text("existing")),
+            ("purchase_price", Text("700000")),
+            ("agreed_percentage", Text("30")),
+            ("deposit", Text("14000")),
+            ("lender_valuation", Text("700000")),
+            ("applicants", Text("single")),
+            ("taxable_income", Text("95000")),
+            ("application_date", Text("2026-08-03")),
+            (
+                "facts",
+                Json(
+                    r#"{"citizen": true, "financial_capacity": true, "principal_residence": true, "no_other_assistance": true, "no_property_interest": true, "costs_covered": true, "sole_owners": true, "participating_jurisdiction": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single participant over the threshold in both years.
+        "help_to_buy_review" => vec![
+            ("year", Text("2026-27")),
+            ("applicants", Text("single")),
+            ("taxable_income", Text("110000")),
+            ("previous_taxable_income", Text("104000")),
+            ("share_percentage", Text("30")),
+            ("property_value", Text("800000.00")),
+            ("capacity_to_repay", Flag(true)),
+            ("repayment_triggers_lmi", Flag(false)),
+        ],
+        // Fabricated: a first home buyer in Brisbane with a 5% deposit.
+        "home_guarantee" => vec![
+            ("year", Text("2026-27")),
+            ("stream", Text("first_home")),
+            ("area", Text("qld_capital_regional")),
+            ("issue_date", Text("2026-08-03")),
+            ("property_value", Text("800000.00")),
+            ("loan_amount", Text("760000.00")),
+            ("borrowers", Whole(2)),
+            (
+                "facts",
+                Json(
+                    r#"{"no_property_10_years": true, "adult_citizen_or_resident": true, "eligible_lender": true, "owner_occupied": true, "principal_and_interest": true, "term_30_years": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single homeowner with savings and a part pension.
+        "age_pension" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("relationship", Text("single")),
+            ("homeowner", Flag(true)),
+            ("ordinary_income", Text("100.00")),
+            ("financial_assets", Text("150000.00")),
+            ("assets", Text("400000.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a couple with 2 children under 13.
+        "ftb_part_a" => vec![
+            ("year", Text("2026-27")),
+            ("children_under_13", Whole(2)),
+            ("children_13_plus", Whole(0)),
+            ("adjusted_taxable_income", Text("95000.00")),
+            ("income_support", Flag(false)),
+            ("energy_supplement", Flag(false)),
+            (
+                "facts",
+                Json(
+                    r#"{"whole_year": true, "no_maintenance": true, "no_rent_assistance": true, "no_newborn_or_multiple_birth": true, "requirements_met": true}"#,
+                ),
+            ),
+        ],
+        "salary_dividend" => vec![
+            ("year", Text("2026-27")),
+            ("profit", Text("200000.00")),
+            ("base_rate_entity", Flag(true)),
+            ("salary", Text("100000.00")),
+            ("other_taxable_income", Text("0.00")),
+        ],
+        "sole_trader_set_aside" => vec![
+            ("year", Text("2026-27")),
+            ("business_income", Text("22000.00")),
+            ("business_expenses", Text("2000.00")),
+            ("wages", Text("60000.00")),
+            ("other_deductions", Text("0.00")),
+            ("personal_super_deducted", Text("0.00")),
+            ("small_business_offset", Flag(true)),
+            ("study_loan", Flag(false)),
+            ("hospital_cover", Flag(true)),
+            ("gst_registered", Flag(false)),
+            ("gst_credits", Text("0.00")),
+            ("invoice", Text("1000.00")),
+        ],
+        "salary_packaging" => vec![
+            ("year", Text("2026-27")),
+            ("residency", Text("resident")),
+            ("employer", Text("charity")),
+            ("salary", Text("80000")),
+            ("type_two_benefits", Text("9000.00")),
+            ("type_one_benefits", Text("7700.00")),
+            ("meal_entertainment", Text("3300.00")),
+            ("meal_entertainment_type_one", Flag(false)),
+            ("study_loan", Flag(false)),
+            ("hospital_cover", Flag(true)),
+        ],
+        "novated_lease" => vec![
+            ("year", Text("2026-27")),
+            ("residency", Text("resident")),
+            ("salary", Text("100000")),
+            ("study_loan", Flag(false)),
+            ("hospital_cover", Flag(true)),
+            ("car", Text("bev")),
+            ("first_used", Text("2026-04-01")),
+            ("commitment", Flag(false)),
+            ("first_sale_year", Text("2025-26")),
+            ("cost_price", Text("60000.00")),
+            ("other_lct_supply", Flag(false)),
+            ("lct_timing", Text("mixed_or_unknown")),
+            ("one_third_reduction", Flag(false)),
+            ("days_available", Whole(365)),
+            ("costs_with_gst", Text("15000.00")),
+            ("costs_without_gst", Text("1000.00")),
         ],
         "psi_test" => vec![
             ("year", Text("2025-26")),
@@ -8556,8 +9353,201 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("receivables", Text("60000.00")),
             ("billings", Text("320000.00")),
         ],
+        // The site's break-even example.
+        "break_even" => vec![
+            ("year", Text("2025-26")),
+            ("fixed_costs", Text("1000.00")),
+            ("price", Text("30.00")),
+            ("variable_cost", Text("18.00")),
+        ],
+        // The site's cash page example: $600.00 of week 13's receipts moved 1 week.
+        "cash_forecast" => vec![
+            ("year", Text("2025-26")),
+            ("opening", Text("-50.00")),
+            ("buffer", Text("100.00")),
+            (
+                "weeks",
+                Json(
+                    r#"[{"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "0", "payments": "0"}, {"receipts": "1000", "payments": "0"}]"#,
+                ),
+            ),
+            (
+                "delayed_receipt",
+                Json(r#"{"week": 13, "amount": "600", "delay_weeks": 1}"#),
+            ),
+        ],
+        // The site's hourly page boundary case: $100 over 3 hours.
+        "hourly_rate" => vec![
+            ("year", Text("2025-26")),
+            ("annual_costs", Text("100.00")),
+            ("target_profit", Text("0")),
+            ("billable_hours", Text("3")),
+        ],
+        // The site's fixed fee example.
+        "fixed_fee" => vec![
+            ("year", Text("2025-26")),
+            ("hours", Text("18.5")),
+            ("rate", Text("95.00")),
+            ("margin_percent", Text("40")),
+            ("round_to", Text("10")),
+            ("add_gst", Flag(true)),
+            ("instalments", Whole(12)),
+        ],
+        // Fabricated: $80,000.00 of wages, all ordinary time earnings.
+        "staff_cost" => vec![
+            ("year", Text("2026-27")),
+            ("wages", Text("80000.00")),
+            ("super_base", Text("80000.00")),
+            ("other_costs", Text("1000.00")),
+        ],
+        // The site's default projection.
+        "super_projection" => vec![
+            ("year", Text("2026-27")),
+            ("age", Whole(30)),
+            ("balance", Text("50000.00")),
+            ("salary", Text("80000")),
+            ("employer_rate", Text("0.12")),
+            ("salary_sacrifice", Text("0")),
+            ("after_tax_contributions", Text("0")),
+            ("return_rate", Text("0.061")),
+            ("percent_fee", Text("0.0011")),
+            ("admin_fee", Text("59")),
+            ("insurance", Text("599")),
+            ("wage_growth", Text("0.037")),
+        ],
+        // The site's example: notice given on 18 November 2026.
+        "objection_deadline" => vec![
+            ("year", Text("2026-27")),
+            ("decision", Text("assessment")),
+            ("notice_date", Text("2026-11-18")),
+            ("s170_item", Text("1")),
+        ],
+        // The site's example: 5 years of equipment.
+        "lessee_lease" => vec![
+            ("year", Text("2026-27")),
+            ("payment", Text("1000.00")),
+            ("payments", Whole(60)),
+            ("frequency", Text("monthly")),
+            ("timing", Text("arrears")),
+            ("discount_rate", Text("0.075")),
+            ("commencement", Text("2026-07-01")),
+            ("initial_direct_costs", Text("500.00")),
+            ("ownership_transfers", Flag(false)),
+            ("remeasurement", Flag(false)),
+        ],
         // AASB 136 Illustrative Example 2's Country A unit at the start of 20X2,
         // dated in 2025-26.
+        // Fabricated: an 80% subsidiary selling inventory to its parent.
+        "consolidation_eliminations" => vec![
+            ("year", Text("2025-26")),
+            (
+                "parent",
+                Json(
+                    r#"{"name": "P Ltd", "lines": [{"account": "Cash", "class": "asset", "amount": "46000.00"}, {"account": "Investment in S Ltd", "class": "asset", "amount": "80000.00"}, {"account": "Receivable from S Ltd", "class": "asset", "amount": "10000.00"}, {"account": "Inventory", "class": "asset", "amount": "30000.00"}, {"account": "Share capital", "class": "equity", "amount": "100000.00"}, {"account": "Retained earnings", "class": "equity", "amount": "50000.00"}, {"account": "Sales", "class": "income", "amount": "160000.00"}, {"account": "Cost of sales", "class": "expense", "amount": "120000.00"}, {"account": "Income tax expense", "class": "expense", "amount": "24000.00"}]}"#,
+                ),
+            ),
+            (
+                "subsidiaries",
+                Json(
+                    r#"[{"name": "S Ltd", "ownership": "0.8", "investment_account": "Investment in S Ltd", "consideration": "80000.00", "nci_at_acquisition": "20000.00", "equity_at_acquisition": [{"account": "Share capital", "amount": "60000.00"}, {"account": "Retained earnings", "amount": "20000.00"}], "lines": [{"account": "Cash", "class": "asset", "amount": "33000.00"}, {"account": "Inventory", "class": "asset", "amount": "15000.00"}, {"account": "Plant", "class": "asset", "amount": "80000.00"}, {"account": "Payable to P Ltd", "class": "liability", "amount": "10000.00"}, {"account": "Share capital", "class": "equity", "amount": "60000.00"}, {"account": "Retained earnings", "class": "equity", "amount": "30000.00"}, {"account": "Sales", "class": "income", "amount": "100000.00"}, {"account": "Cost of sales", "class": "expense", "amount": "60000.00"}, {"account": "Income tax expense", "class": "expense", "amount": "12000.00"}]}]"#,
+                ),
+            ),
+            (
+                "intra_group_balances",
+                Json(
+                    r#"[{"receivable": {"entity": "P Ltd", "account": "Receivable from S Ltd"}, "payable": {"entity": "S Ltd", "account": "Payable to P Ltd"}, "amount": "10000.00"}]"#,
+                ),
+            ),
+            (
+                "intra_group_transactions",
+                Json(
+                    r#"[{"income": {"entity": "S Ltd", "account": "Sales"}, "expense": {"entity": "P Ltd", "account": "Cost of sales"}, "amount": "40000.00"}]"#,
+                ),
+            ),
+            (
+                "unrealised_profits",
+                Json(
+                    r#"[{"seller": "S Ltd", "buyer": "P Ltd", "inventory_account": "Inventory", "cost_of_sales_account": "Cost of sales", "profit": "5000.00", "income_tax_account": "Income tax expense", "deferred_tax_account": "Deferred tax asset"}]"#,
+                ),
+            ),
+            ("tax_rate", Text("0.3")),
+            ("acquired_in_period", Flag(false)),
+            ("fair_value_adjustments", Flag(false)),
+            ("previously_held_interest", Flag(false)),
+            ("ownership_changed", Flag(false)),
+            ("intra_group_dividends", Flag(false)),
+        ],
+        // The ATO guide's loan example (Chris Co), moved to 2021-22.
+        "tofa_accruals" => vec![
+            ("year", Text("2021-22")),
+            ("start", Text("2021-07-01")),
+            ("end", Text("2025-06-30")),
+            ("interval_months", Whole(12)),
+            (
+                "financial_benefits",
+                Json(
+                    r#"[{"date": "2021-07-01", "amount": "-10000.00"}, {"date": "2025-06-30", "amount": "20736.00"}]"#,
+                ),
+            ),
+            ("method", Text("compounding")),
+            ("approximation_confirmed", Flag(false)),
+            ("accruals_chosen", Flag(true)),
+            ("entity_type", Text("other")),
+            ("aggregated_turnover", Text("150000000")),
+            ("assets", Text("400000000")),
+            ("financial_assets", Text("120000000")),
+            ("qualifying_security", Flag(true)),
+            ("threshold_failed_earlier", Flag(false)),
+            ("division_230_election", Flag(false)),
+            ("elections", Json("[]")),
+        ],
+        // The ATO's fixed ratio test example (corporate tax entity) scaled by
+        // 100,000, dated in 2025-26.
+        "thin_capitalisation" => vec![
+            ("year", Text("2025-26")),
+            ("test", Text("fixed_ratio")),
+            ("entity_class", Text("general_class_investor")),
+            ("plantation_forestry_entity", Flag(false)),
+            ("special_purpose_entity", Flag(false)),
+            ("outward_investor_only", Flag(false)),
+            ("associate_inclusive_debt_deductions", Text("5000000.00")),
+            (
+                "debt_deductions",
+                Json(r#"[{"label": "Interest", "amount": "5000000.00"}]"#),
+            ),
+            ("interest_and_equivalent_income", Text("1000000.00")),
+            ("taxable_income", Text("0.00")),
+            ("division_40_43_deductions", Text("2000000.00")),
+            ("excess_tax_ebitda_amount", Text("4000000.00")),
+        ],
+        // Section 245-50's example: Samara accepts $60 for Daniel's $100 debt.
+        "debt_forgiveness" => vec![
+            ("year", Text("2025-26")),
+            (
+                "debts",
+                Json(
+                    r#"[{"label": "Owed to Samara", "commercial_debt": true, "excluded": false, "value": "100.00", "amount_offset": "60.00"}]"#,
+                ),
+            ),
+            (
+                "tax_losses",
+                Json(r#"[{"label": "2023-24 tax loss", "amount": "25.00"}]"#),
+            ),
+            (
+                "net_capital_losses",
+                Json(r#"[{"label": "2022-23 net capital loss", "amount": "10.00"}]"#),
+            ),
+            (
+                "expenditures",
+                Json(r#"[{"label": "Plant", "item": 1, "amount": "3.00"}]"#),
+            ),
+            (
+                "cost_bases",
+                Json(r#"[{"label": "Shares in a listed company", "amount": "50.00"}]"#),
+            ),
+            ("partnership", Flag(false)),
+            ("attributable_income", Flag(false)),
+        ],
         "impairment_test" => vec![
             ("year", Text("2025-26")),
             (
@@ -8589,6 +9579,37 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
         ],
         // Fabricated: plant, a leave provision and a prepayment of a company
         // that is not a base rate entity.
+        // The deferred_tax example's year reconciled from accounting profit:
+        // its plant, leave provision and prepayment differences.
+        "book_to_tax" => vec![
+            ("year", Text("2025-26")),
+            ("accounting_profit", Text("100000.00")),
+            (
+                "adjustments",
+                Json(
+                    r#"[{"label": "Entertainment", "difference": "permanent", "effect": "add", "amount": "4000.00"}, {"label": "Plant: tax depreciation above accounting depreciation", "difference": "temporary", "effect": "subtract", "amount": "5000.00"}, {"label": "Leave provision: expense above leave paid", "difference": "temporary", "effect": "add", "amount": "2000.00"}, {"label": "Prepayment deducted before it is expensed", "difference": "temporary", "effect": "subtract", "amount": "1000.00"}]"#,
+                ),
+            ),
+            ("net_exempt_income", Text("0.00")),
+            ("opening_tax_losses", Text("0.00")),
+            ("tax_losses_deducted", Text("0.00")),
+            ("loss_carry_back", Flag(false)),
+            ("excess_franking_offsets", Flag(false)),
+            ("subdivision_165_b", Flag(false)),
+            ("tax_consolidated_group", Flag(false)),
+        ],
+        // ITAA 1997 s 126-5(5) example: land with a $10,000 cost base
+        // transferred under a court order.
+        "cgt_rollover" => vec![
+            ("year", Text("2025-26")),
+            ("rollover", Text("marriage_breakdown")),
+            (
+                "facts",
+                Json(
+                    r#"{"transferor": "individual", "basis": "court_order", "event": "A1", "event_date": "2025-11-03", "trading_stock": false, "transferor_acquired": "2012-05-14", "cost_base": "10000.00", "reduced_cost_base": "10000.00", "asset_class": "ordinary"}"#,
+                ),
+            ),
+        ],
         "deferred_tax" => vec![
             ("year", Text("2025-26")),
             (

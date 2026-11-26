@@ -48,7 +48,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "cgt_cost_base_adjustments",
-        "Parcels of shares in a company or units in a trust held on capital account by an Australian resident individual, trust, complying superannuation entity or company other than a life insurance company (whose gains on complying superannuation assets can be discount capital gains, ss 115-10(d) and 115-100(b)(ii)), each acquired from 20 September 1985, and the events that adjust their cost base and reduced cost base from 1 July 2018 to the end of the income year (2018-19 to 2026-27): a company's non-assessable payment (CGT event G1, ITAA 1997 s 104-135), a non-AMIT trust's non-assessable part for a year (CGT event E4, ss 104-70 and 104-71), an AMIT cost base net amount (ss 104-107A to 104-107C, CGT event E10) and the Wesfarmers demerger of Coles (2018) and Woolworths demerger of Endeavour (2021) under their class rulings (Subdivision 125-B). The operator establishes each parcel's cost base just before the first event and the units held when each event happened (a demerger takes the parcels acquired by its record date), the non-assessable part after s 104-71 and any tax-free amount from the trust's statement, the AMIT cost base net amount from the AMMA statement, the parcels a year's amount was paid for when one was acquired in that year, the date of any other CGT event to the units in that year after the payment (an E4 or AMIT amount then happens just before it, ss 104-70(3)(b) and 104-107B(4)(b)), and the roll-over choice. A parcel takes no E4 amount and an AMIT amount in the same year, nor 2 AMIT amounts (ss 104-70(1A) and 104-107C). A parcel acquired at or before 21 September 1999 is worked without indexation (refused for a company); pre-CGT parcels, other demergers, partial roll-over (s 125-80(8)), foreign residents, revenue assets and trading stock (ss 104-107G and 104-107H), liquidator payments (s 104-135(6)), s 104-70(8) and (9), employee share scheme interests and the disposals themselves (cgt-parcels) are outside it. From 2027-28 Act No. 49 of 2026 changes how capital gains are worked out, so 2027-28 is refused.",
+        "Parcels of shares in a company or units in a trust held on capital account by an Australian resident individual, trust, complying superannuation entity or company other than a life insurance company (whose gains on complying superannuation assets can be discount capital gains, ss 115-10(d) and 115-100(b)(ii)), each acquired from 20 September 1985, and the events that adjust their cost base and reduced cost base from 1 July 2018 to the end of the income year (2018-19 to 2026-27): a company's non-assessable payment (CGT event G1, ITAA 1997 s 104-135), a non-AMIT trust's non-assessable part for a year (CGT event E4, ss 104-70 and 104-71), an AMIT cost base net amount (ss 104-107A to 104-107C, CGT event E10) and the Wesfarmers demerger of Coles (2018) and Woolworths demerger of Endeavour (2021) under their class rulings (Subdivision 125-B), and a scrip for scrip exchange for which the roll-over is chosen (ss 124-780 and 124-781): each parcel's cost base and reduced cost base carry to its replacement shares or units (s 124-785), less the part attributable to cash or other ineligible proceeds in proportion to their share of the capital proceeds, which makes a capital gain (s 124-790); the replacement parcel keeps the original's acquisition date for the discount (s 115-30(1) item 2). A parcel whose capital proceeds are not above its cost base would make no gain apart from the roll-over and is refused (s 124-780(3)(b)), as is an exchange without the roll-over. The operator establishes each parcel's cost base just before the first event and the units held when each event happened (a demerger takes the parcels acquired by its record date), the non-assessable part after s 104-71 and any tax-free amount from the trust's statement, the AMIT cost base net amount from the AMMA statement, the parcels a year's amount was paid for when one was acquired in that year, the date of any other CGT event to the units in that year after the payment (an E4 or AMIT amount then happens just before it, ss 104-70(3)(b) and 104-107B(4)(b)), and the roll-over choice. A parcel takes no E4 amount and an AMIT amount in the same year, nor 2 AMIT amounts (ss 104-70(1A) and 104-107C). A parcel acquired at or before 21 September 1999 is worked without indexation (refused for a company); pre-CGT parcels, other demergers, partial roll-over (s 125-80(8)), foreign residents, revenue assets and trading stock (ss 104-107G and 104-107H), liquidator payments (s 104-135(6)), s 104-70(8) and (9), employee share scheme interests and the disposals themselves (cgt-parcels) are outside it. From 2027-28 Act No. 49 of 2026 changes how capital gains are worked out, so 2027-28 is refused.",
     ),
     (
         "main_residence",
@@ -117,6 +117,10 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "payroll_tax",
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
+    ),
+    (
+        "payroll_tax_monthly",
+        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read: an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established, no deductible amount determined by the Commissioner and, in the ACT, not an eligible university (DI2026-151 s 4). New South Wales is refused: its Act could not be read on 26 November 2026.",
     ),
     (
         "payroll_tax_group",
@@ -419,6 +423,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The tax on one individual's taxable income under Division 6AA of Part III of the ITAA 1936 (minors' unearned income) for an income year from 2024-25 to 2026-27 ending on 30 June, on the individual's own return, not a trustee's under s 98 (Income Tax Rates Act 1986 Schedule 12): a full-year Australian resident, or a full-year foreign resident who is a prescribed non-resident, with ordinary taxable income only (no special income component, superannuation or employment termination remainder, or part-year tax-free threshold). Whether the individual is an excepted person, which income is excepted assessable income, the part of each trust share to which the Division applies and every deduction the Act relates to eligible income are the operator's established facts, as the Commissioner's opinion settles them. Basic income tax before offsets and levies; years before 2024-25 are outside it because the ordinary scales it uses start then.",
     ),
     (
+        "smsf_member_allocation",
+        "One complying SMSF's net earnings and income tax for a financial year from 2024-25 to 2026-27 shared across up to 30 member accounts, each accumulation, account-based pension in the retirement phase or transition to retirement pension, with each pension's minimum payment checked. SISR reg 5.03(2) asks only that returns be credited fairly and reasonably between members and kinds of benefit; this worksheet applies the trustee's stated daily weighted balance method. An account's weighted balance is its 1 July balance plus each contribution or roll-over in, less each payment or roll-over out, times the days from its date to 30 June, both included, over the days in the year. net_earnings is shared by weighted balance. Contributions tax is 15% (Income Tax Rates Act 1986 s 26(1)(a)) of each account's concessional (assessable, ITAA 1997 s 295-160) contributions, rounded half up to the cent; the rest of the stated income_tax, the earnings tax, is shared by weighted balance among the accounts whose earnings are taxed: accumulation accounts, transition to retirement pensions (not in the retirement phase, s 307-80(3)) and pensions that missed a standard without a stated exception. Each share is rounded half up to the cent cumulatively, so the shares add to the total. A pension's minimum is SISR Schedule 7's factor for the age on 1 July times the 1 July balance, rounded to the nearest $10 (as pension-minimum works it), against the pension payments made, which exclude partial commutations; a transition to retirement pension's 10% maximum (SISR reg 6.01(2)) is checked too. A missed minimum or an exceeded maximum is reported with its consequences from the ATO's pages: the stream is taken to have ceased at the start of the year and its earnings are not exempt current pension income, unless, for a minimum, the Commissioner's exception applies (one-twelfth of the minimum is shown for its small underpayment limb). The trustee establishes the accounts, kinds, balances, ages, transactions, earnings, tax and any exception; the worksheet does not work out the tax (see smsf-tax) or the actuary's proportion. Refuses a pension that starts, is exhausted or is fully commuted in the year, a contribution or roll-over into a pension, a pension payment from an accumulation account, a balance below nil, earnings with no balance to share them, earnings tax with no taxed balance, an earnings tax refund whilst a retirement phase pension is held, and any other method. Excludes reserves, segregated assets, defined benefit interests, death and reversion, transfer balance reporting and the supervisory levy.",
+    ),
+    (
         "smsf_tax",
         "The income tax calculation statement (item 13) of one complying self managed superannuation fund that is an Australian superannuation fund, for an income year from 2020-21 to 2026-27, from the operator's established figures: assessable contributions (ITAA 1997 Subdivision 295-C) and the no-TFN-quoted part (s 295-610); net non-arm's length income (s 295-550(1), (2), (4) and (5), less the deductions attributable to it; label U) and the general expense amounts of s 295-550(8) and (9); income from segregated current pension assets (s 295-385), other income to which the actuary's proportion applies (s 295-390), and income from segregated non-current assets; the actuary's proportion; deductions, already apportioned for exempt income, and the part attributable to contributions; the tax offsets, credits, PAYG instalments and s 102AAM interest charge; and whether the fund was newly registered or wound up in the year. It works out exempt current pension income (the proportion's product rounded down to whole dollars), taxable income, the non-arm's length component (s 295-545(2A)) taxed at 45% and the low tax component at 15% (Income Tax Rates Act 1986 s 26(1)), the 32% extra tax on no-TFN-quoted contributions (s 29), gross tax, the offsets in the return's order, the supervisory levy lines L, M and N ($259 a year, Supervisory Levy Imposition Regulations 2018 s 6) and the amount due or refundable. Excludes non-complying and foreign funds, a change of tax status (ss 295-320 and 295-325), funds other than SMSFs, the actuary's certificate and every judgement it rests on (which assets are segregated, the s 295-385(9) choice, the disregarded small fund assets test), whether income is non-arm's length (including under a limited recourse borrowing arrangement), deduction apportionment (TR 93/17), tax losses (Division 36) and capital losses, and the offsets' own rules.",
     ),
@@ -429,6 +437,22 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "first_home_owner_grant",
         "The first home owner grant in one of the 8 states and territories for a new home bought or built under a contract made from 1 July 2025 to 22 November 2026: the amount on the contract date, the value cap and the lesser-of-consideration rule each Act sets, from 4 eligibility facts the operator states and does not have tested; no grant for an established home except a Northern Territory contract from 1 July to 30 September 2025. Owner-builders, substantially renovated homes, exemptions, the Commissioner's discretions, transfer duty and other home buyer schemes are outside it.",
+    ),
+    (
+        "salary_dividend",
+        "One company owner who is a full-year Australian resident individual, single, with private patient hospital cover all year, no study loan and no other concessional contributions, and one company that pays out its whole profit for an income year from 2024-25 to 2026-27: a salary and its super guarantee at the year's general rate on the salary up to the year's maximum contribution base for a full year of earnings paid evenly (SGAA 1992 ss 12(2), 17A(2) and 10A(5); 4 quarterly bases before 1 July 2026), company tax at 25% for a base rate entity or 30% (Income Tax Rates Act 1986 s 23) on the profit left, and the rest as a fully franked dividend whose franking credit is the maximum at the same rate (ITAA 1997 s 202-60), included in the owner's assessable income with an equal tax offset (s 207-20). Whether the company is a base rate entity, and its corporate tax rate for imputation purposes, are the operator's stated fact, taken as one rate. The owner's tax is resident-tax, low-income-tax-offset and medicare-levy on taxable income in whole dollars, less the $1,000 standard deduction on the salary from 2026-27 (s 25-130), taken as reduced by no work-related deduction (s 25-130(2)(c) to (g)), compared with the tax on the other taxable income alone. Super keeps the super guarantee less 15% contributions tax (Rates Act s 26(1)(a)) and division-293's tax. Also gives the totals kept with all salary, all dividends and the salary to the dollar that keeps the most, ranked as the site's salary and dividends page ranks them; super counts at its value after tax though it is preserved, and the low income super tax offset is not counted. Payroll tax, workers compensation, Division 7A, the company's other income and retained profits are outside it.",
+    ),
+    (
+        "sole_trader_set_aside",
+        "One full-year Australian resident individual, single, carrying on a business as a sole trader with a profit for an income year from 2024-25 to 2026-27: business income and expenses exclusive of GST, wages from a job, other deductions that are not the business's (such as tax agent fees and gifts) and personal super contributions claimed as a deduction, each established by the operator, with taxable income their net in whole dollars less the standard deduction on the wages from 2026-27 (ITAA 1997 s 25-130); work-related deductions, which reduce that deduction (s 25-130(2)(c) to (g)), are outside it. Whether the business qualifies for the small business income tax offset is the operator's stated fact; the offset is 16% of the net small business income (the profit in whole dollars, s 328-365) up to taxable income over taxable income times the basic income tax liability, at most $1,000 (s 328-360), applied after the low income tax offset and never below nil. The tax parts are resident-tax, low-income-tax-offset, medicare-levy, medicare-levy-surcharge for a person without hospital cover all year, and study-loan-repayment from 2025-26, the deducted contributions being reportable super contributions. The business's tax is the year's total less the total on the wages and other deductions alone, which takes the wages as withheld from as though they were the only income. A GST-registered business adds 10% of its income less its GST credits. The PAYG instalment flag tests 2 of the ATO's 3 entry figures (instalment income of $4,000 and tax of $1,000; the ATO works out notional tax and decides entry), and the GST registration flag takes the business income as the GST turnover; both are indications, not determinations. The set-aside is that tax and GST, also as a share of each invoice with GST and per quarter, month and 52 weeks. A business loss, a GST refund, a partnership or trust, non-commercial losses, PAYG instalments paid and the study loan for 2024-25 are outside it.",
+    ),
+    (
+        "salary_packaging",
+        "One employee of an employer whose benefits FBTAA s 57A exempts, a registered public benevolent institution or health promotion charity (the $30,000 cap of s 5B(1E) step 3) or a public or not-for-profit hospital or public ambulance service (the $17,000 cap of step 2), as the operator states, with the benefits packaged in the FBT year ending 31 March in an income year from 2024-25 to 2026-27 taken as paid from that year's whole-dollar salary. The Type 1 and Type 2 taxable values, meal entertainment in the group the operator states, are each grossed up by the formulas of s 5B(1F) and (1G) at the 47% FBT rate and 10% GST rate and rounded half up to the dollar, as the ATO's guide for employers rounds them (the Act states no rounding); the cap comes off, then up to $5,000 of grossed-up salary packaged meal entertainment (step 4), and FBT is 47% of what is left. The reportable fringe benefits amount is the total taxable value over 0.53 with the cents dropped, when that value is more than $2,000 (s 135Q). The employee is single, a full-year Australian resident or foreign resident, and the tax with and without the packaging is resident-tax or foreign-resident-tax, low-income-tax-offset, medicare-levy, medicare-levy-surcharge and study-loan-repayment, all the salary being labour income for the standard deduction from 2026-27 (ITAA 1997 s 25-130), with no work-related deduction to reduce it. The gain is the tax saved less the FBT, which an employer usually recovers from the package. Rebatable employers, s 58 employers, other benefits from other employers and a foreign resident's study loan are outside it.",
+    ),
+    (
+        "novated_lease",
+        "One employee's car under a novated lease for the FBT year ending 31 March in an income year from 2024-25 to 2026-27, against paying the same car costs from after-tax pay. The car's kind (battery electric, hydrogen fuel cell, plug-in hybrid or other), first use, cost price, year of first retail sale, any other taxable supply or importation for luxury car tax and when luxury car tax first became payable against the benefits, a plug-in hybrid's financially binding commitment, the days available for private use and the year's costs are the operator's stated facts. FBTAA s 8A exempts a battery electric or hydrogen fuel cell car, or a plug-in hybrid only under the ATO's transitional treatment, first held and used from 1 July 2022 with no luxury car tax payable before the benefits; a cost price above the fuel-efficient luxury car tax threshold of the year of first retail sale is taken to show luxury car tax on that sale. An exempt car's costs come from pre-tax salary and its statutory formula value (s 9: the cost price, two-thirds of it from the s 9(2)(c) date, x 20% x private-use days / days in the year) is reportable (s 135P(3)); any other car uses the employee contribution method, the employee paying the taxable value from after-tax pay, of which ten elevenths meets the costs, and the rest from pre-tax salary. Costs with GST are taken net of the employer's credit of one eleventh, the employer being entitled to the full credit; a cost price above the threshold is a proxy for the luxury car tax value, so an operator who knows no luxury car tax was payable gives the price at or below it. The tax is worked as salary-packaging works it for a single full-year resident or foreign resident. The operating cost method, FBT left after a contribution, residual values and lease terms are outside it.",
     ),
     (
         "psi_test",
@@ -535,6 +559,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One bad debt adjustment under GST Act Division 21 in a year from 2020-21 to 2026-27, for the supplier (ss 21-5 and 21-10) or the recipient (ss 21-15 and 21-20): 1/11 of the amount written off, overdue for 12 months or more, recovered or paid, reduced for a partly taxable supply (s 136-5) or a partly creditable acquisition (s 136-10(1)). The operator establishes the amount, that it is overdue (s 195-1), the earlier adjustment for a recovery, and the proportion or extents. Excludes supplies and acquisitions taxable or creditable at less than 1/11 of the price (Subdivision 136-B, such as the margin scheme), reduced credit acquisitions (s 136-10(2)), credits worked out under Division 131 (s 136-10(3)), a change of accounting basis (Division 159) and the tax period the adjustment is attributable to.",
     ),
     (
+        "book_to_tax",
+        "One Australian resident company's accounting profit or loss before income tax for an income year from 2020-21 to 2026-27 reconciled to its taxable income (ITAA 1997 s 4-15), as the company tax return reconciles item 6 label T to item 7 label T. The preparer states each reconciling line as permanent (it never reverses) or temporary (it reverses in another year, AASB 112 paras 5 and 17) and as an addition to or a subtraction from accounting profit; the worksheet adds them to give assessable income less deductions other than tax losses. Where that is positive, earlier tax losses are deducted first from any net exempt income (s 36-17(3)(a)), and then the amount the company chooses from the excess (s 36-17(2) and (3)(b), item 7 label R); where it is negative, the excess reduces net exempt income, earlier losses are deducted from what is left (s 36-17(4)) and the excess less net exempt income is the year's tax loss (s 36-10). It gives taxable income, the tax losses used and carried forward, the net change in taxable temporary differences the temporary lines imply, and the inputs the deferred-tax worksheet takes (accounting_profit, non_deductible_expenses, non_assessable_income, taxable_income and the opening and closing unused tax losses). The preparer establishes the lines, their classification and amounts, net exempt income (s 36-20) and the losses the company can deduct after the continuity and business continuity tests (Divisions 165 and 166); none is inferred. Excludes the limits of s 26-55 on deductions that cannot make a tax loss, net capital losses, the debt forgiveness rules of Division 245, foreign losses and tax offsets. Refuses a loss carry back choice (Division 160), excess franking offsets (ss 36-17(5) and 36-55), a company that fails the continuity and business continuity tests during the year (Subdivision 165-B) and a member of a consolidated group (Part 3-90).",
+    ),
+    (
+        "cgt_rollover",
+        "The consequences of a CGT roll-over that the caller states was chosen and is available, for a CGT event in an income year from 2020-21 to 2026-27. Marriage or relationship breakdown (ITAA 1997 Subdivision 126-A): for a disposal case (CGT event A1 or B1) by an individual (s 126-5) or a company or trustee (s 126-15), the transferee's first element of cost base and reduced cost base is the transferor's cost base and reduced cost base when the transferee acquired the asset (s 126-5(5)), a collectable or personal use asset stays one (s 126-5(7)) and, for the discount, the transferee is treated as acquiring it when the transferor did (s 115-30(1) item 1); for a creation case (D1, D2, D3 or F1) the first element is the transferor's expenditure (s 126-5(8)); any capital gain or loss of the transferor is disregarded (s 126-5(4)) and shown for stated capital proceeds. It refuses trading stock (s 126-5(3)(a)), B1 where title does not pass (s 126-5(3)(b)), an agreement-based ground without the conditions of s 126-25 and a pre-CGT asset (s 126-5(6)). Small business roll-over (Subdivision 152-E): the part of the gain, after the discount and the other concessions, the caller chooses to disregard (ss 152-410 and 152-415), the gain left, the replacement asset period (s 104-190(1A)) and, for stated replacement assets and fourth element expenditure, CGT event J5 (none that qualifies, s 104-197) or J6 (the amount incurred on those that qualify below the gain disregarded, s 104-198) at the period's end; neither gain is a discount capital gain (s 115-25(3)). Wholly-owned company (Subdivision 122-A): for the disposal of one asset (s 122-40) or all the assets of a business (s 122-50) by an individual or trustee, every asset acquired from 20 September 1985, the first element of the shares' cost base and reduced cost base in total and per share, after the liabilities the company undertakes (refused where they exceed the s 122-35 limit), and each non-precluded asset's cost base and reduced cost base in the company's hands (s 122-70) with the gains and losses disregarded for stated capital proceeds. It refuses a precluded asset on its own, a collectable or personal use asset (s 122-25(2)) and a pre-CGT asset (ss 122-40(3), 122-55 and 122-60). The caller establishes eligibility, the choice, the cost bases (indexed or not), capital proceeds and market values; none is inferred. Excludes Division 114 indexation, the main residence rules of ss 118-178 and 118-180, the s 126-15(3) and (4) adjustments to interests in a company or trust transferor, CGT event J2, an extended or modified replacement asset period (s 104-190(1) and (2)), Division 122 creation cases and Subdivision 122-B. A scrip for scrip roll-over is a scrip_for_scrip event of cgt-cost-base-adjustments.",
+    ),
+    (
         "deferred_tax",
         "One Australian resident company's tax effect worksheet under AASB 112 for an income year from 2020-21 to 2026-27, the company taxed at the Income Tax Rates Act 1986 s 23(2) rates (not a life insurance company, RSA provider, PDF, non-profit company under s 23(6) or credit union under s 23(7)) on Australian income tax alone. Each item's temporary difference is its carrying amount less its tax base for an asset, or its tax base less its carrying amount for a liability (paras 5, 7 and 8): positive is taxable, negative deductible. A deferred tax liability is taken on every taxable difference (para 15) and a deferred tax asset on deductible differences and unused tax losses less those the preparer states have no deferred tax asset, as future taxable profit is not probable (paras 24, 34 to 36 and 56), each at 25% or 30% as the preparer expects the company to be a base rate entity or not when they reverse (paras 47 and 48; s 23(2), s 23AA), undiscounted (para 53). The movement is split into the rate change on opening balances (para 80(d)), the recognition change (para 80(f) and (g)), with previously unrecognised amounts used in the year shown apart (para 80(e)), and origination and reversal (para 80(c)). Current tax is taxable income at the year's s 23(2) rate (25%, 26% in 2020-21, for a base rate entity; 30% otherwise) less non-refundable offsets the preparer has worked out, and the para 81(c)(i) reconciliation starts from accounting profit at that rate, with the average effective tax rate (para 86). The preparer establishes the carrying amounts, tax bases, unused tax losses, the probability judgement, the expected rates, taxable income, non-deductible expenses, non-assessable income and offsets, and leaves out of the items the differences the initial recognition exception covers (paras 15 and 24, as amended by AASB 2021-5 from 1 January 2023) and those on investments in subsidiaries, branches, associates and joint arrangements (paras 39 and 44). Excludes unused tax credits, adjustments for prior periods' current tax (para 80(b)), Pillar Two top-up taxes (para 4A), offsetting in the statement of financial position (para 74) and presentation. Refuses business combinations (paras 19 and 66 to 68), uncertain tax treatments (AASB Interpretation 23), tax-consolidated group members (AASB Interpretation 1052), tax on items outside profit or loss (paras 61A to 63), a change in the expected rate with opening balances when the year's rate is not the closing rate (the reversals in the year need a schedule) and, in 2020-21, opening balances measured at the base rate entity rate.",
     ),
@@ -549,6 +581,54 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "wip_lockup",
         "One professional firm's unbilled work in progress at a date in a financial year from 2020-21 to 2026-27, aged by the days from each entry's date to that date into stated buckets (by default 0 to 30, 31 to 60, 61 to 90 and over 90 days), with WIP days (WIP over fee revenue, or cost of sales, on WIP's valuation basis, times the days that revenue covers), receivable days (trade receivables over credit sales times those days) and lock-up days, their sum, as Ozzit's WIPDays and ReceivableDays functions define them (function reference v3.7.0). Days default to 365; each day count is shown to 2 decimal places in amounts and to 4 in rates. The firm establishes the entries and their valuation (AASB 15 contract assets or AASB 102 costs), the receivables and the flows, on one GST basis. No Standard or Act defines lock-up or the buckets: they are management measures. Excludes recoverability of WIP and receivables (AASB 9 and AASB 15 para 107), write-downs and billing decisions. Refuses a nil fee revenue or billings and days below 1.",
+    ),
+    (
+        "break_even",
+        "One product, or a stable mix priced as one, in a period from 2020-21 to 2026-27: contribution a unit is the price less the variable cost a unit; the whole units needed are the fixed costs over that contribution, rounded up to a whole unit; the sales needed are those units times the price, as the site's break-even page works them. Figures are the operator's, on one GST basis. No statutory rate or threshold applies. Excludes demand, capacity, stepped fixed costs and a changing mix. Refuses a price that does not exceed the variable cost and sales above 1000000000000.00.",
+    ),
+    (
+        "cash_forecast",
+        "One business's 13-week bank cash forecast in a period from 2020-21 to 2026-27, as the site's cash page works it: each week closes at its opening balance plus the stated receipts less the stated payments, each close opening the next week; the lowest balance is the lowest of the opening balance and every weekly close; the funding gap is the stated buffer less that lowest balance, never below nil. Part of one week's receipts may move later by whole weeks; moved past week 13 it is reported as deferred and leaves the balance. Figures are the operator's, GST included where the cash includes it. No statutory rate or threshold applies. Excludes forecasting receipts or payments, shortfalls within a week and lending decisions.",
+    ),
+    (
+        "hourly_rate",
+        "The hourly rate before GST, in a period from 2020-21 to 2026-27, that covers stated annual costs and a target annual profit over stated annual billable hours, rounded up to the next cent so the hours cover the total, as the site's hourly pricing page works it. No statutory rate or threshold applies. Excludes GST on the rate, market and award rates, and whether clients will pay it.",
+    ),
+    (
+        "fixed_fee",
+        "A fixed fee in a period from 2020-21 to 2026-27, as the site's fixed fee page works it: the estimated hours times the hourly rate, or times a cost an hour over 1 less a margin that is a share of the fee, rounded up to a cent or to $10, $50 or $100; GST, when added, at 10% of the fee rounded half up to the cent (GST Act s 9-70), on a fee the operator has established is a taxable supply; the total split into 1 to 24 monthly instalments, each the total over the count cut to the cent, the first carrying the cents left over; and the effective rate, the fee over the hours rounded half up. Excludes whether a supply is taxable, the estimate itself and payment terms. Refuses a margin of 100% or more, another rounding step and a total above 1000000000.00.",
+    ),
+    (
+        "staff_cost",
+        "One staff member's annual cost and monthly average in an income year from 2021-22 to 2026-27: wages plus super plus payroll tax plus workers compensation plus other annual costs, the month a twelfth rounded half up, as the site's staff cost page works it. Super is the stated amount or, from a stated base, the super guarantee at the year's percentage (10% in 2021-22 rising to 12% from 2025-26), rounded half up to the cent, on ordinary time earnings no higher than one quarter's maximum contribution base to 2025-26 or on qualifying earnings capped at the annual maximum contribution base ($270,830) in 2026-27 (ATO 'Super guarantee' tables 21, 23 and 24; SGAA s 17A(2)). Payroll tax and workers compensation are the operator's stated effective rates on wages plus super, rounded half up to the cent. The operator establishes the base, that the super guarantee applies and the rates. Excludes Norfolk Island's transitional percentage, salary sacrifice arrangements, award pay, leave loading and the statutory payroll tax and premium calculations (payroll-tax, workers-compensation-premium). Refuses both or neither of super_amount and super_base, and, before 2026-27, a base above one quarter's maximum contribution base, since the quarters' split decides the cap.",
+    ),
+    (
+        "consolidation_eliminations",
+        "A parent's consolidation at a reporting date ending in a financial year from 2020-21 to 2026-27, with up to 20 subsidiaries it controls and holds directly, from trial balances the preparer has established on uniform accounting policies and a common reporting date (AASB 10 paras 19, B87 and B92). Each line is an account, its class (asset, liability, equity, income or expense) and its amount on its natural side, a contra balance negative; each entity's lines must balance. Like lines are combined by account (para B86(a)). For each subsidiary the parent's investment, at the stated consideration, is eliminated against the stated equity at acquisition, with the stated non-controlling interest at acquisition (at fair value or its proportionate share of identifiable net assets, AASB 3 para 19) and goodwill as consideration plus that interest less equity at acquisition (para B86(b); AASB 3 para 32). The non-controlling interest takes its share of each equity line's movement since acquisition, rounded half up to the cent (paras 22 and B94). Stated intra-group balances and income and expenses are eliminated in full (para B86(c)), as is stated unrealised profit in a buyer's closing inventory, against the seller's cost of sales, with deferred tax at the stated rate (para B86(c); AASB 112). Profit is attributed to the non-controlling interests at their share of each subsidiary's profit less its own after-tax unrealised profit, rounded half up to the cent, and the rest to the owners of the parent (para B94). The preparer establishes control, ownership, the balances, the acquisition figures and the amounts to eliminate. Refuses a subsidiary acquired in the period, fair value adjustments at acquisition, a combination achieved in stages, a bargain purchase (AASB 3 paras 34 to 36), an investment line not carried at the consideration, a change in ownership and intra-group dividends. Excludes indirect holdings, opening unrealised profit, intra-group profit in assets other than inventory, impairment, foreign operations, loss of control, cumulative preference shares (para B95), investment entities and disclosure.",
+    ),
+    (
+        "tofa_accruals",
+        "Whether ITAA 1997 Division 230 reaches one financial arrangement under s 230-455, and the spreading of its sufficiently certain overall gain or loss under the accruals method, for an arrangement the taxpayer starts to have in an income year from 2020-21 to 2026-27. The operator states the entity's kind (an individual; a superannuation entity, superannuation fund or managed investment scheme; an ADI, securitisation vehicle or entity required to register under the Financial Sector (Collection of Data) Act 2001; or another entity) and, other than for an individual, its aggregated turnover, assets and financial assets for the year s 230-455(2) to (4) test; whether the arrangement is a qualifying security; whether the entity failed its test for an earlier year (s 230-455(9)); and whether a s 230-455(7) election applies. Division 230 does not apply where the entity is an individual or meets its subsection (assets under $100 million; aggregated turnover under $20 million; or aggregated turnover and financial assets each under $100 million and assets under $300 million), and the arrangement ends within 12 months or is not a qualifying security. Where it applies, the accruals method applies to the overall gain or loss if the taxpayer chooses it or s 230-100(4) applies (s 230-100(2)). The gain or loss (benefits received less benefits provided) is spread from the start to the end of the arrangement (s 230-130(1)) over equal intervals of 1 to 12 whole months (s 230-135(4)), each financial benefit falling on the start or an interval's last day: by compounding accruals at the one rate of return per interval at which the benefits net to nil, each interval's part the opening balance times that rate (s 230-135(2)(a), (5) and (6)), or, where the operator establishes that its results approximate those, by straight line over the days (s 230-135(2)(b)). An interval straddling 2 income years is allocated between them by days (s 230-170(2)). Amounts are rounded half up to the cent cumulatively. The operator establishes that the gain or loss and each benefit are sufficiently certain (ss 230-105 and 230-115) and that no other exception (ss 230-450 and 230-460) applies. Refuses the elective methods (Subdivisions 230-C to 230-F) and portfolio treatment of fees (s 230-150), the effective interest method (s 230-140), particular gains and the realisation method, a benefit inside an interval, shorter first or last intervals, benefits that net to nil and benefits that change sign more than once. Excludes re-estimation and reassessment (ss 230-185 to 230-200), balancing adjustments (Subdivision 230-G), arrangements with a notional principal (s 230-120), foreign currency, consolidated groups and substituted accounting periods.",
+    ),
+    (
+        "super_projection",
+        "One accumulation super account projected a whole year at a time from 2026-27 to the retirement age, as the site's super projection page does: employer contributions at a stated rate on salary up to the $270,830 maximum contribution base, salary sacrifice and after-tax contributions, 15% contributions tax (a complying fund with no non-arm's length income), a stated return after investment fees and tax, dollar and percentage fees and premiums deducted at 15%, flows growing with stated wage growth, and the balance at retirement in future dollars and at its present value under ASIC Instrument 2022/603 (retirement at the greater of the age entered and 60, or 67; 3.7% a year unless another rate is given). Contributions to this account above the 2026-27 general caps are refused; the operator confirms the member makes no other contributions, to this or another fund, that count towards a cap, and that the general caps apply. The employer rate is the stated rate, not a check of the employer's 12% super guarantee. Not computed: defined benefit or pension accounts, Division 293 tax, excess contributions, the nil non-concessional cap at the transfer balance cap, the low income super tax offset, co-contributions, retirement income or the age pension, or varying returns.",
+    ),
+    (
+        "objection_deadline",
+        "The last day to lodge a taxation objection under TAA 1953 s 14ZW against an income tax assessment (2 years where item 1, 2, 3 or 3A of the ITAA 1936 s 170(1) table applies, as stated, else 4), an FBT assessment (4 years), an amended one (the later of 60 days after its notice and the original period, subsections (1B) and (1BA)) or another decision for which s 14ZW sets no other period (60 days), counted under the Acts Interpretation Act 1901, with a Saturday, Sunday or stated holiday moving the last day on. A later amendment counts (1BA)'s period from the notice of the assessment it amends and (1B)'s from the first assessment's (subsection (1C)). Not decided: whether the decision can be objected to, which s 170(1) item applies, when notice was given, the holidays where it is lodged, private rulings, penalties, retained refunds, deceased estates, other taxes and the other periods s 14ZW sets.",
+    ),
+    (
+        "lessee_lease",
+        "A lessee's lease under AASB 16 commencing in a financial year from 2024-25 to 2026-27, as the site's AASB 16 lease page measures it: level payments weekly to yearly in arrears or in advance, with any residual value guarantee or purchase option price; the lease liability at commencement (paras 26 and 27), the right-of-use asset's cost (para 24), interest by period half up to the cent (para 37), straight-line depreciation over the lease term or useful life (para 32), and each income year's interest, payments that reduce the liability (a payment at commencement is in the journal), depreciation and 30 June balances, with the commencement journal. The operator confirms that any incentive was received at or before commencement (none receivable later, para 27(a)), the initial direct costs were paid at commencement, the restoration amount is the para 24(d) provision measured under AASB 137, and, where no useful life is given, the asset's useful life is not shorter than the lease term. Refused: remeasurement (paras 39 to 46), and incentives as large as the rest of the cost. Not decided: whether a contract contains a lease, the lease term, the discount rate, reasonable certainty, low-value assets, non-lease components, variable payments, the revaluation or fair value models, not-for-profit concessionary leases or impairment.",
+    ),
+    (
+        "thin_capitalisation",
+        "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+    ),
+    (
+        "debt_forgiveness",
+        "One debtor's commercial debts forgiven in one income year from 2020-21 to 2026-27 under ITAA 1997 Division 245, from figures the operator has established. For each debt to which Division 245 applies (ss 245-10, 245-15 and 245-40), the gross forgiven amount is the stated value of the debt when forgiven (ss 245-55, 245-60 and 245-61) less the stated amount offset (s 245-65), nil if not more (s 245-75); where several entities were liable each takes an equal share (s 245-77), rounded half up to the cent. The net forgiven amount is that less the amounts other provisions include in assessable income or take off deductions or cost bases because of the forgiveness (s 245-85), nil rather than negative, less any amount a creditor under common ownership agreed in writing to forgo, which may not exceed it (s 245-90). The total net forgiven amount (s 245-105) reduces, in order and each class only to the extent of the amounts in it, tax losses deductible in the year or later (s 245-115), net capital losses of earlier years (s 245-130), expenditure in the table in s 245-145 incurred before the year, and the cost bases and reduced cost bases of CGT assets, investments in associates last (ss 245-175 and 245-185), each item in the order given (the choice in ss 245-120, 245-135, 245-150 and 245-180); any part left is disregarded (s 245-195). The operator establishes whether each debt is commercial and forgiven (Subdivisions 245-A and 245-B), its value and the amount offset, the amounts in s 245-85, any s 245-90 agreement and its conditions (common ownership throughout, the creditor's capital loss or deduction and s 245-90(4)), which losses, expenditures and assets qualify and the most each may be reduced (ss 245-155, 245-157 and 245-190(3)). Excludes the later effect of each reduction on deductions and cost bases (ss 245-155 to 245-160 and 245-190), consolidated groups' transferred losses (s 707-415) and record keeping (Subdivision 245-G). Refuses a partnership (Subdivision 245-F), the attributable income of a non-resident trust estate or a CFC (s 245-100) and a forgone amount without section_245_90_agreement true.",
     ),
     (
         "impairment_test",
@@ -593,6 +673,26 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "endorsement_review",
         "One of the ATO's 3 endorsement review worksheets (income tax exempt charities, Worksheet 1 for a DGR endorsed as a whole, Worksheet 2 for a DGR endorsed for a fund, authority or institution) from the entity's own yes or no answers, each tied to the provision it tests as read on 24 November 2026, with what each 'No' means and what to do. It checks no register; use dgr-check for a recipient's listed DGR status.",
+    ),
+    (
+        "help_to_buy",
+        "Whether a Help to Buy arrangement's numbers meet the Help to Buy Program Directions 2025 (F2025L00682, made under the Help to Buy Act 2024 s 24) for an application made from 1 July 2025 to 26 November 2026: the purchase price within the area's price cap (ss 7 and 21(b)); the agreed percentage within 5% to 30% for an existing dwelling or 5% to 40% for a new home (s 16(1)); the Commonwealth's contribution, the agreed percentage of the purchase price in cents; the contribution and deposit together at least 20% of the lender's valuation (s 16(2)); a deposit of at least 2% of the price (s 17(f)(i)); taxable income on the latest notice of assessment, combined for joint applicants, no more than the single threshold ($100,000 in 2025-26, $103,000 in 2026-27) or, for a single parent or joint applicants, the joint threshold ($160,000, then $165,000) for the financial year of application (ss 8, 9 and 19); and, where the lender values the property below the price, the Commonwealth share percentage raised at settlement so the share is worth the contribution (s 25(3) item 1), rounded to 2 decimal places. The area, the agreed percentage (s 16(3)), Housing Australia's financial capacity judgement (s 20) and every other eligibility fact are the operator's statements. Excludes places and their allocation (Part 5 Division 2), construction progress payments (s 59), mortgage requirements (s 22) and later variations.",
+    ),
+    (
+        "help_to_buy_review",
+        "The income test of a Help to Buy 5-yearly review (Help to Buy Program Directions 2025 s 34) in 2025-26 or 2026-27 and the repayment it leads to: taxable income for the 2 latest assessed income years, combined for joint participants, against the threshold for the review's financial year and the year before (single $100,000 to 2025-26 and $103,000 in 2026-27; single parent or joint $160,000 and $165,000; s 34(b)(ii)'s 'the income threshold' for a single parent is read as the joint threshold, which s 34(b)(i) names). Over both, s 36(1) requires the lender's assessment of capacity (s 37(1) and (2)); with capacity, a share above 5% of the property's value requires repaying 5% of the value rounded to the nearest $1,000 (s 37(5)(e)) and a share of 5% or less repaying it in full (s 37(8)), each within 90 days; without capacity, a further assessment follows (s 37(6) and (9)). The Commonwealth share is its percentage of the value now (s 25(2)); a voluntary repayment must be at least 5% of the value rounded to the nearest $1,000, or the whole share (s 43(1)). The share percentage, the value (s 58) and the lender's assessment are stated facts. Excludes non-compliance reviews (s 36(2)), the lenders' mortgage insurance limit on a required repayment (s 37(7)) and hardship (s 64). Refuses an amount exactly midway between 2 multiples of $1,000.",
+    ),
+    (
+        "home_guarantee",
+        "Whether a loan meets the price cap, loan-to-value ratio and borrower-count tests for a First Home Guarantee or Family Home Guarantee issued (approved, s 44(2)) from 1 October 2025 to 26 November 2026 under the Housing Australia Investment Mandate Direction 2018: the property's value no more than the price cap for its area (ss 29C(2)(g) and 29F(1), the caps from 1 October 2025 and, from 1 July 2026, the Northern Territory split into capital city $750,000 and other $600,000, s 46); a loan-to-value ratio above 80% and no more than 95% for a First Home Guarantee or 98% for a Family Home Guarantee (s 29C(2)(i) and (2B)(c)); and no more than 2 borrowers, or 1 for a Family Home Guarantee (s 29C(2)(b) and (2B)(a)). The deposit shown is the value less the loan. The area (capital city and regional centres, s 4A), the borrowers' eligibility (s 29D) and the loan's terms (s 29C(2)(a), (h), (j) and (k)) are the operator's statements. Excludes the New Home Guarantee and the closed Regional First Home Buyer Guarantee, the construction-loan requirements (ss 29CA and 29CB), refinancing (s 29C(4)) and the lender's own criteria (s 29C(1)(b)). Before 1 July 2026 the ratio band read 'between', so a ratio of exactly 80% or the top is refused for that period.",
+    ),
+    (
+        "age_pension",
+        "One fortnight's age pension rate for a single person, or for each member of a couple who both receive it, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064): the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income and the reduction for assets, not below nil. Income is the stated ordinary income per fortnight plus deemed income from financial assets (s 1082: the below threshold rate up to the deeming threshold and the above threshold rate on the rest, per year / 26); its reduction is 50% of income over the free area, or for a couple 25% of the couple's combined income over their combined free area (s 1064-E2). The assets reduction is $19.50 a year for each whole $250 of assets over the assets value limit for the person's home ownership, a couple's assets halved against each member's limit (s 1064-G2, G4 and G7), per year / 26. Rates are the DSS Social Security Guide's indexed amounts for the day. Excludes rent assistance, the work bonus (the stated income is after it), transitional rates, the blind (Calculator B), illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
+    ),
+    (
+        "ftb_part_a",
+        "A family's annual family tax benefit Part A rate for 2025-26 or 2026-27 under A New Tax System (Family Assistance) Act 1999 Schedule 1, for FTB children of the family all year in its full-time care: Method 1 (clauses 1(2)(a) and 3) where adjusted taxable income is at most the higher income free area, the maximum rate (the FTB child rate by age, clause 7, plus the FTB Part A supplement for each child where income is $80,000 or less, clause 38A, plus any kept energy supplement, clause 38AA) less 20% of income over the lower income free area (clauses 38M and 38N), not below the base rate (clause 4); for a pension or benefit recipient the maximum rate (clause 38L); and Method 2 (clauses 1(2)(b), 25 and 25D) above the higher income free area, the greater of the base rate less 30% of the income over it (clause 28) and the maximum rate less 20% of the band between the free areas and 30% of the income above it, not below nil. The indexed amounts are DSS's for 1 July 2025 and 1 July 2026. Excludes rent assistance, newborn supplement, multiple birth allowance, the maintenance income test, shared care, part-year entitlement, immunisation and health check reductions, FTB advances and Part B.",
     ),
 ];
 
@@ -715,6 +815,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "payroll_tax_group",
+        "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+    ),
+    (
+        "payroll_tax_monthly",
         "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
     ),
     (
@@ -999,6 +1103,22 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.revenue.nsw.gov.au/grants-schemes/first-home-owner-new-homes-grant",
     ),
     (
+        "salary_dividend",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/207-20",
+    ),
+    (
+        "sole_trader_set_aside",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/328-360",
+    ),
+    (
+        "salary_packaging",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/5B",
+    ),
+    (
+        "novated_lease",
+        "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/8A",
+    ),
+    (
         "psi_test",
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_3/document_3.html",
     ),
@@ -1115,6 +1235,14 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
     ),
     (
+        "book_to_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-17",
+    ),
+    (
+        "cgt_rollover",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/126-5",
+    ),
+    (
         "deferred_tax",
         "https://standards.aasb.gov.au/aasb-112-sep-2023",
     ),
@@ -1125,6 +1253,54 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "wip_lockup",
         "https://duguid.com.au/assets/ozzit-function-reference-v3.7.0.json",
+    ),
+    (
+        "break_even",
+        "https://duguid.com.au/tools/business-calculators/break-even/",
+    ),
+    (
+        "cash_forecast",
+        "https://duguid.com.au/tools/business-calculators/cash/",
+    ),
+    (
+        "hourly_rate",
+        "https://duguid.com.au/tools/business-calculators/hourly/",
+    ),
+    (
+        "fixed_fee",
+        "https://duguid.com.au/tools/business-calculators/fixed-fee/",
+    ),
+    (
+        "staff_cost",
+        "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+    ),
+    (
+        "consolidation_eliminations",
+        "https://standards.aasb.gov.au/sites/default/files/2026-03/AASB10_07-15_ACOMPnov24_01-26.pdf",
+    ),
+    (
+        "tofa_accruals",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_5/document_5.html",
+    ),
+    (
+        "super_projection",
+        "https://www.legislation.gov.au/F2022L00895/latest/text",
+    ),
+    (
+        "objection_deadline",
+        "https://www.legislation.gov.au/C1953A00001/latest/text",
+    ),
+    (
+        "lessee_lease",
+        "https://www.aasb.gov.au/admin/file/content105/c9/AASB16_02-16_COMPnov22_01-24.pdf",
+    ),
+    (
+        "thin_capitalisation",
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+    ),
+    (
+        "debt_forgiveness",
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
     ),
     (
         "impairment_test",
@@ -1145,6 +1321,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "foreign_income_tax_offset",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/770-75",
+    ),
+    (
+        "smsf_member_allocation",
+        "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
     (
         "smsf_tax",
@@ -1174,6 +1354,26 @@ pub const SOURCES: &[(&str, &str)] = &[
         "endorsement_review",
         "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/30-125",
     ),
+    (
+        "help_to_buy",
+        "https://www.legislation.gov.au/F2025L00682/latest/text",
+    ),
+    (
+        "help_to_buy_review",
+        "https://www.legislation.gov.au/F2025L00682/latest/text",
+    ),
+    (
+        "home_guarantee",
+        "https://www.legislation.gov.au/F2018L00994/latest/text",
+    ),
+    (
+        "age_pension",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
+    ),
+    (
+        "ftb_part_a",
+        "https://www.legislation.gov.au/C2004A00490/latest/text",
+    ),
 ];
 
 /// Schedule 5 (NAT 3348) for payments from 1 July 2026: its methods, and the
@@ -1200,6 +1400,51 @@ const FBT_GUIDE_REDUCTIONS: &str =
     "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00020";
 
 pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
+    (
+        "break_even",
+        &["https://www.business.qld.gov.au/running-business/finance/essentials/break-even-profit"],
+    ),
+    (
+        "cash_forecast",
+        &["https://business.gov.au/finance/cash-flow/set-up-a-cash-flow-statement"],
+    ),
+    (
+        "hourly_rate",
+        &[
+            "https://www.business.qld.gov.au/running-business/marketing-sales/marketing/strategy-planning/pricing-products-services",
+        ],
+    ),
+    (
+        "fixed_fee",
+        &["https://www.ato.gov.au/law/view/document?docid=PAC/19990055/9-70"],
+    ),
+    (
+        "staff_cost",
+        &[
+            "https://www.legislation.gov.au/C2004A04402/latest/text",
+            "https://duguid.com.au/tools/business-calculators/staff/",
+        ],
+    ),
+    (
+        "super_projection",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/295-160",
+        ],
+    ),
+    (
+        "objection_deadline",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/170",
+            "https://www.legislation.gov.au/C1901A00002/latest/text",
+        ],
+    ),
+    (
+        "lessee_lease",
+        &["https://www.aasb.gov.au/admin/file/content105/c9/IFRS16_IE_1-22.pdf"],
+    ),
     (
         "vic_property_taxes",
         &[
@@ -1543,6 +1788,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "payroll_tax_monthly",
+        &[
+            "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+            "https://qro.qld.gov.au/payroll-tax/calculate/deductions/",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a6335.html",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a6336.html",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2008-016",
+            "https://www.legislation.act.gov.au/a/2011-18/",
+            "https://www.legislation.act.gov.au/View/di/2026-151/current/html/2026-151.html",
+            "https://legislation.nt.gov.au/Legislation/PAYROLL-TAX-ACT-2009",
+            "https://treasury.nt.gov.au/dtf/territory-revenue-office/payroll-tax/payroll-tax-rates-and-thresholds",
+        ],
+    ),
+    (
         "transfer_duty",
         &[
             "https://classic.austlii.edu.au/au/legis/nsw/consol_act/da199793/",
@@ -1667,6 +1927,9 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-107B",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/125-80",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/125-85",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/124-780",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/124-785",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/124-790",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-30",
             "https://www.ato.gov.au/law/view/document?DocID=CLR/CR201859/NAT/ATO/00001",
             "https://www.ato.gov.au/law/view/document?DocID=CLR/CR202150/NAT/ATO/00001",
@@ -2510,6 +2773,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "smsf_member_allocation",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
+            "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments/exception-to-minimum-pension-payment-requirements",
+        ],
+    ),
+    (
         "smsf_tax",
         &[
             "https://www.legislation.gov.au/C2004A03348/latest/text",
@@ -2536,6 +2808,45 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://nt.gov.au/property/home-owner-assistance/buy-build-new-home",
             "https://www.legislation.act.gov.au/a/2000-23/",
             "https://www.revenue.act.gov.au/home-buyer-assistance/first-home-owner-grant",
+        ],
+    ),
+    (
+        "salary_dividend",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/202-60",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19920111/10A",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19920111/17A",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860107/23",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860107/26",
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+        ],
+    ),
+    (
+        "sole_trader_set_aside",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/328-365",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19970038/25-130",
+            "https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst",
+            "https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/payg-instalments/starting-payg-instalments",
+        ],
+    ),
+    (
+        "salary_packaging",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/57A",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/135Q",
+            "https://www.ato.gov.au/tax-rates-and-codes/fringe-benefits-tax-rates-and-thresholds",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00007",
+        ],
+    ),
+    (
+        "novated_lease",
+        &[
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/9",
+            "https://www.ato.gov.au/law/view/document?DocID=PAC/19860039/135P",
+            "https://www.ato.gov.au/tax-rates-and-codes/luxury-car-tax-rate-and-thresholds",
+            "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/fringe-benefits-tax/types-of-fringe-benefits/fbt-on-cars-other-vehicles-parking-and-tolls/fbt-on-plug-in-hybrid-electric-vehicles",
+            "https://www.ato.gov.au/law/view/document?DocID=SAV/FBTGEMP/00008",
         ],
     ),
     (
@@ -2595,6 +2906,38 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "book_to_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/4-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-10",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-55",
+            "https://standards.aasb.gov.au/aasb-112-sep-2023",
+            "https://www.ato.gov.au/forms-and-instructions/company-tax-return-2025-instructions/worksheet-2-other-reconciliation-items",
+        ],
+    ),
+    (
+        "cgt_rollover",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/126-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/126-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-34",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/152-410",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/152-415",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-190",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-197",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-198",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-50",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-70",
+        ],
+    ),
+    (
         "deferred_tax",
         &[
             "https://www.aasb.gov.au/admin/file/content105/c9/AASB112_08-15_COMPmar20_07-21.pdf",
@@ -2625,6 +2968,32 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         &[
             "https://www.aasb.gov.au/admin/file/content105/c9/AASB15_12-14_COMPdec22_01-23.pdf",
             "https://www.legislation.gov.au/F2023C00187/latest/text",
+        ],
+    ),
+    (
+        "consolidation_eliminations",
+        &["https://www.aasb.gov.au/admin/file/content105/c9/AASB3_08-15_COMPdec22_01-23.pdf"],
+    ),
+    (
+        "tofa_accruals",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/230-135",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/taxation-of-financial-arrangements-tofa/guide-to-the-taxation-of-financial-arrangements-tofa/default-methods",
+        ],
+    ),
+    (
+        "thin_capitalisation",
+        &[
+            "https://www.legislation.gov.au/C2024A00023/asmade/text",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test",
+        ],
+    ),
+    (
+        "debt_forgiveness",
+        &[
+            "https://www.ato.gov.au/forms-and-instructions/company-tax-return-2022-instructions/appendixes/appendix-1-commercial-debt-forgiveness",
         ],
     ),
     (
@@ -2737,6 +3106,45 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/calculators-and-tools/charities-review-of-a-dgr-endorsed-as-a-part-of-an-organisation-worksheet-2",
         ],
     ),
+    (
+        "help_to_buy",
+        &[
+            "https://www.legislation.gov.au/C2024A00124/latest/text",
+            "https://firsthomebuyers.gov.au/HTB-thresholds",
+        ],
+    ),
+    (
+        "help_to_buy_review",
+        &[
+            "https://www.legislation.gov.au/C2024A00124/latest/text",
+            "https://firsthomebuyers.gov.au/HTB-thresholds",
+        ],
+    ),
+    (
+        "home_guarantee",
+        &[
+            "https://www.legislation.gov.au/F2018L00994/2026-02-07/text",
+            "https://www.legislation.gov.au/F2026L00542/asmade/text",
+        ],
+    ),
+    (
+        "age_pension",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
+            "https://guides.dss.gov.au/social-security-guide/4/10/3",
+            "https://guides.dss.gov.au/social-security-guide/4/4/1/10",
+            "https://www.servicesaustralia.gov.au/assets-test-for-age-pension",
+        ],
+    ),
+    (
+        "ftb_part_a",
+        &[
+            "https://www.dss.gov.au/system/files/documents/2026-05/rates-list-1-july-2026.pdf",
+            "https://www.servicesaustralia.gov.au/sites/default/files/2026-09/co029-2609.pdf",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -2750,6 +3158,18 @@ const CAR_REPORTABLE_NOTE: &str = "reportable_taxable_value is this car benefit'
 const GST_CREDITABLE_NOTE: &str = "Give taxable_value to fbt as part of type_one_value when the provider, or a member of its GST group, is entitled to a GST credit for providing the benefit (a GST-creditable benefit), and as part of type_two_value otherwise.";
 
 pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
+    (
+        "cash_forecast",
+        &[
+            "Weekly totals can hide a shortfall within a week, and the funding gap is a planning gap, not a lending decision.",
+        ],
+    ),
+    (
+        "staff_cost",
+        &[
+            "Payroll tax and workers compensation are the operator's stated effective rates; each jurisdiction and scheme sets its own taxable wages, thresholds, exemptions and premium rules.",
+        ],
+    ),
     (
         "tourist_refund",
         &[
@@ -2802,6 +3222,48 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "wip_lockup",
         &[
             "Lock-up is a management measure, not an accounting or tax result: the entries, their valuation basis and the flows are the firm's, and WIP and its flow, and receivables and billings, must each be on one basis.",
+        ],
+    ),
+    (
+        "consolidation_eliminations",
+        &[
+            "Control, the ownership interest, the trial balances, the acquisition figures and every intra-group amount are the preparer's stated facts (AASB 10 paras 5 to 18 and B86); the worksheet eliminates them and neither tests control nor finds intra-group items.",
+        ],
+    ),
+    (
+        "tofa_accruals",
+        &[
+            "Whether the gain or loss and each financial benefit are sufficiently certain (ss 230-105 and 230-115), the entity's turnover and assets, a qualifying security and any election are the operator's stated facts. A straight line is allowed only where its results approximate compounding accruals (s 230-135(2)(b)): the income_years rows show both for comparison.",
+        ],
+    ),
+    (
+        "super_projection",
+        &[
+            "A projection, not a forecast or advice: every figure but the rules of 2026-27 is the operator's assumption, the rules are assumed not to change and later caps and the base are assumed to rise with wages. Not for a decision about a financial product.",
+        ],
+    ),
+    (
+        "objection_deadline",
+        &[
+            "s 14ZW is applied as compiled on 1 October 2026 whatever the notice date. Public holidays are only those stated: check the last day and the day after it where the objection is lodged.",
+        ],
+    ),
+    (
+        "lessee_lease",
+        &[
+            "The lease term, the discount rate and whether a purchase option is reasonably certain are the preparer's judgements. Rounding each period's interest to the cent, the last period taking the rest, and sharing a period across 30 June by days are conventions, not rules of AASB 16.",
+        ],
+    ),
+    (
+        "thin_capitalisation",
+        &[
+            "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them.",
+        ],
+    ),
+    (
+        "debt_forgiveness",
+        &[
+            "Whether a debt is commercial and forgiven, its value, the amount offset, the s 245-85 amounts, any s 245-90 agreement and the most each loss, expenditure and cost base may be reduced are the operator's stated facts; the worksheet applies Division 245's order to them and does not decide them.",
         ],
     ),
     (
@@ -2946,6 +3408,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "smsf_member_allocation",
+        &[
+            "The allocation method is the trustee's, under the fund's deed and SISR reg 5.03(2); daily weighted balances are one fair and reasonable method, not the only one. Contributions tax and earnings tax are shared from the fund's stated tax, which the worksheet does not check.",
+        ],
+    ),
+    (
         "smsf_tax",
         &[
             "The ATO assesses the fund from its return; this is a check of the return's item 13, not a lodgment. The ATO has not published the SMSF annual return 2027 instructions, so 2026-27 follows the law in force on 22 November 2026 and the 2026 return's labels.",
@@ -2961,6 +3429,30 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "first_home_owner_grant",
         &[
             "The grant is paid only on an application the revenue office or an approved agent decides; confirm it with them before relying on it. The New South Wales rules rest on Revenue NSW's page: the Act could not be read on 23 November 2026.",
+        ],
+    ),
+    (
+        "salary_dividend",
+        &[
+            "The split that keeps the most is a comparison of the stated facts, not advice: super stays in the fund until retirement, and Division 7A, payroll tax, the company's own franking account and other owners are not considered.",
+        ],
+    ),
+    (
+        "sole_trader_set_aside",
+        &[
+            "The set-aside is an estimate for cash planning: the year's assessment, PAYG instalments and the GST on each activity statement are what is payable. payg_instalments_likely and gst_registration_required compare the year's figures with the ATO's entry and registration thresholds only.",
+        ],
+    ),
+    (
+        "salary_packaging",
+        &[
+            "The grossed-up amounts use the formulas of FBTAA s 5B(1F) and (1G), not the 4-place 2.0802 and 1.8868 the ATO's guide multiplies by, so a grossed-up amount can be a dollar less than the guide's working gives. The gain is before any administration fee the employer charges.",
+        ],
+    ),
+    (
+        "novated_lease",
+        &[
+            "The comparison takes the year's costs as stated and assumes the employer recovers no FBT; the exemption and the luxury car tax timing are the operator's facts, and a lease's residual and term are not considered.",
         ],
     ),
     (
@@ -3089,7 +3581,15 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "payroll_tax",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
-            "The annual liability is reconciled against the payroll tax and any surcharge or levy already paid in periodic returns; this worksheet does not make that reconciliation.",
+            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads; New South Wales's is refused. In Victoria, South Australia, Tasmania, the ACT and the Northern Territory the refund is reduced by other_refunds, any other refund of payroll tax made for the year. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
+        ],
+    ),
+    (
+        "payroll_tax_monthly",
+        &[
+            "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable, and the deductible amount an employer may claim on estimates; this worksheet takes the wages, the year's estimates and any stated deduction as established.",
+            "A Commissioner's determination, or in Victoria, South Australia and the ACT the amount in the employer's latest notice, replaces the Act's formula for the deduction (and in Queensland for each periodic threshold): state it as stated_deduction (or stated_primary_threshold and stated_additional_threshold), or the formula amount is worked.",
+            "A monthly return is provisional: the annual reconciliation (payroll-tax with periodic_tax) settles the year against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns.",
         ],
     ),
     (
@@ -3117,6 +3617,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "cgt_parcels",
         &[
             "The ATO accepts first in, first out where the shares or units sold cannot be identified, and the taxpayer's own selection (TD 33 para 4); records must support the parcels chosen.",
+        ],
+    ),
+    (
+        "book_to_tax",
+        &[
+            "The classification of each line as permanent or temporary, net exempt income and the tax losses the company can deduct are the preparer's; the worksheet applies them and does not decide them.",
+        ],
+    ),
+    (
+        "cgt_rollover",
+        &[
+            "Whether the roll-over is available and chosen, and the cost bases, capital proceeds and market values, are the caller's statements; the worksheet works out what the chosen roll-over carries and does not test eligibility beyond the exclusions it names.",
         ],
     ),
     (
@@ -3269,6 +3781,36 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "The worksheets date from 2021; each answer is tied to the provision as read on 24 November 2026, and conditions they do not ask about are listed under not_asked.",
         ],
     ),
+    (
+        "help_to_buy",
+        &[
+            "Housing Australia decides each application and the agreed percentage; places are limited each year. The price caps are policy settings the Program Directions fix and the Government may change; they were read on 26 November 2026.",
+        ],
+    ),
+    (
+        "help_to_buy_review",
+        &[
+            "Housing Australia must not require, but may allow, a repayment that would leave the participant bearing lenders' mortgage insurance (s 37(7)); the property's value is the one Housing Australia accepts (s 58).",
+        ],
+    ),
+    (
+        "home_guarantee",
+        &[
+            "Housing Australia and the lender decide each guarantee; the price cap tests the property's value, and Housing Australia's pages say the purchase price must not exceed it either.",
+        ],
+    ),
+    (
+        "age_pension",
+        &[
+            "Services Australia assesses income, assets and deeming from its own records; the rate here is one fortnight's on the stated facts and rates change each 20 March, 1 July and 20 September.",
+        ],
+    ),
+    (
+        "ftb_part_a",
+        &[
+            "Services Australia reconciles family tax benefit after the year on the family's lodged income; the end of year supplement is paid only after that reconciliation, and the energy supplement only to families who have kept it since 2016.",
+        ],
+    ),
 ];
 
 /// A `foreign_resident_tax` warning for a year whose rates the ATO had not
@@ -3369,6 +3911,7 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("main_residence", CGT_2027_28),
     ("cgt_parcels", CGT_2027_28),
     ("cgt_cost_base_adjustments", CGT_2027_28),
+    ("cgt_rollover", CGT_2027_28),
     ("balancing_adjustment", CGT_2027_28),
     (
         "rental_property",
@@ -3489,6 +4032,30 @@ pub const TTR_MAXIMUM_SCOPE: &[(&str, &str)] = &[
 pub const TTR_MAXIMUM_WARNING: &str = "maximum_payment is 10% of the account balance on 1 July, or on the commencement day in the first year, under SISR reg 6.01(2) 'transition to retirement income stream'; it is not reduced for a part year, it is shown down to the cent so a payment of it stays within the limit, it excludes commutations and includes payment splits, and it ends once the pensioner satisfies a condition of release with a nil cashing restriction.";
 
 pub const REFUSAL_CODES: &[(&str, &str)] = &[
+    (
+        "age_pension.assets_inconsistent",
+        "financial_assets is more than assets, which include them.",
+    ),
+    (
+        "age_pension.date_invalid",
+        "date is not a YYYY-MM-DD day in the year.",
+    ),
+    (
+        "age_pension.date_uncovered",
+        "date is outside 20 September 2025 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "age_pension.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "age_pension.facts_not_stated",
+        "A fact the worksheet needs was not stated true: in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together.",
+    ),
+    (
+        "age_pension.relationship_invalid",
+        "relationship is not single or couple.",
+    ),
     (
         "alcohol_excise.classification_unsettled",
         "A line's labelled strength is above its actual strength and would put the goods in another subitem, which Excise Act 1901 s 77FA does not settle.",
@@ -3723,6 +4290,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "years is not a non-empty list of objects.",
     ),
     (
+        "book_to_tax.adjustment_invalid",
+        "adjustments is not a list of 0 to 500 objects, each a label of 1 to 200 characters, difference permanent or temporary, effect add or subtract and an amount from 0, at most 2 dp and 1e12.",
+    ),
+    (
+        "book_to_tax.excess_franking_offsets",
+        "The company would have excess franking offsets (ITAA 1997 ss 36-17(5) and 36-55).",
+    ),
+    (
+        "book_to_tax.loss_carry_back",
+        "A loss carry back choice was stated (ITAA 1997 Division 160).",
+    ),
+    (
+        "book_to_tax.losses_deducted_invalid",
+        "tax_losses_deducted is more than the company can choose: the excess of assessable income over deductions or the earlier losses left after net exempt income (ITAA 1997 s 36-17(2) and (3)).",
+    ),
+    (
+        "book_to_tax.subdivision_165_b",
+        "The company failed the continuity and business continuity tests during the year (ITAA 1997 Subdivision 165-B).",
+    ),
+    (
+        "book_to_tax.tax_consolidated_group",
+        "The company is a member of a consolidated group (ITAA 1997 Part 3-90).",
+    ),
+    (
         "borrowing.income_use_invalid",
         "A loan's income_use is neither a fraction from 0 to 1 nor an object giving one for each income year of the loan.",
     ),
@@ -3765,6 +4356,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "borrowing.s26_50_denied",
         "The deduction is restricted by s 26-50, or the facts needed to apply its exceptions are outside the worksheet's scope.",
+    ),
+    (
+        "break_even.no_contribution",
+        "price does not exceed variable_cost, so no number of units breaks even.",
+    ),
+    (
+        "break_even.sales_out_of_range",
+        "The sales needed to break even exceed 1000000000000.00.",
     ),
     (
         "business_capital.cgt_amount",
@@ -3815,6 +4414,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The undeducted construction expenditure is more than the construction expenditure.",
     ),
     (
+        "cash_forecast.delay_above_receipts",
+        "The delayed receipt is more than its week's receipts.",
+    ),
+    (
+        "cash_forecast.delayed_receipt_invalid",
+        "delayed_receipt is not {week, amount, delay_weeks} with week 1 to 13, an amount from 0 at most 2 dp and 0 to 13 weeks.",
+    ),
+    (
+        "cash_forecast.weeks_invalid",
+        "weeks is not a list of 13 objects of receipts and payments, each from 0 at most 2 dp.",
+    ),
+    (
         "cgt_cost_base.below_reduced_cost_base",
         "An event would cut a parcel's reduced cost base by more than it is, without the cut to the cost base being above the cost base.",
     ),
@@ -3833,6 +4444,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "cgt_cost_base.pre_cgt",
         "A parcel acquired before 20 September 1985 is touched by an event.",
+    ),
+    (
+        "cgt_cost_base.scrip_no_gain",
+        "A parcel exchanged under a scrip for scrip roll-over would make no capital gain apart from the roll-over (ITAA 1997 ss 124-780(3)(b) and 124-781(3)(b)).",
+    ),
+    (
+        "cgt_cost_base.scrip_without_rollover",
+        "A scrip_for_scrip event was given without the roll-over; work the disposal in cgt-parcels.",
     ),
     (
         "cgt_parcels.entity_invalid",
@@ -3866,6 +4485,19 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "cgt_parcels.units_not_held",
         "A disposal takes more units than the parcels acquired by then still hold.",
     ),
+    ("cgt_rollover.facts_invalid", "facts is not a JSON object."),
+    (
+        "cgt_rollover.not_available",
+        "The stated facts give no roll-over: a condition or exclusion of Subdivision 122-A, 126-A or 152-E applies.",
+    ),
+    (
+        "cgt_rollover.pre_cgt",
+        "The asset was acquired before 20 September 1985, which the roll-over treats in ways this worksheet does not work out.",
+    ),
+    (
+        "cgt_rollover.rollover_invalid",
+        "rollover is not marriage_breakdown, small_business or wholly_owned_company.",
+    ),
     (
         "charity_check.abns_invalid",
         "ABNs are not a list of 1 to 10,000.",
@@ -3895,6 +4527,70 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A chattel mortgage is given both or neither of instalment and annual_rate.",
     ),
     ("command.unknown", "The command does not exist."),
+    (
+        "consolidation_eliminations.account_invalid",
+        "An account named by an elimination is not a line of that entity with the class it needs, or a trial balance names an account twice or uses a name the worksheet keeps for itself.",
+    ),
+    (
+        "consolidation_eliminations.acquired_in_period",
+        "A subsidiary was acquired during the period, which needs its results split at the date control was obtained (AASB 10 paras 20 and B88).",
+    ),
+    (
+        "consolidation_eliminations.bargain_purchase",
+        "Net assets at acquisition exceed the consideration and non-controlling interest, a bargain purchase recognised only after AASB 3's reassessment (paras 34 to 36).",
+    ),
+    (
+        "consolidation_eliminations.class_conflict",
+        "One account name is given with more than one class, so like items cannot combine (AASB 10 para B86(a)).",
+    ),
+    (
+        "consolidation_eliminations.entity_unknown",
+        "An elimination names an entity that is not the parent or a subsidiary given.",
+    ),
+    (
+        "consolidation_eliminations.exceeds_line",
+        "An elimination takes more from an entity's line than the line holds.",
+    ),
+    (
+        "consolidation_eliminations.fair_value_adjustments",
+        "Identifiable net assets at acquisition had fair values other than their carrying amounts (AASB 3 para 18).",
+    ),
+    (
+        "consolidation_eliminations.intra_group_dividends",
+        "Intra-group dividends were stated, which this worksheet does not eliminate.",
+    ),
+    (
+        "consolidation_eliminations.investment_not_eliminated",
+        "The parent's investment line is not carried at the stated consideration of the subsidiaries it holds, so it cannot be eliminated in full (AASB 10 para B86(b)).",
+    ),
+    (
+        "consolidation_eliminations.item_invalid",
+        "A trial balance, subsidiary or elimination item is not in the documented shape.",
+    ),
+    (
+        "consolidation_eliminations.nci_invalid",
+        "The non-controlling interest at acquisition is not nil for a wholly owned subsidiary or not above nil for a partly owned one (AASB 3 para 19).",
+    ),
+    (
+        "consolidation_eliminations.ownership_changed",
+        "The parent's interest in a subsidiary changed without loss of control (AASB 10 paras 23 and B96).",
+    ),
+    (
+        "consolidation_eliminations.ownership_invalid",
+        "ownership is not a fraction above 0 and at most 1, at most 6 places.",
+    ),
+    (
+        "consolidation_eliminations.previously_held_interest",
+        "A combination was achieved in stages (AASB 3 paras 32(a)(iii) and 42).",
+    ),
+    (
+        "consolidation_eliminations.tax_rate_invalid",
+        "tax_rate is not a fraction from 0 to below 1, at most 6 places.",
+    ),
+    (
+        "consolidation_eliminations.unbalanced",
+        "An entity's assets and expenses do not equal its liabilities, equity and income.",
+    ),
     (
         "contract_register.argument_invalid",
         "A contract-register argument is missing, unknown, repeated or not valid.",
@@ -3962,6 +4658,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "dasp_tax.unclaimed_money_rollover",
         "A roll-over under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999 with an element untaxed in the fund was given; s 5(2) is outside the command.",
+    ),
+    (
+        "debt_forgiveness.attributable_income",
+        "The calculation stated is of the attributable income of a non-resident trust estate or a CFC, to which Subdivision 245-E does not apply (s 245-100).",
+    ),
+    (
+        "debt_forgiveness.debt_invalid",
+        "debts is not a list of 1 to 200 objects, each a label, commercial_debt and excluded true or false and a value from 0, with optional amounts from 0, an optional section_245_90_agreement flag and debtors from 1 to 100.",
+    ),
+    (
+        "debt_forgiveness.forgone_exceeds_provisional",
+        "A creditor's forgone amount exceeds the debt's provisional net forgiven amount (s 245-90(2)(a) and (3)(a)).",
+    ),
+    (
+        "debt_forgiveness.forgone_not_eligible",
+        "A creditor's forgone amount is given without the stated s 245-90 facts: companies under common ownership throughout, a capital loss or deduction to forgo and an agreement meeting s 245-90(4).",
+    ),
+    (
+        "debt_forgiveness.item_invalid",
+        "A list of tax losses, net capital losses, expenditures or cost bases is not a list of at most 200 objects, each a label and an amount from 0, with item 1 to 8 for expenditure and an optional associate flag for a cost base.",
+    ),
+    (
+        "debt_forgiveness.partnership",
+        "The debtor stated is a partnership (Subdivision 245-F).",
     ),
     (
         "decimal.division_by_zero",
@@ -4664,6 +5384,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The corporate tax rate for imputation purposes is not 0.25 or 0.30.",
     ),
     (
+        "ftb_part_a.children_invalid",
+        "A child count is not a whole number from 0 to 20, or there is no FTB child.",
+    ),
+    (
+        "ftb_part_a.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "ftb_part_a.facts_not_stated",
+        "A fact the worksheet needs was not stated true: children all year in full care, no maintenance, no rent assistance, no newborn supplement or multiple birth allowance, requirements met.",
+    ),
+    (
         "fuel_tax_credits.date_outside_year",
         "A line's acquisition day is outside the income year given.",
     ),
@@ -4956,6 +5688,59 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The repayments exceed the debts they reduce under HESA s 140-5(1) or s 140-25(1).",
     ),
     (
+        "help_to_buy.applicants_invalid",
+        "applicants is not single, single_parent or joint.",
+    ),
+    (
+        "help_to_buy.area_invalid",
+        "area is not one of the Program Directions s 7 areas.",
+    ),
+    (
+        "help_to_buy.date_invalid",
+        "application_date is not a YYYY-MM-DD date in the year.",
+    ),
+    (
+        "help_to_buy.date_uncovered",
+        "application_date is after 26 November 2026, the day the caps and thresholds were read.",
+    ),
+    (
+        "help_to_buy.deposit_exceeds_price",
+        "The deposit and the Commonwealth contribution together exceed the purchase price.",
+    ),
+    (
+        "help_to_buy.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "help_to_buy.facts_not_stated",
+        "An eligibility fact (Program Directions ss 17 and 20, Act ss 10 and 15) was not stated true.",
+    ),
+    (
+        "help_to_buy.percentage_invalid",
+        "agreed_percentage is not above 0 and at most 100.",
+    ),
+    (
+        "help_to_buy.property_invalid",
+        "property is not new or existing.",
+    ),
+    (
+        "help_to_buy.value_invalid",
+        "An amount is not whole dollars within its range.",
+    ),
+    (
+        "help_to_buy_review.applicants_invalid",
+        "applicants is not single, single_parent or joint.",
+    ),
+    (
+        "help_to_buy_review.rounding_midway",
+        "5% of the property value is exactly midway between 2 multiples of $1,000, which the Program Directions do not settle.",
+    ),
+    (
+        "help_to_buy_review.share_invalid",
+        "share_percentage is not a percentage above 0 and at most 100 with at most 2 decimal places.",
+    ),
+    ("help_to_buy_review.value_invalid", "property_value is 0."),
+    (
         "hire_purchase.amount_nil",
         "A hire purchase agreement's or chattel mortgage's amount financed or instalment is nil.",
     ),
@@ -5019,6 +5804,39 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "hire_purchase.start_outside_year",
         "A hire purchase agreement or chattel mortgage starts outside the income year given.",
     ),
+    (
+        "home_guarantee.area_invalid",
+        "area is not a s 29F(1) area on the issue date.",
+    ),
+    (
+        "home_guarantee.borrowers_invalid",
+        "borrowers is not a whole number of at least 1.",
+    ),
+    (
+        "home_guarantee.date_invalid",
+        "issue_date is not a YYYY-MM-DD date in the year.",
+    ),
+    (
+        "home_guarantee.date_uncovered",
+        "issue_date is outside 1 October 2025 to 26 November 2026.",
+    ),
+    (
+        "home_guarantee.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "home_guarantee.facts_not_stated",
+        "An eligibility fact (ss 29C and 29D) was not stated true.",
+    ),
+    (
+        "home_guarantee.ratio_boundary",
+        "Before 1 July 2026 the ratio band read 'between', which does not settle a ratio of exactly 80% or the top.",
+    ),
+    (
+        "home_guarantee.stream_invalid",
+        "stream is not first_home or family_home.",
+    ),
+    ("home_guarantee.value_invalid", "property_value is 0."),
     (
         "horticulture_shearing_withholding.labour_mobility_scheme",
         "The worker is employed under the Seasonal Worker Programme, Pacific Labour Scheme or Pacific Australia Labour Mobility scheme, to which Schedule 2 does not apply.",
@@ -5125,7 +5943,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5319,6 +6137,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "leave_provisions.plan_assets",
         "Plan assets or a reimbursement right for other long-term benefits were stated (AASB 119 paras 113 to 119 and 155).",
+    ),
+    (
+        "lessee_lease.cost_nil",
+        "The incentives received are as much as the rest of the right-of-use asset's cost.",
+    ),
+    (
+        "lessee_lease.fact_invalid",
+        "A lease input is missing, of the wrong type or outside its range, or the commencement is outside the year.",
+    ),
+    (
+        "lessee_lease.remeasurement",
+        "The lease liability is remeasured (AASB 16 paras 36(c) and 39 to 46), which the worksheet does not compute.",
+    ),
+    (
+        "lessee_lease.rounding_negative",
+        "Rounding each period's interest to the cent leaves the last period with negative interest.",
+    ),
+    (
+        "lessee_lease.useful_life_needed",
+        "Ownership transfers or a purchase option is reasonably certain, and no useful life is given.",
     ),
     (
         "loan_transactions.balance_below_nil",
@@ -5658,6 +6496,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The notice day does not fall in the year given.",
     ),
     (
+        "novated_lease.car_invalid",
+        "car is not bev, fcev, phev or other.",
+    ),
+    (
+        "novated_lease.contribution_short",
+        "A car not exempt costs less in the year than its taxable value, so an after-tax contribution cannot cover the value.",
+    ),
+    (
+        "novated_lease.cost_price_nil",
+        "The car's cost price is nil.",
+    ),
+    (
+        "novated_lease.costs_exceed_salary",
+        "The car's costs are more than the salary.",
+    ),
+    (
+        "novated_lease.first_used_late",
+        "The car was first held and used after the FBT year ended.",
+    ),
+    (
+        "novated_lease.hybrid_commitment",
+        "A plug-in hybrid under the earlier exemption was first used, or first sold, too late for it.",
+    ),
+    (
+        "novated_lease.lct_timing_invalid",
+        "The luxury car tax timing is missing, unknown where the year needs one treatment, or contradicts the year of first retail sale.",
+    ),
+    (
+        "novated_lease.residency_invalid",
+        "residency is not resident or foreign_resident.",
+    ),
+    (
+        "novated_lease.sale_year_invalid",
+        "first_sale_year is not an income year from 2021-22 to 2026-27.",
+    ),
+    (
+        "objection_deadline.fact_invalid",
+        "A decision, date, s 170(1) item, earlier notice or holiday list is missing, invalid or not for this decision.",
+    ),
+    (
         "payg.extra_pays_not_weekly_or_fortnightly",
         "Additional withholding for 53 or 27 pays was asked for on a pay that is not weekly or fortnightly.",
     ),
@@ -5738,6 +6616,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employer did not pay wages for the whole year, and the threshold reduced by days is not worked.",
     ),
     (
+        "payroll_tax.reconciliation_unread",
+        "The New South Wales Act could not be read today, so its annual adjustment is not worked.",
+    ),
+    (
         "payroll_tax.wages_conflict",
         "australian_wages is less than taxable_wages, which it includes.",
     ),
@@ -5816,6 +6698,62 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax_group.test_invalid",
         "A controlling interest's test is not one the worksheet takes.",
+    ),
+    (
+        "payroll_tax_monthly.act_unread",
+        "The jurisdiction's Act could not be read today, so its monthly provisions are not worked.",
+    ),
+    (
+        "payroll_tax_monthly.deduction_above_cap",
+        "stated_deduction is more than the cap the jurisdiction's Act sets on a monthly deductible amount.",
+    ),
+    (
+        "payroll_tax_monthly.estimate_invalid",
+        "estimated_taxable_wages is nil, and each Act shares the deduction or sets the rate on the year's estimates.",
+    ),
+    (
+        "payroll_tax_monthly.grouped",
+        "The employer is a member of a group, whose monthly deduction is not worked.",
+    ),
+    (
+        "payroll_tax_monthly.interstate_unworked",
+        "A Tasmanian employer pays interstate wages in the year, which Sch 2 cl 3's annualising does not address.",
+    ),
+    (
+        "payroll_tax_monthly.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "payroll_tax_monthly.last_period",
+        "June in Queensland is the last periodic return period, worked by the annual return.",
+    ),
+    (
+        "payroll_tax_monthly.month_invalid",
+        "month is not a month of 2026-27 in the form YYYY-MM.",
+    ),
+    (
+        "payroll_tax_monthly.nomination_above_wages",
+        "Western Australia's nominated deduction is more than the month's taxable wages, and s 15 does not say how a negative difference is treated.",
+    ),
+    (
+        "payroll_tax_monthly.part_year",
+        "The employer did not pay wages on every day of the year.",
+    ),
+    (
+        "payroll_tax_monthly.rate_unset",
+        "The ACT's Table 2 sets no monthly rate for the month's total wages, yet tax would be payable.",
+    ),
+    (
+        "payroll_tax_monthly.rate_unsettled",
+        "The Northern Territory's estimate for the year reaches $100 million, and s 7A(2) sets 6.5% on the year's actual wages.",
+    ),
+    (
+        "payroll_tax_monthly.regional_discount",
+        "A Queensland regional employer's discount is not worked.",
+    ),
+    (
+        "payroll_tax_monthly.surcharge_negative",
+        "Victoria's cl 4(4) surcharge formula gives less than nil for the month.",
     ),
     (
         "pcg_2021_4.benchmark_nil",
@@ -5956,6 +6894,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "prepayments.taxpayer_invalid",
         "taxpayer is not small_business_entity, medium_business_entity or other.",
+    ),
+    (
+        "pricing.fee_out_of_range",
+        "A fixed fee with GST is above 1000000000.00.",
+    ),
+    (
+        "pricing.hours_invalid",
+        "Hours are outside 0.01 to 8,784 or have more than 2 dp.",
+    ),
+    (
+        "pricing.margin_invalid",
+        "A fixed fee's margin is outside 0 to 99.99 per cent or has more than 2 dp.",
+    ),
+    (
+        "pricing.round_to_invalid",
+        "A fixed fee's rounding step is not 0.01, 10, 50 or 100.",
     ),
     (
         "private_health_insurance_rebate.lhc_loading",
@@ -6123,6 +7077,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "application_fee_waiver is not none, full or partial, or full was given for a developer exemption certificate.",
     ),
     (
+        "salary_dividend.salary_too_large",
+        "The salary and its super guarantee are more than the profit.",
+    ),
+    (
+        "salary_packaging.employer_invalid",
+        "employer is not charity or hospital.",
+    ),
+    (
+        "salary_packaging.packaged_exceeds_salary",
+        "The benefits packaged are more than the salary.",
+    ),
+    (
+        "salary_packaging.residency_invalid",
+        "residency is not resident or foreign_resident.",
+    ),
+    (
         "sb_cgt_concessions.active_period_unclear",
         "The asset was owned for more than 15 years and its active days, 2,737 to 2,740, may or may not be 7.5 years.",
     ),
@@ -6183,6 +7153,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "shares is not a list of at most 50 objects, each with amount and deductions.",
     ),
     (
+        "smsf_member_allocation.account_invalid",
+        "accounts is not a list of 1 to 30 objects, each a label, a kind, an opening balance from 0 and, on a pension only, an age from 0 to 150 and an optional minimum_exception boolean.",
+    ),
+    (
+        "smsf_member_allocation.balance_negative",
+        "Withdrawals, or the account's share of losses and tax, take its balance below nil.",
+    ),
+    (
+        "smsf_member_allocation.method_unsupported",
+        "allocation_method is not daily_weighted_balance.",
+    ),
+    (
+        "smsf_member_allocation.no_balance",
+        "net_earnings is not nil but no account held a balance in the year.",
+    ),
+    (
+        "smsf_member_allocation.pension_not_whole_year",
+        "A pension has a nil balance on 1 July or is exhausted or fully commuted in the year.",
+    ),
+    (
+        "smsf_member_allocation.refund_with_retirement_phase",
+        "The fund's income tax less contributions tax is below nil whilst a retirement phase pension is held.",
+    ),
+    (
+        "smsf_member_allocation.tax_unallocable",
+        "The fund's income tax less contributions tax is not nil but no taxed account held a balance.",
+    ),
+    (
+        "smsf_member_allocation.transaction_invalid",
+        "transactions is not a list of at most 1,000 objects, each a date in the year, a known type and an amount above nil.",
+    ),
+    (
+        "smsf_member_allocation.transaction_not_allowed",
+        "A contribution or roll-over into a pension, or a pension payment from an accumulation account, was given.",
+    ),
+    (
+        "smsf_member_allocation.transition_reaches_65",
+        "A transition to retirement pension's recipient is 64 or older on 1 July, so it enters the retirement phase by the end of the year.",
+    ),
+    (
         "smsf_tax.disregarded_small_fund_assets",
         "Income from segregated current pension assets was given for a fund with disregarded small fund assets (ITAA 1997 s 295-385(7)).",
     ),
@@ -6201,6 +7211,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "smsf_tax.proportion_invalid",
         "exempt_proportion is not a decimal from 0 to 1.",
+    ),
+    (
+        "sole_trader_set_aside.business_loss",
+        "Business expenses are more than business income: a loss is not worked out.",
+    ),
+    (
+        "sole_trader_set_aside.credits_unregistered",
+        "GST credits were given for a business not registered for GST.",
+    ),
+    (
+        "sole_trader_set_aside.deductions_exceed_income",
+        "Other deductions and deducted super contributions are more than the profit and wages less any standard deduction.",
+    ),
+    (
+        "sole_trader_set_aside.gst_refund",
+        "GST credits are more than the GST on the business income: a refund is not worked out.",
+    ),
+    (
+        "staff_cost.base_above_quarterly_cap",
+        "Before 2026-27, a super_base above one quarter's maximum contribution base: each quarter is capped alone, so super_amount must be given.",
+    ),
+    (
+        "staff_cost.rate_invalid",
+        "A stated payroll tax or workers compensation rate is outside 0 to 100 per cent or has more than 4 dp.",
+    ),
+    (
+        "staff_cost.super_basis_invalid",
+        "Both or neither of super_amount and super_base were given.",
     ),
     (
         "super_benefit_tax.benefit_nil",
@@ -6243,6 +7281,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The interest is from an untaxed source (ITTPA 1997 s 307-225(3)).",
     ),
     (
+        "super_projection.cap_exceeded",
+        "Contributions for 2026-27 are above the concessional or non-concessional cap.",
+    ),
+    (
+        "super_projection.input_invalid",
+        "An age or rate is outside its range or not a whole number or decimal fraction.",
+    ),
+    (
+        "super_projection.retirement_not_after_age",
+        "The assumed retirement age is not after the age now.",
+    ),
+    (
         "super_withholding.capped_defined_benefit",
         "A capped defined benefit income stream was given for a payee 60 or over; Schedule 13 Parts B to E and the defined benefit income cap are outside the command.",
     ),
@@ -6273,6 +7323,106 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_withholding.schedule_not_read",
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
+    ),
+    (
+        "thin_capitalisation.carry_forward_invalid",
+        "frt_disallowed_amounts is not a list of at most 15 objects, each a year from 2023-24 within the 15 years before this one, given once, an amount from 0 and available true or false.",
+    ),
+    (
+        "thin_capitalisation.carry_forward_unsettled",
+        "Earlier fixed ratio test disallowed amounts were stated for a year Subdivision 820-AA disallows nothing, which the sources read do not settle.",
+    ),
+    (
+        "thin_capitalisation.debt_deductions_invalid",
+        "debt_deductions is not a list of 1 to 200 objects, each a label, an amount from 0 and optionally third_party true or false.",
+    ),
+    (
+        "thin_capitalisation.entity_class_not_built",
+        "A financial entity (non-ADI) or ADI was stated; Subdivisions 820-B to 820-E are not applied.",
+    ),
+    (
+        "thin_capitalisation.fact_invalid",
+        "test, entity_class, the s 820-37 averages, gr_group_negative_member_ebitda or the associate-inclusive debt deductions are not a stated fact the worksheet takes.",
+    ),
+    (
+        "thin_capitalisation.gr_group_ebitda_not_positive",
+        "The GR group EBITDA is nil or less, so the group ratio test cannot be chosen (s 820-46(3)(b)).",
+    ),
+    (
+        "thin_capitalisation.group_ratio_negative",
+        "A negative GR group net third party interest expense was stated, which the sources read do not settle.",
+    ),
+    (
+        "thin_capitalisation.input_missing",
+        "An input the stated test or exemption needs is missing.",
+    ),
+    (
+        "thin_capitalisation.input_not_used",
+        "An input the stated test does not use was given.",
+    ),
+    (
+        "thin_capitalisation.plantation_forestry",
+        "An Australian plantation forestry entity was stated; the older Division 820 is not applied.",
+    ),
+    (
+        "tofa_accruals.accruals_not_chosen",
+        "The accruals method was not chosen and s 230-100(4) does not apply, so the overall gain or loss is not accrued (s 230-100(2)(c)); particular gains and the realisation method are not built.",
+    ),
+    (
+        "tofa_accruals.approximation_not_confirmed",
+        "straight_line was asked for without approximation_confirmed (s 230-135(2)(b)).",
+    ),
+    (
+        "tofa_accruals.benefit_within_interval",
+        "A financial benefit falls inside an interval rather than on start or an interval's last day (s 230-135(6)).",
+    ),
+    (
+        "tofa_accruals.benefits_invalid",
+        "financial_benefits is not a list of 2 to 361 dated, non-zero amounts.",
+    ),
+    (
+        "tofa_accruals.election_not_built",
+        "An elective method or portfolio treatment of fees applies (s 230-40(4) and (5); Subdivisions 230-C to 230-F; s 230-150), which this worksheet does not apply.",
+    ),
+    (
+        "tofa_accruals.elections_invalid",
+        "elections is not a list of known elective methods.",
+    ),
+    (
+        "tofa_accruals.entity_type_invalid",
+        "entity_type is not individual, super_or_scheme, adi_or_securitisation or other (s 230-455(1)(a)).",
+    ),
+    (
+        "tofa_accruals.interval_invalid",
+        "interval_months is not a whole number from 1 to 12 (s 230-135(4)(a)).",
+    ),
+    (
+        "tofa_accruals.method_invalid",
+        "method is not compounding or straight_line.",
+    ),
+    (
+        "tofa_accruals.method_not_built",
+        "The effective interest method (s 230-140) was asked for, which this worksheet does not apply.",
+    ),
+    (
+        "tofa_accruals.no_gain_or_loss",
+        "The financial benefits net to nil, so there is no overall gain or loss to spread (s 230-100(2)(a)).",
+    ),
+    (
+        "tofa_accruals.rate_not_unique",
+        "The financial benefits do not change sign exactly once, so one rate of return is not assured.",
+    ),
+    (
+        "tofa_accruals.rate_out_of_range",
+        "The rate of return per interval is outside -75% to 300%, this worksheet's bounds.",
+    ),
+    (
+        "tofa_accruals.term_invalid",
+        "start is outside the year, or end is not the last day of a whole number of intervals from start, at most 360.",
+    ),
+    (
+        "tofa_accruals.threshold_input",
+        "A s 230-455 figure is missing for an entity other than an individual, or given for an individual.",
     ),
     (
         "tourist_refund.date_invalid",

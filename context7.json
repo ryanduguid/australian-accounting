@@ -19,6 +19,18 @@
     "Accounting worksheets apply the preparer's stated judgements and never default them: `deferred-tax` (AASB 112) its recognition and expected rates, `leave-provisions` (AASB 119) its discount rate, salary growth and probabilities.",
     "`deferred-revenue` (AASB 15) schedules revenue and the contract liability from a stated pattern of progress; it does not decide when a performance obligation is satisfied.",
     "`wip-lockup` ages a firm's unbilled WIP and gives WIP, receivable and lock-up days as Ozzit's WIPDays and ReceivableDays define them; lock-up is a management measure, not an accounting result.",
-    "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow."
+    "`break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost` mirror the site's planning calculators; `staff-cost` works the super guarantee from a stated base but takes payroll tax and workers compensation as stated rates.",
+    "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow.",
+    "`consolidation-eliminations` (AASB 10) makes elimination journals and consolidated totals from stated trial balances and intra-group amounts; it never tests control or finds intra-group items.",
+    "`tofa-accruals` (ITAA 1997 Div 230) tests s 230-455 on stated facts and spreads a sufficiently certain gain or loss by compounding accruals; elective methods are refused.",
+    "`super-projection` projects one super account to retirement; `objection-deadline` gives the s 14ZW objection deadline; `lessee-lease` gives the AASB 16 lessee schedule. Each mirrors a site page and takes the rates and facts as stated.",
+    "`help-to-buy` tests the Program Directions' caps, limits and income test from stated facts; `help-to-buy-review` gives the s 37 repayment. Housing Australia's judgements stay with the operator.",
+    "`home-guarantee` tests a First Home or Family Home Guarantee's price cap, loan-to-value ratio and borrowers on the issue date; eligibility facts are stated, not decided.",
+    "`age-pension` and `ftb-part-a` apply the income and assets tests to stated income and assets for dated periods; they refuse dates outside the published rates.",
+    "`thin-capitalisation` (Subdivision 820-AA) and `debt-forgiveness` (Division 245) apply the statutory tests and order to the entity class, test choice, values and reducible amounts the operator states; neither decides a classification or election.",
+    "`salary-dividend`, `sole-trader-set-aside`, `salary-packaging` and `novated-lease` mirror the site's pages for 2024-25 to 2026-27: comparisons of stated facts, not advice; FBT gross-ups use FBTAA s 5B's formulas.",
+    "`book-to-tax` reconciles accounting profit to taxable income from stated differences and feeds `deferred-tax`; `cgt-rollover` carries cost bases through stated roll-overs. Neither decides a difference or eligibility.",
+    "`smsf-member-allocation` shares an SMSF's stated earnings and tax across member accounts by the trustee's daily weighted balance method and checks pension minimums; use `smsf-tax` for the fund's tax itself.",
+    "`payroll-tax-monthly` works one monthly return from each Act's monthly provisions and the employer's stated estimates for the year; `payroll-tax`, given the tax paid on those returns, reconciles the year against them."
   ]
 }

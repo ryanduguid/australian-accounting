@@ -1,0 +1,1812 @@
+{
+ "salary-dividend": {
+  "source": "ryanduguid.github.io _data/calculator_cases.json, key salary-dividend, at d876df72 (26 November 2026)",
+  "checked": "2026-11-19",
+  "function": "salaryDividend",
+  "rows": [
+   {
+    "case": "The page’s example: a $200,000 profit, half as salary",
+    "input": "2026-27, profit $200,000.00, 25% company, salary $100,000.00, other income $0.00",
+    "call": [
+     {
+      "year": "2026-27",
+      "profit": "200000",
+      "baseRate": true,
+      "salary": "100000",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 12000,
+     "companyTax": 22000,
+     "dividend": 66000,
+     "credit": 22000,
+     "ownerTax": 32000,
+     "superTax": 1800,
+     "cash": 134000,
+     "superNet": 10200,
+     "kept": 144200,
+     "allSalary": 146463.02,
+     "allDividends": 140130,
+     "bestSalary": 178571.43,
+     "bestKept": 146463.02
+    },
+    "output": "Super guarantee $12,000.00, company tax $22,000.00, dividend $66,000.00, franking credit $22,000.00, owner’s tax $32,000.00, super tax $1,800.00, cash kept $134,000.00, super kept $10,200.00, kept in all $144,200.00, all salary keeps $146,463.02, all dividends keep $140,130.00, best salary $178,571.43, best keeps $146,463.02"
+   },
+   {
+    "case": "All dividends: the franking credit hands back the company tax",
+    "input": "2026-27, profit $200,000.00, 25% company, salary $0.00, other income $0.00",
+    "call": [
+     {
+      "year": "2026-27",
+      "profit": "200000",
+      "baseRate": true,
+      "salary": "0",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 0,
+     "companyTax": 50000,
+     "dividend": 150000,
+     "credit": 50000,
+     "ownerTax": 9870,
+     "superTax": 0,
+     "cash": 140130,
+     "superNet": 0,
+     "kept": 140130,
+     "allSalary": 146463.02,
+     "allDividends": 140130,
+     "bestSalary": 178571.43,
+     "bestKept": 146463.02
+    },
+    "output": "Super guarantee $0.00, company tax $50,000.00, dividend $150,000.00, franking credit $50,000.00, owner’s tax $9,870.00, super tax $0.00, cash kept $140,130.00, super kept $0.00, kept in all $140,130.00, all salary keeps $146,463.02, all dividends keep $140,130.00, best salary $178,571.43, best keeps $146,463.02"
+   },
+   {
+    "case": "Salary at the 2026-27 super guarantee base, with Division 293 tax",
+    "input": "2026-27, profit $600,000.00, 25% company, salary $270,830.00, other income $0.00",
+    "call": [
+     {
+      "year": "2026-27",
+      "profit": "600000",
+      "baseRate": true,
+      "salary": "270830",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 32499.6,
+     "companyTax": 74167.6,
+     "dividend": 222502.8,
+     "credit": 74167.6,
+     "ownerTax": 157957.4,
+     "superTax": 9749.88,
+     "cash": 335375.4,
+     "superNet": 22749.72,
+     "kept": 358125.12,
+     "allSalary": 358125.12,
+     "allDividends": 352130,
+     "bestSalary": 270830,
+     "bestKept": 358125.12
+    },
+    "output": "Super guarantee $32,499.60, company tax $74,167.60, dividend $222,502.80, franking credit $74,167.60, owner’s tax $157,957.40, super tax $9,749.88, cash kept $335,375.40, super kept $22,749.72, kept in all $358,125.12, all salary keeps $358,125.12, all dividends keep $352,130.00, best salary $270,830.00, best keeps $358,125.12"
+   },
+   {
+    "case": "Past the super guarantee base, more salary keeps no more: the best is the base",
+    "input": "2025-26, profit $400,000.00, 25% company, salary $0.00, other income $0.00",
+    "call": [
+     {
+      "year": "2025-26",
+      "profit": "400000",
+      "baseRate": true,
+      "salary": "0",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 0,
+     "companyTax": 100000,
+     "dividend": 300000,
+     "credit": 100000,
+     "ownerTax": 54138,
+     "superTax": 0,
+     "cash": 245862,
+     "superNet": 0,
+     "kept": 245862,
+     "allSalary": 250962,
+     "allDividends": 245862,
+     "bestSalary": 250000,
+     "bestKept": 250962
+    },
+    "output": "Super guarantee $0.00, company tax $100,000.00, dividend $300,000.00, franking credit $100,000.00, owner’s tax $54,138.00, super tax $0.00, cash kept $245,862.00, super kept $0.00, kept in all $245,862.00, all salary keeps $250,962.00, all dividends keep $245,862.00, best salary $250,000.00, best keeps $250,962.00"
+   },
+   {
+    "case": "The best salary brings taxable income down to the Medicare levy threshold",
+    "input": "2026-27, profit $30,000.00, 25% company, salary $0.00, other income $0.00",
+    "call": [
+     {
+      "year": "2026-27",
+      "profit": "30000",
+      "baseRate": true,
+      "salary": "0",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 0,
+     "companyTax": 7500,
+     "dividend": 22500,
+     "credit": 7500,
+     "ownerTax": -6231.1,
+     "superTax": 0,
+     "cash": 28731.1,
+     "superNet": 0,
+     "kept": 28731.1,
+     "allSalary": 29080.11,
+     "allDividends": 28731.1,
+     "bestSalary": 8242,
+     "bestKept": 29080.14
+    },
+    "output": "Super guarantee $0.00, company tax $7,500.00, dividend $22,500.00, franking credit $7,500.00, owner’s refund $6,231.10, super tax $0.00, cash kept $28,731.10, super kept $0.00, kept in all $28,731.10, all salary keeps $29,080.11, all dividends keep $28,731.10, best salary $8,242.00, best keeps $29,080.14"
+   },
+   {
+    "case": "The best salary brings taxable income down to where the offsets stop clearing the tax",
+    "input": "2025-26, profit $24,000.00, 25% company, salary $0.00, other income $0.00",
+    "call": [
+     {
+      "year": "2025-26",
+      "profit": "24000",
+      "baseRate": true,
+      "salary": "0",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 0,
+     "companyTax": 6000,
+     "dividend": 18000,
+     "credit": 6000,
+     "ownerTax": -5772,
+     "superTax": 0,
+     "cash": 23772,
+     "superNet": 0,
+     "kept": 23772,
+     "allSalary": 23614.29,
+     "allDividends": 23772,
+     "bestSalary": 11867,
+     "bestKept": 23786.39
+    },
+    "output": "Super guarantee $0.00, company tax $6,000.00, dividend $18,000.00, franking credit $6,000.00, owner’s refund $5,772.00, super tax $0.00, cash kept $23,772.00, super kept $0.00, kept in all $23,772.00, all salary keeps $23,614.29, all dividends keep $23,772.00, best salary $11,867.00, best keeps $23,786.39"
+   },
+   {
+    "case": "The best salary is the $1,000 the standard deduction takes",
+    "input": "2026-27, profit $24,000.00, 25% company, salary $0.00, other income $0.00",
+    "call": [
+     {
+      "year": "2026-27",
+      "profit": "24000",
+      "baseRate": true,
+      "salary": "0",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 0,
+     "companyTax": 6000,
+     "dividend": 18000,
+     "credit": 6000,
+     "ownerTax": -5830,
+     "superTax": 0,
+     "cash": 23830,
+     "superNet": 0,
+     "kept": 23830,
+     "allSalary": 23614.29,
+     "allDividends": 23830,
+     "bestSalary": 1000,
+     "bestKept": 23980
+    },
+    "output": "Super guarantee $0.00, company tax $6,000.00, dividend $18,000.00, franking credit $6,000.00, owner’s refund $5,830.00, super tax $0.00, cash kept $23,830.00, super kept $0.00, kept in all $23,830.00, all salary keeps $23,614.29, all dividends keep $23,830.00, best salary $1,000.00, best keeps $23,980.00"
+   },
+   {
+    "case": "Under the tax-free threshold all dividends keep the most, as the credit is refunded",
+    "input": "2026-27, profit $20,000.00, 25% company, salary $0.00, other income $0.00",
+    "call": [
+     {
+      "year": "2026-27",
+      "profit": "20000",
+      "baseRate": true,
+      "salary": "0",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 0,
+     "companyTax": 5000,
+     "dividend": 15000,
+     "credit": 5000,
+     "ownerTax": -5000,
+     "superTax": 0,
+     "cash": 20000,
+     "superNet": 0,
+     "kept": 20000,
+     "allSalary": 19678.57,
+     "allDividends": 20000,
+     "bestSalary": 0,
+     "bestKept": 20000
+    },
+    "output": "Super guarantee $0.00, company tax $5,000.00, dividend $15,000.00, franking credit $5,000.00, owner’s refund $5,000.00, super tax $0.00, cash kept $20,000.00, super kept $0.00, kept in all $20,000.00, all salary keeps $19,678.57, all dividends keep $20,000.00, best salary $0.00, best keeps $20,000.00"
+   },
+   {
+    "case": "A company at 30% in 2021-22, with the low and middle income tax offset",
+    "input": "2021-22, profit $41,000.00, 30% company, salary $20,000.00, other income $0.00",
+    "call": [
+     {
+      "year": "2021-22",
+      "profit": "41000",
+      "baseRate": false,
+      "salary": "20000",
+      "other": "0"
+     }
+    ],
+    "result": {
+     "superGuarantee": 2000,
+     "companyTax": 5700,
+     "dividend": 13300,
+     "credit": 5700,
+     "ownerTax": -2418,
+     "superTax": 300,
+     "cash": 35718,
+     "superNet": 1700,
+     "kept": 37418,
+     "allSalary": 37467.19,
+     "allDividends": 37348,
+     "bestSalary": 35000,
+     "bestKept": 37470.5
+    },
+    "output": "Super guarantee $2,000.00, company tax $5,700.00, dividend $13,300.00, franking credit $5,700.00, owner’s refund $2,418.00, super tax $300.00, cash kept $35,718.00, super kept $1,700.00, kept in all $37,418.00, all salary keeps $37,467.19, all dividends keep $37,348.00, best salary $35,000.00, best keeps $37,470.50"
+   },
+   {
+    "case": "A salary whose super guarantee the profit cannot pay is refused",
+    "input": "2026-27, profit $100,000.00, 25% company, salary $95,000.00, other income $0.00",
+    "call": [
+     {
+      "year": "2026-27",
+      "profit": "100000",
+      "baseRate": true,
+      "salary": "95000",
+      "other": "0"
+     }
+    ],
+    "refused": "Enter a salary of no more than $89,285.71: the profit also pays its super guarantee.",
+    "output": "Refused: enter a salary of no more than $89,285.71: the profit also pays its super guarantee"
+   }
+  ]
+ },
+ "sole-trader": {
+  "source": "ryanduguid.github.io _data/individual_tax_cases.json, key sole-trader, at d876df72 (26 November 2026)",
+  "function": "soleTraderSetAside",
+  "checked": "2026-11-19",
+  "rows": [
+   {
+    "case": "$20,000 of profit on top of $60,000 of wages in 2026-27: the offset is 20/79 of 16% of the tax",
+    "call": [
+     {
+      "year": "2026-27",
+      "income": "22000",
+      "expenses": "2000",
+      "wages": "60000",
+      "deductions": "0",
+      "super": "0",
+      "offset": true,
+      "studyLoan": false,
+      "hospitalCover": true,
+      "gst": false,
+      "credits": "0",
+      "invoice": "1000"
+     }
+    ],
+    "input": "2026-27, business $22,000 less $2,000, wages $60,000, invoice $1,000.00",
+    "output": "Offset $576.00, business tax $5,939.00; set aside $5,939.00 a year, $1,484.75 a quarter, 27.00% of each invoice",
+    "result": {
+     "profit": 20000,
+     "deduction": 1000,
+     "taxable": 79000,
+     "tax": 14220,
+     "offset": 0,
+     "lmito": 0,
+     "smallBusinessOffset": 576,
+     "medicare": 1580,
+     "surcharge": 0,
+     "studyLoan": 0,
+     "total": 15224,
+     "wagesTax": 9285,
+     "businessTax": 5939,
+     "gstOnIncome": 0,
+     "credits": 0,
+     "gst": 0,
+     "setAside": 5939,
+     "taxShare": 27,
+     "invoiceShare": 27,
+     "quarterly": 1484.75,
+     "monthly": 494.92,
+     "weekly": 114.21,
+     "invoice": {
+      "amount": 1000,
+      "setAside": 269.95,
+      "left": 730.05
+     },
+     "instalments": true,
+     "mustRegister": false
+    }
+   },
+   {
+    "case": "No job, registered for GST: the offset reaches its $1,000 cap",
+    "call": [
+     {
+      "year": "2026-27",
+      "income": "90000",
+      "expenses": "15000",
+      "wages": "0",
+      "deductions": "0",
+      "super": "0",
+      "offset": true,
+      "studyLoan": false,
+      "hospitalCover": true,
+      "gst": true,
+      "credits": "1200",
+      "invoice": "1100"
+     }
+    ],
+    "input": "2026-27, business $90,000 less $15,000, GST registered, credits $1,200, invoice $1,100.00",
+    "output": "Offset $1,000.00, business tax $13,520.00, GST $7,800.00; set aside $21,320.00 a year, $5,330.00 a quarter, 21.54% of each invoice",
+    "result": {
+     "profit": 75000,
+     "deduction": 0,
+     "taxable": 75000,
+     "tax": 13020,
+     "offset": 0,
+     "lmito": 0,
+     "smallBusinessOffset": 1000,
+     "medicare": 1500,
+     "surcharge": 0,
+     "studyLoan": 0,
+     "total": 13520,
+     "wagesTax": 0,
+     "businessTax": 13520,
+     "gstOnIncome": 9000,
+     "credits": 1200,
+     "gst": 7800,
+     "setAside": 21320,
+     "taxShare": 15.02,
+     "invoiceShare": 21.54,
+     "quarterly": 5330,
+     "monthly": 1776.67,
+     "weekly": 410,
+     "invoice": {
+      "amount": 1100,
+      "setAside": 236.89,
+      "left": 863.11
+     },
+     "instalments": true,
+     "mustRegister": false
+    }
+   },
+   {
+    "case": "No offset: $20,000 of profit on $70,000 of wages adds 30% tax and 2% Medicare levy",
+    "call": [
+     {
+      "year": "2026-27",
+      "income": "20000",
+      "expenses": "0",
+      "wages": "70000",
+      "deductions": "0",
+      "super": "0",
+      "offset": false,
+      "studyLoan": false,
+      "hospitalCover": true,
+      "gst": false,
+      "credits": "0",
+      "invoice": "1000"
+     }
+    ],
+    "input": "2026-27, business $20,000 less $0, wages $70,000, no offset, invoice $1,000.00",
+    "output": "Offset $0.00, business tax $6,400.00; set aside $6,400.00 a year, $1,600.00 a quarter, 32.00% of each invoice",
+    "result": {
+     "profit": 20000,
+     "deduction": 1000,
+     "taxable": 89000,
+     "tax": 17220,
+     "offset": 0,
+     "lmito": 0,
+     "smallBusinessOffset": 0,
+     "medicare": 1780,
+     "surcharge": 0,
+     "studyLoan": 0,
+     "total": 19000,
+     "wagesTax": 12600,
+     "businessTax": 6400,
+     "gstOnIncome": 0,
+     "credits": 0,
+     "gst": 0,
+     "setAside": 6400,
+     "taxShare": 32,
+     "invoiceShare": 32,
+     "quarterly": 1600,
+     "monthly": 533.33,
+     "weekly": 123.08,
+     "invoice": {
+      "amount": 1000,
+      "setAside": 320,
+      "left": 680
+     },
+     "instalments": true,
+     "mustRegister": false
+    }
+   },
+   {
+    "case": "2024-25, $29,000 of profit on $131,584 of wages: 16% of $7,359.76 is above the cap",
+    "call": [
+     {
+      "year": "2024-25",
+      "income": "29000",
+      "expenses": "0",
+      "wages": "131584",
+      "deductions": "0",
+      "super": "0",
+      "offset": true,
+      "studyLoan": false,
+      "hospitalCover": true,
+      "gst": false,
+      "credits": "0",
+      "invoice": "1000"
+     }
+    ],
+    "input": "2024-25, business $29,000 less $0, wages $131,584, invoice $1,000.00",
+    "output": "Offset $1,000.00, business tax $10,070.88; set aside $10,070.88 a year, $2,517.72 a quarter, 34.73% of each invoice",
+    "result": {
+     "profit": 29000,
+     "deduction": 0,
+     "taxable": 160584,
+     "tax": 40754.08,
+     "offset": 0,
+     "lmito": 0,
+     "smallBusinessOffset": 1000,
+     "medicare": 3211.68,
+     "surcharge": 0,
+     "studyLoan": 0,
+     "total": 42965.76,
+     "wagesTax": 32894.88,
+     "businessTax": 10070.88,
+     "gstOnIncome": 0,
+     "credits": 0,
+     "gst": 0,
+     "setAside": 10070.88,
+     "taxShare": 34.73,
+     "invoiceShare": 34.73,
+     "quarterly": 2517.72,
+     "monthly": 839.24,
+     "weekly": 193.67,
+     "invoice": {
+      "amount": 1000,
+      "setAside": 347.27,
+      "left": 652.73
+     },
+     "instalments": true,
+     "mustRegister": false
+    }
+   },
+   {
+    "case": "2025-26 with a study loan and no hospital cover: the repayment and surcharge join the set-aside",
+    "call": [
+     {
+      "year": "2025-26",
+      "income": "130000",
+      "expenses": "10000",
+      "wages": "0",
+      "deductions": "0",
+      "super": "0",
+      "offset": true,
+      "studyLoan": true,
+      "hospitalCover": false,
+      "gst": false,
+      "credits": "0",
+      "invoice": "1000"
+     }
+    ],
+    "input": "2025-26, business $130,000 less $10,000, study loan, no hospital cover, invoice $1,000.00",
+    "output": "Offset $1,000.00, business tax $37,638.00; set aside $37,638.00 a year, $9,409.50 a quarter, 28.95% of each invoice",
+    "result": {
+     "profit": 120000,
+     "deduction": 0,
+     "taxable": 120000,
+     "tax": 26788,
+     "offset": 0,
+     "lmito": 0,
+     "smallBusinessOffset": 1000,
+     "medicare": 2400,
+     "surcharge": 1500,
+     "studyLoan": 7950,
+     "total": 37638,
+     "wagesTax": 0,
+     "businessTax": 37638,
+     "gstOnIncome": 0,
+     "credits": 0,
+     "gst": 0,
+     "setAside": 37638,
+     "taxShare": 28.95,
+     "invoiceShare": 28.95,
+     "quarterly": 9409.5,
+     "monthly": 3136.5,
+     "weekly": 723.81,
+     "invoice": {
+      "amount": 1000,
+      "setAside": 289.52,
+      "left": 710.48
+     },
+     "instalments": true,
+     "mustRegister": true
+    }
+   },
+   {
+    "case": "2023-24, other deductions take taxable income below the profit: the offset’s share stops at 1",
+    "call": [
+     {
+      "year": "2023-24",
+      "income": "40000",
+      "expenses": "5000",
+      "wages": "0",
+      "deductions": "3000",
+      "super": "0",
+      "offset": true,
+      "studyLoan": false,
+      "hospitalCover": true,
+      "gst": false,
+      "credits": "0",
+      "invoice": "1000"
+     }
+    ],
+    "input": "2023-24, business $40,000 less $5,000, other deductions $3,000, invoice $1,000.00",
+    "output": "Offset $419.52, business tax $2,102.48; set aside $2,102.48 a year, $525.62 a quarter, 5.26% of each invoice",
+    "result": {
+     "profit": 35000,
+     "deduction": 0,
+     "taxable": 32000,
+     "tax": 2622,
+     "offset": 700,
+     "lmito": 0,
+     "smallBusinessOffset": 419.52,
+     "medicare": 600,
+     "surcharge": 0,
+     "studyLoan": 0,
+     "total": 2102.48,
+     "wagesTax": 0,
+     "businessTax": 2102.48,
+     "gstOnIncome": 0,
+     "credits": 0,
+     "gst": 0,
+     "setAside": 2102.48,
+     "taxShare": 5.26,
+     "invoiceShare": 5.26,
+     "quarterly": 525.62,
+     "monthly": 175.21,
+     "weekly": 40.43,
+     "invoice": {
+      "amount": 1000,
+      "setAside": 52.56,
+      "left": 947.44
+     },
+     "instalments": true,
+     "mustRegister": false
+    }
+   },
+   {
+    "case": "2021-22, $25,000 of profit: the low and middle income offsets leave no tax for this offset",
+    "call": [
+     {
+      "year": "2021-22",
+      "income": "25000",
+      "expenses": "0",
+      "wages": "0",
+      "deductions": "0",
+      "super": "0",
+      "offset": true,
+      "studyLoan": false,
+      "hospitalCover": true,
+      "gst": false,
+      "credits": "0",
+      "invoice": "1000"
+     }
+    ],
+    "input": "2021-22, business $25,000 less $0, invoice $1,000.00",
+    "output": "Offset $0.00, business tax $163.50; set aside $163.50 a year, $40.88 a quarter, 0.65% of each invoice",
+    "result": {
+     "profit": 25000,
+     "deduction": 0,
+     "taxable": 25000,
+     "tax": 1292,
+     "offset": 700,
+     "lmito": 592,
+     "smallBusinessOffset": 0,
+     "medicare": 163.5,
+     "surcharge": 0,
+     "studyLoan": 0,
+     "total": 163.5,
+     "wagesTax": 0,
+     "businessTax": 163.5,
+     "gstOnIncome": 0,
+     "credits": 0,
+     "gst": 0,
+     "setAside": 163.5,
+     "taxShare": 0.65,
+     "invoiceShare": 0.65,
+     "quarterly": 40.88,
+     "monthly": 13.63,
+     "weekly": 3.14,
+     "invoice": {
+      "amount": 1000,
+      "setAside": 6.54,
+      "left": 993.46
+     },
+     "instalments": false,
+     "mustRegister": false
+    }
+   }
+  ]
+ },
+ "salary-packaging": {
+  "source": "ryanduguid.github.io _data/individual_tax_cases.json, key salary-packaging, at d876df72 (26 November 2026)",
+  "function": "salaryPackaging",
+  "checked": "2026-11-19",
+  "rows": [
+   {
+    "case": "A charity’s cap filled with Type 2 benefits: $15,899.93 grosses up to $30,000",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "15899.93",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $70,000, Type 2 $15,899.93",
+    "output": "Gain $5,291.50: tax saved $5,291.50, FBT $0.00, reportable $29,999",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 15899.93,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 30000,
+     "grossedMeals": 0,
+     "grossed": 30000,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 29999,
+     "taxableBefore": 69000,
+     "taxableAfter": 53100,
+     "owedBefore": 12600,
+     "owedAfter": 7308.5,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 5291.5,
+     "gain": 5291.5,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "The ATO’s example: a health promotion charity employee’s FBT of $1,986.22",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "80000",
+      "typeTwo": "9000",
+      "typeOne": "7700",
+      "meals": "3300",
+      "mealsTypeOne": false,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $80,000, Type 2 $9,000.00, Type 1 $7,700.00, meal entertainment $3,300.00 (Type 2)",
+    "output": "Gain $4,528.78: tax saved $6,515.00, FBT $1,986.22, reportable $37,735",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 20000,
+     "grossedTypeOne": 16018,
+     "grossedTypeTwo": 23208,
+     "grossedMeals": 6226,
+     "grossed": 39226,
+     "mealAllowance": 5000,
+     "excess": 4226,
+     "fbt": 1986.22,
+     "reportable": 37735,
+     "taxableBefore": 79000,
+     "taxableAfter": 59000,
+     "owedBefore": 15800,
+     "owedAfter": 9285,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 6515,
+     "gain": 4528.78,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "A hospital’s cap filled: $9,009.96 grosses up to $17,000",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "hospital",
+      "salary": "70000",
+      "typeTwo": "9009.96",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, hospital, resident, salary $70,000, Type 2 $9,009.96",
+    "output": "Gain $2,983.35: tax saved $2,983.35, FBT $0.00, reportable $16,999",
+    "result": {
+     "year": "2026-27",
+     "cap": 17000,
+     "packaged": 9009.96,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 17000,
+     "grossedMeals": 0,
+     "grossed": 17000,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 16999,
+     "taxableBefore": 69000,
+     "taxableAfter": 59990,
+     "owedBefore": 12600,
+     "owedAfter": 9616.65,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 2983.35,
+     "gain": 2983.35,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "To the dollar, $15,900.20 still grosses up to $30,000",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "15900.20",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $70,000, Type 2 $15,900.20",
+    "output": "Gain $5,291.84: tax saved $5,291.84, FBT $0.00, reportable $30,000",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 15900.2,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 30000,
+     "grossedMeals": 0,
+     "grossed": 30000,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 30000,
+     "taxableBefore": 69000,
+     "taxableAfter": 53099,
+     "owedBefore": 12600,
+     "owedAfter": 7308.16,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 5291.84,
+     "gain": 5291.84,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "A cent more is $1 over the cap and $0.47 of FBT",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "15900.21",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $70,000, Type 2 $15,900.21",
+    "output": "Gain $5,291.37: tax saved $5,291.84, FBT $0.47, reportable $30,000",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 15900.21,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 30001,
+     "grossedMeals": 0,
+     "grossed": 30001,
+     "mealAllowance": 0,
+     "excess": 1,
+     "fbt": 0.47,
+     "reportable": 30000,
+     "taxableBefore": 69000,
+     "taxableAfter": 53099,
+     "owedBefore": 12600,
+     "owedAfter": 7308.16,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 5291.84,
+     "gain": 5291.37,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "Meal entertainment up to $5,000 grossed up sits above the cap",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "15899.93",
+      "typeOne": "0",
+      "meals": "2403.61",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $70,000, Type 2 $15,899.93, meal entertainment $2,403.61 (Type 1)",
+    "output": "Gain $6,096.84: tax saved $6,096.84, FBT $0.00, reportable $34,534",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 18303.54,
+     "grossedTypeOne": 5000,
+     "grossedTypeTwo": 30000,
+     "grossedMeals": 5000,
+     "grossed": 35000,
+     "mealAllowance": 5000,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 34534,
+     "taxableBefore": 69000,
+     "taxableAfter": 50696,
+     "owedBefore": 12600,
+     "owedAfter": 6503.16,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 6096.84,
+     "gain": 6096.84,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "Meal entertainment beyond the $5,000 allowance is taxed with the rest",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "20000",
+      "typeOne": "0",
+      "meals": "3000",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $70,000, Type 2 $20,000.00, meal entertainment $3,000.00 (Type 1)",
+    "output": "Gain $3,450.81: tax saved $7,670.00, FBT $4,219.19, reportable $43,396",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 23000,
+     "grossedTypeOne": 6241,
+     "grossedTypeTwo": 37736,
+     "grossedMeals": 6241,
+     "grossed": 43977,
+     "mealAllowance": 5000,
+     "excess": 8977,
+     "fbt": 4219.19,
+     "reportable": 43396,
+     "taxableBefore": 69000,
+     "taxableAfter": 46000,
+     "owedBefore": 12600,
+     "owedAfter": 4930,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 7670,
+     "gain": 3450.81,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "Benefits of $2,000 are not reportable",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "2000",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $70,000, Type 2 $2,000.00",
+    "output": "Gain $640.00: tax saved $640.00, FBT $0.00, reportable $0",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 2000,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 3774,
+     "grossedMeals": 0,
+     "grossed": 3774,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 0,
+     "taxableBefore": 69000,
+     "taxableAfter": 67000,
+     "owedBefore": 12600,
+     "owedAfter": 11960,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 640,
+     "gain": 640,
+     "room": 26226,
+     "roomTypeTwo": 13899.72
+    }
+   },
+   {
+    "case": "A cent more is reportable as $3,773, as the ATO’s threshold table says",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "2000.01",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $70,000, Type 2 $2,000.01",
+    "output": "Gain $640.32: tax saved $640.32, FBT $0.00, reportable $3,773",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 2000.01,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 3774,
+     "grossedMeals": 0,
+     "grossed": 3774,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 3773,
+     "taxableBefore": 69000,
+     "taxableAfter": 66999,
+     "owedBefore": 12600,
+     "owedAfter": 11959.68,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 640.32,
+     "gain": 640.32,
+     "room": 26226,
+     "roomTypeTwo": 13899.72
+    }
+   },
+   {
+    "case": "The reportable amount brings on the surcharge and raises the study loan repayment",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "100000",
+      "typeTwo": "15899.93",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": true,
+      "hospitalCover": false
+     }
+    ],
+    "input": "2026-27, charity, resident, salary $100,000, Type 2 $15,899.93, study loan, no hospital cover",
+    "output": "Gain $1,842.16: tax saved $1,842.16, FBT $0.00, reportable $29,999",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 15899.93,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 30000,
+     "grossedMeals": 0,
+     "grossed": 30000,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 29999,
+     "taxableBefore": 99000,
+     "taxableAfter": 83100,
+     "owedBefore": 26620.8,
+     "owedAfter": 24778.64,
+     "surchargeAfter": 1130.99,
+     "studyLoanAfter": 6535.65,
+     "saved": 1842.16,
+     "gain": 1842.16,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "A foreign resident",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "foreign",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "15899.93",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2026-27, charity, foreign, salary $70,000, Type 2 $15,899.93",
+    "output": "Gain $4,770.00: tax saved $4,770.00, FBT $0.00, reportable $29,999",
+    "result": {
+     "year": "2026-27",
+     "cap": 30000,
+     "packaged": 15899.93,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 30000,
+     "grossedMeals": 0,
+     "grossed": 30000,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 29999,
+     "taxableBefore": 70000,
+     "taxableAfter": 54100,
+     "owedBefore": 21000,
+     "owedAfter": 16230,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 4770,
+     "gain": 4770,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   },
+   {
+    "case": "2022-23, before the standard deduction",
+    "call": [
+     {
+      "year": "2022-23",
+      "residency": "resident",
+      "employer": "charity",
+      "salary": "70000",
+      "typeTwo": "15899.93",
+      "typeOne": "0",
+      "meals": "0",
+      "mealsTypeOne": true,
+      "studyLoan": false,
+      "hospitalCover": true
+     }
+    ],
+    "input": "2022-23, charity, resident, salary $70,000, Type 2 $15,899.93",
+    "output": "Gain $5,674.00: tax saved $5,674.00, FBT $0.00, reportable $29,999",
+    "result": {
+     "year": "2022-23",
+     "cap": 30000,
+     "packaged": 15899.93,
+     "grossedTypeOne": 0,
+     "grossedTypeTwo": 30000,
+     "grossedMeals": 0,
+     "grossed": 30000,
+     "mealAllowance": 0,
+     "excess": 0,
+     "fbt": 0,
+     "reportable": 29999,
+     "taxableBefore": 70000,
+     "taxableAfter": 54100,
+     "owedBefore": 14617,
+     "owedAfter": 8943,
+     "surchargeAfter": 0,
+     "studyLoanAfter": 0,
+     "saved": 5674,
+     "gain": 5674,
+     "room": 0,
+     "roomTypeTwo": 0
+    }
+   }
+  ]
+ },
+ "novated-lease": {
+  "source": "ryanduguid.github.io _data/individual_tax_cases.json, key novated-lease, at d876df72 (26 November 2026)",
+  "function": "novatedLease",
+  "checked": "2026-11-19",
+  "rows": [
+   {
+    "case": "A battery electric car under the exemption",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2026-04-01",
+      "commitment": false,
+      "saleYear": "2025-26",
+      "price": "60000",
+      "otherSupply": false,
+      "lctTiming": "mixed-or-unknown",
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2026-04-01, sold 2025-26 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Exempt: value $12,000.00, saving $6,047.48, $1,465.69 without the exemption",
+    "result": {
+     "year": "2026-27",
+     "exempt": true,
+     "reason": null,
+     "threshold": 91387,
+     "taxableValue": 12000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22200,
+     "exemptCase": {
+      "preTax": 14636.36,
+      "postTax": 0,
+      "reportable": 22641,
+      "owed": 17516.16,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 6047.48
+     },
+     "contribution": {
+      "preTax": 3727.27,
+      "postTax": 12000,
+      "reportable": 0,
+      "owed": 21007.04,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 1465.69
+     }
+    }
+   },
+   {
+    "case": "A petrol car under the employee contribution method",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "other",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2026-27",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, other, first held and used on 2022-07-01, sold 2026-27 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Not exempt (it is not a battery electric or hydrogen fuel cell car): value $12,000.00, saving $1,465.69",
+    "result": {
+     "year": "2026-27",
+     "exempt": false,
+     "reason": "it is not a battery electric or hydrogen fuel cell car",
+     "threshold": 91661,
+     "taxableValue": 12000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22200,
+     "exemptCase": null,
+     "contribution": {
+      "preTax": 3727.27,
+      "postTax": 12000,
+      "reportable": 0,
+      "owed": 21007.04,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 1465.69
+     }
+    }
+   },
+   {
+    "case": "A plug-in hybrid from 1 April 2025 without an earlier commitment",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "phev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2026-27",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, phev, first held and used on 2022-07-01, sold 2026-27 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Not exempt (a plug-in hybrid is exempt from 1 April 2025 only under a commitment made and used before then): value $12,000.00, saving $1,465.69",
+    "result": {
+     "year": "2026-27",
+     "exempt": false,
+     "reason": "a plug-in hybrid is exempt from 1 April 2025 only under a commitment made and used before then",
+     "threshold": 91661,
+     "taxableValue": 12000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22200,
+     "exemptCase": null,
+     "contribution": {
+      "preTax": 3727.27,
+      "postTax": 12000,
+      "reportable": 0,
+      "owed": 21007.04,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 1465.69
+     }
+    }
+   },
+   {
+    "case": "A plug-in hybrid under a commitment from before 1 April 2025",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "phev",
+      "firstUsed": "2022-07-01",
+      "commitment": true,
+      "saleYear": "2024-25",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, phev, first held and used on 2022-07-01, earlier commitment, sold 2024-25 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Exempt: value $12,000.00, saving $6,047.48, $1,465.69 without the exemption",
+    "result": {
+     "year": "2026-27",
+     "exempt": true,
+     "reason": null,
+     "threshold": 91387,
+     "taxableValue": 12000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22200,
+     "exemptCase": {
+      "preTax": 14636.36,
+      "postTax": 0,
+      "reportable": 22641,
+      "owed": 17516.16,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 6047.48
+     },
+     "contribution": {
+      "preTax": 3727.27,
+      "postTax": 12000,
+      "reportable": 0,
+      "owed": 21007.04,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 1465.69
+     }
+    }
+   },
+   {
+    "case": "A plug-in hybrid in 2024-25 needs no commitment",
+    "call": [
+     {
+      "year": "2024-25",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "phev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2024-25",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2024-25, phev, first held and used on 2022-07-01, sold 2024-25 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Exempt: value $12,000.00, saving $6,047.48, $1,465.69 without the exemption",
+    "result": {
+     "year": "2024-25",
+     "exempt": true,
+     "reason": null,
+     "threshold": 91387,
+     "taxableValue": 12000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22788,
+     "exemptCase": {
+      "preTax": 14636.36,
+      "postTax": 0,
+      "reportable": 22641,
+      "owed": 18104.16,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 6047.48
+     },
+     "contribution": {
+      "preTax": 3727.27,
+      "postTax": 12000,
+      "reportable": 0,
+      "owed": 21595.04,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 1465.69
+     }
+    }
+   },
+   {
+    "case": "First held and used before 1 July 2022",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2022-06-30",
+      "commitment": false,
+      "saleYear": "2021-22",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2022-06-30, sold 2021-22 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Not exempt (it was first held and used before 1 July 2022): value $12,000.00, saving $1,465.69",
+    "result": {
+     "year": "2026-27",
+     "exempt": false,
+     "reason": "it was first held and used before 1 July 2022",
+     "threshold": 79659,
+     "taxableValue": 12000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22200,
+     "exemptCase": null,
+     "contribution": {
+      "preTax": 3727.27,
+      "postTax": 12000,
+      "reportable": 0,
+      "owed": 21007.04,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 1465.69
+     }
+    }
+   },
+   {
+    "case": "At the luxury car tax threshold for fuel-efficient cars",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2026-27",
+      "price": "91661",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "25000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2022-07-01, sold 2026-27 at $91,661.00, 365 days, costs $25,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Exempt: value $18,332.20, saving $9,865.69, $2,866.01 without the exemption",
+    "result": {
+     "year": "2026-27",
+     "exempt": true,
+     "reason": null,
+     "threshold": 91661,
+     "taxableValue": 18332.2,
+     "costs": 26000,
+     "netCosts": 23727.27,
+     "owedWithout": 22200,
+     "exemptCase": {
+      "preTax": 23727.27,
+      "postTax": 0,
+      "reportable": 34589,
+      "owed": 14607.04,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 9865.69
+     },
+     "contribution": {
+      "preTax": 7061.63,
+      "postTax": 18332.2,
+      "reportable": 0,
+      "owed": 19940.16,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 2866.01
+     }
+    }
+   },
+   {
+    "case": "A cent over the threshold: luxury car tax was payable",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2026-27",
+      "price": "91661.01",
+      "otherSupply": false,
+      "lctTiming": "before-all",
+      "reduced": false,
+      "days": "274",
+      "gstCosts": "25000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2022-07-01, sold 2026-27 at $91,661.01, 274 days, costs $25,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Not exempt (luxury car tax was payable on its first retail sale): value $13,761.71, saving $4,611.11",
+    "result": {
+     "year": "2026-27",
+     "exempt": false,
+     "reason": "luxury car tax was payable on its first retail sale",
+     "threshold": 91661,
+     "taxableValue": 13761.71,
+     "costs": 26000,
+     "netCosts": 23727.27,
+     "owedWithout": 22200,
+     "exemptCase": null,
+     "contribution": {
+      "preTax": 11216.62,
+      "postTax": 13761.71,
+      "reportable": 0,
+      "owed": 18610.56,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 4611.11
+     }
+    }
+   },
+   {
+    "case": "First sold in 2022-23 under that year’s $84,916 threshold",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2022-23",
+      "price": "84916.01",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "25000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2022-07-01, sold 2022-23 at $84,916.01, 365 days, costs $25,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Not exempt (luxury car tax was payable on its first retail sale): value $16,983.20, saving $3,380.96",
+    "result": {
+     "year": "2026-27",
+     "exempt": false,
+     "reason": "luxury car tax was payable on its first retail sale",
+     "threshold": 84916,
+     "taxableValue": 16983.2,
+     "costs": 26000,
+     "netCosts": 23727.27,
+     "owedWithout": 22200,
+     "exemptCase": null,
+     "contribution": {
+      "preTax": 8288,
+      "postTax": 16983.2,
+      "reportable": 0,
+      "owed": 19547.84,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 3380.96
+     }
+    }
+   },
+   {
+    "case": "2023-24 has 366 days",
+    "call": [
+     {
+      "year": "2023-24",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2023-24",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2023-24, bev, first held and used on 2022-07-01, sold 2023-24 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Exempt: value $11,967.21, saving $6,413.40, $1,572.22 without the exemption",
+    "result": {
+     "year": "2023-24",
+     "exempt": true,
+     "reason": null,
+     "threshold": 89332,
+     "taxableValue": 11967.21,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 24967,
+     "exemptCase": {
+      "preTax": 14636.36,
+      "postTax": 0,
+      "reportable": 22579,
+      "owed": 19917.24,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 6413.4
+     },
+     "contribution": {
+      "preTax": 3757.08,
+      "postTax": 11967.21,
+      "reportable": 0,
+      "owed": 23670.49,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 1572.22
+     }
+    }
+   },
+   {
+    "case": "Held over 4 years: two-thirds of the cost price",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2026-27",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": true,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2022-07-01, sold 2026-27 at $60,000.00, held over 4 years, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Exempt: value $8,000.00, saving $6,047.48, $2,992.85 without the exemption",
+    "result": {
+     "year": "2026-27",
+     "exempt": true,
+     "reason": null,
+     "threshold": 91661,
+     "taxableValue": 8000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22200,
+     "exemptCase": {
+      "preTax": 14636.36,
+      "postTax": 0,
+      "reportable": 15094,
+      "owed": 17516.16,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 6047.48
+     },
+     "contribution": {
+      "preTax": 7363.63,
+      "postTax": 8000,
+      "reportable": 0,
+      "owed": 19843.52,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 2992.85
+     }
+    }
+   },
+   {
+    "case": "Half a year available",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "100000",
+      "studyLoan": false,
+      "hospitalCover": true,
+      "kind": "bev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2026-27",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "182",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2022-07-01, sold 2026-27 at $60,000.00, 182 days, costs $15,000.00 with GST and $1,000.00 without, salary $100,000",
+    "output": "Exempt: value $5,983.56, saving $6,047.48, $3,762.72 without the exemption",
+    "result": {
+     "year": "2026-27",
+     "exempt": true,
+     "reason": null,
+     "threshold": 91661,
+     "taxableValue": 5983.56,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 22200,
+     "exemptCase": {
+      "preTax": 14636.36,
+      "postTax": 0,
+      "reportable": 11289,
+      "owed": 17516.16,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 6047.48
+     },
+     "contribution": {
+      "preTax": 9196.76,
+      "postTax": 5983.56,
+      "reportable": 0,
+      "owed": 19256.96,
+      "surcharge": 0,
+      "studyLoan": 0,
+      "saving": 3762.72
+     }
+    }
+   },
+   {
+    "case": "The reportable amount brings on the surcharge",
+    "call": [
+     {
+      "year": "2026-27",
+      "residency": "resident",
+      "salary": "120000",
+      "studyLoan": false,
+      "hospitalCover": false,
+      "kind": "bev",
+      "firstUsed": "2022-07-01",
+      "commitment": false,
+      "saleYear": "2026-27",
+      "price": "60000",
+      "otherSupply": false,
+      "reduced": false,
+      "days": "365",
+      "gstCosts": "15000",
+      "otherCosts": "1000"
+     }
+    ],
+    "input": "2026-27, bev, first held and used on 2022-07-01, sold 2026-27 at $60,000.00, 365 days, costs $15,000.00 with GST and $1,000.00 without, salary $120,000, no hospital cover",
+    "output": "Exempt: value $12,000.00, saving $5,649.93, $1,502.97 without the exemption",
+    "result": {
+     "year": "2026-27",
+     "exempt": true,
+     "reason": null,
+     "threshold": 91661,
+     "taxableValue": 12000,
+     "costs": 16000,
+     "netCosts": 14636.36,
+     "owedWithout": 29790,
+     "exemptCase": {
+      "preTax": 14636.36,
+      "postTax": 0,
+      "reportable": 22641,
+      "owed": 25503.71,
+      "surcharge": 1587.55,
+      "studyLoan": 0,
+      "saving": 5649.93
+     },
+     "contribution": {
+      "preTax": 3727.27,
+      "postTax": 12000,
+      "reportable": 0,
+      "owed": 28559.76,
+      "surcharge": 1152.72,
+      "studyLoan": 0,
+      "saving": 1502.97
+     }
+    }
+   }
+  ]
+ }
+}

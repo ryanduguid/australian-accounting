@@ -1,5 +1,111 @@
 # Changes
 
+## Unreleased
+
+### Added
+
+- `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost`
+  mirror the site's break-even, 13-week cash, hourly, fixed fee and staff
+  cost calculators and agree with every one of their vectors;
+  `staff-cost` can also work the super guarantee from a stated base at the
+  ATO's percentage and maximum contribution base for 2021-22 to 2026-27, and
+  add payroll tax and workers compensation at stated rates. New codes:
+  `break_even.no_contribution`, `break_even.sales_out_of_range`,
+  `cash_forecast.delay_above_receipts`,
+  `cash_forecast.delayed_receipt_invalid`, `cash_forecast.weeks_invalid`,
+  `pricing.fee_out_of_range`, `pricing.hours_invalid`,
+  `pricing.margin_invalid`, `pricing.round_to_invalid`,
+  `staff_cost.base_above_quarterly_cap`, `staff_cost.rate_invalid` and
+  `staff_cost.super_basis_invalid`.
+- `consolidation-eliminations` combines a parent's and its directly held
+  subsidiaries' stated trial balances and makes the AASB 10 elimination
+  journals: the investment against equity at acquisition with goodwill and the
+  non-controlling interest (para B86(b); AASB 3 paras 19 and 32), the
+  non-controlling share since acquisition (paras 22 and B94), intra-group
+  balances and income and expenses, and unrealised profit in inventory with
+  its stated tax effect (para B86(c)), attributing profit to owners and the
+  non-controlling interests. New codes: `consolidation_eliminations.*`.
+- `tofa-accruals` says whether ITAA 1997 Division 230 reaches an arrangement
+  under s 230-455 on stated facts, and spreads a sufficiently certain overall
+  gain or loss by compounding accruals or, where stated to approximate them,
+  by straight line (s 230-135), allocated to income years (s 230-170). The
+  elective methods are refused. New codes: `tofa_accruals.*`.
+- `super-projection` projects one accumulation super account from 2026-27 to
+  a retirement age, with the retirement age and present value of ASIC
+  Instrument 2022/603 s 4, mirroring the site's super projection page. New
+  codes: `super_projection.cap_exceeded`, `input_invalid` and
+  `retirement_not_after_age`.
+- `objection-deadline` gives the last day to lodge a taxation objection under
+  TAA 1953 s 14ZW for an income tax or FBT assessment, an amended one or
+  another decision, counted under the Acts Interpretation Act 1901 ss 2G and
+  36, mirroring the site's objection deadline page. New codes:
+  `objection_deadline.fact_invalid`.
+- `lessee-lease` measures a lessee's lease under AASB 16 and sets out each
+  income year's interest, payments, depreciation and balances, mirroring the
+  site's AASB 16 lease page. New codes: `lessee_lease.cost_nil`,
+  `fact_invalid`, `remeasurement`, `rounding_negative` and
+  `useful_life_needed`.
+- `thin-capitalisation` works out the debt deductions a company that is a
+  general class investor has disallowed under ITAA 1997 Subdivision 820-AA
+  for 2023-24 to 2026-27, by the fixed ratio, group ratio or third party
+  debt test, with each deduction's share, the special deduction for earlier
+  fixed ratio test disallowed amounts and the ss 820-35, 820-37 and 820-39
+  exemptions. `derive` takes it. New codes: `thin_capitalisation.carry_forward_invalid`,
+  `carry_forward_unsettled`, `debt_deductions_invalid`,
+  `entity_class_not_built`, `fact_invalid`, `gr_group_ebitda_not_positive`,
+  `group_ratio_negative`, `input_missing`, `input_not_used` and
+  `plantation_forestry`.
+- `debt-forgiveness` applies ITAA 1997 Division 245 to one debtor's
+  commercial debts forgiven in 2020-21 to 2026-27: each debt's gross and net
+  forgiven amounts and the total's reduction of tax losses, net capital
+  losses, expenditure and cost bases in the statutory order. `derive` takes
+  it. New codes: `debt_forgiveness.attributable_income`, `debt_invalid`,
+  `forgone_exceeds_provisional`, `forgone_not_eligible`, `item_invalid` and
+  `partnership`.
+- `salary-dividend`, `sole-trader-set-aside`, `salary-packaging` and
+  `novated-lease` mirror the site's salary and dividends, sole trader,
+  salary packaging and novated lease pages for 2024-25 to 2026-27, composing
+  the individual tax parts from `resident-tax`, `low-income-tax-offset`,
+  `medicare-levy`, `medicare-levy-surcharge` and `study-loan-repayment`.
+  `salary-packaging` grosses up by FBTAA s 5B(1F) and (1G)'s formulas, not the
+  ATO's 4-place rates. New codes: `salary_dividend.salary_too_large`,
+  `sole_trader_set_aside.business_loss`, `credits_unregistered`,
+  `deductions_exceed_income`, `gst_refund`, `salary_packaging.employer_invalid`,
+  `packaged_exceeds_salary`, `residency_invalid`, `novated_lease.car_invalid`,
+  `contribution_short`, `cost_price_nil`, `costs_exceed_salary`,
+  `first_used_late`, `hybrid_commitment`, `lct_timing_invalid`,
+  `residency_invalid` and `sale_year_invalid`.
+- `smsf-member-allocation` shares a complying SMSF's net earnings and income
+  tax for 2024-25 to 2026-27 across its member accounts by daily weighted
+  balance, with 15% contributions tax on each account's concessional
+  contributions, and checks each pension's minimum (and a transition to
+  retirement pension's maximum) as `pension-minimum` works it. New codes:
+  `smsf_member_allocation.account_invalid`, `balance_negative`,
+  `method_unsupported`, `no_balance`, `pension_not_whole_year`,
+  `refund_with_retirement_phase`, `tax_unallocable`, `transaction_invalid`,
+  `transaction_not_allowed` and `transition_reaches_65`.
+
+### Changed
+
+- `resident-tax` also takes 2019-20 to 2023-24, from Income Tax Rates Act 1986
+  Schedule 7 Part I as in force in those years (compilations 54, 57 and 62).
+  The Python 0.2.0 corpus's 2 refused 2023-24 inputs now give $8,286.75 and
+  $147,336.10, and its other refusals list the added years.
+- `payroll-tax-monthly` works out one employer's payroll tax, and any
+  surcharge or levy, on one monthly return in 2026-27 in Victoria,
+  Queensland, Western Australia, South Australia, Tasmania, the ACT and the
+  Northern Territory, from each Act's monthly provisions and the year's
+  estimated wages. New codes: `payroll_tax_monthly.act_unread`,
+  `deduction_above_cap`, `estimate_invalid`, `grouped`, `interstate_unworked`,
+  `jurisdiction_invalid`, `last_period`, `month_invalid`,
+  `nomination_above_wages`, `part_year`, `rate_unset`, `rate_unsettled`,
+  `regional_discount` and `surcharge_negative`. `derive` takes it.
+- `payroll-tax` takes `periodic_tax` (and in Queensland `periodic_levy`,
+  elsewhere but Western Australia `other_refunds`) and reconciles the year
+  against the periodic returns: what remains payable and what is refunded,
+  under each Act's annual adjustment. New code:
+  `payroll_tax.reconciliation_unread` (New South Wales).
+
 ## 1.4.0
 
 ### Added

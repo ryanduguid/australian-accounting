@@ -59,7 +59,8 @@ example evidence; it does not claim a fresh review of every supported period.
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
 | CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
-| Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
+| Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts and caps excluded; the annual reconciliation added on 26 November 2026 |
+| Payroll tax monthly | Not a Library document: each Act's monthly provisions and the QRO's periodic deduction examples | 22 October 2026 to 26 November 2026 (Acts); 26 November 2026 (read) | One employer outside a group paying wages all year, one month of 2026-27 in Vic, Qld, WA, SA, Tas, ACT or NT; NSW refused |
 | Portable LSL levy | Not a Library document: Coal LSL (`F2018L00217`, `C2004A04352`, `tools/coal-lsl-levy` parity vectors) and each state and territory portable LSL board's rates page and in-force legislation (NSW LSC, LeavePlus, PLSA, QLeave and Qld BCI Act/Reg, SA Portable LSL, MyLeave, ACT DI2024-12/15/16/224 and DI2026-228, TasBuild, NT Build) | 24 November 2026 (read) | 20 verified jurisdiction-scheme combinations across 2023-24 to 2026-27 (each scheme gated to its verified years); worker coverage, exemptions, apprentice exclusions, late interest and lodgement excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
@@ -326,6 +327,22 @@ credits and refund calculations in the passage are excluded.
 The existing $45,000 boundary gives $4,288 at 16%. At the engine's existing
 2026–27 first rate of 15%, the same arithmetic gives $4,020. The latter is a
 regression of the existing rate, not a rate corroborated by this Library passage.
+
+From 2019-20 to 2023-24 the worksheet uses Income Tax Rates Act 1986
+Schedule 7 Part I clause 1's tables as in force in those years, read on
+26 November 2026: for 2019-20, the table for the 2018-19 to 2021-22 years in
+compilation 54 (6 July 2019, with Act No. 52 of 2019), which applied
+throughout 2019-20 (19% to $37,000, 32.5% to $90,000, 37% to $180,000, then
+45%); for 2020-21 to 2023-24, the table Act No. 92 of 2020 inserted, in
+compilations 57 (15 October 2020) and 62 (1 April 2024) (19% to $45,000,
+32.5% to $120,000, 37% to $180,000, then 45%). The tax-free threshold is
+$18,200 in each, and s 20(1) reads the same, so a part-year resident's
+threshold is worked as below; the ATO's myTax 'Part-year tax-free threshold'
+pages for 2020 to 2024 (QC61978, QC65242, QC67917, QC72025 and QC101635) give
+$13,464 plus $4,736 pro-rated by months for each year. Offsets, including the
+low and middle income tax offset of those years, are outside this worksheet
+as for later years. `tests/resident_tax_earlier_years.rs` checks each table at
+its band tops and the 2 frozen 2023-24 inputs.
 
 ## Part-year tax-free threshold
 
@@ -2370,6 +2387,41 @@ before a sale in the year, a G1 on a new share either side of 12 months from
 the head share's date, the parcels passed to `cgt-parcels`, each year boundary
 and each refusal.
 
+The `scrip_for_scrip` event was added on 26 November 2026, after reading
+ITAA 1997 ss 124-780, 124-781, 124-782, 124-785, 124-790 and 124-795 on the
+ATO's legal database (no change in substance since 1 July 2018).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| X1, s 124-790(2) example (Ken) | 100 shares, cost base $200, one new share worth $4 and $1 cash each | Gain **$60**, replacement cost base **$160** |
+| X2, s 124-785 examples (Lyn, Glenn) | One $10 share for one; $10 and $11 shares for half a share each | Cost base **$10**; **$21** in total |
+| S3 | Cost $300 and costs of owning $100, 2 new units at $4 and $2 cash a unit, held under 12 months | $240 and $80 carried, gain **$120**, not a discount gain |
+
+
+## CGT roll-overs
+
+Added on 26 November 2026, when the sources were read on the ATO's legal
+database with their history notes: ITAA 1997 ss 126-5, 126-15 and 126-25
+(marriage or relationship breakdown); ss 152-10, 152-305, 152-410 and 152-415
+(small business roll-over); ss 104-185, 104-190, 104-197 and 104-198 (CGT
+events J2, J5 and J6); ss 122-15 to 122-70 (wholly owned company); and
+ss 109-55, 115-25, 115-30 and 115-34. None changed in substance from
+1 July 2020; Act No. 13 of 2021 reworded an example in s 126-15. The vectors
+are the Act's examples where it has one.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| M1, s 126-5(5) example | Land, cost base $10,000, court order, A1 | Transferee's cost base **$10,000**, acquired at the event, for the discount when the transferor acquired it |
+| M2 | M1 with proceeds $25,000; reduced cost base $9,000 and proceeds $8,000 | Gain disregarded **$15,000**; loss disregarded **$1,000** |
+| S1, s 152-415 example | Gain $25,000 after the other concessions, $20,000 disregarded | Remaining gain **$5,000**; period 30 September 2024 to 30 September 2027 |
+| S2 | S1 with a $16,000 qualifying asset | J6 gain **$4,000** at the period's end; no qualifying asset: J5 gain **$20,000** |
+| C1, s 122-50(1) example (Nick) | Precluded assets $80,000 at market value, land cost base $120,000, liabilities $15,000, 10 shares | Shares' cost base **$185,000**, **$18,500** a share |
+| C2 | One asset, cost base $300,000, liabilities $50,000, 3 shares, proceeds $400,000 | Shares' cost base **$250,000**, **$83,333.33** a share, gain disregarded **$100,000**; liabilities above $300,000 refused |
+
+`tests/cgt_rollover.rs` also covers the agreement grounds, each refusal, the
+replacement period's bounds with an earnout and 29 February, and assets
+acquired before 21 September 1999.
+
 ## Trade-in
 
 This worksheet was added on 18 November 2026, beside the balancing adjustment,
@@ -2879,6 +2931,63 @@ QRO's 'Payroll tax deductions' were read the same day.
 | $1,800,000 in South Australia; $2,500,000 in the ACT | SA Sch 1 cl 9(2); ACT Sch 1 s 1.9(2) | $600,000; $1,750,000 |
 
 `tests/payroll_tax_group.rs` holds these cases.
+
+## Payroll tax monthly
+
+This worksheet, and the annual reconciliation `payroll_tax` now makes, were
+added on 26 November 2026. Each Act was read that day at its official
+legislation site: the Payroll Tax Act 2007 (Vic) Sch 2 Pt 2 and s 83
+(authorised version 041, in force from 1 May 2026); the Payroll Tax Act 1971
+(Qld) ss 10, 17 to 21, 29 to 31 and 43C to 43K (current as at 22 October
+2026); the Pay-roll Tax Assessment Act 2002 (WA) ss 8, 11, 12, 15 and 16
+(04-d0-03) and the Pay-roll Tax Act 2002 (WA) s 5 (00-d0-02); the Payroll Tax
+Act 2009 (SA) Sch 2 cll 2, 5 and 6 and s 83 (version 31.3.2026); the Payroll
+Tax Act 2008 (Tas) Sch 1 cl 4 (its formulas are images, read as published),
+Sch 2 cll 2 and 3 and s 83; the Payroll Tax Act 2011 (ACT) Sch 2 Pt 2.1, s 83
+and s 86 (republication R20) with DI2026-151 s 5(b) and (d) and Table 2; and
+the Payroll Tax Act 2009 (NT) s 7A, s 83 and Sch 2 cll 5 to 7 (as in force at
+1 July 2026). The Payroll Tax Act 2007 (NSW) served a Cloudflare challenge at
+legislation.nsw.gov.au, again after one change of network, so New South
+Wales is refused in both.
+
+Several Acts work the month on the year's estimated wages: Victoria's
+deduction phases out on them (Sch 2 cl 5) and is shared by them with
+interstate wages (cl 6(3)), as are its surcharge thresholds (cl 4(4));
+Queensland's fixed periodic deduction and levy thresholds use them (ss 17 and
+43C to 43E); South Australia's deduction and rate (Sch 2 cll 5 and 6); and the
+ACT's deduction with interstate wages (Sch 2 s 2.4). Where an Act's
+deductible amount is the one the employer claims by notice (Vic cl 6, SA cl 6,
+ACT s 2.4), the worksheet works the amount the Act's formula gives unless
+an amount is stated, which it takes as the latest notice's or the
+Commissioner's determination (refused above the Act's cap); Queensland's
+s 21 deduction and s 43E(1) thresholds are taken the same way. The
+Northern Territory's monthly deduction is determined in a manner the
+Commissioner approves (Sch 2 cll 6 and 7), and Western Australia's for an
+interstate employer is the Commissioner's nomination (s 15), so both are
+stated. The Northern Territory's 6.5% rate turns on the year's actual wages
+(s 7A(2)), so a month whose estimate reaches $100 million is refused and the
+others take 5.5% (s 7A(1)), the annual adjustment settling a year that reaches
+it unforeseen. Western Australia's s 15 applies the rate to the difference
+between the wages and the nomination and does not say how a negative
+difference is treated, so a nomination above the month's wages is refused.
+The annual refund is reduced by `other_refunds` where s 83(4) (s 83(5) in the
+ACT) so provides.
+
+`tests/payroll_tax_monthly.rs` and the reconciliation tests in
+`tests/payroll_tax.rs` hold these cases:
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $158,521 in a Queensland month | QRO 'Payroll tax deductions': actual periodic deduction $101,163 | $101,163.29 deduction, $2,724.49 at 4.75% |
+| $387,524 of $1,500,000 estimated in Queensland | QRO: fixed periodic deduction $27,373 | $27,372.63 |
+| $350,000 in a Victorian month, $4,200,000 estimated | Worked by hand from Sch 2 cl 5: $83,333 - $1,200,000 / 12 x 50% | $33,333.00 deduction, $15,358.35 |
+| $170,000 in Victoria, half the year's wages estimated interstate | Worked by hand from Sch 2 cl 6(3) | $20,833.17 deduction, $7,234.59 |
+| $300,000 in a Western Australian month | Worked by hand from ss 11 and 12: $83,333 - $216,667 / 6.5 | $49,999.62 deduction, $13,750.02 |
+| $140,000 in South Australia, $1,600,000 estimated | Worked by hand from Sch 2 cll 5 and 6: 2.475% | $2,227.50 |
+| $200,000 in Tasmania in July | Worked by hand from Sch 2 cll 2 and 3: $2,354,838.71 a year | $4,386.30 |
+| $300,000 in an ACT month | Worked by hand from Sch 2 s 2.2 and DI2026-151 | $10,406.25 at 6.75% |
+| $4,200,000 in Victoria for the year, $180,000 paid on returns | Worked by hand from s 83(2) | $4,300.00 payable |
+| $3,000,000 in the ACT for the year, $19.99 short | s 83(3): under $20 is determined to be $0 | $0.00 payable |
 
 ## Transfer duty
 
@@ -5711,6 +5820,100 @@ typed from the rules above.
 | Vic built, $900,000 total, contract $750,000 and $750,001 | Vic Act ss 13(1A), 13(7)(b), 18(1A) | $10,000; nil |
 | NSW built, contract $9,999 | Revenue NSW (Act unread) | refused |
 
+## Government schemes
+
+Added on 26 November 2026, when these were read:
+
+- Help to Buy: the Help to Buy Act 2024 (C2024A00124, compilation 1) and the
+  Help to Buy Program Directions 2025 (F2025L00682, as made, in force from
+  14 June 2025, no amendments), ss 7, 8, 9, 16, 17, 19, 21, 25, 34, 37 and
+  43; Housing Australia's 'Help to Buy income and threshold updates 2026-27'.
+  `tests/gov_schemes.rs` reproduces the s 25(3) example (30% of $500,000
+  valued at $475,000: 31.58%).
+- Home Guarantee Scheme: the Housing Australia Investment Mandate Direction
+  2018 (F2018L00994), compilation of 7 February 2026 (the text from 1 October
+  2025) and the latest compilation, and the amending instrument F2026L00542
+  (the caps and Northern Territory split from 1 July 2026), ss 29C, 29D, 29F,
+  44 and 46.
+- Age pension: the Social Security Act 1991 (C2004A04121, compilation 234),
+  ss 1064, 1076 and 1082; the Social Security Guide 4.4.1.10, 4.10.3,
+  5.1.8.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's assets test
+  page. The tests meet Services Australia's cut-off points from 20 September
+  2026 (assets $745,750 single and $1,121,000 a couple, homeowners; income
+  $2,701.40 and $4,128.00 a fortnight) to the cent.
+- Family tax benefit Part A: A New Tax System (Family Assistance) Act 1999
+  (C2004A00490, compilation 124 of 1 July 2026), Schedule 1; the Department
+  of Social Services' rates list for 1 July 2026; Services Australia's
+  'A guide to Australian Government payments' for 20 September to 31 December
+  2026. The tests meet its income limits for 7 mixes of children.
+
+The Department of Social Services' Family Assistance Guide was not read (a
+challenge page), so the Act and the published rates stand alone. The
+remaining figures in the tests are made up and worked by hand from the
+provisions.
+
+## Salary dividend
+
+`salary-dividend` was added on 26 November 2026. ITAA 1997 ss 25-130,
+202-60, 207-20 and 293-20, SGAA 1992 ss 10A and 17A and Income Tax Rates Act
+1986 ss 23 and 26 were read that day on the ATO's legal database, with the
+ATO's 'Super guarantee' page (QC18123, last updated 17 April 2026): 11.5% for
+2024-25 and 12% from 2025-26 (Table 21), quarterly bases of $65,070 and
+$62,500 (Table 24, 4 of each for a year's earnings paid evenly) and the
+2026-27 annual base of $270,830 (Table 23), which s 10A(5) gives as $32,500 x
+100 / 12 rounded down to $10. The command follows the site's salary and
+dividends page (`assets/salary-dividend.mjs`) step for step, with the owner's
+tax from `resident-tax`, `low-income-tax-offset` and `medicare-levy` and the
+Division 293 tax from `division-293`. `tests/owner_pay_mirrors.rs` runs the
+page's 10 cases: the 9 from 2024-25 agree on every figure, including the best
+salary; the 2021-22 case is refused, as the individual tax worksheets hold no
+earlier year.
+
+## Sole trader set aside
+
+`sole-trader-set-aside` was added on 26 November 2026. ITAA 1997 ss 25-130,
+328-360 and 328-365 were read that day on the ATO's legal database, with the
+ATO's 'Registering for GST' (last updated 14 September 2026: $75,000) and
+'Starting PAYG instalments' (last updated 17 December 2024: instalment income
+of $4,000 or more, tax payable of $1,000 or more and notional tax of $500 or
+more; the command tests the first 2). The command follows the site's sole
+trader page (`assets/sole-trader.mjs`). `tests/owner_pay_mirrors.rs` runs the
+page's 7 cases: the 5 from 2024-25 agree on every figure; the 2023-24 and
+2021-22 cases are refused.
+
+## Salary packaging
+
+`salary-packaging` was added on 26 November 2026. FBTAA ss 5B(1D) to (1M),
+57A, 135P and 135Q and ITAA 1997 s 25-130 were read that day on the ATO's
+legal database, with the ATO's 'Fringe benefits tax - rates and thresholds'
+(last updated 20 May 2026: 47% for the FBT years ending 31 March 2023 to 2027,
+and $2,000.01 reportable as $3,773) and Fringe benefits tax - a guide for
+employers, chapter 6. The command follows the site's salary packaging page
+(`assets/salary-packaging.mjs`) except in one rule: it grosses up by the
+formulas of s 5B(1F) and (1G), (0.47 + 0.10) / (0.53 x 1.10 x 0.47) and
+1 / 0.53, as `fbt` does, where the page and the guide multiply by 2.0802 and
+1.8868. Each grossed-up amount is rounded half up to the dollar, as the
+guide's example at 6.10 rounds it; both ways give that example's $16,018,
+$23,208 and FBT of $1,986.22. `tests/owner_pay_mirrors.rs` runs the page's 12
+cases: the 2022-23 case is refused, and the case of $15,900.21 of Type 2
+benefits, which the page puts a dollar over the cap ($15,900.21 x 1.8868 =
+$30,000.62), is within it by the formula ($30,000.40), so it has no FBT here;
+in 2 more cases the Type 2 room left in the cap is the room x 0.53, not the
+room / 1.8868 (for $26,226 of room, $13,899.78, not $13,899.72).
+
+## Novated lease
+
+`novated-lease` was added on 26 November 2026. FBTAA ss 8A, 9 and 135P were
+read that day on the ATO's legal database, with the ATO's 'Fringe benefits
+tax - rates and thresholds' (last updated 20 May 2026), 'Luxury car tax rate
+and thresholds' (QC38161, last updated 1 June 2026: the fuel-efficient thresholds
+held by `luxury-car-tax`) and 'FBT on plug-in hybrid electric vehicles'. The
+command follows the site's novated lease page (`assets/novated-lease.mjs`)
+step for step, with the tax from `salary-packaging`'s composition.
+`tests/owner_pay_mirrors.rs` runs the page's 13 cases: the cases from 2024-25
+agree on every figure and on whether the car is exempt; the 2023-24 case is
+refused.
+
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read
@@ -5856,6 +6059,69 @@ Choices the Act leaves to the reader:
 | $200,000 segregated, $34,200 other at 40% | both methods together | ECPI $213,680; T1 $3,078.00 |
 | Existing, new, wound up, new and wound up, each year | SAR 2026 table 9 | levy $259, $518, nil, $259 |
 | $1,001 at 33.33% | rounding choice | ECPI $333 |
+
+## SMSF member allocation
+
+This worksheet was added on 26 November 2026. That day these were read:
+
+- SISR reg 5.03 (compilation of 1 July 2026,
+  https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html):
+  subregulation (2) requires the trustee to determine the investment return
+  credited or debited to a member's benefits in a way that is fair and
+  reasonable between all members and between each member's kinds of benefit.
+  It sets no method; daily weighted balances are the trustee's stated choice.
+- ITAA 1997 s 307-80 (compilation 268, 1 October 2026, volume 6): a
+  transition to retirement income stream is not in the retirement phase until
+  its recipient meets the conditions in subsection (3)(b), so its earnings are
+  taxed.
+- Income Tax Rates Act 1986 s 26(1)(a) (compilation 66): 15% on the low tax
+  component, which assessable contributions (s 295-160) form part of.
+- The ATO's 'Income stream (pension) rules and payments' (last updated
+  30 April 2026): a minimum is paid at least once a year; from 1 July 2017
+  partial commutations do not count towards it; contributions and roll-overs
+  cannot increase a pension's capital once it has started; a missed standard
+  means the stream is taken to have ceased at the start of the year for income
+  tax, its payments are not super income stream benefits and the fund cannot
+  claim exempt current pension income for that or later years; exceeding a
+  transition to retirement pension's maximum has the same effect.
+- The ATO's 'Exception to minimum pension payment requirements' (last updated
+  5 November 2025): the Commissioner may let an account-based pension continue
+  where an honest mistake gave an underpayment of no more than one-twelfth of
+  the minimum, or matters were outside the trustee's control, and a catch-up
+  payment is made; a trustee may self-assess once.
+
+The minimum and maximum reuse `pension-minimum`'s SISR Schedule 7 and
+reg 6.01(2) steps for a whole year.
+
+Choices the law leaves to the reader:
+
+- A transaction weighs from its own day to 30 June inclusive; same-day moves
+  net before the balance is checked against nil.
+- Contributions tax is charged to the account whose concessional contribution
+  bore it, and only the rest of the stated tax is shared, among taxed accounts
+  only. Where that rest is a refund and a retirement phase pension is held, the
+  offsets may belong to pension assets, so the worksheet refuses rather than
+  guess.
+- An exception is a stated fact; the worksheet shows the shortfall and
+  one-twelfth of the minimum but never decides it.
+- `transition_to_retirement` states that the recipient is not a reversionary
+  beneficiary and has met no condition of release in s 307-80(2)(c) all year.
+  Attaining 65 is one, so a recipient 64 or older on 1 July is refused rather
+  than taxed: at 65 or older the pension is in the retirement phase (state it
+  as `account_based_pension`), and at 64 it almost always gets there within
+  the year.
+- A closing balance below nil after the account's share of losses and tax is
+  refused, as a balance below nil before them is.
+
+`tests/smsf_member_allocation.rs` holds these cases, worked independently with
+exact fractions:
+
+| Case | Worksheet |
+|---|---|
+| Accumulation with 2 contributions, pension paying its $25,000 minimum | earnings $23,491.43 and $36,508.57; contributions tax $1,500 and earnings tax $4,500, both to the accumulation account |
+| Transition to retirement pension over its $20,000 maximum, pension $500 short of a $7,000 minimum | earnings $19,173.05 and $10,826.95; earnings tax $1,917.30 and $1,082.70 |
+| The same with the exception stated | earnings tax $3,000 and nil |
+| $100 over 3 equal balances | $33.33, $33.34 and $33.33 |
 
 ## ESS discount
 
@@ -6318,6 +6584,30 @@ offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
 
+## Book to tax
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 ss 4-15,
+36-10, 36-17, 36-20, 36-55 and 160-10 on the ATO's legal database, with their
+history notes; AASB 112 paras 5 and 17 (September 2023 compilation); and the
+ATO's Company tax return instructions 2025 (item 7, labels R and V; worksheet
+2). None of the applied provisions changed in substance from 1 July 2020;
+Act No. 71 of 2026 made the loss carry back of s 160-10 permanent from
+2026-27, which the command refuses.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| B1, 2025-26 | Profit $100,000; $4,000 permanent add; temporary $5,000 and $1,000 subtract, $2,000 add | Taxable income **$100,000**, temporary change **$4,000**; `deferred-tax` with its own example's items finds a nil difference |
+| B2 | Loss $50,000, $2,000 permanent add, $1,500 losses brought forward | Tax loss **$48,000**, closing losses **$49,500** |
+| B3 | Loss $10,000, net exempt income $4,000, $3,000 losses | Tax loss **$6,000** (s 36-10(3)), closing **$9,000** |
+| B4 | Loss $2,000, net exempt income $5,000, $10,000 losses | $3,000 absorbed (s 36-17(4)(b)), closing **$7,000** |
+| B5 | Profit $18,000, $5,000 subtract, $7,000 add, net exempt income $5,000, $8,000 losses, $3,000 chosen | $5,000 absorbed, taxable income **$17,000**, closing **nil**; $3,000.01 refused |
+| B6 | Profit $4,000, $9,000 losses | Nil chosen: **$4,000**; $4,000 chosen: **nil**, closing $5,000; $4,000.01 refused |
+| B7 | Nil profit, no lines | Taxable income **nil** |
+| B8 | Nil net income, net exempt income $5,000, $10,000 losses | Nothing absorbed (neither s 36-17(3) nor (4) applies), closing **$10,000** |
+
+`tests/book_to_tax.rs` also covers each refused flag, malformed lines, the
+500-line limit and the supported years.
+
 ## Deferred revenue
 
 Added on 24 November 2026, when the sources were read: AASB 15 compilation
@@ -6366,6 +6656,62 @@ made-up figures worked independently in Python's `decimal`.
 `tests/deferred_revenue.rs` also covers each year boundary, the performance
 period's limits, whole-month boundaries and every refusal.
 
+## Break-even
+
+Added on 26 November 2026 from the site's break-even page, its engine
+(`assets/business-calculators.mjs`) and vectors on ryanduguid.github.io main,
+read that day. `tests/business_planning.rs` runs every site vector: the
+page's case of $1,000.00 fixed, $30.00 price and $18.00 variable (**84**
+units, **$2,520.00**), its peer case at $25.00 and $15.00 (**100** units,
+**$2,500.00**), a price equal to and below the variable cost (refused) and
+sales of $1e20 (refused). No statute applies.
+
+## Cash forecast
+
+Added on 26 November 2026 from the site's cash page and its vectors, read
+that day. `tests/business_planning.rs` runs both page cases (a receipt moved
+past week 13: closing **$350.00**, lowest **-$50.00**, gap **$150.00**,
+deferred **$600.00**; moved into week 13: closing **$950.00**, deferred nil),
+the engine tests' 7 further cases and refusals, and the tool test's week
+dates from 6 July 2026.
+
+## Hourly rate
+
+Added on 26 November 2026, with `fixed-fee`, from the site's hourly and fixed
+fee pages and their vectors, read that day. `tests/business_planning.rs` runs
+all 6 hourly vectors ($20.15 over 2 hours is **$10.08**; $100 over 3 is
+**$33.34**) and the fixed fee cases: 18.5 hours at $95 with a 40% margin up
+to $10 is **$2,930.00**, GST **$293.00**, 12 instalments of **$268.58** after
+**$268.62**; the 2 rounding-step edges, the 45% margin, the $1,000,000,000.00
+edge either side and the 63 instalment combinations. GST is 10% of the value
+of a taxable supply (GST Act s 9-70, read on the ATO's legal database on
+26 November 2026). The site's money fields also take '$' and grouped digits
+('80,000') and refuse '1e3'; these commands take the crate's decimal strings,
+so those are input formats, not calculations, and are not mirrored.
+
+## Fixed fee
+
+See [Hourly rate](#hourly-rate).
+
+## Staff cost
+
+Added on 26 November 2026. The site's 3 staff cost vectors (annual
+**$51.30**, monthly **$4.28**; **$90,600.00** and **$7,550.00**;
+**$93,600.00** and **$7,800.00**) pass with `super_amount`. The super
+guarantee percentages (table 21: 10, 10.5, 11, 11.5 and 12 for 2021-22 to
+2025-26, 12 from 1 July 2026), quarterly maximum contribution bases (table 24:
+$58,920, $60,220, $62,270, $65,070 and $62,500) and the 2026-27 annual base
+(table 23: $270,830) are from the ATO's 'Super guarantee' page (QC18123, last
+updated 17 April 2026), read on 26 November 2026; SGAA compilation 78 (1 July
+2026) defines the charge percentage as 12 (s 17A(2)). Synthetic cases:
+$300,000 of 2026-27 qualifying earnings gives **$32,499.60**; $80,000 in
+2026-27 with 5.45% payroll tax and 1.5% workers compensation on $89,600 gives
+**$4,883.20** and **$1,344.00**, annual **$96,827.20**. Before 2026-27
+the cap is quarterly, so an annual base is taken only up to one quarter's
+base: $62,500.00 in 2025-26 gives **$7,500.00**, and $62,500.01 is refused,
+as is $200,000.00, which earned as $100,000.00 in each of 2 quarters would
+owe $15,000.00, not 12% of the whole.
+
 ## WIP lock-up
 
 Added on 24 November 2026. The site's `tools/wip-schedule` page, read that day
@@ -6391,6 +6737,138 @@ the ageing buckets.
 O1 to O3 are the reference's published examples; W1 is made up and worked in
 Python's `decimal`. `tests/wip_lockup.rs` also covers stated buckets, each
 bound on buckets, days and entries, the year boundaries and every refusal.
+
+## Super projection
+
+Added on 26 November 2026, when the sources were read: ASIC Corporations
+(Superannuation Calculators and Retirement Estimates) Instrument 2022/603
+(F2022L00895, compilation no. 1 of 11 September 2024) s 4 'assumed retirement
+age' and 'present value' paragraph (b), with nil years after retirement; ITAA 1997 s 295-160 item 1; Income Tax Rates Act
+1986 s 26(1)(a) (compilation no. 66 of 1 July 2026); the ATO's 'Super
+guarantee' (last updated 17 April 2026), Table 23, a 2026-27 maximum
+contribution base of $270,830; 'Contributions caps' (last updated
+11 September 2026), $32,500 and $130,000 for 2026-27; and 'When you can
+withdraw your super' (last updated 10 July 2026) for the preservation age. The
+command mirrors the site's `assets/super-projection.mjs` (main at d876df72).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| S1 | age 66, $50,000, salary $80,000 at 12%, return 6.1%, fees $59 and 0.11%, premiums $599 | contributed **$8,160.00**, earnings **$3,278.81**, fees **$609.56**, balance **$60,829.25**, present value **$58,658.87** |
+| S2 | S1 from age 30 to 67, wage growth 3.7% | **$2,068,319.69**, present value **$539,266.80** |
+| S3 | S2 retiring at 55 from 45 | retirement age **60**, 15 years |
+| S4 | salary $400,000 | employer **$32,499.60**, 12% of $270,830 |
+
+S1 is worked by hand in `tests/super_projection.rs`; S2 is the site's first
+case. `tests/site_mirrors.rs` runs all 13 of the site's cases and 60 seeded
+ones through the site's own engine and this command, and they agree to the
+cent.
+
+## Objection deadline
+
+Added on 26 November 2026, when the sources were read: Taxation
+Administration Act 1953 s 14ZW (compilation no. 227 of 1 October 2026);
+ITAA 1936 s 170(1) items 1, 2, 3 and 3A (compilation no. 193 of 1 October
+2026); and the Acts Interpretation Act 1901 ss 2G and 36 (compilation no. 39
+of 28 March 2026). The Act does not define a year: counting a period of
+years as s 2G(2) counts 12 months a year is a convention, the site's own,
+including a 29 February start ending on 28 February. The command mirrors the
+site's `objectionDeadline` (main at d876df72), except that where the
+assessment amended had itself been amended, subsection (1BA) counts from that
+assessment's notice: subsection (1C), which substitutes the first
+assessment's, applies only to paragraph (1B)(c). The site counts both from
+the first.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | income tax assessment, item 1, notice 18 Nov 2026 | ends Sat **18 Nov 2028**, last day Mon **20 Nov 2028** |
+| D2 | other decision, notice 1 Jan 2027 | **2 Mar 2027** (the notice day not counted) |
+| D3 | income tax assessment, item 1, notice 28 Feb 2026 | **29 Feb 2028** |
+| D4 | amended, item 1, notice 2 Oct 2028, original 20 Oct 2026 | subsection (1BA): later of **1 Dec 2028** and 20 Oct 2028 |
+| D5 | other decision, notice 30 Jan 2029 | ends Sat 31 Mar 2029, last day Mon **2 Apr 2029**, the example in s 36(2) |
+| D6 | a later amendment, notice 4 Jan 2027, assessment amended 20 Oct 2026, first assessment 1 Mar 2026 | item 1, subsection (1BA) from 20 Oct 2026: **20 Oct 2028**; item none, (1B) from 1 Mar 2026: **1 Mar 2030** |
+
+`tests/site_mirrors.rs` runs the site's 8 cases and 80 seeded ones through the
+site's engine and this command, and they agree on every date and provision.
+
+## Lessee lease
+
+Added on 26 November 2026, when the sources were read: AASB 16 compilation
+no. 8 (31 December 2023; F2024C00049, the latest on the Federal Register)
+paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A, and the IFRS 16
+Illustrative Examples on the AASB's site. The command mirrors the site's
+`assets/lease.mjs` and the present value of `assets/finance-schedule.mjs`
+(main at d876df72), except that a residual value guarantee above the
+payments' present value is measured: paras 26 and 27(c) set no such limit,
+and the site refuses it. Rounding each period's interest to the cent, the last
+period taking the rest, and sharing a period across 30 June by days are the
+site's conventions, not rules of AASB 16.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| L1 | IFRS 16 Example 13: 10 yearly payments of 50,000 in advance at 5%, initial direct costs 20,000, incentive 5,000 | liability **355,391.08**, asset **420,391.08**, interest **17,770** and **16,158** in years 1 and 2, depreciation **42,039** a year |
+| L2 | 60 monthly payments of $1,000 in arrears at 7.5%, initial direct costs $500, from 1 Jul 2026 | liability **$49,905.31**, asset **$50,405.31**, interest **$10,094.69** |
+| L3 | L2 with a residual value guarantee of $10,000 | liability **$56,786.23** |
+
+Example 13's figures are to the nearest whole unit. `tests/site_mirrors.rs`
+runs the site's 8 cases and 80 seeded ones through the site's engine and this
+command and compares the liability, asset, interest, dates, every income year
+and the first and last schedule rows; a local run compared every schedule row
+as well, and all agreed to the cent.
+
+## Thin capitalisation
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+268 (C2026C00471, in force from 1 October 2026), Subdivisions 820-A, 820-AA
+and 820-EAB, from the Federal Register of Legislation's API; the endnotes show
+Subdivision 820-AA and ss 820-427A to 820-427E added by No. 23, 2024 and not
+amended since. Treasury Laws Amendment (Making Multinationals Pay Their Fair
+Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 item 144
+applies them to income years starting on or after 1 July 2023 (Subdivision
+820-EAA from 1 July 2024) and item 146 keeps the older law for Australian
+plantation forestry entities. The Income Tax Assessment (1997 Act) Regulations
+2021, compilation 16 (F2026C00602), make no regulation for
+ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d). The s 820-37 formula
+is an image in the compilation; its text alternative reads the sum of the
+average Australian assets of the entity and its associates over the sum of
+their average total assets. The ATO's fixed ratio test page (last updated
+12 December 2025) gives the worked example T1 scales by 100,000.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| T1 | taxable income nil after earlier losses, interest deductions 5,000,000, interest income 1,000,000, depreciation 2,000,000, excess tax EBITDA amount 4,000,000 | tax EBITDA **10,000,000**, limit **3,000,000**, disallowed **1,000,000** |
+| T1 unscaled | the same in dollars, associates' debt deductions $50 | nothing disallowed (s 820-35) |
+| T2 | 2026-27, limit 4,500,000, net debt deductions 3,000,000; carried 2023-24 1,000,000, 2024-25 800,000, 2025-26 300,000 not available | special deduction **1,500,000**: 1,000,000, **500,000**, nil |
+| T3 | group ratio test, tax EBITDA 10,500,000, GR group 30,000,000 over 105,000,000 (a negative member of 5,000,000 disregarded), deductions 4,000,000 and 2,000,000 | limit **3,000,000**, disallowed **2,500,000**: **1,666,666.67** and **833,333.33** |
+| T4 | third party debt test, 3,000,000 and 500,000 (hedging) qualifying, 1,000,000 to an associate | limit **3,500,000**, disallowed **1,000,000**: 666,666.67, 222,222.22, 111,111.11 |
+
+`tests/thin_capitalisation.rs` also covers the $2 million threshold a cent
+either side, the 90% assets threshold a cent either side, a negative net debt
+deductions widening the excess, a negative tax EBITDA, every tax EBITDA line,
+the year boundaries and every refusal.
+
+## Debt forgiveness
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+268 (C2026C00471) Division 245, from the Federal Register of Legislation's
+API; the endnotes show it substituted by No. 79, 2010, s 245-145 amended by
+No. 93, 2011 and nothing since, so the rules read the same for 2020-21 to
+2026-27. The s 245-77 formula is an image whose text alternative reads the
+gross forgiven amount over the number of entities liable to pay the debt. The
+ATO's Company tax return 2022 instructions, Appendix 1 (last updated
+19 December 2023), describe the same steps and order. D1 builds on the
+example under s 245-50.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | debt of 100 settled for 60; tax loss 25, net capital loss 10, plant 3, shares 50 | net forgiven **40**: 25, 10, 3, **2** |
+| D2 | 1,000 owed by 3 debtors | each **333.33** |
+| D3 | value 10,000, offset 2,000, s 245-85 amounts 1,500, forgone 1,500 | net **5,000**; forgone above **6,500** refused |
+| D6 | 1,000 against losses 300 and 200, 100, expenditure 150, an associate's shares 500 listed before land 100 | land **100** before the shares **150** (s 245-185) |
+| D7 | 1,000 and nothing to reduce | **1,000** disregarded |
+
+`tests/debt_forgiveness.rs` also covers excluded and non-commercial debts,
+offsets at and above the value, s 245-85 amounts above the share and every
+refusal.
 
 ## Impairment test
 
@@ -6430,6 +6908,58 @@ Python's `decimal`.
 flows and terminal values, an unmeasurable fair value, floors above carrying
 amount, losses a cent below goodwill and a cent above the carrying amount, a
 non-controlling interest without goodwill and every refusal.
+
+## Consolidation eliminations
+
+Added on 26 November 2026, when the sources were read: AASB 10 compilation
+ACOMPnov24_01-26 (periods beginning from 1 January 2026 to before 1 January
+2027) with its tables of standards and amendments, and AASB 3 compilation
+no. 5 (F2023C00389, periods beginning from 1 January 2023 to before 1 July
+2026). The AASB 10 tables list changes since July 2015 to paras
+Aus4.1, Aus4.2, AusCF1, 25 and 26, Aus33.1, B74, B99A, C1C and C1E only; none
+of paras 19 to 24 and B86 to B96 changed, so the rules applied read the same
+for every reporting period ending in 2020-21 to 2026-27. AASB 3's table of
+amendments lists no change to paras 18, 19, 32, 34, 36 or 42, and AASB
+2022-9 (F2023L00015, from 1 July 2026, not in that compilation) changes only
+AASB 3 paras Aus17.1 and AusB63.1.
+Neither Standard gives a numeric consolidation example.
+
+C1 (`tests/consolidation_eliminations.rs`, the catalogue example) is made up:
+P Ltd holds 80% of S Ltd, bought for $80,000 when S Ltd's equity was $80,000
+(share capital $60,000, retained earnings $20,000), with a non-controlling
+interest at acquisition of $20,000, so goodwill is $20,000. S Ltd's retained
+earnings are now $30,000, so the non-controlling interest takes $2,000 of the
+$10,000 since. S Ltd sold $40,000 of inventory to P Ltd, $5,000 of whose
+profit is in P Ltd's closing inventory; deferred tax at 30% is $1,500. P Ltd
+is owed $10,000 by S Ltd. Profit is $16,000 (P Ltd) plus $28,000 (S Ltd) less
+$3,500 after-tax unrealised profit, $40,500; the non-controlling share is 20%
+of ($28,000 - $3,500), $4,900. The non-controlling interests are $20,000 +
+$2,000 + $4,900 = $26,900; owners' equity is share capital $100,000, retained
+earnings $58,000 and profit $35,600, $193,600; assets are $220,500, which
+equals both. C2 is the same group wholly owned with no unrealised profit.
+
+## TOFA accruals
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+no. 268 (1 October 2026), volume 5, ss 230-100, 230-135 and their neighbours,
+checked against the ATO legal database's text of ss 230-15, 230-40, 230-45,
+230-100 to 230-190 and 230-445 to 230-460. The amending Acts their history
+notes name, as the page text shows them, are No. 136 of 2010, No. 85 of 2013
+and No. 4 of 2018; on that basis the rules applied are taken to read the same
+for arrangements started in 2020-21 to 2026-27.
+
+The ATO's Guide to the taxation of financial arrangements (Default methods)
+gives 2 examples the tests reproduce, moved into supported years. Chris Co
+lends $10,000 for 4 years and receives $20,736 at the end: 20% compounding
+gives $2,000, $2,400, $2,880 and $3,456 (T1). Iron Co buys a 3-year zero
+coupon bond for $100 with a face value of $133.10: 10% gives $10.00, $11.00
+and $12.10 (T2). T2 starts on 1 January, so each interval straddles 2 income
+years and is split by days (s 230-170(2)): 181 of 365 days of the first
+interval fall in the first income year, giving $4.96, $10.49, $11.55 and
+$6.10, worked in Python's `decimal`. T4's straight line spreads $10,736 over
+the 1,461 days from 1 July 2021 to 30 June 2025. T5 (a $950 bond paying $50 a
+year and $1,000 at 3 years) has a rate of 6.9018424518% a year, found
+independently by bisection in Python.
 
 ## Leave provisions
 

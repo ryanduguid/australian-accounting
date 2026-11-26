@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 97] = [
+const DERIVED: [&str; 107] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -76,6 +76,8 @@ const DERIVED: [&str; 97] = [
     "esic",
     "deferred-tax",
     "leave-provisions",
+    "thin-capitalisation",
+    "debt-forgiveness",
     "hire-purchase-schedule",
     "chattel-mortgage-schedule",
     "loan-transactions",
@@ -95,6 +97,7 @@ const DERIVED: [&str; 97] = [
     "etp-tax-free-component",
     "payroll-tax",
     "payroll-tax-group",
+    "payroll-tax-monthly",
     "land-tax",
     "motor-vehicle-duty",
     "insurance-duty",
@@ -116,6 +119,13 @@ const DERIVED: [&str; 97] = [
     "foreign-pension-upp",
     "super-crystallisation",
     "residential-vacancy-fee",
+    "break-even",
+    "hourly-rate",
+    "fixed-fee",
+    "staff-cost",
+    "age-pension",
+    "ftb-part-a",
+    "book-to-tax",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -673,6 +683,38 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "group_member": false, "employed_all_year": true,
                    "year": "2026-27", "scope_confirmed": true}),
         ),
+        (
+            "payroll-tax",
+            json!({"jurisdiction": "qld", "taxable_wages": "1356789.00",
+                   "australian_wages": "1789776.00", "periodic_tax": "20000.00",
+                   "periodic_levy": "10.00",
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "payroll-tax",
+            json!({"jurisdiction": "vic", "taxable_wages": "4200000.00",
+                   "australian_wages": "4200000.00", "periodic_tax": "190000.00",
+                   "other_refunds": "5000.00", "regional_employer": false,
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "payroll-tax-monthly",
+            json!({"jurisdiction": "vic", "month": "2026-11", "taxable_wages": "1000000.00",
+                   "interstate_wages": "1.00", "estimated_taxable_wages": "30000000.00",
+                   "estimated_interstate_wages": "10000000.00", "regional_employer": false,
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
+        (
+            "payroll-tax-monthly",
+            json!({"jurisdiction": "tas", "month": "2026-07", "taxable_wages": "200000.00",
+                   "interstate_wages": "0.00", "estimated_taxable_wages": "2400000.00",
+                   "estimated_interstate_wages": "0.00",
+                   "group_member": false, "employed_all_year": true,
+                   "year": "2026-27", "scope_confirmed": true}),
+        ),
         // Calculating the early stage investor tax offset: Savannah's
         // $4 million, $10,000 of it receivable, capped at $200,000, with a
         // non-cash benefit from 2018-19;
@@ -951,6 +993,72 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "reduced_credit_acquisition": false, "year": "2025-26",
                    "scope_confirmed": true}),
         ),
+        // Thin capitalisation: the group ratio and third party debt tests, the
+        // special deduction, every tax EBITDA line and an exemption.
+        (
+            "thin-capitalisation",
+            json!({"test": "group_ratio", "entity_class": "general_class_investor",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": false, "associate_inclusive_debt_deductions": "50000000.00",
+                   "debt_deductions": [{"label": "A", "amount": "4000000.00"}, {"label": "B", "amount": "2000000.00"}],
+                   "interest_and_equivalent_income": "500000.00", "taxable_income": "4000000.00",
+                   "division_40_43_deductions": "1000000.00",
+                   "gr_group_net_third_party_interest_expense": "30000000.00",
+                   "gr_group_net_profit": "50000000.00",
+                   "gr_group_adjusted_net_third_party_interest_expense": "30000000.00",
+                   "gr_group_depreciation_and_amortisation": "20000000.00",
+                   "gr_group_negative_member_ebitda": ["-5000000.00", "-0.01"],
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "thin-capitalisation",
+            json!({"test": "third_party_debt", "entity_class": "general_class_investor",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": false, "associate_inclusive_debt_deductions": "50000000.00",
+                   "debt_deductions": [{"label": "A", "amount": "3000000.00", "third_party": true},
+                                       {"label": "B", "amount": "1000000.00", "third_party": false}],
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "thin-capitalisation",
+            json!({"test": "fixed_ratio", "entity_class": "general_class_investor",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": false, "associate_inclusive_debt_deductions": "50000000.00",
+                   "debt_deductions": [{"label": "A", "amount": "1000000.00"}],
+                   "interest_and_equivalent_income": "2000000.00", "taxable_income": "-5000000.00",
+                   "franking_credits": "1.00", "associate_dividends": "2.00",
+                   "rd_notional_deductions": "3.00", "division_40_43_deductions": "9000000.00",
+                   "forestry_deductions": "4.00", "section_70_120_deductions": "5.00",
+                   "excess_tax_ebitda_amount": "6.00",
+                   "frt_disallowed_amounts": [{"year": "2023-24", "amount": "100000.00", "available": true},
+                                              {"year": "2024-25", "amount": "5000000.00", "available": true}],
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "thin-capitalisation",
+            json!({"test": "fixed_ratio", "entity_class": "general_class_investor",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": true, "associate_inclusive_debt_deductions": "50000000.00",
+                   "average_australian_assets": "950.00", "average_total_assets": "1000.00",
+                   "debt_deductions": [{"label": "A", "amount": "1000000.00"}],
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        // Commercial debt forgiveness: 2 debts, every class and an associate.
+        (
+            "debt-forgiveness",
+            json!({"debts": [{"label": "A", "commercial_debt": true, "excluded": false,
+                              "value": "1000.00", "amount_offset": "100.00", "debtors": 3,
+                              "assessable_income": "10.00", "forgone_by_creditor": "5.00",
+                              "section_245_90_agreement": true},
+                             {"label": "B", "commercial_debt": true, "excluded": false, "value": "500.00"}],
+                   "tax_losses": [{"label": "T", "amount": "200.00"}],
+                   "net_capital_losses": [],
+                   "expenditures": [{"label": "E", "item": 8, "amount": "100.00"}],
+                   "cost_bases": [{"label": "S", "amount": "1000.00", "associate": true},
+                                  {"label": "L", "amount": "50.00"}],
+                   "partnership": false, "attributable_income": false,
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
         // The tourist refund scheme: $330 of goods and $100 of wine from one
         // supplier, $39.09 of GST and $14.50 of wine tax.
         (
@@ -1180,6 +1288,54 @@ fn cases() -> Vec<(&'static str, Value)> {
         }),
     ] {
         cases.push(("residential-vacancy-fee", facts));
+    }
+    // The site's pricing and staff cost vectors, and each super branch.
+    let staff = |extra: Value| {
+        let mut facts = json!({"wages": "80000", "other_costs": "1000", "year": "2026-27", "scope_confirmed": true});
+        merge(&mut facts, extra);
+        ("staff-cost", facts)
+    };
+    cases.extend([
+        ("break-even", json!({"fixed_costs": "0", "price": "2", "variable_cost": "1", "year": "2025-26", "scope_confirmed": true})),
+        ("hourly-rate", json!({"annual_costs": "20.15", "target_profit": "0", "billable_hours": "2", "year": "2025-26", "scope_confirmed": true})),
+        ("fixed-fee", json!({"hours": "3", "rate": "100", "margin_percent": "0", "round_to": "0.01", "add_gst": true, "instalments": 7, "year": "2025-26", "scope_confirmed": true})),
+        ("fixed-fee", json!({"hours": "1", "rate": "120", "margin_percent": "45", "round_to": "0.01", "add_gst": false, "instalments": 1, "year": "2025-26", "scope_confirmed": true})),
+        staff(json!({"super_amount": "9600"})),
+        staff(json!({"super_base": "300000", "payroll_tax_rate": "5.45", "workers_compensation_rate": "1.5"})),
+        staff(json!({"super_base": "10000", "year": "2021-22"})),
+    ]);
+    let pension = json!({"in_australia": true, "not_blind": true, "not_transitional": true,
+                         "no_rent_assistance": true, "partner_pensioner": true});
+    for (relationship, homeowner, income, financial, assets) in [
+        ("single", true, "200.00", "100000.00", "100000.00"),
+        ("single", false, "0.00", "0.00", "745500.00"),
+        ("couple", true, "500.00", "150000.00", "800000.00"),
+    ] {
+        let mut facts = pension.clone();
+        if relationship == "single" {
+            facts.as_object_mut().unwrap().remove("partner_pensioner");
+        }
+        cases.push((
+            "age-pension",
+            json!({"date": "2026-10-01", "relationship": relationship, "homeowner": homeowner,
+                   "ordinary_income": income, "financial_assets": financial, "assets": assets,
+                   "facts": facts, "year": "2026-27", "scope_confirmed": true}),
+        ));
+    }
+    for (young, older, income, support) in [
+        (1, 0, "80000.00", false),
+        (3, 0, "140000.00", false),
+        (1, 1, "200000.00", true),
+    ] {
+        cases.push((
+            "ftb-part-a",
+            json!({"children_under_13": young, "children_13_plus": older,
+                   "adjusted_taxable_income": income, "income_support": support,
+                   "energy_supplement": true,
+                   "facts": {"whole_year": true, "no_maintenance": true, "no_rent_assistance": true,
+                             "no_newborn_or_multiple_birth": true, "requirements_met": true},
+                   "year": "2026-27", "scope_confirmed": true}),
+        ));
     }
     cases
 }
@@ -2913,14 +3069,14 @@ fn derive_refuses_what_it_does_not_explain() {
          study-loan-repayment, capital-gains, main-residence, fbt-residual, fbt-housing, \
          fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, gst, depreciation, \
          depreciation-low-value-pool, depreciation-small-business-pool, capital-works, instant-asset-write-off, deferred-tax, leave-provisions, \
-         horticulture-shearing-withholding, upward-variation-withholding, \
+         thin-capitalisation, debt-forgiveness, horticulture-shearing-withholding, upward-variation-withholding, \
          daily-casual-withholding, no-abn-withholding, \
          entertainer-withholding, return-to-work-withholding, \
          annuity-withholding, voluntary-agreement-withholding, \
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
-         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
-         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, not \"payg-gross-up\""
+         lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, payroll-tax-monthly, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
+         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, age-pension, ftb-part-a, book-to-tax, not \"payg-gross-up\""
     );
 }
 

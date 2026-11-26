@@ -472,13 +472,23 @@ const GST_EXCLUSIVE_STEPS: [(&str, &str, &str); 3] = [
     ),
 ];
 
+/// The resident scales that hold `year`: [`meta::RESIDENT_TAX_SCALES`] from
+/// 2024-25, and [`meta::PRIOR_RESIDENT_TAX_SCALES`] for 2019-20 to 2023-24.
+fn resident_scales(year: &str) -> &'static TaxScales {
+    if meta::RESIDENT_TAX_SCALES.iter().any(|(y, _)| *y == year) {
+        meta::RESIDENT_TAX_SCALES
+    } else {
+        meta::PRIOR_RESIDENT_TAX_SCALES
+    }
+}
+
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
     let mut out = basic_tax(
         "resident_tax",
         taxable_income,
         &year,
-        meta::RESIDENT_TAX_SCALES,
+        resident_scales(&year),
         None,
     )?;
     year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
@@ -556,7 +566,7 @@ pub fn resident_tax_part_year(
         "resident_tax",
         taxable_income,
         &year,
-        meta::RESIDENT_TAX_SCALES,
+        resident_scales(&year),
         Some(threshold),
     )?;
     year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
@@ -624,7 +634,9 @@ fn step_by_name(
 
 /// The provisions `basic_tax` applies, in ITAA 1997 compilation 268 (1 October
 /// 2026) and the Income Tax Rates Act 1986 compilation 66 (1 July 2026), read
-/// on 15 November 2026.
+/// on 15 November 2026; for 2019-20 to 2023-24, the Rates Act compilations in
+/// force in those years (54, of 6 July 2019; 57, of 15 October 2020; and 62,
+/// of 1 April 2024), read on 26 November 2026.
 fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
     match (kind, year) {
         ("foreign_resident_tax", _) => {
@@ -638,6 +650,12 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
         }
         (_, "2024-25" | "2025-26") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        (_, "2019-20") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2018-19, 2019-20, 2020-21 or 2021-22 year of income as in force in 2019-20 (compilation 54, 6 July 2019; Act No. 92 of 2020 replaced it from 2020-21): each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        (_, "2020-21" | "2021-22" | "2022-23" | "2023-24") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2020-21, 2021-22, 2022-23 or 2023-24 year of income inserted by Act No. 92 of 2020 (compilations 57, 15 October 2020, and 62, 1 April 2024): each part above the tax-free threshold (s 3(1)) at its rate"
         }
         // scope() admits only the years of RESIDENT_TAX_SCALES, each named above.
         (_, other) => unreachable!("no Schedule 7 Part I table is cited for {other}"),
@@ -4209,11 +4227,7 @@ pub fn pension_minimum(
         );
     };
     let (days, days_in_year) = held_days(days, &year)?;
-    let factor = d(meta::PENSION_MINIMUM_FACTORS
-        .iter()
-        .find(|(lowest, _)| age >= *lowest)
-        .expect("age 0 band")
-        .1);
+    let factor = pension_factor(age);
     let steps = minimum_steps(&balance, &factor, days, days_in_year)?;
     let steps = ttr_maximum(steps, &balance, ttr)?;
     let mut out = derived_result(
@@ -4234,6 +4248,15 @@ pub fn pension_minimum(
         );
     }
     Ok(out)
+}
+
+/// SISR Schedule 7's percentage factor for an age on 1 July.
+fn pension_factor(age: i64) -> Decimal {
+    d(meta::PENSION_MINIMUM_FACTORS
+        .iter()
+        .find(|(lowest, _)| age >= *lowest)
+        .expect("age 0 band")
+        .1)
 }
 
 /// The days the pension is held in `year`, checked, and the days in it.
@@ -5173,7 +5196,10 @@ pub use transfer_duty::{TransferDutyArgs, transfer_duty};
 mod source_quotes;
 pub(crate) use source_quotes::attach as attach_source_quotes;
 mod payroll_tax;
-pub use payroll_tax::{PayrollTaxArgs, PayrollTaxGroupArgs, payroll_tax, payroll_tax_group};
+pub use payroll_tax::{
+    PayrollTaxArgs, PayrollTaxGroupArgs, PayrollTaxMonthlyArgs, payroll_tax, payroll_tax_group,
+    payroll_tax_monthly,
+};
 mod land_tax;
 pub use land_tax::{LandTaxArgs, land_tax};
 mod workers_compensation_premium;
@@ -5188,7 +5214,10 @@ mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 mod cgt_parcels;
-pub use cgt_parcels::{CgtCostBaseArgs, CgtParcelsArgs, cgt_cost_base_adjustments, cgt_parcels};
+pub use cgt_parcels::{
+    CgtCostBaseArgs, CgtParcelsArgs, CgtRolloverArgs, cgt_cost_base_adjustments, cgt_parcels,
+    cgt_rollover,
+};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6531,10 +6560,27 @@ mod prepayments;
 pub use prepayments::{PrepaymentsArgs, prepayments};
 mod non_commercial_losses;
 pub use non_commercial_losses::{NCL_OPTIONAL, NonCommercialLossesArgs, non_commercial_losses};
+mod individual_owed;
+mod salary_dividend;
+pub use salary_dividend::{SalaryDividendArgs, owner_pay_split};
+mod sole_trader_set_aside;
+pub use sole_trader_set_aside::{SoleTraderSetAsideArgs, sole_trader_set_aside};
+mod salary_packaging;
+pub use salary_packaging::{SalaryPackagingArgs, packaged_benefits};
+mod novated_lease;
+pub use novated_lease::{NovatedLeaseArgs, novated_lease};
 mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod first_home_owner_grant;
 pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
+mod help_to_buy;
+pub use help_to_buy::{HelpToBuyArgs, HelpToBuyReviewArgs, help_to_buy, help_to_buy_review};
+mod home_guarantee;
+pub use home_guarantee::{HomeGuaranteeArgs, home_guarantee};
+mod age_pension;
+pub use age_pension::{AgePensionArgs, age_pension};
+mod ftb_part_a;
+pub use ftb_part_a::{FtbPartAArgs, ftb_part_a};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod pcg_2021_4;
@@ -6590,14 +6636,30 @@ mod tourist_refund;
 pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod book_to_tax;
+pub use book_to_tax::{BookToTaxArgs, book_to_tax};
 mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
 pub use impairment_test::{ImpairmentTestArgs, impairment_test};
+mod consolidation_eliminations;
+pub use consolidation_eliminations::{ConsolidationEliminationsArgs, consolidation_eliminations};
+mod tofa_accruals;
+pub use tofa_accruals::{TofaAccrualsArgs, tofa_accruals};
+mod thin_capitalisation;
+pub use thin_capitalisation::{ThinCapitalisationArgs, thin_capitalisation};
+mod debt_forgiveness;
+pub use debt_forgiveness::{DebtForgivenessArgs, debt_forgiveness};
 mod leave_provisions;
 mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
 pub use wip_lockup::{WipLockupArgs, wip_lockup};
+mod super_projection;
+pub use super_projection::{SuperProjectionArgs, super_projection};
+mod objection_deadline;
+pub use objection_deadline::{ObjectionDeadlineArgs, objection_deadline};
+mod lessee_lease;
+pub use lessee_lease::{LesseeLeaseArgs, lessee_lease};
 mod long_service_leave;
 pub use long_service_leave::{LongServiceLeaveArgs, long_service_leave};
 mod foreign_income_conversion;
@@ -6610,6 +6672,8 @@ mod minors_income;
 pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
 mod smsf_tax;
 pub use smsf_tax::smsf_tax;
+mod smsf_member_allocation;
+pub use smsf_member_allocation::{SmsfMemberAllocationArgs, smsf_member_allocation};
 mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
@@ -6626,8 +6690,16 @@ mod super_crystallisation;
 pub use super_crystallisation::{SuperCrystallisationArgs, super_crystallisation};
 mod endorsement_review;
 pub use endorsement_review::endorsement_review;
+mod break_even;
+pub use break_even::{BreakEvenArgs, break_even};
+mod cash_forecast;
+pub use cash_forecast::{CashForecastArgs, cash_forecast};
+mod pricing;
+pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
+mod staff_cost;
+pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 148] = [
+const KINDS: [&str; 173] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6653,6 +6725,7 @@ const KINDS: [&str; 148] = [
     "super_withholding",
     "payroll_tax",
     "payroll_tax_group",
+    "payroll_tax_monthly",
     "land_tax",
     "workers_compensation_premium",
     "motor_vehicle_duty",
@@ -6727,6 +6800,10 @@ const KINDS: [&str; 148] = [
     "small_business_income_offset",
     "non_commercial_losses",
     "psi_test",
+    "salary_dividend",
+    "sole_trader_set_aside",
+    "salary_packaging",
+    "novated_lease",
     "pcg_2021_4",
     "government_super_amounts",
     "rental_property",
@@ -6755,12 +6832,21 @@ const KINDS: [&str; 148] = [
     "gst_credit_time_limit",
     "tourist_refund",
     "deferred_tax",
+    "book_to_tax",
     "cgt_cost_base_adjustments",
+    "cgt_rollover",
     "payg_instalment",
     "leave_provisions",
     "deferred_revenue",
     "wip_lockup",
+    "super_projection",
+    "objection_deadline",
+    "lessee_lease",
     "impairment_test",
+    "consolidation_eliminations",
+    "tofa_accruals",
+    "thin_capitalisation",
+    "debt_forgiveness",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
@@ -6768,6 +6854,7 @@ const KINDS: [&str; 148] = [
     "prepayments",
     "minors_income",
     "smsf_tax",
+    "smsf_member_allocation",
     "ess_discount",
     "help_indexation",
     "defined_benefit_income_cap",
@@ -6776,6 +6863,16 @@ const KINDS: [&str; 148] = [
     "super_crystallisation",
     "endorsement_review",
     "first_home_owner_grant",
+    "break_even",
+    "cash_forecast",
+    "hourly_rate",
+    "fixed_fee",
+    "staff_cost",
+    "help_to_buy",
+    "help_to_buy_review",
+    "home_guarantee",
+    "age_pension",
+    "ftb_part_a",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6845,6 +6942,10 @@ fn evidence_heading(kind: &str) -> String {
         "pcg_2021_4" => "pcg-20214".into(),
         "esic" => "early-stage-investor-tax-offset".into(),
         "wip_lockup" => "wip-lock-up".into(),
+        "help_to_buy" | "help_to_buy_review" | "home_guarantee" | "age_pension" | "ftb_part_a" => {
+            "government-schemes".into()
+        }
+        "cgt_rollover" => "cgt-roll-overs".into(),
         _ => kind.replace('_', "-"),
     }
 }

@@ -36,6 +36,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine",
         "engine/balancing",
         "engine/cgt_parcels",
+        "engine/cgt_parcels/rollovers",
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
         "engine/fhss",
@@ -66,11 +67,15 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/gst_corrections",
         "engine/payroll_tax",
         "engine/payroll_tax/group",
+        "engine/payroll_tax/monthly",
         "engine/tourist_refund",
+        "engine/thin_capitalisation",
         "engine/non_resident_withholding",
         "engine/residential_vacancy_fee",
         "engine/portable_lsl_levy",
         "engine/portable_lsl_levy/coal",
+        "engine/consolidation_eliminations",
+        "engine/tofa_accruals",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -192,7 +197,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // etp-tax-free-component, fbt-meal-entertainment-register,
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
-    // payroll-tax-group,
+    // payroll-tax-group, payroll-tax-monthly,
     // fuel-tax-credits, alcohol-excise, dasp-tax, aml-cdd-review, ppsr-timing, cgt-parcels,
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
@@ -200,7 +205,8 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // small-business-income-offset, government-super-amounts,
     // beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset,
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
-    // first-home-owner-grant,
+    // first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee,
+    // age-pension, ftb-part-a,
     // fbt-instalment, private-health-insurance-rebate, rental-property, super-benefit-tax and
     // foreign-resident-withholding, non-resident-withholding, residential-vacancy-fee,
     // horticulture-shearing-withholding, upward-variation-withholding,
@@ -210,18 +216,22 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, gst-error-correction,
-    // gst-credit-time-limit, tourist-refund, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, impairment-test,
-    // cgt-cost-base-adjustments, super-withholding, payg-instalment,
+    // gst-credit-time-limit, tourist-refund, deferred-tax, book-to-tax, deferred-revenue, leave-provisions, wip-lockup, break-even,
+    // cash-forecast, hourly-rate, fixed-fee, staff-cost, impairment-test,
+    // consolidation-eliminations, tofa-accruals,
+    // super-projection, objection-deadline, lessee-lease, thin-capitalisation, debt-forgiveness,
+    // cgt-cost-base-adjustments, cgt-rollover, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
-    // smsf-tax, ess-discount, help-indexation,
+    // smsf-tax, smsf-member-allocation, ess-discount, help-indexation,
     // instant-asset-write-off, defined-benefit-income-cap,
     // foreign-pension-upp, scholarship-exemption, super-crystallisation and
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
-    // gst-food-retailer-sam.
-    assert_eq!(checked, 134);
+    // gst-food-retailer-sam, salary-dividend, sole-trader-set-aside,
+    // salary-packaging and novated-lease.
+    assert_eq!(checked, 159);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
