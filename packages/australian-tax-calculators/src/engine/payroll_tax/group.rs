@@ -549,7 +549,10 @@ fn part_year(args: &PayrollTaxGroupArgs, act: &Act) -> Result<()> {
         "A group whose members paid wages for only part of the year is not worked: each Act scales the group's threshold by the days on which a member paid wages (C / FY)",
     );
     if !act.nil.is_empty() {
-        why.push_str(&format!(", and C is not an input ({} Sch 1 cl 7)", act.name));
+        why.push_str(&format!(
+            ", and C is not an input ({} Sch 1 cl 7)",
+            act.name
+        ));
     }
     refuse("payroll_tax_group.part_year", why + ".")
 }
