@@ -2953,11 +2953,13 @@ cll 1, 4 and 5, Sch 2 cll 2, 3 and 3B to 3D and s 83 were read on 27
 November 2026 at AustLII (`classic.austlii.edu.au/au/legis/nsw/consol_act/pta2007155`,
 consolidation as at 22 October 2026), through one Firecrawl request a page
 after AustLII refused a direct request. Sch 1 cll 4 and 5 publish their
-formulas as images, which could not be read; for a month without interstate
-wages the amount taxed is the annualised wages above the threshold, as
-Revenue NSW's 'Payroll tax thresholds and rates' (last updated 1 July 2026,
-read 27 November 2026: $1,200,000 and 5.45% for 1 July 2026 to 30 June 2027)
-states. Sch 2 cl 2 shares the year's tax by days and cl 3 annualises only the
+formulas as images, read from a rendering of AustLII's page on 27 November
+2026: cl 4's threshold is TA x C / FY and cl 5's tax is
+[TW - [TW / (TW + IW) x TA x C / FY]] x R. With no interstate wages and
+wages taken as paid all year (Sch 2 cl 3(a), so C = FY) that is the
+annualised wages above the threshold at R, as Revenue NSW's 'Payroll tax
+thresholds and rates' (last updated 1 July 2026, read 27 November 2026:
+$1,200,000 and 5.45% for 1 July 2026 to 30 June 2027) states. Sch 2 cl 2 shares the year's tax by days and cl 3 annualises only the
 taxable wages, so, as in Tasmania, an employer with interstate wages is
 refused. June is refused: Revenue NSW's 'Calculate and pay your monthly
 payroll tax return' (last updated 26 October 2026) says June is incorporated
