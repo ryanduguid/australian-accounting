@@ -18,3 +18,7 @@ jiff = { version = "1.0.0", default-features = false, features = ["std"] }
 jsonschema = { version = "=0.59.0", default-features = false, features = ["arbitrary-precision"] }
 regex = "=1.13.1"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+
+[build-dependencies]
+australian-tax-calculators = { path = "../../../packages/australian-tax-calculators" }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }

@@ -11,7 +11,22 @@ use serde_json::{Map, Value};
 use std::sync::LazyLock;
 
 static RULES: LazyLock<Value> = LazyLock::new(|| {
-    serde_json::from_str(include_str!("../data/effective-inputs.v1.json")).unwrap()
+    let mut rules: Value =
+        serde_json::from_str(include_str!("../data/effective-inputs.v1.json")).unwrap();
+    // The local server's TaxFacts for each kind without typed facts: a strict
+    // confirmation and kind, and the kind's other inputs as given.
+    let other = serde_json::json!({"type":"model","name":"WorksheetFacts","schema":{
+        "type":"model-fields","fields":{
+            "scope_confirmed":{"type":"model-field","schema":{"type":"bool"}},
+            "kind":{"type":"model-field","schema":{"type":"str","max_length":80}}}},
+        "config":{"title":"WorksheetFacts","extra_fields_behavior":"allow","strict":true}});
+    let facts = &mut rules["calculate_tax_worksheet"]["schema"]["fields"]["facts"];
+    let choices = facts["schema"]["choices"].as_object_mut().unwrap();
+    let schema = &crate::contracts::tool("calculate_tax_worksheet").unwrap()["inputSchema"];
+    for kind in crate::adapters::tax::other_kinds(schema) {
+        choices.insert(kind.to_owned(), other.clone());
+    }
+    rules
 });
 
 struct Issue {
@@ -171,6 +186,13 @@ fn model_fields(
                 name.clone(),
                 validate(field, object.get(name), &at, config, errors),
             );
+        }
+    }
+    if config["extra_fields_behavior"] == "allow" {
+        for (name, item) in object {
+            if !fields.contains_key(name) {
+                result.insert(name.clone(), item.clone());
+            }
         }
     }
     if config["extra_fields_behavior"] == "forbid" {

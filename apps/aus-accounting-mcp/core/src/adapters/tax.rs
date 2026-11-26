@@ -85,27 +85,80 @@ fn served_scope(kind: &str, record: &mut Value) {
     }
 }
 
-/// The engine's worksheets, periods and optional inputs this server's input schema can
-/// reach. The linked engine can hold kinds, periods outside a year the schema fixes or
-/// bounds, and optional inputs that the published contract does not advertise yet.
-pub fn advertised_worksheets() -> Result<Value, String> {
-    let mut catalogue =
-        australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
+// WORKSHEETS: each kind of the linked engine's worksheet catalogue, with its entry and
+// the entry's freshness fields as JSON text (build.rs).
+include!(concat!(env!("OUT_DIR"), "/worksheets.rs"));
+
+const OTHER_FACTS: &str = "WorksheetFacts";
+
+/// The linked engine's worksheet kinds, in its catalogue's order.
+pub(crate) fn kinds() -> impl Iterator<Item = &'static str> {
+    WORKSHEETS.iter().map(|(kind, ..)| *kind)
+}
+
+/// One kind's engine catalogue entry, parsed alone.
+fn entry(kind: &str) -> Option<Value> {
+    let (_, text, _) = WORKSHEETS.iter().find(|(named, ..)| *named == kind)?;
+    Some(serde_json::from_str(text).expect("the build's catalogue entry"))
+}
+
+/// Give every engine worksheet without typed facts to `WorksheetFacts`, which takes
+/// what the kind's catalogue entry lists, as the local server serves them.
+pub(crate) fn open_other_kinds(schema: &mut Value) {
+    let typed = &schema["properties"]["facts"]["discriminator"]["mapping"];
+    let other: Vec<&str> = kinds().filter(|kind| typed.get(*kind).is_none()).collect();
+    schema["$defs"][OTHER_FACTS]["properties"]["kind"]["enum"] = json!(other);
+}
+
+/// The kinds `WorksheetFacts` serves.
+pub(crate) fn other_kinds(schema: &Value) -> impl Iterator<Item = &str> {
+    let kinds = schema["$defs"][OTHER_FACTS]["properties"]["kind"]["enum"].as_array();
+    kinds.into_iter().flatten().filter_map(Value::as_str)
+}
+
+/// The facts variant of `kind` in the tool's input schema, if it serves the kind.
+fn variant<'a>(schema: &'a Value, kind: &str) -> Option<&'a Value> {
+    match schema["properties"]["facts"]["discriminator"]["mapping"][kind].as_str() {
+        Some(reference) => schema.pointer(reference.strip_prefix('#')?),
+        None => other_kinds(schema)
+            .any(|other| other == kind)
+            .then(|| &schema["$defs"][OTHER_FACTS]),
+    }
+}
+
+fn input_schema() -> Result<&'static Value, String> {
     let spec =
         crate::contracts::tool("calculate_tax_worksheet").ok_or("calculate_tax_worksheet")?;
-    let schema = &spec["inputSchema"];
-    let advertised = &schema["properties"]["facts"]["discriminator"]["mapping"];
-    let kinds = catalogue.as_object_mut().ok_or("worksheet catalogue")?;
-    kinds.retain(|kind, _| advertised.get(kind).is_some());
-    for (kind, entry) in kinds {
-        let reference = advertised[kind.as_str()].as_str().ok_or("facts mapping")?;
-        let variant = reference
-            .strip_prefix('#')
-            .and_then(|pointer| schema.pointer(pointer))
-            .ok_or("facts variant")?;
-        served_scope(kind, entry);
+    Ok(&spec["inputSchema"])
+}
+
+/// The engine's worksheets, periods and optional inputs this server's input schema can
+/// reach. The linked engine can hold periods outside a year the schema fixes or
+/// bounds, and optional inputs that the published contract does not advertise yet.
+pub fn advertised_worksheets() -> Result<Value, String> {
+    advertised(|(_, entry, _)| entry)
+}
+
+/// [`advertised_worksheets`] with only the fields the data freshness report reads.
+pub(crate) fn advertised_freshness() -> Result<Value, String> {
+    advertised(|(_, _, freshness)| freshness)
+}
+
+type Worksheet = (&'static str, &'static str, &'static str);
+
+fn advertised(text: fn(&Worksheet) -> &'static str) -> Result<Value, String> {
+    let schema = input_schema()?;
+    let mut catalogue = serde_json::Map::new();
+    for worksheet in WORKSHEETS {
+        let kind = worksheet.0;
+        let Some(variant) = variant(schema, kind) else {
+            continue;
+        };
+        let mut entry: Value = serde_json::from_str(text(worksheet)).map_err(|e| e.to_string())?;
+        served_scope(kind, &mut entry);
+        let typed = variant["additionalProperties"] == false;
         let fields = entry.as_object_mut().ok_or("worksheet entry")?;
-        if let Some(Value::Object(optional)) = fields.get_mut("optional_inputs") {
+        if typed && let Some(Value::Object(optional)) = fields.get_mut("optional_inputs") {
             optional.retain(|name, _| variant["properties"].get(name).is_some());
             if optional.is_empty() {
                 fields.remove("optional_inputs");
@@ -120,8 +173,9 @@ pub fn advertised_worksheets() -> Result<Value, String> {
                 })
             });
         }
+        catalogue.insert(kind.to_owned(), entry);
     }
-    Ok(catalogue)
+    Ok(Value::Object(catalogue))
 }
 
 /// Whether a published facts property admits a period argument, by the keywords those
@@ -144,12 +198,21 @@ fn admits(property: &Value, value: &Value) -> bool {
 pub fn calculate(input: &Value) -> Result<Value, String> {
     let mut facts = input["facts"].clone();
     let object = facts.as_object_mut().unwrap();
-    let kind = object
-        .remove("kind")
-        .unwrap()
-        .as_str()
-        .unwrap()
-        .replace('_', "-");
+    let kind = object.remove("kind").unwrap().as_str().unwrap().to_owned();
+    if variant(input_schema()?, &kind).is_some_and(|v| v["additionalProperties"] == true) {
+        other_inputs(&kind, object)?;
+    } else {
+        typed_inputs(object)?;
+    }
+    let mut result = australian_tax_calculators::api::evaluate(&kind.replace('_', "-"), &facts)?;
+    served_scope(&kind, &mut result);
+    if input["file_note"] == true {
+        result["file_note"] = json!(file_note(&input["facts"], &result)?);
+    }
+    Ok(result)
+}
+
+fn typed_inputs(object: &mut serde_json::Map<String, Value>) -> Result<(), String> {
     for (field, value) in object {
         if MONEY.contains(&field.as_str()) {
             *value = json!(super::money::amount(value.as_str().unwrap(), field)?.to_sci_string());
@@ -159,12 +222,62 @@ pub fn calculate(input: &Value) -> Result<Value, String> {
             *value = json!(parsed.to_sci_string());
         }
     }
-    let mut result = australian_tax_calculators::api::evaluate(&kind, &facts)?;
-    served_scope(&kind.replace('-', "_"), &mut result);
-    if input["file_note"] == true {
-        result["file_note"] = json!(file_note(&input["facts"], &result)?);
+    Ok(())
+}
+
+/// The local server's checks of a kind without typed facts (`calculate` and `_plain`
+/// in its adapters/tax.py): only the inputs its catalogue entry lists, and each
+/// decimal string, however deep, in plain notation and stripped. The engine
+/// validates and refuses each input.
+fn other_inputs(kind: &str, object: &mut serde_json::Map<String, Value>) -> Result<(), String> {
+    let entry = entry(kind).ok_or("worksheet catalogue")?;
+    let listed = |name: &str| {
+        ["required_inputs", "optional_inputs"]
+            .iter()
+            .any(|inputs| entry[*inputs].get(name).is_some())
+    };
+    let mut unknown: Vec<&str> = object
+        .keys()
+        .map(String::as_str)
+        .filter(|name| !listed(name))
+        .collect();
+    if !unknown.is_empty() {
+        unknown.sort_unstable();
+        return Err(format!(
+            "{kind} does not take {}; calculation_worksheets lists its required_inputs and optional_inputs.",
+            unknown.join(", ")
+        ));
     }
-    Ok(result)
+    object
+        .iter_mut()
+        .try_for_each(|(name, value)| plain(value, name))
+}
+
+fn plain(value: &mut Value, path: &str) -> Result<(), String> {
+    static PLAIN: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {
+        regex::Regex::new(r"^\s*-?[0-9]+(?:\.[0-9]+)?\s*$").unwrap()
+    });
+    match value {
+        Value::Object(items) => items
+            .iter_mut()
+            .try_for_each(|(key, item)| plain(item, &format!("{path}.{key}"))),
+        Value::Array(items) => items
+            .iter_mut()
+            .enumerate()
+            .try_for_each(|(index, item)| plain(item, &format!("{path}[{index}]"))),
+        Value::String(text) => match div7a_loan_review::decimal::Decimal::parse(text) {
+            Ok(number) if number.is_finite() && !PLAIN.is_match(text) => Err(format!(
+                "{path}: {} is not a decimal amount",
+                div7a_loan_review::raw::Raw::text(text).py_repr()
+            )),
+            Ok(_) => {
+                *text = text.trim().to_owned();
+                Ok(())
+            }
+            Err(_) => Ok(()),
+        },
+        _ => Ok(()),
+    }
 }
 
 /// A Python f-string's rendering of one supplied fact or result value.
@@ -196,9 +309,8 @@ fn table(heading: &str, values: &Value) -> Vec<String> {
 /// render_file_note does. Every figure, provision, date and caveat is the engine's or
 /// the operator's; the note adds none.
 fn file_note(facts: &Value, result: &Value) -> Result<String, String> {
-    let catalogue = australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))?;
     let calculation = result["calculation"].as_str().unwrap_or_default();
-    let passage = shown(&catalogue[calculation]["source_passage"]);
+    let passage = shown(&entry(calculation).unwrap_or_default()["source_passage"]);
     let mut lines = facts_relied_on(calculation, facts, result);
     lines.extend([String::new(), "## Calculation".into(), String::new()]);
     lines.extend(table("Amount (AUD)", &result["amounts"]));

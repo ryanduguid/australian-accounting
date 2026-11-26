@@ -216,7 +216,7 @@ fn sg_parameters() -> Result<Value, String> {
 }
 
 fn worksheets() -> Result<Vec<Value>, String> {
-    let catalogue = super::tax::advertised_worksheets()?;
+    let catalogue = super::tax::advertised_freshness()?;
     let kinds = catalogue.as_object().ok_or("worksheet catalogue")?;
     Ok(kinds
         .iter()

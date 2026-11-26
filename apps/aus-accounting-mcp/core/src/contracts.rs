@@ -4,21 +4,24 @@
 
 //! Frozen discovery is metadata, never a replacement calculation or dataset.
 use serde_json::{Value, json};
-use std::collections::HashMap;
-use std::sync::LazyLock;
+use std::sync::{LazyLock, OnceLock};
 
 const WORKSHEET_COUNT_PLACEHOLDER: &str = "{worksheet_count}";
 
 pub static CATALOGUE: LazyLock<Value> = LazyLock::new(|| {
     let mut catalogue: Value = serde_json::from_str(include_str!("../data/catalogue.v1.json"))
         .expect("reviewed embedded catalogue must be JSON");
-    let engine = australian_tax_calculators::api::evaluate("worksheet-catalogue", &json!({}))
-        .expect("embedded worksheet catalogue");
-    derive_worksheet_counts(&mut catalogue, engine.as_object().expect("catalogue map"));
+    let worksheets = catalogue["tools"]
+        .as_array_mut()
+        .and_then(|tools| tools.iter_mut().find(|t| t["name"] == "calculate_tax_worksheet"))
+        .expect("calculate_tax_worksheet tool");
+    crate::adapters::tax::open_other_kinds(&mut worksheets["inputSchema"]);
+    let kinds: Vec<&str> = crate::adapters::tax::kinds().collect();
+    derive_worksheet_counts(&mut catalogue, &kinds);
     catalogue
 });
 
-fn derive_worksheet_counts(catalogue: &mut Value, engine_kinds: &serde_json::Map<String, Value>) {
+fn derive_worksheet_counts(catalogue: &mut Value, engine_kinds: &[&str]) {
     let tool = catalogue["tools"]
         .as_array_mut()
         .and_then(|tools| {
@@ -27,11 +30,16 @@ fn derive_worksheet_counts(catalogue: &mut Value, engine_kinds: &serde_json::Map
                 .find(|t| t["name"] == "calculate_tax_worksheet")
         })
         .expect("calculate_tax_worksheet tool");
-    let count = tool["inputSchema"]["properties"]["facts"]["discriminator"]["mapping"]
+    let schema = &tool["inputSchema"];
+    let typed = schema["properties"]["facts"]["discriminator"]["mapping"]
         .as_object()
         .expect("calculate_tax_worksheet discriminator mapping")
         .keys()
-        .filter(|kind| engine_kinds.contains_key(*kind))
+        .map(String::as_str);
+    let other = crate::adapters::tax::other_kinds(schema);
+    let count = typed
+        .chain(other)
+        .filter(|kind| engine_kinds.contains(kind))
         .count()
         .to_string();
     let description = tool["description"]
@@ -67,23 +75,22 @@ pub fn check_arguments(name: &str, args: &Value) -> Result<(), String> {
     Ok(())
 }
 
-/// Output models permit additional engine fields but validate declared values.
+/// Output models permit additional engine fields but validate declared values. Each
+/// tool's validator is compiled on its first call.
 pub fn validate_output(name: &str, result: &Value) -> Result<(), String> {
-    static VALIDATORS: LazyLock<HashMap<String, jsonschema::Validator>> = LazyLock::new(|| {
-        CATALOGUE["tools"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|tool| {
-                let validator = jsonschema::draft202012::options()
-                    .should_validate_formats(true)
-                    .build(&tool["outputSchema"])
-                    .expect("reviewed embedded output schema");
-                (tool["name"].as_str().unwrap().to_owned(), validator)
-            })
-            .collect()
+    let tools = CATALOGUE["tools"].as_array().unwrap();
+    static VALIDATORS: LazyLock<Vec<OnceLock<jsonschema::Validator>>> =
+        LazyLock::new(|| CATALOGUE["tools"].as_array().unwrap().iter().map(|_| OnceLock::new()).collect());
+    let index = tools
+        .iter()
+        .position(|tool| tool["name"] == name)
+        .ok_or("Unknown tool")?;
+    let validator = VALIDATORS[index].get_or_init(|| {
+        jsonschema::draft202012::options()
+            .should_validate_formats(true)
+            .build(&tools[index]["outputSchema"])
+            .expect("reviewed embedded output schema")
     });
-    let validator = VALIDATORS.get(name).ok_or("Unknown tool")?;
     validator
         .validate(result)
         .map_err(|e| format!("Invalid output for {name}: {e}"))
@@ -122,18 +129,18 @@ mod tests {
     #[test]
     fn derive_worksheet_counts_tracks_catalogue_changes() {
         let mut mapping = serde_json::Map::new();
-        let mut engine_kinds = serde_json::Map::new();
-        for i in 0..70 {
-            let kind = format!("kind_{i}");
+        let names: Vec<String> = (0..70).map(|i| format!("kind_{i}")).collect();
+        for (i, kind) in names.iter().enumerate() {
             mapping.insert(kind.clone(), json!(format!("#/$defs/Kind{i}")));
-            engine_kinds.insert(kind, json!({}));
         }
-        engine_kinds.insert("unadvertised_kind".into(), json!({}));
+        let mut engine_kinds: Vec<&str> = names.iter().map(String::as_str).collect();
+        engine_kinds.extend(["unadvertised_kind", "other_kind"]);
         let mut catalogue = json!({
             "tools": [{
                 "name": "calculate_tax_worksheet",
                 "description": "Calculate one of {worksheet_count} bounded tax and super worksheets.",
                 "inputSchema": {
+                    "$defs": {"WorksheetFacts": {"properties": {"kind": {"enum": ["other_kind"]}}}},
                     "properties": {
                         "facts": {
                             "discriminator": {
@@ -147,7 +154,7 @@ mod tests {
         derive_worksheet_counts(&mut catalogue, &engine_kinds);
         assert_eq!(
             catalogue["tools"][0]["description"],
-            "Calculate one of 70 bounded tax and super worksheets."
+            "Calculate one of 71 bounded tax and super worksheets."
         );
     }
 }
