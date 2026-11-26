@@ -302,6 +302,10 @@ pub mod parity {
             "argparse" => assert_eq!(argparse_error(&stderr), case["stderr"], "{name}"),
             _ => {}
         }
+        for (rel, digest) in case["output_sha256"].as_object().into_iter().flatten() {
+            let written = fs::read(dir.join(rel)).expect("output written");
+            assert_eq!(super::sha256_hex(&written), *digest, "{name}: {rel}");
+        }
         for (rel, text) in case["outputs"].as_object().into_iter().flatten() {
             let written = fs::read_to_string(dir.join(rel)).expect("output written");
             assert_eq!(written, text.as_str().expect("text"), "{name}: {rel}");

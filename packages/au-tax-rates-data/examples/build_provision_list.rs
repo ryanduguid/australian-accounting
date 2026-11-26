@@ -343,6 +343,13 @@ mod tests {
             if text(case.at("check")) == "exact" {
                 assert_eq!(stderr, text(case.at("stderr")), "{name}");
             }
+            if let Json::Object(digests) = case.at("output_sha256") {
+                for (rel, expected) in digests {
+                    let path = dir.join("pkg").join(rel.as_str().unwrap());
+                    let written = fs::read(path).unwrap();
+                    assert_eq!(sha256_hex(&written), text(expected), "{name}");
+                }
+            }
             if let Json::Object(outputs) = case.at("outputs") {
                 for (rel, expected) in outputs {
                     let path = dir.join("pkg").join(rel.as_str().unwrap());

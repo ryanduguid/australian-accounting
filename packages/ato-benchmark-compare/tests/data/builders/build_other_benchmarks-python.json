@@ -1,5 +1,5 @@
 {
- "about": "Answers of the deleted Python tools/build_other_benchmarks.py on these inputs, recorded by running it under CPython 3.15 (openpyxl 3.1.5 for build_dataset). `check` says what the Rust port must match: exact = exit code, stdout, stderr and outputs; raised = the message of an uncaught BuildError, which the port prints as `error: <message>`; argparse = exit code and the text after `error:`; exit = exit code only (a Python traceback); help = exit code only. Paths are relative to the case folder, with `/` separators and LF line ends.",
+ "about": "Answers of the deleted Python tools/build_other_benchmarks.py on these inputs, recorded by running it under CPython 3.15 (openpyxl 3.1.5 for build_dataset). `check` says what the Rust port must match: exact = exit code, stdout, stderr and outputs; raised = the message of an uncaught BuildError, which the port prints as `error: <message>`; argparse = exit code and the text after `error:`; exit = exit code only (a Python traceback); help = exit code only. Paths are relative to the case folder, with `/` separators and LF line ends. `output_sha256` gives the SHA-256 of each file the script wrote; the first case that wrote one also keeps it whole under `outputs`.",
  "cases": [
   {
    "name": "agrees",
@@ -22,6 +22,9 @@
    "exit": 0,
    "stdout": "wrote out.json: 1 business types, 6 ranges\n",
    "stderr": "",
+   "output_sha256": {
+    "out.json": "9b05e97545ed26b7641aee0cf7f6008394522eb1256eb4a683aba7cf398e4563"
+   },
    "outputs": {
     "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"ba5a993fd21a4e5b59fee8895f31458a3e8fa1d31696442f42b4ab40b6400e8a\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
    }
@@ -47,8 +50,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 1 business types, 6 ranges\n",
    "stderr": "",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"74d500dd8a6f6fcb4e1fb80df2c094cec0da2213d83e87f3d78901b9c4b4280d\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   "output_sha256": {
+    "out.json": "d4d62fe6997f635841b858d490db84ccbc3f02a2c4e3cdd63195ece7f9d99c5a"
    }
   },
   {
@@ -74,8 +77,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 0 business types, 0 ranges\n",
    "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\n",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\"\n  }\n ]\n}\n"
+   "output_sha256": {
+    "out.json": "cdf5a2dc7f242fe7ea1deba5aae514dd13731e03c3be7b735ebba17ef8e225c2"
    }
   },
   {
@@ -101,8 +104,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 0 business types, 0 ranges\n",
    "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page does not print the dataset's total_expenses_to_turnover range\n",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page does not print the dataset's total_expenses_to_turnover range\"\n  }\n ]\n}\n"
+   "output_sha256": {
+    "out.json": "6f9910f44351ca5cf6ab33add6372e973e206dcb0bce5446f1beb26c2e4c0214"
    }
   },
   {
@@ -128,8 +131,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 0 business types, 0 ranges\n",
    "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: other benchmarks are for 2022-23, dataset is 2023-24\n",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: other benchmarks are for 2022-23, dataset is 2023-24\"\n  }\n ]\n}\n"
+   "output_sha256": {
+    "out.json": "803fe4c8c1ca7f40af26d278dc0e74adcf3b7e78c19dcc7a423cb23fc0c2c9dd"
    }
   },
   {
@@ -155,8 +158,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 0 business types, 0 ranges\n",
    "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page covers 2022-23, dataset is 2023-24\n",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page covers 2022-23, dataset is 2023-24\"\n  }\n ]\n}\n"
+   "output_sha256": {
+    "out.json": "57cfcef61aeff2712d13fe473b1bfc637c21233c6c09aa354cfce7c8477d08b0"
    }
   },
   {
@@ -182,8 +185,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 0 business types, 0 ranges\n",
    "stderr": "excluded: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: key bands ['$50,000 – $150,000', 'More than $200,000'] do not match the dataset's ['$50,000 - $150,000', 'More than $150,000']\n",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 0,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [],\n \"excluded_pages\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"reason\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: key bands ['$50,000 – $150,000', 'More than $200,000'] do not match the dataset's ['$50,000 - $150,000', 'More than $150,000']\"\n  }\n ]\n}\n"
+   "output_sha256": {
+    "out.json": "3da6271f90369ae0c7644b946b0c4dba8df0e86d1b53013a7d4e2ec0fb653f4e"
    }
   },
   {
@@ -207,7 +210,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: excluded pages ['Fabricated services'] differ from --expect-excluded []. https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "mistyped-key-year",
@@ -230,8 +233,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 1 business types, 6 ranges\n",
    "stderr": "",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"0cb5d6b08ec49e5b6e1b1c07e6fecb0e1d61588a9b639f3d24a2ee34c9d796b4\",\n   \"page_anomalies\": [\n    \"key table heading says 2023-23; the page and its ranges are 2023-24\"\n   ],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   "output_sha256": {
+    "out.json": "fc54d0ed7fe1be9f5c9909dcdae2bc6e566796eec8484f1a87b99a1c8229e90f"
    }
   },
   {
@@ -255,8 +258,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 1 business types, 6 ranges\n",
    "stderr": "",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"84169e0dff4d30f439ef1d14c4628e9da4df97e34f2b2c9aea10a9b459664760\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Fabricated services\",\n   \"page_title\": \"Fabricated services\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"2860092ebc3e79ff42f83a6d338bdee57d55aa4a0c68ec410a32e35dcb5d48d3\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   "output_sha256": {
+    "out.json": "e5e286d05301d2e1bc93b793fc433ff034a823e7ce0067d32056f37b515a4843"
    }
   },
   {
@@ -280,7 +283,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page carries no last-updated date or QC reference\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "unrecognised-heading",
@@ -303,7 +306,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): unrecognised benchmark heading 'Rent as a share of turnover'\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "unknown-key-heading",
@@ -326,7 +329,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): unrecognised benchmark heading 'Wages/turnover'\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "range-unreadable",
@@ -349,7 +352,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): expected a range such as '22% to 38%' under labour_to_turnover, found '20 to 30 per cent'\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "range-backwards",
@@ -372,7 +375,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): labour_to_turnover range '30% to 20%' runs backwards\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "heading-twice",
@@ -395,7 +398,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services (other): 'Rent/turnover' appears twice\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "two-key-tables",
@@ -418,7 +421,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: two key benchmark tables\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "no-year-sentence",
@@ -441,7 +444,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: the page does not state which financial year it covers\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "no-key-table",
@@ -464,7 +467,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: no key benchmark table\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "status-404",
@@ -487,7 +490,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: page was not saved whole (status 404)\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "truncated",
@@ -510,7 +513,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: page was not saved whole (status 200)\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "bad-title",
@@ -533,7 +536,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services: unexpected page title 'Fabricated services'\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "unknown-business",
@@ -556,7 +559,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/mystery: 'Mystery' is not a business type in 2023-24\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "address-title-clash",
@@ -579,7 +582,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/other-thing: address and title name different business types\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "second-page",
@@ -603,7 +606,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/fabricated-services-2: 'Fabricated services' has a second page\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "missing-page",
@@ -626,7 +629,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: no page for 1 business types: ['Absent one']\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "alias-address",
@@ -649,8 +652,8 @@
    "exit": 0,
    "stdout": "wrote out.json: 1 business types, 6 ranges\n",
    "stderr": "",
-   "outputs": {
-    "out.json": "{\n \"schema_version\": 1,\n \"benchmark_year\": \"2023-24\",\n \"business_type_count\": 1,\n \"source\": {\n  \"publisher\": \"Australian Taxation Office\",\n  \"pages\": \"Small business benchmarks, industry pages (in detail)\",\n  \"index_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/benchmarks-a-z\",\n  \"retrieved\": \"2026-09-29\",\n  \"dataset_sha256\": \"abababababababababababababababababababababababababababababababab\",\n  \"dataset_json_sha256\": \"dfcfb36ab834d0fc54ec3774d75b8eb577453ea3e492219b598658093f0a06ab\",\n  \"licence\": \"ATO copyright notice: free to copy, adapt, modify, transmit and distribute, but not in any way that suggests the ATO or the Commonwealth endorses the user or its products\",\n  \"licence_url\": \"https://www.ato.gov.au/about-ato/using-our-website/copyright-notice\",\n  \"caution\": \"Not all expenses are reported by every business. The ATO says to use these ranges only as a guide where they apply to the business.\"\n },\n \"business_types\": [\n  {\n   \"name\": \"Motor vehicle retail - new and used car\",\n   \"page_title\": \"Car sales\",\n   \"page_url\": \"https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/motor-vehicle-retail-new-and-used\",\n   \"page_last_updated\": \"16 March 2026\",\n   \"page_reference\": \"QC12345\",\n   \"text_sha256\": \"ba5a993fd21a4e5b59fee8895f31458a3e8fa1d31696442f42b4ab40b6400e8a\",\n   \"page_anomalies\": [],\n   \"turnover_bands\": [\n    {\n     \"band\": \"low\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.2\",\n      \"max\": \"0.3\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.02\",\n      \"max\": \"0.04\"\n     }\n    },\n    {\n     \"band\": \"high\",\n     \"cost_of_sales_to_turnover\": null,\n     \"labour_to_turnover\": {\n      \"min\": \"0.25\",\n      \"max\": \"0.35\"\n     },\n     \"rent_to_turnover\": {\n      \"min\": \"0.01\",\n      \"max\": \"0.01\"\n     },\n     \"motor_vehicle_to_turnover\": {\n      \"min\": \"0.03\",\n      \"max\": \"0.05\"\n     }\n    }\n   ]\n  }\n ],\n \"excluded_pages\": []\n}\n"
+   "output_sha256": {
+    "out.json": "e40c3b77cf9511b4ad0cb0fa01c3e7ad19640ab20d3cb9fe3c91bff5b2970001"
    }
   },
   {
@@ -694,7 +697,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: 7 pages disagree with the dataset: https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-a: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset; https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-b: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset; https://www.ato.gov.au/businesses-and-organisations/income-deductions-and-concessions/small-business-benchmarks/in-detail/industry-c: total_expenses_to_turnover for low is ('0.55', '0.73') on the page but {'min': '0.54', 'max': '0.73'} in the dataset\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "shared-address",
@@ -717,7 +720,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "error: two business types share a page address\n",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "missing-required",
@@ -730,7 +733,7 @@
    "exit": 2,
    "stderr": "the following arguments are required: --dataset, --retrieved, --out",
    "stdout": "",
-   "outputs": {}
+   "output_sha256": {}
   },
   {
    "name": "missing-dataset",
@@ -749,7 +752,7 @@
    "exit": 1,
    "stdout": "",
    "stderr": "",
-   "outputs": {}
+   "output_sha256": {}
   }
  ]
 }
