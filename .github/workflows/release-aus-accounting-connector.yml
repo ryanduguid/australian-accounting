@@ -3,8 +3,9 @@ name: Release aus-accounting-connector
 # Worker bundle release for tools/aus-accounting-connector. The namespaced tag
 # aus-accounting-connector/vX.Y.Z must name main's head, the Cargo.toml version
 # and the RELEASE_NOTES.md header. Main's required checks must have passed for
-# that commit. The run builds the bundle reproducibly, attests the tarball and
-# publishes an immutable GitHub release. The tarball holds the worker-build
+# that commit. The run builds the bundle with the commit's date as its build
+# date, attests the tarball and publishes an immutable GitHub release.
+# The tarball holds the worker-build
 # output with wrangler.deploy.toml (production) and wrangler.test.toml (the
 # stage 2 test Worker). Nothing here deploys: there is no Cloudflare token or
 # secret, and deploying needs Ryan's own `wrangler login`. The release-policy
@@ -21,9 +22,6 @@ permissions:
 concurrency:
   group: release-aus-accounting-connector-${{ github.ref }}
   cancel-in-progress: false
-
-env:
-  POLICY_SHA: ca5492bd09693be9e1fd47d980e2740ef8daf023
 
 jobs:
   checks:
@@ -43,7 +41,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ryanduguid/release-policy
-          ref: ${{ env.POLICY_SHA }}
+          ref: ca5492bd09693be9e1fd47d980e2740ef8daf023
           path: policy
           persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
@@ -102,8 +100,6 @@ jobs:
     env:
       WRANGLER_SEND_METRICS: 'false'
       CARGO_BUILD_JOBS: '2'
-      AUS_ACCOUNTING_CONNECTOR_COMMIT: ${{ github.sha }}
-      ASSET: aus-accounting-connector-${{ needs.checks.outputs.version }}.tar.gz
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -117,13 +113,19 @@ jobs:
       # The commit time fixes the build date, so serve_until and the bundle
       # do not depend on the day the tag was pushed.
       - name: Build the bundle and its serve_until-expired twin
+        env:
+          AUS_ACCOUNTING_CONNECTOR_COMMIT: ${{ github.sha }}
+          RUSTUP_TOOLCHAIN: '1.99'
         run: |
           set -euo pipefail
-          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          export SOURCE_DATE_EPOCH
           AUS_ACCOUNTING_CONNECTOR_SERVE_UNTIL=2000-01-01 worker-build --release --out-dir build-expired
           worker-build --release
       - run: npm test
       - name: Pack the bundle with both deploy configurations
+        env:
+          ASSET: aus-accounting-connector-${{ needs.checks.outputs.version }}.tar.gz
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/pack" "$RUNNER_TEMP/dist"
@@ -162,7 +164,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ryanduguid/release-policy
-          ref: ${{ env.POLICY_SHA }}
+          ref: ca5492bd09693be9e1fd47d980e2740ef8daf023
           path: policy
           persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2

@@ -115,7 +115,7 @@ class ReleaseChecksTests(unittest.TestCase):
                     self.assertFalse(name.endswith(" / gates"), name)
         self.assertEqual(len(pins), 1, f"release callers pin different policies: {pins}")
         connector = (workflows / CONNECTOR).read_text(encoding="utf-8")
-        self.assertIn(f"  POLICY_SHA: {pins.pop()}\n", connector)
+        self.assertEqual(connector.count(f"          ref: {pins.pop()}\n"), 2)
 
     def test_the_connector_release_requires_its_checks_and_holds_no_secret(self) -> None:
         # No reusable release-policy workflow builds a Worker bundle, so this caller
