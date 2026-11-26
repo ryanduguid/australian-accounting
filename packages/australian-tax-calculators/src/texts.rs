@@ -119,6 +119,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)), and before the amounts paid in periodic returns.",
     ),
     (
+        "payroll_tax_monthly",
+        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read: an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established, no deductible amount determined by the Commissioner and, in the ACT, not an eligible university (DI2026-151 s 4). New South Wales is refused: its Act could not be read on 26 November 2026.",
+    ),
+    (
         "payroll_tax_group",
         "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
     ),
@@ -811,6 +815,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "payroll_tax_group",
+        "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+    ),
+    (
+        "payroll_tax_monthly",
         "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
     ),
     (
@@ -1777,6 +1785,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.act.gov.au/a/2011-18/",
             "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
             "https://qro.qld.gov.au/payroll-tax/calculate/deductions/",
+        ],
+    ),
+    (
+        "payroll_tax_monthly",
+        &[
+            "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+            "https://qro.qld.gov.au/payroll-tax/calculate/deductions/",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a6335.html",
+            "https://www.legislation.wa.gov.au/legislation/statutes.nsf/law_a6336.html",
+            "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2008-016",
+            "https://www.legislation.act.gov.au/a/2011-18/",
+            "https://www.legislation.act.gov.au/View/di/2026-151/current/html/2026-151.html",
+            "https://legislation.nt.gov.au/Legislation/PAYROLL-TAX-ACT-2009",
+            "https://treasury.nt.gov.au/dtf/territory-revenue-office/payroll-tax/payroll-tax-rates-and-thresholds",
         ],
     ),
     (
@@ -3558,7 +3581,15 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "payroll_tax",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
-            "The annual liability is reconciled against the payroll tax and any surcharge or levy already paid in periodic returns; this worksheet does not make that reconciliation.",
+            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads; New South Wales's is refused. In Victoria, South Australia, Tasmania, the ACT and the Northern Territory the refund is reduced by other_refunds, any other refund of payroll tax made for the year. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
+        ],
+    ),
+    (
+        "payroll_tax_monthly",
+        &[
+            "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable, and the deductible amount an employer may claim on estimates; this worksheet takes the wages, the year's estimates and any stated deduction as established.",
+            "A Commissioner's determination, or in Victoria, South Australia and the ACT the amount in the employer's latest notice, replaces the Act's formula for the deduction (and in Queensland for each periodic threshold): state it as stated_deduction (or stated_primary_threshold and stated_additional_threshold), or the formula amount is worked.",
+            "A monthly return is provisional: the annual reconciliation (payroll-tax with periodic_tax) settles the year against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns.",
         ],
     ),
     (
@@ -5912,7 +5943,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -6585,6 +6616,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employer did not pay wages for the whole year, and the threshold reduced by days is not worked.",
     ),
     (
+        "payroll_tax.reconciliation_unread",
+        "The New South Wales Act could not be read today, so its annual adjustment is not worked.",
+    ),
+    (
         "payroll_tax.wages_conflict",
         "australian_wages is less than taxable_wages, which it includes.",
     ),
@@ -6663,6 +6698,62 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax_group.test_invalid",
         "A controlling interest's test is not one the worksheet takes.",
+    ),
+    (
+        "payroll_tax_monthly.act_unread",
+        "The jurisdiction's Act could not be read today, so its monthly provisions are not worked.",
+    ),
+    (
+        "payroll_tax_monthly.deduction_above_cap",
+        "stated_deduction is more than the cap the jurisdiction's Act sets on a monthly deductible amount.",
+    ),
+    (
+        "payroll_tax_monthly.estimate_invalid",
+        "estimated_taxable_wages is nil, and each Act shares the deduction or sets the rate on the year's estimates.",
+    ),
+    (
+        "payroll_tax_monthly.grouped",
+        "The employer is a member of a group, whose monthly deduction is not worked.",
+    ),
+    (
+        "payroll_tax_monthly.interstate_unworked",
+        "A Tasmanian employer pays interstate wages in the year, which Sch 2 cl 3's annualising does not address.",
+    ),
+    (
+        "payroll_tax_monthly.jurisdiction_invalid",
+        "jurisdiction is not nsw, vic, qld, wa, sa, tas, act or nt.",
+    ),
+    (
+        "payroll_tax_monthly.last_period",
+        "June in Queensland is the last periodic return period, worked by the annual return.",
+    ),
+    (
+        "payroll_tax_monthly.month_invalid",
+        "month is not a month of 2026-27 in the form YYYY-MM.",
+    ),
+    (
+        "payroll_tax_monthly.nomination_above_wages",
+        "Western Australia's nominated deduction is more than the month's taxable wages, and s 15 does not say how a negative difference is treated.",
+    ),
+    (
+        "payroll_tax_monthly.part_year",
+        "The employer did not pay wages on every day of the year.",
+    ),
+    (
+        "payroll_tax_monthly.rate_unset",
+        "The ACT's Table 2 sets no monthly rate for the month's total wages, yet tax would be payable.",
+    ),
+    (
+        "payroll_tax_monthly.rate_unsettled",
+        "The Northern Territory's estimate for the year reaches $100 million, and s 7A(2) sets 6.5% on the year's actual wages.",
+    ),
+    (
+        "payroll_tax_monthly.regional_discount",
+        "A Queensland regional employer's discount is not worked.",
+    ),
+    (
+        "payroll_tax_monthly.surcharge_negative",
+        "Victoria's cl 4(4) surcharge formula gives less than nil for the month.",
     ),
     (
         "pcg_2021_4.benchmark_nil",

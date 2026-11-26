@@ -30,6 +30,7 @@
     "`thin-capitalisation` (Subdivision 820-AA) and `debt-forgiveness` (Division 245) apply the statutory tests and order to the entity class, test choice, values and reducible amounts the operator states; neither decides a classification or election.",
     "`salary-dividend`, `sole-trader-set-aside`, `salary-packaging` and `novated-lease` mirror the site's pages for 2024-25 to 2026-27: comparisons of stated facts, not advice; FBT gross-ups use FBTAA s 5B's formulas.",
     "`book-to-tax` reconciles accounting profit to taxable income from stated differences and feeds `deferred-tax`; `cgt-rollover` carries cost bases through stated roll-overs. Neither decides a difference or eligibility.",
-    "`smsf-member-allocation` shares an SMSF's stated earnings and tax across member accounts by the trustee's daily weighted balance method and checks pension minimums; use `smsf-tax` for the fund's tax itself."
+    "`smsf-member-allocation` shares an SMSF's stated earnings and tax across member accounts by the trustee's daily weighted balance method and checks pension minimums; use `smsf-tax` for the fund's tax itself.",
+    "`payroll-tax-monthly` works one monthly return from each Act's monthly provisions and the employer's stated estimates for the year; `payroll-tax`, given the tax paid on those returns, reconciles the year against them."
   ]
 }

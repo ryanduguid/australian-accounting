@@ -59,7 +59,8 @@ example evidence; it does not claim a fresh review of every supported period.
 | Balancing adjustment | Not a Library document: the ATO's Guide to depreciating assets 2026 (Bridget, Andrew and Louise examples) and ITAA 1997 Subdivisions 27-B and 40-D, ss 104-240, 118-5 and 118-10(1) and its example (compilation 268, 1 October 2026) | 1 June 2026 (Guide); 18 November 2026 (read) | One depreciating asset's balancing adjustment, s 40-290 reduction and K7 amount for events in 2024-25 to 2026-27, from established cost, termination value and each year's decline and deduction; pools, s 40-291A and roll-overs excluded |
 | CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
-| Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts, caps and periodic returns excluded |
+| Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts and caps excluded; the annual reconciliation added on 26 November 2026 |
+| Payroll tax monthly | Not a Library document: each Act's monthly provisions and the QRO's periodic deduction examples | 22 October 2026 to 26 November 2026 (Acts); 26 November 2026 (read) | One employer outside a group paying wages all year, one month of 2026-27 in Vic, Qld, WA, SA, Tas, ACT or NT; NSW refused |
 | Portable LSL levy | Not a Library document: Coal LSL (`F2018L00217`, `C2004A04352`, `tools/coal-lsl-levy` parity vectors) and each state and territory portable LSL board's rates page and in-force legislation (NSW LSC, LeavePlus, PLSA, QLeave and Qld BCI Act/Reg, SA Portable LSL, MyLeave, ACT DI2024-12/15/16/224 and DI2026-228, TasBuild, NT Build) | 24 November 2026 (read) | 20 verified jurisdiction-scheme combinations across 2023-24 to 2026-27 (each scheme gated to its verified years); worker coverage, exemptions, apprentice exclusions, late interest and lodgement excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
@@ -2930,6 +2931,63 @@ QRO's 'Payroll tax deductions' were read the same day.
 | $1,800,000 in South Australia; $2,500,000 in the ACT | SA Sch 1 cl 9(2); ACT Sch 1 s 1.9(2) | $600,000; $1,750,000 |
 
 `tests/payroll_tax_group.rs` holds these cases.
+
+## Payroll tax monthly
+
+This worksheet, and the annual reconciliation `payroll_tax` now makes, were
+added on 26 November 2026. Each Act was read that day at its official
+legislation site: the Payroll Tax Act 2007 (Vic) Sch 2 Pt 2 and s 83
+(authorised version 041, in force from 1 May 2026); the Payroll Tax Act 1971
+(Qld) ss 10, 17 to 21, 29 to 31 and 43C to 43K (current as at 22 October
+2026); the Pay-roll Tax Assessment Act 2002 (WA) ss 8, 11, 12, 15 and 16
+(04-d0-03) and the Pay-roll Tax Act 2002 (WA) s 5 (00-d0-02); the Payroll Tax
+Act 2009 (SA) Sch 2 cll 2, 5 and 6 and s 83 (version 31.3.2026); the Payroll
+Tax Act 2008 (Tas) Sch 1 cl 4 (its formulas are images, read as published),
+Sch 2 cll 2 and 3 and s 83; the Payroll Tax Act 2011 (ACT) Sch 2 Pt 2.1, s 83
+and s 86 (republication R20) with DI2026-151 s 5(b) and (d) and Table 2; and
+the Payroll Tax Act 2009 (NT) s 7A, s 83 and Sch 2 cll 5 to 7 (as in force at
+1 July 2026). The Payroll Tax Act 2007 (NSW) served a Cloudflare challenge at
+legislation.nsw.gov.au, again after one change of network, so New South
+Wales is refused in both.
+
+Several Acts work the month on the year's estimated wages: Victoria's
+deduction phases out on them (Sch 2 cl 5) and is shared by them with
+interstate wages (cl 6(3)), as are its surcharge thresholds (cl 4(4));
+Queensland's fixed periodic deduction and levy thresholds use them (ss 17 and
+43C to 43E); South Australia's deduction and rate (Sch 2 cll 5 and 6); and the
+ACT's deduction with interstate wages (Sch 2 s 2.4). Where an Act's
+deductible amount is the one the employer claims by notice (Vic cl 6, SA cl 6,
+ACT s 2.4), the worksheet works the amount the Act's formula gives unless
+an amount is stated, which it takes as the latest notice's or the
+Commissioner's determination (refused above the Act's cap); Queensland's
+s 21 deduction and s 43E(1) thresholds are taken the same way. The
+Northern Territory's monthly deduction is determined in a manner the
+Commissioner approves (Sch 2 cll 6 and 7), and Western Australia's for an
+interstate employer is the Commissioner's nomination (s 15), so both are
+stated. The Northern Territory's 6.5% rate turns on the year's actual wages
+(s 7A(2)), so a month whose estimate reaches $100 million is refused and the
+others take 5.5% (s 7A(1)), the annual adjustment settling a year that reaches
+it unforeseen. Western Australia's s 15 applies the rate to the difference
+between the wages and the nomination and does not say how a negative
+difference is treated, so a nomination above the month's wages is refused.
+The annual refund is reduced by `other_refunds` where s 83(4) (s 83(5) in the
+ACT) so provides.
+
+`tests/payroll_tax_monthly.rs` and the reconciliation tests in
+`tests/payroll_tax.rs` hold these cases:
+
+| Case | Source | Worksheet |
+| --- | --- | --- |
+| $158,521 in a Queensland month | QRO 'Payroll tax deductions': actual periodic deduction $101,163 | $101,163.29 deduction, $2,724.49 at 4.75% |
+| $387,524 of $1,500,000 estimated in Queensland | QRO: fixed periodic deduction $27,373 | $27,372.63 |
+| $350,000 in a Victorian month, $4,200,000 estimated | Worked by hand from Sch 2 cl 5: $83,333 - $1,200,000 / 12 x 50% | $33,333.00 deduction, $15,358.35 |
+| $170,000 in Victoria, half the year's wages estimated interstate | Worked by hand from Sch 2 cl 6(3) | $20,833.17 deduction, $7,234.59 |
+| $300,000 in a Western Australian month | Worked by hand from ss 11 and 12: $83,333 - $216,667 / 6.5 | $49,999.62 deduction, $13,750.02 |
+| $140,000 in South Australia, $1,600,000 estimated | Worked by hand from Sch 2 cll 5 and 6: 2.475% | $2,227.50 |
+| $200,000 in Tasmania in July | Worked by hand from Sch 2 cll 2 and 3: $2,354,838.71 a year | $4,386.30 |
+| $300,000 in an ACT month | Worked by hand from Sch 2 s 2.2 and DI2026-151 | $10,406.25 at 6.75% |
+| $4,200,000 in Victoria for the year, $180,000 paid on returns | Worked by hand from s 83(2) | $4,300.00 payable |
+| $3,000,000 in the ACT for the year, $19.99 short | s 83(3): under $20 is determined to be $0 | $0.00 payable |
 
 ## Transfer duty
 

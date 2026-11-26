@@ -1219,6 +1219,9 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "insurance_duty" => vec!["2026-27"],
         "payroll_tax" => vec!["2026-27"],
         "payroll_tax_group" => vec!["2026-27"],
+        // Monthly returns for the months of 2026-27, under each Act read on 26
+        // November 2026.
+        "payroll_tax_monthly" => vec!["2026-27"],
         // The premium period each scheme's 2026-27 method was read for on
         // 24 November 2026.
         "workers_compensation_premium" => vec!["2026-27"],
@@ -1757,11 +1760,15 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "payroll_tax" => (
             "2026-11-19",
-            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page",
+            "Payroll Tax Act 2007 (NSW) Sch 1 cl 1 (version current from 10 July 2026); Payroll Tax Act 2007 (Vic) s 3A and Sch 1 cl 1, 1A, 1B and 5 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 29 and 43I (reprint current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8 and 13 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5(4) (00-d0-02); Payroll Tax Act 2009 (SA) Sch 1 cl 1, 4 and 5 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 1 and 4; Payroll Tax Act 2011 (ACT) Sch 1 (R20) with DI2026-151 s 5; Payroll Tax Act 2009 (NT) s 7A and Sch 1 cl 1, 3 and 5 (as in force at 1 July 2026); and each revenue office's rates and thresholds page; for the annual reconciliation, read on 26 November 2026, s 83 of the Vic, SA, Tas, ACT and NT Acts, Payroll Tax Act 1971 (Qld) ss 29 to 31, 43H, 43J and 43K and Pay-roll Tax Assessment Act 2002 (WA) s 16",
         ),
         "payroll_tax_group" => (
             "2026-11-24",
             "Payroll Tax Act 2007 (Vic) Pt 5 (ss 67 to 80) and Sch 1 Pts 3 and 4 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and Pt 4 (ss 67 to 75; current reprint); Pay-roll Tax Assessment Act 2002 (WA) s 17 and Pt 4 (ss 30 to 39; 04-d0-03); Payroll Tax Act 2009 (SA) Pt 5 and Sch 1 Pt 3 (31.3.2026); Payroll Tax Act 2011 (ACT) Pt 5 and Sch 1 Pts 1.3 and 1.4 (current republication); with SRO Victoria's 'Grouping' and QRO's 'Payroll tax deductions'. NSW (a Cloudflare challenge) and the Tasmanian and Northern Territory group formulas (images) could not be read and are refused",
+        ),
+        "payroll_tax_monthly" => (
+            "2026-11-26",
+            "Payroll Tax Act 2007 (Vic) Sch 2 Pt 2 cll 1A to 6 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 10, 17 to 21 and 43C to 43F (current as at 22 October 2026); Pay-roll Tax Assessment Act 2002 (WA) ss 8, 11, 12 and 15 (04-d0-03) and Pay-roll Tax Act 2002 (WA) s 5 (00-d0-02); Payroll Tax Act 2009 (SA) Sch 2 cll 2, 5 and 6 (version 31.3.2026); Payroll Tax Act 2008 (Tas) Sch 1 cl 4 and Sch 2 cll 2 and 3; Payroll Tax Act 2011 (ACT) Sch 2 Pt 2.1 (R20) with DI2026-151 s 5(b) and (d); Payroll Tax Act 2009 (NT) s 7A and Sch 2 cll 5 to 7 (as in force at 1 July 2026); NSW refused: its Act served a Cloudflare challenge",
         ),
         "transfer_duty" => (
             "2026-11-24",
@@ -2488,6 +2495,12 @@ pub fn library_evidence(kind: &str) -> [(&'static str, &'static str); 4] {
             "The Acts' tracing examples (Payroll Tax Act 2007 (Vic) ss 77(5) and 78(3)); SRO Victoria's Ian and Lucy examples",
             "2026-05-01",
             "2026-11-24",
+        ),
+        "payroll_tax_monthly" => (
+            "Each Act's monthly provisions at its official legislation site; QRO 'Payroll tax deductions' (its actual and fixed periodic deduction examples)",
+            "QRO's actual periodic deduction on $158,521 ($101,163) and fixed periodic deduction on $387,524 of $1,500,000 ($27,373); cases worked by hand from each Act",
+            "2026-07-01",
+            "2026-11-26",
         ),
         "transfer_duty" => (
             "Revenue office transfer duty pages: Revenue NSW 'How to calculate transfer duty' and the NSW Government's First Home Buyers Assistance Scheme table; SRO Victoria non-principal place of residence rates; QRO transfer duty and home concession rates; RevenueSA rate of stamp duty",
@@ -4384,10 +4397,24 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "boolean, required for Coal LSL casual from January 2024: true when the casual loading can be quantified separately",
             ),
         ],
-        "payroll_tax" => vec![(
-            "regional_employer",
-            "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
-        )],
+        "payroll_tax" => vec![
+            (
+                "regional_employer",
+                "boolean, for Victoria only and then required: true when the employer is a regional employer, one that pays at least 85% of its taxable wages to regional employees (Payroll Tax Act 2007 (Vic) s 3A)",
+            ),
+            (
+                "periodic_tax",
+                "AUD, for the annual reconciliation (refused for nsw): the payroll tax, with any Victorian surcharge, paid or payable on the year's periodic returns (in Queensland, the periodic liability, with no June return)",
+            ),
+            (
+                "periodic_levy",
+                "AUD, for Queensland only beside periodic_tax and then required: the combined periodic liability for the mental health levy (Payroll Tax Act 1971 (Qld) s 43H)",
+            ),
+            (
+                "other_refunds",
+                "AUD, beside periodic_tax for vic, sa, tas, act and nt and then required (nil if none): any other refund of payroll tax already made to the employer for the year, which reduces the annual refund (s 83(4); in the ACT s 83(5))",
+            ),
+        ],
         "payroll_tax_group" => vec![
             (
                 "related_bodies_corporate",
@@ -4416,6 +4443,28 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "excess_deduction_order",
                 "list of person ids, Queensland only and with a designated group employer, required when the deduction exceeds that employer's wages: the order, nominated by the DGE or determined by the commissioner, in which entitled group members share the excess (Payroll Tax Act 1971 (Qld) ss 44, 46 and 47)",
+            ),
+        ],
+        "payroll_tax_monthly" => vec![
+            (
+                "regional_employer",
+                "boolean, for Victoria and Queensland only and then required: true when the employer is a regional employer (Payroll Tax Act 2007 (Vic) s 3A; in Queensland, s 10A, true is refused)",
+            ),
+            (
+                "previous_interstate_wage_payer",
+                "boolean, for Queensland only when interstate_wages is nil and then required: true when the employer paid interstate wages in this or the last financial year and intends to resume (Payroll Tax Act 1971 (Qld) s 20(3)), which takes the fixed periodic deduction",
+            ),
+            (
+                "stated_deduction",
+                "AUD, required for the Northern Territory (the deductible amount determined in the manner the Commissioner approves, at most $208,333.33) and for an interstate non-group employer in Western Australia (the deduction the Commissioner nominated, nil if none, at most the month's taxable wages); optional in Queensland (the commissioner's s 21 determination), South Australia (the amount in the employer's notice or the Commissioner's determination, at most $50,000) and, for a month with interstate wages, Victoria (at most the cl 5(1) amount) and the ACT (at most $145,833.33), where it replaces the formula amount",
+            ),
+            (
+                "stated_primary_threshold",
+                "AUD, for Queensland only and optional: the primary periodic threshold the commissioner determined for the month (Payroll Tax Act 1971 (Qld) s 43E(1)(a)), which replaces the formula amount",
+            ),
+            (
+                "stated_additional_threshold",
+                "AUD, for Queensland only and optional: the additional periodic threshold the commissioner determined for the month (s 43E(1)(b)), which replaces the formula amount",
             ),
         ],
         "vic_property_taxes" => vec![
@@ -5894,6 +5943,37 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "employed_all_year",
                 "boolean, true when at least one member paid or was liable to pay wages on every day of the financial year; false is refused",
+            ),
+        ],
+        "payroll_tax_monthly" => vec![
+            ("jurisdiction", "vic, qld, wa, sa, tas, act or nt; nsw is refused"),
+            (
+                "month",
+                "YYYY-MM, a month of 2026-27 from 2026-07 to 2027-06; 2027-06 is refused in Queensland",
+            ),
+            (
+                "taxable_wages",
+                "AUD, the employer's taxable wages in the jurisdiction paid or payable in the month, after that jurisdiction's exemptions",
+            ),
+            (
+                "interstate_wages",
+                "AUD, the employer's wages taxable in other Australian jurisdictions paid or payable in the month",
+            ),
+            (
+                "estimated_taxable_wages",
+                "AUD, more than nil: the employer's estimate of its taxable wages in the jurisdiction for the year, by which Victoria, Queensland, South Australia and the ACT share the deduction and Victoria phases it out",
+            ),
+            (
+                "estimated_interstate_wages",
+                "AUD, the employer's estimate of its interstate wages for the year; in Western Australia more than nil makes it an interstate non-group employer, and in Tasmania more than nil is refused",
+            ),
+            (
+                "group_member",
+                "boolean, true when the employer is a member of a group for payroll tax; true is refused",
+            ),
+            (
+                "employed_all_year",
+                "boolean, true when the employer paid or was liable to pay wages on every day of the financial year; false is refused",
             ),
         ],
         "transfer_duty" => vec![
@@ -7857,6 +7937,20 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("related_bodies_corporate", Json(r#"[["A", "B"]]"#)),
             ("designated_group_employers", Json(r#"["A"]"#)),
             ("excess_deduction_order", Json(r#"["B"]"#)),
+            ("employed_all_year", Flag(true)),
+        ],
+        // The QRO's actual periodic deduction example: $158,521 of monthly wages.
+        "payroll_tax_monthly" => vec![
+            ("year", Text("2026-27")),
+            ("jurisdiction", Text("qld")),
+            ("month", Text("2026-07")),
+            ("taxable_wages", Text("158521.00")),
+            ("interstate_wages", Text("0.00")),
+            ("estimated_taxable_wages", Text("1902252.00")),
+            ("estimated_interstate_wages", Text("0.00")),
+            ("regional_employer", Flag(false)),
+            ("previous_interstate_wage_payer", Flag(false)),
+            ("group_member", Flag(false)),
             ("employed_all_year", Flag(true)),
         ],
         // The NSW Government's first home buyer figure: $19,593.50 on $900,000.
