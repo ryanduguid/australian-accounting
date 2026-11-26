@@ -238,6 +238,11 @@ fn refunds_are_capped_at_10000_and_kept_off_the_bas() {
         code(&input("2022-23", json!([blank]))),
         "input.missing_field"
     );
+    // A car supplied on 1 July 2019 or later, claimed in a later period.
+    let mut first = refund("tourism_operator", true, "12000.00");
+    first["supplied_in"] = json!("2019-20");
+    let r = run(&input("2022-23", json!([first])));
+    assert_eq!(field(&r, 0, "refund"), "10000.00");
     let stranger = refund("dealer", true, "4000.00");
     assert_eq!(
         code(&input("2026-27", json!([stranger]))),

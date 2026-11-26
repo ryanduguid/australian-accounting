@@ -71,11 +71,12 @@ struct Payer {
     /// The payer and its associates (s 87-15(3)): the row's `source`
     /// label, or the row alone when it has none.
     source: String,
-    /// The entity, with any of its associates, that s 87-20 counts once:
-    /// the row's `client` label, or its `source` when it has none. 2
-    /// entities that are associates of a third, not of each other, share
-    /// a source but are 2 clients.
-    client: String,
+    /// The operator's s 87-20(1)(a) grouping: rows with one `client` label
+    /// are one entity or associates of each other, and rows with different
+    /// labels are not associates of each other. 2 entities that are each an
+    /// associate of a third, not of each other, share a source but are 2
+    /// clients. Given on every row or on none.
+    client: Option<String>,
     amount: Decimal,
     associate: bool,
     offer: bool,
@@ -132,7 +133,7 @@ fn payers(given: &Arg) -> Result<Vec<Payer>> {
             };
             stated::known_keys(fields, &name, "a payer", &PAYER_KEYS)?;
             let source = label(fields, "source")?.unwrap_or_else(|| format!("row {i}"));
-            let client = label(fields, "client")?.unwrap_or_else(|| source.clone());
+            let client = label(fields, "client")?;
             Ok(Payer {
                 source,
                 client,
@@ -270,12 +271,40 @@ fn agent_payments(agent: Option<(&Arg, &Arg)>) -> Result<Option<(Decimal, Decima
     Ok(Some((commission, principal)))
 }
 
+/// Client labels on every row or none, and each client within one source: an
+/// entity and its associates are one source for s 87-15(3).
+fn clients_consistent(payers: &[Payer]) -> Result<()> {
+    let labelled = payers.iter().filter(|p| p.client.is_some()).count();
+    if labelled != 0 && labelled != payers.len() {
+        return refuse(
+            "psi_test.clients_invalid",
+            "Give every payer a client label for the unrelated clients test, or none.",
+        );
+    }
+    for (i, p) in payers.iter().enumerate() {
+        if payers[..i]
+            .iter()
+            .any(|q| q.client == p.client && q.source != p.source && p.client.is_some())
+        {
+            return refuse(
+                "psi_test.clients_invalid",
+                format!(
+                    "payer {}: rows with one client label are one entity or its associates, so they share one source.",
+                    i + 1
+                ),
+            );
+        }
+    }
+    Ok(())
+}
+
 pub fn psi_test(args: &PsiTestArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let entity = earner(args.earner)?;
     let mainly = flag(args.mainly_personal_efforts, "mainly_personal_efforts")?;
     let determination = flag(args.determination_in_force, "determination_in_force")?;
     let payers = payers(args.payers)?;
+    clients_consistent(&payers)?;
     let agent = flag(args.agent, "agent")?;
     let [commission, principal] = optional_facts(args, agent)?;
     let agent = agent_payments(commission.zip(principal))?;
@@ -391,7 +420,7 @@ impl Work {
             self.agent(commission, principal)?;
         }
         let one_source = self.one_source(f)?;
-        let passes = self.other_tests(f)?;
+        let passes = self.other_tests(f, one_source)?;
         Ok(conclude(entity, one_source, &passes))
     }
 
@@ -490,19 +519,31 @@ impl Work {
     /// The other 3 tests, which count for self-assessment only under 80%
     /// from one source but are still worked out: the Commissioner weighs
     /// them for a determination (s 87-15(1), note 2). Returns the sections
-    /// met.
-    fn other_tests(&mut self, f: &Facts) -> Result<Vec<&'static str>> {
-        let unrelated = f
+    /// met. Without client labels, rows sharing a source count once; where
+    /// that decides the outcome and the source holds 2 or more rows won by
+    /// offers, whether they are 2 clients is not known, so it refuses.
+    fn other_tests(&mut self, f: &Facts, one_source: bool) -> Result<Vec<&'static str>> {
+        let won: Vec<&Payer> = f
             .payers
             .iter()
             .filter(|p| !p.amount.is_zero() && !p.associate && p.offer)
-            .map(|p| p.client.as_str())
+            .collect();
+        let unrelated = won
+            .iter()
+            .map(|p| p.client.as_ref().unwrap_or(&p.source))
             .collect::<BTreeSet<_>>()
             .len();
         let employment = share(f.others, f.total)?;
         let fifth = reaches(f.others, f.total, 1, 5)?;
         let employs = fifth || f.apprentice;
         let clients = unrelated >= 2;
+        let labelled = won.iter().any(|p| p.client.is_some());
+        if !clients && won.len() >= 2 && !labelled && !one_source && !employs && !f.premises {
+            return refuse(
+                "psi_test.clients_needed",
+                "The unrelated clients test decides the outcome, and 2 or more payers won by offers share a source: give every payer a client label, one label for rows that are one entity or associates of each other (s 87-20(1)(a)).",
+            );
+        }
         self.push(
             "Section 87-20: unrelated payers that engaged the individual or entity as a direct result of offers to the public",
             format!(

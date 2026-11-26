@@ -529,36 +529,64 @@ fn a_payers_contracts_share_one_source() {
 /// s 87-20(1)(a) counts entities that are not associates of each other. 2
 /// beneficiaries of one trust are each the trustee's associate, so s 87-15(3)
 /// takes them with the trustee as one source, yet they need not be associates
-/// of each other: given their own client labels, they are 2 unrelated clients.
+/// of each other: the operator says so with client labels, and without them
+/// the command refuses where the count decides the outcome.
 #[test]
 fn payers_sharing_a_source_can_be_unrelated_clients() {
+    let trust = "Trustee of the T trust and its associates";
     let mut rows = vec![payer("40.00", "o"), payer("39.00", "o"), payer("21.00", "")];
     for row in &mut rows[..2] {
-        row["source"] = json!("Trustee of the T trust and its associates");
+        row["source"] = json!(trust);
     }
-    let out = run(&with(base(&[]), json!({"payers": rows})));
-    assert_eq!(out["tests"]["one_source_percent"], "79.00");
-    assert_eq!(out["tests"]["unrelated_clients"], 1);
-    assert_eq!(decided(&out), ("subsection 87-15(1)", S87_15_1));
-    rows[0]["client"] = json!("Beneficiary B");
-    rows[1]["client"] = json!("Beneficiary C");
-    let out = run(&with(base(&[]), json!({"payers": rows})));
+    let input = |rows: &[Value]| with(base(&[]), json!({"payers": rows}));
+    assert_eq!(code(&input(&rows)), "psi_test.clients_needed");
+    let label = |rows: &mut [Value], names: [&str; 3]| {
+        for (row, name) in rows.iter_mut().zip(names) {
+            row["client"] = json!(name);
+        }
+    };
+    label(&mut rows, ["Beneficiary B", "Beneficiary C", "Other payer"]);
+    let out = run(&input(&rows));
     assert_eq!(out["tests"]["one_source_percent"], "79.00");
     assert_eq!(out["tests"]["unrelated_clients"], 2);
     assert_eq!(decided(&out), ("section 87-20", PSB));
-    // A client label is its own name space: it never merges with a source.
-    rows[1]["client"] = json!("Trustee of the T trust and its associates");
-    let out = run(&with(base(&[]), json!({"payers": rows})));
-    assert_eq!(out["tests"]["unrelated_clients"], 2);
-    // Associates of each other share a client and count once.
-    rows[1]["client"] = json!("Beneficiary B");
-    let out = run(&with(base(&[]), json!({"payers": rows})));
+    // One entity's contracts, or associates of each other, share a client.
+    label(&mut rows, ["Beneficiary B", "Beneficiary B", "Other payer"]);
+    let out = run(&input(&rows));
+    assert_eq!(out["tests"]["unrelated_clients"], 1);
+    assert_eq!(decided(&out), ("subsection 87-15(1)", S87_15_1));
+    // Labels on some rows only, or one client across 2 sources, are refused.
+    let mut some = rows.clone();
+    some[2].as_object_mut().unwrap().remove("client");
+    assert_eq!(code(&input(&some)), "psi_test.clients_invalid");
+    let mut spread = rows.clone();
+    spread[2]["client"] = json!("Beneficiary B");
+    assert_eq!(code(&input(&spread)), "psi_test.clients_invalid");
+    // Where another test or the 80% rule decides, the source count stands.
+    let mut unlabelled = rows.clone();
+    for row in &mut unlabelled {
+        row.as_object_mut().unwrap().remove("client");
+    }
+    let premises_met = with(
+        input(&unlabelled),
+        json!({"premises": premises(&[
+            "at_all_times",
+            "mainly_for_psi",
+            "exclusive_use",
+            "separate_from_private",
+            "separate_from_clients",
+        ])}),
+    );
+    assert_eq!(run(&premises_met)["tests"]["unrelated_clients"], 1);
+    unlabelled[1]["amount"] = json!("41.00");
+    unlabelled[2]["amount"] = json!("19.00");
+    let out = run(&input(&unlabelled));
+    assert_eq!(out["rule"], "subsection 87-15(3)");
     assert_eq!(out["tests"]["unrelated_clients"], 1);
     for bad in [json!(""), json!(true), json!("x".repeat(101))] {
         let mut row = payer("1.00", "o");
         row["client"] = bad;
-        let input = with(base(&[]), json!({"payers": [row]}));
-        assert_eq!(code(&input), "psi_test.payers_invalid");
+        assert_eq!(code(&input(&[row])), "psi_test.payers_invalid");
     }
 }
 
