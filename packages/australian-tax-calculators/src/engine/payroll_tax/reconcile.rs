@@ -5,12 +5,13 @@
 //! The annual reconciliation `payroll_tax` adds when the year's periodic
 //! returns are stated: the year's liability less the payroll tax (and any
 //! surcharge, or Queensland's levy) paid or payable on them, as each Act's
-//! annual adjustment reads. Each was read on 26 November 2026.
+//! annual adjustment reads. Each was read on 26 November 2026, and the
+//! Payroll Tax Act 2007 (NSW) s 83 at AustLII on 27 November 2026.
 
 use super::PayrollTaxArgs;
 use crate::decimal::Decimal;
 use crate::engine::trade_in::when;
-use crate::engine::{Result, Step, cents, int, money, py_max, refuse, step};
+use crate::engine::{Result, Step, cents, int, money, py_max, step};
 
 /// The payroll tax, and in Queensland the levy, on the year's periodic
 /// returns, and where s 83 reduces a refund by them, the other refunds of
@@ -22,12 +23,11 @@ pub(super) struct Periodic {
 }
 
 /// The jurisdictions whose s 83 reduces the annual refund by any other
-/// refund of payroll tax made for the year: Vic, SA, Tas and NT s 83(4), ACT
-/// s 83(5).
-const REDUCED: [&str; 5] = ["vic", "sa", "tas", "act", "nt"];
+/// refund of payroll tax made for the year: NSW, Vic, SA, Tas and NT
+/// s 83(4), ACT s 83(5).
+const REDUCED: [&str; 6] = ["nsw", "vic", "sa", "tas", "act", "nt"];
 
-/// The stated periodic amounts, or the refusal for a jurisdiction whose
-/// adjustment provision was not read.
+/// The stated periodic amounts.
 pub(super) fn periodic(args: &PayrollTaxArgs, place: &str) -> Result<Option<Periodic>> {
     let Some(tax) = args.periodic_tax else {
         when(
@@ -44,12 +44,6 @@ pub(super) fn periodic(args: &PayrollTaxArgs, place: &str) -> Result<Option<Peri
         )?;
         return Ok(None);
     };
-    if place == "nsw" {
-        return refuse(
-            "payroll_tax.reconciliation_unread",
-            "The New South Wales annual reconciliation is not worked: the Payroll Tax Act 2007 (NSW) could not be read at legislation.nsw.gov.au on 26 November 2026 (a Cloudflare challenge), so its annual adjustment provision is unconfirmed.",
-        );
-    }
     let levy = when(
         place == "qld",
         args.periodic_levy,
@@ -60,7 +54,7 @@ pub(super) fn periodic(args: &PayrollTaxArgs, place: &str) -> Result<Option<Peri
         REDUCED.contains(&place),
         args.other_refunds,
         "other_refunds",
-        "beside periodic_tax for vic, sa, tas, act and nt, whose s 83 reduces the annual refund by any other refund of payroll tax made for the year (nil if none)",
+        "beside periodic_tax for nsw, vic, sa, tas, act and nt, whose s 83 reduces the annual refund by any other refund of payroll tax made for the year (nil if none)",
     )?;
     Ok(Some(Periodic {
         tax: money(tax)?,
@@ -76,6 +70,10 @@ const PERIODIC_LEVY: &str = "Payroll Tax Act 1971 (Qld) s 43H(a): the combined p
 /// Each Act's annual adjustment: (shortfall payable, excess refunded).
 fn adjustment(place: &str) -> (&'static str, &'static str) {
     match place {
+        "nsw" => (
+            "Payroll Tax Act 2007 (NSW) s 83(2) and (3), AustLII consolidation as at 22 October 2026, read on 27 November 2026: the correct amount for the year less the amount paid or payable on the year's returns, payable with the June return",
+            "Payroll Tax Act 2007 (NSW) s 83(1) and (4): the amount paid or payable on the year's returns less the correct amount, refunded on application and reduced by any other refund of payroll tax made for the year",
+        ),
         "vic" => (
             "Payroll Tax Act 2007 (Vic) s 83(2) and (3), authorised version 041: the correct amount for the year (s 82, Sch 1) less the amount paid or payable on the year's returns, payable with the June return",
             "Payroll Tax Act 2007 (Vic) s 83(1) and (4): the amount paid or payable on the year's returns less the correct amount, refunded on application and reduced by any other refund of payroll tax made for the year",

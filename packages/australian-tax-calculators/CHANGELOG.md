@@ -4,6 +4,15 @@
 
 ### Added
 
+- `thin-capitalisation` now applies ITAA 1997 Subdivisions 820-B to 820-E:
+  a financial entity (non-ADI) by its maximum allowable debt (safe harbour
+  and worldwide gearing debt amounts) or its third party debt choice, and
+  an ADI by its minimum capital amount (safe harbour, worldwide and stated
+  arm's length capital amounts), for the whole year, from stated averages.
+  An amount the result turns on that was not stated is refused, never
+  estimated. General class results are unchanged. New codes:
+  `thin_capitalisation.amount_not_worked_out` and `part_year_not_built`;
+  `thin_capitalisation.entity_class_not_built` is retired.
 - `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost`
   mirror the site's break-even, 13-week cash, hourly, fixed fee and staff
   cost calculators and agree with every one of their vectors;
@@ -116,6 +125,14 @@
   outcome and 2 or more payers won by offers share a source the command now
   refuses instead of returning 'not a personal services business'. New codes:
   `psi_test.clients_invalid` and `psi_test.clients_needed`.
+- `payroll-tax-monthly` works New South Wales, from the Payroll Tax Act 2007
+  (NSW) Sch 1 and Sch 2 cll 2 and 3 as read at AustLII on 27 November 2026:
+  the year's tax on the month's wages annualised by days, in the month's
+  share. A New South Wales employer with interstate wages and June are
+  refused. `payroll-tax` reconciles a New South Wales year under its s 83, so
+  `other_refunds` is required there beside `periodic_tax`. Codes removed:
+  `payroll_tax_monthly.act_unread` and `payroll_tax.reconciliation_unread`.
+  No other jurisdiction's result changes.
 - `resident-tax` also takes 2019-20 to 2023-24, from Income Tax Rates Act 1986
   Schedule 7 Part I as in force in those years (compilations 54, 57 and 62).
   The Python 0.2.0 corpus's 2 refused 2023-24 inputs now give $8,286.75 and

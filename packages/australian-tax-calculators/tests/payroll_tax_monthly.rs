@@ -327,6 +327,118 @@ fn tasmania_annualises_the_month() {
     assert_eq!(code(&inter), "payroll_tax_monthly.interstate_unworked");
 }
 
+/// Worked by hand from Payroll Tax Act 2007 (NSW) Sch 2 cll 2 and 3 and
+/// Sch 1 cl 1: $150,000 in July is $1,766,129.03 a year, taxed at 5.45%
+/// above $1,200,000, then 31 / 365 of it. That is the month's wages above
+/// $1,200,000 x 31 / 365 = $101,917.81; Revenue NSW's 'Payroll tax thresholds
+/// and rates' gives that threshold as $101,918, a cent less tax ($2,620.47).
+#[test]
+fn new_south_wales_annualises_the_month() {
+    let r = tax(
+        "nsw",
+        "2026-07",
+        ["150000.00", "0.00", "1800000.00", "0.00"],
+    );
+    let keys = [
+        "annualised_wages",
+        "taxable_amount",
+        "annual_payroll_tax",
+        "payroll_tax",
+        "total",
+    ];
+    assert_eq!(
+        amounts(&r, keys),
+        ["1766129.03", "566129.03", "30854.03", "2620.48", "2620.48"]
+    );
+    // 28 days: $92,054.79 is the month's threshold, so $92,054 is untaxed.
+    let below = tax("nsw", "2027-02", ["92054.00", "0.00", "1100000.00", "0.00"]);
+    assert_eq!(below["amounts"]["total"], "0.00");
+    let above = tax("nsw", "2027-02", ["92055.00", "0.00", "1100000.00", "0.00"]);
+    assert_eq!(above["amounts"]["total"], "0.01");
+    let none = tax("nsw", "2026-09", ["0.00", "0.00", "1100000.00", "0.00"]);
+    assert_eq!(none["amounts"]["total"], "0.00");
+}
+
+/// Each rate and threshold cites the Act or Revenue NSW, read on 27 November
+/// 2026, with the dates it applies from.
+#[test]
+fn new_south_wales_cites_its_sources_and_their_dates() {
+    let v = input(
+        "nsw",
+        "2026-07",
+        ["150000.00", "0.00", "1800000.00", "0.00"],
+    );
+    let doc = api::evaluate(
+        "derive",
+        &json!({"command": "payroll-tax-monthly", "input": v}),
+    )
+    .unwrap();
+    let authority = |id: &str| {
+        doc["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|s| s["id"] == id)
+            .unwrap()["authority"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    };
+    let above = authority("taxable_amount");
+    for needle in [
+        "Payroll Tax Act 2007 (NSW) Sch 1",
+        "$1,200,000 for the financial year commencing on 1 July 2020 and subsequent financial years",
+        "as at 22 October 2026",
+        "Revenue NSW's 'Payroll tax thresholds and rates' (last updated 1 July 2026: $1,200,000 for 1 July 2026 to 30 June 2027",
+        "read on 27 November 2026",
+    ] {
+        assert!(above.contains(needle), "{needle}: {above}");
+    }
+    let annual = authority("annual_payroll_tax");
+    for needle in [
+        "R: 5.45% on and from 1 July 2022",
+        "5.45% for 1 July 2026 to 30 June 2027",
+        "read on 27 November 2026",
+    ] {
+        assert!(annual.contains(needle), "{needle}: {annual}");
+    }
+    assert!(
+        authority("annualised_wages")
+            .contains("Sch 2 cl 3(b) (AustLII consolidation as at 22 October 2026")
+    );
+    assert!(authority("payroll_tax").contains("Sch 2 cl 2"));
+    let r = run(&v);
+    assert_eq!(r["rates"]["threshold"], "1200000");
+    assert_eq!(r["rates"]["rate"], "0.0545");
+    assert_eq!(r["rates"]["days_in_month"], "31");
+    assert_eq!(r["rates"]["days_in_year"], "365");
+}
+
+/// What the Act's monthly provisions do not settle stays refused.
+#[test]
+fn new_south_wales_refuses_interstate_wages_and_june() {
+    for wages in [
+        ["150000.00", "1.00", "1800000.00", "0.00"],
+        ["150000.00", "0.00", "1800000.00", "1.00"],
+    ] {
+        let v = input("nsw", "2026-07", wages);
+        assert_eq!(code(&v), "payroll_tax_monthly.interstate_unworked");
+    }
+    let june = input(
+        "nsw",
+        "2027-06",
+        ["150000.00", "0.00", "1800000.00", "0.00"],
+    );
+    assert_eq!(code(&june), "payroll_tax_monthly.last_period");
+    let mut stated = input(
+        "nsw",
+        "2026-07",
+        ["150000.00", "0.00", "1800000.00", "0.00"],
+    );
+    stated["stated_deduction"] = json!("1.00");
+    assert_eq!(code(&stated), "input.field_unknown");
+}
+
 /// Worked by hand from Payroll Tax Act 2011 (ACT) Sch 2 ss 2.2 to 2.4 and
 /// DI2026-151 s 5(b) and (d): $145,833.33 a month (shared by the estimate
 /// with interstate wages), at the Table 2 rate for the month's total wages.
@@ -467,10 +579,6 @@ fn refuses_what_it_does_not_work() {
         v[key] = value;
         code(&v)
     };
-    assert_eq!(
-        with("jurisdiction", json!("nsw")),
-        "payroll_tax_monthly.act_unread"
-    );
     assert_eq!(
         with("jurisdiction", json!("xx")),
         "payroll_tax_monthly.jurisdiction_invalid"

@@ -60,7 +60,7 @@ example evidence; it does not claim a fresh review of every supported period.
 | CGT parcels | `tax-examples-capital-gains-tax-cgt` (tax-examples), ¶2-240, with the ATO's individual tax return instructions supplement 2026, question 18 (Kathleen's examples 1 to 4), 'Keeping records of shares and units' (Boris's example), 'CGT discount', TD 33 and ITAA 1997 compilation 264 | 30 June 2026; 30 May, 22 June and 29 June 2026 (ATO pages); 19 November 2026 (read) | Parcels of shares or units acquired after 21 September 1999 and sold in 2025-26 or 2026-27; cost base adjustments, indexation and the small business concessions excluded |
 | Trade-in | Not a Library document: the ATO's 'Purchasing a motor vehicle' (Darren's example) and 'GST and the disposal of capital assets' (Ian's example), with ITAA 1997 Subdivision 27-B and ss 40-180 to 40-230, 40-305 and 40-365 (compilation 268) and GST Act ss 9-75, 11-30, 69-10 and 132-5 (compilation 96) | 3 June 2026 and 24 May 2017 (ATO pages); 18 November 2026 (read) | One asset traded in at arm's length for a replacement first held and used in 2025-26 or 2026-27; GST status, credits, allowance and price established; involuntary disposals and luxury car tax on the trade-in excluded |
 | Payroll tax | Not a Library document: each revenue office's rates page and examples, with each jurisdiction's payroll tax Act and the ACT's DI2026-151 | 17 July 2024 to 29 September 2026 (revenue office pages); 19 November 2026 (read) | One employer outside a group paying wages all year in one jurisdiction in 2026-27; taxable and Australian wages established; exemptions, rebates, discounts and caps excluded; the annual reconciliation added on 26 November 2026 |
-| Payroll tax monthly | Not a Library document: each Act's monthly provisions and the QRO's periodic deduction examples | 22 October 2026 to 26 November 2026 (Acts); 26 November 2026 (read) | One employer outside a group paying wages all year, one month of 2026-27 in Vic, Qld, WA, SA, Tas, ACT or NT; NSW refused |
+| Payroll tax monthly | Not a Library document: each Act's monthly provisions and the QRO's periodic deduction examples | 22 October 2026 to 26 November 2026 (Acts); 26 November 2026 (read) | One employer outside a group paying wages all year, one month of 2026-27 in NSW, Vic, Qld, WA, SA, Tas, ACT or NT |
 | Portable LSL levy | Not a Library document: Coal LSL (`F2018L00217`, `C2004A04352`, `tools/coal-lsl-levy` parity vectors) and each state and territory portable LSL board's rates page and in-force legislation (NSW LSC, LeavePlus, PLSA, QLeave and Qld BCI Act/Reg, SA Portable LSL, MyLeave, ACT DI2024-12/15/16/224 and DI2026-228, TasBuild, NT Build) | 24 November 2026 (read) | 20 verified jurisdiction-scheme combinations across 2023-24 to 2026-27 (each scheme gated to its verified years); worker coverage, exemptions, apprentice exclusions, late interest and lodgement excluded |
 | Depreciation | `tax-examples-depreciation` (tax-examples), ¶6-000 and ¶6-020 | 30 June 2025 | First-year formulas and taxable-use apportionment in 2024–25 examples |
 | Quarterly SG | `superannuation-instant-reference-rates-thresholds-and-checklists` (superannuation), ¶18-600 and ¶18-620 | 30 June 2026 | General 2025–26 rate and quarterly maximum contribution base |
@@ -2947,8 +2947,29 @@ Sch 2 cll 2 and 3 and s 83; the Payroll Tax Act 2011 (ACT) Sch 2 Pt 2.1, s 83
 and s 86 (republication R20) with DI2026-151 s 5(b) and (d) and Table 2; and
 the Payroll Tax Act 2009 (NT) s 7A, s 83 and Sch 2 cll 5 to 7 (as in force at
 1 July 2026). The Payroll Tax Act 2007 (NSW) served a Cloudflare challenge at
-legislation.nsw.gov.au, again after one change of network, so New South
-Wales is refused in both.
+legislation.nsw.gov.au on 26 November 2026, and again on 27 November 2026
+(the XML, HTML and PDF exports, also after one change of network). Its Sch 1
+cll 1, 4 and 5, Sch 2 cll 2, 3 and 3B to 3D and s 83 were read on 27
+November 2026 at AustLII (`classic.austlii.edu.au/au/legis/nsw/consol_act/pta2007155`,
+consolidation as at 22 October 2026), through one Firecrawl request a page
+after AustLII refused a direct request. Sch 1 cll 4 and 5 publish their
+formulas as images, read from a rendering of AustLII's page on 27 November
+2026: cl 4's threshold is TA x C / FY and cl 5's tax is
+[TW - [TW / (TW + IW) x TA x C / FY]] x R. With no interstate wages and
+wages taken as paid all year (Sch 2 cl 3(a), so C = FY) that is the
+annualised wages above the threshold at R, as Revenue NSW's 'Payroll tax
+thresholds and rates' (last updated 1 July 2026, read 27 November 2026:
+$1,200,000 and 5.45% for 1 July 2026 to 30 June 2027) states. Sch 2 cl 2 shares the year's tax by days and cl 3 annualises only the
+taxable wages, so, as in Tasmania, an employer with interstate wages is
+refused. June is refused: Revenue NSW's 'Calculate and pay your monthly
+payroll tax return' (last updated 26 October 2026) says June is incorporated
+into the annual return. The worksheet works the tax on the month's actual
+wages; the estimated monthly payroll tax an eligible taxpayer may opt to pay
+(Sch 2 cll 3B to 3D, formulas published as images) is not worked. Worked by
+the Act, a 31-day month's threshold is $1,200,000 x 31 / 365 =
+$101,917.81; Revenue NSW's table gives $101,918 to the dollar, so its tax can
+be a cent lower. NSW s 83 reads as Victoria's: the reconciliation settles the
+year the same way, reducing a refund by `other_refunds` (s 83(4)).
 
 Several Acts work the month on the year's estimated wages: Victoria's
 deduction phases out on them (Sch 2 cl 5) and is shared by them with
@@ -5875,6 +5896,18 @@ Added on 26 November 2026, when these were read:
   limits for 6 situations and its $1,440 partner income free area.
   Pharmaceutical allowance is indexed on 1 January (the guides' indexation
   dates), so it is refused for days from 1 January 2027.
+- Disability support pension and carer payment, added on 27 November 2026:
+  the Social Security Act 1991 s 1064(1) and (2), Modules A, BA, C, E, F and
+  G, and ss 1065 and 1066A for what they exclude (compilation 234); Social
+  Security Guide 5.1.8.10 (version 1.345), whose common pension rates cover
+  age pension, disability support pension at 21 or over or with a dependent
+  child, and carer payment; Services Australia's carer payment rate and assets
+  test pages (last updated 20 September 2026). Both commands work
+  `age-pension`'s calculator and amounts; the tests meet the guide's maximum
+  rates and the carer payment page's part pension cut-off points, and give
+  `age-pension`'s amounts on the first and last day of every dated period.
+  Services Australia's disability support pension rate page refused the
+  plain reader and a browser (an error page), so it was not read.
 
 The Department of Social Services' Family Assistance Guide was not read (a
 challenge page), so the Act and the published rates stand alone. The
@@ -6883,6 +6916,26 @@ their average total assets. The ATO's fixed ratio test page (last updated
 either side, the 90% assets threshold a cent either side, a negative net debt
 deductions widening the excess, a negative tax EBITDA, every tax EBITDA line,
 the year boundaries and every refusal.
+
+Subdivisions 820-B to 820-E were added on 27 November 2026 from the same
+compilation, confirmed through the Federal Register of Legislation's API
+that day as still the latest, with no unincorporated amendments. The
+formulas in ss 820-90(3)(c), 820-115(3), 820-190(2)(c), 820-220(3), 820-325
+and 820-415 are images: average Australian assets over statement worldwide
+assets, and each debt deduction times excess debt (or capital shortfall)
+over average debt. The Act's own examples are the vectors.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| GLM Limited (ss 820-100, 820-110) | assets 160m, reductions 5m, 5m, 5m, 9m, 6m, 5m, zero-capital 4m, on-lent 35m, worldwide debt 120m and equity 40m | total debt amount **117,437,500**, adjusted on-lent amount **87,000,000**, worldwide gearing debt amount **94,750,000** |
+| GLM with debt | adjusted average debt 96m, average debt 110m, deductions 8.8m | excess **1,250,000**, disallowed **100,000** |
+| TRR Limited (s 820-111) | statement debt 90m and equity 30m, total debt base 100m, zero-capital 5m | worldwide gearing debt amount **80,000,000** |
+| Inward investor (s 820-210) | Australian investments 120m, reductions 5m, 5m, 2m, 3m, zero-capital 5m, on-lent 35m | total debt amount **98,750,000**, adjusted on-lent amount **75,000,000** |
+| Southern Cross Bank (ss 820-310, 820-320) | risk-weighted assets 150m, tier 1 deductions 2m, group 14m over 160m | safe harbour **11,000,000**, worldwide **15,125,000**; with equity 10m, average debt 200m and deductions 10m, disallowed **50,000** |
+| Global Bank (s 820-405) | risk-weighted assets 140m | safe harbour **8,400,000**; with equity 8.2m, average debt 100m and deductions 5m, disallowed **10,000** |
+
+`general_class_results_unchanged` compares 11 general class inputs with
+their results recorded on main at 4df634bb, refusals included.
 
 ## Debt forgiveness
 

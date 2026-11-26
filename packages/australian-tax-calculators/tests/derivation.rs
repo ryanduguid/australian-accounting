@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 110] = [
+const DERIVED: [&str; 112] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -129,6 +129,8 @@ const DERIVED: [&str; 110] = [
     "ftb-part-b",
     "rent-assistance",
     "jobseeker-payment",
+    "disability-support-pension",
+    "carer-payment",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -1046,6 +1048,75 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "debt_deductions": [{"label": "A", "amount": "1000000.00"}],
                    "year": "2025-26", "scope_confirmed": true}),
         ),
+        // Subdivisions 820-B to 820-E: an outward financial entity with the
+        // worldwide gearing debt amount, an inward investor (financial) with
+        // the statement figures and step 7's floor, and both ADIs.
+        (
+            "thin-capitalisation",
+            json!({"test": "maximum_allowable_debt", "entity_class": "outward_investing_financial_entity",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": false, "associate_inclusive_debt_deductions": "50000000.00",
+                   "debt_deductions": [{"label": "A", "amount": "8000000.00"}, {"label": "B", "amount": "800000.00"}],
+                   "whole_year": true, "inward_investment_vehicle": false,
+                   "average_debt_capital": "110000000.00", "average_associate_entity_debt": "5000000.00",
+                   "average_controlled_foreign_entity_debt": "9000000.00",
+                   "average_borrowed_securities_amount": "1.00", "average_cost_free_debt_capital": "2.00",
+                   "average_assets": "160000000.00", "average_excluded_equity_interests": "5000000.00",
+                   "average_associate_entity_equity": "5000000.00",
+                   "average_controlled_foreign_entity_equity": "6000000.00",
+                   "average_non_debt_liabilities": "5000000.00", "average_zero_capital_amount": "4000000.00",
+                   "average_associate_entity_excess_amount": "3.00", "average_on_lent_amount": "35000000.00",
+                   "average_worldwide_debt": "120000000.00", "average_worldwide_equity": "40000000.00",
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "thin-capitalisation",
+            json!({"test": "maximum_allowable_debt", "entity_class": "inward_investing_financial_entity",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": false, "associate_inclusive_debt_deductions": "50000000.00",
+                   "debt_deductions": [{"label": "A", "amount": "6000000.00"}],
+                   "whole_year": true, "inward_investment_vehicle": false,
+                   "average_debt_capital": "90000000.00", "average_associate_entity_debt": "90000000.00",
+                   "average_pe_associate_entity_debt": "10000000.00",
+                   "average_borrowed_securities_amount": "0.00", "average_cost_free_debt_capital": "0.00",
+                   "average_assets": "120000000.00", "average_excluded_equity_interests": "5000000.00",
+                   "average_associate_entity_equity": "2000000.00", "average_non_debt_liabilities": "3000000.00",
+                   "average_zero_capital_amount": "5000000.00", "average_associate_entity_excess_amount": "0.00",
+                   "average_on_lent_amount": "35000000.00",
+                   "statement_worldwide_debt": "90000000.00", "statement_worldwide_equity": "30000000.00",
+                   "statement_worldwide_assets": "300000000.00", "statement_average_australian_assets": "100000000.00",
+                   "audited_consolidated_statements": true,
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "thin-capitalisation",
+            json!({"test": "minimum_capital_amount", "entity_class": "outward_investing_adi",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": false, "associate_inclusive_debt_deductions": "50000000.00",
+                   "debt_deductions": [{"label": "A", "amount": "10000000.00"}],
+                   "whole_year": true, "foreign_controlled_australian_entity": false,
+                   "average_debt_capital": "200000000.00", "average_adi_equity_capital": "10000000.00",
+                   "average_controlled_foreign_entity_equity": "1.00",
+                   "average_risk_weighted_assets": "150000000.00",
+                   "average_tier_1_prudential_capital_deductions": "2000000.00",
+                   "worldwide_capital_risk_weighted_assets": "150000000.00",
+                   "worldwide_capital_tier_1_prudential_capital_deductions": "2000000.00",
+                   "group_average_tier_1_capital": "14000000.00",
+                   "group_average_risk_weighted_assets": "160000000.00",
+                   "arm_length_capital_amount": "12000000.00",
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
+        (
+            "thin-capitalisation",
+            json!({"test": "minimum_capital_amount", "entity_class": "inward_investing_adi",
+                   "plantation_forestry_entity": false, "special_purpose_entity": false,
+                   "outward_investor_only": false, "associate_inclusive_debt_deductions": "50000000.00",
+                   "debt_deductions": [{"label": "A", "amount": "5000000.00"}],
+                   "whole_year": true, "average_debt_capital": "100000000.00",
+                   "average_adi_equity_capital": "8000000.00", "average_interest_free_pe_loans": "200000.00",
+                   "average_risk_weighted_assets": "140000000.00", "arm_length_capital_amount": "9000000.00",
+                   "year": "2025-26", "scope_confirmed": true}),
+        ),
         // Commercial debt forgiveness: 2 debts, every class and an associate.
         (
             "debt-forgiveness",
@@ -1323,6 +1394,40 @@ fn cases() -> Vec<(&'static str, Value)> {
             "age-pension",
             json!({"date": "2026-10-01", "relationship": relationship, "homeowner": homeowner,
                    "ordinary_income": income, "financial_assets": financial, "assets": assets,
+                   "facts": facts, "year": "2026-27", "scope_confirmed": true}),
+        ));
+    }
+    let dsp = json!({"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true,
+                     "in_australia": true, "not_transitional": true, "no_rent_assistance": true,
+                     "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true});
+    let carer = json!({"carer_payment_only": true, "in_australia": true, "not_transitional": true,
+                       "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true});
+    for (command, base, relationship, income, assets) in [
+        (
+            "disability-support-pension",
+            &dsp,
+            "single",
+            "300.00",
+            "50000.00",
+        ),
+        (
+            "disability-support-pension",
+            &dsp,
+            "couple",
+            "500.00",
+            "800000.00",
+        ),
+        ("carer-payment", &carer, "single", "150.00", "380000.00"),
+        ("carer-payment", &carer, "couple", "0.00", "1120500.00"),
+    ] {
+        let mut facts = base.clone();
+        if relationship == "couple" {
+            facts["partner_pensioner"] = json!(true);
+        }
+        cases.push((
+            command,
+            json!({"date": "2026-10-01", "relationship": relationship, "homeowner": true,
+                   "ordinary_income": income, "financial_assets": "20000.00", "assets": assets,
                    "facts": facts, "year": "2026-27", "scope_confirmed": true}),
         ));
     }
@@ -3123,7 +3228,7 @@ fn derive_refuses_what_it_does_not_explain() {
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
          lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, payroll-tax-monthly, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
-         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, age-pension, ftb-part-a, book-to-tax, ftb-part-b, rent-assistance, jobseeker-payment, not \"payg-gross-up\""
+         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, age-pension, ftb-part-a, book-to-tax, ftb-part-b, rent-assistance, jobseeker-payment, disability-support-pension, carer-payment, not \"payg-gross-up\""
     );
 }
 

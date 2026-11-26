@@ -25,7 +25,7 @@ use crate::decimal::{Decimal, Rounding};
 const KIND: &str = "age_pension";
 
 /// The facts every case needs, then those a couple needs.
-const FACTS: [(&str, &str); 4] = [
+pub(super) const FACTS: [(&str, &str); 4] = [
     (
         "in_australia",
         "the person resides in Australia and is in Australia, or has been temporarily absent for no more than 6 weeks (SS Guide 5.1.8.10: the energy supplement and pension supplement are in the maximum rate)",
@@ -81,7 +81,7 @@ const CIRCUMSTANCES: [Circumstance; 8] = [
     ),
     (
         "rate_before_november_1986",
-        "rate_before_november_1986: the widow has received that pension continuously since before 1 November 1986 and was then receiving a pension of the same type at a rate above $3,247.40 a year (s 1064(5)(c))",
+        "rate_before_november_1986: an armed services widow (s 1064(5)(c); not a widower under (6)) has received that pension continuously since before 1 November 1986 and was then receiving a pension of the same type at a rate above $3,247.40 a year (s 1064(5)(c))",
         Some("armed_services_payment"),
         Some("s 1064(5)(c) limits the rate to the one received immediately before 1 November 1986"),
     ),
@@ -119,6 +119,16 @@ struct Circumstances {
     remote_area: bool,
     election: bool,
     quarterly_energy: bool,
+}
+
+impl Circumstances {
+    /// For a payment whose own facts exclude every circumstance.
+    const NONE: Self = Self {
+        limited: false,
+        remote_area: false,
+        election: false,
+        quarterly_energy: false,
+    };
 }
 
 /// The minimum pension supplement amount a year, `[single, partnered each]`,
@@ -260,24 +270,48 @@ fn couple(given: &Arg) -> Result<bool> {
     }
 }
 
-fn all_facts() -> Vec<(&'static str, &'static str)> {
-    FACTS
-        .iter()
-        .chain(&COUPLE_FACTS)
-        .copied()
-        .chain(CIRCUMSTANCES.iter().map(|c| (c.0, c.1)))
-        .collect()
+/// A payment whose rate Pension Rate Calculator A works out (s 1064(1)): its
+/// kind, the facts every case needs, then those a couple needs. Refusals
+/// carry `age_pension` codes; another payment's command recodes them.
+pub(super) struct Payment {
+    pub kind: &'static str,
+    pub facts: &'static [(&'static str, &'static str)],
+    pub couple_facts: &'static [(&'static str, &'static str)],
+    /// Whether `facts` states the [`CIRCUMSTANCES`] and they are worked; a
+    /// payment without them states exclusions of its own instead.
+    pub circumstances: bool,
 }
 
-fn facts(given: &Arg, couple: bool) -> Result<Circumstances> {
+const AGE: Payment = Payment {
+    kind: KIND,
+    facts: &FACTS,
+    couple_facts: &COUPLE_FACTS,
+    circumstances: true,
+};
+
+fn facts(given: &Arg, couple: bool, payment: &Payment) -> Result<Circumstances> {
     let Arg::Json(Value::Object(fields)) = given else {
         return refuse(
             "age_pension.facts_invalid",
             "facts must be an object of booleans.",
         );
     };
-    match stated::unstated(fields, &all_facts(), FACTS.len() + usize::from(couple))? {
-        None => circumstances(fields),
+    let all: Vec<_> = payment
+        .facts
+        .iter()
+        .chain(payment.couple_facts)
+        .copied()
+        .chain(
+            CIRCUMSTANCES
+                .iter()
+                .filter(|_| payment.circumstances)
+                .map(|c| (c.0, c.1)),
+        )
+        .collect();
+    let needed = payment.facts.len() + usize::from(couple) * payment.couple_facts.len();
+    match stated::unstated(fields, &all, needed)? {
+        None if payment.circumstances => circumstances(fields),
+        None => Ok(Circumstances::NONE),
         Some(missing) => refuse(
             "age_pension.facts_not_stated",
             format!(
@@ -356,11 +390,17 @@ fn minimum_supplement(c: &Circumstances, date: &str, i: usize) -> Result<Option<
 }
 
 pub fn age_pension(args: &AgePensionArgs) -> Result<Value> {
-    let year = scope(args.scope_confirmed, args.year, KIND)?;
+    pension(&AGE, args)
+}
+
+/// The rate of `payment` under Pension Rate Calculator A, from the dated
+/// amounts above: a payment's own command adds no amount of its own.
+pub(super) fn pension(payment: &Payment, args: &AgePensionArgs) -> Result<Value> {
+    let year = scope(args.scope_confirmed, args.year, payment.kind)?;
     let p = period(args.date, &year)?;
     let couple = couple(args.relationship)?;
     let homeowner = flag(args.homeowner, "homeowner")?;
-    let c = facts(args.facts, couple)?;
+    let c = facts(args.facts, couple, payment)?;
     let i = usize::from(couple);
     let minimum = minimum_supplement(&c, args.date.text().unwrap_or_default(), i)?;
     let income = money(args.ordinary_income)?;
@@ -386,7 +426,7 @@ pub fn age_pension(args: &AgePensionArgs) -> Result<Value> {
         rate_limit: c.limited.then(|| d(RATE_LIMIT)),
     };
     let steps = precise(|| working(couple, &rates, [&income, &financial, &assets]))?;
-    let mut out = derived_result(KIND, &year, steps, rates.shown(couple))?;
+    let mut out = derived_result(payment.kind, &year, steps, rates.shown(couple))?;
     out["date"] = json!(args.date.text());
     out["relationship"] = json!(if couple { "couple" } else { "single" });
     out["homeowner"] = json!(homeowner);

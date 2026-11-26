@@ -116,11 +116,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "payroll_tax",
-        "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)). Given the payroll tax and any surcharge paid or payable on the year's periodic returns (periodic_tax and, in Queensland, the levy on them, periodic_levy) and, in Victoria, South Australia, Tasmania, the ACT and the Northern Territory, any other refund of payroll tax made for the year (other_refunds, nil if none), it also reconciles the year: what remains payable and what is refunded. The New South Wales reconciliation is refused: its Act could not be read on 26 November 2026.",
+        "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)). Given the payroll tax and any surcharge paid or payable on the year's periodic returns (periodic_tax and, in Queensland, the levy on them, periodic_levy) and, in Victoria, South Australia, Tasmania, the ACT and the Northern Territory, any other refund of payroll tax made for the year (other_refunds, nil if none), it also reconciles the year: what remains payable and what is refunded.",
     ),
     (
         "payroll_tax_monthly",
-        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read: an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established and, in the ACT, not an eligible university (DI2026-151 s 4). A deduction the Commissioner notified or determined (stated_deduction: required in the Northern Territory and for an interstate employer in Western Australia; optional in Queensland, South Australia and, with interstate wages, Victoria and the ACT; refused above any cap its Act sets) and Queensland's determined periodic thresholds (stated_primary_threshold and stated_additional_threshold) replace the formula. New South Wales is refused: its Act could not be read on 26 November 2026.",
+        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read: an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established and, in the ACT, not an eligible university (DI2026-151 s 4). A deduction the Commissioner notified or determined (stated_deduction: required in the Northern Territory and for an interstate employer in Western Australia; optional in Queensland, South Australia and, with interstate wages, Victoria and the ACT; refused above any cap its Act sets) and Queensland's determined periodic thresholds (stated_primary_threshold and stated_additional_threshold) replace the formula.",
     ),
     (
         "payroll_tax_group",
@@ -624,7 +624,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "thin_capitalisation",
-        "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+        "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivisions 820-AA to 820-E, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). A financial entity (non-ADI) for the whole year is tested by its maximum allowable debt: the greatest of the safe harbour debt amount (the lesser of the total debt amount, 15/16 of its stated averages after the method statement's reductions plus the zero-capital and associate entity excess amounts, and the adjusted on-lent amount, 3/5 of the averages after the on-lent amount plus that amount, less associate entity debt, plus the associate entity excess amount) and, where available, the worldwide gearing debt amount (ss 820-90, 820-100, 820-110, 820-111, 820-190, 820-200, 820-210, 820-217 and 820-219); each debt deduction is disallowed by the excess of adjusted average debt over it divided by average debt, but never more than all of it (ss 820-85, 820-115, 820-185 and 820-220). A financial entity that chose the third party debt test (s 820-85(2C) or 820-185(2C)) has the excess of its debt deductions over the third party earnings limit disallowed (ss 820-115(1), 820-220(1) and 820-427A). An ADI for the whole year is tested by its minimum capital amount: the least of the safe harbour capital amount (6% of risk-weighted assets, plus tier 1 prudential capital deductions for an outward ADI), the worldwide capital amount (outward ADIs that are not foreign controlled) and the stated arm's length capital amount (ss 820-305 to 820-320 and 820-400 to 820-410); each debt deduction is disallowed by the capital shortfall divided by average debt (ss 820-325 and 820-415). Where an amount the maximum or minimum is taken from was not stated and the result turns on it, the worksheet refuses rather than estimate: the arm's length capital amount is a judgement it does not make. The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities and ADIs in their class for only part of the year (ss 820-120, 820-225, 820-330 and 820-420), Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
     ),
     (
         "debt_forgiveness",
@@ -705,6 +705,14 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "jobseeker_payment",
         "One fortnight's jobseeker payment on a day from 1 July 2026 to 19 March 2027 under Benefit Rate Calculator B (Social Security Act 1991 s 1068): the maximum basic rate for the family situation, the energy supplement and any pharmaceutical allowance, less the partner income reduction (60% over the partner income free area) and the ordinary income reduction (50% then 60% over $150, or 40% for a single principal carer). The working credit, rent assistance, the assets test, waiting periods, compensation, the exempt principal carer rate and a partner on a benefit or under 22 are out of scope.",
+    ),
+    (
+        "disability_support_pension",
+        "One fortnight's disability support pension rate for a person who has turned 21 or has a dependent child, single or each member of a couple, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064(1)(b)), worked exactly as age-pension works it: the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income (stated income plus deemed income from financial assets, s 1082; 50% over the free area, or 25% of a couple's combined income over their combined free area) and the reduction for assets ($19.50 a year for each whole $250 over the assets value limit, a couple's assets halved against each member's limit). The amounts are age-pension's: the DSS Social Security Guide's common pension rates are one table for age pension, this pension and carer payment. Excludes the under-21 rates of Pension Rate Calculator D (s 1066A), the permanently blind (s 1065), leave and termination payments that Module F spreads over an income maintenance period, rent assistance, the work bonus (the stated income is after it), transitional rates, quarterly supplements, the rate caps of s 1064(4) to (7), advance deductions, remote area allowance, illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
+    ),
+    (
+        "carer_payment",
+        "One fortnight's carer payment rate, single or each member of a couple, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064(1)(d)), worked exactly as age-pension works it: the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income (stated income plus deemed income from financial assets, s 1082; 50% over the free area, or 25% of a couple's combined income over their combined free area) and the reduction for assets ($19.50 a year for each whole $250 over the assets value limit, a couple's assets halved against each member's limit). The amounts are age-pension's: the DSS Social Security Guide's common pension rates are one table for age pension, disability support pension and this payment. The care receiver's income and assets tests and every other qualification are the operator's to establish. Excludes carer allowance (Part 2.19) and carer supplement, rent assistance, the work bonus (the stated income is after it), transitional rates, quarterly supplements, the rate caps of s 1064(4) to (7), advance deductions, remote area allowance, illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
     ),
 ];
 
@@ -1396,6 +1404,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     ),
     (
         "jobseeker_payment",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
+    ),
+    (
+        "disability_support_pension",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
+    ),
+    (
+        "carer_payment",
         "https://www.legislation.gov.au/C2004A04121/latest/text",
     ),
 ];
@@ -3194,6 +3210,28 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.servicesaustralia.gov.au/sites/default/files/2026-07/co029-2607.pdf",
         ],
     ),
+    (
+        "disability_support_pension",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
+            "https://guides.dss.gov.au/social-security-guide/4/10/3",
+            "https://guides.dss.gov.au/social-security-guide/4/4/1/10",
+        ],
+    ),
+    (
+        "carer_payment",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
+            "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
+            "https://guides.dss.gov.au/social-security-guide/4/10/3",
+            "https://guides.dss.gov.au/social-security-guide/4/4/1/10",
+            "https://www.servicesaustralia.gov.au/how-much-carer-payment-you-can-get",
+            "https://www.servicesaustralia.gov.au/assets-test-for-carer-payment",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -3307,6 +3345,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "thin_capitalisation",
         &[
             "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them.",
+            "For a financial entity or ADI, the class, whether it is an inward investment vehicle or foreign controlled, every average value (Subdivision 820-G), the statement figures and the arm's length capital amount (ss 820-315 and 820-410) are the operator's; the worksheet applies Subdivisions 820-B to 820-E to them and does not work out a notional arm's length amount.",
         ],
     ),
     (
@@ -3630,7 +3669,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "payroll_tax",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
-            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads; New South Wales's is refused. In Victoria, South Australia, Tasmania, the ACT and the Northern Territory the refund is reduced by other_refunds, any other refund of payroll tax made for the year. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
+            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads. In New South Wales, Victoria, South Australia, Tasmania, the ACT and the Northern Territory the refund is reduced by other_refunds, any other refund of payroll tax made for the year. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
         ],
     ),
     (
@@ -3876,6 +3915,19 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "jobseeker_payment",
         &[
             "Services Australia assesses income from its own records each fortnight; the working credit, which can reduce employment income, is left out, and the rates change each 20 March and 20 September.",
+        ],
+    ),
+    (
+        "disability_support_pension",
+        &[
+            "Services Australia assesses income, assets and deeming from its own records; the rate here is one fortnight's on the stated facts and rates change each 20 March, 1 July and 20 September.",
+        ],
+    ),
+    (
+        "carer_payment",
+        &[
+            "Services Australia assesses income, assets and deeming from its own records; the rate here is one fortnight's on the stated facts and rates change each 20 March, 1 July and 20 September.",
+            "Carer allowance and carer supplement are other payments and are not in this rate; qualification, including the care receiver's own income and assets tests, is for Services Australia.",
         ],
     ),
 ];
@@ -4485,6 +4537,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The undeducted construction expenditure is more than the construction expenditure.",
     ),
     (
+        "carer_payment.assets_inconsistent",
+        "financial_assets is more than assets, which include them.",
+    ),
+    (
+        "carer_payment.date_invalid",
+        "date is not a YYYY-MM-DD day in the year.",
+    ),
+    (
+        "carer_payment.date_uncovered",
+        "date is outside 20 September 2025 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "carer_payment.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "carer_payment.facts_not_stated",
+        "A fact the carer payment worksheet needs is not stated true, such as the amount asked for being carer payment, not carer allowance or carer supplement.",
+    ),
+    (
+        "carer_payment.relationship_invalid",
+        "relationship is not single or couple.",
+    ),
+    (
         "cash_forecast.delay_above_receipts",
         "The delayed receipt is more than its week's receipts.",
     ),
@@ -4865,6 +4941,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "derivation.unsupported",
         "derive was asked to explain a command whose amounts it does not derive.",
+    ),
+    (
+        "disability_support_pension.assets_inconsistent",
+        "financial_assets is more than assets, which include them.",
+    ),
+    (
+        "disability_support_pension.date_invalid",
+        "date is not a YYYY-MM-DD day in the year.",
+    ),
+    (
+        "disability_support_pension.date_uncovered",
+        "date is outside 20 September 2025 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "disability_support_pension.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "disability_support_pension.facts_not_stated",
+        "A fact the disability support pension worksheet needs is not stated true, such as the person being 21 or over or having a dependent child (s 1066A), not blind (s 1065) or without a Module F leave or termination payment.",
+    ),
+    (
+        "disability_support_pension.relationship_invalid",
+        "relationship is not single or couple.",
     ),
     (
         "downsizer.contribution_before_settlement",
@@ -6034,7 +6134,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, ftb-part-b, rent-assistance, jobseeker-payment, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, ftb-part-b, rent-assistance, jobseeker-payment, disability-support-pension, carer-payment, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -6735,10 +6835,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employer did not pay wages for the whole year, and the threshold reduced by days is not worked.",
     ),
     (
-        "payroll_tax.reconciliation_unread",
-        "The New South Wales Act could not be read today, so its annual adjustment is not worked.",
-    ),
-    (
         "payroll_tax.wages_conflict",
         "australian_wages is less than taxable_wages, which it includes.",
     ),
@@ -6817,10 +6913,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax_group.test_invalid",
         "A controlling interest's test is not one the worksheet takes.",
-    ),
-    (
-        "payroll_tax_monthly.act_unread",
-        "The jurisdiction's Act could not be read today, so its monthly provisions are not worked.",
     ),
     (
         "payroll_tax_monthly.deduction_above_cap",
@@ -7468,6 +7560,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
     ),
     (
+        "thin_capitalisation.amount_not_worked_out",
+        "A financial entity's adjusted average debt exceeds the amounts worked out, or an ADI's equity capital falls short of them, and an amount the maximum or minimum is taken from (the worldwide gearing debt amount, worldwide capital amount or arm's length capital amount) was not stated.",
+    ),
+    (
         "thin_capitalisation.carry_forward_invalid",
         "frt_disallowed_amounts is not a list of at most 15 objects, each a year from 2023-24 within the 15 years before this one, given once, an amount from 0 and available true or false.",
     ),
@@ -7478,10 +7574,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "thin_capitalisation.debt_deductions_invalid",
         "debt_deductions is not a list of 1 to 200 objects, each a label, an amount from 0 and optionally third_party true or false.",
-    ),
-    (
-        "thin_capitalisation.entity_class_not_built",
-        "A financial entity (non-ADI) or ADI was stated; Subdivisions 820-B to 820-E are not applied.",
     ),
     (
         "thin_capitalisation.fact_invalid",
@@ -7502,6 +7594,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "thin_capitalisation.input_not_used",
         "An input the stated test does not use was given.",
+    ),
+    (
+        "thin_capitalisation.part_year_not_built",
+        "A financial entity or ADI in its class for only part of the income year was stated; the part-year rules (ss 820-120, 820-225, 820-330 and 820-420) are not applied.",
     ),
     (
         "thin_capitalisation.plantation_forestry",
