@@ -6,17 +6,23 @@
 //! other result as it was: `tests/data/payroll_tax_unchanged.json` holds
 //! `payroll-tax-monthly` and `payroll-tax` results (or refusal codes) for each
 //! other jurisdiction, and New South Wales's annual results, as main gave them
-//! at 4df634bb before the change. The `scope` and `sources` texts are left
-//! out of the comparison: the change rewords both to name New South Wales.
+//! at 4df634bb before the change. The `scope` and `sources` texts and the
+//! reconciliation warning are left out of the comparison: the change rewords
+//! them to name New South Wales.
 //! Every employer here is fabricated.
 use australian_tax_calculators::api;
 use serde_json::{Value, json};
+
+const RECONCILED: &str = "With periodic_tax";
 
 /// The result without the texts the change rewords.
 fn worked(mut result: Value) -> Value {
     if let Some(fields) = result.get_mut("ok").and_then(Value::as_object_mut) {
         fields.remove("scope");
         fields.remove("sources");
+        if let Some(Value::Array(warnings)) = fields.get_mut("warnings") {
+            warnings.retain(|w| !w.as_str().unwrap().starts_with(RECONCILED));
+        }
     }
     result
 }
