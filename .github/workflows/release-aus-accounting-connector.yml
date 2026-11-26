@@ -150,6 +150,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
+      artifact-metadata: write # Let the attest action write its storage record.
       attestations: write # Record provenance attestations for release assets.
       contents: write # Create the draft release, upload assets and publish it.
       id-token: write # Obtain the OIDC identity required to sign attestations.
@@ -183,6 +184,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          min=2.102.0 # earlier gh releases mis-match the signer workflow identity
+          have="$(gh --version | awk 'NR==1 {print $3}')"
+          [ "$(printf '%s %s\n' "$min" "$have" | tr ' ' '\n' | sort -V | head -n1)" = "$min" ]
           for file in "dist/$ASSET" dist/SHA256SUMS; do
             gh attestation verify "$file" --repo "$GITHUB_REPOSITORY" \
               --source-digest "$GITHUB_SHA" --source-ref "$GITHUB_REF" \
