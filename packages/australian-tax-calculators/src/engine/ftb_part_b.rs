@@ -233,7 +233,7 @@ fn working(couple: bool, nil: Nil, r: &Rates, [own, partner]: [&Decimal; 2]) -> 
         &[&r.standard, &r.supplement, &r.energy],
         maximum.clone(),
     )];
-    steps.push(if nil != Nil::No {
+    let last = if nil != Nil::No {
         step("part_b_rate", AUTH[3], "0", &[], int(0))
     } else if !couple {
         step(
@@ -261,6 +261,7 @@ fn working(couple: bool, nil: Nil, r: &Rates, [own, partner]: [&Decimal; 2]) -> 
             &[&maximum, &lower, &r.free_area],
             tapered,
         )
-    });
+    };
+    steps.push(last);
     Ok(steps)
 }
