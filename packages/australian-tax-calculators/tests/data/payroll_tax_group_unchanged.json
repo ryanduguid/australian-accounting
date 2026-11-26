@@ -1,0 +1,3459 @@
+[
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "600000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "2000000.00",
+          "australian_deduction": "1000000.00",
+          "deduction": "1000000.00",
+          "group_deduction": "1000000.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "phase_out_from": "3000000",
+          "phase_out_rate": "0.5",
+          "rate": "0.0485",
+          "surcharge_threshold": "10000000",
+          "second_surcharge_threshold": "100000000",
+          "surcharge_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2007 (Vic) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "3000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "4000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "500000.00",
+          "deduction": "500000.00",
+          "group_deduction": "500000.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "phase_out_from": "3000000",
+          "phase_out_rate": "0.5",
+          "rate": "0.0485",
+          "surcharge_threshold": "10000000",
+          "second_surcharge_threshold": "100000000",
+          "surcharge_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2007 (Vic) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "6000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "5000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "11000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "11000000.00",
+          "australian_deduction": "0.00",
+          "deduction": "0.00",
+          "group_deduction": "0.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "phase_out_from": "3000000",
+          "phase_out_rate": "0.5",
+          "rate": "0.0485",
+          "surcharge_threshold": "10000000",
+          "second_surcharge_threshold": "100000000",
+          "surcharge_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2007 (Vic) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "60000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "50000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "110000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "110000000.00",
+          "australian_deduction": "0.00",
+          "deduction": "0.00",
+          "group_deduction": "0.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "phase_out_from": "3000000",
+          "phase_out_rate": "0.5",
+          "rate": "0.0485",
+          "surcharge_threshold": "10000000",
+          "second_surcharge_threshold": "100000000",
+          "surcharge_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2007 (Vic) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "B",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "500000.00",
+          "interstate_wages": "2000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "2000000.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "500000.00",
+          "deduction": "250000.00",
+          "group_deduction": "250000.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "phase_out_from": "3000000",
+          "phase_out_rate": "0.5",
+          "rate": "0.0485",
+          "surcharge_threshold": "10000000",
+          "second_surcharge_threshold": "100000000",
+          "surcharge_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2007 (Vic) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "800000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "700000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "1500000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "1500000.00",
+          "australian_deduction": "1000000.00",
+          "deduction": "1000000.00",
+          "group_deduction": "0.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "phase_out_from": "3000000",
+          "phase_out_rate": "0.5",
+          "rate": "0.0485",
+          "surcharge_threshold": "10000000",
+          "second_surcharge_threshold": "100000000",
+          "surcharge_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": null,
+        "bases": [
+          {
+            "basis": "common employees",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2007 (Vic) s 71"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "C",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "A",
+          "C"
+        ]
+      ],
+      "exclusions": [
+        "C"
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "vic",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "2000000.00",
+          "australian_deduction": "1000000.00",
+          "deduction": "1000000.00",
+          "group_deduction": "1000000.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "phase_out_from": "3000000",
+          "phase_out_rate": "0.5",
+          "rate": "0.0485",
+          "surcharge_threshold": "10000000",
+          "second_surcharge_threshold": "100000000",
+          "surcharge_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "B",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2007 (Vic) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.excess_unnominated"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "600000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "2000000.00",
+          "australian_deduction": "1200000.00",
+          "deduction": "1200000.00",
+          "group_deduction": "1200000.00",
+          "dge_deduction": "1200000.00",
+          "excess_deduction": "0.00",
+          "excess_unshared": "0.00"
+        },
+        "rates": {
+          "threshold": "1300000",
+          "rate": "0.0475",
+          "levy_threshold": "10000000",
+          "levy_rate": "0.0025",
+          "additional_levy_threshold": "100000000",
+          "additional_levy_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 1971 (Qld) s 69"
+          }
+        ],
+        "excess_shares": []
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "3000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "4000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "914285.71",
+          "deduction": "914285.71",
+          "group_deduction": "914285.71",
+          "dge_deduction": "914285.71",
+          "excess_deduction": "0.00",
+          "excess_unshared": "0.00"
+        },
+        "rates": {
+          "threshold": "1300000",
+          "rate": "0.0475",
+          "levy_threshold": "10000000",
+          "levy_rate": "0.0025",
+          "additional_levy_threshold": "100000000",
+          "additional_levy_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 1971 (Qld) s 69"
+          }
+        ],
+        "excess_shares": []
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "6000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "5000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "11000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "11000000.00",
+          "australian_deduction": "0.00",
+          "deduction": "0.00",
+          "group_deduction": "0.00",
+          "dge_deduction": "0.00",
+          "excess_deduction": "0.00",
+          "excess_unshared": "0.00"
+        },
+        "rates": {
+          "threshold": "1300000",
+          "rate": "0.0495",
+          "levy_threshold": "10000000",
+          "levy_rate": "0.0025",
+          "additional_levy_threshold": "100000000",
+          "additional_levy_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 1971 (Qld) s 69"
+          }
+        ],
+        "excess_shares": []
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "60000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "50000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "110000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "110000000.00",
+          "australian_deduction": "0.00",
+          "deduction": "0.00",
+          "group_deduction": "0.00",
+          "dge_deduction": "0.00",
+          "excess_deduction": "0.00",
+          "excess_unshared": "0.00"
+        },
+        "rates": {
+          "threshold": "1300000",
+          "rate": "0.0495",
+          "levy_threshold": "10000000",
+          "levy_rate": "0.0025",
+          "additional_levy_threshold": "100000000",
+          "additional_levy_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 1971 (Qld) s 69"
+          }
+        ],
+        "excess_shares": []
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "B",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "500000.00",
+          "interstate_wages": "2000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "2000000.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "914285.71",
+          "deduction": "457142.86",
+          "group_deduction": "457142.86",
+          "dge_deduction": "457142.86",
+          "excess_deduction": "0.00",
+          "excess_unshared": "0.00"
+        },
+        "rates": {
+          "threshold": "1300000",
+          "rate": "0.0475",
+          "levy_threshold": "10000000",
+          "levy_rate": "0.0025",
+          "additional_levy_threshold": "100000000",
+          "additional_levy_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 1971 (Qld) s 69"
+          }
+        ],
+        "excess_shares": []
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "800000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "700000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "1500000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "1500000.00",
+          "australian_deduction": "1271428.57",
+          "deduction": "1271428.57",
+          "group_deduction": "0.00"
+        },
+        "rates": {
+          "threshold": "1300000",
+          "rate": "0.0475",
+          "levy_threshold": "10000000",
+          "levy_rate": "0.0025",
+          "additional_levy_threshold": "100000000",
+          "additional_levy_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": null,
+        "bases": [
+          {
+            "basis": "common employees",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 1971 (Qld) s 70"
+          }
+        ],
+        "excess_shares": []
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "C",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "A",
+          "C"
+        ]
+      ],
+      "exclusions": [
+        "C"
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.excess_unnominated"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.excess_unnominated"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "700000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "700000.00",
+          "australian_deduction": "1000000.00",
+          "deduction": "700000.00",
+          "group_deduction": "700000.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 30"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "600000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "2000000.00",
+          "australian_deduction": "846153.85",
+          "deduction": "846153.85",
+          "group_deduction": "846153.85"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 30"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "3000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "4000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "538461.54",
+          "deduction": "538461.54",
+          "group_deduction": "538461.54"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 30"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "6000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "5000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "11000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "11000000.00",
+          "australian_deduction": "0.00",
+          "deduction": "0.00",
+          "group_deduction": "0.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 30"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "60000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "50000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "110000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "110000000.00",
+          "australian_deduction": "0.00",
+          "deduction": "0.00",
+          "group_deduction": "0.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 30"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "B",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "500000.00",
+          "interstate_wages": "2000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "2000000.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "538461.54",
+          "deduction": "269230.77",
+          "group_deduction": "269230.77"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 30"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "800000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "700000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "1500000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "1500000.00",
+          "australian_deduction": "923076.92",
+          "deduction": "923076.92",
+          "group_deduction": "923076.92"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": null,
+        "bases": [
+          {
+            "basis": "common employees",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 31"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "C",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "A",
+          "C"
+        ]
+      ],
+      "exclusions": [
+        "C"
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "900000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "900000.00",
+          "australian_deduction": "1000000.00",
+          "deduction": "900000.00",
+          "group_deduction": "900000.00"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [
+          "C"
+        ],
+        "designated_group_employer": "B",
+        "bases": [
+          {
+            "basis": "common employees",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 31"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "wa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "2000000.00",
+          "australian_deduction": "846153.85",
+          "deduction": "846153.85",
+          "group_deduction": "846153.85"
+        },
+        "rates": {
+          "threshold": "1000000",
+          "upper_threshold": "7500000",
+          "rate": "0.055"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "B",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Pay-roll Tax Assessment Act 2002 (WA) s 30"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "600000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "2000000.00",
+          "australian_deduction": "600000.00",
+          "deduction": "600000.00",
+          "group_deduction": "600000.00"
+        },
+        "rates": {
+          "threshold": "1500000",
+          "maximum_deduction": "600000",
+          "full_rate": "0.0495",
+          "rate": "0.0495"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2009 (SA) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "3000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "4000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "600000.00",
+          "deduction": "600000.00",
+          "group_deduction": "600000.00"
+        },
+        "rates": {
+          "threshold": "1500000",
+          "maximum_deduction": "600000",
+          "full_rate": "0.0495",
+          "rate": "0.0495"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2009 (SA) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "6000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "5000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "11000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "11000000.00",
+          "australian_deduction": "600000.00",
+          "deduction": "600000.00",
+          "group_deduction": "600000.00"
+        },
+        "rates": {
+          "threshold": "1500000",
+          "maximum_deduction": "600000",
+          "full_rate": "0.0495",
+          "rate": "0.0495"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2009 (SA) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "60000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "50000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "110000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "110000000.00",
+          "australian_deduction": "600000.00",
+          "deduction": "600000.00",
+          "group_deduction": "600000.00"
+        },
+        "rates": {
+          "threshold": "1500000",
+          "maximum_deduction": "600000",
+          "full_rate": "0.0495",
+          "rate": "0.0495"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2009 (SA) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "B",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "500000.00",
+          "interstate_wages": "2000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "2000000.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "600000.00",
+          "deduction": "300000.00",
+          "group_deduction": "300000.00"
+        },
+        "rates": {
+          "threshold": "1500000",
+          "maximum_deduction": "600000",
+          "full_rate": "0.0495",
+          "rate": "0.0495"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2009 (SA) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "800000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "700000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.no_dge_unsettled"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "C",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "A",
+          "C"
+        ]
+      ],
+      "exclusions": [
+        "C"
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "sa",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "2000000.00",
+          "australian_deduction": "600000.00",
+          "deduction": "600000.00",
+          "group_deduction": "600000.00"
+        },
+        "rates": {
+          "threshold": "1500000",
+          "maximum_deduction": "600000",
+          "full_rate": "0.0495",
+          "rate": "0.0495"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "B",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2009 (SA) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1400000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "600000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "3000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "4000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "1750000.00",
+          "deduction": "1750000.00",
+          "group_deduction": "1750000.00"
+        },
+        "rates": {
+          "threshold": "1750000",
+          "rate": "0.0675"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2011 (ACT) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "6000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "5000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "11000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "11000000.00",
+          "australian_deduction": "1750000.00",
+          "deduction": "1750000.00",
+          "group_deduction": "1750000.00"
+        },
+        "rates": {
+          "threshold": "1750000",
+          "rate": "0.0675"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2011 (ACT) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "60000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "50000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "110000000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "110000000.00",
+          "australian_deduction": "1750000.00",
+          "deduction": "1750000.00",
+          "group_deduction": "1750000.00"
+        },
+        "rates": {
+          "threshold": "1750000",
+          "rate": "0.0785"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2011 (ACT) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "B",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "500000.00",
+          "interstate_wages": "2000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "2000000.00",
+          "interstate_wages": "2000000.00",
+          "australian_wages": "4000000.00",
+          "australian_deduction": "1750000.00",
+          "deduction": "875000.00",
+          "group_deduction": "875000.00"
+        },
+        "rates": {
+          "threshold": "1750000",
+          "rate": "0.0675"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2011 (ACT) s 70"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "800000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "700000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "1500000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "1500000.00",
+          "australian_deduction": "1750000.00",
+          "deduction": "1500000.00",
+          "group_deduction": "0.00"
+        },
+        "rates": {
+          "threshold": "1750000",
+          "rate": "0.0675"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": null,
+        "bases": [
+          {
+            "basis": "common employees",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 2011 (ACT) s 71"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "500000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "400000.00"
+        },
+        {
+          "id": "C",
+          "taxable_wages": "300000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "common_employees": [
+        [
+          "A",
+          "B"
+        ],
+        [
+          "A",
+          "C"
+        ]
+      ],
+      "exclusions": [
+        "C"
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "act",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1000000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "B"
+      ]
+    },
+    "expected": {
+      "err": "payroll_tax_group.dge_wages_below_deduction"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "qld",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1000000.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "400000.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2026-27",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ],
+      "designated_group_employers": [
+        "A"
+      ],
+      "excess_deduction_order": [
+        "B"
+      ]
+    },
+    "expected": {
+      "ok": {
+        "ok": true,
+        "engine": "australian-tax-calculators",
+        "engine_version": "1.4.0",
+        "calculation": "payroll_tax_group",
+        "period": "2026-27",
+        "amounts": {
+          "taxable_wages": "1400000.00",
+          "interstate_wages": "0.00",
+          "australian_wages": "1400000.00",
+          "australian_deduction": "1285714.29",
+          "deduction": "1285714.29",
+          "group_deduction": "1285714.29",
+          "dge_deduction": "1000000.00",
+          "excess_deduction": "285714.29",
+          "excess_unshared": "0.00"
+        },
+        "rates": {
+          "threshold": "1300000",
+          "rate": "0.0475",
+          "levy_threshold": "10000000",
+          "levy_rate": "0.0025",
+          "additional_levy_threshold": "100000000",
+          "additional_levy_rate": "0.005"
+        },
+        "scope": "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "sources": [
+          "https://content.legislation.vic.gov.au/sites/default/files/2026-05/07-26aa041-authorised.pdf",
+          "https://www.legislation.qld.gov.au/view/whole/pdf/inforce/current/act-1971-037",
+          "https://www.legislation.wa.gov.au/legislation/statutes.nsf/main_mrtitle_685_homepage.html",
+          "https://www.legislation.sa.gov.au/_legislation-documents/lz/c/a/payroll-tax-act-2009/current/2009.22.auth.pdf",
+          "https://www.legislation.act.gov.au/a/2011-18/",
+          "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
+          "https://qro.qld.gov.au/payroll-tax/calculate/deductions/"
+        ],
+        "source_checked": "2026-11-24",
+        "warnings": [
+          "Operator-confirmed facts and scope; eligibility is not independently verified.",
+          "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+          "Whether employees perform duties for another's business, whether corporations are related bodies corporate, whether persons are associated and whether a person carries on a business are for each revenue office to decide; this worksheet takes them as stated.",
+          "An exclusion order and a designation take effect as the commissioner orders or approves; this worksheet takes those stated as in force all year, and does not work each member's payroll tax, periodic returns, Queensland's final liability or the annual reconciliation. The members in excess_deduction_order are taken as entitled group members (Payroll Tax Act 1971 (Qld) s 44), as the DGE nominated or the commissioner determined."
+        ],
+        "group": [
+          "A",
+          "B"
+        ],
+        "excluded": [],
+        "designated_group_employer": "A",
+        "bases": [
+          {
+            "basis": "related bodies corporate",
+            "persons": [
+              "A",
+              "B"
+            ],
+            "provision": "Payroll Tax Act 1971 (Qld) s 69"
+          }
+        ],
+        "excess_shares": [
+          {
+            "person": "B",
+            "share": "285714.29"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "nsw",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2025-26",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "err": "period.unsupported"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "tas",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2025-26",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "err": "period.unsupported"
+    }
+  },
+  {
+    "command": "payroll-tax-group",
+    "input": {
+      "jurisdiction": "nt",
+      "employer": "A",
+      "persons": [
+        {
+          "id": "A",
+          "taxable_wages": "1.00"
+        },
+        {
+          "id": "B",
+          "taxable_wages": "1.00"
+        }
+      ],
+      "employed_all_year": true,
+      "year": "2025-26",
+      "scope_confirmed": true,
+      "related_bodies_corporate": [
+        [
+          "A",
+          "B"
+        ]
+      ]
+    },
+    "expected": {
+      "err": "period.unsupported"
+    }
+  }
+]

@@ -124,7 +124,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "payroll_tax_group",
-        "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order; in New South Wales, Tasmania and the Northern Territory, whether any member is liable at all.",
     ),
     (
         "transfer_duty",
@@ -1809,6 +1809,9 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.act.gov.au/a/2011-18/",
             "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
             "https://qro.qld.gov.au/payroll-tax/calculate/deductions/",
+            "https://classic.austlii.edu.au/au/legis/nsw/consol_act/pta2007155/sch1.html",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2008-016",
+            "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=12078",
         ],
     ),
     (
@@ -3638,6 +3641,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable, and the deductible amount an employer may claim on estimates; this worksheet takes the wages, the year's estimates and any stated deduction as established.",
             "A Commissioner's determination, or in Victoria, South Australia and the ACT the amount in the employer's latest notice, replaces the Act's formula for the deduction (and in Queensland for each periodic threshold): state it as stated_deduction (or stated_primary_threshold and stated_additional_threshold), or the formula amount is worked.",
             "A monthly return is provisional: the annual reconciliation (payroll-tax with periodic_tax) settles the year against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns.",
+            "In New South Wales only the actual-wages method is worked (Payroll Tax Act 2007 (NSW) Sch 2 cll 2 and 3: the tax on the month's wages); an eligible taxpayer that opts under Sch 2 cl 3B to pay estimated monthly payroll tax pays the cl 3D amount instead, which this worksheet does not work.",
         ],
     ),
     (
@@ -6734,10 +6738,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "australian_wages is less than taxable_wages, which it includes.",
     ),
     (
-        "payroll_tax_group.act_unread",
-        "The jurisdiction's Act could not be read today, so its grouping Part is not worked.",
-    ),
-    (
         "payroll_tax_group.business_unstated",
         "A person holds a controlling interest alone, and whether it carries on a business is not stated.",
     ),
@@ -6770,10 +6770,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A stated fact is not in the form the worksheet takes.",
     ),
     (
-        "payroll_tax_group.formula_unread",
-        "The jurisdiction's group deduction formula could not be read as text today.",
-    ),
-    (
         "payroll_tax_group.interest_cycle",
         "The stated voting interests hold one another in a cycle.",
     ),
@@ -6788,6 +6784,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax_group.not_grouped",
         "The employer is not a member of a group on the stated facts.",
+    ),
+    (
+        "payroll_tax_group.nt_annual_unallowed",
+        "A Northern Territory group with a designated group employer is above its threshold, and the Commissioner's written permission to calculate under Sch 1 cl 9 is not stated as given.",
     ),
     (
         "payroll_tax_group.part_year",

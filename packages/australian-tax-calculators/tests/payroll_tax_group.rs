@@ -329,6 +329,128 @@ fn south_australia_and_the_act_deduct_through_the_dge() {
     assert_eq!(code(&short), "payroll_tax_group.dge_wages_below_deduction");
 }
 
+/// A pair of related corporations A and B in `place`, B with `giw` of
+/// interstate wages, with the DGEs `dge`.
+fn pair(place: &str, a: &str, b: &str, giw: &str, dge: Value) -> Value {
+    let mut persons = wages(&[("A", a), ("B", b)]);
+    persons[1]["interstate_wages"] = json!(giw);
+    let v = with(
+        input(place, "A", persons),
+        "related_bodies_corporate",
+        json!([["A", "B"]]),
+    );
+    with(v, "designated_group_employers", dge)
+}
+
+/// The authority `derive` cites for step `id` of `input`'s working.
+fn authority(input: &Value, id: &str) -> String {
+    let envelope = json!({"command": "payroll-tax-group", "input": input});
+    let doc = api::evaluate("derive", &envelope).unwrap();
+    let steps = doc["steps"].as_array().unwrap();
+    let step = steps.iter().find(|s| s["id"] == id).unwrap();
+    step["authority"].as_str().unwrap().to_string()
+}
+
+/// Payroll Tax Act 2007 (NSW) Sch 1 cl 9(2): 3,000,000 / 4,000,000 x
+/// $1,200,000 = $900,000; cl 8: $1,100,000 or exactly $1,200,000 leaves no
+/// member liable; cl 12: with no DGE each member pays on its own wages.
+#[test]
+fn new_south_wales_works_sch_1_parts_3_and_4() {
+    let dge = json!(["A"]);
+    let over = pair("nsw", "2000000.00", "1000000.00", "1000000.00", dge.clone());
+    let result = run(&over);
+    assert_eq!(amount(&result, "group_deduction"), "900000.00");
+    assert_eq!(result["members_liable"], true);
+    let cited = authority(&over, "group_deduction");
+    assert!(cited.starts_with("Payroll Tax Act 2007 (NSW) Sch 1 cl 9(2)"));
+    assert_eq!(
+        result["bases"][0]["provision"],
+        "Payroll Tax Act 2007 (NSW) s 70"
+    );
+    for (a, b) in [("700000.00", "400000.00"), ("800000.00", "400000.00")] {
+        let under = pair("nsw", a, b, "0", dge.clone());
+        let result = run(&under);
+        assert_eq!(amount(&result, "group_deduction"), "0.00");
+        assert_eq!(result["members_liable"], false);
+        let cited = authority(&under, "group_deduction");
+        assert!(cited.starts_with("Payroll Tax Act 2007 (NSW) Sch 1 cl 8"));
+    }
+    for (a, b) in [("2000000.00", "1000000.00"), ("700000.00", "400000.00")] {
+        let none = run(&pair("nsw", a, b, "0", json!([])));
+        assert_eq!(amount(&none, "group_deduction"), "0.00");
+        assert_eq!(none["members_liable"], true);
+    }
+    let short = pair("nsw", "500000.00", "1500000.00", "0", dge);
+    assert_eq!(code(&short), "payroll_tax_group.dge_wages_below_deduction");
+}
+
+/// Payroll Tax Act 2008 (Tas) Sch 1 cl 9A(2): $1,500,000 deducts the whole
+/// $1,250,000; cl 9B(2): 4,000,000 / 5,000,000 x $1,250,000 = $1,000,000 and
+/// x $2,000,000 = $1,600,000 from the R2 wages; cl 9: $1,200,000 leaves no
+/// member liable; cl 12: with no DGE no member deducts.
+#[test]
+fn tasmania_works_both_thresholds() {
+    let dge = json!(["A"]);
+    let lower = run(&pair("tas", "1300000.00", "200000.00", "0", dge.clone()));
+    assert_eq!(amount(&lower, "group_deduction"), "1250000.00");
+    assert!(lower["amounts"].get("top_bracket_deduction").is_none());
+    let upper = pair("tas", "3000000.00", "1000000.00", "1000000.00", dge.clone());
+    let result = run(&upper);
+    assert_eq!(amount(&result, "group_deduction"), "1000000.00");
+    assert_eq!(amount(&result, "top_bracket_deduction"), "1600000.00");
+    let cited = authority(&upper, "top_bracket_deduction");
+    assert!(cited.contains("cl 8(2) and 9B(2)"));
+    let under = run(&pair("tas", "700000.00", "500000.00", "0", dge.clone()));
+    assert_eq!(under["members_liable"], false);
+    let none = pair("tas", "3000000.00", "1000000.00", "0", json!([]));
+    assert_eq!(amount(&run(&none), "group_deduction"), "0.00");
+    assert!(authority(&none, "group_deduction").contains("cl 12"));
+    let short = pair("tas", "1500000.00", "2500000.00", "0", dge);
+    assert_eq!(code(&short), "payroll_tax_group.dge_wages_below_deduction");
+}
+
+/// Payroll Tax Act 2009 (NT) Sch 1 cl 7: AD = $2,500,000 - ($5,000,000 -
+/// $2,500,000) / 2 = $1,250,000; cl 9(2): x 4,000,000 / 5,000,000 =
+/// $1,000,000, only with the Commissioner's permission (cl 9(1)(c)); AD is
+/// nil from $7,500,000; cl 8: $2,500,000 leaves no member liable.
+#[test]
+fn the_northern_territory_needs_written_permission() {
+    let dge = json!(["A"]);
+    let over = pair("nt", "3000000.00", "1000000.00", "1000000.00", dge.clone());
+    assert_eq!(code(&over), "payroll_tax_group.nt_annual_unallowed");
+    let refused = with(over.clone(), "annual_calculation_allowed", json!(false));
+    assert_eq!(code(&refused), "payroll_tax_group.nt_annual_unallowed");
+    let allowed = with(over, "annual_calculation_allowed", json!(true));
+    let result = run(&allowed);
+    assert_eq!(amount(&result, "australian_deduction"), "1250000.00");
+    assert_eq!(amount(&result, "group_deduction"), "1000000.00");
+    let nil = pair("nt", "5000000.00", "2500000.00", "0", dge.clone());
+    let nil = with(nil, "annual_calculation_allowed", json!(true));
+    assert_eq!(amount(&run(&nil), "group_deduction"), "0.00");
+    let under = run(&pair("nt", "1500000.00", "1000000.00", "0", dge));
+    assert_eq!(under["members_liable"], false);
+    let none = run(&pair("nt", "3000000.00", "1000000.00", "0", json!([])));
+    assert_eq!(none["members_liable"], true);
+    assert_eq!(amount(&none, "group_deduction"), "0.00");
+}
+
+/// Nothing is estimated: the days on which a member paid wages (C) are not
+/// an input, so a part year is refused naming the clause that defines C.
+#[test]
+fn a_part_year_names_the_clause_for_c() {
+    for (place, act) in [
+        ("nsw", "Payroll Tax Act 2007 (NSW) Sch 1 cl 7"),
+        ("tas", "Payroll Tax Act 2008 (Tas) Sch 1 cl 7"),
+        ("nt", "Payroll Tax Act 2009 (NT) Sch 1 cl 7"),
+    ] {
+        let v = pair(place, "2000000.00", "1000000.00", "0", json!(["A"]));
+        let v = with(v, "employed_all_year", json!(false));
+        let err = api::evaluate_coded("payroll-tax-group", &v).unwrap_err();
+        assert_eq!(err.code, "payroll_tax_group.part_year");
+        assert!(err.message.contains(act), "{}", err.message);
+    }
+}
+
 #[test]
 fn exclusions_take_a_member_out_unless_the_act_bars_it() {
     let persons = wages(&[("A", "500000.00"), ("B", "400000.00"), ("C", "300000.00")]);
@@ -363,16 +485,8 @@ fn refusals_name_what_is_not_worked() {
     );
     let cases = [
         (
-            with(v.clone(), "jurisdiction", json!("nsw")),
-            "payroll_tax_group.act_unread",
-        ),
-        (
-            with(v.clone(), "jurisdiction", json!("tas")),
-            "payroll_tax_group.formula_unread",
-        ),
-        (
-            with(v.clone(), "jurisdiction", json!("nt")),
-            "payroll_tax_group.formula_unread",
+            with(v.clone(), "annual_calculation_allowed", json!(true)),
+            "payroll_tax_group.fact_invalid",
         ),
         (
             with(v.clone(), "jurisdiction", json!("xx")),

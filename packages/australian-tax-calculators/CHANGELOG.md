@@ -4,6 +4,16 @@
 
 ### Added
 
+- `payroll-tax-group` works New South Wales, Tasmania and the Northern
+  Territory from each Act's Sch 1 Pts 3 and 4, read on 27 November 2026:
+  the group deduction claimed by the designated group employer, no member
+  liable at or below the group threshold (`members_liable`), Tasmania's top
+  bracket deduction above $2,000,000 and, in the Northern Territory, the
+  Commissioner's permission under Sch 1 cl 9(1)(c)
+  (`annual_calculation_allowed`). New code:
+  `payroll_tax_group.nt_annual_unallowed`; removed:
+  `payroll_tax_group.act_unread` and `payroll_tax_group.formula_unread`.
+
 - `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost`
   mirror the site's break-even, 13-week cash, hourly, fixed fee and staff
   cost calculators and agree with every one of their vectors;

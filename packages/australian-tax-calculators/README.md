@@ -2924,9 +2924,8 @@ the ACT and Northern Territory Acts; see
 ## Payroll tax grouping
 
 `payroll_tax_group` works out, from stated facts, the payroll tax group one
-employer belongs to for 2026-27 in Victoria, Queensland, Western Australia,
-South Australia or the ACT, its designated group employer and the group's
-single deduction. It takes:
+employer belongs to for 2026-27 in any state or territory, its designated
+group employer and the group's single deduction. It takes:
 
 - `jurisdiction` and `employer`, the person whose group is worked;
 - `persons`: each `id`, `taxable_wages` in the jurisdiction,
@@ -2936,7 +2935,9 @@ single deduction. It takes:
   `common_employees` (pairs), `controlling_interests` (holders, business,
   test and, where the test has one, percent), `voting_interests` (holders,
   corporation, percent), `exclusions` (persons under an exclusion order),
-  `designated_group_employers` and, in Queensland, `excess_deduction_order`;
+  `designated_group_employers`, in Queensland `excess_deduction_order` and, in
+  the Northern Territory, `annual_calculation_allowed` (the Commissioner's
+  written permission to calculate under Sch 1 cl 9);
 - `employed_all_year`, which must be `true`.
 
 Each Act's grouping Part joins related bodies corporate, an employer and the
@@ -2953,10 +2954,20 @@ designated group employer claims it; with none, no member does, except in
 Western Australia, where the Act gives it to the group. In Queensland a
 deduction above the employer's own wages is shared with the members in the
 stated order (nominated by the employer or determined by the commissioner),
-and refused when no order is stated; elsewhere such a case is refused. New South Wales is refused (its
-Act could not be read on 24 November 2026), as are Tasmania and the Northern
-Territory, whose group formulas are published only as images, and a South
-Australian group with no designated group employer. See
+and refused when no order is stated; elsewhere such a case is refused.
+
+In New South Wales, Tasmania and the Northern Territory a group with a
+designated group employer whose taxable and interstate wages are not more
+than the threshold has no member liable (`members_liable` is `false`; NSW and
+NT Sch 1 cl 8, Tas Sch 1 cl 9); with no designated group employer every member
+pays on its own wages. Above Tasmania's $2,000,000 top bracket threshold the
+designated group employer also deducts that threshold's share from its wages
+taxed at the higher rate (`top_bracket_deduction`, Sch 1 cl 9B(2)), refused
+when its wages are less. A Northern Territory group above its threshold with a
+designated group employer needs `annual_calculation_allowed: true` (Sch 1
+cl 9(1)(c)); otherwise Sch 2 cl 14 applies and it is refused. A group paying
+wages for only part of the year, and a South Australian group with no
+designated group employer, are refused. See
 [calculation evidence](docs/calculation-evidence.md#payroll-tax-group).
 
 ## Payroll tax monthly returns

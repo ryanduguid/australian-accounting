@@ -1770,7 +1770,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "payroll_tax_group" => (
             "2026-11-24",
-            "Payroll Tax Act 2007 (Vic) Pt 5 (ss 67 to 80) and Sch 1 Pts 3 and 4 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and Pt 4 (ss 67 to 75; current reprint); Pay-roll Tax Assessment Act 2002 (WA) s 17 and Pt 4 (ss 30 to 39; 04-d0-03); Payroll Tax Act 2009 (SA) Pt 5 and Sch 1 Pt 3 (31.3.2026); Payroll Tax Act 2011 (ACT) Pt 5 and Sch 1 Pts 1.3 and 1.4 (current republication); with SRO Victoria's 'Grouping' and QRO's 'Payroll tax deductions'. NSW (a Cloudflare challenge) and the Tasmanian and Northern Territory group formulas (images) could not be read and are refused",
+            "Payroll Tax Act 2007 (Vic) Pt 5 (ss 67 to 80) and Sch 1 Pts 3 and 4 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and Pt 4 (ss 67 to 75; current reprint); Pay-roll Tax Assessment Act 2002 (WA) s 17 and Pt 4 (ss 30 to 39; 04-d0-03); Payroll Tax Act 2009 (SA) Pt 5 and Sch 1 Pt 3 (31.3.2026); Payroll Tax Act 2011 (ACT) Pt 5 and Sch 1 Pts 1.3 and 1.4 (current republication); with SRO Victoria's 'Grouping' and QRO's 'Payroll tax deductions'; read on 27 November 2026, Payroll Tax Act 2007 (NSW) Pt 5 (ss 67 to 81) and Sch 1 Pts 3 and 4 (AustLII consolidation as at 22 October 2026, the formulas from its page images), Payroll Tax Act 2008 (Tas) Pt 5 and Sch 1 cl 1 and Pts 3 and 4 (current version, the formulas from its images) and Payroll Tax Act 2009 (NT) Pt 5 and Sch 1 Pts 3 and 4 (as in force at 1 July 2026)",
         ),
         "payroll_tax_monthly" => (
             "2026-11-26",
@@ -4462,6 +4462,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "excess_deduction_order",
                 "list of person ids, Queensland only and with a designated group employer, required when the deduction exceeds that employer's wages: the order, nominated by the DGE or determined by the commissioner, in which entitled group members share the excess (Payroll Tax Act 1971 (Qld) ss 44, 46 and 47)",
             ),
+            (
+                "annual_calculation_allowed",
+                "boolean, Northern Territory only: true when the Commissioner has allowed the group, by writing, to calculate payroll tax under Payroll Tax Act 2009 (NT) Sch 1 cl 9 (cl 9(1)(c)); required for a group with a designated group employer above the group threshold amount, where false or absent is refused",
+            ),
         ],
         "payroll_tax_monthly" => vec![
             (
@@ -5952,7 +5956,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
         ],
         "payroll_tax_group" => vec![
-            ("jurisdiction", "vic, qld, wa, sa or act; nsw, tas and nt are refused"),
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             ("employer", "the person id whose group is worked"),
             (
                 "persons",
