@@ -207,6 +207,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // net-medical-expenses-tax-offset, non-commercial-losses, psi-test,
     // first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee,
     // age-pension, ftb-part-a, ftb-part-b, rent-assistance, jobseeker-payment,
+    // disability-support-pension, carer-payment,
     // fbt-instalment, private-health-insurance-rebate, rental-property, super-benefit-tax and
     // foreign-resident-withholding, non-resident-withholding, residential-vacancy-fee,
     // horticulture-shearing-withholding, upward-variation-withholding,
@@ -231,7 +232,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
     // gst-food-retailer-sam, salary-dividend, sole-trader-set-aside,
     // salary-packaging and novated-lease.
-    assert_eq!(checked, 162);
+    assert_eq!(checked, 164);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

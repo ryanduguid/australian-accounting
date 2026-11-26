@@ -524,6 +524,73 @@ fn refusals() {
     }
 }
 
+fn message(overrides: Value) -> String {
+    api::evaluate(COMMAND, &input(overrides)).unwrap_err()
+}
+
+#[test]
+fn list_and_field_refusals_say_what_is_wrong() {
+    let not_a_list = "event must be a list of at most 10000 objects.";
+    assert!(message(json!({"events": 5})).contains(not_a_list));
+    let too_many = vec![ev("2025-07-01", "payg_instalment", "1.00"); 10_001];
+    assert!(message(json!({"events": too_many})).contains(not_a_list));
+    assert!(message(json!({"events": [1]})).contains("each must be an object."));
+
+    let mut instalment = ev("2025-07-01", "payg_instalment", "1.00");
+    instalment["rd_offset_part"] = json!("0.00");
+    assert!(
+        message(json!({"events": [instalment]}))
+            .contains("rd_offset_part is for an income_tax_refund only.")
+    );
+
+    let with = |field: &str, value: Value| {
+        let mut d = dist("2025-09-01", "1.00", "0.00");
+        d[field] = value;
+        message(json!({"distributions": [d]}))
+    };
+    assert!(
+        with("date", json!("2026-07-01"))
+            .contains("date must be a YYYY-MM-DD date in the income year.")
+    );
+    assert!(with("amount", json!("0.00")).contains("amount must be the frankable distribution"));
+    assert!(
+        with("franking_credit", json!("1.001"))
+            .contains("franking_credit must be the franking credit allocated to it")
+    );
+    assert!(
+        with("permitted_percentage", json!("100.5"))
+            .contains("permitted_percentage must be a decimal string from 0 to 100.")
+    );
+    assert!(
+        with("statement_after_distribution", json!("yes"))
+            .contains("statement_after_distribution must be a boolean.")
+    );
+}
+
+#[test]
+fn income_tax_refusals_name_the_missing_or_unknown_field() {
+    assert!(message(json!({"income_tax": "86300.20"})).contains("income_tax must be an object."));
+    let unknown = api::evaluate_coded(
+        COMMAND,
+        &input(json!({"income_tax": {"before_fdt_offset": "1.00", "offset_brought_forward": "0.00", "rate": "0.30"}})),
+    )
+    .unwrap_err();
+    assert_eq!(unknown.code, "input.field_unknown");
+    assert!(
+        unknown
+            .message
+            .contains("income_tax: rate is not an input of franking-account")
+    );
+    // A private company must say whether it had an earlier year's liability.
+    assert!(
+        message(json!({
+            "private_company": true,
+            "income_tax": {"before_fdt_offset": "1.00", "offset_brought_forward": "0.00"},
+        }))
+        .contains("income_tax needs earlier_year_liability for a private company")
+    );
+}
+
 /// The EKW case without its item 7 debit, which the-exchequer-tally's
 /// `franking-account` also takes (its 7 entry types, opening at nil or
 /// more): both give a $60,000 deficit and a $42,000 offset, since every debit
