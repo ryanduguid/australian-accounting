@@ -48,11 +48,11 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
 /// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/smsf_member_allocation.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs`,
-/// `tests/help_indexation.rs`, `tests/first_home_owner_grant.rs`, `tests/gov_schemes.rs`, `tests/defined_benefit_income_cap.rs`,
+/// `tests/help_indexation.rs`, `tests/first_home_owner_grant.rs`, `tests/gov_schemes.rs`, `tests/centrelink.rs`, `tests/defined_benefit_income_cap.rs`,
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 159] = [
+const NEW_KINDS: [(&str, &str); 162] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -146,6 +146,9 @@ const NEW_KINDS: [(&str, &str); 159] = [
     ("home-guarantee", "home_guarantee"),
     ("age-pension", "age_pension"),
     ("ftb-part-a", "ftb_part_a"),
+    ("ftb-part-b", "ftb_part_b"),
+    ("rent-assistance", "rent_assistance"),
+    ("jobseeker-payment", "jobseeker_payment"),
     ("payg-instalment", "payg_instalment"),
     ("pcg-2021-4", "pcg_2021_4"),
     ("minors-income", "minors_income"),

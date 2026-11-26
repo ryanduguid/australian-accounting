@@ -5846,6 +5846,24 @@ Added on 26 November 2026, when these were read:
   of Social Services' rates list for 1 July 2026; Services Australia's
   'A guide to Australian Government payments' for 20 September to 31 December
   2026. The tests meet its income limits for 7 mixes of children.
+- Family tax benefit Part B: A New Tax System (Family Assistance) Act 1999
+  (C2004A00490, compilation 124), Schedule 1 clauses 28B to 33 and Schedule 3
+  clause 3(2); the rates list for 1 July 2026 and its previous amounts. The
+  tests meet the rates list's secondary earner income limits for both age
+  bands in 2025-26 and 2026-27 to the dollar.
+- Rent assistance: the Social Security Act 1991 Part 3.7 (compilation 234),
+  ss 1070 to 1070C, 1070K, 1070L, 1070Q and 1070T to 1070X; Social Security
+  Guide 5.1.7.10 (a challenge page to the plain reader, read through
+  Firecrawl); 'A guide to Australian Government payments' for 1 July to 19
+  September 2026 and 20 September to 31 December 2026. The register's text
+  shows the rate A column of the s 1070L and s 1070Q tables as images, which
+  were not read, so the 75 cents in the dollar and the halving for a couple
+  both receiving it rest on the guides. The tests meet the guides' rent
+  ceilings and maximum rates for every situation.
+- Jobseeker payment: the Social Security Act 1991 s 1068 Modules A, B, C, D
+  and G (compilation 234); Social Security Guide 5.1.8.20 and 5.1.10.20; the
+  2 payments guides above. The tests meet the 20 September guide's income
+  limits for 6 situations and its $1,440 partner income free area.
 
 The Department of Social Services' Family Assistance Guide was not read (a
 challenge page), so the Act and the published rates stand alone. The

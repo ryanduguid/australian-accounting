@@ -1435,6 +1435,46 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "ftb-part-b",
+        &[
+            ("relationship", Raw),
+            ("youngest_child_age", Raw),
+            ("adjusted_taxable_income", Dec),
+            ("partner_adjusted_taxable_income", Dec),
+            ("income_support", Raw),
+            ("grandparent", Raw),
+            ("energy_supplement", Raw),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "rent-assistance",
+        &[
+            ("date", Raw),
+            ("situation", Raw),
+            ("fortnightly_rent", Dec),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "jobseeker-payment",
+        &[
+            ("date", Raw),
+            ("situation", Raw),
+            ("pharmaceutical_allowance", Raw),
+            ("ordinary_income", Dec),
+            ("partner", Raw),
+            ("partner_income", Dec),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "salary-dividend",
         &[
             ("profit", Dec),
@@ -2115,7 +2155,7 @@ const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
     ("average_total_assets", Dec),
 ];
 
-const DERIVED: [&str; 108] = [
+const DERIVED: [&str; 111] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -2223,6 +2263,9 @@ const DERIVED: [&str; 108] = [
     "staff-cost",
     "age-pension",
     "ftb-part-a",
+    "ftb-part-b",
+    "rent-assistance",
+    "jobseeker-payment",
     "book-to-tax",
 ];
 
@@ -2700,6 +2743,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "home-guarantee"
             | "age-pension"
             | "ftb-part-a"
+            | "ftb-part-b"
+            | "rent-assistance"
+            | "jobseeker-payment"
             | "psi-test"
             | "payg-instalment"
             | "pcg-2021-4"
@@ -4512,6 +4558,37 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             facts: &a[5],
             year: &a[6],
             scope_confirmed: &a[7],
+        }),
+        "ftb-part-b" => engine::ftb_part_b(&engine::FtbPartBArgs {
+            relationship: &a[0],
+            youngest_child_age: &a[1],
+            adjusted_taxable_income: &a[2],
+            partner_adjusted_taxable_income: &a[3],
+            income_support: &a[4],
+            grandparent: &a[5],
+            energy_supplement: &a[6],
+            facts: &a[7],
+            year: &a[8],
+            scope_confirmed: &a[9],
+        }),
+        "rent-assistance" => engine::rent_assistance(&engine::RentAssistanceArgs {
+            date: &a[0],
+            situation: &a[1],
+            fortnightly_rent: &a[2],
+            facts: &a[3],
+            year: &a[4],
+            scope_confirmed: &a[5],
+        }),
+        "jobseeker-payment" => engine::jobseeker_payment(&engine::JobseekerPaymentArgs {
+            date: &a[0],
+            situation: &a[1],
+            pharmaceutical_allowance: &a[2],
+            ordinary_income: &a[3],
+            partner: &a[4],
+            partner_income: &a[5],
+            facts: &a[6],
+            year: &a[7],
+            scope_confirmed: &a[8],
         }),
         "salary-dividend" => engine::owner_pay_split(&engine::SalaryDividendArgs {
             profit: &a[0],
