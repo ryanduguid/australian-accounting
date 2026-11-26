@@ -200,7 +200,7 @@ fn account(v: &Value, span: (i64, i64), n: usize) -> Result<Account> {
     // ITAA 1997 s 307-80(2)(c)(iv) and (3)(b): attaining 65 puts a transition
     // to retirement income stream in the retirement phase; at 64 on 1 July
     // that is almost always within the year.
-    if kind == Kind::TransitionToRetirement && age.is_some_and(|n| 64 <= n) {
+    if kind == Kind::TransitionToRetirement && age.is_some_and(|n| n >= 64) {
         return refuse(
             "smsf_member_allocation.transition_reaches_65",
             format!(
