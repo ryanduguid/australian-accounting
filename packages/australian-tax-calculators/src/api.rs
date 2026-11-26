@@ -2263,10 +2263,10 @@ const DERIVED: [&str; 111] = [
     "staff-cost",
     "age-pension",
     "ftb-part-a",
+    "book-to-tax",
     "ftb-part-b",
     "rent-assistance",
     "jobseeker-payment",
-    "book-to-tax",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step

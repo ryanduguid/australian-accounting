@@ -6181,6 +6181,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "partner is not none, not_receiving or pension; a partner on a benefit or under 22 is not worked.",
     ),
     (
+        "jobseeker_payment.pharmaceutical_uncovered",
+        "pharmaceutical_allowance is true for a day from 1 January 2027, after its 1 January indexation, whose rate was not read.",
+    ),
+    (
         "jobseeker_payment.situation_invalid",
         "situation is not one of the Table B family situations the worksheet covers.",
     ),

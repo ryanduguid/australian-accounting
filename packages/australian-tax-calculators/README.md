@@ -4699,10 +4699,12 @@ single maximum, `couple`, `couple_both_receive` at half the couple's amount,
 Guide's and Services Australia's for each period from 1 July 2026 to 19 March
 2027, and it refuses dates outside them. `facts` must state
 `rate_calculator`, `pays_private_rent`, `no_dependent_children` and
-`partner_not_veteran`. The Act's rate A formulas are images in the register's
-text and were not read: the 75 cents in the dollar and the halving for a couple
-both receiving it are the Social Security Guide's (5.1.7.10). `derive` explains
-each step. See
+`partner_not_veteran`. Rate A is the Act's column 3 formula, (fortnightly
+rent - threshold) x 3/4, or x 3/8 for a couple both receiving it, read from the
+compilation's Word download. `couple` is a partner without a rent increased
+pension (s 1070W) for a payment under Pension Rate Calculator A, or without a
+rent increased benefit (s 1070X) under Benefit Rate Calculator B;
+`couple_both_receive` is the other. `derive` explains each step. See
 [calculation evidence](docs/calculation-evidence.md#government-schemes).
 
 ## Jobseeker payment
@@ -4717,8 +4719,9 @@ $256 and 60% above, or 40% over $150 for a `single_principal_carer`. With a
 `partner_income` over the partner income free area is added; with a partner on
 a pension (`pension`) the couple's incomes are combined and halved instead. The
 rates are the Social Security Guide's and Services Australia's for each period
-from 1 July 2026 to 19 March 2027, and it refuses dates outside them. The
-working credit is out of scope and left out, as are rent assistance (see
+from 1 July 2026 to 19 March 2027, and it refuses dates outside them;
+pharmaceutical allowance, indexed on 1 January, is refused from 1 January 2027.
+The working credit is out of scope and left out, as are rent assistance (see
 `rent-assistance`), the assets test, waiting periods, compensation, the exempt
 principal carer rate and a partner on a benefit or under 22. `facts` must state
 `qualified`, `no_working_credit`, `no_rent_assistance`, `assets_within_limit`

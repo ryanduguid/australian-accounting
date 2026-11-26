@@ -426,4 +426,21 @@ fn jobseeker_payment_refuses_what_it_cannot_work() {
         refused(json!({"pharmaceutical_allowance": "yes"})),
         "input.flag_invalid"
     );
+    // Pharmaceutical allowance is indexed on 1 January; the rest is not.
+    let january = json!({"date": "2027-01-01", "pharmaceutical_allowance": true});
+    assert_eq!(
+        refused(january),
+        "jobseeker_payment.pharmaceutical_uncovered"
+    );
+    assert_eq!(
+        paid(&with(
+            base.clone(),
+            json!({"date": "2026-12-31", "pharmaceutical_allowance": true})
+        )),
+        "840.70"
+    );
+    assert_eq!(
+        paid(&with(base.clone(), json!({"date": "2027-03-19"}))),
+        "833.70"
+    );
 }

@@ -23,7 +23,6 @@ use super::stated;
 use super::{
     Arg, Result, Step, derived_result, flag, int, money, precise, rate, refuse, scope, step,
 };
-use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 
 const KIND: &str = "jobseeker_payment";
@@ -72,8 +71,10 @@ const RATES: [(&str, [&str; 3]); 2] = [
 const UNTIL: &str = "2027-03-19";
 /// The energy supplement per year by column (SS Guide 5.1.10.20), not indexed.
 const ENERGY: [&str; 3] = ["228.80", "247.00", "205.40"];
-/// Pharmaceutical allowance per fortnight, single then partnered.
+/// Pharmaceutical allowance per fortnight, single then partnered, indexed on
+/// 1 January, so read only for days to [`PHARMACEUTICAL_UNTIL`].
 const PHARMACEUTICAL: [&str; 2] = ["7.00", "3.50"];
+const PHARMACEUTICAL_UNTIL: &str = "2026-12-31";
 
 /// The facts as the command passes them; see the README for each.
 pub struct JobseekerPaymentArgs<'a> {
@@ -88,18 +89,14 @@ pub struct JobseekerPaymentArgs<'a> {
     pub scope_confirmed: &'a Arg,
 }
 
-fn period(given: &Arg) -> Result<[&'static str; 3]> {
-    let date = given.text().filter(|t| dates::parse(t).is_some());
-    let Some(r) = date
-        .filter(|t| RATES[0].0 <= *t && *t <= UNTIL)
-        .and_then(|t| RATES.iter().rev().find(|r| r.0 <= t))
-    else {
-        return refuse(
+fn period(given: &Arg) -> Result<&'static [&'static str; 3]> {
+    match super::dated(given, &RATES, UNTIL) {
+        Some(rates) => Ok(rates),
+        None => refuse(
             "jobseeker_payment.date_uncovered",
             "Not computed: date must be a YYYY-MM-DD day from 1 July 2026 to 19 March 2027, the days the indexed rates were read for.",
-        );
-    };
-    Ok(r.1)
+        ),
+    }
 }
 
 fn facts(given: &Arg) -> Result<()> {
@@ -164,6 +161,12 @@ pub fn jobseeker_payment(args: &JobseekerPaymentArgs) -> Result<Value> {
         );
     };
     let pharmaceutical = flag(args.pharmaceutical_allowance, "pharmaceutical_allowance")?;
+    if pharmaceutical && args.date.text() > Some(PHARMACEUTICAL_UNTIL) {
+        return refuse(
+            "jobseeker_payment.pharmaceutical_uncovered",
+            "Not computed: pharmaceutical allowance is indexed on 1 January and its rate was read for days to 31 December 2026 only.",
+        );
+    }
     let own = money(args.ordinary_income)?;
     let partner_income = money(args.partner_income)?;
     let status = partner(args.partner, column == 2, &partner_income)?;
@@ -277,28 +280,7 @@ fn working(
             partner_reduction = partner_test(&mut steps, r, partner_income)?;
         }
     }
-    let reduction = if carer {
-        let carer_reduction =
-            super::py_max(income.sub(&int(150))?, int(0))?.mul(&super::d("0.4"))?;
-        steps.push(step(
-            "ordinary_income_reduction",
-            CARER_AUTH,
-            "max(ordinary_income - 150, 0) x 0.4",
-            &[&income],
-            carer_reduction.clone(),
-        ));
-        carer_reduction
-    } else {
-        let reduction = tapered(&income)?;
-        steps.push(step(
-            "ordinary_income_reduction",
-            AUTH[4],
-            "min(max(ordinary_income - 150, 0), 106) x 0.5 + max(ordinary_income - 256, 0) x 0.6",
-            &[&income, &income],
-            reduction.clone(),
-        ));
-        reduction
-    };
+    let reduction = income_reduction(&mut steps, carer, &income)?;
     let total = reduction.add(&partner_reduction)?;
     steps.push(step(
         "rate",
@@ -308,6 +290,35 @@ fn working(
         super::py_max(max_rate.sub(&total)?, int(0))?,
     ));
     Ok(steps)
+}
+
+/// Pushes the ordinary income reduction step (points 1068-G14 to G17);
+/// returns the reduction.
+fn income_reduction(steps: &mut Vec<Step>, carer: bool, income: &Decimal) -> Result<Decimal> {
+    let both = [income, income];
+    let (reduction, authority, formula, inputs) = if carer {
+        (
+            super::py_max(income.sub(&int(150))?, int(0))?.mul(&super::d("0.4"))?,
+            CARER_AUTH,
+            "max(ordinary_income - 150, 0) x 0.4",
+            &both[..1],
+        )
+    } else {
+        (
+            tapered(income)?,
+            AUTH[4],
+            "min(max(ordinary_income - 150, 0), 106) x 0.5 + max(ordinary_income - 256, 0) x 0.6",
+            &both[..],
+        )
+    };
+    steps.push(step(
+        "ordinary_income_reduction",
+        authority,
+        formula,
+        inputs,
+        reduction.clone(),
+    ));
+    Ok(reduction)
 }
 
 /// Pushes the partner income free area and reduction steps; returns the

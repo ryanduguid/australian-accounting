@@ -2150,7 +2150,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "rent_assistance" => (
             "2026-11-26",
-            "Social Security Act 1991 compilation 234 (20 September 2026), Part 3.7 (ss 1070 to 1070C, 1070K, 1070L, 1070Q, 1070T to 1070X; the Rate A formulas in column 3 of the tables are images and were not read); DSS Social Security Guide 5.1.7.10 (as at 20 September 2026, read through Firecrawl); Services Australia's 'A guide to Australian Government payments' for 1 July to 19 September 2026 and 20 September to 31 December 2026 (Rent Assistance)",
+            "Social Security Act 1991 compilation 234 (20 September 2026), Part 3.7 (ss 1070 to 1070C, 1070K, 1070L, 1070Q, 1070T to 1070X; the Rate A formulas in column 3 of the tables read from the WMF images of the compilation's Word download, Volume 3); DSS Social Security Guide 5.1.7.10 (as at 20 September 2026, read through Firecrawl); Services Australia's 'A guide to Australian Government payments' for 1 July to 19 September 2026 and 20 September to 31 December 2026 (Rent Assistance)",
         ),
         "jobseeker_payment" => (
             "2026-11-26",
@@ -7133,14 +7133,14 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ],
         "rent_assistance" => vec![
             ("date", "date, YYYY-MM-DD, within year, from 2026-07-01 to 2027-03-19: the day the fortnightly rate is for"),
-            ("situation", "single, single_sharer, couple (the partner has no rent increased payment), couple_both_receive (the partner's pension or benefit is also increased for rent), illness_separated, respite_care, temporarily_separated or partner_in_gaol"),
+            ("situation", "single, single_sharer, couple (the partner has no rent increased pension, s 1070W, for a payment under Pension Rate Calculator A, or no rent increased benefit, s 1070X, under Benefit Rate Calculator B), couple_both_receive (the partner has one), illness_separated, respite_care, temporarily_separated or partner_in_gaol"),
             ("fortnightly_rent", "AUD per fortnight: the rent paid or payable, for a couple living together or a separated couple the rent either pays (s 1070V)"),
             ("facts", "object of booleans, each your statement, not tested: rate_calculator, pays_private_rent, no_dependent_children and partner_not_veteran; every one required true"),
         ],
         "jobseeker_payment" => vec![
             ("date", "date, YYYY-MM-DD, within year, from 2026-07-01 to 2027-03-19: the day the fortnightly rate is for"),
             ("situation", "single, single_with_child, single_principal_carer, single_55_after_9_months, single_partial_capacity (0 to 14 hours) or partnered: the Table B family situation (point 1068-B1); a single principal carer's income reduction is 40% (point 1068-G17)"),
-            ("pharmaceutical_allowance", "boolean: the person qualifies for pharmaceutical allowance (Module D, Part 2.22)"),
+            ("pharmaceutical_allowance", "boolean: the person qualifies for pharmaceutical allowance (Module D, Part 2.22); refused for days from 1 January 2027, after its indexation"),
             ("ordinary_income", "AUD per fortnight: the person's ordinary income (s 8)"),
             ("partner", "none (single), not_receiving (a partner aged 22 or over receiving no social security payment) or pension (a partner receiving a social security pension, service pension, income support supplement or veteran payment)"),
             ("partner_income", "AUD per fortnight: the partner's ordinary income; 0.00 for a single person"),

@@ -7,9 +7,11 @@
 //! November 2026) for a person without dependent children whose payment is
 //! worked out under Pension Rate Calculator A (age pension, disability support
 //! pension at 21 or over, carer payment; s 1070L) or Benefit Rate Calculator B
-//! (jobseeker payment; s 1070Q): 75 cents for each dollar of fortnightly rent
-//! over the rent threshold (s 1070T), up to the maximum rate for the family
-//! situation, two-thirds of it for a single person sharing accommodation. The
+//! (jobseeker payment; s 1070Q): rate A, (fortnightly rent - rent threshold)
+//! x 3/4, or x 3/8 for a couple both receiving it (column 3 of the tables,
+//! read from the WMF images of the compilation's Word download), up to the
+//! maximum rate for the family situation, two-thirds of it for a single
+//! person sharing accommodation. The
 //! indexed thresholds and maximum rates are the Department of Social Services'
 //! Social Security Guide 5.1.7.10 (as at 20 September 2026, read through
 //! Firecrawl on 26 November 2026) and Services Australia's 'A guide to
@@ -21,7 +23,6 @@ use serde_json::{Value, json};
 
 use super::stated;
 use super::{Arg, Result, Step, derived_result, int, money, precise, rate, refuse, scope, step};
-use crate::dates;
 use crate::decimal::{Decimal, Rounding};
 
 const KIND: &str = "rent_assistance";
@@ -45,12 +46,12 @@ const FACTS: [(&str, &str); 4] = [
     ),
 ];
 
-/// The thresholds and maximum rates per fortnight `[single, couple]`, each
-/// from its date to the next, the last to [`UNTIL`].
-type Indexed = (&'static str, [&'static str; 2], [&'static str; 2]);
-const RATES: [Indexed; 2] = [
-    ("2026-07-01", ["154.80", "250.80"], ["219.40", "206.80"]),
-    ("2026-09-20", ["157.80", "255.80"], ["223.80", "211.00"]),
+/// The thresholds then the maximum rates per fortnight, each `[single,
+/// couple]`, from each date to the next, the last to [`UNTIL`].
+type Indexed = [[&'static str; 2]; 2];
+const RATES: [(&str, Indexed); 2] = [
+    ("2026-07-01", [["154.80", "250.80"], ["219.40", "206.80"]]),
+    ("2026-09-20", [["157.80", "255.80"], ["223.80", "211.00"]]),
 ];
 const UNTIL: &str = "2027-03-19";
 
@@ -89,7 +90,7 @@ const SITUATIONS: [(&str, usize, usize, Share, &str); 8] = [
         1,
         1,
         Share::Half,
-        "s 1070L item 3, s 1070Q item 3: half rate B; SS Guide 5.1.7.10: half the amount otherwise payable on the couple's rent",
+        "s 1070L item 3, s 1070Q item 3: rate A x 3/8, half rate B",
     ),
     (
         "illness_separated",
@@ -132,17 +133,13 @@ pub struct RentAssistanceArgs<'a> {
 }
 
 fn period(given: &Arg) -> Result<&'static Indexed> {
-    let date = given.text().filter(|t| dates::parse(t).is_some());
-    let Some(r) = date
-        .filter(|t| RATES[0].0 <= *t && *t <= UNTIL)
-        .and_then(|t| RATES.iter().rev().find(|r| r.0 <= t))
-    else {
-        return refuse(
+    match super::dated(given, &RATES, UNTIL) {
+        Some(rates) => Ok(rates),
+        None => refuse(
             "rent_assistance.date_uncovered",
             "Not computed: date must be a YYYY-MM-DD day from 1 July 2026 to 19 March 2027, the days the indexed rates were read for.",
-        );
-    };
-    Ok(r)
+        ),
+    }
 }
 
 fn facts(given: &Arg) -> Result<()> {
@@ -178,8 +175,8 @@ pub fn rent_assistance(args: &RentAssistanceArgs) -> Result<Value> {
     let rent = money(args.fortnightly_rent)?;
     facts(args.facts)?;
     let d = super::d;
-    let threshold = d(p.1[at]);
-    let rate_b = d(p.2[top]);
+    let threshold = d(p[0][at]);
+    let rate_b = d(p[1][top]);
     let steps = precise(|| working(share, [&rent, &threshold, &rate_b]))?;
     let mut out = derived_result(
         KIND,
@@ -197,7 +194,7 @@ pub fn rent_assistance(args: &RentAssistanceArgs) -> Result<Value> {
 }
 
 const AUTH: [&str; 3] = [
-    "SSA s 1070C(d), s 1070L(2), s 1070Q(2), s 1070T and s 1070U; SS Guide 5.1.7.10: rate A is 75 cents for each dollar of fortnightly rent over the rent threshold",
+    "SSA s 1070L(2) and s 1070Q(2) column 3, s 1070T and s 1070U: rate A is (fortnightly rent - rent threshold) x 3/4, x 3/8 for a couple both receiving it",
     "SSA s 1070L(2) and s 1070Q(2): the maximum rent assistance rate is rate B for the family situation",
     "SSA s 1070L(2) and s 1070Q(2): the rate of rent assistance is rate A, but only up to the maximum rent assistance rate",
 ];

@@ -157,6 +157,17 @@ fn lookup<'a, T>(table: &'a [(&str, T)], key: &str) -> &'a T {
         .1
 }
 
+/// The row of an indexed table, each row from its YYYY-MM-DD date to the
+/// next and the last to `until`, that covers the day given; `None` for text
+/// that is not a day or a day outside the table.
+fn dated<'a, T>(given: &Arg, table: &'a [(&str, T)], until: &str) -> Option<&'a T> {
+    let day = given.text().filter(|t| dates::parse(t).is_some())?;
+    if day < table.first()?.0 || day > until {
+        return None;
+    }
+    table.iter().rev().find(|r| r.0 <= day).map(|r| &r.1)
+}
+
 fn sources(kind: &str) -> Vec<&'static str> {
     let mut out = vec![*lookup(texts::SOURCES, kind)];
     if let Some((_, extra)) = texts::EXTRA_SOURCES.iter().find(|(k, _)| *k == kind) {

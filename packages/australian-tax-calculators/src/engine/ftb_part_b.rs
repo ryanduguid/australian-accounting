@@ -140,6 +140,23 @@ struct Rates {
 }
 
 impl Rates {
+    /// The year's amounts for the youngest FTB child's age.
+    fn of(year: &str, youngest: i64, energy: bool) -> Self {
+        let y = YEARS
+            .iter()
+            .find(|y| y.year == year)
+            .expect("a supported year");
+        let band = usize::from(youngest >= 5);
+        let d = super::d;
+        Rates {
+            standard: d(y.standard[band]),
+            supplement: d(y.supplement),
+            energy: if energy { d(ENERGY[band]) } else { int(0) },
+            limit: d(y.limit),
+            free_area: d(y.free_area),
+        }
+    }
+
     fn shown(&self) -> Vec<(String, String)> {
         vec![
             rate("standard_rate", &self.standard),
@@ -175,24 +192,8 @@ pub fn ftb_part_b(args: &FtbPartBArgs) -> Result<Value> {
     let grandparent = flag(args.grandparent, "grandparent")?;
     let energy = flag(args.energy_supplement, "energy_supplement")?;
     facts(args.facts, youngest >= 16)?;
-    let y = YEARS
-        .iter()
-        .find(|y| y.year == year)
-        .expect("a supported year");
-    let band = usize::from(youngest >= 5);
-    let d = super::d;
-    let r = Rates {
-        standard: d(y.standard[band]),
-        supplement: d(y.supplement),
-        energy: if energy { d(ENERGY[band]) } else { int(0) },
-        limit: d(y.limit),
-        free_area: d(y.free_area),
-    };
-    let (higher, lower) = if partner.gt(&own)? {
-        (partner, own)
-    } else {
-        (own, partner)
-    };
+    let r = Rates::of(&year, youngest, energy);
+    let higher = super::py_max(own.clone(), partner.clone())?;
     let nil = if couple && youngest >= 13 && !grandparent {
         Nil::Teenager
     } else if !support && higher.gt(&r.limit)? {
@@ -200,7 +201,7 @@ pub fn ftb_part_b(args: &FtbPartBArgs) -> Result<Value> {
     } else {
         Nil::No
     };
-    let steps = precise(|| working(couple, nil, &r, &lower))?;
+    let steps = precise(|| working(couple, nil, &r, [&own, &partner]))?;
     let mut out = derived_result(KIND, &year, steps, r.shown())?;
     out["relationship"] = json!(if couple { "couple" } else { "single" });
     out["nil_because"] = match nil {
@@ -215,14 +216,15 @@ pub fn ftb_part_b(args: &FtbPartBArgs) -> Result<Value> {
     Ok(out)
 }
 
-const AUTH: [&str; 4] = [
+const AUTH: [&str; 5] = [
     "FA Act Sch 1 cl 29(1) and (2) step 1, cl 30, cl 31A and cl 31B: the standard rate for the youngest FTB child's age, the FTB Part B supplement and any energy supplement (Part B)",
     "FA Act Sch 1 cl 29(1): a single individual's Part B rate is the maximum rate, with no income reduction",
     "FA Act Sch 1 cl 29(2) steps 2 and 3, cl 32 and cl 33; Sch 3 cl 3(2)(b): the maximum rate less 20% of the lower adjusted taxable income over the income free area, not below nil",
     "FA Act Sch 1 cl 28B and cl 28D: the Part B rate is nil",
+    "FA Act Sch 1 cl 29(2) step 2: the lower of the couple's adjusted taxable incomes",
 ];
 
-fn working(couple: bool, nil: Nil, r: &Rates, lower: &Decimal) -> Result<Vec<Step>> {
+fn working(couple: bool, nil: Nil, r: &Rates, [own, partner]: [&Decimal; 2]) -> Result<Vec<Step>> {
     let maximum = r.standard.add(&r.supplement)?.add(&r.energy)?;
     let mut steps = vec![step(
         "maximum_rate",
@@ -242,13 +244,21 @@ fn working(couple: bool, nil: Nil, r: &Rates, lower: &Decimal) -> Result<Vec<Ste
             maximum.clone(),
         )
     } else {
+        let lower = super::py_min(own.clone(), partner.clone())?;
+        steps.push(step(
+            "lower_income",
+            AUTH[4],
+            "min(adjusted_taxable_income, partner_adjusted_taxable_income)",
+            &[own, partner],
+            lower.clone(),
+        ));
         let excess = super::py_max(lower.sub(&r.free_area)?, int(0))?;
         let tapered = super::py_max(maximum.sub(&excess.mul(&super::d("0.2"))?)?, int(0))?;
         step(
             "part_b_rate",
             AUTH[2],
             "max(maximum_rate - max(lower_income - income_free_area, 0) x 0.2, 0)",
-            &[&maximum, lower, &r.free_area],
+            &[&maximum, &lower, &r.free_area],
             tapered,
         )
     });

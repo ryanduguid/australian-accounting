@@ -5856,14 +5856,18 @@ Added on 26 November 2026, when these were read:
   Guide 5.1.7.10 (a challenge page to the plain reader, read through
   Firecrawl); 'A guide to Australian Government payments' for 1 July to 19
   September 2026 and 20 September to 31 December 2026. The register's text
-  shows the rate A column of the s 1070L and s 1070Q tables as images, which
-  were not read, so the 75 cents in the dollar and the halving for a couple
-  both receiving it rest on the guides. The tests meet the guides' rent
+  shows the rate A column of the s 1070L and s 1070Q tables as images; the
+  compilation's Word download (Volume 3) draws them as WMF text, read on 26
+  November 2026: (Fortnightly rent - $146.00) x 3/4 for a single person and
+  (Fortnightly rent - $236.60) x 3/4, or x 3/8 for item 3, for a couple, the
+  dollar amounts being the indexed rent thresholds. The tests meet the guides' rent
   ceilings and maximum rates for every situation.
 - Jobseeker payment: the Social Security Act 1991 s 1068 Modules A, B, C, D
   and G (compilation 234); Social Security Guide 5.1.8.20 and 5.1.10.20; the
   2 payments guides above. The tests meet the 20 September guide's income
   limits for 6 situations and its $1,440 partner income free area.
+  Pharmaceutical allowance is indexed on 1 January (the guides' indexation
+  dates), so it is refused for days from 1 January 2027.
 
 The Department of Social Services' Family Assistance Guide was not read (a
 challenge page), so the Act and the published rates stand alone. The
