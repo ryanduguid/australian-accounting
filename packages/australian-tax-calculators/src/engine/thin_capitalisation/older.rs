@@ -486,19 +486,30 @@ pub(super) fn financial(
             mad.clone(),
         ));
         let aad = value_of(&steps, "adjusted_average_debt").clone();
-        let excess = max0(aad.sub(&mad)?)?;
+        // Adjusted average debt of nil or less does not exceed the maximum
+        // allowable debt (ss 820-85(4) and 820-185(4)).
+        let excess = if aad.gt(&d("0"))? {
+            max0(aad.sub(&mad)?)?
+        } else {
+            d("0")
+        };
         if !excess.is_zero() && worldwide.is_none() {
             return not_worked_out(
                 "Adjusted average debt exceeds the safe harbour debt amount, and the maximum allowable debt is the greatest of it and the worldwide gearing debt amount (ss 820-90 and 820-190), which was not stated: the disallowed amount is not worked out. State the worldwide figures (ss 820-110, 820-111, 820-217 or 820-219).",
             );
         }
-        steps.push(step(
-            "excess_debt",
-            "ss 820-85(4) and 820-115(3), or 820-185(4) and 820-220(3): adjusted average debt above the maximum allowable debt, nil if adjusted average debt is nil or negative",
-            "max(adjusted_average_debt - maximum_allowable_debt, 0)",
-            &[&aad, &mad],
-            excess,
-        ));
+        let excess_auth = "ss 820-115(3) and 820-220(3): adjusted average debt above the maximum allowable debt; nil where adjusted average debt is nil or negative (ss 820-85(4) and 820-185(4))";
+        steps.push(if aad.gt(&d("0"))? {
+            step(
+                "excess_debt",
+                excess_auth,
+                "max(adjusted_average_debt - maximum_allowable_debt, 0)",
+                &[&aad, &mad],
+                excess,
+            )
+        } else {
+            step("excess_debt", excess_auth, "0", &[], excess)
+        });
         steps.push(step(
             "average_debt",
             "ss 820-115(3) and 820-220(3): average debt capital plus cost-free debt capital",
@@ -655,12 +666,10 @@ pub(super) fn adi(a: &ThinCapitalisationArgs, c: Class, items: &[Deduction]) -> 
                 "the worldwide capital amount does not apply to a foreign controlled Australian entity (s 820-320(1))",
             );
         }
-        if let Some(w) = &w {
-            if !w[3].gt(&d("0"))? {
-                return fact(
-                    "group_average_risk_weighted_assets must be above nil (s 820-320(3)).",
-                );
-            }
+        if let Some(w) = &w
+            && !w[3].gt(&d("0"))?
+        {
+            return fact("group_average_risk_weighted_assets must be above nil (s 820-320(3)).");
         }
         Some((controlled, w))
     } else {
