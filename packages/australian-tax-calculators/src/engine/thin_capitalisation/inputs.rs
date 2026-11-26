@@ -28,7 +28,10 @@ pub(super) const ADDED: [&str; 4] = [
 ];
 
 /// The inputs that may be negative.
-pub(super) const SIGNED: [&str; 4] = [
+pub(super) const SIGNED: [&str; 7] = [
+    "average_worldwide_equity",
+    "statement_worldwide_equity",
+    "statement_worldwide_assets",
     "taxable_income",
     "gr_group_net_third_party_interest_expense",
     "gr_group_net_profit",
@@ -55,6 +58,30 @@ pub(super) enum Test {
     Fixed,
     Group,
     ThirdParty,
+    MaxDebt,
+    MinCapital,
+}
+
+/// The entity's class for the year (s 820-46(2) and ss 820-85(2), 820-185(2),
+/// 820-300(2) and 820-395(2)), as the caller states it.
+#[derive(Clone, Copy, PartialEq)]
+pub(super) enum Class {
+    General,
+    NotCovered,
+    OutwardFinancial,
+    InwardFinancial,
+    OutwardAdi,
+    InwardAdi,
+}
+
+impl Class {
+    pub(super) fn financial(self) -> bool {
+        matches!(self, Class::OutwardFinancial | Class::InwardFinancial)
+    }
+
+    pub(super) fn adi(self) -> bool {
+        matches!(self, Class::OutwardAdi | Class::InwardAdi)
+    }
 }
 
 pub(super) fn fact<T>(why: impl Into<String>) -> Result<T> {
@@ -73,27 +100,52 @@ pub(super) fn test(arg: &Arg) -> Result<Test> {
         Some("fixed_ratio") => Ok(Test::Fixed),
         Some("group_ratio") => Ok(Test::Group),
         Some("third_party_debt") => Ok(Test::ThirdParty),
-        _ => fact("test must be fixed_ratio, group_ratio or third_party_debt."),
+        Some("maximum_allowable_debt") => Ok(Test::MaxDebt),
+        Some("minimum_capital_amount") => Ok(Test::MinCapital),
+        _ => fact(
+            "test must be fixed_ratio, group_ratio, third_party_debt, maximum_allowable_debt or minimum_capital_amount.",
+        ),
     }
 }
 
-/// `true` for a general class investor, `false` for an entity Division 820
-/// does not cover; the other classes keep tests this worksheet does not build.
-pub(super) fn general_class(arg: &Arg) -> Result<bool> {
+pub(super) fn class(arg: &Arg) -> Result<Class> {
     match arg.text() {
-        Some("general_class_investor") => Ok(true),
-        Some("not_covered") => Ok(false),
-        Some(
-            "outward_investing_financial_entity"
-            | "inward_investing_financial_entity"
-            | "outward_investing_adi"
-            | "inward_investing_adi",
-        ) => refuse(
-            "thin_capitalisation.entity_class_not_built",
-            "A financial entity (non-ADI) is tested under Subdivision 820-B or 820-C, and an ADI under 820-D or 820-E, by tests this worksheet does not apply: it covers a general class investor (s 820-46(2)) only.",
-        ),
+        Some("general_class_investor") => Ok(Class::General),
+        Some("not_covered") => Ok(Class::NotCovered),
+        Some("outward_investing_financial_entity") => Ok(Class::OutwardFinancial),
+        Some("inward_investing_financial_entity") => Ok(Class::InwardFinancial),
+        Some("outward_investing_adi") => Ok(Class::OutwardAdi),
+        Some("inward_investing_adi") => Ok(Class::InwardAdi),
         _ => fact(
             "entity_class must be general_class_investor, not_covered, outward_investing_financial_entity, inward_investing_financial_entity, outward_investing_adi or inward_investing_adi.",
+        ),
+    }
+}
+
+/// The tests each class has: Subdivision 820-AA's 3 for a general class
+/// investor (and an entity no Subdivision covers), the maximum allowable debt
+/// or the third party debt choice for a financial entity (ss 820-85(2C) and
+/// 820-185(2C)), and the minimum capital amount for an ADI.
+pub(super) fn check_test(t: Test, c: Class) -> Result<()> {
+    let fits = match c {
+        Class::General | Class::NotCovered => {
+            matches!(t, Test::Fixed | Test::Group | Test::ThirdParty)
+        }
+        Class::OutwardFinancial | Class::InwardFinancial => {
+            matches!(t, Test::MaxDebt | Test::ThirdParty)
+        }
+        Class::OutwardAdi | Class::InwardAdi => t == Test::MinCapital,
+    };
+    match (fits, c) {
+        (true, _) => Ok(()),
+        (false, Class::General | Class::NotCovered) => {
+            fact("test must be fixed_ratio, group_ratio or third_party_debt.")
+        }
+        (false, Class::OutwardFinancial | Class::InwardFinancial) => fact(
+            "A financial entity (non-ADI) is tested by its maximum allowable debt (s 820-90 or 820-190) or, by a choice under s 820-85(2C) or 820-185(2C), the third party debt test: test must be maximum_allowable_debt or third_party_debt.",
+        ),
+        (false, _) => fact(
+            "An ADI is tested by its minimum capital amount (s 820-305 or 820-400): test must be minimum_capital_amount.",
         ),
     }
 }
@@ -161,7 +213,7 @@ pub(super) fn deductions(given: &Arg, t: Test) -> Result<Vec<Deduction>> {
             "thin_capitalisation.input_missing",
             "Under the third party debt test every debt deduction needs third_party: whether it is attributable to a debt interest that satisfies the third party debt conditions (s 820-427A(1) to (3)).",
         ),
-        Test::Fixed | Test::Group if marked > 0 => not_used(
+        Test::Fixed | Test::Group | Test::MaxDebt | Test::MinCapital if marked > 0 => not_used(
             "third_party",
             "it matters only under the third party debt test (s 820-427A)",
         ),
@@ -178,6 +230,9 @@ pub(super) const NIL_CARRY: (&str, &str) = (
 pub(super) fn check_unused(a: &ThinCapitalisationArgs, t: Test) -> Result<()> {
     let group = "the GR group figures belong to the group ratio test (s 820-53)";
     let third = "the third party debt test compares debt deductions with the third party earnings limit alone (s 820-50(1)(c))";
+    let older = "it belongs to Subdivisions 820-B to 820-E, which do not apply to a general class investor (ss 820-85(2A), 820-185(2A), 820-300(2A) and 820-395(2A))";
+    let aa =
+        "it belongs to Subdivision 820-AA, which tests only a general class investor (s 820-46)";
     let unused: Vec<(&str, &str)> = match t {
         Test::Fixed => GR_GROUP.iter().map(|k| (*k, group)).collect(),
         Test::Group => vec![
@@ -195,12 +250,73 @@ pub(super) fn check_unused(a: &ThinCapitalisationArgs, t: Test) -> Result<()> {
             .map(|k| (k, third))
             .chain([NIL_CARRY])
             .collect(),
+        Test::MaxDebt | Test::MinCapital => vec![],
     };
-    match unused.iter().find(|(k, _)| a.get(k).is_some()) {
+    let unused = unused.into_iter().chain(match t {
+        Test::Fixed | Test::Group => OLDER.iter().map(|k| (*k, older)).collect::<Vec<_>>(),
+        _ => AA.iter().map(|k| (*k, aa)).collect(),
+    });
+    match unused.into_iter().find(|(k, _)| a.get(k).is_some()) {
         Some((k, why)) => not_used(k, why),
         None => Ok(()),
     }
 }
+
+/// Subdivision 820-AA's inputs other than s 820-37's.
+const AA: [&str; 15] = [
+    "interest_and_equivalent_income",
+    "taxable_income",
+    "franking_credits",
+    "associate_dividends",
+    "rd_notional_deductions",
+    "division_40_43_deductions",
+    "forestry_deductions",
+    "section_70_120_deductions",
+    "excess_tax_ebitda_amount",
+    "frt_disallowed_amounts",
+    "gr_group_net_third_party_interest_expense",
+    "gr_group_net_profit",
+    "gr_group_adjusted_net_third_party_interest_expense",
+    "gr_group_depreciation_and_amortisation",
+    "gr_group_negative_member_ebitda",
+];
+
+/// The inputs of Subdivisions 820-B to 820-E.
+pub(super) const OLDER: [&str; 33] = [
+    "whole_year",
+    "inward_investment_vehicle",
+    "foreign_controlled_australian_entity",
+    "average_debt_capital",
+    "average_associate_entity_debt",
+    "average_pe_associate_entity_debt",
+    "average_controlled_foreign_entity_debt",
+    "average_borrowed_securities_amount",
+    "average_cost_free_debt_capital",
+    "average_assets",
+    "average_excluded_equity_interests",
+    "average_associate_entity_equity",
+    "average_controlled_foreign_entity_equity",
+    "average_non_debt_liabilities",
+    "average_zero_capital_amount",
+    "average_associate_entity_excess_amount",
+    "average_on_lent_amount",
+    "average_worldwide_debt",
+    "average_worldwide_equity",
+    "statement_worldwide_debt",
+    "statement_worldwide_equity",
+    "statement_worldwide_assets",
+    "statement_average_australian_assets",
+    "audited_consolidated_statements",
+    "average_adi_equity_capital",
+    "average_interest_free_pe_loans",
+    "average_risk_weighted_assets",
+    "average_tier_1_prudential_capital_deductions",
+    "worldwide_capital_risk_weighted_assets",
+    "worldwide_capital_tier_1_prudential_capital_deductions",
+    "group_average_tier_1_capital",
+    "group_average_risk_weighted_assets",
+    "arm_length_capital_amount",
+];
 
 /// An optional amount, read as a money amount or, where it may be negative,
 /// a signed one; `None` when absent.

@@ -17,6 +17,7 @@
 
 mod carry;
 mod inputs;
+mod older;
 
 use serde_json::{Map, Value, json};
 
@@ -343,7 +344,8 @@ fn exempt(items: &[Deduction], why: &'static str) -> Result<Worked> {
 pub fn thin_capitalisation(a: &ThinCapitalisationArgs) -> Result<Value> {
     let year = scope(a.scope_confirmed, a.year, KIND)?;
     let t = test(a.test)?;
-    let general = general_class(a.entity_class)?;
+    let c = class(a.entity_class)?;
+    check_test(t, c)?;
     if flag(a.plantation_forestry_entity, "plantation_forestry_entity")? {
         return refuse(
             "thin_capitalisation.plantation_forestry",
@@ -353,8 +355,16 @@ pub fn thin_capitalisation(a: &ThinCapitalisationArgs) -> Result<Value> {
     let items = deductions(a.debt_deductions, t)?;
     check_unused(a, t)?;
     let own = precise(|| Ok(total(items.iter().map(|x| &x.amount))?))?;
-    let (reason, ratio) = exemption(a, general, &own)?;
+    if matches!(c, Class::InwardFinancial | Class::InwardAdi)
+        && flag(a.outward_investor_only, "outward_investor_only")?
+    {
+        return fact(
+            "outward_investor_only cannot be true for an inward investing entity (s 820-37(1)(b)).",
+        );
+    }
+    let (reason, ratio) = exemption(a, c != Class::NotCovered, &own)?;
     let worked = match (reason, t) {
+        (None, _) if c.financial() || c.adi() => older::work(a, c, t, &items)?,
         (Some(_), _) if a.get("frt_disallowed_amounts").is_some() => {
             return refuse(
                 "thin_capitalisation.carry_forward_unsettled",
@@ -365,6 +375,9 @@ pub fn thin_capitalisation(a: &ThinCapitalisationArgs) -> Result<Value> {
         (None, Test::Fixed) => fixed_ratio(a, &items, &year)?,
         (None, Test::Group) => group_ratio(a, &items)?,
         (None, Test::ThirdParty) => third_party_debt(&items)?,
+        (None, Test::MaxDebt | Test::MinCapital) => {
+            unreachable!("check_test keeps these to financial entities and ADIs")
+        }
     };
     let disallowed = value_of(&worked.steps, "total_disallowed_amount").clone();
     let mut out = derived_result(KIND, &year, worked.steps, worked.rates)?;
