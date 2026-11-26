@@ -11,6 +11,7 @@
   "cases": [
     {
       "case_id": "D7A-1-met-first-real-year",
+      "comparison_scope": "The 6 November 2026 provider record returned interest_accrued of 294.80. This is an observation, not an expected local result. Only the 4 figures in expected contribute to MATCH. The adapter does not calculate s 109E(7) interest.",
       "period_uri": "urn:sbrm:period:div7a:fy2026",
       "amalgamated_base": "100000.00",
       "loan_term_years": 7,

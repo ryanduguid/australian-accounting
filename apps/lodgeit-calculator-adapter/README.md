@@ -172,6 +172,13 @@ complies, a benefit is reportable or that a reviewer should sign anything.
   `income_year_start_date` is not 1 July of the mapped year of income is
   refused locally (`LOCAL_REFUSED`) and never sent: the local year runs 1 July
   to 30 June, and a substituted accounting period is outside its scope.
+  The comparison covers the minimum yearly repayment under s 109E(6), total
+  repayments, shortfall and benchmark rate. It does not calculate or compare
+  daily-balance interest under s 109E(7). For example, the provider returned
+  `interest_accrued` of $294.80 for the fabricated D7A-1 loan in the
+  [recorded trial](docs/live-trials-2026-11-06.json). A `MATCH` leaves that
+  figure unverified. The standalone loan engine has separate
+  [worked interest examples](../../packages/div7a-loan-review/tests/data/rollforward-anchors.json).
 - **FBT** (`src/trials/fbt.rs`): one benefit category, the car statutory
   formula. Only the category taxable value crosses into the local aggregate
   worksheet. The single door that carries it refuses a grossed-up figure by its
