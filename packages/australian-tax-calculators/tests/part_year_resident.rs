@@ -141,7 +141,7 @@ fn refusals() {
     unconfirmed["scope_confirmed"] = json!(false);
     assert_eq!(code(&unconfirmed), "scope.not_confirmed");
     assert_eq!(
-        code(&facts("2018-19", "20000", json!(3))),
+        code(&facts("2023-24", "20000", json!(3))),
         "period.unsupported"
     );
     assert_eq!(

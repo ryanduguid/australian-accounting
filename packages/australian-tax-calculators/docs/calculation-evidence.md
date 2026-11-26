@@ -327,22 +327,6 @@ The existing $45,000 boundary gives $4,288 at 16%. At the engine's existing
 2026–27 first rate of 15%, the same arithmetic gives $4,020. The latter is a
 regression of the existing rate, not a rate corroborated by this Library passage.
 
-From 2019-20 to 2023-24 the worksheet uses Income Tax Rates Act 1986
-Schedule 7 Part I clause 1's tables as in force in those years, read on
-26 November 2026: for 2019-20, the table for the 2018-19 to 2021-22 years in
-compilation 54 (6 July 2019, with Act No. 52 of 2019), which applied
-throughout 2019-20 (19% to $37,000, 32.5% to $90,000, 37% to $180,000, then
-45%); for 2020-21 to 2023-24, the table Act No. 92 of 2020 inserted, in
-compilations 57 (15 October 2020) and 62 (1 April 2024) (19% to $45,000,
-32.5% to $120,000, 37% to $180,000, then 45%). The tax-free threshold is
-$18,200 in each, and s 20(1) reads the same, so a part-year resident's
-threshold is worked as below; the ATO's myTax 'Part-year tax-free threshold'
-pages for 2020 to 2024 (QC61978, QC65242, QC67917, QC72025 and QC101635) give
-$13,464 plus $4,736 pro-rated by months for each year. Offsets, including the
-low and middle income tax offset of those years, are outside this worksheet
-as for later years. `tests/resident_tax_earlier_years.rs` checks each table at
-its band tops and the 2 frozen 2023-24 inputs.
-
 ## Part-year tax-free threshold
 
 Income Tax Rates Act 1986 s 20(1) (compilation 66, 1 July 2026, read on
@@ -2385,41 +2369,6 @@ record date, an amount spread by units or over named parcels, an amount just
 before a sale in the year, a G1 on a new share either side of 12 months from
 the head share's date, the parcels passed to `cgt-parcels`, each year boundary
 and each refusal.
-
-The `scrip_for_scrip` event was added on 26 November 2026, after reading
-ITAA 1997 ss 124-780, 124-781, 124-782, 124-785, 124-790 and 124-795 on the
-ATO's legal database (no change in substance since 1 July 2018).
-
-| Vector | Facts given | Result |
-| --- | --- | --- |
-| X1, s 124-790(2) example (Ken) | 100 shares, cost base $200, one new share worth $4 and $1 cash each | Gain **$60**, replacement cost base **$160** |
-| X2, s 124-785 examples (Lyn, Glenn) | One $10 share for one; $10 and $11 shares for half a share each | Cost base **$10**; **$21** in total |
-| S3 | Cost $300 and costs of owning $100, 2 new units at $4 and $2 cash a unit, held under 12 months | $240 and $80 carried, gain **$120**, not a discount gain |
-
-
-## CGT roll-overs
-
-Added on 26 November 2026, when the sources were read on the ATO's legal
-database with their history notes: ITAA 1997 ss 126-5, 126-15 and 126-25
-(marriage or relationship breakdown); ss 152-10, 152-305, 152-410 and 152-415
-(small business roll-over); ss 104-185, 104-190, 104-197 and 104-198 (CGT
-events J2, J5 and J6); ss 122-15 to 122-70 (wholly owned company); and
-ss 109-55, 115-25, 115-30 and 115-34. None changed in substance from
-1 July 2020; Act No. 13 of 2021 reworded an example in s 126-15. The vectors
-are the Act's examples where it has one.
-
-| Vector | Facts given | Result |
-| --- | --- | --- |
-| M1, s 126-5(5) example | Land, cost base $10,000, court order, A1 | Transferee's cost base **$10,000**, acquired at the event, for the discount when the transferor acquired it |
-| M2 | M1 with proceeds $25,000; reduced cost base $9,000 and proceeds $8,000 | Gain disregarded **$15,000**; loss disregarded **$1,000** |
-| S1, s 152-415 example | Gain $25,000 after the other concessions, $20,000 disregarded | Remaining gain **$5,000**; period 30 September 2024 to 30 September 2027 |
-| S2 | S1 with a $16,000 qualifying asset | J6 gain **$4,000** at the period's end; no qualifying asset: J5 gain **$20,000** |
-| C1, s 122-50(1) example (Nick) | Precluded assets $80,000 at market value, land cost base $120,000, liabilities $15,000, 10 shares | Shares' cost base **$185,000**, **$18,500** a share |
-| C2 | One asset, cost base $300,000, liabilities $50,000, 3 shares, proceeds $400,000 | Shares' cost base **$250,000**, **$83,333.33** a share, gain disregarded **$100,000**; liabilities above $300,000 refused |
-
-`tests/cgt_rollover.rs` also covers the agreement grounds, each refusal, the
-replacement period's bounds with an earnout and 29 February, and assets
-acquired before 21 September 1999.
 
 ## Trade-in
 
@@ -5794,68 +5743,6 @@ challenge page), so the Act and the published rates stand alone. The
 remaining figures in the tests are made up and worked by hand from the
 provisions.
 
-## Salary dividend
-
-`salary-dividend` was added on 26 November 2026. ITAA 1997 ss 25-130,
-202-60, 207-20 and 293-20, SGAA 1992 ss 10A and 17A and Income Tax Rates Act
-1986 ss 23 and 26 were read that day on the ATO's legal database, with the
-ATO's 'Super guarantee' page (QC18123, last updated 17 April 2026): 11.5% for
-2024-25 and 12% from 2025-26 (Table 21), quarterly bases of $65,070 and
-$62,500 (Table 24, 4 of each for a year's earnings paid evenly) and the
-2026-27 annual base of $270,830 (Table 23), which s 10A(5) gives as $32,500 x
-100 / 12 rounded down to $10. The command follows the site's salary and
-dividends page (`assets/salary-dividend.mjs`) step for step, with the owner's
-tax from `resident-tax`, `low-income-tax-offset` and `medicare-levy` and the
-Division 293 tax from `division-293`. `tests/owner_pay_mirrors.rs` runs the
-page's 10 cases: the 9 from 2024-25 agree on every figure, including the best
-salary; the 2021-22 case is refused, as the individual tax worksheets hold no
-earlier year.
-
-## Sole trader set aside
-
-`sole-trader-set-aside` was added on 26 November 2026. ITAA 1997 ss 25-130,
-328-360 and 328-365 were read that day on the ATO's legal database, with the
-ATO's 'Registering for GST' (last updated 14 September 2026: $75,000) and
-'Starting PAYG instalments' (last updated 17 December 2024: instalment income
-of $4,000 or more, tax payable of $1,000 or more and notional tax of $500 or
-more; the command tests the first 2). The command follows the site's sole
-trader page (`assets/sole-trader.mjs`). `tests/owner_pay_mirrors.rs` runs the
-page's 7 cases: the 5 from 2024-25 agree on every figure; the 2023-24 and
-2021-22 cases are refused.
-
-## Salary packaging
-
-`salary-packaging` was added on 26 November 2026. FBTAA ss 5B(1D) to (1M),
-57A, 135P and 135Q and ITAA 1997 s 25-130 were read that day on the ATO's
-legal database, with the ATO's 'Fringe benefits tax - rates and thresholds'
-(last updated 20 May 2026: 47% for the FBT years ending 31 March 2023 to 2027,
-and $2,000.01 reportable as $3,773) and Fringe benefits tax - a guide for
-employers, chapter 6. The command follows the site's salary packaging page
-(`assets/salary-packaging.mjs`) except in one rule: it grosses up by the
-formulas of s 5B(1F) and (1G), (0.47 + 0.10) / (0.53 x 1.10 x 0.47) and
-1 / 0.53, as `fbt` does, where the page and the guide multiply by 2.0802 and
-1.8868. Each grossed-up amount is rounded half up to the dollar, as the
-guide's example at 6.10 rounds it; both ways give that example's $16,018,
-$23,208 and FBT of $1,986.22. `tests/owner_pay_mirrors.rs` runs the page's 12
-cases: the 2022-23 case is refused, and the case of $15,900.21 of Type 2
-benefits, which the page puts a dollar over the cap ($15,900.21 x 1.8868 =
-$30,000.62), is within it by the formula ($30,000.40), so it has no FBT here;
-in 2 more cases the Type 2 room left in the cap is the room x 0.53, not the
-room / 1.8868 (for $26,226 of room, $13,899.78, not $13,899.72).
-
-## Novated lease
-
-`novated-lease` was added on 26 November 2026. FBTAA ss 8A, 9 and 135P were
-read that day on the ATO's legal database, with the ATO's 'Fringe benefits
-tax - rates and thresholds' (last updated 20 May 2026), 'Luxury car tax rate
-and thresholds' (QC38161, last updated 1 June 2026: the fuel-efficient thresholds
-held by `luxury-car-tax`) and 'FBT on plug-in hybrid electric vehicles'. The
-command follows the site's novated lease page (`assets/novated-lease.mjs`)
-step for step, with the tax from `salary-packaging`'s composition.
-`tests/owner_pay_mirrors.rs` runs the page's 13 cases: the cases from 2024-25
-agree on every figure and on whether the car is exempt; the 2023-24 case is
-refused.
-
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read
@@ -6001,69 +5888,6 @@ Choices the Act leaves to the reader:
 | $200,000 segregated, $34,200 other at 40% | both methods together | ECPI $213,680; T1 $3,078.00 |
 | Existing, new, wound up, new and wound up, each year | SAR 2026 table 9 | levy $259, $518, nil, $259 |
 | $1,001 at 33.33% | rounding choice | ECPI $333 |
-
-## SMSF member allocation
-
-This worksheet was added on 26 November 2026. That day these were read:
-
-- SISR reg 5.03 (compilation of 1 July 2026,
-  https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html):
-  subregulation (2) requires the trustee to determine the investment return
-  credited or debited to a member's benefits in a way that is fair and
-  reasonable between all members and between each member's kinds of benefit.
-  It sets no method; daily weighted balances are the trustee's stated choice.
-- ITAA 1997 s 307-80 (compilation 268, 1 October 2026, volume 6): a
-  transition to retirement income stream is not in the retirement phase until
-  its recipient meets the conditions in subsection (3)(b), so its earnings are
-  taxed.
-- Income Tax Rates Act 1986 s 26(1)(a) (compilation 66): 15% on the low tax
-  component, which assessable contributions (s 295-160) form part of.
-- The ATO's 'Income stream (pension) rules and payments' (last updated
-  30 April 2026): a minimum is paid at least once a year; from 1 July 2017
-  partial commutations do not count towards it; contributions and roll-overs
-  cannot increase a pension's capital once it has started; a missed standard
-  means the stream is taken to have ceased at the start of the year for income
-  tax, its payments are not super income stream benefits and the fund cannot
-  claim exempt current pension income for that or later years; exceeding a
-  transition to retirement pension's maximum has the same effect.
-- The ATO's 'Exception to minimum pension payment requirements' (last updated
-  5 November 2025): the Commissioner may let an account-based pension continue
-  where an honest mistake gave an underpayment of no more than one-twelfth of
-  the minimum, or matters were outside the trustee's control, and a catch-up
-  payment is made; a trustee may self-assess once.
-
-The minimum and maximum reuse `pension-minimum`'s SISR Schedule 7 and
-reg 6.01(2) steps for a whole year.
-
-Choices the law leaves to the reader:
-
-- A transaction weighs from its own day to 30 June inclusive; same-day moves
-  net before the balance is checked against nil.
-- Contributions tax is charged to the account whose concessional contribution
-  bore it, and only the rest of the stated tax is shared, among taxed accounts
-  only. Where that rest is a refund and a retirement phase pension is held, the
-  offsets may belong to pension assets, so the worksheet refuses rather than
-  guess.
-- An exception is a stated fact; the worksheet shows the shortfall and
-  one-twelfth of the minimum but never decides it.
-- `transition_to_retirement` states that the recipient is not a reversionary
-  beneficiary and has met no condition of release in s 307-80(2)(c) all year.
-  Attaining 65 is one, so a recipient 64 or older on 1 July is refused rather
-  than taxed: at 65 or older the pension is in the retirement phase (state it
-  as `account_based_pension`), and at 64 it almost always gets there within
-  the year.
-- A closing balance below nil after the account's share of losses and tax is
-  refused, as a balance below nil before them is.
-
-`tests/smsf_member_allocation.rs` holds these cases, worked independently with
-exact fractions:
-
-| Case | Worksheet |
-|---|---|
-| Accumulation with 2 contributions, pension paying its $25,000 minimum | earnings $23,491.43 and $36,508.57; contributions tax $1,500 and earnings tax $4,500, both to the accumulation account |
-| Transition to retirement pension over its $20,000 maximum, pension $500 short of a $7,000 minimum | earnings $19,173.05 and $10,826.95; earnings tax $1,917.30 and $1,082.70 |
-| The same with the exception stated | earnings tax $3,000 and nil |
-| $100 over 3 equal balances | $33.33, $33.34 and $33.33 |
 
 ## ESS discount
 
@@ -6525,30 +6349,6 @@ and only the rest is remeasured (paras 47 and 60(a)).
 offsets, each class's sign, a loss before tax, each year's rates, a rate
 change with the year's rate at and away from the closing rate, a 2-cent
 rounding remainder and every refusal.
-
-## Book to tax
-
-Added on 26 November 2026, when the sources were read: ITAA 1997 ss 4-15,
-36-10, 36-17, 36-20, 36-55 and 160-10 on the ATO's legal database, with their
-history notes; AASB 112 paras 5 and 17 (September 2023 compilation); and the
-ATO's Company tax return instructions 2025 (item 7, labels R and V; worksheet
-2). None of the applied provisions changed in substance from 1 July 2020;
-Act No. 71 of 2026 made the loss carry back of s 160-10 permanent from
-2026-27, which the command refuses.
-
-| Vector | Facts given | Result |
-| --- | --- | --- |
-| B1, 2025-26 | Profit $100,000; $4,000 permanent add; temporary $5,000 and $1,000 subtract, $2,000 add | Taxable income **$100,000**, temporary change **$4,000**; `deferred-tax` with its own example's items finds a nil difference |
-| B2 | Loss $50,000, $2,000 permanent add, $1,500 losses brought forward | Tax loss **$48,000**, closing losses **$49,500** |
-| B3 | Loss $10,000, net exempt income $4,000, $3,000 losses | Tax loss **$6,000** (s 36-10(3)), closing **$9,000** |
-| B4 | Loss $2,000, net exempt income $5,000, $10,000 losses | $3,000 absorbed (s 36-17(4)(b)), closing **$7,000** |
-| B5 | Profit $18,000, $5,000 subtract, $7,000 add, net exempt income $5,000, $8,000 losses, $3,000 chosen | $5,000 absorbed, taxable income **$17,000**, closing **nil**; $3,000.01 refused |
-| B6 | Profit $4,000, $9,000 losses | Nil chosen: **$4,000**; $4,000 chosen: **nil**, closing $5,000; $4,000.01 refused |
-| B7 | Nil profit, no lines | Taxable income **nil** |
-| B8 | Nil net income, net exempt income $5,000, $10,000 losses | Nothing absorbed (neither s 36-17(3) nor (4) applies), closing **$10,000** |
-
-`tests/book_to_tax.rs` also covers each refused flag, malformed lines, the
-500-line limit and the supported years.
 
 ## Deferred revenue
 

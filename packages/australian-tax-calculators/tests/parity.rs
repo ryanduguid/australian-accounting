@@ -39,20 +39,19 @@ use std::process::{Command, Stdio};
 /// `tests/work_expenses.rs`, `tests/ato_interest_penalties.rs`,
 /// `tests/small_business_income_offset.rs`, `tests/government_super_amounts.rs`,
 /// `tests/individual_offsets.rs`, `tests/non_commercial_losses.rs`,
-/// `tests/psi_test.rs`, `tests/owner_pay_mirrors.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
+/// `tests/psi_test.rs`, `tests/pcg_2021_4.rs`, `tests/rental_property.rs` and
 /// `tests/foreign_resident_withholding.rs`, `tests/non_resident_withholding.rs`, `tests/residential_vacancy_fee.rs`, `tests/residency_tests.rs`,
 /// `tests/lodgment_required.rs`, `tests/rd_tax_offset.rs`, `tests/esic.rs`,
 /// `tests/gst_adjustments.rs`, `tests/deferred_tax.rs`, `tests/leave_provisions.rs`, `tests/deferred_revenue.rs`, `tests/wip_lockup.rs`, `tests/business_planning.rs`, `tests/impairment_test.rs`, `tests/consolidation_eliminations.rs`, `tests/tofa_accruals.rs`, `tests/thin_capitalisation.rs`, `tests/debt_forgiveness.rs`,
-/// `tests/cgt_cost_base_adjustments.rs`, `tests/scrip_for_scrip.rs`, `tests/cgt_rollover.rs`,
-/// `tests/book_to_tax.rs`, `tests/payg_instalment.rs`,
+/// `tests/cgt_cost_base_adjustments.rs`, `tests/payg_instalment.rs`,
 /// `tests/foreign_income_conversion.rs`,
 /// `tests/foreign_income_tax_offset.rs`, `tests/trading_stock_prepayments.rs`,
-/// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/smsf_member_allocation.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs`,
+/// `tests/minors_income.rs`, `tests/smsf_tax.rs`, `tests/fbt_instalment.rs`, `tests/ess_discount.rs`,
 /// `tests/help_indexation.rs`, `tests/first_home_owner_grant.rs`, `tests/gov_schemes.rs`, `tests/defined_benefit_income_cap.rs`,
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 158] = [
+const NEW_KINDS: [(&str, &str); 151] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -114,7 +113,6 @@ const NEW_KINDS: [(&str, &str); 158] = [
     ("asic-fees", "asic_fees"),
     ("cgt-parcels", "cgt_parcels"),
     ("cgt-cost-base-adjustments", "cgt_cost_base_adjustments"),
-    ("cgt-rollover", "cgt_rollover"),
     ("sb-cgt-concessions", "sb_cgt_concessions"),
     ("work-expenses", "work_expenses"),
     ("notice-period", "notice_period"),
@@ -135,10 +133,6 @@ const NEW_KINDS: [(&str, &str); 158] = [
     ),
     ("non-commercial-losses", "non_commercial_losses"),
     ("psi-test", "psi_test"),
-    ("salary-dividend", "salary_dividend"),
-    ("sole-trader-set-aside", "sole_trader_set_aside"),
-    ("salary-packaging", "salary_packaging"),
-    ("novated-lease", "novated_lease"),
     ("first-home-owner-grant", "first_home_owner_grant"),
     ("help-to-buy", "help_to_buy"),
     ("help-to-buy-review", "help_to_buy_review"),
@@ -149,7 +143,6 @@ const NEW_KINDS: [(&str, &str); 158] = [
     ("pcg-2021-4", "pcg_2021_4"),
     ("minors-income", "minors_income"),
     ("smsf-tax", "smsf_tax"),
-    ("smsf-member-allocation", "smsf_member_allocation"),
     ("beneficiary-tax-offset", "beneficiary_tax_offset"),
     ("invalid-carer-tax-offset", "invalid_carer_tax_offset"),
     ("zone-tax-offset", "zone_tax_offset"),
@@ -202,7 +195,6 @@ const NEW_KINDS: [(&str, &str); 158] = [
     ("gst-credit-time-limit", "gst_credit_time_limit"),
     ("tourist-refund", "tourist_refund"),
     ("deferred-tax", "deferred_tax"),
-    ("book-to-tax", "book_to_tax"),
     ("leave-provisions", "leave_provisions"),
     ("deferred-revenue", "deferred_revenue"),
     ("wip-lockup", "wip_lockup"),
@@ -361,7 +353,6 @@ fn adapt(command: &str, input: &Value, mut expected: Value) -> Value {
     adapt_depreciation_years(command, input, &mut expected);
     adapt_contribution_caps(command, &mut expected);
     adapt_resident_tax(command, &mut expected);
-    adapt_resident_years(command, input, &mut expected);
     adapt_2027_28(command, input, &mut expected);
     let study = match command {
         "study-loan-repayment" => expected.pointer_mut("/ok"),
@@ -831,36 +822,6 @@ fn adapt_resident_tax(command: &str, expected: &mut Value) {
     }
 }
 
-/// `resident-tax` also accepts 2019-20 to 2023-24 (CHANGELOG.md); the 2
-/// frozen 2023-24 refusals are skipped and tests/resident_tax_earlier_years.rs
-/// works them.
-const RESIDENT_YEARS: [&str; 5] = ["2019-20", "2020-21", "2021-22", "2022-23", "2023-24"];
-
-fn adapt_resident_years(command: &str, input: &Value, expected: &mut Value) {
-    let added = RESIDENT_YEARS.map(|id| {
-        let start: i32 = id[..4].parse().unwrap();
-        json!({"id": id, "basis": "income year", "start": format!("{start}-07-01"),
-            "end": format!("{}-06-30", start + 1), "arguments": {"year": id}})
-    });
-    let periods = match command {
-        "periods" if input["kind"] == "resident_tax" => expected["ok"].as_array_mut(),
-        "worksheet-catalogue" => expected["ok"]["resident_tax"]["supported_periods"].as_array_mut(),
-        _ => None,
-    };
-    if let Some(periods) = periods {
-        periods.splice(0..0, added);
-        return;
-    }
-    if command == "resident-tax"
-        && let Some(Value::String(error)) = expected.get_mut("error")
-    {
-        *error = error.replace(
-            "; supported: 2024-25",
-            &format!("; supported: {}, 2024-25", RESIDENT_YEARS.join(", ")),
-        );
-    }
-}
-
 /// The frozen commands that also accept 2027-28, on the rates and thresholds
 /// the law sets for it, with their worksheet kinds (CHANGELOG.md).
 const OPENED_2027_28: [(&str, &str); 6] = [
@@ -988,7 +949,7 @@ fn python_api_corpus_matches() {
     let mut failures = Vec::new();
     let (mut reopened, mut reopened_fbt, mut reopened_quarterly, mut reopened_medicare) =
         (0, 0, 0, 0);
-    let (mut reopened_2027_28, mut reopened_resident) = (0, 0);
+    let mut reopened_2027_28 = 0;
     let mut plain_decimal = 0;
     for (index, row) in corpus.iter().enumerate() {
         let command = row["command"].as_str().unwrap();
@@ -1026,10 +987,6 @@ fn python_api_corpus_matches() {
             reopened_2027_28 += 1;
             continue;
         }
-        if command == "resident-tax" && RESIDENT_YEARS.iter().any(|y| row["input"]["year"] == *y) {
-            reopened_resident += 1;
-            continue;
-        }
         let mut input = row["input"].clone();
         if NONPLAIN_DECIMAL_ROWS.binary_search(&index).is_ok() {
             let refusal = api::evaluate_coded(command, &input).unwrap_err();
@@ -1061,7 +1018,6 @@ fn python_api_corpus_matches() {
         "frozen 2026-27 Medicare levy refusals"
     );
     assert_eq!(reopened_2027_28, 17, "frozen 2027-28 refusals now accepted");
-    assert_eq!(reopened_resident, 2, "frozen 2023-24 resident tax refusals");
     assert_eq!(plain_decimal, NONPLAIN_DECIMAL_ROWS.len());
     assert!(
         failures.is_empty(),

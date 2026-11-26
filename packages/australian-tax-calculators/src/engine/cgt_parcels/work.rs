@@ -115,7 +115,7 @@ impl Work {
             return refuse(
                 "cgt_cost_base.pre_cgt",
                 format!(
-                    "{what}: parcel {} was acquired before 20 September 1985; a pre-CGT share or unit's gain is disregarded (ITAA 1997 ss 104-135(5), 104-70(7), 104-107A(4)) a demerger treats it under s 125-80(4) to (7), which this command does not work, and a scrip for scrip roll-over needs an interest acquired on or after that day (ss 124-780(3)(a) and 124-781(3)(a)).",
+                    "{what}: parcel {} was acquired before 20 September 1985; a pre-CGT share or unit's gain is disregarded (ITAA 1997 ss 104-135(5), 104-70(7), 104-107A(4)) and a demerger treats it under s 125-80(4) to (7), which this command does not work.",
                     p.id
                 ),
             );
@@ -222,7 +222,6 @@ impl Work {
                 new_security,
                 rollover,
             } => self.demerge(event, demerger, new_security, *rollover),
-            Change::ScripForScrip(terms) => self.exchange(event, terms),
         }
     }
 

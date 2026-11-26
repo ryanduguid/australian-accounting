@@ -304,15 +304,6 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
-        "cgt-rollover",
-        &[
-            ("rollover", Raw),
-            ("facts", Json),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
         "cgt-cost-base-adjustments",
         &[
             ("entity", Raw),
@@ -1420,73 +1411,6 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
-        "salary-dividend",
-        &[
-            ("profit", Dec),
-            ("base_rate_entity", Raw),
-            ("salary", Dec),
-            ("other_taxable_income", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
-        "sole-trader-set-aside",
-        &[
-            ("business_income", Dec),
-            ("business_expenses", Dec),
-            ("wages", Dec),
-            ("other_deductions", Dec),
-            ("personal_super_deducted", Dec),
-            ("small_business_offset", Raw),
-            ("study_loan", Raw),
-            ("hospital_cover", Raw),
-            ("gst_registered", Raw),
-            ("gst_credits", Dec),
-            ("invoice", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
-        "salary-packaging",
-        &[
-            ("residency", Raw),
-            ("employer", Raw),
-            ("salary", Dec),
-            ("type_two_benefits", Dec),
-            ("type_one_benefits", Dec),
-            ("meal_entertainment", Dec),
-            ("meal_entertainment_type_one", Raw),
-            ("study_loan", Raw),
-            ("hospital_cover", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
-        "novated-lease",
-        &[
-            ("residency", Raw),
-            ("salary", Dec),
-            ("study_loan", Raw),
-            ("hospital_cover", Raw),
-            ("car", Raw),
-            ("first_used", Raw),
-            ("commitment", Raw),
-            ("first_sale_year", Raw),
-            ("cost_price", Dec),
-            ("other_lct_supply", Raw),
-            ("lct_timing", Raw),
-            ("one_third_reduction", Raw),
-            ("days_available", Raw),
-            ("costs_with_gst", Dec),
-            ("costs_without_gst", Dec),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
         "psi-test",
         &[
             ("earner", Raw),
@@ -1511,17 +1435,6 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("gateway_1", Raw),
             ("gateway_2", Raw),
             ("factor_3", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
-        "smsf-member-allocation",
-        &[
-            ("accounts", Json),
-            ("net_earnings", Dec),
-            ("income_tax", Dec),
-            ("allocation_method", Raw),
             ("year", Raw),
             ("scope_confirmed", Raw),
         ],
@@ -1927,22 +1840,6 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
-        "book-to-tax",
-        &[
-            ("accounting_profit", Dec),
-            ("adjustments", Json),
-            ("net_exempt_income", Dec),
-            ("opening_tax_losses", Dec),
-            ("tax_losses_deducted", Dec),
-            ("loss_carry_back", Raw),
-            ("excess_franking_offsets", Raw),
-            ("subdivision_165_b", Raw),
-            ("tax_consolidated_group", Raw),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
-    (
         "foreign-income-conversion",
         &[("items", Json), ("year", Raw), ("scope_confirmed", Raw)],
     ),
@@ -2100,7 +1997,7 @@ const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
     ("average_total_assets", Dec),
 ];
 
-const DERIVED: [&str; 107] = [
+const DERIVED: [&str; 106] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -2207,7 +2104,6 @@ const DERIVED: [&str; 107] = [
     "staff-cost",
     "age-pension",
     "ftb-part-a",
-    "book-to-tax",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -2688,7 +2584,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "payg-instalment"
             | "pcg-2021-4"
             | "smsf-tax"
-            | "smsf-member-allocation"
             | "ess-discount"
             | "government-super-amounts"
             | "rental-property"
@@ -2714,7 +2609,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "gst-second-hand-goods"
             | "gst-bad-debt"
             | "deferred-tax"
-            | "book-to-tax"
             | "leave-provisions"
             | "deferred-revenue"
             | "wip-lockup"
@@ -2757,17 +2651,12 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "franking-account"
             | "cgt-parcels"
             | "cgt-cost-base-adjustments"
-            | "cgt-rollover"
             | "help-indexation"
             | "defined-benefit-income-cap"
             | "foreign-pension-upp"
             | "scholarship-exemption"
             | "super-crystallisation"
             | "endorsement-review"
-            | "salary-dividend"
-            | "sole-trader-set-aside"
-            | "salary-packaging"
-            | "novated-lease"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -2957,12 +2846,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[4],
             })
         }
-        "cgt-rollover" => engine::cgt_rollover(&engine::CgtRolloverArgs {
-            rollover: &a[0],
-            facts: &a[1],
-            year: &a[2],
-            scope_confirmed: &a[3],
-        }),
         "help-indexation" => {
             // Optional: the balance (refused with its own code when absent),
             // the dated debts and repayments, and the other step amounts.
@@ -4310,16 +4193,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             let named: Vec<(&str, &Arg)> = params.iter().map(|(key, _)| *key).zip(&a).collect();
             engine::smsf_tax(&named)
         }
-        "smsf-member-allocation" => {
-            engine::smsf_member_allocation(&engine::SmsfMemberAllocationArgs {
-                accounts: &a[0],
-                net_earnings: &a[1],
-                income_tax: &a[2],
-                allocation_method: &a[3],
-                year: &a[4],
-                scope_confirmed: &a[5],
-            })
-        }
         "small-business-income-offset" => {
             // Optional: the facts only net small business income of your own calls for.
             let given = engine::SBITO_OPTIONAL.map(|key| {
@@ -4467,61 +4340,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             facts: &a[5],
             year: &a[6],
             scope_confirmed: &a[7],
-        }),
-        "salary-dividend" => engine::owner_pay_split(&engine::SalaryDividendArgs {
-            profit: &a[0],
-            base_rate_entity: &a[1],
-            salary: &a[2],
-            other_taxable_income: &a[3],
-            year: &a[4],
-            scope_confirmed: &a[5],
-        }),
-        "sole-trader-set-aside" => engine::sole_trader_set_aside(&engine::SoleTraderSetAsideArgs {
-            business_income: &a[0],
-            business_expenses: &a[1],
-            wages: &a[2],
-            other_deductions: &a[3],
-            personal_super_deducted: &a[4],
-            small_business_offset: &a[5],
-            study_loan: &a[6],
-            hospital_cover: &a[7],
-            gst_registered: &a[8],
-            gst_credits: &a[9],
-            invoice: &a[10],
-            year: &a[11],
-            scope_confirmed: &a[12],
-        }),
-        "salary-packaging" => engine::packaged_benefits(&engine::SalaryPackagingArgs {
-            residency: &a[0],
-            employer: &a[1],
-            salary: &a[2],
-            type_two_benefits: &a[3],
-            type_one_benefits: &a[4],
-            meal_entertainment: &a[5],
-            meal_entertainment_type_one: &a[6],
-            study_loan: &a[7],
-            hospital_cover: &a[8],
-            year: &a[9],
-            scope_confirmed: &a[10],
-        }),
-        "novated-lease" => engine::novated_lease(&engine::NovatedLeaseArgs {
-            residency: &a[0],
-            salary: &a[1],
-            study_loan: &a[2],
-            hospital_cover: &a[3],
-            car: &a[4],
-            first_used: &a[5],
-            commitment: &a[6],
-            first_sale_year: &a[7],
-            cost_price: &a[8],
-            other_lct_supply: &a[9],
-            lct_timing: &a[10],
-            one_third_reduction: &a[11],
-            days_available: &a[12],
-            costs_with_gst: &a[13],
-            costs_without_gst: &a[14],
-            year: &a[15],
-            scope_confirmed: &a[16],
         }),
         "psi-test" => {
             // Optional: an agent's commission and the principal's payments.
@@ -4817,19 +4635,6 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[7],
             })
         }
-        "book-to-tax" => engine::book_to_tax(&engine::BookToTaxArgs {
-            accounting_profit: &a[0],
-            adjustments: &a[1],
-            net_exempt_income: &a[2],
-            opening_tax_losses: &a[3],
-            tax_losses_deducted: &a[4],
-            loss_carry_back: &a[5],
-            excess_franking_offsets: &a[6],
-            subdivision_165_b: &a[7],
-            tax_consolidated_group: &a[8],
-            year: &a[9],
-            scope_confirmed: &a[10],
-        }),
         "deferred-tax" => engine::deferred_tax(&engine::DeferredTaxArgs {
             items: &a[0],
             unused_tax_losses: &a[1],
