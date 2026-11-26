@@ -5952,6 +5952,11 @@ the two agree on every case the page's tests hold. Its choices:
 - each payer is entered with its associates as one row, or as one row for
   each contract when its contracts differ for the results test, the rows
   sharing a `source` label (s 87-15(3));
+- the unrelated clients test counts rows sharing a `client` label once, and a
+  row without one by its `source`: payers that are each an associate of a
+  third entity share a source but, given their own `client` labels, are 2
+  clients, as s 87-20(1)(a) asks only that they are not associates of each
+  other (the site's page counts them by payer group);
 - a religious practitioner's payment is outside Division 85 under
   s 85-35(2), which the site's page folds into s 85-35(1);
 - the employment test's 20% is measured against the PSI entered, as

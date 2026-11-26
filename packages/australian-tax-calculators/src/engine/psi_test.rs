@@ -29,7 +29,7 @@ const KIND: &str = "psi_test";
 /// The largest number of payers the worksheet takes.
 const MAX_PAYERS: usize = 50;
 const PSB: &str = "a personal services business, so Divisions 85 and 86 do not apply";
-const PAYER_KEYS: [&str; 7] = [
+const PAYER_KEYS: [&str; 8] = [
     "amount",
     "associate",
     "offer",
@@ -37,8 +37,9 @@ const PAYER_KEYS: [&str; 7] = [
     "tools",
     "defects",
     "source",
+    "client",
 ];
-/// The longest `source` label a payer row takes.
+/// The longest `source` or `client` label a payer row takes.
 const MAX_SOURCE: usize = 100;
 const PREMISES_KEYS: [&str; 5] = [
     "at_all_times",
@@ -70,6 +71,11 @@ struct Payer {
     /// The payer and its associates (s 87-15(3)): the row's `source`
     /// label, or the row alone when it has none.
     source: String,
+    /// The entity, with any of its associates, that s 87-20 counts once:
+    /// the row's `client` label, or its `source` when it has none. 2
+    /// entities that are associates of a third, not of each other, share
+    /// a source but are 2 clients.
+    client: String,
     amount: Decimal,
     associate: bool,
     offer: bool,
@@ -92,9 +98,21 @@ fn bad_payers<T>() -> Result<T> {
     refuse(
         "psi_test.payers_invalid",
         format!(
-            "payers must be a list of 1 to {MAX_PAYERS} objects, each with amount, associate, offer, result, tools and defects, and a source label of 1 to {MAX_SOURCE} characters if given."
+            "payers must be a list of 1 to {MAX_PAYERS} objects, each with amount, associate, offer, result, tools and defects, and source and client labels of 1 to {MAX_SOURCE} characters if given."
         ),
     )
+}
+
+/// A row's `key` label, kept apart from the other key's and from a row
+/// with none.
+fn label(fields: &Map<String, Value>, key: &str) -> Result<Option<String>> {
+    match fields.get(key) {
+        None => Ok(None),
+        Some(Value::String(label)) if !label.is_empty() && label.chars().count() <= MAX_SOURCE => {
+            Ok(Some(format!("{key} {label}")))
+        }
+        Some(_) => bad_payers(),
+    }
 }
 
 fn payers(given: &Arg) -> Result<Vec<Payer>> {
@@ -113,17 +131,11 @@ fn payers(given: &Arg) -> Result<Vec<Payer>> {
                 return bad_payers();
             };
             stated::known_keys(fields, &name, "a payer", &PAYER_KEYS)?;
-            let source = match fields.get("source") {
-                None => format!("row {i}"),
-                Some(Value::String(label))
-                    if !label.is_empty() && label.chars().count() <= MAX_SOURCE =>
-                {
-                    format!("label {label}")
-                }
-                Some(_) => return bad_payers(),
-            };
+            let source = label(fields, "source")?.unwrap_or_else(|| format!("row {i}"));
+            let client = label(fields, "client")?.unwrap_or_else(|| source.clone());
             Ok(Payer {
                 source,
+                client,
                 amount: stated::amount(fields, &name, "amount")?,
                 associate: boolean(fields, &name, "associate")?,
                 offer: boolean(fields, &name, "offer")?,
@@ -484,7 +496,7 @@ impl Work {
             .payers
             .iter()
             .filter(|p| !p.amount.is_zero() && !p.associate && p.offer)
-            .map(|p| p.source.as_str())
+            .map(|p| p.client.as_str())
             .collect::<BTreeSet<_>>()
             .len();
         let employment = share(f.others, f.total)?;

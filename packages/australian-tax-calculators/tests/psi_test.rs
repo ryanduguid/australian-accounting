@@ -526,6 +526,42 @@ fn a_payers_contracts_share_one_source() {
     }
 }
 
+/// s 87-20(1)(a) counts entities that are not associates of each other. 2
+/// beneficiaries of one trust are each the trustee's associate, so s 87-15(3)
+/// takes them with the trustee as one source, yet they need not be associates
+/// of each other: given their own client labels, they are 2 unrelated clients.
+#[test]
+fn payers_sharing_a_source_can_be_unrelated_clients() {
+    let mut rows = vec![payer("40.00", "o"), payer("39.00", "o"), payer("21.00", "")];
+    for row in &mut rows[..2] {
+        row["source"] = json!("Trustee of the T trust and its associates");
+    }
+    let out = run(&with(base(&[]), json!({"payers": rows})));
+    assert_eq!(out["tests"]["one_source_percent"], "79.00");
+    assert_eq!(out["tests"]["unrelated_clients"], 1);
+    assert_eq!(decided(&out), ("subsection 87-15(1)", S87_15_1));
+    rows[0]["client"] = json!("Beneficiary B");
+    rows[1]["client"] = json!("Beneficiary C");
+    let out = run(&with(base(&[]), json!({"payers": rows})));
+    assert_eq!(out["tests"]["one_source_percent"], "79.00");
+    assert_eq!(out["tests"]["unrelated_clients"], 2);
+    assert_eq!(decided(&out), ("section 87-20", PSB));
+    // A client label is its own name space: it never merges with a source.
+    rows[1]["client"] = json!("Trustee of the T trust and its associates");
+    let out = run(&with(base(&[]), json!({"payers": rows})));
+    assert_eq!(out["tests"]["unrelated_clients"], 2);
+    // Associates of each other share a client and count once.
+    rows[1]["client"] = json!("Beneficiary B");
+    let out = run(&with(base(&[]), json!({"payers": rows})));
+    assert_eq!(out["tests"]["unrelated_clients"], 1);
+    for bad in [json!(""), json!(true), json!("x".repeat(101))] {
+        let mut row = payer("1.00", "o");
+        row["client"] = bad;
+        let input = with(base(&[]), json!({"payers": [row]}));
+        assert_eq!(code(&input), "psi_test.payers_invalid");
+    }
+}
+
 /// s 85-35(2): a religious practitioner's payment, apart from an employee's
 /// (s 85-35(1)).
 #[test]

@@ -194,7 +194,7 @@ fn adjustments_go_to_1e_and_1f() {
 /// BAS (QC39467); one primary producer car a financial year (s 18-5(4)).
 #[test]
 fn refunds_are_capped_at_10000_and_kept_off_the_bas() {
-    let refund = |claimant: &str, eligible: bool, borne: &str| json!({"kind": "refund", "claimant": claimant, "refund_eligible_car": eligible, "lct_borne": borne});
+    let refund = |claimant: &str, eligible: bool, borne: &str| json!({"kind": "refund", "supplied_in": "2026-27", "claimant": claimant, "refund_eligible_car": eligible, "lct_borne": borne});
     let r = run(&input(
         "2026-27",
         json!([
@@ -228,6 +228,15 @@ fn refunds_are_capped_at_10000_and_kept_off_the_bas() {
     assert_eq!(
         code(&input("2026-27", json!([early]))),
         "luxury_car_tax.refund_invalid"
+    );
+    // A refund is claimed up to 4 years after the entitlement arises, so the
+    // tax period's year cannot stand in for the car's: a blank supplied_in
+    // would let a car supplied before 1 July 2019 take the $10,000 refund.
+    let mut blank = refund("tourism_operator", true, "4000.00");
+    blank.as_object_mut().unwrap().remove("supplied_in");
+    assert_eq!(
+        code(&input("2022-23", json!([blank]))),
+        "input.missing_field"
     );
     let stranger = refund("dealer", true, "4000.00");
     assert_eq!(
