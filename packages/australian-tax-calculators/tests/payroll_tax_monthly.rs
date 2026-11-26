@@ -456,6 +456,11 @@ fn a_stated_amount_replaces_the_formula() {
 
 #[test]
 fn refuses_what_it_does_not_work() {
+    let mut qld = input("qld", "2026-07", ["1.00", "0.00", "1.00", "0.00"]);
+    qld.as_object_mut()
+        .unwrap()
+        .remove("previous_interstate_wage_payer");
+    assert_eq!(code(&qld), "input.missing_field");
     let base = input("vic", "2026-07", ["1.00", "0.00", "1.00", "0.00"]);
     let with = |key: &str, value: Value| {
         let mut v = base.clone();

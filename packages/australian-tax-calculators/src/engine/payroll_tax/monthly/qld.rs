@@ -79,38 +79,34 @@ fn qld_levy(m: &Month, l: &Levy) -> Result<[Step; 2]> {
 /// Queensland's 2 periodic thresholds and their levies, at `low` and `high`.
 fn qld_levies(m: &Month, low: &Decimal, high: &Decimal) -> Result<[Step; 4]> {
     let [primary, additional] = &m.thresholds;
-    let [pt, pl] = qld_levy(
-        m,
-        &Levy {
-            threshold: [
-                "primary_periodic_threshold",
-                QLD_PRIMARY_T,
-                "stated_primary_threshold",
-                QLD_PRIMARY_D,
-            ],
-            levy: ("mental_health_levy_primary", QLD_PRIMARY),
-            whole: "10000000",
-            charge: low,
-            rate_name: "levy_rate",
-            determined: primary.as_ref(),
-        },
-    )?;
-    let [at, al] = qld_levy(
-        m,
-        &Levy {
-            threshold: [
-                "additional_periodic_threshold",
-                QLD_ADDITIONAL_T,
-                "stated_additional_threshold",
-                QLD_ADDITIONAL_D,
-            ],
-            levy: ("mental_health_levy_additional", QLD_ADDITIONAL),
-            whole: "100000000",
-            charge: high,
-            rate_name: "additional_levy_rate",
-            determined: additional.as_ref(),
-        },
-    )?;
+    let primary_levy = Levy {
+        threshold: [
+            "primary_periodic_threshold",
+            QLD_PRIMARY_T,
+            "stated_primary_threshold",
+            QLD_PRIMARY_D,
+        ],
+        levy: ("mental_health_levy_primary", QLD_PRIMARY),
+        whole: "10000000",
+        charge: low,
+        rate_name: "levy_rate",
+        determined: primary.as_ref(),
+    };
+    let additional_levy = Levy {
+        threshold: [
+            "additional_periodic_threshold",
+            QLD_ADDITIONAL_T,
+            "stated_additional_threshold",
+            QLD_ADDITIONAL_D,
+        ],
+        levy: ("mental_health_levy_additional", QLD_ADDITIONAL),
+        whole: "100000000",
+        charge: high,
+        rate_name: "additional_levy_rate",
+        determined: additional.as_ref(),
+    };
+    let [pt, pl] = qld_levy(m, &primary_levy)?;
+    let [at, al] = qld_levy(m, &additional_levy)?;
     Ok([pt, at, pl, al])
 }
 

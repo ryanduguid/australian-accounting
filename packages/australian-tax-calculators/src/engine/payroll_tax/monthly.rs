@@ -277,10 +277,8 @@ type TasRates = ([Step; 2], Vec<(String, String)>);
 /// rates.
 fn tas_rates(annual: &Decimal) -> Result<TasRates> {
     let [threshold, top, lower, higher] = ["1250000", "2000000", "0.04", "0.061"].map(d);
-    let band = py_max(
-        int(0),
-        py_min(annual.clone(), top.clone())?.sub(&threshold)?,
-    )?;
+    let capped = py_min(annual.clone(), top.clone())?;
+    let band = py_max(int(0), capped.sub(&threshold)?)?;
     let first = step(
         "tax_at_lower_rate",
         TAS_LOWER,

@@ -594,6 +594,31 @@ fn queensland_settles_tax_and_levy_apart_and_others_refund() {
     assert_eq!(none["amounts"]["adjustment_refund"], "100.00");
 }
 
+/// Tasmania and the Northern Territory settle under their own s 83: with
+/// nothing paid, the year's total is payable; with it paid, nothing is.
+#[test]
+fn tasmania_and_the_northern_territory_reconcile_under_s_83() {
+    for place in ["tas", "nt"] {
+        let none = reconciled(
+            place,
+            "3000000.00",
+            "3000000.00",
+            &[("periodic_tax", "0.00"), ("other_refunds", "0.00")],
+        );
+        let total = none["amounts"]["total"].as_str().unwrap().to_string();
+        assert_ne!(total, "0.00");
+        assert_eq!(none["amounts"]["adjustment_payable"], total.as_str());
+        let paid = reconciled(
+            place,
+            "3000000.00",
+            "3000000.00",
+            &[("periodic_tax", total.as_str()), ("other_refunds", "0.00")],
+        );
+        let settled = ["adjustment_payable", "adjustment_refund"];
+        assert_eq!(amounts(&paid, settled), ["0.00", "0.00"]);
+    }
+}
+
 #[test]
 fn reconciliation_refusals() {
     let with = |place: &str, periodic: &[(&str, &str)]| {
