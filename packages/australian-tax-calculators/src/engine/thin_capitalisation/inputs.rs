@@ -227,7 +227,7 @@ pub(super) const NIL_CARRY: (&str, &str) = (
 );
 
 /// The inputs a test does not use are refused rather than ignored.
-pub(super) fn check_unused(a: &ThinCapitalisationArgs, t: Test) -> Result<()> {
+pub(super) fn check_unused(a: &ThinCapitalisationArgs, t: Test, c: Class) -> Result<()> {
     let group = "the GR group figures belong to the group ratio test (s 820-53)";
     let third = "the third party debt test compares debt deductions with the third party earnings limit alone (s 820-50(1)(c))";
     let older = "it belongs to Subdivisions 820-B to 820-E, which do not apply to a general class investor (ss 820-85(2A), 820-185(2A), 820-300(2A) and 820-395(2A))";
@@ -252,8 +252,8 @@ pub(super) fn check_unused(a: &ThinCapitalisationArgs, t: Test) -> Result<()> {
             .collect(),
         Test::MaxDebt | Test::MinCapital => vec![],
     };
-    let unused = unused.into_iter().chain(match t {
-        Test::Fixed | Test::Group => OLDER.iter().map(|k| (*k, older)).collect::<Vec<_>>(),
+    let unused = unused.into_iter().chain(match c {
+        Class::General | Class::NotCovered => OLDER.iter().map(|k| (*k, older)).collect::<Vec<_>>(),
         _ => AA.iter().map(|k| (*k, aa)).collect(),
     });
     match unused.into_iter().find(|(k, _)| a.get(k).is_some()) {

@@ -704,6 +704,9 @@ fn inward_investor_and_inward_investment_vehicle() {
     let mut i = investor();
     i["average_associate_entity_debt"] = json!("90000000.00");
     assert_eq!(amount(&run(&i), "adjusted_on_lent_amount"), "0.00");
+    // The associate entity excess amount is added after that floor (step 8).
+    i["average_associate_entity_excess_amount"] = json!("1000000.00");
+    assert_eq!(amount(&run(&i), "adjusted_on_lent_amount"), "1000000.00");
     // An inward investment vehicle reduces by all associate entity debt and
     // has no step 7 floor (s 820-200(3)); adjusted average debt of nil
     // exceeds nothing (s 820-185(4)).
@@ -838,6 +841,20 @@ fn financial_entity_edges() {
     let mut i = t1();
     i["average_assets"] = json!("1.00");
     assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    // Under every general class test, whatever the test (review S1).
+    for test in ["group_ratio", "third_party_debt"] {
+        let marked = json!([{"label": "A", "amount": "1.00", "third_party": true}]);
+        let mut i = base(
+            test,
+            if test == "group_ratio" {
+                json!([dd("A", "1.00")])
+            } else {
+                marked
+            },
+        );
+        i["average_assets"] = json!("1.00");
+        assert_eq!(code(&i), "thin_capitalisation.input_not_used", "{test}");
+    }
     let mut i = glm();
     i["test"] = json!("minimum_capital_amount");
     assert_eq!(code(&i), "thin_capitalisation.fact_invalid");

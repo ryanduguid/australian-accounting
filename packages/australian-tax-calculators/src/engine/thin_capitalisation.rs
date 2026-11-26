@@ -355,7 +355,7 @@ pub fn thin_capitalisation(a: &ThinCapitalisationArgs) -> Result<Value> {
         );
     }
     let items = deductions(a.debt_deductions, t)?;
-    check_unused(a, t)?;
+    check_unused(a, t, c)?;
     let own = precise(|| Ok(total(items.iter().map(|x| &x.amount))?))?;
     if matches!(c, Class::InwardFinancial | Class::InwardAdi)
         && flag(a.outward_investor_only, "outward_investor_only")?
