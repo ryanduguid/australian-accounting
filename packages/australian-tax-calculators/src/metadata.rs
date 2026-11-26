@@ -1393,6 +1393,8 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "rent_assistance" => vec!["2026-27"],
         // Days from 1 July 2026 to 19 March 2027.
         "jobseeker_payment" => vec!["2026-27"],
+        // Days from 20 September 2025 to 19 March 2027, as age_pension.
+        "disability_support_pension" | "carer_payment" => vec!["2025-26", "2026-27"],
         // The years the site page covers whose individual tax parts
         // (resident-tax, low-income-tax-offset, medicare-levy and
         // medicare-levy-surcharge) are held: 2024-25 to 2026-27.
@@ -2155,6 +2157,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "jobseeker_payment" => (
             "2026-11-26",
             "Social Security Act 1991 compilation 234 (20 September 2026), s 1068 (Benefit Rate Calculator B) Modules A, B, C, D and G; DSS Social Security Guide 5.1.8.20 and 5.1.10.20; Services Australia's 'A guide to Australian Government payments' for 1 July to 19 September 2026 and 20 September to 31 December 2026 (JobSeeker Payment, Module D, Module I, Pharmaceutical Allowance)",
+        ),
+        "disability_support_pension" => (
+            "2026-11-27",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064(1) and (2) and Modules A, BA, C, E, F and G, ss 1065 and 1066A (read for what they exclude); DSS Social Security Guide version 1.345 (3 November 2026), 5.1.8.10 (common pension rates for age pension, DSP at 21 or over or with a dependent child, and carer payment); the amounts are age_pension's, reviewed on 26 November 2026",
+        ),
+        "carer_payment" => (
+            "2026-11-27",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064(1)(d) and Modules A, BA, C, E and G; DSS Social Security Guide version 1.345 (3 November 2026), 5.1.8.10; Services Australia's carer payment rate and assets test pages (page last updated 20 September 2026); the amounts are age_pension's, reviewed on 26 November 2026",
         ),
         "salary_dividend" => (
             "2026-11-26",
@@ -7278,6 +7288,24 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("partner_income", "AUD per fortnight: the partner's ordinary income; 0.00 for a single person"),
             ("facts", "object of booleans, each your statement, not tested: qualified, no_working_credit, no_rent_assistance, assets_within_limit, no_adjustments and energy_fortnightly; every one required true"),
         ],
+        "disability_support_pension" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2025-09-20 to 2027-03-19: the day the fortnightly rate is for"),
+            ("relationship", "single or couple: for a couple, the partner also receives a pension under Pension Rate Calculator A"),
+            ("homeowner", "boolean: the person or partner is a homeowner (s 11)"),
+            ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
+            ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
+            ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
+            ("facts", "object of booleans, each your statement, not tested: aged_21_or_with_child, not_blind, no_module_f_payment, in_australia, not_transitional, no_rent_assistance, no_quarterly_election, no_armed_services_cap, no_underage_relationship and no_adjustments, and for a couple partner_pensioner; every one required true"),
+        ],
+        "carer_payment" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2025-09-20 to 2027-03-19: the day the fortnightly rate is for"),
+            ("relationship", "single or couple: for a couple, the partner also receives a pension under Pension Rate Calculator A"),
+            ("homeowner", "boolean: the person or partner is a homeowner (s 11)"),
+            ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
+            ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
+            ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
+            ("facts", "object of booleans, each your statement, not tested: carer_payment_only, in_australia, not_transitional, no_rent_assistance, no_quarterly_election, no_armed_services_cap, no_underage_relationship and no_adjustments, and for a couple partner_pensioner; every one required true"),
+        ],
         "salary_dividend" => vec![
             ("profit", "AUD: the company's profit before the owner's salary, its super guarantee and company tax, all paid out"),
             ("base_rate_entity", "boolean: the company is a base rate entity for the year and its corporate tax rate for imputation purposes is 25% (Income Tax Rates Act 1986 s 23(2)); false for 30%"),
@@ -9207,6 +9235,38 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "facts",
                 Json(
                     r#"{"qualified": true, "no_working_credit": true, "no_rent_assistance": true, "assets_within_limit": true, "no_adjustments": true, "energy_fortnightly": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single non-homeowner aged 30 with part-time earnings.
+        "disability_support_pension" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("relationship", Text("single")),
+            ("homeowner", Flag(false)),
+            ("ordinary_income", Text("300.00")),
+            ("financial_assets", Text("20000.00")),
+            ("assets", Text("50000.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single homeowning carer with savings.
+        "carer_payment" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("relationship", Text("single")),
+            ("homeowner", Flag(true)),
+            ("ordinary_income", Text("150.00")),
+            ("financial_assets", Text("80000.00")),
+            ("assets", Text("380000.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"carer_payment_only": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#,
                 ),
             ),
         ],

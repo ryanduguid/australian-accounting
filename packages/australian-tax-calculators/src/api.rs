@@ -155,6 +155,19 @@ macro_rules! cmd_args {
 }
 
 /// Command, the worksheet's parameters in the original order.
+/// The inputs of the 3 commands Pension Rate Calculator A works out.
+const PENSION_ARGS: &[(&str, Kind)] = &[
+    ("date", Raw),
+    ("relationship", Raw),
+    ("homeowner", Raw),
+    ("ordinary_income", Dec),
+    ("financial_assets", Dec),
+    ("assets", Dec),
+    ("facts", Json),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
         "gst",
@@ -1407,20 +1420,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "age-pension",
-        &[
-            ("date", Raw),
-            ("relationship", Raw),
-            ("homeowner", Raw),
-            ("ordinary_income", Dec),
-            ("financial_assets", Dec),
-            ("assets", Dec),
-            ("facts", Json),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("age-pension", PENSION_ARGS),
     (
         "ftb-part-a",
         &[
@@ -1474,6 +1474,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("disability-support-pension", PENSION_ARGS),
+    ("carer-payment", PENSION_ARGS),
     (
         "salary-dividend",
         &[
@@ -2191,7 +2193,7 @@ const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 50] = [
     ("arm_length_capital_amount", Dec),
 ];
 
-const DERIVED: [&str; 111] = [
+const DERIVED: [&str; 113] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -2303,6 +2305,8 @@ const DERIVED: [&str; 111] = [
     "ftb-part-b",
     "rent-assistance",
     "jobseeker-payment",
+    "disability-support-pension",
+    "carer-payment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -2782,6 +2786,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "ftb-part-b"
             | "rent-assistance"
             | "jobseeker-payment"
+            | "disability-support-pension"
+            | "carer-payment"
             | "psi-test"
             | "payg-instalment"
             | "pcg-2021-4"
@@ -4574,17 +4580,24 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[7],
             scope_confirmed: &a[8],
         }),
-        "age-pension" => engine::age_pension(&engine::AgePensionArgs {
-            date: &a[0],
-            relationship: &a[1],
-            homeowner: &a[2],
-            ordinary_income: &a[3],
-            financial_assets: &a[4],
-            assets: &a[5],
-            facts: &a[6],
-            year: &a[7],
-            scope_confirmed: &a[8],
-        }),
+        "age-pension" | "disability-support-pension" | "carer-payment" => {
+            let args = engine::AgePensionArgs {
+                date: &a[0],
+                relationship: &a[1],
+                homeowner: &a[2],
+                ordinary_income: &a[3],
+                financial_assets: &a[4],
+                assets: &a[5],
+                facts: &a[6],
+                year: &a[7],
+                scope_confirmed: &a[8],
+            };
+            match command {
+                "age-pension" => engine::age_pension(&args),
+                "carer-payment" => engine::carer_payment(&args),
+                _ => engine::disability_support_pension(&args),
+            }
+        }
         "ftb-part-a" => engine::ftb_part_a(&engine::FtbPartAArgs {
             children_under_13: &a[0],
             children_13_plus: &a[1],

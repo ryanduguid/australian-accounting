@@ -32,6 +32,7 @@
     "`book-to-tax` reconciles accounting profit to taxable income from stated differences and feeds `deferred-tax`; `cgt-rollover` carries cost bases through stated roll-overs. Neither decides a difference or eligibility.",
     "`smsf-member-allocation` shares an SMSF's stated earnings and tax across member accounts by the trustee's daily weighted balance method and checks pension minimums; use `smsf-tax` for the fund's tax itself.",
     "`payroll-tax-monthly` works one monthly return from each Act's monthly provisions and the employer's stated estimates for the year; `payroll-tax`, given the tax paid on those returns, reconciles the year against them.",
-    "`ftb-part-b`, `rent-assistance` and `jobseeker-payment` apply the Family Assistance Act and Social Security Act rate tests to stated incomes and rent for dated periods; they refuse dates outside the published rates."
+    "`ftb-part-b`, `rent-assistance` and `jobseeker-payment` apply the Family Assistance Act and Social Security Act rate tests to stated incomes and rent for dated periods; they refuse dates outside the published rates.",
+    "`disability-support-pension` and `carer-payment` work `age-pension`'s Pension Rate Calculator A and dated amounts; they refuse the under-21 and blind rates, Module F payments and carer allowance."
   ]
 }
