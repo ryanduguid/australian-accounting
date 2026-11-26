@@ -5711,6 +5711,38 @@ typed from the rules above.
 | Vic built, $900,000 total, contract $750,000 and $750,001 | Vic Act ss 13(1A), 13(7)(b), 18(1A) | $10,000; nil |
 | NSW built, contract $9,999 | Revenue NSW (Act unread) | refused |
 
+## Government schemes
+
+Added on 26 November 2026, when these were read:
+
+- Help to Buy: the Help to Buy Act 2024 (C2024A00124, compilation 1) and the
+  Help to Buy Program Directions 2025 (F2025L00682, as made, in force from
+  14 June 2025, no amendments), ss 7, 8, 9, 16, 17, 19, 21, 25, 34, 37 and
+  43; Housing Australia's 'Help to Buy income and threshold updates 2026-27'.
+  `tests/gov_schemes.rs` reproduces the s 25(3) example (30% of $500,000
+  valued at $475,000: 31.58%).
+- Home Guarantee Scheme: the Housing Australia Investment Mandate Direction
+  2018 (F2018L00994), compilation of 7 February 2026 (the text from 1 October
+  2025) and the latest compilation, and the amending instrument F2026L00542
+  (the caps and Northern Territory split from 1 July 2026), ss 29C, 29D, 29F,
+  44 and 46.
+- Age pension: the Social Security Act 1991 (C2004A04121, compilation 234),
+  ss 1064, 1076 and 1082; the Social Security Guide 4.4.1.10, 4.10.3,
+  5.1.8.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's assets test
+  page. The tests meet Services Australia's cut-off points from 20 September
+  2026 (assets $745,750 single and $1,121,000 a couple, homeowners; income
+  $2,701.40 and $4,128.00 a fortnight) to the cent.
+- Family tax benefit Part A: A New Tax System (Family Assistance) Act 1999
+  (C2004A00490, compilation 124 of 1 July 2026), Schedule 1; the Department
+  of Social Services' rates list for 1 July 2026; Services Australia's
+  'A guide to Australian Government payments' for 20 September to 31 December
+  2026. The tests meet its income limits for 7 mixes of children.
+
+The Department of Social Services' Family Assistance Guide was not read (a
+challenge page), so the Act and the published rates stand alone. The
+remaining figures in the tests are made up and worked by hand from the
+provisions.
+
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read
@@ -6448,6 +6480,138 @@ O1 to O3 are the reference's published examples; W1 is made up and worked in
 Python's `decimal`. `tests/wip_lockup.rs` also covers stated buckets, each
 bound on buckets, days and entries, the year boundaries and every refusal.
 
+## Super projection
+
+Added on 26 November 2026, when the sources were read: ASIC Corporations
+(Superannuation Calculators and Retirement Estimates) Instrument 2022/603
+(F2022L00895, compilation no. 1 of 11 September 2024) s 4 'assumed retirement
+age' and 'present value' paragraph (b), with nil years after retirement; ITAA 1997 s 295-160 item 1; Income Tax Rates Act
+1986 s 26(1)(a) (compilation no. 66 of 1 July 2026); the ATO's 'Super
+guarantee' (last updated 17 April 2026), Table 23, a 2026-27 maximum
+contribution base of $270,830; 'Contributions caps' (last updated
+11 September 2026), $32,500 and $130,000 for 2026-27; and 'When you can
+withdraw your super' (last updated 10 July 2026) for the preservation age. The
+command mirrors the site's `assets/super-projection.mjs` (main at d876df72).
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| S1 | age 66, $50,000, salary $80,000 at 12%, return 6.1%, fees $59 and 0.11%, premiums $599 | contributed **$8,160.00**, earnings **$3,278.81**, fees **$609.56**, balance **$60,829.25**, present value **$58,658.87** |
+| S2 | S1 from age 30 to 67, wage growth 3.7% | **$2,068,319.69**, present value **$539,266.80** |
+| S3 | S2 retiring at 55 from 45 | retirement age **60**, 15 years |
+| S4 | salary $400,000 | employer **$32,499.60**, 12% of $270,830 |
+
+S1 is worked by hand in `tests/super_projection.rs`; S2 is the site's first
+case. `tests/site_mirrors.rs` runs all 13 of the site's cases and 60 seeded
+ones through the site's own engine and this command, and they agree to the
+cent.
+
+## Objection deadline
+
+Added on 26 November 2026, when the sources were read: Taxation
+Administration Act 1953 s 14ZW (compilation no. 227 of 1 October 2026);
+ITAA 1936 s 170(1) items 1, 2, 3 and 3A (compilation no. 193 of 1 October
+2026); and the Acts Interpretation Act 1901 ss 2G and 36 (compilation no. 39
+of 28 March 2026). The Act does not define a year: counting a period of
+years as s 2G(2) counts 12 months a year is a convention, the site's own,
+including a 29 February start ending on 28 February. The command mirrors the
+site's `objectionDeadline` (main at d876df72), except that where the
+assessment amended had itself been amended, subsection (1BA) counts from that
+assessment's notice: subsection (1C), which substitutes the first
+assessment's, applies only to paragraph (1B)(c). The site counts both from
+the first.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | income tax assessment, item 1, notice 18 Nov 2026 | ends Sat **18 Nov 2028**, last day Mon **20 Nov 2028** |
+| D2 | other decision, notice 1 Jan 2027 | **2 Mar 2027** (the notice day not counted) |
+| D3 | income tax assessment, item 1, notice 28 Feb 2026 | **29 Feb 2028** |
+| D4 | amended, item 1, notice 2 Oct 2028, original 20 Oct 2026 | subsection (1BA): later of **1 Dec 2028** and 20 Oct 2028 |
+| D5 | other decision, notice 30 Jan 2029 | ends Sat 31 Mar 2029, last day Mon **2 Apr 2029**, the example in s 36(2) |
+| D6 | a later amendment, notice 4 Jan 2027, assessment amended 20 Oct 2026, first assessment 1 Mar 2026 | item 1, subsection (1BA) from 20 Oct 2026: **20 Oct 2028**; item none, (1B) from 1 Mar 2026: **1 Mar 2030** |
+
+`tests/site_mirrors.rs` runs the site's 8 cases and 80 seeded ones through the
+site's engine and this command, and they agree on every date and provision.
+
+## Lessee lease
+
+Added on 26 November 2026, when the sources were read: AASB 16 compilation
+no. 8 (31 December 2023; F2024C00049, the latest on the Federal Register)
+paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A, and the IFRS 16
+Illustrative Examples on the AASB's site. The command mirrors the site's
+`assets/lease.mjs` and the present value of `assets/finance-schedule.mjs`
+(main at d876df72), except that a residual value guarantee above the
+payments' present value is measured: paras 26 and 27(c) set no such limit,
+and the site refuses it. Rounding each period's interest to the cent, the last
+period taking the rest, and sharing a period across 30 June by days are the
+site's conventions, not rules of AASB 16.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| L1 | IFRS 16 Example 13: 10 yearly payments of 50,000 in advance at 5%, initial direct costs 20,000, incentive 5,000 | liability **355,391.08**, asset **420,391.08**, interest **17,770** and **16,158** in years 1 and 2, depreciation **42,039** a year |
+| L2 | 60 monthly payments of $1,000 in arrears at 7.5%, initial direct costs $500, from 1 Jul 2026 | liability **$49,905.31**, asset **$50,405.31**, interest **$10,094.69** |
+| L3 | L2 with a residual value guarantee of $10,000 | liability **$56,786.23** |
+
+Example 13's figures are to the nearest whole unit. `tests/site_mirrors.rs`
+runs the site's 8 cases and 80 seeded ones through the site's engine and this
+command and compares the liability, asset, interest, dates, every income year
+and the first and last schedule rows; a local run compared every schedule row
+as well, and all agreed to the cent.
+
+## Thin capitalisation
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+268 (C2026C00471, in force from 1 October 2026), Subdivisions 820-A, 820-AA
+and 820-EAB, from the Federal Register of Legislation's API; the endnotes show
+Subdivision 820-AA and ss 820-427A to 820-427E added by No. 23, 2024 and not
+amended since. Treasury Laws Amendment (Making Multinationals Pay Their Fair
+Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 item 144
+applies them to income years starting on or after 1 July 2023 (Subdivision
+820-EAA from 1 July 2024) and item 146 keeps the older law for Australian
+plantation forestry entities. The Income Tax Assessment (1997 Act) Regulations
+2021, compilation 16 (F2026C00602), make no regulation for
+ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d). The s 820-37 formula
+is an image in the compilation; its text alternative reads the sum of the
+average Australian assets of the entity and its associates over the sum of
+their average total assets. The ATO's fixed ratio test page (last updated
+12 December 2025) gives the worked example T1 scales by 100,000.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| T1 | taxable income nil after earlier losses, interest deductions 5,000,000, interest income 1,000,000, depreciation 2,000,000, excess tax EBITDA amount 4,000,000 | tax EBITDA **10,000,000**, limit **3,000,000**, disallowed **1,000,000** |
+| T1 unscaled | the same in dollars, associates' debt deductions $50 | nothing disallowed (s 820-35) |
+| T2 | 2026-27, limit 4,500,000, net debt deductions 3,000,000; carried 2023-24 1,000,000, 2024-25 800,000, 2025-26 300,000 not available | special deduction **1,500,000**: 1,000,000, **500,000**, nil |
+| T3 | group ratio test, tax EBITDA 10,500,000, GR group 30,000,000 over 105,000,000 (a negative member of 5,000,000 disregarded), deductions 4,000,000 and 2,000,000 | limit **3,000,000**, disallowed **2,500,000**: **1,666,666.67** and **833,333.33** |
+| T4 | third party debt test, 3,000,000 and 500,000 (hedging) qualifying, 1,000,000 to an associate | limit **3,500,000**, disallowed **1,000,000**: 666,666.67, 222,222.22, 111,111.11 |
+
+`tests/thin_capitalisation.rs` also covers the $2 million threshold a cent
+either side, the 90% assets threshold a cent either side, a negative net debt
+deductions widening the excess, a negative tax EBITDA, every tax EBITDA line,
+the year boundaries and every refusal.
+
+## Debt forgiveness
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+268 (C2026C00471) Division 245, from the Federal Register of Legislation's
+API; the endnotes show it substituted by No. 79, 2010, s 245-145 amended by
+No. 93, 2011 and nothing since, so the rules read the same for 2020-21 to
+2026-27. The s 245-77 formula is an image whose text alternative reads the
+gross forgiven amount over the number of entities liable to pay the debt. The
+ATO's Company tax return 2022 instructions, Appendix 1 (last updated
+19 December 2023), describe the same steps and order. D1 builds on the
+example under s 245-50.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | debt of 100 settled for 60; tax loss 25, net capital loss 10, plant 3, shares 50 | net forgiven **40**: 25, 10, 3, **2** |
+| D2 | 1,000 owed by 3 debtors | each **333.33** |
+| D3 | value 10,000, offset 2,000, s 245-85 amounts 1,500, forgone 1,500 | net **5,000**; forgone above **6,500** refused |
+| D6 | 1,000 against losses 300 and 200, 100, expenditure 150, an associate's shares 500 listed before land 100 | land **100** before the shares **150** (s 245-185) |
+| D7 | 1,000 and nothing to reduce | **1,000** disregarded |
+
+`tests/debt_forgiveness.rs` also covers excluded and non-commercial debts,
+offsets at and above the value, s 245-85 amounts above the share and every
+refusal.
+
 ## Impairment test
 
 Added on 24 November 2026, when the sources were read: AASB 136 compilation
@@ -6486,6 +6650,58 @@ Python's `decimal`.
 flows and terminal values, an unmeasurable fair value, floors above carrying
 amount, losses a cent below goodwill and a cent above the carrying amount, a
 non-controlling interest without goodwill and every refusal.
+
+## Consolidation eliminations
+
+Added on 26 November 2026, when the sources were read: AASB 10 compilation
+ACOMPnov24_01-26 (periods beginning from 1 January 2026 to before 1 January
+2027) with its tables of standards and amendments, and AASB 3 compilation
+no. 5 (F2023C00389, periods beginning from 1 January 2023 to before 1 July
+2026). The AASB 10 tables list changes since July 2015 to paras
+Aus4.1, Aus4.2, AusCF1, 25 and 26, Aus33.1, B74, B99A, C1C and C1E only; none
+of paras 19 to 24 and B86 to B96 changed, so the rules applied read the same
+for every reporting period ending in 2020-21 to 2026-27. AASB 3's table of
+amendments lists no change to paras 18, 19, 32, 34, 36 or 42, and AASB
+2022-9 (F2023L00015, from 1 July 2026, not in that compilation) changes only
+AASB 3 paras Aus17.1 and AusB63.1.
+Neither Standard gives a numeric consolidation example.
+
+C1 (`tests/consolidation_eliminations.rs`, the catalogue example) is made up:
+P Ltd holds 80% of S Ltd, bought for $80,000 when S Ltd's equity was $80,000
+(share capital $60,000, retained earnings $20,000), with a non-controlling
+interest at acquisition of $20,000, so goodwill is $20,000. S Ltd's retained
+earnings are now $30,000, so the non-controlling interest takes $2,000 of the
+$10,000 since. S Ltd sold $40,000 of inventory to P Ltd, $5,000 of whose
+profit is in P Ltd's closing inventory; deferred tax at 30% is $1,500. P Ltd
+is owed $10,000 by S Ltd. Profit is $16,000 (P Ltd) plus $28,000 (S Ltd) less
+$3,500 after-tax unrealised profit, $40,500; the non-controlling share is 20%
+of ($28,000 - $3,500), $4,900. The non-controlling interests are $20,000 +
+$2,000 + $4,900 = $26,900; owners' equity is share capital $100,000, retained
+earnings $58,000 and profit $35,600, $193,600; assets are $220,500, which
+equals both. C2 is the same group wholly owned with no unrealised profit.
+
+## TOFA accruals
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+no. 268 (1 October 2026), volume 5, ss 230-100, 230-135 and their neighbours,
+checked against the ATO legal database's text of ss 230-15, 230-40, 230-45,
+230-100 to 230-190 and 230-445 to 230-460. The amending Acts their history
+notes name, as the page text shows them, are No. 136 of 2010, No. 85 of 2013
+and No. 4 of 2018; on that basis the rules applied are taken to read the same
+for arrangements started in 2020-21 to 2026-27.
+
+The ATO's Guide to the taxation of financial arrangements (Default methods)
+gives 2 examples the tests reproduce, moved into supported years. Chris Co
+lends $10,000 for 4 years and receives $20,736 at the end: 20% compounding
+gives $2,000, $2,400, $2,880 and $3,456 (T1). Iron Co buys a 3-year zero
+coupon bond for $100 with a face value of $133.10: 10% gives $10.00, $11.00
+and $12.10 (T2). T2 starts on 1 January, so each interval straddles 2 income
+years and is split by days (s 230-170(2)): 181 of 365 days of the first
+interval fall in the first income year, giving $4.96, $10.49, $11.55 and
+$6.10, worked in Python's `decimal`. T4's straight line spreads $10,736 over
+the 1,461 days from 1 July 2021 to 30 June 2025. T5 (a $950 bond paying $50 a
+year and $1,000 at 3 years) has a rate of 6.9018424518% a year, found
+independently by bisection in Python.
 
 ## Leave provisions
 

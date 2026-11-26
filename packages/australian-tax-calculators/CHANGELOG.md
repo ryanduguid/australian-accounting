@@ -17,6 +17,51 @@
   `pricing.margin_invalid`, `pricing.round_to_invalid`,
   `staff_cost.base_above_quarterly_cap`, `staff_cost.rate_invalid` and
   `staff_cost.super_basis_invalid`.
+- `consolidation-eliminations` combines a parent's and its directly held
+  subsidiaries' stated trial balances and makes the AASB 10 elimination
+  journals: the investment against equity at acquisition with goodwill and the
+  non-controlling interest (para B86(b); AASB 3 paras 19 and 32), the
+  non-controlling share since acquisition (paras 22 and B94), intra-group
+  balances and income and expenses, and unrealised profit in inventory with
+  its stated tax effect (para B86(c)), attributing profit to owners and the
+  non-controlling interests. New codes: `consolidation_eliminations.*`.
+- `tofa-accruals` says whether ITAA 1997 Division 230 reaches an arrangement
+  under s 230-455 on stated facts, and spreads a sufficiently certain overall
+  gain or loss by compounding accruals or, where stated to approximate them,
+  by straight line (s 230-135), allocated to income years (s 230-170). The
+  elective methods are refused. New codes: `tofa_accruals.*`.
+- `super-projection` projects one accumulation super account from 2026-27 to
+  a retirement age, with the retirement age and present value of ASIC
+  Instrument 2022/603 s 4, mirroring the site's super projection page. New
+  codes: `super_projection.cap_exceeded`, `input_invalid` and
+  `retirement_not_after_age`.
+- `objection-deadline` gives the last day to lodge a taxation objection under
+  TAA 1953 s 14ZW for an income tax or FBT assessment, an amended one or
+  another decision, counted under the Acts Interpretation Act 1901 ss 2G and
+  36, mirroring the site's objection deadline page. New codes:
+  `objection_deadline.fact_invalid`.
+- `lessee-lease` measures a lessee's lease under AASB 16 and sets out each
+  income year's interest, payments, depreciation and balances, mirroring the
+  site's AASB 16 lease page. New codes: `lessee_lease.cost_nil`,
+  `fact_invalid`, `remeasurement`, `rounding_negative` and
+  `useful_life_needed`.
+- `thin-capitalisation` works out the debt deductions a company that is a
+  general class investor has disallowed under ITAA 1997 Subdivision 820-AA
+  for 2023-24 to 2026-27, by the fixed ratio, group ratio or third party
+  debt test, with each deduction's share, the special deduction for earlier
+  fixed ratio test disallowed amounts and the ss 820-35, 820-37 and 820-39
+  exemptions. `derive` takes it. New codes: `thin_capitalisation.carry_forward_invalid`,
+  `carry_forward_unsettled`, `debt_deductions_invalid`,
+  `entity_class_not_built`, `fact_invalid`, `gr_group_ebitda_not_positive`,
+  `group_ratio_negative`, `input_missing`, `input_not_used` and
+  `plantation_forestry`.
+- `debt-forgiveness` applies ITAA 1997 Division 245 to one debtor's
+  commercial debts forgiven in 2020-21 to 2026-27: each debt's gross and net
+  forgiven amounts and the total's reduction of tax losses, net capital
+  losses, expenditure and cost bases in the statutory order. `derive` takes
+  it. New codes: `debt_forgiveness.attributable_income`, `debt_invalid`,
+  `forgone_exceeds_provisional`, `forgone_not_eligible`, `item_invalid` and
+  `partnership`.
 
 ## 1.4.0
 

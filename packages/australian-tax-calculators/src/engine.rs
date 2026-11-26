@@ -6535,6 +6535,14 @@ mod psi_test;
 pub use psi_test::{PSI_OPTIONAL, PsiTestArgs, psi_test};
 mod first_home_owner_grant;
 pub use first_home_owner_grant::{FHOG_OPTIONAL, FirstHomeOwnerGrantArgs, first_home_owner_grant};
+mod help_to_buy;
+pub use help_to_buy::{HelpToBuyArgs, HelpToBuyReviewArgs, help_to_buy, help_to_buy_review};
+mod home_guarantee;
+pub use home_guarantee::{HomeGuaranteeArgs, home_guarantee};
+mod age_pension;
+pub use age_pension::{AgePensionArgs, age_pension};
+mod ftb_part_a;
+pub use ftb_part_a::{FtbPartAArgs, ftb_part_a};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod pcg_2021_4;
@@ -6594,10 +6602,24 @@ mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
 pub use impairment_test::{ImpairmentTestArgs, impairment_test};
+mod consolidation_eliminations;
+pub use consolidation_eliminations::{ConsolidationEliminationsArgs, consolidation_eliminations};
+mod tofa_accruals;
+pub use tofa_accruals::{TofaAccrualsArgs, tofa_accruals};
+mod thin_capitalisation;
+pub use thin_capitalisation::{ThinCapitalisationArgs, thin_capitalisation};
+mod debt_forgiveness;
+pub use debt_forgiveness::{DebtForgivenessArgs, debt_forgiveness};
 mod leave_provisions;
 mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
 pub use wip_lockup::{WipLockupArgs, wip_lockup};
+mod super_projection;
+pub use super_projection::{SuperProjectionArgs, super_projection};
+mod objection_deadline;
+pub use objection_deadline::{ObjectionDeadlineArgs, objection_deadline};
+mod lessee_lease;
+pub use lessee_lease::{LesseeLeaseArgs, lessee_lease};
 mod long_service_leave;
 pub use long_service_leave::{LongServiceLeaveArgs, long_service_leave};
 mod foreign_income_conversion;
@@ -6635,7 +6657,7 @@ pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
 mod staff_cost;
 pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 153] = [
+const KINDS: [&str; 165] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6768,7 +6790,14 @@ const KINDS: [&str; 153] = [
     "leave_provisions",
     "deferred_revenue",
     "wip_lockup",
+    "super_projection",
+    "objection_deadline",
+    "lessee_lease",
     "impairment_test",
+    "consolidation_eliminations",
+    "tofa_accruals",
+    "thin_capitalisation",
+    "debt_forgiveness",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
@@ -6789,6 +6818,11 @@ const KINDS: [&str; 153] = [
     "hourly_rate",
     "fixed_fee",
     "staff_cost",
+    "help_to_buy",
+    "help_to_buy_review",
+    "home_guarantee",
+    "age_pension",
+    "ftb_part_a",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6858,6 +6892,9 @@ fn evidence_heading(kind: &str) -> String {
         "pcg_2021_4" => "pcg-20214".into(),
         "esic" => "early-stage-investor-tax-offset".into(),
         "wip_lockup" => "wip-lock-up".into(),
+        "help_to_buy" | "help_to_buy_review" | "home_guarantee" | "age_pension" | "ftb_part_a" => {
+            "government-schemes".into()
+        }
         _ => kind.replace('_', "-"),
     }
 }
