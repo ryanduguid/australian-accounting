@@ -135,8 +135,9 @@ fn a_defaulted_as_at_is_named_in_a_notice() {
 
 /// The defaulted as-at is the calendar date in the machine's time zone: at UTC+14
 /// and at UTC-12 it is the UTC clock's date moved by that offset, which differs
-/// from the UTC date for at least one of them at any moment.
-#[cfg(unix)]
+/// from the UTC date for at least one of them at any moment. `TZ` sets the zone
+/// on every platform, Windows included, as a POSIX rule or an IANA name; a `TZ`
+/// that names no zone gives UTC's date.
 #[test]
 fn a_defaulted_as_at_is_the_date_in_the_local_time_zone() {
     let dir = scratch("as-at-zone");
@@ -145,7 +146,13 @@ fn a_defaulted_as_at_is_the_date_in_the_local_time_zone() {
         "contributions.csv",
         "E1,2026-08-06,600.00,2026-08-07,2026-08-10,no,no,,no\n",
     );
-    for (tz, hours) in [("XYZ-14", 14), ("XYZ+12", -12)] {
+    for (tz, hours) in [
+        ("XYZ-14", 14),
+        ("XYZ+12", -12),
+        ("Pacific/Kiritimati", 14),
+        ("Etc/GMT+12", -12),
+        ("Not/A_Zone", 0),
+    ] {
         let zone = jiff::tz::TimeZone::fixed(jiff::tz::offset(hours));
         let today = || {
             jiff::Timestamp::now()
