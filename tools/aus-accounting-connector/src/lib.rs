@@ -10,6 +10,8 @@ use base64::Engine;
 use serde_json::{Value, json};
 
 pub const PATH: &str = "/mcp";
+/// Served instead of `PATH` only when the test Worker's `MCP_PATH` var names it.
+pub const TEST_PATH: &str = "/mcp-test";
 pub const BODY_LIMIT: usize = 16 * 1024;
 pub const RELEASE: &str = concat!("aus-accounting-connector/v", env!("CARGO_PKG_VERSION"));
 pub const COMMIT: &str = env!("CONNECTOR_COMMIT");
@@ -138,9 +140,18 @@ pub trait Headers {
     fn get(&self, name: &str) -> Option<String>;
 }
 
+/// The one path served: `TEST_PATH` when `var` is exactly it, else `PATH`.
+pub fn served_path(var: Option<&str>) -> &'static str {
+    if var == Some(TEST_PATH) {
+        TEST_PATH
+    } else {
+        PATH
+    }
+}
+
 /// The checks made before the body is read. `Err` is the whole reply.
-pub fn admit(method: &str, path: &str, headers: &impl Headers) -> Result<(), Reply> {
-    if path != PATH {
+pub fn admit(method: &str, path: &str, served: &str, headers: &impl Headers) -> Result<(), Reply> {
+    if path != served {
         return Err(Reply::new(404, None));
     }
     let origin = headers.get("origin");
@@ -398,6 +409,25 @@ mod tests {
         ]));
         let reply = respond(body.to_string().as_bytes(), &headers, today);
         serde_json::from_str(&reply.body.unwrap()).unwrap()
+    }
+
+    #[test]
+    fn only_the_served_path_is_admitted_and_only_the_test_var_moves_it() {
+        assert_eq!(served_path(None), PATH);
+        assert_eq!(served_path(Some(TEST_PATH)), TEST_PATH);
+        for other in ["", "/", "/mcp", "/mcp-test/", "/mcp-other", "/MCP-TEST"] {
+            assert_eq!(served_path(Some(other)), PATH, "{other}");
+        }
+        let none = Map(HashMap::new());
+        let status = |path, served| admit("POST", path, served, &none).err().map(|r| r.status);
+        assert_eq!(status(PATH, PATH), None);
+        assert_eq!(status(TEST_PATH, TEST_PATH), None);
+        for path in ["/mcp-test", "/mcp-test/", "/mcp-testx", "/mcp/"] {
+            assert_eq!(status(path, PATH), Some(404), "{path}");
+        }
+        for path in ["/mcp", "/mcp-test/", "/mcp-testx", "/MCP-TEST"] {
+            assert_eq!(status(path, TEST_PATH), Some(404), "{path}");
+        }
     }
 
     #[test]

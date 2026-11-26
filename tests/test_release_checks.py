@@ -65,6 +65,17 @@ REQUIRED = {
         ".github/workflows/codeql.yml: codeql-gates"
     ],
 }
+CONNECTOR = "release-aus-accounting-connector.yml"
+CONNECTOR_CHECKS = [
+    ".github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner",
+    ".github/workflows/aus-accounting-connector.yml: core",
+    ".github/workflows/aus-accounting-connector.yml: dependency-audit (apps/aus-accounting-mcp/core)",
+    ".github/workflows/aus-accounting-connector.yml: dependency-audit (tools/aus-accounting-connector)",
+    ".github/workflows/aus-accounting-connector.yml: worker",
+    ".github/workflows/boundaries.yml: boundaries",
+    ".github/workflows/codeql.yml: Analyze Rust",
+    ".github/workflows/codeql.yml: codeql-gates",
+]
 
 
 class ReleaseChecksTests(unittest.TestCase):
@@ -73,7 +84,7 @@ class ReleaseChecksTests(unittest.TestCase):
         callers = sorted(
             path.name for path in workflows.glob("release*") if path.suffix in {".yml", ".yaml"}
         )
-        self.assertEqual(callers, sorted(REQUIRED))
+        self.assertEqual(callers, sorted([*REQUIRED, CONNECTOR]))
         # The pin is the callers' to set; a re-pin edits the callers and nothing here.
         pins: set[str] = set()
         for filename, expected in REQUIRED.items():
@@ -103,6 +114,27 @@ class ReleaseChecksTests(unittest.TestCase):
                     self.assertTrue((ROOT / path).is_file(), path)
                     self.assertFalse(name.endswith(" / gates"), name)
         self.assertEqual(len(pins), 1, f"release callers pin different policies: {pins}")
+        connector = (workflows / CONNECTOR).read_text(encoding="utf-8")
+        self.assertIn(f"  POLICY_SHA: {pins.pop()}\n", connector)
+
+    def test_the_connector_release_requires_its_checks_and_holds_no_secret(self) -> None:
+        # No reusable release-policy workflow builds a Worker bundle, so this caller
+        # runs the policy's gates itself. It never deploys, so it needs no secret.
+        text = (ROOT / ".github" / "workflows" / CONNECTOR).read_text(encoding="utf-8")
+        match = re.search(r"^          REQUIRED_CHECKS: \|\n((?:            [^\n]*\n)+)", text, re.MULTILINE)
+        assert match is not None
+        actual = [line.strip() for line in match.group(1).splitlines()]
+        self.assertEqual(actual, CONNECTOR_CHECKS)
+        for selector in actual:
+            self.assertTrue((ROOT / selector.split(": ", 1)[0]).is_file(), selector)
+        self.assertNotIn("secrets.", text)
+        self.assertNotIn("wrangler deploy", text)
+        for line in re.findall(r"(?m)^\s*(?:- )?uses: (\S+)", text):
+            self.assertRegex(line, r"@[0-9a-f]{40}$")
+        directory = ROOT / "tools" / "aus-accounting-connector"
+        version = tomllib.loads((directory / "Cargo.toml").read_text(encoding="utf-8"))["package"]["version"]
+        notes = (directory / "RELEASE_NOTES.md").read_text(encoding="utf-8")
+        self.assertTrue(notes.startswith(f"# v{version}\n"))
 
     def test_the_mcp_release_runs_its_demo_against_the_pypi_pins(self) -> None:
         # The workspace runs the checked-out engines, so only an install outside

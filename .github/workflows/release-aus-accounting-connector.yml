@@ -1,0 +1,210 @@
+name: Release aus-accounting-connector
+
+# Worker bundle release for tools/aus-accounting-connector. The namespaced tag
+# aus-accounting-connector/vX.Y.Z must name main's head, the Cargo.toml version
+# and the RELEASE_NOTES.md header. Main's required checks must have passed for
+# that commit. The run builds the bundle reproducibly, attests the tarball and
+# publishes an immutable GitHub release. The tarball holds the worker-build
+# output with wrangler.deploy.toml (production) and wrangler.test.toml (the
+# stage 2 test Worker). Nothing here deploys: there is no Cloudflare token or
+# secret, and deploying needs Ryan's own `wrangler login`. The release-policy
+# reusable workflows build Python, binaries, skills or source archives, not a
+# Worker bundle, so this caller reuses only that policy's gates at its pin.
+
+on:
+  push:
+    tags: ["aus-accounting-connector/v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-aus-accounting-connector-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  POLICY_SHA: ca5492bd09693be9e1fd47d980e2740ef8daf023
+
+jobs:
+  checks:
+    name: require main's checks for the tagged commit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      actions: read # Read main's runs for the release commit's required checks.
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/aus-accounting-connector
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ryanduguid/release-policy
+          ref: ${{ env.POLICY_SHA }}
+          path: policy
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14"
+      - name: Require the tag to name the crate version and release notes
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^version = "\(.*\)"$/\1/p' tools/aus-accounting-connector/Cargo.toml | head -n 1)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$GITHUB_REF_NAME" = "aus-accounting-connector/v$version"
+          test "$(sed -n 1p tools/aus-accounting-connector/RELEASE_NOTES.md)" = "# v$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Require the release commit to be main's head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          . policy/scripts/gates.sh
+          gate_main_matches "$GITHUB_SHA" "$GITHUB_REPOSITORY"
+      - name: Require the mandatory checks for this exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUIRED_CHECKS: |
+            .github/workflows/no-ai-attribution.yml: Attribution policy / Attribution policy runner
+            .github/workflows/aus-accounting-connector.yml: core
+            .github/workflows/aus-accounting-connector.yml: dependency-audit (apps/aus-accounting-mcp/core)
+            .github/workflows/aus-accounting-connector.yml: dependency-audit (tools/aus-accounting-connector)
+            .github/workflows/aus-accounting-connector.yml: worker
+            .github/workflows/boundaries.yml: boundaries
+            .github/workflows/codeql.yml: Analyze Rust
+            .github/workflows/codeql.yml: codeql-gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$REQUIRED_CHECKS" \
+            | python policy/scripts/required_checks.py \
+                --repository "$GITHUB_REPOSITORY" \
+                --commit "$GITHUB_SHA" \
+                --wait-seconds 600
+
+  build:
+    name: build and test the bundle
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+        working-directory: tools/aus-accounting-connector
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      CARGO_BUILD_JOBS: '2'
+      AUS_ACCOUNTING_CONNECTOR_COMMIT: ${{ github.sha }}
+      ASSET: aus-accounting-connector-${{ needs.checks.outputs.version }}.tar.gz
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26.11.1
+      - run: rustup toolchain install 1.99 --profile minimal --target wasm32-unknown-unknown
+      - run: cargo +1.99 install worker-build --version 0.9.0 --locked
+      - run: npm ci --ignore-scripts
+      # The commit time fixes the build date, so serve_until and the bundle
+      # do not depend on the day the tag was pushed.
+      - name: Build the bundle and its serve_until-expired twin
+        run: |
+          set -euo pipefail
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          AUS_ACCOUNTING_CONNECTOR_SERVE_UNTIL=2000-01-01 worker-build --release --out-dir build-expired
+          worker-build --release
+      - run: npm test
+      - name: Pack the bundle with both deploy configurations
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pack" "$RUNNER_TEMP/dist"
+          cp -R build "$RUNNER_TEMP/pack/"
+          cp wrangler.toml "$RUNNER_TEMP/pack/wrangler.deploy.toml"
+          cp wrangler.test.toml "$RUNNER_TEMP/pack/wrangler.test.toml"
+          tar --sort=name --owner=0 --group=0 --numeric-owner \
+            --mtime="@$(git log -1 --format=%ct)" -C "$RUNNER_TEMP/pack" -cf - . \
+            | gzip -n > "$RUNNER_TEMP/dist/$ASSET"
+          cd "$RUNNER_TEMP/dist"
+          sha256sum -- "$ASSET" > SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: aus-accounting-connector-release
+          path: ${{ runner.temp }}/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: attest and publish the immutable release
+    needs: [checks, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      attestations: write # Record provenance attestations for release assets.
+      contents: write # Create the draft release, upload assets and publish it.
+      id-token: write # Obtain the OIDC identity required to sign attestations.
+    env:
+      ASSET: aus-accounting-connector-${{ needs.checks.outputs.version }}.tar.gz
+      VERSION: ${{ needs.checks.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/aus-accounting-connector
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ryanduguid/release-policy
+          ref: ${{ env.POLICY_SHA }}
+          path: policy
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: aus-accounting-connector-release
+          path: dist
+      - run: cd dist && sha256sum --check --strict SHA256SUMS
+      - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            dist/${{ env.ASSET }}
+            dist/SHA256SUMS
+      - name: Verify the attestations before publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in "dist/$ASSET" dist/SHA256SUMS; do
+            gh attestation verify "$file" --repo "$GITHUB_REPOSITORY" \
+              --source-digest "$GITHUB_SHA" --source-ref "$GITHUB_REF" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release-aus-accounting-connector.yml"
+          done
+      - name: Re-check main and that no release exists for the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          . policy/scripts/gates.sh
+          gate_main_contains "$GITHUB_SHA" "$GITHUB_REPOSITORY" tools/aus-accounting-connector
+          gate_no_existing_release "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"
+      # The repository has immutable releases on, so publishing the draft
+      # freezes its tag and assets.
+      - name: Create, fill and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tail -n +2 tools/aus-accounting-connector/RELEASE_NOTES.md > notes.md
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --notes-file notes.md "dist/$ASSET" dist/SHA256SUMS
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false
+          test "$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$GITHUB_REF_NAME" --jq .immutable)" = true

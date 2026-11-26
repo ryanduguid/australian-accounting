@@ -63,7 +63,8 @@ the target feature metadata.
 ## HTTP contract
 
 Only `POST /mcp` reaches the handler; a query string is ignored and any other
-path gets 404. The handler speaks MCP 2026-07-28 (`server/discover`,
+path gets 404. The test Worker's `MCP_PATH` var, set to exactly `/mcp-test`,
+moves that one path to `/mcp-test`; any other value leaves it at `/mcp`. The handler speaks MCP 2026-07-28 (`server/discover`,
 `tools/list`, `tools/call`) and, without sessions, the `initialize` handshake of
 2025-11-25 and 2025-06-18. It never sends `Mcp-Session-Id` and ignores one it
 receives.
@@ -91,7 +92,17 @@ commit.
 
 ## Deployment status
 
-Undeployed and unreleased: no workflow tags, attests, publishes or deploys it.
+Undeployed and unreleased. A tag `aus-accounting-connector/vX.Y.Z` on main's
+head runs
+[`release-aus-accounting-connector.yml`](../../.github/workflows/release-aus-accounting-connector.yml):
+once main's checks have passed for that commit, it builds the bundle from the
+commit's date, runs `npm test`, attests
+`aus-accounting-connector-X.Y.Z.tar.gz` and publishes it in an immutable
+release. The tarball holds `build/worker/`, `wrangler.deploy.toml` (this
+`wrangler.toml`) and [`wrangler.test.toml`](wrangler.test.toml): the test
+Worker `aus-accounting-connector-test` on `duguid.com.au/mcp-test*`, with the
+same bundle and limits, its own limiter namespace and no storage. No workflow
+deploys it or holds a Cloudflare token.
 Deploying needs a separate approval and Ryan's own Cloudflare sign-in;
 [SECURITY.md](SECURITY.md) lists what must hold first.
 [`live-check.mjs`](live-check.mjs) checks a running endpoint with the
