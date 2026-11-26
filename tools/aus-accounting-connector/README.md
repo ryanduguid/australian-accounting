@@ -102,7 +102,10 @@ release. The tarball holds `build/worker/`, `wrangler.deploy.toml` (this
 `wrangler.toml`) and [`wrangler.test.toml`](wrangler.test.toml): the test
 Worker `aus-accounting-connector-test` on `duguid.com.au/mcp-test*`, with the
 same bundle and limits, its own limiter namespace and no storage. No workflow
-deploys it or holds a Cloudflare token.
+deploys it or holds a Cloudflare token. Deploy from the unpacked tarball with
+`npx wrangler@4.162.0 deploy --config wrangler.test.toml` (or
+`wrangler.deploy.toml`), without `--no-bundle`: that flag uploads only
+`shim.mjs`, 0.16 KiB, and leaves out the WebAssembly.
 Deploying needs a separate approval and Ryan's own Cloudflare sign-in;
 [SECURITY.md](SECURITY.md) lists what must hold first.
 [`live-check.mjs`](live-check.mjs) checks a running endpoint with the

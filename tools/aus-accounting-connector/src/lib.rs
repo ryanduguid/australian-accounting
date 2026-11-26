@@ -418,8 +418,11 @@ mod tests {
         for other in ["", "/", "/mcp", "/mcp-test/", "/mcp-other", "/MCP-TEST"] {
             assert_eq!(served_path(Some(other)), PATH, "{other}");
         }
-        let none = Map(HashMap::new());
-        let status = |path, served| admit("POST", path, served, &none).err().map(|r| r.status);
+        let json = Map(HashMap::from([(
+            "content-type",
+            "application/json".to_owned(),
+        )]));
+        let status = |path, served| admit("POST", path, served, &json).err().map(|r| r.status);
         assert_eq!(status(PATH, PATH), None);
         assert_eq!(status(TEST_PATH, TEST_PATH), None);
         for path in ["/mcp-test", "/mcp-test/", "/mcp-testx", "/mcp/"] {
