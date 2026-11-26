@@ -1339,6 +1339,78 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "help-to-buy",
+        &[
+            ("area", Raw),
+            ("property", Raw),
+            ("purchase_price", Dec),
+            ("agreed_percentage", Dec),
+            ("deposit", Dec),
+            ("lender_valuation", Dec),
+            ("applicants", Raw),
+            ("taxable_income", Dec),
+            ("application_date", Raw),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "help-to-buy-review",
+        &[
+            ("applicants", Raw),
+            ("taxable_income", Dec),
+            ("previous_taxable_income", Dec),
+            ("share_percentage", Dec),
+            ("property_value", Dec),
+            ("capacity_to_repay", Raw),
+            ("repayment_triggers_lmi", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "home-guarantee",
+        &[
+            ("stream", Raw),
+            ("area", Raw),
+            ("issue_date", Raw),
+            ("property_value", Dec),
+            ("loan_amount", Dec),
+            ("borrowers", Raw),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "age-pension",
+        &[
+            ("date", Raw),
+            ("relationship", Raw),
+            ("homeowner", Raw),
+            ("ordinary_income", Dec),
+            ("financial_assets", Dec),
+            ("assets", Dec),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "ftb-part-a",
+        &[
+            ("children_under_13", Raw),
+            ("children_13_plus", Raw),
+            ("adjusted_taxable_income", Dec),
+            ("income_support", Raw),
+            ("energy_supplement", Raw),
+            ("facts", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "psi-test",
         &[
             ("earner", Raw),
@@ -1875,7 +1947,7 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 102] = [
+const DERIVED: [&str; 104] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1978,6 +2050,8 @@ const DERIVED: [&str; 102] = [
     "hourly-rate",
     "fixed-fee",
     "staff-cost",
+    "age-pension",
+    "ftb-part-a",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -2449,6 +2523,11 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "prepayments"
             | "non-commercial-losses"
             | "first-home-owner-grant"
+            | "help-to-buy"
+            | "help-to-buy-review"
+            | "home-guarantee"
+            | "age-pension"
+            | "ftb-part-a"
             | "psi-test"
             | "payg-instalment"
             | "pcg-2021-4"
@@ -4151,6 +4230,63 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
+        "help-to-buy" => engine::help_to_buy(&engine::HelpToBuyArgs {
+            area: &a[0],
+            property: &a[1],
+            purchase_price: &a[2],
+            agreed_percentage: &a[3],
+            deposit: &a[4],
+            lender_valuation: &a[5],
+            applicants: &a[6],
+            taxable_income: &a[7],
+            application_date: &a[8],
+            facts: &a[9],
+            year: &a[10],
+            scope_confirmed: &a[11],
+        }),
+        "help-to-buy-review" => engine::help_to_buy_review(&engine::HelpToBuyReviewArgs {
+            applicants: &a[0],
+            taxable_income: &a[1],
+            previous_taxable_income: &a[2],
+            share_percentage: &a[3],
+            property_value: &a[4],
+            capacity_to_repay: &a[5],
+            repayment_triggers_lmi: &a[6],
+            year: &a[7],
+            scope_confirmed: &a[8],
+        }),
+        "home-guarantee" => engine::home_guarantee(&engine::HomeGuaranteeArgs {
+            stream: &a[0],
+            area: &a[1],
+            issue_date: &a[2],
+            property_value: &a[3],
+            loan_amount: &a[4],
+            borrowers: &a[5],
+            facts: &a[6],
+            year: &a[7],
+            scope_confirmed: &a[8],
+        }),
+        "age-pension" => engine::age_pension(&engine::AgePensionArgs {
+            date: &a[0],
+            relationship: &a[1],
+            homeowner: &a[2],
+            ordinary_income: &a[3],
+            financial_assets: &a[4],
+            assets: &a[5],
+            facts: &a[6],
+            year: &a[7],
+            scope_confirmed: &a[8],
+        }),
+        "ftb-part-a" => engine::ftb_part_a(&engine::FtbPartAArgs {
+            children_under_13: &a[0],
+            children_13_plus: &a[1],
+            adjusted_taxable_income: &a[2],
+            income_support: &a[3],
+            energy_supplement: &a[4],
+            facts: &a[5],
+            year: &a[6],
+            scope_confirmed: &a[7],
+        }),
         "psi-test" => {
             // Optional: an agent's commission and the principal's payments.
             let [commission, principal] = engine::PSI_OPTIONAL.map(|key| optional(v, key, Dec));

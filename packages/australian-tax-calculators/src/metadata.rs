@@ -1362,6 +1362,15 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         // Contracts from 1 July 2025 to 22 November 2026, the day the
         // site page's rules were read.
         "first_home_owner_grant" => vec!["2025-26", "2026-27"],
+        // Help to Buy: the Program Directions from 14 June 2025 and the
+        // 2026-27 thresholds; applications to 26 November 2026, the day read.
+        "help_to_buy" | "help_to_buy_review" => vec!["2025-26", "2026-27"],
+        // Guarantees issued from 1 October 2025 to 26 November 2026.
+        "home_guarantee" => vec!["2025-26", "2026-27"],
+        // Days from 20 September 2025 to 19 March 2027.
+        "age_pension" => vec!["2025-26", "2026-27"],
+        // The 2025-26 and 2026-27 indexed amounts.
+        "ftb_part_a" => vec!["2025-26", "2026-27"],
         "psi_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2061,6 +2070,22 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "first_home_owner_grant" => (
             "2026-11-23",
             "The First Home Owner Grant Acts of Victoria (version 053), Queensland (22 October 2026), Western Australia (22 October 2026), South Australia (4.12.2025), Tasmania (9 October 2026), the Northern Territory (1 July 2026) and the ACT (republication 37); Revenue NSW, SRO Victoria, QRO, DTF WA, RevenueSA, SRO Tasmania, NT Government and ACT Revenue Office pages; the site's grant page and its 26 cases (checked 23 November 2026)",
+        ),
+        "help_to_buy" | "help_to_buy_review" => (
+            "2026-11-26",
+            "Help to Buy Act 2024 compilation 1 (21 February 2025), s 24; Help to Buy Program Directions 2025 (F2025L00682) as made, in force from 14 June 2025 with no compilation or amending instrument on the register, ss 7 to 9, 16, 17, 19 to 21, 25, 34, 36, 37 and 43; Housing Australia's 'Help to Buy income and threshold updates 2026-27' page",
+        ),
+        "home_guarantee" => (
+            "2026-11-26",
+            "Housing Australia Investment Mandate Direction 2018, compilations 20 (from 7 February 2026, the text in force from 1 October 2025 to 30 June 2026) and 22 (18 July 2026), ss 4A, 28ZF, 29C, 29D, 29F, 44 and 46; the Investment Mandate Amendment (2026 Measures No. 2) Direction 2026 (F2026L00542) as made",
+        ),
+        "age_pension" => (
+            "2026-11-26",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064 Modules A, E and G; DSS Social Security Guide version 1.345 (3 November 2026), 4.2.1.10, 4.2.3, 4.4.1.10, 4.10.3, 5.1.8.10, 5.1.9.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's age pension income and assets test pages (cut-off points from 20 September 2026)",
+        ),
+        "ftb_part_a" => (
+            "2026-11-26",
+            "A New Tax System (Family Assistance) Act 1999 compilation 124 (1 July 2026), Schedule 1 clauses 1 to 4, 7, 25, 25D, 26, 28, 38A, 38AA, 38AF and 38L to 38N; DSS rates list for 1 July 2026; Services Australia's 'A guide to Australian Government payments' for 20 September to 31 December 2026 (FTB Part A rates and income limits)",
         ),
         "psi_test" => (
             "2026-11-22",
@@ -6799,6 +6824,53 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("total_value", "AUD, whole dollars from 1 to 1,000,000,000, the value tested against the cap unless cap_value is given or, in vic, contract_price. For a home bought, the price, which is also the consideration that limits the grant. For a home built, the land and the building contract with its variations; there the consideration is the building contract alone (Qld schedule, WA s 14AB, s 13 in Vic, SA, Tas, ACT and NT; the NSW Act was not read), which contract_price gives or building_contract states is at least the grant, so the land never limits the grant"),
             ("facts", "object of booleans, each your statement, not tested: person (every applicant is a person aged 18 or over), citizen (an applicant is an Australian citizen or permanent resident), first_home (no applicant or spouse is excluded by the prior grant and ownership rules) and residence (the residence requirement will be met), all 4 required; building_contract (a home built: the contract price without the land is at least the grant); nt_no_replacement (nt: the contract replaces none signed before 1 October 2024); tas_conditions (tas: the completion and replacement conditions of s 18L or 18M)"),
         ],
+        "help_to_buy" => vec![
+            ("area", "nsw_capital_regional, nsw_other, vic_capital_regional, vic_other, qld_capital_regional, qld_other, wa_capital, wa_other, sa_capital, sa_other, tas_capital, tas_other, act, nt, jervis_bay_norfolk or christmas_cocos: the Program Directions s 7 area the property is in, which you establish (a capital city is the Greater Capital City Statistical Area; the regional centres are the SA4 areas s 7(2) lists)"),
+            ("property", "new or existing: a new home or an existing dwelling (s 16(1))"),
+            ("purchase_price", "AUD, whole dollars from 1 to 1,000,000,000: the purchase price, for a home built the land price plus the construction contract price (s 5)"),
+            ("agreed_percentage", "percentage above 0 and at most 100, at most 2 decimal places: the percentage of the purchase price Housing Australia agreed to contribute (s 16(3))"),
+            ("deposit", "AUD, whole dollars from 0: the applicants' deposit"),
+            ("lender_valuation", "AUD, whole dollars from 1: the participating lender's valuation of the property for settlement (ss 16(2) and 25(3))"),
+            ("applicants", "single, single_parent or joint (s 19)"),
+            ("taxable_income", "AUD, whole dollars from 0: taxable income on the most recent notice of assessment, the 2 applicants' combined for joint (s 19)"),
+            ("application_date", "date, YYYY-MM-DD, within year and no later than 2026-11-26: the day of application, whose financial year sets the threshold"),
+            ("facts", "object of booleans, each your statement, not tested: citizen, financial_capacity, principal_residence, no_other_assistance, no_property_interest, costs_covered, sole_owners and participating_jurisdiction (ss 17 and 20; Act ss 10 and 15), every one required true"),
+        ],
+        "help_to_buy_review" => vec![
+            ("applicants", "single, single_parent or joint (s 34)"),
+            ("taxable_income", "AUD, whole dollars: taxable income for the most recent income year with a notice of assessment, combined for joint participants (s 34)"),
+            ("previous_taxable_income", "AUD, whole dollars: taxable income for the income year before it (s 34)"),
+            ("share_percentage", "percentage above 0 and at most 100, at most 2 decimal places: the Commonwealth share percentage now (s 25)"),
+            ("property_value", "AUD above 0: the property's value Housing Australia accepts now (s 58)"),
+            ("capacity_to_repay", "boolean: the participating lender assessed the participant able to repay 5% of the value, or the whole share where it is 5% or less (s 37(2))"),
+            ("repayment_triggers_lmi", "boolean: repaying the required amount would make the participant bear the cost of lenders' mortgage insurance (s 37(7) and (10))"),
+        ],
+        "home_guarantee" => vec![
+            ("stream", "first_home or family_home: the First Home Guarantee (s 29I) or the Family Home Guarantee (s 29IB)"),
+            ("area", "nsw_capital_regional, nsw_other, vic_capital_regional, vic_other, qld_capital_regional, qld_other, wa_capital, wa_other, sa_capital, sa_other, tas_capital, tas_other, act, nt (before 1 July 2026), nt_capital or nt_other (from 1 July 2026), jervis_bay_norfolk or christmas_cocos: the s 29F(1) area the property is in, which you establish (s 4A)"),
+            ("issue_date", "date, YYYY-MM-DD, within year, from 2025-10-01 to 2026-11-26: the day Housing Australia approved the guarantee's issue (s 44(2)(a))"),
+            ("property_value", "AUD above 0: the value of the residential property (s 29C(2)(g))"),
+            ("loan_amount", "AUD: the loan amount, giving the loan-to-value ratio (s 29C(2)(i))"),
+            ("borrowers", "integer from 1: the borrowers under the loan agreement"),
+            ("facts", "object of booleans, each your statement, not tested: for first_home no_property_10_years and adult_citizen_or_resident; for family_home single_with_dependant, property_interest_allowed, no_relevant_interest and adult_citizen_or_resident; for both eligible_lender, owner_occupied, principal_and_interest and term_30_years; every one required true"),
+        ],
+        "age_pension" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2025-09-20 to 2027-03-19: the day the fortnightly rate is for"),
+            ("relationship", "single or couple: a couple both receiving age pension"),
+            ("homeowner", "boolean: the person or partner is a homeowner (s 11)"),
+            ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
+            ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
+            ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
+            ("facts", "object of booleans, each your statement, not tested: in_australia, not_blind, not_transitional and no_rent_assistance, and for a couple partner_pensioner; every one required true"),
+        ],
+        "ftb_part_a" => vec![
+            ("children_under_13", "integer from 0 to 20: FTB children under 13 all year"),
+            ("children_13_plus", "integer from 0 to 20: FTB children aged 13 or over all year (to 15, or 16 to 19 in secondary study)"),
+            ("adjusted_taxable_income", "AUD: the family's adjusted taxable income for the year, a couple's combined (Schedule 3)"),
+            ("income_support", "boolean: the individual or partner receives a social security pension or benefit, a service pension, income support supplement or a veteran payment (clause 38L)"),
+            ("energy_supplement", "boolean: the family keeps the energy supplement, entitled to FTB on 19 September 2016 without a break since (clauses 6A and 25C)"),
+            ("facts", "object of booleans, each your statement, not tested: whole_year, no_maintenance, no_rent_assistance, no_newborn_or_multiple_birth and requirements_met; every one required true"),
+        ],
         "psi_test" => vec![
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
@@ -8493,6 +8565,83 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "facts",
                 Json(r#"{"person": true, "citizen": true, "first_home": true, "residence": true}"#),
+            ),
+        ],
+        // Fabricated: a single applicant buying an existing home in Melbourne.
+        "help_to_buy" => vec![
+            ("year", Text("2026-27")),
+            ("area", Text("vic_capital_regional")),
+            ("property", Text("existing")),
+            ("purchase_price", Text("700000")),
+            ("agreed_percentage", Text("30")),
+            ("deposit", Text("14000")),
+            ("lender_valuation", Text("700000")),
+            ("applicants", Text("single")),
+            ("taxable_income", Text("95000")),
+            ("application_date", Text("2026-08-03")),
+            (
+                "facts",
+                Json(
+                    r#"{"citizen": true, "financial_capacity": true, "principal_residence": true, "no_other_assistance": true, "no_property_interest": true, "costs_covered": true, "sole_owners": true, "participating_jurisdiction": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single participant over the threshold in both years.
+        "help_to_buy_review" => vec![
+            ("year", Text("2026-27")),
+            ("applicants", Text("single")),
+            ("taxable_income", Text("110000")),
+            ("previous_taxable_income", Text("104000")),
+            ("share_percentage", Text("30")),
+            ("property_value", Text("800000.00")),
+            ("capacity_to_repay", Flag(true)),
+            ("repayment_triggers_lmi", Flag(false)),
+        ],
+        // Fabricated: a first home buyer in Brisbane with a 5% deposit.
+        "home_guarantee" => vec![
+            ("year", Text("2026-27")),
+            ("stream", Text("first_home")),
+            ("area", Text("qld_capital_regional")),
+            ("issue_date", Text("2026-08-03")),
+            ("property_value", Text("800000.00")),
+            ("loan_amount", Text("760000.00")),
+            ("borrowers", Whole(2)),
+            (
+                "facts",
+                Json(
+                    r#"{"no_property_10_years": true, "adult_citizen_or_resident": true, "eligible_lender": true, "owner_occupied": true, "principal_and_interest": true, "term_30_years": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single homeowner with savings and a part pension.
+        "age_pension" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("relationship", Text("single")),
+            ("homeowner", Flag(true)),
+            ("ordinary_income", Text("100.00")),
+            ("financial_assets", Text("150000.00")),
+            ("assets", Text("400000.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a couple with 2 children under 13.
+        "ftb_part_a" => vec![
+            ("year", Text("2026-27")),
+            ("children_under_13", Whole(2)),
+            ("children_13_plus", Whole(0)),
+            ("adjusted_taxable_income", Text("95000.00")),
+            ("income_support", Flag(false)),
+            ("energy_supplement", Flag(false)),
+            (
+                "facts",
+                Json(
+                    r#"{"whole_year": true, "no_maintenance": true, "no_rent_assistance": true, "no_newborn_or_multiple_birth": true, "requirements_met": true}"#,
+                ),
             ),
         ],
         "psi_test" => vec![
