@@ -27,7 +27,7 @@ use crate::decimal::{Decimal, Rounding};
 
 const KIND: &str = "jobseeker_payment";
 
-const FACTS: [(&str, &str); 5] = [
+const FACTS: [(&str, &str); 6] = [
     (
         "qualified",
         "the person qualifies for jobseeker payment, is aged 22 or over and is paid under Benefit Rate Calculator B, not at the rate for a single principal carer exempt from mutual obligation requirements (point 1068-B5)",
@@ -47,6 +47,10 @@ const FACTS: [(&str, &str); 5] = [
     (
         "no_adjustments",
         "no pension supplement (Module BA), special employment advance or advance payment deduction, or remote area allowance (step 7 of point 1068-A1) applies",
+    ),
+    (
+        "energy_fortnightly",
+        "the person resides and is in Australia (or has been temporarily absent for no more than 6 weeks), is under pension age and is not paid quarterly energy supplement, so Module C adds energy supplement to each fortnight (point 1068-C1 and C3)",
     ),
 ];
 
@@ -206,6 +210,8 @@ impl Rates {
         vec![
             rate("maximum_basic_rate", &self.mbr),
             rate("energy_supplement_per_year", &self.energy),
+            rate("partnered_maximum_basic_rate", &self.partner_mbr),
+            rate("partnered_energy_per_year", &self.partner_energy),
             rate("pharmaceutical_allowance", &self.pharmaceutical),
             rate("ordinary_income_free_area", "150"),
         ]
@@ -271,7 +277,7 @@ fn working(
             steps.push(step(
                 "ordinary_income",
                 AUTH[1],
-                "(own_income + partner_income) / 2",
+                "(ordinary_income + partner_income) / 2",
                 &[own, partner_income],
                 income.clone(),
             ));

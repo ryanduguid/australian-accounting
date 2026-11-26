@@ -6170,7 +6170,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "jobseeker_payment.facts_not_stated",
-        "A fact the worksheet needs was not stated true: qualified at Calculator B, no working credit, no rent assistance, assets and waiting periods clear, no adjustments.",
+        "A fact the worksheet needs was not stated true: qualified at Calculator B, no working credit, no rent assistance, assets and waiting periods clear, no adjustments, energy supplement paid fortnightly.",
     ),
     (
         "jobseeker_payment.partner_inconsistent",

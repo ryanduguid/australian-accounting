@@ -1378,7 +1378,8 @@ fn cases() -> Vec<(&'static str, Value)> {
             json!({"date": "2026-10-01", "situation": situation, "pharmaceutical_allowance": true,
                    "ordinary_income": own, "partner": partner, "partner_income": theirs,
                    "facts": {"qualified": true, "no_working_credit": true, "no_rent_assistance": true,
-                             "assets_within_limit": true, "no_adjustments": true},
+                             "assets_within_limit": true, "no_adjustments": true,
+                             "energy_fortnightly": true},
                    "year": "2026-27", "scope_confirmed": true}),
         ));
     }

@@ -4724,8 +4724,10 @@ pharmaceutical allowance, indexed on 1 January, is refused from 1 January 2027.
 The working credit is out of scope and left out, as are rent assistance (see
 `rent-assistance`), the assets test, waiting periods, compensation, the exempt
 principal carer rate and a partner on a benefit or under 22. `facts` must state
-`qualified`, `no_working_credit`, `no_rent_assistance`, `assets_within_limit`
-and `no_adjustments`. `derive` explains each step. See
+`qualified`, `no_working_credit`, `no_rent_assistance`, `assets_within_limit`,
+`no_adjustments` and `energy_fortnightly` (not paid quarterly energy
+supplement, point 1068-C1). `partnered` is Table B item 7: an illness separated
+couple or a partner in gaol is not worked. `derive` explains each step. See
 [calculation evidence](docs/calculation-evidence.md#government-schemes).
 
 ## Salary against dividends

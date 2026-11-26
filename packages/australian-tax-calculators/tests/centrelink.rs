@@ -239,7 +239,8 @@ fn jsp(date: &str, situation: &str, income: &str) -> Value {
     json!({"date": date, "situation": situation, "pharmaceutical_allowance": false,
            "ordinary_income": income, "partner": "none", "partner_income": "0.00",
            "facts": {"qualified": true, "no_working_credit": true, "no_rent_assistance": true,
-                     "assets_within_limit": true, "no_adjustments": true},
+                     "assets_within_limit": true, "no_adjustments": true,
+                     "energy_fortnightly": true},
            "year": "2026-27", "scope_confirmed": true})
 }
 
@@ -420,6 +421,14 @@ fn jobseeker_payment_refuses_what_it_cannot_work() {
     facts["no_working_credit"] = json!(false);
     assert_eq!(
         refused(json!({"facts": facts})),
+        "jobseeker_payment.facts_not_stated"
+    );
+    // Point 1068-C1: Module C does not apply where quarterly energy
+    // supplement is payable, so that case is refused, not paid $8.80 more.
+    let mut quarterly = base["facts"].clone();
+    quarterly["energy_fortnightly"] = json!(false);
+    assert_eq!(
+        refused(json!({"facts": quarterly})),
         "jobseeker_payment.facts_not_stated"
     );
     assert_eq!(

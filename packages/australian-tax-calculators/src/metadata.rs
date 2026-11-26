@@ -7139,12 +7139,12 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         ],
         "jobseeker_payment" => vec![
             ("date", "date, YYYY-MM-DD, within year, from 2026-07-01 to 2027-03-19: the day the fortnightly rate is for"),
-            ("situation", "single, single_with_child, single_principal_carer, single_55_after_9_months, single_partial_capacity (0 to 14 hours) or partnered: the Table B family situation (point 1068-B1); a single principal carer's income reduction is 40% (point 1068-G17)"),
+            ("situation", "single, single_with_child, single_principal_carer, single_55_after_9_months, single_partial_capacity (0 to 14 hours) or partnered (Table B item 7; a member of an illness separated couple or with a partner in gaol, items 9 and 11, is not worked): the Table B family situation (point 1068-B1); a single principal carer's income reduction is 40% (point 1068-G17)"),
             ("pharmaceutical_allowance", "boolean: the person qualifies for pharmaceutical allowance (Module D, Part 2.22); refused for days from 1 January 2027, after its indexation"),
             ("ordinary_income", "AUD per fortnight: the person's ordinary income (s 8)"),
             ("partner", "none (single), not_receiving (a partner aged 22 or over receiving no social security payment) or pension (a partner receiving a social security pension, service pension, income support supplement or veteran payment)"),
             ("partner_income", "AUD per fortnight: the partner's ordinary income; 0.00 for a single person"),
-            ("facts", "object of booleans, each your statement, not tested: qualified, no_working_credit, no_rent_assistance, assets_within_limit and no_adjustments; every one required true"),
+            ("facts", "object of booleans, each your statement, not tested: qualified, no_working_credit, no_rent_assistance, assets_within_limit, no_adjustments and energy_fortnightly; every one required true"),
         ],
         "salary_dividend" => vec![
             ("profit", "AUD: the company's profit before the owner's salary, its super guarantee and company tax, all paid out"),
@@ -9074,7 +9074,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "facts",
                 Json(
-                    r#"{"qualified": true, "no_working_credit": true, "no_rent_assistance": true, "assets_within_limit": true, "no_adjustments": true}"#,
+                    r#"{"qualified": true, "no_working_credit": true, "no_rent_assistance": true, "assets_within_limit": true, "no_adjustments": true, "energy_fortnightly": true}"#,
                 ),
             ),
         ],
