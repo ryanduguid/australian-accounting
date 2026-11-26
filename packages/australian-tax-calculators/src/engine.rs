@@ -5196,7 +5196,10 @@ pub use transfer_duty::{TransferDutyArgs, transfer_duty};
 mod source_quotes;
 pub(crate) use source_quotes::attach as attach_source_quotes;
 mod payroll_tax;
-pub use payroll_tax::{PayrollTaxArgs, PayrollTaxGroupArgs, payroll_tax, payroll_tax_group};
+pub use payroll_tax::{
+    PayrollTaxArgs, PayrollTaxGroupArgs, PayrollTaxMonthlyArgs, payroll_tax, payroll_tax_group,
+    payroll_tax_monthly,
+};
 mod land_tax;
 pub use land_tax::{LandTaxArgs, land_tax};
 mod workers_compensation_premium;
@@ -6696,7 +6699,7 @@ pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
 mod staff_cost;
 pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 172] = [
+const KINDS: [&str; 173] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6722,6 +6725,7 @@ const KINDS: [&str; 172] = [
     "super_withholding",
     "payroll_tax",
     "payroll_tax_group",
+    "payroll_tax_monthly",
     "land_tax",
     "workers_compensation_premium",
     "motor_vehicle_duty",

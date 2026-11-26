@@ -472,3 +472,197 @@ fn refusals_name_the_input_that_is_wrong() {
         "input.flag_invalid"
     );
 }
+
+/// The annual reconciliation, worked by hand from each Act's annual
+/// adjustment, read on 26 November 2026: the year's liability less what the
+/// periodic returns paid or made payable.
+fn reconciled(place: &str, wages: &str, australian: &str, periodic: &[(&str, &str)]) -> Value {
+    let mut v = input(place, wages, australian);
+    for (key, amount) in periodic {
+        v[*key] = json!(amount);
+    }
+    run(&v)
+}
+
+const SETTLED: [&str; 4] = [
+    "total",
+    "periodic_tax",
+    "adjustment_payable",
+    "adjustment_refund",
+];
+
+/// Payroll Tax Act 2007 (Vic) s 83(1) and (2): $184,300.00 for the year
+/// against $180,000 and $190,000 paid on the returns.
+#[test]
+fn victoria_reconciles_the_year_against_the_returns() {
+    let short = reconciled(
+        "vic",
+        "4200000.00",
+        "4200000.00",
+        &[("periodic_tax", "180000.00"), ("other_refunds", "0.00")],
+    );
+    assert_eq!(
+        amounts(&short, SETTLED),
+        ["184300.00", "180000.00", "4300.00", "0.00"]
+    );
+    let over = reconciled(
+        "vic",
+        "4200000.00",
+        "4200000.00",
+        &[("periodic_tax", "190000.00"), ("other_refunds", "0.00")],
+    );
+    assert_eq!(
+        amounts(&over, SETTLED),
+        ["184300.00", "190000.00", "0.00", "5700.00"]
+    );
+    // s 83(4): a refund already made for the year reduces this one.
+    let refunded = reconciled(
+        "vic",
+        "4200000.00",
+        "4200000.00",
+        &[("periodic_tax", "190000.00"), ("other_refunds", "5000.00")],
+    );
+    assert_eq!(refunded["amounts"]["adjustment_refund"], "700.00");
+    let spent = reconciled(
+        "vic",
+        "4200000.00",
+        "4200000.00",
+        &[("periodic_tax", "190000.00"), ("other_refunds", "6000.00")],
+    );
+    assert_eq!(spent["amounts"]["adjustment_refund"], "0.00");
+}
+
+/// Payroll Tax Act 2011 (ACT) s 83(3): a difference payable of less than
+/// $20 is determined to be $0; $20 or more is payable.
+#[test]
+fn act_reconciliation_drops_a_shortfall_under_20_dollars() {
+    let small = reconciled(
+        "act",
+        "3000000.00",
+        "3000000.00",
+        &[("periodic_tax", "84355.01"), ("other_refunds", "0.00")],
+    );
+    assert_eq!(small["amounts"]["adjustment_payable"], "0.00");
+    let due = reconciled(
+        "act",
+        "3000000.00",
+        "3000000.00",
+        &[("periodic_tax", "84355.00"), ("other_refunds", "0.00")],
+    );
+    assert_eq!(due["amounts"]["adjustment_payable"], "20.00");
+    // s 83(5): $100 over, less $40 already refunded.
+    let back = reconciled(
+        "act",
+        "3000000.00",
+        "3000000.00",
+        &[("periodic_tax", "84475.00"), ("other_refunds", "40.00")],
+    );
+    assert_eq!(back["amounts"]["adjustment_refund"], "60.00");
+}
+
+/// Payroll Tax Act 1971 (Qld) ss 30, 31, 43J and 43K: payroll tax and levy
+/// are settled apart; Pay-roll Tax Assessment Act 2002 (WA) s 16 refunds an
+/// excess; with no wages, all that was paid is refunded.
+#[test]
+fn queensland_settles_tax_and_levy_apart_and_others_refund() {
+    let periodic = [("periodic_tax", "20000.00"), ("periodic_levy", "10.00")];
+    let r = reconciled("qld", "1356789.00", "1789776.00", &periodic);
+    let keys = [
+        "adjustment_payable",
+        "adjustment_refund",
+        "annual_levy_amount",
+        "levy_adjustment_payable",
+        "levy_adjustment_refund",
+    ];
+    assert_eq!(
+        amounts(&r, keys),
+        ["155.64", "0.00", "0.00", "0.00", "10.00"]
+    );
+    let wa = reconciled(
+        "wa",
+        "1104000.00",
+        "1104000.00",
+        &[("periodic_tax", "7000.00")],
+    );
+    assert_eq!(wa["amounts"]["adjustment_refund"], "400.00");
+    let none = reconciled(
+        "sa",
+        "0.00",
+        "0.00",
+        &[("periodic_tax", "100.00"), ("other_refunds", "0.00")],
+    );
+    assert_eq!(none["amounts"]["adjustment_refund"], "100.00");
+}
+
+/// Tasmania and the Northern Territory settle under their own s 83: with
+/// nothing paid, the year's total is payable; with it paid, nothing is.
+#[test]
+fn tasmania_and_the_northern_territory_reconcile_under_s_83() {
+    for place in ["tas", "nt"] {
+        let none = reconciled(
+            place,
+            "3000000.00",
+            "3000000.00",
+            &[("periodic_tax", "0.00"), ("other_refunds", "0.00")],
+        );
+        let total = none["amounts"]["total"].as_str().unwrap().to_string();
+        assert_ne!(total, "0.00");
+        assert_eq!(none["amounts"]["adjustment_payable"], total.as_str());
+        let paid = reconciled(
+            place,
+            "3000000.00",
+            "3000000.00",
+            &[("periodic_tax", total.as_str()), ("other_refunds", "0.00")],
+        );
+        let settled = ["adjustment_payable", "adjustment_refund"];
+        assert_eq!(amounts(&paid, settled), ["0.00", "0.00"]);
+    }
+}
+
+#[test]
+fn reconciliation_refusals() {
+    let with = |place: &str, periodic: &[(&str, &str)]| {
+        let mut v = input(place, "1500000.00", "1500000.00");
+        for (key, amount) in periodic {
+            v[*key] = json!(amount);
+        }
+        code(&v)
+    };
+    assert_eq!(
+        with("nsw", &[("periodic_tax", "1.00")]),
+        "payroll_tax.reconciliation_unread"
+    );
+    assert_eq!(
+        with("vic", &[("periodic_levy", "1.00")]),
+        "input.field_unknown"
+    );
+    assert_eq!(
+        with(
+            "vic",
+            &[("periodic_tax", "1.00"), ("periodic_levy", "1.00")]
+        ),
+        "input.field_unknown"
+    );
+    assert_eq!(
+        with("qld", &[("periodic_tax", "1.00")]),
+        "input.missing_field"
+    );
+    assert_eq!(
+        with("wa", &[("periodic_tax", "-1.00")]),
+        "input.amount_invalid"
+    );
+    // other_refunds: required where s 83 reduces the refund, refused
+    // elsewhere and without periodic_tax.
+    assert_eq!(
+        with("tas", &[("periodic_tax", "1.00")]),
+        "input.missing_field"
+    );
+    assert_eq!(
+        with("wa", &[("periodic_tax", "1.00"), ("other_refunds", "0.00")]),
+        "input.field_unknown"
+    );
+    assert_eq!(
+        with("nt", &[("other_refunds", "0.00")]),
+        "input.field_unknown"
+    );
+}

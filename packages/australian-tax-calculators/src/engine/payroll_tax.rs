@@ -23,8 +23,11 @@ use super::{
 use crate::decimal::Decimal;
 
 mod group;
+mod monthly;
+mod reconcile;
 mod surcharges;
 pub use group::{PayrollTaxGroupArgs, payroll_tax_group};
+pub use monthly::{PayrollTaxMonthlyArgs, payroll_tax_monthly};
 use surcharges::{queensland, victoria};
 
 const KIND: &str = "payroll_tax";
@@ -37,6 +40,9 @@ pub struct PayrollTaxArgs<'a> {
     pub regional_employer: Option<&'a Arg>,
     pub group_member: &'a Arg,
     pub employed_all_year: &'a Arg,
+    pub periodic_tax: Option<&'a Arg>,
+    pub periodic_levy: Option<&'a Arg>,
+    pub other_refunds: Option<&'a Arg>,
     pub year: &'a Arg,
     pub scope_confirmed: &'a Arg,
 }
@@ -368,7 +374,7 @@ const TOTAL: &str =
 
 /// The jurisdiction's working on `w`, with `total` added as the last step.
 fn worked(place: &str, w: &Wages, regional: bool) -> Result<Worked> {
-    let mut worked = match place {
+    let worked = match place {
         "nsw" => new_south_wales(w),
         "vic" => victoria(w, regional),
         "qld" => queensland(w),
@@ -378,6 +384,12 @@ fn worked(place: &str, w: &Wages, regional: bool) -> Result<Worked> {
         "act" => australian_capital_territory(w),
         _ => northern_territory(w),
     }?;
+    totalled(worked, TOTAL)
+}
+
+/// `worked` with a `total` step (cited by `authority`) that adds its charges,
+/// each to the cent.
+fn totalled(mut worked: Worked, authority: &'static str) -> Result<Worked> {
     let charged = &worked.steps[worked.steps.len() - worked.charges..];
     let names: Vec<String> = charged
         .iter()
@@ -388,7 +400,7 @@ fn worked(place: &str, w: &Wages, regional: bool) -> Result<Worked> {
     for s in &charged[1..] {
         sum = sum.add(&cents(s.value.clone())?)?;
     }
-    let total = step("total", TOTAL, &names.join(" + "), &operands, sum);
+    let total = step("total", authority, &names.join(" + "), &operands, sum);
     worked.steps.push(total);
     Ok(worked)
 }
@@ -425,21 +437,39 @@ pub fn payroll_tax(args: &PayrollTaxArgs) -> Result<Value> {
             "australian_wages, the taxable and interstate wages together, cannot be less than taxable_wages.",
         );
     }
-    if !wages.australian.is_zero() {
-        let Worked { steps, rates, .. } =
-            precise(|| worked(place, &wages, regional == Some(true)))?;
-        return derived_result(KIND, &year, steps, rates);
+    let periodic = reconcile::periodic(args, place)?;
+    let Worked {
+        mut steps, rates, ..
+    } = year_worked(place, &wages, regional == Some(true))?;
+    if let Some(periodic) = periodic {
+        let settled = precise(|| reconcile::steps(place, &steps, &periodic))?;
+        steps.extend(settled);
     }
-    // No wages: the steps keep their names, worked on $1 of Australian wages
-    // so that nothing divides by nil, and each is nil.
+    derived_result(KIND, &year, steps, rates)
+}
+
+/// The year's working; with no wages the steps keep their names, worked on
+/// $1 of Australian wages so that nothing divides by nil, and each is nil.
+fn year_worked(place: &str, wages: &Wages, regional: bool) -> Result<Worked> {
+    if !wages.australian.is_zero() {
+        return precise(|| worked(place, wages, regional));
+    }
     let one = Wages {
         taxable: int(0),
         australian: int(1),
     };
-    let Worked { steps, rates, .. } = precise(|| worked(place, &one, regional == Some(true)))?;
+    let Worked {
+        steps,
+        rates,
+        charges,
+    } = precise(|| worked(place, &one, regional))?;
     let steps = steps
         .into_iter()
         .map(|s| step(s.id, NO_WAGES, "0", &[], int(0)))
         .collect();
-    derived_result(KIND, &year, steps, rates)
+    Ok(Worked {
+        steps,
+        charges,
+        rates,
+    })
 }

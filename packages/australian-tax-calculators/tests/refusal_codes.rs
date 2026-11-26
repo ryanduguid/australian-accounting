@@ -67,6 +67,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/gst_corrections",
         "engine/payroll_tax",
         "engine/payroll_tax/group",
+        "engine/payroll_tax/monthly",
         "engine/tourist_refund",
         "engine/thin_capitalisation",
         "engine/non_resident_withholding",
@@ -196,7 +197,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // etp-tax-free-component, fbt-meal-entertainment-register,
     // fbt-minor-benefit-check, gst-margin-scheme, wine-equalisation-tax,
     // luxury-car-tax, borrowing-expenses-schedule, payroll-tax,
-    // payroll-tax-group,
+    // payroll-tax-group, payroll-tax-monthly,
     // fuel-tax-credits, alcohol-excise, dasp-tax, aml-cdd-review, ppsr-timing, cgt-parcels,
     // fbt-ev-exemption-check, fhss, franking-account, sb-cgt-concessions,
     // depreciation-low-value-pool, depreciation-small-business-pool,
@@ -230,7 +231,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
     // gst-food-retailer-sam, salary-dividend, sole-trader-set-aside,
     // salary-packaging and novated-lease.
-    assert_eq!(checked, 158);
+    assert_eq!(checked, 159);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

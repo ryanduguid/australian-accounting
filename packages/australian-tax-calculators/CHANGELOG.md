@@ -91,6 +91,20 @@
   Schedule 7 Part I as in force in those years (compilations 54, 57 and 62).
   The Python 0.2.0 corpus's 2 refused 2023-24 inputs now give $8,286.75 and
   $147,336.10, and its other refusals list the added years.
+- `payroll-tax-monthly` works out one employer's payroll tax, and any
+  surcharge or levy, on one monthly return in 2026-27 in Victoria,
+  Queensland, Western Australia, South Australia, Tasmania, the ACT and the
+  Northern Territory, from each Act's monthly provisions and the year's
+  estimated wages. New codes: `payroll_tax_monthly.act_unread`,
+  `deduction_above_cap`, `estimate_invalid`, `grouped`, `interstate_unworked`,
+  `jurisdiction_invalid`, `last_period`, `month_invalid`,
+  `nomination_above_wages`, `part_year`, `rate_unset`, `rate_unsettled`,
+  `regional_discount` and `surcharge_negative`. `derive` takes it.
+- `payroll-tax` takes `periodic_tax` (and in Queensland `periodic_levy`,
+  elsewhere but Western Australia `other_refunds`) and reconciles the year
+  against the periodic returns: what remains payable and what is refunded,
+  under each Act's annual adjustment. New code:
+  `payroll_tax.reconciliation_unread` (New South Wales).
 
 ## 1.4.0
 
