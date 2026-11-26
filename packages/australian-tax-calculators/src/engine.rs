@@ -5188,7 +5188,10 @@ mod luxury_car_tax;
 mod stated;
 pub use luxury_car_tax::{LctArgs, luxury_car_tax};
 mod cgt_parcels;
-pub use cgt_parcels::{CgtCostBaseArgs, CgtParcelsArgs, cgt_cost_base_adjustments, cgt_parcels};
+pub use cgt_parcels::{
+    CgtCostBaseArgs, CgtParcelsArgs, CgtRolloverArgs, cgt_cost_base_adjustments, cgt_parcels,
+    cgt_rollover,
+};
 
 /// One pay that includes an additional payment, as Schedule 5 (NAT 3348) reads it.
 struct AdditionalPay {
@@ -6607,6 +6610,8 @@ mod tourist_refund;
 pub use tourist_refund::{TouristRefundArgs, tourist_refund};
 mod deferred_tax;
 pub use deferred_tax::{DeferredTaxArgs, deferred_tax};
+mod book_to_tax;
+pub use book_to_tax::{BookToTaxArgs, book_to_tax};
 mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
@@ -6666,7 +6671,7 @@ pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
 mod staff_cost;
 pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 169] = [
+const KINDS: [&str; 171] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6798,7 +6803,9 @@ const KINDS: [&str; 169] = [
     "gst_credit_time_limit",
     "tourist_refund",
     "deferred_tax",
+    "book_to_tax",
     "cgt_cost_base_adjustments",
+    "cgt_rollover",
     "payg_instalment",
     "leave_provisions",
     "deferred_revenue",
@@ -6908,6 +6915,7 @@ fn evidence_heading(kind: &str) -> String {
         "help_to_buy" | "help_to_buy_review" | "home_guarantee" | "age_pension" | "ftb_part_a" => {
             "government-schemes".into()
         }
+        "cgt_rollover" => "cgt-roll-overs".into(),
         _ => kind.replace('_', "-"),
     }
 }

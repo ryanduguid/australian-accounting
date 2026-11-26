@@ -22,6 +22,20 @@ pub(super) enum Change {
         new_security: String,
         rollover: bool,
     },
+    /// Shares or trust units exchanged for another entity's under a scrip for
+    /// scrip roll-over (Subdivision 124-M).
+    ScripForScrip(Scrip),
+}
+
+/// A scrip for scrip exchange's terms, per original share or unit.
+pub(super) struct Scrip {
+    pub(super) new_security: String,
+    /// Replacement shares or units for each original one.
+    pub(super) ratio: Decimal,
+    /// The market value of one replacement share or unit.
+    pub(super) value: Decimal,
+    /// Ineligible proceeds (s 124-790), such as cash, for each original one.
+    pub(super) cash: Decimal,
 }
 
 pub(super) struct Event {
@@ -40,12 +54,14 @@ pub(super) struct Event {
 }
 
 impl Change {
-    /// Whether it happens to shares in a company, not units in a trust.
-    pub(super) fn company(&self) -> bool {
-        matches!(
-            self,
-            Change::ReturnOfCapital { .. } | Change::Demerger { .. }
-        )
+    /// Whether it happens to shares in a company (`Some(true)`) or units in
+    /// a trust (`Some(false)`); a scrip for scrip exchange can be either.
+    pub(super) fn company(&self) -> Option<bool> {
+        match self {
+            Change::ReturnOfCapital { .. } | Change::Demerger { .. } => Some(true),
+            Change::ScripForScrip(_) => None,
+            _ => Some(false),
+        }
     }
 }
 
@@ -122,6 +138,37 @@ fn demerger(f: &mut Fields, what: &str) -> Result<((i64, Option<i64>), Change)> 
     Ok(((day, None), change))
 }
 
+/// A scrip for scrip exchange, for which the holder chose the roll-over.
+fn scrip(f: &mut Fields, what: &str) -> Result<((i64, Option<i64>), Change)> {
+    let day = f.date("date")?;
+    let new_security = f.text("new_security")?;
+    let ratio = f.units("new_units_per_unit")?;
+    let value = f.units("market_value_per_new_unit")?;
+    let cash = match f.get("cash_per_unit") {
+        None => int(0),
+        Some(_) => f.units("cash_per_unit")?,
+    };
+    let chosen = match f.required("rollover")? {
+        Value::Bool(chosen) => *chosen,
+        _ => return invalid(what, "rollover", "a JSON boolean"),
+    };
+    if !chosen {
+        return refuse(
+            "cgt_cost_base.scrip_without_rollover",
+            format!(
+                "{what}: without the roll-over the exchange is a disposal of the original shares or units (CGT event A1 or C2) and an acquisition of the new ones at market value: work the disposal in cgt-parcels and add the new parcel."
+            ),
+        );
+    }
+    let terms = Scrip {
+        new_security,
+        ratio,
+        value,
+        cash,
+    };
+    Ok(((day, None), Change::ScripForScrip(terms)))
+}
+
 pub(super) fn read_event(n: usize, fields: &Map<String, Value>) -> Result<Event> {
     let what = format!("event {n}");
     let mut f = Fields::new(what.clone(), fields);
@@ -146,11 +193,12 @@ pub(super) fn read_event(n: usize, fields: &Map<String, Value>) -> Result<Event>
             (when, Change::Amit { amount, excess })
         }
         "demerger" => demerger(&mut f, &what)?,
+        "scrip_for_scrip" => scrip(&mut f, &what)?,
         _ => {
             return invalid(
                 &what,
                 "event",
-                "return_of_capital, tax_deferred, amit_excess, amit_shortfall or demerger",
+                "return_of_capital, tax_deferred, amit_excess, amit_shortfall, demerger or scrip_for_scrip",
             );
         }
     };

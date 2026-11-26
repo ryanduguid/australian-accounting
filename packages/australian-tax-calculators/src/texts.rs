@@ -48,7 +48,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "cgt_cost_base_adjustments",
-        "Parcels of shares in a company or units in a trust held on capital account by an Australian resident individual, trust, complying superannuation entity or company other than a life insurance company (whose gains on complying superannuation assets can be discount capital gains, ss 115-10(d) and 115-100(b)(ii)), each acquired from 20 September 1985, and the events that adjust their cost base and reduced cost base from 1 July 2018 to the end of the income year (2018-19 to 2026-27): a company's non-assessable payment (CGT event G1, ITAA 1997 s 104-135), a non-AMIT trust's non-assessable part for a year (CGT event E4, ss 104-70 and 104-71), an AMIT cost base net amount (ss 104-107A to 104-107C, CGT event E10) and the Wesfarmers demerger of Coles (2018) and Woolworths demerger of Endeavour (2021) under their class rulings (Subdivision 125-B). The operator establishes each parcel's cost base just before the first event and the units held when each event happened (a demerger takes the parcels acquired by its record date), the non-assessable part after s 104-71 and any tax-free amount from the trust's statement, the AMIT cost base net amount from the AMMA statement, the parcels a year's amount was paid for when one was acquired in that year, the date of any other CGT event to the units in that year after the payment (an E4 or AMIT amount then happens just before it, ss 104-70(3)(b) and 104-107B(4)(b)), and the roll-over choice. A parcel takes no E4 amount and an AMIT amount in the same year, nor 2 AMIT amounts (ss 104-70(1A) and 104-107C). A parcel acquired at or before 21 September 1999 is worked without indexation (refused for a company); pre-CGT parcels, other demergers, partial roll-over (s 125-80(8)), foreign residents, revenue assets and trading stock (ss 104-107G and 104-107H), liquidator payments (s 104-135(6)), s 104-70(8) and (9), employee share scheme interests and the disposals themselves (cgt-parcels) are outside it. From 2027-28 Act No. 49 of 2026 changes how capital gains are worked out, so 2027-28 is refused.",
+        "Parcels of shares in a company or units in a trust held on capital account by an Australian resident individual, trust, complying superannuation entity or company other than a life insurance company (whose gains on complying superannuation assets can be discount capital gains, ss 115-10(d) and 115-100(b)(ii)), each acquired from 20 September 1985, and the events that adjust their cost base and reduced cost base from 1 July 2018 to the end of the income year (2018-19 to 2026-27): a company's non-assessable payment (CGT event G1, ITAA 1997 s 104-135), a non-AMIT trust's non-assessable part for a year (CGT event E4, ss 104-70 and 104-71), an AMIT cost base net amount (ss 104-107A to 104-107C, CGT event E10) and the Wesfarmers demerger of Coles (2018) and Woolworths demerger of Endeavour (2021) under their class rulings (Subdivision 125-B), and a scrip for scrip exchange for which the roll-over is chosen (ss 124-780 and 124-781): each parcel's cost base and reduced cost base carry to its replacement shares or units (s 124-785), less the part attributable to cash or other ineligible proceeds in proportion to their share of the capital proceeds, which makes a capital gain (s 124-790); the replacement parcel keeps the original's acquisition date for the discount (s 115-30(1) item 2). A parcel whose capital proceeds are not above its cost base would make no gain apart from the roll-over and is refused (s 124-780(3)(b)), as is an exchange without the roll-over. The operator establishes each parcel's cost base just before the first event and the units held when each event happened (a demerger takes the parcels acquired by its record date), the non-assessable part after s 104-71 and any tax-free amount from the trust's statement, the AMIT cost base net amount from the AMMA statement, the parcels a year's amount was paid for when one was acquired in that year, the date of any other CGT event to the units in that year after the payment (an E4 or AMIT amount then happens just before it, ss 104-70(3)(b) and 104-107B(4)(b)), and the roll-over choice. A parcel takes no E4 amount and an AMIT amount in the same year, nor 2 AMIT amounts (ss 104-70(1A) and 104-107C). A parcel acquired at or before 21 September 1999 is worked without indexation (refused for a company); pre-CGT parcels, other demergers, partial roll-over (s 125-80(8)), foreign residents, revenue assets and trading stock (ss 104-107G and 104-107H), liquidator payments (s 104-135(6)), s 104-70(8) and (9), employee share scheme interests and the disposals themselves (cgt-parcels) are outside it. From 2027-28 Act No. 49 of 2026 changes how capital gains are worked out, so 2027-28 is refused.",
     ),
     (
         "main_residence",
@@ -549,6 +549,14 @@ pub const SCOPES: &[(&str, &str)] = &[
     (
         "gst_bad_debt",
         "One bad debt adjustment under GST Act Division 21 in a year from 2020-21 to 2026-27, for the supplier (ss 21-5 and 21-10) or the recipient (ss 21-15 and 21-20): 1/11 of the amount written off, overdue for 12 months or more, recovered or paid, reduced for a partly taxable supply (s 136-5) or a partly creditable acquisition (s 136-10(1)). The operator establishes the amount, that it is overdue (s 195-1), the earlier adjustment for a recovery, and the proportion or extents. Excludes supplies and acquisitions taxable or creditable at less than 1/11 of the price (Subdivision 136-B, such as the margin scheme), reduced credit acquisitions (s 136-10(2)), credits worked out under Division 131 (s 136-10(3)), a change of accounting basis (Division 159) and the tax period the adjustment is attributable to.",
+    ),
+    (
+        "book_to_tax",
+        "One Australian resident company's accounting profit or loss before income tax for an income year from 2020-21 to 2026-27 reconciled to its taxable income (ITAA 1997 s 4-15), as the company tax return reconciles item 6 label T to item 7 label T. The preparer states each reconciling line as permanent (it never reverses) or temporary (it reverses in another year, AASB 112 paras 5 and 17) and as an addition to or a subtraction from accounting profit; the worksheet adds them to give assessable income less deductions other than tax losses. Where that is positive, earlier tax losses are deducted first from any net exempt income (s 36-17(3)(a)), and then the amount the company chooses from the excess (s 36-17(2) and (3)(b), item 7 label R); where it is negative, the excess reduces net exempt income, earlier losses are deducted from what is left (s 36-17(4)) and the excess less net exempt income is the year's tax loss (s 36-10). It gives taxable income, the tax losses used and carried forward, the net change in taxable temporary differences the temporary lines imply, and the inputs the deferred-tax worksheet takes (accounting_profit, non_deductible_expenses, non_assessable_income, taxable_income and the opening and closing unused tax losses). The preparer establishes the lines, their classification and amounts, net exempt income (s 36-20) and the losses the company can deduct after the continuity and business continuity tests (Divisions 165 and 166); none is inferred. Excludes the limits of s 26-55 on deductions that cannot make a tax loss, net capital losses, the debt forgiveness rules of Division 245, foreign losses and tax offsets. Refuses a loss carry back choice (Division 160), excess franking offsets (ss 36-17(5) and 36-55), a company that fails the continuity and business continuity tests during the year (Subdivision 165-B) and a member of a consolidated group (Part 3-90).",
+    ),
+    (
+        "cgt_rollover",
+        "The consequences of a CGT roll-over that the caller states was chosen and is available, for a CGT event in an income year from 2020-21 to 2026-27. Marriage or relationship breakdown (ITAA 1997 Subdivision 126-A): for a disposal case (CGT event A1 or B1) by an individual (s 126-5) or a company or trustee (s 126-15), the transferee's first element of cost base and reduced cost base is the transferor's cost base and reduced cost base when the transferee acquired the asset (s 126-5(5)), a collectable or personal use asset stays one (s 126-5(7)) and, for the discount, the transferee is treated as acquiring it when the transferor did (s 115-30(1) item 1); for a creation case (D1, D2, D3 or F1) the first element is the transferor's expenditure (s 126-5(8)); any capital gain or loss of the transferor is disregarded (s 126-5(4)) and shown for stated capital proceeds. It refuses trading stock (s 126-5(3)(a)), B1 where title does not pass (s 126-5(3)(b)), an agreement-based ground without the conditions of s 126-25 and a pre-CGT asset (s 126-5(6)). Small business roll-over (Subdivision 152-E): the part of the gain, after the discount and the other concessions, the caller chooses to disregard (ss 152-410 and 152-415), the gain left, the replacement asset period (s 104-190(1A)) and, for stated replacement assets and fourth element expenditure, CGT event J5 (none that qualifies, s 104-197) or J6 (the amount incurred on those that qualify below the gain disregarded, s 104-198) at the period's end; neither gain is a discount capital gain (s 115-25(3)). Wholly-owned company (Subdivision 122-A): for the disposal of one asset (s 122-40) or all the assets of a business (s 122-50) by an individual or trustee, every asset acquired from 20 September 1985, the first element of the shares' cost base and reduced cost base in total and per share, after the liabilities the company undertakes (refused where they exceed the s 122-35 limit), and each non-precluded asset's cost base and reduced cost base in the company's hands (s 122-70) with the gains and losses disregarded for stated capital proceeds. It refuses a precluded asset on its own, a collectable or personal use asset (s 122-25(2)) and a pre-CGT asset (ss 122-40(3), 122-55 and 122-60). The caller establishes eligibility, the choice, the cost bases (indexed or not), capital proceeds and market values; none is inferred. Excludes Division 114 indexation, the main residence rules of ss 118-178 and 118-180, the s 126-15(3) and (4) adjustments to interests in a company or trust transferor, CGT event J2, an extended or modified replacement asset period (s 104-190(1) and (2)), Division 122 creation cases and Subdivision 122-B. A scrip for scrip roll-over is a scrip_for_scrip event of cgt-cost-base-adjustments.",
     ),
     (
         "deferred_tax",
@@ -1213,6 +1221,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "gst_bad_debt",
         "https://www.legislation.gov.au/C2004A00446/2026-01-01/2026-01-01/text/original/epub/OEBPS/document_1/document_1.html",
+    ),
+    (
+        "book_to_tax",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-17",
+    ),
+    (
+        "cgt_rollover",
+        "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/126-5",
     ),
     (
         "deferred_tax",
@@ -1880,6 +1896,9 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-107B",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/125-80",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/125-85",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/124-780",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/124-785",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/124-790",
             "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-30",
             "https://www.ato.gov.au/law/view/document?DocID=CLR/CR201859/NAT/ATO/00001",
             "https://www.ato.gov.au/law/view/document?DocID=CLR/CR202150/NAT/ATO/00001",
@@ -2847,6 +2866,38 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "book_to_tax",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/4-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-10",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/36-55",
+            "https://standards.aasb.gov.au/aasb-112-sep-2023",
+            "https://www.ato.gov.au/forms-and-instructions/company-tax-return-2025-instructions/worksheet-2-other-reconciliation-items",
+        ],
+    ),
+    (
+        "cgt_rollover",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/126-15",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/126-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-30",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-34",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/115-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/152-410",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/152-415",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-190",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-197",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/104-198",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-20",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-25",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-35",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-40",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-50",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/122-70",
+        ],
+    ),
+    (
         "deferred_tax",
         &[
             "https://www.aasb.gov.au/admin/file/content105/c9/AASB112_08-15_COMPmar20_07-21.pdf",
@@ -3515,6 +3566,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "book_to_tax",
+        &[
+            "The classification of each line as permanent or temporary, net exempt income and the tax losses the company can deduct are the preparer's; the worksheet applies them and does not decide them.",
+        ],
+    ),
+    (
+        "cgt_rollover",
+        &[
+            "Whether the roll-over is available and chosen, and the cost bases, capital proceeds and market values, are the caller's statements; the worksheet works out what the chosen roll-over carries and does not test eligibility beyond the exclusions it names.",
+        ],
+    ),
+    (
         "cgt_cost_base_adjustments",
         &[
             "The amounts adjust the parcels' cost bases only: give discount_capital_gains and other_capital_gains to cgt-parcels as its other_discount_capital_gains and other_capital_gains for the same year, and its parcels as cgt-parcels' parcels.",
@@ -3794,6 +3857,7 @@ pub const UNPUBLISHED_2027_28: &[(&str, &str)] = &[
     ("main_residence", CGT_2027_28),
     ("cgt_parcels", CGT_2027_28),
     ("cgt_cost_base_adjustments", CGT_2027_28),
+    ("cgt_rollover", CGT_2027_28),
     ("balancing_adjustment", CGT_2027_28),
     (
         "rental_property",
@@ -4172,6 +4236,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "years is not a non-empty list of objects.",
     ),
     (
+        "book_to_tax.adjustment_invalid",
+        "adjustments is not a list of 0 to 500 objects, each a label of 1 to 200 characters, difference permanent or temporary, effect add or subtract and an amount from 0, at most 2 dp and 1e12.",
+    ),
+    (
+        "book_to_tax.excess_franking_offsets",
+        "The company would have excess franking offsets (ITAA 1997 ss 36-17(5) and 36-55).",
+    ),
+    (
+        "book_to_tax.loss_carry_back",
+        "A loss carry back choice was stated (ITAA 1997 Division 160).",
+    ),
+    (
+        "book_to_tax.losses_deducted_invalid",
+        "tax_losses_deducted is more than the company can choose: the excess of assessable income over deductions or the earlier losses left after net exempt income (ITAA 1997 s 36-17(2) and (3)).",
+    ),
+    (
+        "book_to_tax.subdivision_165_b",
+        "The company failed the continuity and business continuity tests during the year (ITAA 1997 Subdivision 165-B).",
+    ),
+    (
+        "book_to_tax.tax_consolidated_group",
+        "The company is a member of a consolidated group (ITAA 1997 Part 3-90).",
+    ),
+    (
         "borrowing.income_use_invalid",
         "A loan's income_use is neither a fraction from 0 to 1 nor an object giving one for each income year of the loan.",
     ),
@@ -4304,6 +4392,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A parcel acquired before 20 September 1985 is touched by an event.",
     ),
     (
+        "cgt_cost_base.scrip_no_gain",
+        "A parcel exchanged under a scrip for scrip roll-over would make no capital gain apart from the roll-over (ITAA 1997 ss 124-780(3)(b) and 124-781(3)(b)).",
+    ),
+    (
+        "cgt_cost_base.scrip_without_rollover",
+        "A scrip_for_scrip event was given without the roll-over; work the disposal in cgt-parcels.",
+    ),
+    (
         "cgt_parcels.entity_invalid",
         "entity is not individual, trust, complying_superannuation_entity or company.",
     ),
@@ -4334,6 +4430,19 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "cgt_parcels.units_not_held",
         "A disposal takes more units than the parcels acquired by then still hold.",
+    ),
+    ("cgt_rollover.facts_invalid", "facts is not a JSON object."),
+    (
+        "cgt_rollover.not_available",
+        "The stated facts give no roll-over: a condition or exclusion of Subdivision 122-A, 126-A or 152-E applies.",
+    ),
+    (
+        "cgt_rollover.pre_cgt",
+        "The asset was acquired before 20 September 1985, which the roll-over treats in ways this worksheet does not work out.",
+    ),
+    (
+        "cgt_rollover.rollover_invalid",
+        "rollover is not marriage_breakdown, small_business or wholly_owned_company.",
     ),
     (
         "charity_check.abns_invalid",
@@ -5780,7 +5889,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
