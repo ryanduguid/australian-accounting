@@ -1387,6 +1387,12 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "age_pension" => vec!["2025-26", "2026-27"],
         // The 2025-26 and 2026-27 indexed amounts.
         "ftb_part_a" => vec!["2025-26", "2026-27"],
+        // The 2025-26 and 2026-27 indexed amounts.
+        "ftb_part_b" => vec!["2025-26", "2026-27"],
+        // Days from 1 July 2026 to 19 March 2027.
+        "rent_assistance" => vec!["2026-27"],
+        // Days from 1 July 2026 to 19 March 2027.
+        "jobseeker_payment" => vec!["2026-27"],
         // The years the site page covers whose individual tax parts
         // (resident-tax, low-income-tax-offset, medicare-levy and
         // medicare-levy-surcharge) are held: 2024-25 to 2026-27.
@@ -2137,6 +2143,18 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "ftb_part_a" => (
             "2026-11-26",
             "A New Tax System (Family Assistance) Act 1999 compilation 124 (1 July 2026), Schedule 1 clauses 1 to 4, 7, 25, 25D, 26, 28, 38A, 38AA, 38AF and 38L to 38N; DSS rates list for 1 July 2026; Services Australia's 'A guide to Australian Government payments' for 20 September to 31 December 2026 (FTB Part A rates and income limits)",
+        ),
+        "ftb_part_b" => (
+            "2026-11-26",
+            "A New Tax System (Family Assistance) Act 1999 compilation 124 (1 July 2026), Schedule 1 clauses 28B, 28C, 28D, 29, 29AA, 30, 31A, 31B, 32 and 33 and Schedule 3 clause 3(2); DSS rates list for 1 July 2026; Services Australia's 'A guide to Australian Government payments' for 20 September to 31 December 2026 (FTB Part B rates and income limits)",
+        ),
+        "rent_assistance" => (
+            "2026-11-26",
+            "Social Security Act 1991 compilation 234 (20 September 2026), Part 3.7 (ss 1070 to 1070C, 1070K, 1070L, 1070Q, 1070T to 1070X; the Rate A formulas in column 3 of the tables read from the WMF images of the compilation's Word download, Volume 3); DSS Social Security Guide 5.1.7.10 (as at 20 September 2026, read through Firecrawl); Services Australia's 'A guide to Australian Government payments' for 1 July to 19 September 2026 and 20 September to 31 December 2026 (Rent Assistance)",
+        ),
+        "jobseeker_payment" => (
+            "2026-11-26",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1068 (Benefit Rate Calculator B) Modules A, B, C, D and G; DSS Social Security Guide 5.1.8.20 and 5.1.10.20; Services Australia's 'A guide to Australian Government payments' for 1 July to 19 September 2026 and 20 September to 31 December 2026 (JobSeeker Payment, Module D, Module I, Pharmaceutical Allowance)",
         ),
         "salary_dividend" => (
             "2026-11-26",
@@ -7103,6 +7121,31 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("energy_supplement", "boolean: the family keeps the energy supplement, entitled to FTB on 19 September 2016 without a break since (clauses 6A and 25C)"),
             ("facts", "object of booleans, each your statement, not tested: whole_year, no_maintenance, no_rent_assistance, no_newborn_or_multiple_birth and requirements_met; every one required true"),
         ],
+        "ftb_part_b" => vec![
+            ("relationship", "single or couple: a couple counts both members' adjusted taxable incomes (Schedule 3 clause 3(2))"),
+            ("youngest_child_age", "integer from 0 to 18: the youngest FTB child's age all year (under 5 or 5 or over for the standard rate; 13 or over makes a couple's rate nil unless grandparent; 16 to 18 must be in senior secondary school)"),
+            ("adjusted_taxable_income", "AUD: the individual's adjusted taxable income for the year (Schedule 3 clause 2)"),
+            ("partner_adjusted_taxable_income", "AUD: the partner's adjusted taxable income for the year; 0.00 for a single individual"),
+            ("income_support", "boolean: the individual or partner receives a social security pension or benefit, a service pension, income support supplement or a veteran payment, which lifts the income limit (clause 28B(2))"),
+            ("grandparent", "boolean: the individual is a grandparent or great-grandparent of the youngest FTB child (clause 28D(2)); matters only for a couple whose youngest child is 13 or over"),
+            ("energy_supplement", "boolean: the family keeps the energy supplement (Part B), entitled to FTB on 19 September 2016 without a break since (clause 29AA)"),
+            ("facts", "object of booleans, each your statement, not tested: whole_year, no_parental_leave_pay and general_method, and senior_secondary where the youngest child is 16 or over; every one required true"),
+        ],
+        "rent_assistance" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2026-07-01 to 2027-03-19: the day the fortnightly rate is for"),
+            ("situation", "single, single_sharer, couple (the partner has no rent increased pension, s 1070W, for a payment under Pension Rate Calculator A, or no rent increased benefit, s 1070X, under Benefit Rate Calculator B), couple_both_receive (the partner has one), illness_separated, respite_care, temporarily_separated or partner_in_gaol"),
+            ("fortnightly_rent", "AUD per fortnight: the rent paid or payable, for a couple living together or a separated couple the rent either pays (s 1070V)"),
+            ("facts", "object of booleans, each your statement, not tested: rate_calculator, pays_private_rent, no_dependent_children and partner_not_veteran; every one required true"),
+        ],
+        "jobseeker_payment" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2026-07-01 to 2027-03-19: the day the fortnightly rate is for"),
+            ("situation", "single, single_with_child, single_principal_carer, single_55_after_9_months, single_partial_capacity (0 to 14 hours) or partnered (Table B item 7; a member of an illness separated couple or with a partner in gaol, items 9 and 11, is not worked): the Table B family situation (point 1068-B1); a single principal carer's income reduction is 40% (point 1068-G17)"),
+            ("pharmaceutical_allowance", "boolean: the person qualifies for pharmaceutical allowance (Module D, Part 2.22); refused for days from 1 January 2027, after its indexation"),
+            ("ordinary_income", "AUD per fortnight: the person's ordinary income (s 8)"),
+            ("partner", "none (single), not_receiving (a partner aged 22 or over receiving no social security payment) or pension (a partner receiving a social security pension, service pension, income support supplement or veteran payment)"),
+            ("partner_income", "AUD per fortnight: the partner's ordinary income; 0.00 for a single person"),
+            ("facts", "object of booleans, each your statement, not tested: qualified, no_working_credit, no_rent_assistance, assets_within_limit, no_adjustments and energy_fortnightly; every one required true"),
+        ],
         "salary_dividend" => vec![
             ("profit", "AUD: the company's profit before the owner's salary, its super guarantee and company tax, all paid out"),
             ("base_rate_entity", "boolean: the company is a base rate entity for the year and its corporate tax rate for imputation purposes is 25% (Income Tax Rates Act 1986 s 23(2)); false for 30%"),
@@ -8986,6 +9029,52 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "facts",
                 Json(
                     r#"{"whole_year": true, "no_maintenance": true, "no_rent_assistance": true, "no_newborn_or_multiple_birth": true, "requirements_met": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a couple, youngest child aged 3, secondary earner on $20,000.
+        "ftb_part_b" => vec![
+            ("year", Text("2026-27")),
+            ("relationship", Text("couple")),
+            ("youngest_child_age", Whole(3)),
+            ("adjusted_taxable_income", Text("95000.00")),
+            ("partner_adjusted_taxable_income", Text("20000.00")),
+            ("income_support", Flag(false)),
+            ("grandparent", Flag(false)),
+            ("energy_supplement", Flag(false)),
+            (
+                "facts",
+                Json(
+                    r#"{"whole_year": true, "no_parental_leave_pay": true, "general_method": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single renter paying $400 a fortnight.
+        "rent_assistance" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("situation", Text("single")),
+            ("fortnightly_rent", Text("400.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"rate_calculator": true, "pays_private_rent": true, "no_dependent_children": true, "partner_not_veteran": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single job seeker earning $400 a fortnight.
+        "jobseeker_payment" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("situation", Text("single")),
+            ("pharmaceutical_allowance", Flag(false)),
+            ("ordinary_income", Text("400.00")),
+            ("partner", Text("none")),
+            ("partner_income", Text("0.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"qualified": true, "no_working_credit": true, "no_rent_assistance": true, "assets_within_limit": true, "no_adjustments": true, "energy_fortnightly": true}"#,
                 ),
             ),
         ],

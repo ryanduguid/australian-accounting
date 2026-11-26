@@ -282,6 +282,11 @@ class OrphanTestsTests(unittest.TestCase):
                 {caller: CALLER.replace(TOOL_TEST, "          cargo llvm-cov --locked --fail-under-lines 80\n")},
                 UNRUN,
             ),
+            # A report reads the last run and runs no tests.
+            "a coverage report alone": (
+                {caller: CALLER.replace(TOOL_TEST, "          cargo llvm-cov report --lcov --output-path lcov.info\n")},
+                UNRUN | {"tools/tool"},
+            ),
             # pytest skips these directories.
             "a test file under a default norecursedirs name": (
                 {"app/tests/build/test_built.py": ""}, UNRUN | {"app/tests/build/test_built.py"},
