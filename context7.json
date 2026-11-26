@@ -22,6 +22,7 @@
     "`break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost` mirror the site's planning calculators; `staff-cost` works the super guarantee from a stated base but takes payroll tax and workers compensation as stated rates.",
     "`impairment-test` (AASB 136) gives value in use, recoverable amount and the loss's allocation from stated cash flows and a stated pre-tax rate; it never chooses the rate or forecasts a cash flow.",
     "`consolidation-eliminations` (AASB 10) makes elimination journals and consolidated totals from stated trial balances and intra-group amounts; it never tests control or finds intra-group items.",
-    "`tofa-accruals` (ITAA 1997 Div 230) tests s 230-455 on stated facts and spreads a sufficiently certain gain or loss by compounding accruals; elective methods are refused."
+    "`tofa-accruals` (ITAA 1997 Div 230) tests s 230-455 on stated facts and spreads a sufficiently certain gain or loss by compounding accruals; elective methods are refused.",
+    "`super-projection` projects one super account to retirement; `objection-deadline` gives the s 14ZW objection deadline; `lessee-lease` gives the AASB 16 lessee schedule. Each mirrors a site page and takes the rates and facts as stated."
   ]
 }

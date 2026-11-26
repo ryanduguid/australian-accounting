@@ -1600,6 +1600,48 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         cmd_args! { (wages: Dec) (other_costs: Dec) year scope_confirmed },
     ),
     (
+        "super-projection",
+        &[
+            ("age", Raw),
+            ("balance", Dec),
+            ("salary", Dec),
+            ("employer_rate", Dec),
+            ("salary_sacrifice", Dec),
+            ("after_tax_contributions", Dec),
+            ("return_rate", Dec),
+            ("percent_fee", Dec),
+            ("admin_fee", Dec),
+            ("insurance", Dec),
+            ("wage_growth", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "objection-deadline",
+        &[
+            ("decision", Raw),
+            ("notice_date", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "lessee-lease",
+        &[
+            ("payment", Dec),
+            ("payments", Raw),
+            ("frequency", Raw),
+            ("timing", Raw),
+            ("discount_rate", Dec),
+            ("commencement", Raw),
+            ("ownership_transfers", Raw),
+            ("remeasurement", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "impairment-test",
         &[
             ("cash_flows", Json),
@@ -2444,6 +2486,9 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "hourly-rate"
             | "fixed-fee"
             | "staff-cost"
+            | "super-projection"
+            | "objection-deadline"
+            | "lessee-lease"
             | "impairment-test"
             | "consolidation-eliminations"
             | "tofa-accruals"
@@ -4514,6 +4559,79 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 workers_compensation_rate: workers.as_ref(),
                 year: &a[2],
                 scope_confirmed: &a[3],
+            })
+        }
+        "super-projection" => {
+            // Optional: the retirement age (the Instrument's 67 by default)
+            // and the present value rate (its 3.7% by default).
+            let retire = optional(v, "retirement_age", Raw)?;
+            let rate = optional(v, "discount_rate", Dec)?;
+            engine::super_projection(&engine::SuperProjectionArgs {
+                age: &a[0],
+                retirement_age: retire.as_ref(),
+                balance: &a[1],
+                salary: &a[2],
+                employer_rate: &a[3],
+                salary_sacrifice: &a[4],
+                after_tax_contributions: &a[5],
+                return_rate: &a[6],
+                percent_fee: &a[7],
+                admin_fee: &a[8],
+                insurance: &a[9],
+                wage_growth: &a[10],
+                discount_rate: rate.as_ref(),
+                year: &a[11],
+                scope_confirmed: &a[12],
+            })
+        }
+        "objection-deadline" => {
+            // Optional: the s 170(1) item for an income tax assessment, the
+            // earlier notices for an amended one, and stated holidays.
+            let item = optional(v, "s170_item", Raw)?;
+            let original = optional(v, "original_notice_date", Raw)?;
+            let before = optional(v, "amended_before", Raw)?;
+            let first = optional(v, "first_notice_date", Raw)?;
+            let holidays = optional(v, "holidays", Json)?;
+            engine::objection_deadline(&engine::ObjectionDeadlineArgs {
+                decision: &a[0],
+                notice_date: &a[1],
+                s170_item: item.as_ref(),
+                original_notice_date: original.as_ref(),
+                amended_before: before.as_ref(),
+                first_notice_date: first.as_ref(),
+                holidays: holidays.as_ref(),
+                year: &a[2],
+                scope_confirmed: &a[3],
+            })
+        }
+        "lessee-lease" => {
+            // Optional: the residual, the amounts at commencement, the useful
+            // life and a purchase option; each amount absent is nil.
+            let residual = optional(v, "residual", Dec)?;
+            let prepaid = optional(v, "prepaid", Dec)?;
+            let incentives = optional(v, "incentives", Dec)?;
+            let direct = optional(v, "initial_direct_costs", Dec)?;
+            let restoration = optional(v, "restoration", Dec)?;
+            let life = optional(v, "useful_life_months", Raw)?;
+            let option = optional(v, "purchase_option", Raw)?;
+            engine::lessee_lease(&engine::LesseeLeaseArgs {
+                payment: &a[0],
+                payments: &a[1],
+                frequency: &a[2],
+                timing: &a[3],
+                discount_rate: &a[4],
+                commencement: &a[5],
+                residual: residual.as_ref(),
+                prepaid: prepaid.as_ref(),
+                incentives: incentives.as_ref(),
+                initial_direct_costs: direct.as_ref(),
+                restoration: restoration.as_ref(),
+                ownership_transfers: &a[6],
+                useful_life_months: life.as_ref(),
+                purchase_option: option.as_ref(),
+                remeasurement: &a[7],
+                year: &a[8],
+                scope_confirmed: &a[9],
             })
         }
         "impairment-test" => {

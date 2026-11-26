@@ -215,6 +215,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-credit-time-limit, tourist-refund, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even,
     // cash-forecast, hourly-rate, fixed-fee, staff-cost, impairment-test,
     // consolidation-eliminations, tofa-accruals,
+    // super-projection, objection-deadline, lessee-lease,
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
@@ -225,7 +226,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
     // gst-food-retailer-sam.
-    assert_eq!(checked, 141);
+    assert_eq!(checked, 144);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -51,7 +51,7 @@ use std::process::{Command, Stdio};
 /// `tests/foreign_pension_upp.rs`, `tests/scholarship_exemption.rs`,
 /// `tests/super_crystallisation.rs` and `tests/endorsement_review.rs` cover them, as `tests/transfer_balance.rs` covers
 /// `transfer-balance` and `excess-contributions`.
-const NEW_KINDS: [(&str, &str); 141] = [
+const NEW_KINDS: [(&str, &str); 144] = [
     ("defined-benefit-income-cap", "defined_benefit_income_cap"),
     ("foreign-pension-upp", "foreign_pension_upp"),
     ("scholarship-exemption", "scholarship_exemption"),
@@ -198,6 +198,9 @@ const NEW_KINDS: [(&str, &str); 141] = [
     ("hourly-rate", "hourly_rate"),
     ("fixed-fee", "fixed_fee"),
     ("staff-cost", "staff_cost"),
+    ("super-projection", "super_projection"),
+    ("objection-deadline", "objection_deadline"),
+    ("lessee-lease", "lessee_lease"),
     ("impairment-test", "impairment_test"),
     ("consolidation-eliminations", "consolidation_eliminations"),
     ("tofa-accruals", "tofa_accruals"),

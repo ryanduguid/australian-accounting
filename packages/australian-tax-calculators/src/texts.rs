@@ -579,6 +579,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "Whether ITAA 1997 Division 230 reaches one financial arrangement under s 230-455, and the spreading of its sufficiently certain overall gain or loss under the accruals method, for an arrangement the taxpayer starts to have in an income year from 2020-21 to 2026-27. The operator states the entity's kind (an individual; a superannuation entity, superannuation fund or managed investment scheme; an ADI, securitisation vehicle or entity required to register under the Financial Sector (Collection of Data) Act 2001; or another entity) and, other than for an individual, its aggregated turnover, assets and financial assets for the year s 230-455(2) to (4) test; whether the arrangement is a qualifying security; whether the entity failed its test for an earlier year (s 230-455(9)); and whether a s 230-455(7) election applies. Division 230 does not apply where the entity is an individual or meets its subsection (assets under $100 million; aggregated turnover under $20 million; or aggregated turnover and financial assets each under $100 million and assets under $300 million), and the arrangement ends within 12 months or is not a qualifying security. Where it applies, the accruals method applies to the overall gain or loss if the taxpayer chooses it or s 230-100(4) applies (s 230-100(2)). The gain or loss (benefits received less benefits provided) is spread from the start to the end of the arrangement (s 230-130(1)) over equal intervals of 1 to 12 whole months (s 230-135(4)), each financial benefit falling on the start or an interval's last day: by compounding accruals at the one rate of return per interval at which the benefits net to nil, each interval's part the opening balance times that rate (s 230-135(2)(a), (5) and (6)), or, where the operator establishes that its results approximate those, by straight line over the days (s 230-135(2)(b)). An interval straddling 2 income years is allocated between them by days (s 230-170(2)). Amounts are rounded half up to the cent cumulatively. The operator establishes that the gain or loss and each benefit are sufficiently certain (ss 230-105 and 230-115) and that no other exception (ss 230-450 and 230-460) applies. Refuses the elective methods (Subdivisions 230-C to 230-F) and portfolio treatment of fees (s 230-150), the effective interest method (s 230-140), particular gains and the realisation method, a benefit inside an interval, shorter first or last intervals, benefits that net to nil and benefits that change sign more than once. Excludes re-estimation and reassessment (ss 230-185 to 230-200), balancing adjustments (Subdivision 230-G), arrangements with a notional principal (s 230-120), foreign currency, consolidated groups and substituted accounting periods.",
     ),
     (
+        "super_projection",
+        "One accumulation super account projected a whole year at a time from 2026-27 to the retirement age, as the site's super projection page does: employer contributions at a stated rate on salary up to the $270,830 maximum contribution base, salary sacrifice and after-tax contributions, 15% contributions tax (a complying fund with no non-arm's length income), a stated return after investment fees and tax, dollar and percentage fees and premiums deducted at 15%, flows growing with stated wage growth, and the balance at retirement in future dollars and at its present value under ASIC Instrument 2022/603 (retirement at the greater of the age entered and 60, or 67; 3.7% a year unless another rate is given). Contributions to this account above the 2026-27 general caps are refused; the operator confirms the member makes no other contributions, to this or another fund, that count towards a cap, and that the general caps apply. The employer rate is the stated rate, not a check of the employer's 12% super guarantee. Not computed: defined benefit or pension accounts, Division 293 tax, excess contributions, the nil non-concessional cap at the transfer balance cap, the low income super tax offset, co-contributions, retirement income or the age pension, or varying returns.",
+    ),
+    (
+        "objection_deadline",
+        "The last day to lodge a taxation objection under TAA 1953 s 14ZW against an income tax assessment (2 years where item 1, 2, 3 or 3A of the ITAA 1936 s 170(1) table applies, as stated, else 4), an FBT assessment (4 years), an amended one (the later of 60 days after its notice and the original period, subsections (1B) and (1BA)) or another decision for which s 14ZW sets no other period (60 days), counted under the Acts Interpretation Act 1901, with a Saturday, Sunday or stated holiday moving the last day on. A later amendment counts (1BA)'s period from the notice of the assessment it amends and (1B)'s from the first assessment's (subsection (1C)). Not decided: whether the decision can be objected to, which s 170(1) item applies, when notice was given, the holidays where it is lodged, private rulings, penalties, retained refunds, deceased estates, other taxes and the other periods s 14ZW sets.",
+    ),
+    (
+        "lessee_lease",
+        "A lessee's lease under AASB 16 commencing in a financial year from 2024-25 to 2026-27, as the site's AASB 16 lease page measures it: level payments weekly to yearly in arrears or in advance, with any residual value guarantee or purchase option price; the lease liability at commencement (paras 26 and 27), the right-of-use asset's cost (para 24), interest by period half up to the cent (para 37), straight-line depreciation over the lease term or useful life (para 32), and each income year's interest, payments that reduce the liability (a payment at commencement is in the journal), depreciation and 30 June balances, with the commencement journal. The operator confirms that any incentive was received at or before commencement (none receivable later, para 27(a)), the initial direct costs were paid at commencement, the restoration amount is the para 24(d) provision measured under AASB 137, and, where no useful life is given, the asset's useful life is not shorter than the lease term. Refused: remeasurement (paras 39 to 46), and incentives as large as the rest of the cost. Not decided: whether a contract contains a lease, the lease term, the discount rate, reasonable certainty, low-value assets, non-lease components, variable payments, the revaluation or fair value models, not-for-profit concessionary leases or impairment.",
+    ),
+    (
         "impairment_test",
         "One asset's or cash-generating unit's impairment test under AASB 136 at a reporting date ending in a financial year from 2020-21 to 2026-27, from figures the preparer has established. Value in use is the present value of the stated pre-tax net cash flows for years 1 to n, each at the end of its year, and of a stated terminal value at the end of year n, at one stated pre-tax discount rate above 0 and at most 100% (limits of this worksheet), rounded half up to the cent (paras 30, 31, 33, 39, 50 to 52, 55 and A21). Recoverable amount is the higher of value in use and any stated fair value less costs of disposal (paras 18 to 20). An impairment loss is the carrying amount less recoverable amount where positive (paras 59 and 104). It is allocated first to goodwill (para 104(a)), then to the other assets pro rata to their carrying amounts (para 104(b)), none below the higher of its own stated fair value less costs of disposal and value in use or nil, the excess passed pro rata to the others (para 105); any loss left once every asset is at its floor is shown unallocated, a liability only where another Standard requires one (para 62). Each share is rounded half up to the cent cumulatively. The preparer establishes the cash flows (paras 33 and 39 to 53), the rate (paras 55 to 57), the unit and its assets (paras 65 to 79), goodwill's allocation (paras 80 to 99), corporate assets (paras 100 to 103) and the floors. Excludes indications of impairment (paras 9 to 17), reversals (paras 109 to 125), deferred tax and disclosure. Refuses a revalued asset (para 60), a unit with goodwill and a non-controlling interest (Appendix C) and a goodwill line alone (para 81).",
     ),
@@ -1183,6 +1195,18 @@ pub const SOURCES: &[(&str, &str)] = &[
         "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_5/document_5.html",
     ),
     (
+        "super_projection",
+        "https://www.legislation.gov.au/F2022L00895/latest/text",
+    ),
+    (
+        "objection_deadline",
+        "https://www.legislation.gov.au/C1953A00001/latest/text",
+    ),
+    (
+        "lessee_lease",
+        "https://www.aasb.gov.au/admin/file/content105/c9/AASB16_02-16_COMPnov22_01-24.pdf",
+    ),
+    (
         "impairment_test",
         "https://standards.aasb.gov.au/sites/default/files/2026-10/AASB136_08-15_COMPjan26_07-26.pdf",
     ),
@@ -1280,6 +1304,26 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.gov.au/C2004A04402/latest/text",
             "https://duguid.com.au/tools/business-calculators/staff/",
         ],
+    ),
+    (
+        "super_projection",
+        &[
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+            "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/contributions-caps",
+            "https://www.legislation.gov.au/C2004A03348/latest/text",
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/295-160",
+        ],
+    ),
+    (
+        "objection_deadline",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19360027/170",
+            "https://www.legislation.gov.au/C1901A00002/latest/text",
+        ],
+    ),
+    (
+        "lessee_lease",
+        &["https://www.aasb.gov.au/admin/file/content105/c9/IFRS16_IE_1-22.pdf"],
     ),
     (
         "vic_property_taxes",
@@ -2918,6 +2962,24 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "tofa_accruals",
         &[
             "Whether the gain or loss and each financial benefit are sufficiently certain (ss 230-105 and 230-115), the entity's turnover and assets, a qualifying security and any election are the operator's stated facts. A straight line is allowed only where its results approximate compounding accruals (s 230-135(2)(b)): the income_years rows show both for comparison.",
+        ],
+    ),
+    (
+        "super_projection",
+        &[
+            "A projection, not a forecast or advice: every figure but the rules of 2026-27 is the operator's assumption, the rules are assumed not to change and later caps and the base are assumed to rise with wages. Not for a decision about a financial product.",
+        ],
+    ),
+    (
+        "objection_deadline",
+        &[
+            "s 14ZW is applied as compiled on 1 October 2026 whatever the notice date. Public holidays are only those stated: check the last day and the day after it where the objection is lodged.",
+        ],
+    ),
+    (
+        "lessee_lease",
+        &[
+            "The lease term, the discount rate and whether a purchase option is reasonably certain are the preparer's judgements. Rounding each period's interest to the cent, the last period taking the rest, and sharing a period across 30 June by days are conventions, not rules of AASB 16.",
         ],
     ),
     (
@@ -5325,7 +5387,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, impairment-test, consolidation-eliminations, tofa-accruals, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -5519,6 +5581,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "leave_provisions.plan_assets",
         "Plan assets or a reimbursement right for other long-term benefits were stated (AASB 119 paras 113 to 119 and 155).",
+    ),
+    (
+        "lessee_lease.cost_nil",
+        "The incentives received are as much as the rest of the right-of-use asset's cost.",
+    ),
+    (
+        "lessee_lease.fact_invalid",
+        "A lease input is missing, of the wrong type or outside its range, or the commencement is outside the year.",
+    ),
+    (
+        "lessee_lease.remeasurement",
+        "The lease liability is remeasured (AASB 16 paras 36(c) and 39 to 46), which the worksheet does not compute.",
+    ),
+    (
+        "lessee_lease.rounding_negative",
+        "Rounding each period's interest to the cent leaves the last period with negative interest.",
+    ),
+    (
+        "lessee_lease.useful_life_needed",
+        "Ownership transfers or a purchase option is reasonably certain, and no useful life is given.",
     ),
     (
         "loan_transactions.balance_below_nil",
@@ -5856,6 +5938,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "notice_period.year_mismatch",
         "The notice day does not fall in the year given.",
+    ),
+    (
+        "objection_deadline.fact_invalid",
+        "A decision, date, s 170(1) item, earlier notice or holiday list is missing, invalid or not for this decision.",
     ),
     (
         "payg.extra_pays_not_weekly_or_fortnightly",
@@ -6469,6 +6555,18 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_crystallisation.untaxed_source",
         "The interest is from an untaxed source (ITTPA 1997 s 307-225(3)).",
+    ),
+    (
+        "super_projection.cap_exceeded",
+        "Contributions for 2026-27 are above the concessional or non-concessional cap.",
+    ),
+    (
+        "super_projection.input_invalid",
+        "An age or rate is outside its range or not a whole number or decimal fraction.",
+    ),
+    (
+        "super_projection.retirement_not_after_age",
+        "The assumed retirement age is not after the age now.",
     ),
     (
         "super_withholding.capped_defined_benefit",
