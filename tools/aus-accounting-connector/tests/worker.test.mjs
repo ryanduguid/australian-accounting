@@ -325,8 +325,44 @@ test('from serve_until every tool call is refused, in both eras', async () => {
   assert.ok(!body.includes(EXPIRED));
 });
 
+test('with the test var the same bundle serves only /mcp-test', async () => {
+  const vars = (await settings('wrangler.test.toml')).filter(line => line.startsWith('MCP_PATH'));
+  assert.deepEqual(vars, ['MCP_PATH = "/mcp-test"']);
+  const tested = await start({ bindings: { MCP_PATH: '/mcp-test' } });
+  try {
+    const body = message(MODERN, 1, 'server/discover');
+    assert.equal((await post(body, headers(body, MODERN), '/mcp-test?x=1', tested)).response.status, 200);
+    for (const path of ['/mcp', '/mcp-test/', '/mcp-testx', '/MCP-TEST']) {
+      const { response, body: text } = await post(body, headers(body, MODERN), path, tested);
+      assert.equal(response.status, 404, path);
+      assert.equal(text, '', path);
+    }
+    assert.deepEqual(tested.outbound, []);
+  } finally {
+    await tested.mf.dispose();
+  }
+  // Without the var, /mcp-test is refused.
+  const body = message(MODERN, 1, 'server/discover');
+  assert.equal((await post(body, headers(body, MODERN), '/mcp-test')).response.status, 404);
+});
+
+async function settings(file) {
+  return (await readFile(new URL(file, root), 'utf8')).split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+}
+
+test('wrangler.test.toml is wrangler.toml with only its name, route, limiter namespace and var changed', async () => {
+  const production = await settings('wrangler.toml');
+  const swapped = production.map(line => ({
+    'name = "aus-accounting-connector"': 'name = "aus-accounting-connector-test"',
+    'routes = [{ pattern = "duguid.com.au/mcp*", zone_name = "duguid.com.au" }]': 'routes = [{ pattern = "duguid.com.au/mcp-test*", zone_name = "duguid.com.au" }]',
+    'namespace_id = "2272"': 'namespace_id = "2273"',
+  })[line] ?? line);
+  const at = swapped.indexOf('[limits]');
+  assert.deepEqual(await settings('wrangler.test.toml'), [...swapped.slice(0, at), '[vars]', 'MCP_PATH = "/mcp-test"', ...swapped.slice(at)]);
+});
+
 test('wrangler.toml holds only the reviewed settings: no storage, no logs, no preview URLs', async () => {
-  const lines = (await readFile(new URL('wrangler.toml', root), 'utf8')).split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+  const lines = await settings('wrangler.toml');
   assert.deepEqual(lines, [
     'name = "aus-accounting-connector"',
     'main = "build/worker/shim.mjs"',

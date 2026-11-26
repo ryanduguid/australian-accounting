@@ -4,7 +4,7 @@
 
 //! The Workers glue: no storage, no outbound request and no logging.
 
-use crate::{BODY_LIMIT, Reply, admit, allow_origin, respond, today};
+use crate::{BODY_LIMIT, Reply, admit, allow_origin, respond, served_path, today};
 use futures_util::StreamExt;
 use worker::{Context, Date, Env, Request, Response, Result, event};
 
@@ -51,9 +51,11 @@ async fn fetch(mut request: Request, env: Env, _context: Context) -> Result<Resp
 
 async fn handle(request: &mut Request, env: &Env) -> Result<Reply> {
     let url = request.url()?;
+    let var = env.var("MCP_PATH").ok().map(|var| var.to_string());
     if let Err(reply) = admit(
         request.method().as_ref(),
         url.path(),
+        served_path(var.as_deref()),
         &Incoming(request.headers()),
     ) {
         return Ok(reply);

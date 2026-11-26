@@ -1,0 +1,27 @@
+# The stage 2 test Worker: wrangler.toml with its own name and route, and the
+# MCP_PATH var that moves the one served path to /mcp-test. Same bundle and
+# limits, a limiter namespace of its own, no storage. Remove the route after the
+# test session.
+name = "aus-accounting-connector-test"
+main = "build/worker/shim.mjs"
+compatibility_date = "2026-07-30"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "duguid.com.au/mcp-test*", zone_name = "duguid.com.au" }]
+
+[vars]
+MCP_PATH = "/mcp-test"
+
+[limits]
+cpu_ms = 10
+
+[observability]
+enabled = false
+
+[[ratelimits]]
+name = "LIMITER"
+namespace_id = "2273"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60

@@ -22,7 +22,7 @@ export async function limiter() {
   return { name: value('name'), namespace_id: value('namespace_id'), simple: { limit: value('limit'), period: value('period') } };
 }
 
-export async function start({ bundle = 'build', limit = true } = {}) {
+export async function start({ bundle = 'build', limit = true, bindings = {} } = {}) {
   const outbound = [];
   const output = [];
   const { name, namespace_id, simple } = await limiter();
@@ -35,6 +35,7 @@ export async function start({ bundle = 'build', limit = true } = {}) {
       { type: 'CompiledWasm', include: ['**/*.wasm'], fallthrough: true },
     ],
     ratelimits: limit ? { [name]: { namespace_id, simple } } : {},
+    bindings,
     outboundService: request => {
       outbound.push(request.url);
       return new Response('outbound requests are not allowed', { status: 599 });
