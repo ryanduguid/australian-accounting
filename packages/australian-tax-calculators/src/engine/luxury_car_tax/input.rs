@@ -208,7 +208,7 @@ fn car(fields: &Map<String, Value>, n: usize, year: &'static str, value_key: &st
 }
 
 /// A refund line's claimant and whether the car is refund-eligible, for a
-/// car supplied or imported from 1 July 2019 (in `year` or `supplied_in`).
+/// car supplied or imported from 1 July 2019 (in `supplied_in`).
 fn refund(
     fields: &Map<String, Value>,
     n: usize,
@@ -266,8 +266,13 @@ pub(super) fn parse_line(value: &Value, n: usize, year: &'static str) -> Result<
         );
     };
     let fields = only(value, n, kind, allowed)?;
-    if matches!(*kind, "price_adjustment" | "change_of_use_increasing") {
-        // The supply's year sets the threshold, which the tax period's may not.
+    if matches!(
+        *kind,
+        "price_adjustment" | "change_of_use_increasing" | "refund"
+    ) {
+        // The supply's year sets the threshold, which the tax period's may
+        // not, and for a refund which of ss 18-5(3) and 18-10(3) applies: a
+        // refund is claimed up to 4 years after the entitlement arises.
         required(fields, n, "supplied_in")?;
     }
     let car = match *kind {

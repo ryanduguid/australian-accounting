@@ -155,6 +155,19 @@ macro_rules! cmd_args {
 }
 
 /// Command, the worksheet's parameters in the original order.
+/// The inputs of the 3 commands Pension Rate Calculator A works out.
+const PENSION_ARGS: &[(&str, Kind)] = &[
+    ("date", Raw),
+    ("relationship", Raw),
+    ("homeowner", Raw),
+    ("ordinary_income", Dec),
+    ("financial_assets", Dec),
+    ("assets", Dec),
+    ("facts", Json),
+    ("year", Raw),
+    ("scope_confirmed", Raw),
+];
+
 const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
     (
         "gst",
@@ -1407,20 +1420,7 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
-    (
-        "age-pension",
-        &[
-            ("date", Raw),
-            ("relationship", Raw),
-            ("homeowner", Raw),
-            ("ordinary_income", Dec),
-            ("financial_assets", Dec),
-            ("assets", Dec),
-            ("facts", Json),
-            ("year", Raw),
-            ("scope_confirmed", Raw),
-        ],
-    ),
+    ("age-pension", PENSION_ARGS),
     (
         "ftb-part-a",
         &[
@@ -1474,6 +1474,8 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
             ("scope_confirmed", Raw),
         ],
     ),
+    ("disability-support-pension", PENSION_ARGS),
+    ("carer-payment", PENSION_ARGS),
     (
         "salary-dividend",
         &[
@@ -2135,7 +2137,7 @@ pub fn commands() -> Vec<&'static str> {
 /// each line and class carries the authority for its row instead.
 /// `thin-capitalisation`'s optional inputs: those of tax EBITDA, the group
 /// ratio test, the assets threshold and the carry-forward.
-const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
+const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 50] = [
     ("interest_and_equivalent_income", Dec),
     ("taxable_income", Dec),
     ("franking_credits", Dec),
@@ -2153,9 +2155,45 @@ const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
     ("gr_group_negative_member_ebitda", Json),
     ("average_australian_assets", Dec),
     ("average_total_assets", Dec),
+    ("whole_year", Raw),
+    ("inward_investment_vehicle", Raw),
+    ("foreign_controlled_australian_entity", Raw),
+    ("average_debt_capital", Dec),
+    ("average_associate_entity_debt", Dec),
+    ("average_pe_associate_entity_debt", Dec),
+    ("average_controlled_foreign_entity_debt", Dec),
+    ("average_borrowed_securities_amount", Dec),
+    ("average_cost_free_debt_capital", Dec),
+    ("average_assets", Dec),
+    ("average_excluded_equity_interests", Dec),
+    ("average_associate_entity_equity", Dec),
+    ("average_controlled_foreign_entity_equity", Dec),
+    ("average_non_debt_liabilities", Dec),
+    ("average_zero_capital_amount", Dec),
+    ("average_associate_entity_excess_amount", Dec),
+    ("average_on_lent_amount", Dec),
+    ("average_worldwide_debt", Dec),
+    ("average_worldwide_equity", Dec),
+    ("statement_worldwide_debt", Dec),
+    ("statement_worldwide_equity", Dec),
+    ("statement_worldwide_assets", Dec),
+    ("statement_average_australian_assets", Dec),
+    ("audited_consolidated_statements", Raw),
+    ("average_adi_equity_capital", Dec),
+    ("average_interest_free_pe_loans", Dec),
+    ("average_risk_weighted_assets", Dec),
+    ("average_tier_1_prudential_capital_deductions", Dec),
+    ("worldwide_capital_risk_weighted_assets", Dec),
+    (
+        "worldwide_capital_tier_1_prudential_capital_deductions",
+        Dec,
+    ),
+    ("group_average_tier_1_capital", Dec),
+    ("group_average_risk_weighted_assets", Dec),
+    ("arm_length_capital_amount", Dec),
 ];
 
-const DERIVED: [&str; 111] = [
+const DERIVED: [&str; 113] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -2267,6 +2305,8 @@ const DERIVED: [&str; 111] = [
     "ftb-part-b",
     "rent-assistance",
     "jobseeker-payment",
+    "disability-support-pension",
+    "carer-payment",
 ];
 
 /// `derive`: `{"command", "input"}` gives the command's result with the step
@@ -2746,6 +2786,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "ftb-part-b"
             | "rent-assistance"
             | "jobseeker-payment"
+            | "disability-support-pension"
+            | "carer-payment"
             | "psi-test"
             | "payg-instalment"
             | "pcg-2021-4"
@@ -4540,17 +4582,24 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             year: &a[7],
             scope_confirmed: &a[8],
         }),
-        "age-pension" => engine::age_pension(&engine::AgePensionArgs {
-            date: &a[0],
-            relationship: &a[1],
-            homeowner: &a[2],
-            ordinary_income: &a[3],
-            financial_assets: &a[4],
-            assets: &a[5],
-            facts: &a[6],
-            year: &a[7],
-            scope_confirmed: &a[8],
-        }),
+        "age-pension" | "disability-support-pension" | "carer-payment" => {
+            let args = engine::AgePensionArgs {
+                date: &a[0],
+                relationship: &a[1],
+                homeowner: &a[2],
+                ordinary_income: &a[3],
+                financial_assets: &a[4],
+                assets: &a[5],
+                facts: &a[6],
+                year: &a[7],
+                scope_confirmed: &a[8],
+            };
+            match command {
+                "age-pension" => engine::age_pension(&args),
+                "carer-payment" => engine::carer_payment(&args),
+                _ => engine::disability_support_pension(&args),
+            }
+        }
         "ftb-part-a" => engine::ftb_part_a(&engine::FtbPartAArgs {
             children_under_13: &a[0],
             children_13_plus: &a[1],

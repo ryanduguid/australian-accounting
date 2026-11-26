@@ -6598,6 +6598,8 @@ mod rent_assistance;
 pub use rent_assistance::{RentAssistanceArgs, rent_assistance};
 mod jobseeker_payment;
 pub use jobseeker_payment::{JobseekerPaymentArgs, jobseeker_payment};
+mod pension_calculator_a;
+pub use pension_calculator_a::{carer_payment, disability_support_pension};
 mod payg_instalment;
 pub use payg_instalment::{PAYG_INSTALMENT_OPTIONAL, PaygInstalmentArgs, payg_instalment};
 mod pcg_2021_4;
@@ -6716,7 +6718,7 @@ pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
 mod staff_cost;
 pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 176] = [
+const KINDS: [&str; 178] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6893,6 +6895,8 @@ const KINDS: [&str; 176] = [
     "ftb_part_b",
     "rent_assistance",
     "jobseeker_payment",
+    "disability_support_pension",
+    "carer_payment",
 ];
 
 /// `periods(kind)`: accepted period arguments and inclusive calendar boundaries.
@@ -6962,8 +6966,16 @@ fn evidence_heading(kind: &str) -> String {
         "pcg_2021_4" => "pcg-20214".into(),
         "esic" => "early-stage-investor-tax-offset".into(),
         "wip_lockup" => "wip-lock-up".into(),
-        "help_to_buy" | "help_to_buy_review" | "home_guarantee" | "age_pension" | "ftb_part_a"
-        | "ftb_part_b" | "rent_assistance" | "jobseeker_payment" => "government-schemes".into(),
+        "help_to_buy"
+        | "help_to_buy_review"
+        | "home_guarantee"
+        | "age_pension"
+        | "ftb_part_a"
+        | "ftb_part_b"
+        | "rent_assistance"
+        | "jobseeker_payment"
+        | "disability_support_pension"
+        | "carer_payment" => "government-schemes".into(),
         "cgt_rollover" => "cgt-roll-overs".into(),
         _ => kind.replace('_', "-"),
     }

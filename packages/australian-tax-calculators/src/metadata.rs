@@ -1393,6 +1393,8 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "rent_assistance" => vec!["2026-27"],
         // Days from 1 July 2026 to 19 March 2027.
         "jobseeker_payment" => vec!["2026-27"],
+        // Days from 20 September 2025 to 19 March 2027, as age_pension.
+        "disability_support_pension" | "carer_payment" => vec!["2025-26", "2026-27"],
         // The years the site page covers whose individual tax parts
         // (resident-tax, low-income-tax-offset, medicare-levy and
         // medicare-levy-surcharge) are held: 2024-25 to 2026-27.
@@ -2156,6 +2158,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "2026-11-26",
             "Social Security Act 1991 compilation 234 (20 September 2026), s 1068 (Benefit Rate Calculator B) Modules A, B, C, D and G; DSS Social Security Guide 5.1.8.20 and 5.1.10.20; Services Australia's 'A guide to Australian Government payments' for 1 July to 19 September 2026 and 20 September to 31 December 2026 (JobSeeker Payment, Module D, Module I, Pharmaceutical Allowance)",
         ),
+        "disability_support_pension" => (
+            "2026-11-27",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064(1) and (2) and Modules A, BA, C, E, F and G, ss 1065 and 1066A (read for what they exclude); DSS Social Security Guide version 1.345 (3 November 2026), 5.1.8.10 (common pension rates for age pension, DSP at 21 or over or with a dependent child, and carer payment); the amounts are age_pension's, reviewed on 26 November 2026",
+        ),
+        "carer_payment" => (
+            "2026-11-27",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064(1)(d) and Modules A, BA, C, E and G; DSS Social Security Guide version 1.345 (3 November 2026), 5.1.8.10; Services Australia's carer payment rate and assets test pages (page last updated 20 September 2026); the amounts are age_pension's, reviewed on 26 November 2026",
+        ),
         "salary_dividend" => (
             "2026-11-26",
             "ITAA 1997 ss 25-130, 202-60, 207-20 and 293-20, SGAA 1992 ss 10A and 17A and Income Tax Rates Act 1986 ss 23 and 26 on the ATO's legal database; the ATO's 'Super guarantee' page (QC18123, last updated 17 April 2026), Tables 21, 23 and 24; the site's salary and dividends page and its 10 cases (checked 19 November 2026)",
@@ -2301,8 +2311,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "AASB 16 compilation no. 8 (F2024C00049, the latest on the Federal Register) paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A 'short-term lease'; IFRS 16 Illustrative Examples, Example 13; the site's assets/lease.mjs and its 8 cases",
         ),
         "thin_capitalisation" => (
-            "2026-11-26",
-            "ITAA 1997 compilation 268 (C2026C00471, from 1 October 2026) ss 820-1 to 820-60 and 820-427 to 820-427E with the endnotes' amendment history (Subdivisions 820-AA and 820-EAB added by No. 23, 2024 and not amended since); Treasury Laws Amendment (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 items 144 to 146; Income Tax Assessment (1997 Act) Regulations 2021 compilation 16 (F2026C00602), which makes no regulation for ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d); the ATO's fixed ratio test (12 December 2025), group ratio test (24 July 2024) and third party debt test (24 July 2024) pages",
+            "2026-11-27",
+            "ITAA 1997 compilation 268 (C2026C00471, from 1 October 2026, still the latest on 27 November 2026) ss 820-1 to 820-60, Subdivisions 820-B to 820-E (ss 820-65 to 820-420, with the formulas in ss 820-90(3), 820-115(3), 820-190(2), 820-220(3), 820-325 and 820-415 read from the compilation's images) and ss 820-427 to 820-427E with the endnotes' amendment history (Subdivisions 820-AA and 820-EAB added by No. 23, 2024 and not amended since); Treasury Laws Amendment (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 items 144 to 146; Income Tax Assessment (1997 Act) Regulations 2021 compilation 16 (F2026C00602), which makes no regulation for ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d); the ATO's fixed ratio test (12 December 2025), group ratio test (24 July 2024) and third party debt test (24 July 2024) pages",
         ),
         "debt_forgiveness" => (
             "2026-11-26",
@@ -3554,6 +3564,138 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "average_total_assets",
                 "AUD above 0: the average total assets of the entity and its associates (s 820-37(1)); with outward_investor_only true",
+            ),
+            (
+                "whole_year",
+                "boolean, needed for a financial entity or ADI: the entity is in its stated class for all of the income year; false is refused, as the part-year rules (ss 820-120, 820-225, 820-330 and 820-420) are not applied",
+            ),
+            (
+                "inward_investment_vehicle",
+                "boolean, needed for a financial entity under maximum_allowable_debt: for an outward investing financial entity, it is also an inward investment vehicle (financial) for all or part of the year (ss 820-90(2) and 820-111); for an inward investing one, true is an inward investment vehicle (financial), a foreign controlled Australian entity (ss 820-200 and 820-217), and false an inward investor (financial), a foreign entity (ss 820-210 and 820-219)",
+            ),
+            (
+                "foreign_controlled_australian_entity",
+                "boolean, needed for an outward investing ADI: it is also a foreign controlled Australian entity throughout the year, so it has no worldwide capital amount (s 820-320(1))",
+            ),
+            (
+                "average_debt_capital",
+                "AUD from 0, needed for a financial entity or ADI: the average value (Subdivision 820-G) of debt capital giving rise to debt deductions (s 820-85(3) or 820-185(3) step 1, s 820-325 or s 820-415 'average debt'), less any attributable to overseas permanent establishments for an outward entity and, for an inward ADI, any giving rise to allowable OB deductions",
+            ),
+            (
+                "average_associate_entity_debt",
+                "AUD from 0, needed for a financial entity: average associate entity debt (ss 820-85(3) step 2, 820-100 and 820-200); for an inward investor (financial), the associate entity debt arising because of the Australian investments (s 820-210)",
+            ),
+            (
+                "average_pe_associate_entity_debt",
+                "AUD from 0, needed for an inward investor (financial): average associate entity debt attributable to its Australian permanent establishments (s 820-185(3) step 2(b))",
+            ),
+            (
+                "average_controlled_foreign_entity_debt",
+                "AUD from 0, needed for an outward investing financial entity: average controlled foreign entity debt (ss 820-85(3) step 3 and 820-100)",
+            ),
+            (
+                "average_borrowed_securities_amount",
+                "AUD from 0, needed for a financial entity: the average borrowed securities amount (s 820-85(3) step 4 or 820-185(3) step 3)",
+            ),
+            (
+                "average_cost_free_debt_capital",
+                "AUD from 0, needed for a financial entity: average cost-free debt capital (s 820-85(3) step 5 or 820-185(3) step 4)",
+            ),
+            (
+                "average_assets",
+                "AUD from 0, needed for a financial entity: average value of all the entity's assets, other than those attributable to overseas permanent establishments for an outward entity (ss 820-100 and 820-200 step 1); for an inward investor (financial), its Australian investments (s 820-210 step 1)",
+            ),
+            (
+                "average_excluded_equity_interests",
+                "AUD from 0, needed for a financial entity: average excluded equity interests in the entity (step 1A)",
+            ),
+            (
+                "average_associate_entity_equity",
+                "AUD from 0, needed for a financial entity: average associate entity equity (for an inward investor (financial), arising because of the Australian investments)",
+            ),
+            (
+                "average_controlled_foreign_entity_equity",
+                "AUD from 0, needed for an outward investing financial entity or ADI: average controlled foreign entity equity (ss 820-100 and 820-300(3)(b)), other than any attributable to overseas permanent establishments for an ADI",
+            ),
+            (
+                "average_non_debt_liabilities",
+                "AUD from 0, needed for a financial entity: average non-debt liabilities (for an inward investor (financial), arising because of the Australian investments)",
+            ),
+            (
+                "average_zero_capital_amount",
+                "AUD from 0, needed for a financial entity: the average zero-capital amount (for an outward entity, other than any attributable to overseas permanent establishments; for an inward investor (financial), arising because of the Australian investments)",
+            ),
+            (
+                "average_associate_entity_excess_amount",
+                "AUD from 0, needed for a financial entity: the average associate entity excess amount",
+            ),
+            (
+                "average_on_lent_amount",
+                "AUD from 0, needed for a financial entity: the average on-lent amount (for an outward entity, other than controlled foreign entity debt; for an inward investor (financial), to the extent it is the value of the Australian investments)",
+            ),
+            (
+                "average_worldwide_debt",
+                "AUD from 0, with average_worldwide_equity, for an outward investing financial entity that is not also an inward investment vehicle: average worldwide debt (s 820-110 step 1); without both, an excess over the safe harbour debt amount is refused",
+            ),
+            (
+                "average_worldwide_equity",
+                "AUD that may be negative: average worldwide equity (s 820-110 step 1); nil or negative leaves no worldwide gearing debt amount (s 820-90(1)(c))",
+            ),
+            (
+                "statement_worldwide_debt",
+                "AUD from 0, with the other statement figures and audited_consolidated_statements, for a financial entity that is or is also an inward investment vehicle, or an inward investor (financial): statement worldwide debt (ss 820-111, 820-217 and 820-219); without them, an excess over the safe harbour debt amount is refused",
+            ),
+            (
+                "statement_worldwide_equity",
+                "AUD that may be negative: statement worldwide equity; nil or negative leaves no worldwide gearing debt amount (ss 820-90(3)(a) and 820-190(2)(a))",
+            ),
+            (
+                "statement_worldwide_assets",
+                "AUD that may be negative: statement worldwide assets after any reduction under s 820-90(5) or 820-190(4); nil or negative leaves no worldwide gearing debt amount",
+            ),
+            (
+                "statement_average_australian_assets",
+                "AUD from 0: average Australian assets for the statement period (ss 820-90(3) and (4) and 820-190(2) and (3)); above half of statement worldwide assets leaves no worldwide gearing debt amount",
+            ),
+            (
+                "audited_consolidated_statements",
+                "boolean, needed with the statement figures: audited consolidated financial statements for the entity exist for the income year; false leaves no worldwide gearing debt amount (ss 820-90(3)(b) and 820-190(2)(b))",
+            ),
+            (
+                "average_adi_equity_capital",
+                "AUD from 0, needed for an ADI: average ADI equity capital, other than any attributable to overseas permanent establishments and with s 820-300(4)'s treasury shares (outward, s 820-300(3)(a)); for an inward ADI, that attributable to its Australian permanent establishments and not allocated to OB activities (s 820-395(3)(a))",
+            ),
+            (
+                "average_interest_free_pe_loans",
+                "AUD from 0, needed for an inward ADI: average amounts the entity makes available to its Australian permanent establishments as loans giving rise to no debt deductions (s 820-395(3)(b))",
+            ),
+            (
+                "average_risk_weighted_assets",
+                "AUD from 0, needed for an ADI: for an outward ADI, average risk-weighted assets and capitalised software intangibles after the exclusions in s 820-310(1) step 1; for an inward ADI, average risk-weighted assets of the Australian permanent establishments not attributable to OB activities (s 820-405)",
+            ),
+            (
+                "average_tier_1_prudential_capital_deductions",
+                "AUD from 0, needed for an outward ADI: average tier 1 prudential capital deductions after the exclusions in s 820-310(1) step 3",
+            ),
+            (
+                "worldwide_capital_risk_weighted_assets",
+                "AUD from 0, with the other 3 worldwide capital inputs, for an outward ADI that is not a foreign controlled Australian entity: average risk-weighted assets after the exclusions in s 820-320(2) step 1; without them, a capital shortfall is refused",
+            ),
+            (
+                "worldwide_capital_tier_1_prudential_capital_deductions",
+                "AUD from 0: average tier 1 prudential capital deductions after the exclusions in s 820-320(2) step 4",
+            ),
+            (
+                "group_average_tier_1_capital",
+                "AUD from 0: the average tier 1 capital of the entity's consolidated group under the prudential standards (s 820-320(3) step 1)",
+            ),
+            (
+                "group_average_risk_weighted_assets",
+                "AUD above 0: the average risk-weighted assets of that group under the prudential standards (s 820-320(3) step 2)",
+            ),
+            (
+                "arm_length_capital_amount",
+                "AUD from 0, for an ADI: the arm's length capital amount the entity worked out under s 820-315 or 820-410 (records under s 820-980); the worksheet does not work it out, and without it a capital shortfall is refused",
             ),
         ],
         "impairment_test" => vec![
@@ -6083,7 +6225,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
         )],
         "luxury_car_tax" => vec![(
             "lines",
-            "list of 1 to 1,000 objects, the tax period's luxury car tax lines, each with kind and its inputs: sale (a taxable supply of a luxury car, s 5-10) or importation (a taxable importation, s 7-5) with luxury_car_tax_value (AUD, the value including GST and customs duty but not luxury car tax: s 5-20 for a sale, s 7-15(2) for an importation), fuel_consumption_litres_per_100km (the combined rating under the national road vehicle standards, a decimal string from 0 to 100 with at most 2 decimal places, or null for none), used_before_1_july_2025 (boolean, required only for a car rated above 3.5 and at most 7 litres supplied or imported from 1 July 2025: true where, before that day, an entity supplied or imported the car and it was used in Australia other than for a quotable purpose) and, for a sale, lct_previously_payable (AUD, optional: luxury car tax payable on an earlier supply or importation of the car, s 5-15(2)); price_adjustment (an adjustment event on an earlier sale, ss 15-20 and 15-25) with supplied_in (the financial year of the sale, 2012-13 to the tax period's), corrected_luxury_car_tax_value, the car's rating facts, lct_previously_payable (optional) and previously_attributed_lct (AUD, the luxury car tax previously attributed to the supply); change_of_use_increasing (a car supplied under quote, or one on whose supply a s 15-30(1) decreasing adjustment arose, then used other than for a quotable purpose, s 15-30(3) and (4)) with supplied_in, luxury_car_tax_value, the rating facts and lct_previously_payable (optional); change_of_use_decreasing (s 15-30(1)) with lct_payable_on_supply (AUD); and refund (s 18-5 or 18-10) with claimant (primary_producer or tourism_operator), refund_eligible_car (boolean), lct_borne (AUD) and supplied_in (optional, from 2019-20)",
+            "list of 1 to 1,000 objects, the tax period's luxury car tax lines, each with kind and its inputs: sale (a taxable supply of a luxury car, s 5-10) or importation (a taxable importation, s 7-5) with luxury_car_tax_value (AUD, the value including GST and customs duty but not luxury car tax: s 5-20 for a sale, s 7-15(2) for an importation), fuel_consumption_litres_per_100km (the combined rating under the national road vehicle standards, a decimal string from 0 to 100 with at most 2 decimal places, or null for none), used_before_1_july_2025 (boolean, required only for a car rated above 3.5 and at most 7 litres supplied or imported from 1 July 2025: true where, before that day, an entity supplied or imported the car and it was used in Australia other than for a quotable purpose) and, for a sale, lct_previously_payable (AUD, optional: luxury car tax payable on an earlier supply or importation of the car, s 5-15(2)); price_adjustment (an adjustment event on an earlier sale, ss 15-20 and 15-25) with supplied_in (the financial year of the sale, 2012-13 to the tax period's), corrected_luxury_car_tax_value, the car's rating facts, lct_previously_payable (optional) and previously_attributed_lct (AUD, the luxury car tax previously attributed to the supply); change_of_use_increasing (a car supplied under quote, or one on whose supply a s 15-30(1) decreasing adjustment arose, then used other than for a quotable purpose, s 15-30(3) and (4)) with supplied_in, luxury_car_tax_value, the rating facts and lct_previously_payable (optional); change_of_use_decreasing (s 15-30(1)) with lct_payable_on_supply (AUD); and refund (s 18-5 or 18-10) with claimant (primary_producer or tourism_operator), refund_eligible_car (boolean), lct_borne (AUD) and supplied_in (the financial year the car was supplied or imported, 2019-20 to the tax period's)",
         )],
         "cgt_parcels" => vec![
             (
@@ -7150,6 +7292,24 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("partner_income", "AUD per fortnight: the partner's ordinary income; 0.00 for a single person"),
             ("facts", "object of booleans, each your statement, not tested: qualified, no_working_credit, no_rent_assistance, assets_within_limit, no_adjustments and energy_fortnightly; every one required true"),
         ],
+        "disability_support_pension" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2025-09-20 to 2027-03-19: the day the fortnightly rate is for"),
+            ("relationship", "single or couple: for a couple, the partner also receives a pension under Pension Rate Calculator A"),
+            ("homeowner", "boolean: the person or partner is a homeowner (s 11)"),
+            ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
+            ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
+            ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
+            ("facts", "object of booleans, each your statement, not tested: aged_21_or_with_child, not_blind, no_module_f_payment, in_australia, not_transitional, no_rent_assistance, no_quarterly_election, no_armed_services_cap, no_underage_relationship and no_adjustments, and for a couple partner_pensioner; every one required true"),
+        ],
+        "carer_payment" => vec![
+            ("date", "date, YYYY-MM-DD, within year, from 2025-09-20 to 2027-03-19: the day the fortnightly rate is for"),
+            ("relationship", "single or couple: for a couple, the partner also receives a pension under Pension Rate Calculator A"),
+            ("homeowner", "boolean: the person or partner is a homeowner (s 11)"),
+            ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
+            ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
+            ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
+            ("facts", "object of booleans, each your statement, not tested: carer_payment_only, in_australia, not_transitional, no_rent_assistance, no_quarterly_election, no_armed_services_cap, no_underage_relationship and no_adjustments, and for a couple partner_pensioner; every one required true"),
+        ],
         "salary_dividend" => vec![
             ("profit", "AUD: the company's profit before the owner's salary, its super guarantee and company tax, all paid out"),
             ("base_rate_entity", "boolean: the company is a base rate entity for the year and its corporate tax rate for imputation purposes is 25% (Income Tax Rates Act 1986 s 23(2)); false for 30%"),
@@ -7205,7 +7365,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("earner", "employee, religious_practitioner, sole_trader or entity: who receives the income: the individual as an employee or office holder (s 85-35(1)), as a religious practitioner paid under s 12-47 of Schedule 1 to the TAA 1953 (s 85-35(2)), or as a contractor, or a company, partnership or trust (a personal services entity)"),
             ("mainly_personal_efforts", "boolean: the income is mainly a reward for the individual's personal efforts or skills (s 84-5(1))"),
             ("determination_in_force", "boolean: a personal services business determination is in force for the individual's PSI (s 87-15(1)(a) or (b))"),
-            ("payers", "list of 1 to 50 objects, one for each payer with its associates, or for each contract when a payer's contracts differ: amount (AUD, the PSI from it in the year), associate (it is an associate of the individual or entity), offer (it engaged the individual or entity as a direct result of offers to the public, s 87-20), and result, tools and defects (the income is for producing a result, the individual or entity supplies the tools and is liable for defects, s 87-18), each a boolean; and source, an optional label of 1 to 100 characters: rows with the same source are one payer with its associates for the 80% rule and the unrelated clients test (s 87-15(3))"),
+            ("payers", "list of 1 to 50 objects, one for each payer with its associates, or for each contract when a payer's contracts differ: amount (AUD, the PSI from it in the year), associate (it is an associate of the individual or entity), offer (it engaged the individual or entity as a direct result of offers to the public, s 87-20), and result, tools and defects (the income is for producing a result, the individual or entity supplies the tools and is liable for defects, s 87-18), each a boolean; and source, an optional label of 1 to 100 characters: rows with the same source are one payer with its associates for the 80% rule (s 87-15(3)), so payers that are associates of each other share a source and rows with different sources are the operator's statement that their payers are not associates of each other; and client, an optional label of 1 to 100 characters for the unrelated clients test (s 87-20(1)(a)), on every row or none: the operator's statement that rows with the same client are one entity or associates of each other and rows with different clients are not associates of each other, each client within one source; without client labels rows sharing a source count once, and where that decides the outcome with 2 or more such rows won by offers the command refuses (psi_test.clients_needed)"),
             ("agent", "boolean: the individual or entity is an agent of a principal, not its employee, paid for services to the principal's customers (s 87-40(2)); then commission and principal_payments are required"),
             ("principal_work_by_others", "AUD: the market value of the principal work performed in the year by entities the individual or entity engaged, not counting associates that are not individuals and, for a personal services entity, individuals whose PSI is in its income; a partner's work counts for a partnership (s 87-25(1), (2) and (2A)); TR 2022/3 paragraph 118 measures it against the PSI"),
             ("apprentice", "boolean: the individual or entity had one or more apprentices for at least half the year (s 87-25(3))"),
@@ -7469,8 +7629,8 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("remeasurement", "boolean: the liability has been or must be remeasured for a reassessment, modification, change in an index or rate or revised in-substance fixed payment (paras 36(c) and 39 to 46); true is refused"),
         ],
         "thin_capitalisation" => vec![
-            ("test", "fixed_ratio (no choice made, s 820-46(1)(b)(i)), group_ratio (a choice under s 820-46(3)) or third_party_debt (a choice under s 820-46(4), or taken to be made under s 820-46(5) and s 820-48)"),
-            ("entity_class", "general_class_investor (s 820-46(2)) or not_covered (no Subdivision of Division 820 applies); outward_investing_financial_entity, inward_investing_financial_entity, outward_investing_adi and inward_investing_adi are refused"),
+            ("test", "for a general class investor (or an entity no Subdivision covers): fixed_ratio (no choice made, s 820-46(1)(b)(i)), group_ratio (a choice under s 820-46(3)) or third_party_debt (a choice under s 820-46(4), or taken to be made under s 820-46(5) and s 820-48); for a financial entity (non-ADI): maximum_allowable_debt (ss 820-90 and 820-190) or third_party_debt (a choice under s 820-85(2C) or 820-185(2C)); for an ADI: minimum_capital_amount (ss 820-305 and 820-400)"),
+            ("entity_class", "general_class_investor (s 820-46(2)), outward_investing_financial_entity (s 820-85(2), Subdivision 820-B), inward_investing_financial_entity (s 820-185(2), and not also outward, Subdivision 820-C), outward_investing_adi (s 820-300(2), Subdivision 820-D), inward_investing_adi (s 820-395(2), Subdivision 820-E) or not_covered (no Subdivision of Division 820 applies); a stated fact"),
             ("plantation_forestry_entity", "boolean: an Australian plantation forestry entity for all or part of the year, kept under the older law (Act No. 23, 2024 Schedule 2 item 146); true is refused"),
             ("special_purpose_entity", "boolean: the entity meets the conditions in s 820-39(3) throughout the income year"),
             ("outward_investor_only", "boolean: assuming it were a financial entity all year, the entity would be an outward investing financial entity (non-ADI) and not an inward investing one (s 820-37(1)(a)(ii) and (b)); true needs average_australian_assets and average_total_assets"),
@@ -9079,6 +9239,38 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 "facts",
                 Json(
                     r#"{"qualified": true, "no_working_credit": true, "no_rent_assistance": true, "assets_within_limit": true, "no_adjustments": true, "energy_fortnightly": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single non-homeowner aged 30 with part-time earnings.
+        "disability_support_pension" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("relationship", Text("single")),
+            ("homeowner", Flag(false)),
+            ("ordinary_income", Text("300.00")),
+            ("financial_assets", Text("20000.00")),
+            ("assets", Text("50000.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#,
+                ),
+            ),
+        ],
+        // Fabricated: a single homeowning carer with savings.
+        "carer_payment" => vec![
+            ("year", Text("2026-27")),
+            ("date", Text("2026-10-01")),
+            ("relationship", Text("single")),
+            ("homeowner", Flag(true)),
+            ("ordinary_income", Text("150.00")),
+            ("financial_assets", Text("80000.00")),
+            ("assets", Text("380000.00")),
+            (
+                "facts",
+                Json(
+                    r#"{"carer_payment_only": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#,
                 ),
             ),
         ],

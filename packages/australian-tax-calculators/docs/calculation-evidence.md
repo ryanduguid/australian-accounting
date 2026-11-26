@@ -5916,6 +5916,18 @@ Added on 26 November 2026, when these were read:
   limits for 6 situations and its $1,440 partner income free area.
   Pharmaceutical allowance is indexed on 1 January (the guides' indexation
   dates), so it is refused for days from 1 January 2027.
+- Disability support pension and carer payment, added on 27 November 2026:
+  the Social Security Act 1991 s 1064(1) and (2), Modules A, BA, C, E, F and
+  G, and ss 1065 and 1066A for what they exclude (compilation 234); Social
+  Security Guide 5.1.8.10 (version 1.345), whose common pension rates cover
+  age pension, disability support pension at 21 or over or with a dependent
+  child, and carer payment; Services Australia's carer payment rate and assets
+  test pages (last updated 20 September 2026). Both commands work
+  `age-pension`'s calculator and amounts; the tests meet the guide's maximum
+  rates and the carer payment page's part pension cut-off points, and give
+  `age-pension`'s amounts on the first and last day of every dated period.
+  Services Australia's disability support pension rate page refused the
+  plain reader and a browser (an error page), so it was not read.
 
 The Department of Social Services' Family Assistance Guide was not read (a
 challenge page), so the Act and the published rates stand alone. The
@@ -5999,7 +6011,16 @@ the two agree on every case the page's tests hold. Its choices:
 
 - each payer is entered with its associates as one row, or as one row for
   each contract when its contracts differ for the results test, the rows
-  sharing a `source` label (s 87-15(3));
+  sharing a `source` label (s 87-15(3)), so payers that are associates of
+  each other share a source and different sources state that their payers
+  are not associates of each other;
+- the unrelated clients test counts rows sharing a `client` label once; the
+  labels, on every row or none, are the operator's statement of which payers
+  are associates of each other, as s 87-20(1)(a) asks only that the clients
+  are not. Payers that are each an associate of a third entity share a source
+  but can be 2 clients. Without labels rows sharing a source count once, and
+  where that decides the outcome with 2 or more such rows won by offers the
+  command refuses (the site's page counts them by payer group);
 - a religious practitioner's payment is outside Division 85 under
   s 85-35(2), which the site's page folds into s 85-35(1);
 - the employment test's 20% is measured against the PSI entered, as
@@ -6915,6 +6936,26 @@ their average total assets. The ATO's fixed ratio test page (last updated
 either side, the 90% assets threshold a cent either side, a negative net debt
 deductions widening the excess, a negative tax EBITDA, every tax EBITDA line,
 the year boundaries and every refusal.
+
+Subdivisions 820-B to 820-E were added on 27 November 2026 from the same
+compilation, confirmed through the Federal Register of Legislation's API
+that day as still the latest, with no unincorporated amendments. The
+formulas in ss 820-90(3)(c), 820-115(3), 820-190(2)(c), 820-220(3), 820-325
+and 820-415 are images: average Australian assets over statement worldwide
+assets, and each debt deduction times excess debt (or capital shortfall)
+over average debt. The Act's own examples are the vectors.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| GLM Limited (ss 820-100, 820-110) | assets 160m, reductions 5m, 5m, 5m, 9m, 6m, 5m, zero-capital 4m, on-lent 35m, worldwide debt 120m and equity 40m | total debt amount **117,437,500**, adjusted on-lent amount **87,000,000**, worldwide gearing debt amount **94,750,000** |
+| GLM with debt | adjusted average debt 96m, average debt 110m, deductions 8.8m | excess **1,250,000**, disallowed **100,000** |
+| TRR Limited (s 820-111) | statement debt 90m and equity 30m, total debt base 100m, zero-capital 5m | worldwide gearing debt amount **80,000,000** |
+| Inward investor (s 820-210) | Australian investments 120m, reductions 5m, 5m, 2m, 3m, zero-capital 5m, on-lent 35m | total debt amount **98,750,000**, adjusted on-lent amount **75,000,000** |
+| Southern Cross Bank (ss 820-310, 820-320) | risk-weighted assets 150m, tier 1 deductions 2m, group 14m over 160m | safe harbour **11,000,000**, worldwide **15,125,000**; with equity 10m, average debt 200m and deductions 10m, disallowed **50,000** |
+| Global Bank (s 820-405) | risk-weighted assets 140m | safe harbour **8,400,000**; with equity 8.2m, average debt 100m and deductions 5m, disallowed **10,000** |
+
+`general_class_results_unchanged` compares 11 general class inputs with
+their results recorded on main at 4df634bb, refusals included.
 
 ## Debt forgiveness
 

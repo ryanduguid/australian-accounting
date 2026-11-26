@@ -29,7 +29,7 @@ const KIND: &str = "psi_test";
 /// The largest number of payers the worksheet takes.
 const MAX_PAYERS: usize = 50;
 const PSB: &str = "a personal services business, so Divisions 85 and 86 do not apply";
-const PAYER_KEYS: [&str; 7] = [
+const PAYER_KEYS: [&str; 8] = [
     "amount",
     "associate",
     "offer",
@@ -37,8 +37,9 @@ const PAYER_KEYS: [&str; 7] = [
     "tools",
     "defects",
     "source",
+    "client",
 ];
-/// The longest `source` label a payer row takes.
+/// The longest `source` or `client` label a payer row takes.
 const MAX_SOURCE: usize = 100;
 const PREMISES_KEYS: [&str; 5] = [
     "at_all_times",
@@ -68,8 +69,15 @@ pub struct PsiTestArgs<'a> {
 
 struct Payer {
     /// The payer and its associates (s 87-15(3)): the row's `source`
-    /// label, or the row alone when it has none.
+    /// label, or the row alone when it has none. Associates of each other
+    /// share a source, so different sources are not associates.
     source: String,
+    /// The operator's s 87-20(1)(a) grouping: rows with one `client` label
+    /// are one entity or associates of each other, and rows with different
+    /// labels are not associates of each other. 2 entities that are each an
+    /// associate of a third, not of each other, share a source but are 2
+    /// clients. Given on every row or on none.
+    client: Option<String>,
     amount: Decimal,
     associate: bool,
     offer: bool,
@@ -92,9 +100,21 @@ fn bad_payers<T>() -> Result<T> {
     refuse(
         "psi_test.payers_invalid",
         format!(
-            "payers must be a list of 1 to {MAX_PAYERS} objects, each with amount, associate, offer, result, tools and defects, and a source label of 1 to {MAX_SOURCE} characters if given."
+            "payers must be a list of 1 to {MAX_PAYERS} objects, each with amount, associate, offer, result, tools and defects, and source and client labels of 1 to {MAX_SOURCE} characters if given."
         ),
     )
+}
+
+/// A row's `key` label, kept apart from the other key's and from a row
+/// with none.
+fn label(fields: &Map<String, Value>, key: &str) -> Result<Option<String>> {
+    match fields.get(key) {
+        None => Ok(None),
+        Some(Value::String(label)) if !label.is_empty() && label.chars().count() <= MAX_SOURCE => {
+            Ok(Some(format!("{key} {label}")))
+        }
+        Some(_) => bad_payers(),
+    }
 }
 
 fn payers(given: &Arg) -> Result<Vec<Payer>> {
@@ -113,17 +133,11 @@ fn payers(given: &Arg) -> Result<Vec<Payer>> {
                 return bad_payers();
             };
             stated::known_keys(fields, &name, "a payer", &PAYER_KEYS)?;
-            let source = match fields.get("source") {
-                None => format!("row {i}"),
-                Some(Value::String(label))
-                    if !label.is_empty() && label.chars().count() <= MAX_SOURCE =>
-                {
-                    format!("label {label}")
-                }
-                Some(_) => return bad_payers(),
-            };
+            let source = label(fields, "source")?.unwrap_or_else(|| format!("row {i}"));
+            let client = label(fields, "client")?;
             Ok(Payer {
                 source,
+                client,
                 amount: stated::amount(fields, &name, "amount")?,
                 associate: boolean(fields, &name, "associate")?,
                 offer: boolean(fields, &name, "offer")?,
@@ -258,12 +272,40 @@ fn agent_payments(agent: Option<(&Arg, &Arg)>) -> Result<Option<(Decimal, Decima
     Ok(Some((commission, principal)))
 }
 
+/// Client labels on every row or none, and each client within one source: an
+/// entity and its associates are one source for s 87-15(3).
+fn clients_consistent(payers: &[Payer]) -> Result<()> {
+    let labelled = payers.iter().filter(|p| p.client.is_some()).count();
+    if labelled != 0 && labelled != payers.len() {
+        return refuse(
+            "psi_test.clients_invalid",
+            "Give every payer a client label for the unrelated clients test, or none.",
+        );
+    }
+    for (i, p) in payers.iter().enumerate() {
+        if payers[..i]
+            .iter()
+            .any(|q| q.client == p.client && q.source != p.source && p.client.is_some())
+        {
+            return refuse(
+                "psi_test.clients_invalid",
+                format!(
+                    "payer {}: rows with one client label are one entity or its associates, so they share one source.",
+                    i + 1
+                ),
+            );
+        }
+    }
+    Ok(())
+}
+
 pub fn psi_test(args: &PsiTestArgs) -> Result<Value> {
     let year = scope(args.scope_confirmed, args.year, KIND)?;
     let entity = earner(args.earner)?;
     let mainly = flag(args.mainly_personal_efforts, "mainly_personal_efforts")?;
     let determination = flag(args.determination_in_force, "determination_in_force")?;
     let payers = payers(args.payers)?;
+    clients_consistent(&payers)?;
     let agent = flag(args.agent, "agent")?;
     let [commission, principal] = optional_facts(args, agent)?;
     let agent = agent_payments(commission.zip(principal))?;
@@ -379,7 +421,7 @@ impl Work {
             self.agent(commission, principal)?;
         }
         let one_source = self.one_source(f)?;
-        let passes = self.other_tests(f)?;
+        let passes = self.other_tests(f, one_source)?;
         Ok(conclude(entity, one_source, &passes))
     }
 
@@ -478,19 +520,23 @@ impl Work {
     /// The other 3 tests, which count for self-assessment only under 80%
     /// from one source but are still worked out: the Commissioner weighs
     /// them for a determination (s 87-15(1), note 2). Returns the sections
-    /// met.
-    fn other_tests(&mut self, f: &Facts) -> Result<Vec<&'static str>> {
-        let unrelated = f
-            .payers
-            .iter()
-            .filter(|p| !p.amount.is_zero() && !p.associate && p.offer)
-            .map(|p| p.source.as_str())
-            .collect::<BTreeSet<_>>()
-            .len();
+    /// met. Without client labels, rows sharing a source count once; where
+    /// that decides the outcome and the source holds 2 or more rows won by
+    /// offers, whether they are 2 clients is not known, so it refuses.
+    fn other_tests(&mut self, f: &Facts, one_source: bool) -> Result<Vec<&'static str>> {
+        let won = won_by_offer(f);
+        let unrelated = unrelated_clients(&won);
         let employment = share(f.others, f.total)?;
         let fifth = reaches(f.others, f.total, 1, 5)?;
         let employs = fifth || f.apprentice;
         let clients = unrelated >= 2;
+        let labelled = won.iter().any(|p| p.client.is_some());
+        if !clients && won.len() >= 2 && !labelled && !one_source && !employs && !f.premises {
+            return refuse(
+                "psi_test.clients_needed",
+                "The unrelated clients test decides the outcome, and 2 or more payers won by offers share a source: give every payer a client label, one label for rows that are one entity or associates of each other (s 87-20(1)(a)).",
+            );
+        }
         self.push(
             "Section 87-20: unrelated payers that engaged the individual or entity as a direct result of offers to the public",
             format!(
@@ -519,15 +565,32 @@ impl Work {
             .insert("unrelated_clients".into(), json!(unrelated));
         self.figures
             .insert("employment_percent".into(), json!(employment));
-        Ok([
-            (clients, "87-20"),
-            (employs, "87-25"),
-            (f.premises, "87-30"),
-        ]
+        Ok(met_sections(clients, employs, f.premises))
+    }
+}
+
+/// Payers with an amount, not associates of the entity, won by offers.
+fn won_by_offer<'a>(f: &'a Facts<'_>) -> Vec<&'a Payer> {
+    f.payers
+        .iter()
+        .filter(|p| !p.amount.is_zero() && !p.associate && p.offer)
+        .collect()
+}
+
+/// Distinct client labels, a row without one counting by its source.
+fn unrelated_clients(won: &[&Payer]) -> usize {
+    won.iter()
+        .map(|p| p.client.as_ref().unwrap_or(&p.source))
+        .collect::<BTreeSet<_>>()
+        .len()
+}
+
+/// The sections of the other 3 tests that are met.
+fn met_sections(clients: bool, employs: bool, premises: bool) -> Vec<&'static str> {
+    [(clients, "87-20"), (employs, "87-25"), (premises, "87-30")]
         .into_iter()
         .filter_map(|(met, section)| met.then_some(section))
-        .collect())
-    }
+        .collect()
 }
 
 /// s 87-15(3) at 80% from one source; otherwise s 87-15(1) by the other 3

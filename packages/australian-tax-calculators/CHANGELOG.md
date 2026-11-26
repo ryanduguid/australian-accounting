@@ -14,6 +14,15 @@
   `payroll_tax_group.nt_annual_unallowed`; removed:
   `payroll_tax_group.act_unread` and `payroll_tax_group.formula_unread`.
 
+- `thin-capitalisation` now applies ITAA 1997 Subdivisions 820-B to 820-E:
+  a financial entity (non-ADI) by its maximum allowable debt (safe harbour
+  and worldwide gearing debt amounts) or its third party debt choice, and
+  an ADI by its minimum capital amount (safe harbour, worldwide and stated
+  arm's length capital amounts), for the whole year, from stated averages.
+  An amount the result turns on that was not stated is refused, never
+  estimated. General class results are unchanged. New codes:
+  `thin_capitalisation.amount_not_worked_out` and `part_year_not_built`;
+  `thin_capitalisation.entity_class_not_built` is retired.
 - `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost`
   mirror the site's break-even, 13-week cash, hourly, fixed fee and staff
   cost calculators and agree with every one of their vectors;
@@ -97,6 +106,22 @@
 
 ### Changed
 
+- `luxury-car-tax` requires `supplied_in` on a refund line. It used to take
+  the tax period's year when the field was blank, so a car supplied before
+  1 July 2019 could take the $10,000 refund of ss 18-5(3) and 18-10(3) (as
+  substituted by Act No. 94 of 2019) instead of being refused: a refund is
+  claimed up to 4 years after the entitlement arises, so the tax period's
+  year does not show which refund applies. A refund line without it is now
+  refused with `input.missing_field`.
+- `psi-test` takes an optional `client` label on every payer, or none, for
+  the unrelated clients test (ITAA 1997 s 87-20(1)(a)): the operator's
+  statement of which payers are one entity or associates of each other. Rows
+  sharing a `source` were always counted as one client, so 2 payers that are
+  each an associate of a third entity, but not of each other, counted once.
+  Without client labels the count is unchanged, but where it decides the
+  outcome and 2 or more payers won by offers share a source the command now
+  refuses instead of returning 'not a personal services business'. New codes:
+  `psi_test.clients_invalid` and `psi_test.clients_needed`.
 - `payroll-tax-monthly` works New South Wales, from the Payroll Tax Act 2007
   (NSW) Sch 1 and Sch 2 cll 2 and 3 as read at AustLII on 27 November 2026:
   the year's tax on the month's wages annualised by days, in the month's
