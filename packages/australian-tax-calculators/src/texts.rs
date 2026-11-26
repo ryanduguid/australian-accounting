@@ -3155,6 +3155,8 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "age_pension",
         &[
             "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/1/9/10",
+            "https://www.legislation.gov.au/C2004A04121/latest/text",
             "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
             "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
             "https://guides.dss.gov.au/social-security-guide/4/10/3",
@@ -4103,6 +4105,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "financial_assets is more than assets, which include them.",
     ),
     (
+        "age_pension.case_not_built",
+        "A stated circumstance needs a provision the command does not work: s 1064(4), s 1064(5)(c), an advance deduction under step 12, the remote area allowance for a child, or an s 1061VA election before 20 September 2026 or beside the s 1064(5) to (7) limit.",
+    ),
+    (
         "age_pension.date_invalid",
         "date is not a YYYY-MM-DD day in the year.",
     ),
@@ -4116,7 +4122,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "age_pension.facts_not_stated",
-        "A fact the worksheet needs was not stated true: in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together.",
+        "A fact the worksheet needs was not stated true (in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together), or a circumstance was not stated true or false.",
     ),
     (
         "age_pension.relationship_invalid",

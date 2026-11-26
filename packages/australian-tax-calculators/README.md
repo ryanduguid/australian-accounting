@@ -4647,7 +4647,20 @@ fortnight (`ordinary_income`, combined for a couple) has deemed income from
 The amounts are the Social Security Guide's for each period from 20 September
 2025 to 19 March 2027, and it refuses dates outside them. `facts` must state
 `in_australia`, `not_blind`, `not_transitional` and `no_rent_assistance`, and
-for a couple `partner_pensioner`. `derive` explains each step. See
+for a couple `partner_pensioner`, each true. It must also state each of 6
+circumstances true or false. `armed_services_payment` (an armed services
+widow or widower paid a war widow's pension or the MRCA weekly amount or
+lump sum) limits the rate to $3,247.40 a year (s 1064(5)(d), (6) and (7)),
+and then `rate_before_november_1986` must be stated. `remote_area` adds the
+remote area allowance of s 1064-H2 (step 12(c)), and then `remote_area_child`
+must be stated. `pension_supplement_election` (s 1061VA) takes the minimum
+pension supplement amount out of the maximum rate (s 1064-BA4), on days from
+20 September 2026 only. `quarterly_energy_supplement` leaves the energy
+supplement out (s 1064-C2). True for `underage_de_facto` (s 1064(4)),
+`advance_deduction` (step 12(a) and (b)), `rate_before_november_1986`
+(s 1064(5)(c)) or `remote_area_child` (the allowance for each child) is
+refused with `age_pension.case_not_built`, as is an election beside the
+s 1064(5) to (7) limit. `derive` explains each step. See
 [calculation evidence](docs/calculation-evidence.md#government-schemes).
 
 ## Family tax benefit Part A

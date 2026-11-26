@@ -2138,7 +2138,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "age_pension" => (
             "2026-11-26",
-            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064 Modules A, E and G; DSS Social Security Guide version 1.345 (3 November 2026), 4.2.1.10, 4.2.3, 4.4.1.10, 4.10.3, 5.1.8.10, 5.1.9.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's age pension income and assets test pages (cut-off points from 20 September 2026)",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064(4) to (7) and Modules A, BA, C, E, G and H, and s 1191; DSS Social Security Guide version 1.345 (3 November 2026), 4.2.1.10, 4.2.3, 4.4.1.10, 4.10.3, 5.1.8.10, 5.1.9.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's age pension income and assets test pages (cut-off points from 20 September 2026)",
         ),
         "ftb_part_a" => (
             "2026-11-26",
@@ -7111,7 +7111,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
             ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
             ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
-            ("facts", "object of booleans, each your statement, not tested: in_australia, not_blind, not_transitional and no_rent_assistance, and for a couple partner_pensioner; every one required true"),
+            ("facts", "object of booleans, each your statement, not tested: in_australia, not_blind, not_transitional and no_rent_assistance, and for a couple partner_pensioner, every one required true; and each of underage_de_facto, advance_deduction, armed_services_payment, remote_area, pension_supplement_election and quarterly_energy_supplement true or false, with rate_before_november_1986 where armed_services_payment and remote_area_child where remote_area. True refuses underage_de_facto (s 1064(4)), advance_deduction (step 12(a) and (b)), rate_before_november_1986 (s 1064(5)(c)) and remote_area_child (H2); armed_services_payment limits the rate to $3,247.40 a year (s 1064(5)(d), (6) and (7)); remote_area adds the allowance (Module H); pension_supplement_election subtracts the minimum pension supplement amount, from 20 September 2026 only (BA4); quarterly_energy_supplement leaves out the energy supplement (C2)"),
         ],
         "ftb_part_a" => vec![
             ("children_under_13", "integer from 0 to 20: FTB children under 13 all year"),
@@ -9013,7 +9013,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "facts",
                 Json(
-                    r#"{"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true}"#,
+                    r#"{"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true, "underage_de_facto": false, "advance_deduction": false, "armed_services_payment": false, "remote_area": false, "pension_supplement_election": false, "quarterly_energy_supplement": false}"#,
                 ),
             ),
         ],

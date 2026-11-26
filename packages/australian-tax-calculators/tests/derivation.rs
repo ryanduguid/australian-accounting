@@ -1308,7 +1308,8 @@ fn cases() -> Vec<(&'static str, Value)> {
         staff(json!({"super_base": "10000", "year": "2021-22"})),
     ]);
     let pension = json!({"in_australia": true, "not_blind": true, "not_transitional": true,
-                         "no_rent_assistance": true, "partner_pensioner": true});
+                         "no_rent_assistance": true, "partner_pensioner": true,
+                         "underage_de_facto": false, "advance_deduction": false, "armed_services_payment": false, "remote_area": false, "pension_supplement_election": false, "quarterly_energy_supplement": false});
     for (relationship, homeowner, income, financial, assets) in [
         ("single", true, "200.00", "100000.00", "100000.00"),
         ("single", false, "0.00", "0.00", "745500.00"),
