@@ -291,7 +291,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
 | `consolidation-eliminations` | `parent`, `subsidiaries`, `intra_group_balances`, `intra_group_transactions`, `unrealised_profits`, `tax_rate`, `acquired_in_period`, `fair_value_adjustments`, `previously_held_interest`, `ownership_changed`, `intra_group_dividends`, `year`, `scope_confirmed`; see [Consolidation eliminations](#consolidation-eliminations) |
 | `tofa-accruals` | `start`, `end`, `interval_months`, `financial_benefits`, `method`, `approximation_confirmed`, `accruals_chosen`, `entity_type`, `qualifying_security`, `threshold_failed_earlier`, `division_230_election`, `elections`, `year`, `scope_confirmed`; optional `aggregated_turnover`, `assets` and `financial_assets`; see [TOFA accruals](#tofa-accruals) |
-| `thin-capitalisation` | `test`, `entity_class`, `plantation_forestry_entity`, `special_purpose_entity`, `outward_investor_only`, `associate_inclusive_debt_deductions`, `debt_deductions`, `year`, `scope_confirmed`; by test, `interest_and_equivalent_income`, `taxable_income`, `division_40_43_deductions` and optional `franking_credits`, `associate_dividends`, `rd_notional_deductions`, `forestry_deductions`, `section_70_120_deductions`, `excess_tax_ebitda_amount`, `frt_disallowed_amounts` and the `gr_group_` figures; with an outward investor `average_australian_assets` and `average_total_assets`; see [Thin capitalisation](#thin-capitalisation) |
+| `thin-capitalisation` | `test`, `entity_class`, `plantation_forestry_entity`, `special_purpose_entity`, `outward_investor_only`, `associate_inclusive_debt_deductions`, `debt_deductions`, `year`, `scope_confirmed`; by test, `interest_and_equivalent_income`, `taxable_income`, `division_40_43_deductions` and optional `franking_credits`, `associate_dividends`, `rd_notional_deductions`, `forestry_deductions`, `section_70_120_deductions`, `excess_tax_ebitda_amount`, `frt_disallowed_amounts` and the `gr_group_` figures; with an outward investor `average_australian_assets` and `average_total_assets`; for a financial entity or ADI, `whole_year` and the `average_` figures its Subdivision uses, with `inward_investment_vehicle`, the worldwide or `statement_` figures and `audited_consolidated_statements` (financial entities), and `foreign_controlled_australian_entity`, the worldwide capital figures and `arm_length_capital_amount` (ADIs); see [Thin capitalisation](#thin-capitalisation) |
 | `debt-forgiveness` | `debts`, `tax_losses`, `net_capital_losses`, `expenditures`, `cost_bases`, `partnership`, `attributable_income`, `year`, `scope_confirmed`; see [Debt forgiveness](#debt-forgiveness) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
@@ -556,7 +556,7 @@ DI2026-157).
 | Hourly rate and fixed fee | A period in 2020-21 to 2026-27; stated costs, profit, hours, rate and margin; GST at 10% (GST Act s 9-70) on a fee the operator has established is taxable |
 | Staff cost | 2021-22 to 2026-27; super stated or the super guarantee on a stated base (ATO tables 21, 23 and 24); payroll tax and workers compensation at stated rates; no Norfolk Island rate |
 | Impairment test | Reporting periods ending in 2020-21 to 2026-27; one asset or cash-generating unit with stated pre-tax cash flows, terminal value, pre-tax rate, fair value less costs of disposal, carrying amounts and floors; no revalued assets, goodwill with a non-controlling interest, reversals or deferred tax |
-| Thin capitalisation | 2023-24 to 2026-27; one company that is a general class investor, or not covered, at stated debt deductions, s 820-50(3)(b) amounts, tax EBITDA lines, GR group figures, third party debt conditions and carried amounts; no financial entities, ADIs, plantation forestry entities, trusts, partnerships, Subdivision 820-EAA or consolidated group transfers |
+| Thin capitalisation | 2023-24 to 2026-27; one company that is a general class investor, a financial entity or an ADI for the whole year, or not covered, at stated debt deductions, s 820-50(3)(b) amounts, tax EBITDA lines, GR group figures, third party debt conditions and carried amounts; no part-year financial entities or ADIs, no worked-out arm's length capital amounts, no plantation forestry entities, trusts, partnerships, Subdivision 820-EAA or consolidated group transfers |
 | Debt forgiveness | 2020-21 to 2026-27; one debtor's commercial debts forgiven in the year, at stated values, amounts offset, s 245-85 amounts, s 245-90 agreements and reducible amounts; no partnerships or attributable income |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
 | Long service leave | Last days from 1 July 2020 to 30 June 2027 and not before each Act's text as read; one employee under a state or territory's general Act; established dates, excluded days, leave taken, reason and ordinary weekly pay; no award, agreement or portable scheme |
@@ -6008,13 +6008,62 @@ all year, debt deductions of the entity and its associate entities of
 $2 million or less (s 820-35), or an outward investor whose average Australian
 assets are at least 90% of its average total assets, associates' included
 (s 820-37); `exemption` names the provision. A test refuses the inputs it does
-not use. The command refuses financial entities (non-ADI) and ADIs, which
-keep Subdivisions 820-B to 820-E, Australian plantation forestry entities,
+not use. The command refuses a financial entity or ADI in its class for
+only part of the year (ss 820-120, 820-225, 820-330 and 820-420), Australian
+plantation forestry entities,
 which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative
 GR group net third party interest expense, a GR group EBITDA of nil or less
 (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed, which
-the sources read do not settle. See
-[calculation evidence](docs/calculation-evidence.md#thin-capitalisation).
+the sources read do not settle.
+
+A financial entity (non-ADI) or ADI in its class for the whole year
+(`whole_year` true) is tested under Subdivisions 820-B to 820-E from the
+average values it states (Subdivision 820-G). For a financial entity, `test`
+is `maximum_allowable_debt` or, by a choice under s 820-85(2C) or
+820-185(2C), `third_party_debt`; for an ADI it is `minimum_capital_amount`.
+
+```text
+financial entity (non-ADI), Subdivisions 820-B and 820-C
+adjusted_average_debt   = debt capital - associate entity debt
+                          (- controlled foreign entity debt, outward)
+                          + borrowed securities + cost-free debt capital      ss 820-85(3), 820-185(3)
+total_debt_amount       = max(assets - the step reductions - zero-capital, 0)
+                          x 15/16 + zero-capital + associate entity excess   ss 820-100(2), 820-200(2), 820-210(2)
+adjusted_on_lent_amount = max(assets - the step reductions - on-lent, 0) x 3/5
+                          + on-lent - associate entity debt
+                          + associate entity excess                          ss 820-100(3), 820-200(3), 820-210(3)
+safe_harbour            = min(total_debt_amount, adjusted_on_lent_amount)
+worldwide_gearing       = r / (1 + r) x total debt base + zero-capital
+                          + associate entity excess, r = worldwide debt
+                          / worldwide equity                                 ss 820-110, 820-111, 820-217, 820-219
+maximum_allowable_debt  = max(safe_harbour, worldwide_gearing if available)  ss 820-90, 820-190
+disallowed              = min(debt_deductions x excess_debt / average_debt,
+                              debt_deductions)                               ss 820-115(3), 820-220(3)
+ADI, Subdivisions 820-D and 820-E
+safe_harbour_capital    = 0.06 x risk-weighted assets
+                          (+ tier 1 prudential capital deductions, outward)  ss 820-310, 820-405
+worldwide_capital       = risk-weighted assets x group tier 1 capital
+                          / group risk-weighted assets + tier 1 deductions   s 820-320
+minimum_capital_amount  = least of safe harbour, worldwide (outward, not
+                          foreign controlled) and arm's length capital       ss 820-305, 820-400
+disallowed              = min(debt_deductions x capital_shortfall
+                              / average_debt, debt_deductions)               ss 820-325, 820-415
+```
+
+The worldwide gearing debt amount is not available where worldwide equity
+is nil or negative (s 820-90(1)(c)) or, on the statement figures, where
+statement worldwide equity or assets are nil or negative, there are no
+audited consolidated financial statements or average Australian assets are
+more than half of statement worldwide assets (ss 820-90(3) and 820-190(2)).
+The arm's length capital amount (ss 820-315 and 820-410) is a judgement the
+command does not make: it takes the amount the entity worked out. Where
+adjusted average debt exceeds the amounts worked out, or equity capital falls
+short of them, and an amount the maximum or minimum is taken from was not
+stated, the command refuses (`thin_capitalisation.amount_not_worked_out`)
+rather than estimate. Sections 820-90(1) and 820-190(1) no longer list an
+arm's length debt amount for a financial entity.
+
+See [calculation evidence](docs/calculation-evidence.md#thin-capitalisation).
 
 ## Debt forgiveness
 

@@ -373,7 +373,6 @@ pub(super) fn financial(
             "s 820-220(3): each debt deduction x excess debt / average debt",
         ),
     };
-    let fraction_15_16 = d("0.9375");
     precise(|| {
         let mut steps = vec![dd_step(items)?];
         let mut terms: Vec<(char, &str, &Decimal)> =
@@ -405,7 +404,8 @@ pub(super) fn financial(
         let base_v = base.value.clone();
         steps.push(base);
         let tda = base_v
-            .mul(&fraction_15_16)?
+            .mul(&d("15"))?
+            .div(&d("16"))?
             .add(&zero)?
             .add(&excess_amount)?;
         steps.push(step(
@@ -430,7 +430,11 @@ pub(super) fn financial(
         let ol_base = line("on_lent_base", ola_auth, &terms, true)?;
         let ol_v = ol_base.value.clone();
         steps.push(ol_base);
-        let after = d("0.6").mul(&ol_v)?.add(&on_lent)?.sub(&assoc_debt)?;
+        let after = ol_v
+            .mul(&d("3"))?
+            .div(&d("5"))?
+            .add(&on_lent)?
+            .sub(&assoc_debt)?;
         let (formula, after) = if case == Fe::Investor {
             (
                 "max(on_lent_base x 3 / 5 + average_on_lent_amount - average_associate_entity_debt, 0) + average_associate_entity_excess_amount",

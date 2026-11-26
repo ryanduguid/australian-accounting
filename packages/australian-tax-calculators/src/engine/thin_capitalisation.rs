@@ -14,6 +14,8 @@
 //! (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act
 //! 2024 Schedule 2 items 144 and 146: income years starting on or after
 //! 1 July 2023, and the older law for Australian plantation forestry entities.
+//! Financial entities (non-ADI) and ADIs take Subdivisions 820-B to 820-E
+//! (`older`).
 
 mod carry;
 mod inputs;
