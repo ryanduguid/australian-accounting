@@ -42,8 +42,8 @@ cargo test --locked
 
 The toolchain is pinned in `rust-toolchain.toml`. The executable is
 `target/release/australian-tax-calculators` (`.exe` on Windows). No Python
-runtime is needed. PyPI still provides the historical Python release; `pip
-install` does not install this binary.
+runtime is needed. On PyPI, `australian-tax-calculators` 0.2.0 and earlier
+are the retired Python package; see Install for the releases after 1.4.0.
 
 ## Install
 
@@ -86,6 +86,16 @@ Other platforms build from source, as under Build and check. `australian-tax-cal
 --version` prints the version. `.github/workflows/calculators-install.yml`
 runs both commands each week, and with the archive or `SHA256SUMS` altered in
 transit, which they must refuse.
+
+From the release after 1.4.0, the release workflow also publishes the same 2
+executables, byte for byte, as wheels of the PyPI distribution
+`australian-tax-calculators` for x86_64 Linux and Windows, so
+`uvx australian-tax-calculators` or `pip install australian-tax-calculators`
+installs the `australian-tax-calculators` command with the released SHA-256
+that the MCP server checks. The job verifies the release's attestations and
+`SHA256SUMS` before it builds them. On other platforms these commands find no
+1.x wheel and can fall back to the retired Python 0.2.0, so build from source
+there.
 
 ## Use
 
