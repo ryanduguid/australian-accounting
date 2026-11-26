@@ -5743,6 +5743,68 @@ challenge page), so the Act and the published rates stand alone. The
 remaining figures in the tests are made up and worked by hand from the
 provisions.
 
+## Salary dividend
+
+`salary-dividend` was added on 26 November 2026. ITAA 1997 ss 25-130,
+202-60, 207-20 and 293-20, SGAA 1992 ss 10A and 17A and Income Tax Rates Act
+1986 ss 23 and 26 were read that day on the ATO's legal database, with the
+ATO's 'Super guarantee' page (QC18123, last updated 17 April 2026): 11.5% for
+2024-25 and 12% from 2025-26 (Table 21), quarterly bases of $65,070 and
+$62,500 (Table 24, 4 of each for a year's earnings paid evenly) and the
+2026-27 annual base of $270,830 (Table 23), which s 10A(5) gives as $32,500 x
+100 / 12 rounded down to $10. The command follows the site's salary and
+dividends page (`assets/salary-dividend.mjs`) step for step, with the owner's
+tax from `resident-tax`, `low-income-tax-offset` and `medicare-levy` and the
+Division 293 tax from `division-293`. `tests/owner_pay_mirrors.rs` runs the
+page's 10 cases: the 9 from 2024-25 agree on every figure, including the best
+salary; the 2021-22 case is refused, as the individual tax worksheets hold no
+earlier year.
+
+## Sole trader set aside
+
+`sole-trader-set-aside` was added on 26 November 2026. ITAA 1997 ss 25-130,
+328-360 and 328-365 were read that day on the ATO's legal database, with the
+ATO's 'Registering for GST' (last updated 14 September 2026: $75,000) and
+'Starting PAYG instalments' (last updated 17 December 2024: instalment income
+of $4,000 or more, tax payable of $1,000 or more and notional tax of $500 or
+more; the command tests the first 2). The command follows the site's sole
+trader page (`assets/sole-trader.mjs`). `tests/owner_pay_mirrors.rs` runs the
+page's 7 cases: the 5 from 2024-25 agree on every figure; the 2023-24 and
+2021-22 cases are refused.
+
+## Salary packaging
+
+`salary-packaging` was added on 26 November 2026. FBTAA ss 5B(1D) to (1M),
+57A, 135P and 135Q and ITAA 1997 s 25-130 were read that day on the ATO's
+legal database, with the ATO's 'Fringe benefits tax - rates and thresholds'
+(last updated 20 May 2026: 47% for the FBT years ending 31 March 2023 to 2027,
+and $2,000.01 reportable as $3,773) and Fringe benefits tax - a guide for
+employers, chapter 6. The command follows the site's salary packaging page
+(`assets/salary-packaging.mjs`) except in one rule: it grosses up by the
+formulas of s 5B(1F) and (1G), (0.47 + 0.10) / (0.53 x 1.10 x 0.47) and
+1 / 0.53, as `fbt` does, where the page and the guide multiply by 2.0802 and
+1.8868. Each grossed-up amount is rounded half up to the dollar, as the
+guide's example at 6.10 rounds it; both ways give that example's $16,018,
+$23,208 and FBT of $1,986.22. `tests/owner_pay_mirrors.rs` runs the page's 12
+cases: the 2022-23 case is refused, and the case of $15,900.21 of Type 2
+benefits, which the page puts a dollar over the cap ($15,900.21 x 1.8868 =
+$30,000.62), is within it by the formula ($30,000.40), so it has no FBT here;
+in 2 more cases the Type 2 room left in the cap is the room x 0.53, not the
+room / 1.8868 (for $26,226 of room, $13,899.78, not $13,899.72).
+
+## Novated lease
+
+`novated-lease` was added on 26 November 2026. FBTAA ss 8A, 9 and 135P were
+read that day on the ATO's legal database, with the ATO's 'Fringe benefits
+tax - rates and thresholds' (last updated 20 May 2026), 'Luxury car tax rate
+and thresholds' (QC38161, last updated 1 June 2026: the fuel-efficient thresholds
+held by `luxury-car-tax`) and 'FBT on plug-in hybrid electric vehicles'. The
+command follows the site's novated lease page (`assets/novated-lease.mjs`)
+step for step, with the tax from `salary-packaging`'s composition.
+`tests/owner_pay_mirrors.rs` runs the page's 13 cases: the cases from 2024-25
+agree on every figure and on whether the car is exempt; the 2023-24 case is
+refused.
+
 ## PSI test
 
 This worksheet was added on 22 November 2026. ITAA 1997 Part 2-42 was read

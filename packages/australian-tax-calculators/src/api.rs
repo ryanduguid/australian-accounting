@@ -1411,6 +1411,73 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "salary-dividend",
+        &[
+            ("profit", Dec),
+            ("base_rate_entity", Raw),
+            ("salary", Dec),
+            ("other_taxable_income", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "sole-trader-set-aside",
+        &[
+            ("business_income", Dec),
+            ("business_expenses", Dec),
+            ("wages", Dec),
+            ("other_deductions", Dec),
+            ("personal_super_deducted", Dec),
+            ("small_business_offset", Raw),
+            ("study_loan", Raw),
+            ("hospital_cover", Raw),
+            ("gst_registered", Raw),
+            ("gst_credits", Dec),
+            ("invoice", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "salary-packaging",
+        &[
+            ("residency", Raw),
+            ("employer", Raw),
+            ("salary", Dec),
+            ("type_two_benefits", Dec),
+            ("type_one_benefits", Dec),
+            ("meal_entertainment", Dec),
+            ("meal_entertainment_type_one", Raw),
+            ("study_loan", Raw),
+            ("hospital_cover", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "novated-lease",
+        &[
+            ("residency", Raw),
+            ("salary", Dec),
+            ("study_loan", Raw),
+            ("hospital_cover", Raw),
+            ("car", Raw),
+            ("first_used", Raw),
+            ("commitment", Raw),
+            ("first_sale_year", Raw),
+            ("cost_price", Dec),
+            ("other_lct_supply", Raw),
+            ("lct_timing", Raw),
+            ("one_third_reduction", Raw),
+            ("days_available", Raw),
+            ("costs_with_gst", Dec),
+            ("costs_without_gst", Dec),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "psi-test",
         &[
             ("earner", Raw),
@@ -2657,6 +2724,10 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "scholarship-exemption"
             | "super-crystallisation"
             | "endorsement-review"
+            | "salary-dividend"
+            | "sole-trader-set-aside"
+            | "salary-packaging"
+            | "novated-lease"
     ) && let Some(key) = v
         .as_object()
         .into_iter()
@@ -4340,6 +4411,61 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             facts: &a[5],
             year: &a[6],
             scope_confirmed: &a[7],
+        }),
+        "salary-dividend" => engine::owner_pay_split(&engine::SalaryDividendArgs {
+            profit: &a[0],
+            base_rate_entity: &a[1],
+            salary: &a[2],
+            other_taxable_income: &a[3],
+            year: &a[4],
+            scope_confirmed: &a[5],
+        }),
+        "sole-trader-set-aside" => engine::sole_trader_set_aside(&engine::SoleTraderSetAsideArgs {
+            business_income: &a[0],
+            business_expenses: &a[1],
+            wages: &a[2],
+            other_deductions: &a[3],
+            personal_super_deducted: &a[4],
+            small_business_offset: &a[5],
+            study_loan: &a[6],
+            hospital_cover: &a[7],
+            gst_registered: &a[8],
+            gst_credits: &a[9],
+            invoice: &a[10],
+            year: &a[11],
+            scope_confirmed: &a[12],
+        }),
+        "salary-packaging" => engine::packaged_benefits(&engine::SalaryPackagingArgs {
+            residency: &a[0],
+            employer: &a[1],
+            salary: &a[2],
+            type_two_benefits: &a[3],
+            type_one_benefits: &a[4],
+            meal_entertainment: &a[5],
+            meal_entertainment_type_one: &a[6],
+            study_loan: &a[7],
+            hospital_cover: &a[8],
+            year: &a[9],
+            scope_confirmed: &a[10],
+        }),
+        "novated-lease" => engine::novated_lease(&engine::NovatedLeaseArgs {
+            residency: &a[0],
+            salary: &a[1],
+            study_loan: &a[2],
+            hospital_cover: &a[3],
+            car: &a[4],
+            first_used: &a[5],
+            commitment: &a[6],
+            first_sale_year: &a[7],
+            cost_price: &a[8],
+            other_lct_supply: &a[9],
+            lct_timing: &a[10],
+            one_third_reduction: &a[11],
+            days_available: &a[12],
+            costs_with_gst: &a[13],
+            costs_without_gst: &a[14],
+            year: &a[15],
+            scope_confirmed: &a[16],
         }),
         "psi-test" => {
             // Optional: an agent's commission and the principal's payments.
