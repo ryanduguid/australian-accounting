@@ -7163,7 +7163,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
             ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
             ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
-            ("facts", "object of booleans, each your statement, not tested: aged_21_or_with_child, not_blind, no_module_f_payment, in_australia, not_transitional, no_rent_assistance and no_quarterly_election, and for a couple partner_pensioner; every one required true"),
+            ("facts", "object of booleans, each your statement, not tested: aged_21_or_with_child, not_blind, no_module_f_payment, in_australia, not_transitional, no_rent_assistance, no_quarterly_election, no_armed_services_cap, no_underage_relationship and no_adjustments, and for a couple partner_pensioner; every one required true"),
         ],
         "carer_payment" => vec![
             ("date", "date, YYYY-MM-DD, within year, from 2025-09-20 to 2027-03-19: the day the fortnightly rate is for"),
@@ -7172,7 +7172,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
             ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
             ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
-            ("facts", "object of booleans, each your statement, not tested: carer_payment_only, in_australia, not_transitional, no_rent_assistance and no_quarterly_election, and for a couple partner_pensioner; every one required true"),
+            ("facts", "object of booleans, each your statement, not tested: carer_payment_only, in_australia, not_transitional, no_rent_assistance, no_quarterly_election, no_armed_services_cap, no_underage_relationship and no_adjustments, and for a couple partner_pensioner; every one required true"),
         ],
         "salary_dividend" => vec![
             ("profit", "AUD: the company's profit before the owner's salary, its super guarantee and company tax, all paid out"),
@@ -9118,7 +9118,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "facts",
                 Json(
-                    r#"{"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true}"#,
+                    r#"{"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#,
                 ),
             ),
         ],
@@ -9134,7 +9134,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "facts",
                 Json(
-                    r#"{"carer_payment_only": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true}"#,
+                    r#"{"carer_payment_only": true, "in_australia": true, "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#,
                 ),
             ),
         ],

@@ -1329,9 +1329,9 @@ fn cases() -> Vec<(&'static str, Value)> {
     }
     let dsp = json!({"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true,
                      "in_australia": true, "not_transitional": true, "no_rent_assistance": true,
-                     "no_quarterly_election": true});
+                     "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true});
     let carer = json!({"carer_payment_only": true, "in_australia": true, "not_transitional": true,
-                       "no_rent_assistance": true, "no_quarterly_election": true});
+                       "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true});
     for (command, base, relationship, income, assets) in [
         (
             "disability-support-pension",

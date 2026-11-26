@@ -460,9 +460,9 @@ fn jobseeker_payment_refuses_what_it_cannot_work() {
 
 const DSP_FACTS: &str = r#"{"aged_21_or_with_child": true, "not_blind": true, "no_module_f_payment": true,
     "in_australia": true, "not_transitional": true, "no_rent_assistance": true,
-    "no_quarterly_election": true}"#;
+    "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#;
 const CARER_FACTS: &str = r#"{"carer_payment_only": true, "in_australia": true,
-    "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true}"#;
+    "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#;
 const AGE_FACTS: &str = r#"{"in_australia": true, "not_blind": true, "not_transitional": true,
     "no_rent_assistance": true}"#;
 
@@ -579,12 +579,26 @@ fn dsp_and_carer_payment_refuse_what_they_do_not_model() {
         ("aged_21_or_with_child", "s 1066A"),
         ("not_blind", "s 1065"),
         ("no_module_f_payment", "Module F"),
-        ("no_quarterly_election", "1064-C2"),
     ] {
         let (refusal, message) = not_stated("disability-support-pension", fact);
         assert_eq!(refusal, "disability_support_pension.facts_not_stated");
         assert!(message.starts_with("Not computed"), "{message}");
         assert!(message.contains(cites), "{message}");
+    }
+    for (fact, cites) in [
+        ("no_quarterly_election", "1064-C2"),
+        ("no_armed_services_cap", "s 1064(5) to (7)"),
+        ("no_underage_relationship", "s 1064(4)"),
+        ("no_adjustments", "Module H"),
+    ] {
+        for (command, kind) in [
+            ("disability-support-pension", "disability_support_pension"),
+            ("carer-payment", "carer_payment"),
+        ] {
+            let (refusal, message) = not_stated(command, fact);
+            assert_eq!(refusal, format!("{kind}.facts_not_stated"));
+            assert!(message.contains(cites), "{message}");
+        }
     }
     let (refusal, message) = not_stated("carer-payment", "carer_payment_only");
     assert_eq!(refusal, "carer_payment.facts_not_stated");
@@ -622,5 +636,26 @@ fn dsp_and_carer_payment_refuse_dates_outside_the_rates_and_bad_input() {
         }
         assert_eq!(refused(json!({"homeowner": "yes"})), "input.flag_invalid");
         assert_eq!(refused(json!({"year": "2024-25"})), "period.unsupported");
+    }
+}
+
+/// A recoded refusal keeps age-pension's message for the same input.
+#[test]
+fn dsp_and_carer_payment_keep_age_pensions_refusal_messages() {
+    let message = |command: &str, changes: &Value| {
+        let input = with(calc_a(command, "single", true, "0", "0"), changes.clone());
+        api::evaluate_coded(command, &input).unwrap_err().message
+    };
+    for changes in [
+        json!({"date": "2027-03-20"}),
+        json!({"date": "2026-05-01"}),
+        json!({"relationship": "widowed"}),
+        json!({"financial_assets": "1.00"}),
+        json!({"facts": 1}),
+    ] {
+        let age = message("age-pension", &changes);
+        for command in ["disability-support-pension", "carer-payment"] {
+            assert_eq!(message(command, &changes), age, "{command} {changes}");
+        }
     }
 }

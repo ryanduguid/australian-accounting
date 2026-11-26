@@ -4750,8 +4750,10 @@ income maintenance period); carer payment `facts` must state
 `carer_payment_only` (carer allowance and carer supplement are other
 payments) and take no `not_blind`, as the blind receive carer payment under
 Calculator A too. Both must also state `in_australia`, `not_transitional`,
-`no_rent_assistance` and `no_quarterly_election` (points 1064-BA2 and C2), and
-for a couple `partner_pensioner` (the partner's pension is also worked out
+`no_rent_assistance`, `no_quarterly_election` (points 1064-BA2 and C2),
+`no_armed_services_cap` (s 1064(5) to (7)), `no_underage_relationship`
+(s 1064(4)) and `no_adjustments` (the advance deductions and remote area
+allowance of step 12), and for a couple `partner_pensioner` (the partner's pension is also worked out
 under Calculator A). The care receiver's income and assets tests and every
 other qualification are yours to establish. `derive` explains each step. See
 [calculation evidence](docs/calculation-evidence.md#government-schemes).

@@ -16,7 +16,8 @@
 //! rates of Pension Rate Calculator D (s 1066A), the blind (s 1065), a leave
 //! or termination payment that Module F spreads for disability support
 //! pension, and carer allowance and carer supplement, which are other
-//! payments.
+//! payments. Both also refuse the rate caps of s 1064(4) to (7), quarterly
+//! supplements, and the deductions and remote area allowance of step 12.
 
 use serde_json::Value;
 
@@ -28,12 +29,27 @@ const QUARTERLY: (&str, &str) = (
     "no election under s 1061VA(1) is in force and quarterly energy supplement is not payable to the person, so the pension supplement and energy supplement are in the fortnightly rate in full (points 1064-BA2 and 1064-C2)",
 );
 
+const NO_CAP: (&str, &str) = (
+    "no_armed_services_cap",
+    "the person is not an armed services widow or widower receiving a Veterans' Entitlements Act pension at a rate set by reference to its s 30(1), or the MRCA weekly amount or lump sum, whose rate s 1064(5) to (7) caps",
+);
+
+const NO_UNDERAGE: (&str, &str) = (
+    "no_underage_relationship",
+    "the person is not in a de facto relationship in which either is under the age of consent where they live, whose rate s 1064(4) caps at the partnered rate",
+);
+
+const NO_ADJUSTMENTS: (&str, &str) = (
+    "no_adjustments",
+    "no special employment advance deduction (Part 3.16B), advance payment deduction (Part 3.16A) or remote area allowance (Module H) applies (step 12 of point 1064-A1)",
+);
+
 const PARTNER: [(&str, &str); 1] = [(
     "partner_pensioner",
     "the partner also receives a pension whose rate Pension Rate Calculator A works out (age pension, disability support pension at 21 or over or with a dependent child, or carer payment) and the couple are not illness separated, in respite care or apart because the partner is imprisoned",
 )];
 
-const DSP_FACTS: [(&str, &str); 7] = [
+const DSP_FACTS: [(&str, &str); 10] = [
     (
         "aged_21_or_with_child",
         "the person has turned 21, or has not turned 21 and has a dependent child, so s 1064(1)(b) applies Pension Rate Calculator A; the under-21 rates of Pension Rate Calculator D (s 1066A) are not worked here",
@@ -50,9 +66,12 @@ const DSP_FACTS: [(&str, &str); 7] = [
     FACTS[2],
     FACTS[3],
     QUARTERLY,
+    NO_CAP,
+    NO_UNDERAGE,
+    NO_ADJUSTMENTS,
 ];
 
-const CARER_FACTS: [(&str, &str); 5] = [
+const CARER_FACTS: [(&str, &str); 8] = [
     (
         "carer_payment_only",
         "the amount asked for is carer payment (Part 2.5), whose rate s 1064(1)(d) works out under Pension Rate Calculator A; carer allowance (Part 2.19) and carer supplement are other payments, not worked here",
@@ -61,6 +80,9 @@ const CARER_FACTS: [(&str, &str); 5] = [
     FACTS[2],
     FACTS[3],
     QUARTERLY,
+    NO_CAP,
+    NO_UNDERAGE,
+    NO_ADJUSTMENTS,
 ];
 
 const DSP: Payment = Payment {
