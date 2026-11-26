@@ -81,7 +81,8 @@ def members(archive: Path, names: list[str]) -> list[bytes]:
     if archive.suffix == ".zip":
         with zipfile.ZipFile(archive) as z:
             return [z.read(n) for n in names]
-    with tarfile.open(archive, "r:gz") as t:
+    # The path is the release workflow's own verified download; the member names are fixed.
+    with tarfile.open(archive, "r:gz") as t:  # NOSONAR
         return [t.extractfile(n).read() for n in names]  # type: ignore[union-attr]
 
 
