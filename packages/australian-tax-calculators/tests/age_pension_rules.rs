@@ -201,17 +201,25 @@ fn golden_inputs() -> Vec<Value> {
     inputs
 }
 
+/// The fields that describe the command rather than the result.
+const DESCRIBED: [&str; 4] = ["engine_version", "scope", "sources", "source_checked"];
+
+/// A result without the fields of [`DESCRIBED`].
+fn result(input: &Value) -> Value {
+    let mut out = api::evaluate("age-pension", input).unwrap();
+    for described in DESCRIBED {
+        assert!(out.as_object_mut().unwrap().remove(described).is_some());
+    }
+    out
+}
+
 /// Every result for an input outside the new rules is what it was before
-/// them, all but the fields that describe the command rather than the
-/// result. `AA_GOLDEN_WRITE=<path>` writes the file from the old input shape.
+/// them. `AA_GOLDEN_WRITE=<path>` writes the file from the old input shape.
 #[test]
 fn results_outside_the_new_rules_are_unchanged() {
     let inputs = golden_inputs();
     if let Ok(path) = std::env::var("AA_GOLDEN_WRITE") {
-        let lines: Vec<String> = inputs
-            .iter()
-            .map(|i| api::evaluate("age-pension", i).unwrap().to_string())
-            .collect();
+        let lines: Vec<String> = inputs.iter().map(|i| result(i).to_string()).collect();
         std::fs::write(path, lines.join("\n") + "\n").unwrap();
         return;
     }
@@ -222,12 +230,7 @@ fn results_outside_the_new_rules_are_unchanged() {
         .collect();
     assert_eq!(expected.len(), 96);
     for (input, expected) in inputs.into_iter().zip(&expected) {
-        let mut now = api::evaluate("age-pension", &stating(input.clone(), json!({}))).unwrap();
-        let mut expected = expected.clone();
-        for described in ["engine_version", "scope", "sources", "source_checked"] {
-            assert!(now.as_object_mut().unwrap().remove(described).is_some());
-            expected.as_object_mut().unwrap().remove(described);
-        }
-        assert_eq!(now, expected, "{input}");
+        let now = result(&stating(input.clone(), json!({})));
+        assert_eq!(&now, expected, "{input}");
     }
 }
