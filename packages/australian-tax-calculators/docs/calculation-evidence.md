@@ -5951,7 +5951,9 @@ the two agree on every case the page's tests hold. Its choices:
 
 - each payer is entered with its associates as one row, or as one row for
   each contract when its contracts differ for the results test, the rows
-  sharing a `source` label (s 87-15(3));
+  sharing a `source` label (s 87-15(3)), so payers that are associates of
+  each other share a source and different sources state that their payers
+  are not associates of each other;
 - the unrelated clients test counts rows sharing a `client` label once; the
   labels, on every row or none, are the operator's statement of which payers
   are associates of each other, as s 87-20(1)(a) asks only that the clients

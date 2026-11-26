@@ -583,6 +583,14 @@ fn payers_sharing_a_source_can_be_unrelated_clients() {
     let out = run(&input(&unlabelled));
     assert_eq!(out["rule"], "subsection 87-15(3)");
     assert_eq!(out["tests"]["unrelated_clients"], 1);
+    // Different sources are payers that are not associates of each other.
+    let mut apart = unlabelled.clone();
+    apart[1]["source"] = json!("Another payer");
+    apart[1]["amount"] = json!("39.00");
+    apart[2]["amount"] = json!("21.00");
+    let out = run(&input(&apart));
+    assert_eq!(out["tests"]["unrelated_clients"], 2);
+    assert_eq!(decided(&out), ("section 87-20", PSB));
     for bad in [json!(""), json!(true), json!("x".repeat(101))] {
         let mut row = payer("1.00", "o");
         row["client"] = bad;

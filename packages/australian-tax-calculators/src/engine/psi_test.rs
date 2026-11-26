@@ -69,7 +69,8 @@ pub struct PsiTestArgs<'a> {
 
 struct Payer {
     /// The payer and its associates (s 87-15(3)): the row's `source`
-    /// label, or the row alone when it has none.
+    /// label, or the row alone when it has none. Associates of each other
+    /// share a source, so different sources are not associates.
     source: String,
     /// The operator's s 87-20(1)(a) grouping: rows with one `client` label
     /// are one entity or associates of each other, and rows with different
