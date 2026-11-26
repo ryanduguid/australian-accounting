@@ -2137,7 +2137,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Housing Australia Investment Mandate Direction 2018, compilations 20 (from 7 February 2026, the text in force from 1 October 2025 to 30 June 2026) and 22 (18 July 2026), ss 4A, 28ZF, 29C, 29D, 29F, 44 and 46; the Investment Mandate Amendment (2026 Measures No. 2) Direction 2026 (F2026L00542) as made",
         ),
         "age_pension" => (
-            "2026-11-26",
+            "2026-11-27",
             "Social Security Act 1991 compilation 234 (20 September 2026), s 1064(4) to (7) and Modules A, BA, C, E, G and H, and s 1191; DSS Social Security Guide version 1.345 (3 November 2026), 4.2.1.10, 4.2.3, 4.4.1.10, 4.10.3, 5.1.8.10, 5.1.9.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's age pension income and assets test pages (cut-off points from 20 September 2026)",
         ),
         "ftb_part_a" => (

@@ -202,7 +202,8 @@ fn golden_inputs() -> Vec<Value> {
 }
 
 /// Every result for an input outside the new rules is what it was before
-/// them. `AA_GOLDEN_WRITE=<path>` writes the file from the old input shape.
+/// them, all but the fields that describe the command rather than the
+/// result. `AA_GOLDEN_WRITE=<path>` writes the file from the old input shape.
 #[test]
 fn results_outside_the_new_rules_are_unchanged() {
     let inputs = golden_inputs();
@@ -221,7 +222,12 @@ fn results_outside_the_new_rules_are_unchanged() {
         .collect();
     assert_eq!(expected.len(), 96);
     for (input, expected) in inputs.into_iter().zip(&expected) {
-        let now = api::evaluate("age-pension", &stating(input.clone(), json!({}))).unwrap();
-        assert_eq!(&now, expected, "{input}");
+        let mut now = api::evaluate("age-pension", &stating(input.clone(), json!({}))).unwrap();
+        let mut expected = expected.clone();
+        for described in ["engine_version", "scope", "sources", "source_checked"] {
+            assert!(now.as_object_mut().unwrap().remove(described).is_some());
+            expected.as_object_mut().unwrap().remove(described);
+        }
+        assert_eq!(now, expected, "{input}");
     }
 }
