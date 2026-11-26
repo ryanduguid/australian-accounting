@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 107] = [
+const DERIVED: [&str; 110] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -126,6 +126,9 @@ const DERIVED: [&str; 107] = [
     "age-pension",
     "ftb-part-a",
     "book-to-tax",
+    "ftb-part-b",
+    "rent-assistance",
+    "jobseeker-payment",
 ];
 
 /// (command, input) for each derived kind: the ATO's published examples and
@@ -1334,6 +1337,49 @@ fn cases() -> Vec<(&'static str, Value)> {
                    "energy_supplement": true,
                    "facts": {"whole_year": true, "no_maintenance": true, "no_rent_assistance": true,
                              "no_newborn_or_multiple_birth": true, "requirements_met": true},
+                   "year": "2026-27", "scope_confirmed": true}),
+        ));
+    }
+    for (relationship, age, own, partner) in [
+        ("couple", 3, "90000.00", "20000.00"),
+        ("single", 7, "50000.00", "0.00"),
+        ("couple", 14, "90000.00", "0.00"),
+    ] {
+        cases.push((
+            "ftb-part-b",
+            json!({"relationship": relationship, "youngest_child_age": age,
+                   "adjusted_taxable_income": own, "partner_adjusted_taxable_income": partner,
+                   "income_support": false, "grandparent": false, "energy_supplement": true,
+                   "facts": {"whole_year": true, "no_parental_leave_pay": true, "general_method": true},
+                   "year": "2026-27", "scope_confirmed": true}),
+        ));
+    }
+    for (date, situation, rent) in [
+        ("2026-10-01", "single", "400.00"),
+        ("2026-08-01", "single_sharer", "500.00"),
+        ("2026-10-01", "couple_both_receive", "400.00"),
+    ] {
+        cases.push((
+            "rent-assistance",
+            json!({"date": date, "situation": situation, "fortnightly_rent": rent,
+                   "facts": {"rate_calculator": true, "pays_private_rent": true,
+                             "no_dependent_children": true, "partner_not_veteran": true},
+                   "year": "2026-27", "scope_confirmed": true}),
+        ));
+    }
+    for (situation, own, partner, theirs) in [
+        ("single", "400.00", "none", "0.00"),
+        ("single_principal_carer", "400.00", "none", "0.00"),
+        ("partnered", "200.00", "not_receiving", "1540.00"),
+        ("partnered", "300.00", "pension", "500.00"),
+    ] {
+        cases.push((
+            "jobseeker-payment",
+            json!({"date": "2026-10-01", "situation": situation, "pharmaceutical_allowance": true,
+                   "ordinary_income": own, "partner": partner, "partner_income": theirs,
+                   "facts": {"qualified": true, "no_working_credit": true, "no_rent_assistance": true,
+                             "assets_within_limit": true, "no_adjustments": true,
+                             "energy_fortnightly": true},
                    "year": "2026-27", "scope_confirmed": true}),
         ));
     }
@@ -3076,7 +3122,7 @@ fn derive_refuses_what_it_does_not_explain() {
          rd-tax-offset, esic, \
          hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions, \
          lump-sum-arrears-tax-offset, income-tests, government-super-amounts, smsf-tax, business-capital-expenditure, balancing-adjustment, trade-in, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, transfer-duty, etp-tax-free-component, payroll-tax, payroll-tax-group, payroll-tax-monthly, land-tax, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, portable-lsl-levy, cgt-parcels, work-expenses, rental-property, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-second-hand-goods, gst-bad-debt, tourist-refund, cgt-cost-base-adjustments, foreign-income-tax-offset, fbt-instalment, vic-property-taxes, defined-benefit-income-cap, \
-         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, age-pension, ftb-part-a, book-to-tax, not \"payg-gross-up\""
+         foreign-pension-upp, super-crystallisation, residential-vacancy-fee, break-even, hourly-rate, fixed-fee, staff-cost, age-pension, ftb-part-a, book-to-tax, ftb-part-b, rent-assistance, jobseeker-payment, not \"payg-gross-up\""
     );
 }
 

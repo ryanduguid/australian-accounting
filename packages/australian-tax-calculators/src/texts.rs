@@ -694,6 +694,18 @@ pub const SCOPES: &[(&str, &str)] = &[
         "ftb_part_a",
         "A family's annual family tax benefit Part A rate for 2025-26 or 2026-27 under A New Tax System (Family Assistance) Act 1999 Schedule 1, for FTB children of the family all year in its full-time care: Method 1 (clauses 1(2)(a) and 3) where adjusted taxable income is at most the higher income free area, the maximum rate (the FTB child rate by age, clause 7, plus the FTB Part A supplement for each child where income is $80,000 or less, clause 38A, plus any kept energy supplement, clause 38AA) less 20% of income over the lower income free area (clauses 38M and 38N), not below the base rate (clause 4); for a pension or benefit recipient the maximum rate (clause 38L); and Method 2 (clauses 1(2)(b), 25 and 25D) above the higher income free area, the greater of the base rate less 30% of the income over it (clause 28) and the maximum rate less 20% of the band between the free areas and 30% of the income above it, not below nil. The indexed amounts are DSS's for 1 July 2025 and 1 July 2026. Excludes rent assistance, newborn supplement, multiple birth allowance, the maintenance income test, shared care, part-year entitlement, immunisation and health check reductions, FTB advances and Part B.",
     ),
+    (
+        "ftb_part_b",
+        "A family's annual family tax benefit Part B rate for 2025-26 or 2026-27 under A New Tax System (Family Assistance) Act 1999 Schedule 1 Part 4, for FTB children of the family all year in its full-time care: nil above the income limit on the higher adjusted taxable income (clause 28B, unless either member receives income support) or for a couple whose youngest child is 13 or over (clause 28D, unless a grandparent); otherwise the standard rate for the youngest child's age, the FTB Part B supplement and any energy supplement (clauses 30, 31A and 31B), a couple's reduced by 20% of the lower income over the income free area (clauses 29(2), 32 and 33). No shared care, parental leave pay, return to work method (clause 29A) or part year.",
+    ),
+    (
+        "rent_assistance",
+        "One fortnight's rent assistance on a day from 1 July 2026 to 19 March 2027 under Social Security Act 1991 Part 3.7 for a person without dependent children whose payment is worked out under Pension Rate Calculator A (s 1070L) or Benefit Rate Calculator B (s 1070Q): 75 cents for each dollar of rent over the rent threshold, up to rate B for the family situation (two-thirds of it for a single sharer, half of a couple's amount where both receive it). No families with children (Family Assistance Act), veteran partners, Youth Allowance, Austudy, parenting payment or disability support pension under 21.",
+    ),
+    (
+        "jobseeker_payment",
+        "One fortnight's jobseeker payment on a day from 1 July 2026 to 19 March 2027 under Benefit Rate Calculator B (Social Security Act 1991 s 1068): the maximum basic rate for the family situation, the energy supplement and any pharmaceutical allowance, less the partner income reduction (60% over the partner income free area) and the ordinary income reduction (50% then 60% over $150, or 40% for a single principal carer). The working credit, rent assistance, the assets test, waiting periods, compensation, the exempt principal carer rate and a partner on a benefit or under 22 are out of scope.",
+    ),
 ];
 
 pub const SOURCES: &[(&str, &str)] = &[
@@ -1373,6 +1385,18 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "ftb_part_a",
         "https://www.legislation.gov.au/C2004A00490/latest/text",
+    ),
+    (
+        "ftb_part_b",
+        "https://www.legislation.gov.au/C2004A00490/latest/text",
+    ),
+    (
+        "rent_assistance",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
+    ),
+    (
+        "jobseeker_payment",
+        "https://www.legislation.gov.au/C2004A04121/latest/text",
     ),
 ];
 
@@ -3145,6 +3169,30 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.servicesaustralia.gov.au/sites/default/files/2026-09/co029-2609.pdf",
         ],
     ),
+    (
+        "ftb_part_b",
+        &[
+            "https://www.dss.gov.au/system/files/documents/2026-05/rates-list-1-july-2026.pdf",
+            "https://www.servicesaustralia.gov.au/sites/default/files/2026-09/co029-2609.pdf",
+        ],
+    ),
+    (
+        "rent_assistance",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/7/10",
+            "https://www.servicesaustralia.gov.au/sites/default/files/2026-09/co029-2609.pdf",
+            "https://www.servicesaustralia.gov.au/sites/default/files/2026-07/co029-2607.pdf",
+        ],
+    ),
+    (
+        "jobseeker_payment",
+        &[
+            "https://guides.dss.gov.au/social-security-guide/5/1/8/20",
+            "https://guides.dss.gov.au/social-security-guide/5/1/10/20",
+            "https://www.servicesaustralia.gov.au/sites/default/files/2026-09/co029-2609.pdf",
+            "https://www.servicesaustralia.gov.au/sites/default/files/2026-07/co029-2607.pdf",
+        ],
+    ),
 ];
 
 /// The car worksheets' reportable fringe benefits note, read from the ATO's
@@ -3809,6 +3857,24 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "ftb_part_a",
         &[
             "Services Australia reconciles family tax benefit after the year on the family's lodged income; the end of year supplement is paid only after that reconciliation, and the energy supplement only to families who have kept it since 2016.",
+        ],
+    ),
+    (
+        "ftb_part_b",
+        &[
+            "Services Australia reconciles family tax benefit after the year on the family's lodged incomes; the FTB Part B supplement is paid only after that reconciliation, and the energy supplement only to families who have kept it since 2016.",
+        ],
+    ),
+    (
+        "rent_assistance",
+        &[
+            "Services Australia decides whether rent is paid and how much counts; the amount here is added to the payment's maximum rate before its income and assets tests, and the thresholds and rates change each 20 March and 20 September.",
+        ],
+    ),
+    (
+        "jobseeker_payment",
+        &[
+            "Services Australia assesses income from its own records each fortnight; the working credit, which can reduce employment income, is left out, and the rates change each 20 March and 20 September.",
         ],
     ),
 ];
@@ -5396,6 +5462,26 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A fact the worksheet needs was not stated true: children all year in full care, no maintenance, no rent assistance, no newborn supplement or multiple birth allowance, requirements met.",
     ),
     (
+        "ftb_part_b.age_invalid",
+        "youngest_child_age is not a whole number from 0 to 18.",
+    ),
+    (
+        "ftb_part_b.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "ftb_part_b.facts_not_stated",
+        "A fact the worksheet needs was not stated true: children all year in full care, no parental leave pay, the general method or, for a youngest child of 16 or over, senior secondary school.",
+    ),
+    (
+        "ftb_part_b.partner_income_single",
+        "partner_adjusted_taxable_income is not 0.00 for a single individual.",
+    ),
+    (
+        "ftb_part_b.relationship_invalid",
+        "relationship is not single or couple.",
+    ),
+    (
         "fuel_tax_credits.date_outside_year",
         "A line's acquisition day is outside the income year given.",
     ),
@@ -5943,7 +6029,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, payroll-tax-monthly, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, ftb-part-b, rent-assistance, jobseeker-payment, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -6073,6 +6159,34 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "invalid_carer_tax_offset.successive_spouses",
         "The person had a different spouse during different parts of the year, whose incomes ITAA 1997 s 61-20(3) adds separately.",
+    ),
+    (
+        "jobseeker_payment.date_uncovered",
+        "date is outside 1 July 2026 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "jobseeker_payment.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "jobseeker_payment.facts_not_stated",
+        "A fact the worksheet needs was not stated true: qualified at Calculator B, no working credit, no rent assistance, assets and waiting periods clear, no adjustments, energy supplement paid fortnightly.",
+    ),
+    (
+        "jobseeker_payment.partner_inconsistent",
+        "partner does not fit the situation, or a single person's partner_income is not 0.00.",
+    ),
+    (
+        "jobseeker_payment.partner_invalid",
+        "partner is not none, not_receiving or pension; a partner on a benefit or under 22 is not worked.",
+    ),
+    (
+        "jobseeker_payment.pharmaceutical_uncovered",
+        "pharmaceutical_allowance is true for a day from 1 January 2027, after its 1 January indexation, whose rate was not read.",
+    ),
+    (
+        "jobseeker_payment.situation_invalid",
+        "situation is not one of the Table B family situations the worksheet covers.",
     ),
     (
         "land_tax.absentee_trust_unsupported",
@@ -6963,6 +7077,22 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "rd_tax_offset.threshold_expenditure_above_total",
         "rsp_crc_expenditure is more than notional_deductions, of which it is part.",
+    ),
+    (
+        "rent_assistance.date_uncovered",
+        "date is outside 1 July 2026 to 19 March 2027, the days whose indexed rates were read.",
+    ),
+    (
+        "rent_assistance.facts_invalid",
+        "facts is not an object of booleans.",
+    ),
+    (
+        "rent_assistance.facts_not_stated",
+        "A fact the worksheet needs was not stated true: Rate Calculator A or B, private rent, no dependent children, no veteran partner.",
+    ),
+    (
+        "rent_assistance.situation_invalid",
+        "situation is not one of the Part 3.7 family situations the worksheet covers.",
     ),
     (
         "rental_property.asset_acquired_9_may_2017",
