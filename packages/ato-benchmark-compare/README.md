@@ -370,11 +370,11 @@ of the ATO workbook it was built from. The comparison prints all of that, so a r
 can be traced back to a specific published file.
 
 The data files under [`data/`](data) are compiled into the binary. To add a year
-when the ATO publishes one, run the Python build tool from this directory and
-rebuild the binary:
+when the ATO publishes one, run the `build_dataset` example from this directory
+and rebuild the binary:
 
 ```bash
-uv run --with openpyxl python tools/build_dataset.py \
+cargo run --example build_dataset -- \
   --xlsx small-business-benchmarks-2024-25-data.xlsx \
   --year 2024-25 \
   --resource-name "2024-25 Benchmarks" \
@@ -402,7 +402,7 @@ QC reference, and the SHA-256 of the saved page text. The loader merges the file
 into the year and workbook it was built against, and never lets it replace a
 workbook range.
 
-`tools/build_other_benchmarks.py` builds it from pages saved as text. A page must
+`examples/build_other_benchmarks.rs` builds it from pages saved as text. A page must
 state the workbook's benchmark year, carry a last-updated date and QC reference,
 list the workbook's turnover bands and print every range the workbook publishes,
 equal to the workbook's own; a page that disagrees contributes nothing, and the
@@ -412,7 +412,7 @@ next rebuild. In 2023-24 the hardware and building supplies retailing page is le
 out: its medium-band cost of sales range starts at 56%, the workbook's at 55%.
 
 ```bash
-uv run python tools/build_other_benchmarks.py \
+cargo run --example build_other_benchmarks -- \
   --pages-dir <saved pages> \
   --dataset data/benchmarks-2023-24.json \
   --retrieved <actual retrieval date YYYY-MM-DD> \

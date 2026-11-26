@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The dataset and industry-page builders are Rust examples, `cargo run --example build_dataset` and `cargo run --example build_other_benchmarks`, replacing `tools/build_dataset.py` and `tools/build_other_benchmarks.py`. Their tests replay answers recorded from the Python scripts; see PORTING.md.
 - Relicensed Ryan Duguid's code under AGPL-3.0-or-later with section 7(b) attribution terms.
 
 ## 1.0.0 (unreleased)
