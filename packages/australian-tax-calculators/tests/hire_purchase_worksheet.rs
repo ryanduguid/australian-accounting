@@ -633,7 +633,10 @@ fn missing_gst_facts_give_no_figure_and_name_what_is_missing() {
 #[test]
 fn an_empty_gst_object_names_registered_as_missing() {
     let r = run(json!({"gst": {}})).unwrap();
-    assert_eq!(r["gst"], json!({"computed": false, "missing": ["registered"]}));
+    assert_eq!(
+        r["gst"],
+        json!({"computed": false, "missing": ["registered"]})
+    );
     assert_eq!(amount(&r, "input_tax_credit"), "absent");
 }
 
@@ -691,7 +694,9 @@ fn malformed_gst_facts_are_refused_with_what_they_must_be() {
             "gst: separate_tax_invoice must be an object.",
         ),
         (
-            darren(json!({"separate_tax_invoice": {"tax_invoice_held": true, "goods_price": "1.00"}})),
+            darren(
+                json!({"separate_tax_invoice": {"tax_invoice_held": true, "goods_price": "1.00"}}),
+            ),
             invalid,
             "gst: separate_tax_invoice does not take goods_price.",
         ),
@@ -703,7 +708,11 @@ fn malformed_gst_facts_are_refused_with_what_they_must_be() {
         ),
     ];
     for (overrides, code, message) in cases {
-        assert_eq!(refused(overrides.clone()), (code, message.to_string()), "{overrides}");
+        assert_eq!(
+            refused(overrides.clone()),
+            (code, message.to_string()),
+            "{overrides}"
+        );
     }
 }
 

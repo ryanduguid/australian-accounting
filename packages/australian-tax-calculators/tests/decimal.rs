@@ -44,15 +44,9 @@ fn parse_rejects_interior_unicode_space_and_malformed_exponents() {
     }
     // Exponents beyond 25 significant digits saturate and fail the bounds check.
     let huge = format!("1E{}", "1".repeat(26));
-    assert_eq!(
-        Decimal::parse(&huge).unwrap_err(),
-        Signal::InvalidOperation
-    );
+    assert_eq!(Decimal::parse(&huge).unwrap_err(), Signal::InvalidOperation);
     let tiny = format!("1E-{}", "1".repeat(26));
-    assert_eq!(
-        Decimal::parse(&tiny).unwrap_err(),
-        Signal::InvalidOperation
-    );
+    assert_eq!(Decimal::parse(&tiny).unwrap_err(), Signal::InvalidOperation);
     // Leading zeros in the exponent do not count towards that limit.
     assert_eq!(d(&format!("1E{}5", "0".repeat(30))).to_sci_string(), "1E+5");
 }
@@ -198,8 +192,16 @@ fn rounding_carry_at_emax_overflows() {
 fn a_trapped_signal_as_an_engine_error_reads_as_python_names_it() {
     use australian_tax_calculators::engine::Error;
     let cases = [
-        (Signal::InvalidOperation, "decimal.InvalidOperation", "decimal.invalid_operation"),
-        (Signal::DivisionByZero, "decimal.DivisionByZero", "decimal.division_by_zero"),
+        (
+            Signal::InvalidOperation,
+            "decimal.InvalidOperation",
+            "decimal.invalid_operation",
+        ),
+        (
+            Signal::DivisionByZero,
+            "decimal.DivisionByZero",
+            "decimal.division_by_zero",
+        ),
         (Signal::Overflow, "decimal.Overflow", "decimal.overflow"),
     ];
     for (signal, shown, code) in cases {

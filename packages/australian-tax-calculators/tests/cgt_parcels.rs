@@ -401,27 +401,41 @@ fn malformed_lists_and_selections_say_what_is_wrong() {
     };
     let (code, message) = refused(&|v| v["parcels"][0]["security"] = json!("  "));
     assert_eq!(code, "cgt_parcels.fact_invalid");
-    assert!(message.ends_with("security must be a non-empty string."), "{message}");
+    assert!(
+        message.ends_with("security must be a non-empty string."),
+        "{message}"
+    );
     let (code, message) = refused(&|v| v["parcels"][0]["acquired"] = json!("2023-02-29"));
     assert_eq!(code, "cgt_parcels.fact_invalid");
-    assert!(message.ends_with("acquired must be a YYYY-MM-DD date from 1900 to 2100."), "{message}");
+    assert!(
+        message.ends_with("acquired must be a YYYY-MM-DD date from 1900 to 2100."),
+        "{message}"
+    );
     for list in [json!(5), json!([1])] {
         let (code, message) = refused(&|v| v["parcels"] = list.clone());
         assert_eq!(code, "cgt_parcels.list_invalid");
-        assert!(message.starts_with("parcels must be a list of 1 to "), "{message}");
+        assert!(
+            message.starts_with("parcels must be a list of 1 to "),
+            "{message}"
+        );
     }
     for picks in [json!("2025"), json!([]), json!(["2025"])] {
         let (code, message) = refused(&|v| v["disposals"][0]["parcels"] = picks.clone());
         assert_eq!(code, "cgt_parcels.fact_invalid");
         assert!(
-            message.ends_with("parcels must be a non-empty list of objects, each with parcel and units."),
+            message.ends_with(
+                "parcels must be a non-empty list of objects, each with parcel and units."
+            ),
             "{message}"
         );
     }
     let twice = json!([{"parcel": "2025", "units": "750"}, {"parcel": "2025", "units": "750"}]);
     let (code, message) = refused(&|v| v["disposals"][0]["parcels"] = twice.clone());
     assert_eq!(code, "cgt_parcels.fact_conflict");
-    assert!(message.ends_with("parcel 2025 is selected twice."), "{message}");
+    assert!(
+        message.ends_with("parcel 2025 is selected twice."),
+        "{message}"
+    );
 }
 
 #[test]

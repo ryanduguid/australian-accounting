@@ -742,7 +742,11 @@ fn malformed_facts_say_what_they_must_be() {
         let error =
             api::evaluate_coded("ess-discount", &call("2025-26", interests, income("1.00")))
                 .unwrap_err();
-        assert_eq!(error.code, "ess_discount.interests_invalid", "{}", error.message);
+        assert_eq!(
+            error.code, "ess_discount.interests_invalid",
+            "{}",
+            error.message
+        );
         error.message
     };
     let lester = || share("2025-07-29", "1500.00", "3000.00");
@@ -754,7 +758,8 @@ fn malformed_facts_say_what_they_must_be() {
     assert!(refused(json!([bad_date])).contains("acquired must be a YYYY-MM-DD date."));
     let bad_lift = deferred_share("2025-06-31", Value::Null, Value::Null);
     assert!(
-        refused(json!([bad_lift])).contains("restrictions_lifted must be a YYYY-MM-DD date or null.")
+        refused(json!([bad_lift]))
+            .contains("restrictions_lifted must be a YYYY-MM-DD date or null.")
     );
     let bad_kind = set(lester(), json!({"kind": "option"}));
     assert!(refused(json!([bad_kind])).contains("kind must be one of share, right."));
@@ -764,10 +769,19 @@ fn malformed_facts_say_what_they_must_be() {
     assert!(refused(json!([no_forfeiture])).contains("forfeiture must be an object."));
 
     let reversed = rights("2025-07-01", "1.00", "2.00", "2025-06-30");
-    let error = api::evaluate_coded("ess-discount", &call("2025-26", json!([reversed]), income("1.00")))
-        .unwrap_err();
+    let error = api::evaluate_coded(
+        "ess-discount",
+        &call("2025-26", json!([reversed]), income("1.00")),
+    )
+    .unwrap_err();
     assert_eq!(error.code, "ess_discount.dates_inconsistent");
-    assert!(error.message.ends_with("last_exercise_day is before acquired."), "{}", error.message);
+    assert!(
+        error
+            .message
+            .ends_with("last_exercise_day is before acquired."),
+        "{}",
+        error.message
+    );
 }
 
 /// s 83A-20(1): no discount, nothing included, and no deferral facts taken.
