@@ -530,7 +530,7 @@ fn message(overrides: Value) -> String {
 
 #[test]
 fn list_and_field_refusals_say_what_is_wrong() {
-    let not_a_list = "events must be a list of at most 10000 objects.";
+    let not_a_list = "event must be a list of at most 10000 objects.";
     assert!(message(json!({"events": 5})).contains(not_a_list));
     let too_many = vec![ev("2025-07-01", "payg_instalment", "1.00"); 10_001];
     assert!(message(json!({"events": too_many})).contains(not_a_list));
