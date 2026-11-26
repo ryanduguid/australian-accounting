@@ -204,7 +204,7 @@ fn account(v: &Value, span: (i64, i64), n: usize) -> Result<Account> {
         return refuse(
             "smsf_member_allocation.transition_reaches_65",
             format!(
-                "{at}: a transition to retirement pension whose recipient is 64 or older on 1 July reaches 65 by the end of the year, when it enters the retirement phase (ITAA 1997 s 307-80(3)(b)) and its 10% maximum ends; state it as account_based_pension if 65 or older on 1 July, or allocate the year by hand."
+                "{at}: a transition to retirement pension whose recipient is 64 or older on 1 July may reach 65 by the end of the year, when it enters the retirement phase (ITAA 1997 s 307-80(3)(b)) and its 10% maximum ends; state it as account_based_pension if 65 or older on 1 July, or allocate the year by hand."
             ),
         );
     }
