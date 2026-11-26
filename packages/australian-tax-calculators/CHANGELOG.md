@@ -75,6 +75,22 @@
   `contribution_short`, `cost_price_nil`, `costs_exceed_salary`,
   `first_used_late`, `hybrid_commitment`, `lct_timing_invalid`,
   `residency_invalid` and `sale_year_invalid`.
+- `smsf-member-allocation` shares a complying SMSF's net earnings and income
+  tax for 2024-25 to 2026-27 across its member accounts by daily weighted
+  balance, with 15% contributions tax on each account's concessional
+  contributions, and checks each pension's minimum (and a transition to
+  retirement pension's maximum) as `pension-minimum` works it. New codes:
+  `smsf_member_allocation.account_invalid`, `balance_negative`,
+  `method_unsupported`, `no_balance`, `pension_not_whole_year`,
+  `refund_with_retirement_phase`, `tax_unallocable`, `transaction_invalid`,
+  `transaction_not_allowed` and `transition_reaches_65`.
+
+### Changed
+
+- `resident-tax` also takes 2019-20 to 2023-24, from Income Tax Rates Act 1986
+  Schedule 7 Part I as in force in those years (compilations 54, 57 and 62).
+  The Python 0.2.0 corpus's 2 refused 2023-24 inputs now give $8,286.75 and
+  $147,336.10, and its other refusals list the added years.
 
 ## 1.4.0
 

@@ -327,6 +327,22 @@ The existing $45,000 boundary gives $4,288 at 16%. At the engine's existing
 2026–27 first rate of 15%, the same arithmetic gives $4,020. The latter is a
 regression of the existing rate, not a rate corroborated by this Library passage.
 
+From 2019-20 to 2023-24 the worksheet uses Income Tax Rates Act 1986
+Schedule 7 Part I clause 1's tables as in force in those years, read on
+26 November 2026: for 2019-20, the table for the 2018-19 to 2021-22 years in
+compilation 54 (6 July 2019, with Act No. 52 of 2019), which applied
+throughout 2019-20 (19% to $37,000, 32.5% to $90,000, 37% to $180,000, then
+45%); for 2020-21 to 2023-24, the table Act No. 92 of 2020 inserted, in
+compilations 57 (15 October 2020) and 62 (1 April 2024) (19% to $45,000,
+32.5% to $120,000, 37% to $180,000, then 45%). The tax-free threshold is
+$18,200 in each, and s 20(1) reads the same, so a part-year resident's
+threshold is worked as below; the ATO's myTax 'Part-year tax-free threshold'
+pages for 2020 to 2024 (QC61978, QC65242, QC67917, QC72025 and QC101635) give
+$13,464 plus $4,736 pro-rated by months for each year. Offsets, including the
+low and middle income tax offset of those years, are outside this worksheet
+as for later years. `tests/resident_tax_earlier_years.rs` checks each table at
+its band tops and the 2 frozen 2023-24 inputs.
+
 ## Part-year tax-free threshold
 
 Income Tax Rates Act 1986 s 20(1) (compilation 66, 1 July 2026, read on
@@ -5985,6 +6001,69 @@ Choices the Act leaves to the reader:
 | $200,000 segregated, $34,200 other at 40% | both methods together | ECPI $213,680; T1 $3,078.00 |
 | Existing, new, wound up, new and wound up, each year | SAR 2026 table 9 | levy $259, $518, nil, $259 |
 | $1,001 at 33.33% | rounding choice | ECPI $333 |
+
+## SMSF member allocation
+
+This worksheet was added on 26 November 2026. That day these were read:
+
+- SISR reg 5.03 (compilation of 1 July 2026,
+  https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html):
+  subregulation (2) requires the trustee to determine the investment return
+  credited or debited to a member's benefits in a way that is fair and
+  reasonable between all members and between each member's kinds of benefit.
+  It sets no method; daily weighted balances are the trustee's stated choice.
+- ITAA 1997 s 307-80 (compilation 268, 1 October 2026, volume 6): a
+  transition to retirement income stream is not in the retirement phase until
+  its recipient meets the conditions in subsection (3)(b), so its earnings are
+  taxed.
+- Income Tax Rates Act 1986 s 26(1)(a) (compilation 66): 15% on the low tax
+  component, which assessable contributions (s 295-160) form part of.
+- The ATO's 'Income stream (pension) rules and payments' (last updated
+  30 April 2026): a minimum is paid at least once a year; from 1 July 2017
+  partial commutations do not count towards it; contributions and roll-overs
+  cannot increase a pension's capital once it has started; a missed standard
+  means the stream is taken to have ceased at the start of the year for income
+  tax, its payments are not super income stream benefits and the fund cannot
+  claim exempt current pension income for that or later years; exceeding a
+  transition to retirement pension's maximum has the same effect.
+- The ATO's 'Exception to minimum pension payment requirements' (last updated
+  5 November 2025): the Commissioner may let an account-based pension continue
+  where an honest mistake gave an underpayment of no more than one-twelfth of
+  the minimum, or matters were outside the trustee's control, and a catch-up
+  payment is made; a trustee may self-assess once.
+
+The minimum and maximum reuse `pension-minimum`'s SISR Schedule 7 and
+reg 6.01(2) steps for a whole year.
+
+Choices the law leaves to the reader:
+
+- A transaction weighs from its own day to 30 June inclusive; same-day moves
+  net before the balance is checked against nil.
+- Contributions tax is charged to the account whose concessional contribution
+  bore it, and only the rest of the stated tax is shared, among taxed accounts
+  only. Where that rest is a refund and a retirement phase pension is held, the
+  offsets may belong to pension assets, so the worksheet refuses rather than
+  guess.
+- An exception is a stated fact; the worksheet shows the shortfall and
+  one-twelfth of the minimum but never decides it.
+- `transition_to_retirement` states that the recipient is not a reversionary
+  beneficiary and has met no condition of release in s 307-80(2)(c) all year.
+  Attaining 65 is one, so a recipient 64 or older on 1 July is refused rather
+  than taxed: at 65 or older the pension is in the retirement phase (state it
+  as `account_based_pension`), and at 64 it almost always gets there within
+  the year.
+- A closing balance below nil after the account's share of losses and tax is
+  refused, as a balance below nil before them is.
+
+`tests/smsf_member_allocation.rs` holds these cases, worked independently with
+exact fractions:
+
+| Case | Worksheet |
+|---|---|
+| Accumulation with 2 contributions, pension paying its $25,000 minimum | earnings $23,491.43 and $36,508.57; contributions tax $1,500 and earnings tax $4,500, both to the accumulation account |
+| Transition to retirement pension over its $20,000 maximum, pension $500 short of a $7,000 minimum | earnings $19,173.05 and $10,826.95; earnings tax $1,917.30 and $1,082.70 |
+| The same with the exception stated | earnings tax $3,000 and nil |
+| $100 over 3 equal balances | $33.33, $33.34 and $33.33 |
 
 ## ESS discount
 

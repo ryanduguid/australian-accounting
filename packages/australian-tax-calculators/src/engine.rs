@@ -472,13 +472,23 @@ const GST_EXCLUSIVE_STEPS: [(&str, &str, &str); 3] = [
     ),
 ];
 
+/// The resident scales that hold `year`: [`meta::RESIDENT_TAX_SCALES`] from
+/// 2024-25, and [`meta::PRIOR_RESIDENT_TAX_SCALES`] for 2019-20 to 2023-24.
+fn resident_scales(year: &str) -> &'static TaxScales {
+    if meta::RESIDENT_TAX_SCALES.iter().any(|(y, _)| *y == year) {
+        meta::RESIDENT_TAX_SCALES
+    } else {
+        meta::PRIOR_RESIDENT_TAX_SCALES
+    }
+}
+
 pub fn resident_tax(taxable_income: &Arg, year: &Arg, scope_confirmed: &Arg) -> Result<Value> {
     let year = scope(scope_confirmed, year, "resident_tax")?;
     let mut out = basic_tax(
         "resident_tax",
         taxable_income,
         &year,
-        meta::RESIDENT_TAX_SCALES,
+        resident_scales(&year),
         None,
     )?;
     year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
@@ -556,7 +566,7 @@ pub fn resident_tax_part_year(
         "resident_tax",
         taxable_income,
         &year,
-        meta::RESIDENT_TAX_SCALES,
+        resident_scales(&year),
         Some(threshold),
     )?;
     year_warning(&mut out, texts::RESIDENT_TAX_YEAR_WARNINGS, &year);
@@ -624,7 +634,9 @@ fn step_by_name(
 
 /// The provisions `basic_tax` applies, in ITAA 1997 compilation 268 (1 October
 /// 2026) and the Income Tax Rates Act 1986 compilation 66 (1 July 2026), read
-/// on 15 November 2026.
+/// on 15 November 2026; for 2019-20 to 2023-24, the Rates Act compilations in
+/// force in those years (54, of 6 July 2019; 57, of 15 October 2020; and 62,
+/// of 1 April 2024), read on 26 November 2026.
 fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
     match (kind, year) {
         ("foreign_resident_tax", _) => {
@@ -638,6 +650,12 @@ fn basic_tax_authority(kind: &str, year: &str) -> &'static str {
         }
         (_, "2024-25" | "2025-26") => {
             "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2024-25 or 2025-26 year of income: each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        (_, "2019-20") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2018-19, 2019-20, 2020-21 or 2021-22 year of income as in force in 2019-20 (compilation 54, 6 July 2019; Act No. 92 of 2020 replaced it from 2020-21): each part above the tax-free threshold (s 3(1)) at its rate"
+        }
+        (_, "2020-21" | "2021-22" | "2022-23" | "2023-24") => {
+            "ITAA 1997 s 4-10(3) step 2; Income Tax Rates Act 1986 s 12(1) and Schedule 7 Part I clause 1(b), the table for the 2020-21, 2021-22, 2022-23 or 2023-24 year of income inserted by Act No. 92 of 2020 (compilations 57, 15 October 2020, and 62, 1 April 2024): each part above the tax-free threshold (s 3(1)) at its rate"
         }
         // scope() admits only the years of RESIDENT_TAX_SCALES, each named above.
         (_, other) => unreachable!("no Schedule 7 Part I table is cited for {other}"),
@@ -4209,11 +4227,7 @@ pub fn pension_minimum(
         );
     };
     let (days, days_in_year) = held_days(days, &year)?;
-    let factor = d(meta::PENSION_MINIMUM_FACTORS
-        .iter()
-        .find(|(lowest, _)| age >= *lowest)
-        .expect("age 0 band")
-        .1);
+    let factor = pension_factor(age);
     let steps = minimum_steps(&balance, &factor, days, days_in_year)?;
     let steps = ttr_maximum(steps, &balance, ttr)?;
     let mut out = derived_result(
@@ -4234,6 +4248,15 @@ pub fn pension_minimum(
         );
     }
     Ok(out)
+}
+
+/// SISR Schedule 7's percentage factor for an age on 1 July.
+fn pension_factor(age: i64) -> Decimal {
+    d(meta::PENSION_MINIMUM_FACTORS
+        .iter()
+        .find(|(lowest, _)| age >= *lowest)
+        .expect("age 0 band")
+        .1)
 }
 
 /// The days the pension is held in `year`, checked, and the days in it.
@@ -6646,6 +6669,8 @@ mod minors_income;
 pub use minors_income::{MINORS_OPTIONAL, MinorsIncomeArgs, minors_income};
 mod smsf_tax;
 pub use smsf_tax::smsf_tax;
+mod smsf_member_allocation;
+pub use smsf_member_allocation::{SmsfMemberAllocationArgs, smsf_member_allocation};
 mod ess_discount;
 pub use ess_discount::{EssDiscountArgs, ess_discount};
 mod help_indexation;
@@ -6671,7 +6696,7 @@ pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
 mod staff_cost;
 pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 171] = [
+const KINDS: [&str; 172] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6825,6 +6850,7 @@ const KINDS: [&str; 171] = [
     "prepayments",
     "minors_income",
     "smsf_tax",
+    "smsf_member_allocation",
     "ess_discount",
     "help_indexation",
     "defined_benefit_income_cap",
