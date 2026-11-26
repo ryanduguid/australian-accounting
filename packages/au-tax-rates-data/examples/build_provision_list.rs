@@ -245,13 +245,11 @@ const USAGE: &str = "usage: build_provision_list <corpus folder>";
 /// The exit code and stderr of one run against `package`.
 fn run(package: &Path, args: &[OsString]) -> (u8, String) {
     let [corpus] = args else {
-        return (1, format!("{USAGE}
-"));
+        return (1, format!("{USAGE}\n"));
     };
     match build(package, Path::new(corpus)) {
         Ok(_) => (0, String::new()),
-        Err(message) => (1, format!("{message}
-")),
+        Err(message) => (1, format!("{message}\n")),
     }
 }
 
@@ -287,7 +285,10 @@ mod tests {
     /// A fresh scratch folder for one case; test-only, holding nothing secret.
     fn scratch(case: &str) -> PathBuf {
         let base = std::env::temp_dir(); // nosemgrep: rust.lang.security.temp-dir.temp-dir
-        let dir = base.join(format!("build-provision-list-{}-{case}", std::process::id()));
+        let dir = base.join(format!(
+            "build-provision-list-{}-{case}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(dir.join("pkg/data")).unwrap();
         dir
@@ -326,7 +327,7 @@ mod tests {
             let name = text(case.at("name"));
             let dir = scratch(&name);
             write_case(&dir, case);
-            let root = dir.to_string_lossy().replace('\', "/");
+            let root = dir.to_string_lossy().replace('\\', "/");
             let Json::Array(raw_args) = case.at("args") else {
                 panic!("args must be an array");
             };
