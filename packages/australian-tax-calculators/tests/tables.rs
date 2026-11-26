@@ -9,8 +9,8 @@ use australian_tax_calculators::decimal::{Decimal, Rounding};
 use australian_tax_calculators::metadata::{
     CoefficientRow, FOREIGN_RESIDENT_TAX_SCALES, LOW_INCOME_TAX_OFFSET, MEDICARE_FAMILY_THRESHOLDS,
     MEDICARE_LOW_INCOME_THRESHOLDS, MEDICARE_SAPTO_THRESHOLDS, PAYG_WITHHOLDING_COEFFICIENTS,
-    RESIDENT_TAX_SCALES, STUDY_LOAN_REPAYMENT_THRESHOLDS, STUDY_LOAN_WITHHOLDING_COEFFICIENTS,
-    STUDY_LOAN_WITHHOLDING_FROM, supported_periods,
+    PRIOR_RESIDENT_TAX_SCALES, RESIDENT_TAX_SCALES, STUDY_LOAN_REPAYMENT_THRESHOLDS,
+    STUDY_LOAN_WITHHOLDING_COEFFICIENTS, STUDY_LOAN_WITHHOLDING_FROM, supported_periods,
 };
 use serde_json::json;
 
@@ -35,9 +35,16 @@ fn floor(value: &Decimal) -> Decimal {
 
 #[test]
 fn every_supported_resident_period_has_its_own_contiguous_scale() {
-    let years: Vec<&str> = RESIDENT_TAX_SCALES.iter().map(|(y, _)| *y).collect();
+    // 2019-20 to 2023-24 come from PRIOR_RESIDENT_TAX_SCALES.
+    let earlier = &PRIOR_RESIDENT_TAX_SCALES[PRIOR_RESIDENT_TAX_SCALES.len() - 5..];
+    let years: Vec<&str> = earlier
+        .iter()
+        .chain(RESIDENT_TAX_SCALES)
+        .map(|(y, _)| *y)
+        .collect();
+    assert_eq!(years[0], "2019-20");
     assert_eq!(supported_periods("resident_tax"), years);
-    for (year, scale) in RESIDENT_TAX_SCALES {
+    for (year, scale) in earlier.iter().chain(RESIDENT_TAX_SCALES) {
         let lows: Vec<i64> = scale.iter().map(|r| r.0).collect();
         assert!(lows.is_sorted(), "{year}");
         for pair in scale.windows(2) {
@@ -68,7 +75,7 @@ fn the_foreign_resident_scale_takes_the_years_resident_rates() {
         .map(|(y, _)| *y)
         .collect();
     assert_eq!(supported_periods("foreign_resident_tax"), years);
-    assert_eq!(supported_periods("resident_tax"), years);
+    assert!(supported_periods("resident_tax").ends_with(&years));
     for (year, scale) in FOREIGN_RESIDENT_TAX_SCALES {
         let resident = get(RESIDENT_TAX_SCALES, year);
         assert_eq!(

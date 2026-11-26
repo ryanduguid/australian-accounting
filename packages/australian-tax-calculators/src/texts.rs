@@ -419,6 +419,10 @@ pub const SCOPES: &[(&str, &str)] = &[
         "The tax on one individual's taxable income under Division 6AA of Part III of the ITAA 1936 (minors' unearned income) for an income year from 2024-25 to 2026-27 ending on 30 June, on the individual's own return, not a trustee's under s 98 (Income Tax Rates Act 1986 Schedule 12): a full-year Australian resident, or a full-year foreign resident who is a prescribed non-resident, with ordinary taxable income only (no special income component, superannuation or employment termination remainder, or part-year tax-free threshold). Whether the individual is an excepted person, which income is excepted assessable income, the part of each trust share to which the Division applies and every deduction the Act relates to eligible income are the operator's established facts, as the Commissioner's opinion settles them. Basic income tax before offsets and levies; years before 2024-25 are outside it because the ordinary scales it uses start then.",
     ),
     (
+        "smsf_member_allocation",
+        "One complying SMSF's net earnings and income tax for a financial year from 2024-25 to 2026-27 shared across up to 30 member accounts, each accumulation, account-based pension in the retirement phase or transition to retirement pension, with each pension's minimum payment checked. SISR reg 5.03(2) asks only that returns be credited fairly and reasonably between members and kinds of benefit; this worksheet applies the trustee's stated daily weighted balance method. An account's weighted balance is its 1 July balance plus each contribution or roll-over in, less each payment or roll-over out, times the days from its date to 30 June, both included, over the days in the year. net_earnings is shared by weighted balance. Contributions tax is 15% (Income Tax Rates Act 1986 s 26(1)(a)) of each account's concessional (assessable, ITAA 1997 s 295-160) contributions, rounded half up to the cent; the rest of the stated income_tax, the earnings tax, is shared by weighted balance among the accounts whose earnings are taxed: accumulation accounts, transition to retirement pensions (not in the retirement phase, s 307-80(3)) and pensions that missed a standard without a stated exception. Each share is rounded half up to the cent cumulatively, so the shares add to the total. A pension's minimum is SISR Schedule 7's factor for the age on 1 July times the 1 July balance, rounded to the nearest $10 (as pension-minimum works it), against the pension payments made, which exclude partial commutations; a transition to retirement pension's 10% maximum (SISR reg 6.01(2)) is checked too. A missed minimum or an exceeded maximum is reported with its consequences from the ATO's pages: the stream is taken to have ceased at the start of the year and its earnings are not exempt current pension income, unless, for a minimum, the Commissioner's exception applies (one-twelfth of the minimum is shown for its small underpayment limb). The trustee establishes the accounts, kinds, balances, ages, transactions, earnings, tax and any exception; the worksheet does not work out the tax (see smsf-tax) or the actuary's proportion. Refuses a pension that starts, is exhausted or is fully commuted in the year, a contribution or roll-over into a pension, a pension payment from an accumulation account, a balance below nil, earnings with no balance to share them, earnings tax with no taxed balance, an earnings tax refund whilst a retirement phase pension is held, and any other method. Excludes reserves, segregated assets, defined benefit interests, death and reversion, transfer balance reporting and the supervisory levy.",
+    ),
+    (
         "smsf_tax",
         "The income tax calculation statement (item 13) of one complying self managed superannuation fund that is an Australian superannuation fund, for an income year from 2020-21 to 2026-27, from the operator's established figures: assessable contributions (ITAA 1997 Subdivision 295-C) and the no-TFN-quoted part (s 295-610); net non-arm's length income (s 295-550(1), (2), (4) and (5), less the deductions attributable to it; label U) and the general expense amounts of s 295-550(8) and (9); income from segregated current pension assets (s 295-385), other income to which the actuary's proportion applies (s 295-390), and income from segregated non-current assets; the actuary's proportion; deductions, already apportioned for exempt income, and the part attributable to contributions; the tax offsets, credits, PAYG instalments and s 102AAM interest charge; and whether the fund was newly registered or wound up in the year. It works out exempt current pension income (the proportion's product rounded down to whole dollars), taxable income, the non-arm's length component (s 295-545(2A)) taxed at 45% and the low tax component at 15% (Income Tax Rates Act 1986 s 26(1)), the 32% extra tax on no-TFN-quoted contributions (s 29), gross tax, the offsets in the return's order, the supervisory levy lines L, M and N ($259 a year, Supervisory Levy Imposition Regulations 2018 s 6) and the amount due or refundable. Excludes non-complying and foreign funds, a change of tax status (ss 295-320 and 295-325), funds other than SMSFs, the actuary's certificate and every judgement it rests on (which assets are segregated, the s 295-385(9) choice, the disregarded small fund assets test), whether income is non-arm's length (including under a limited recourse borrowing arrangement), deduction apportionment (TR 93/17), tax losses (Division 36) and capital losses, and the offsets' own rules.",
     ),
@@ -1309,6 +1313,10 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "foreign_income_tax_offset",
         "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/770-75",
+    ),
+    (
+        "smsf_member_allocation",
+        "https://www.legislation.gov.au/F1996B00580/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_2/document_2.html",
     ),
     (
         "smsf_tax",
@@ -2742,6 +2750,15 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "smsf_member_allocation",
+        &[
+            "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_6/document_6.html",
+            "https://www.legislation.gov.au/C2004A03348/2026-07-01/2026-07-01/text/original/epub/OEBPS/document_1/document_1.html",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments",
+            "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/self-managed-super-funds-smsf/paying-smsf-benefits/income-stream-pension-rules-and-payments/exception-to-minimum-pension-payment-requirements",
+        ],
+    ),
+    (
         "smsf_tax",
         &[
             "https://www.legislation.gov.au/C2004A03348/latest/text",
@@ -3365,6 +3382,12 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "minors_income",
         &[
             "A prescribed person's low income tax offset cannot exceed the basic income tax liability not attributable to eligible taxable income (ITAA 1997 s 61-115(2)); tax_on_other_income is that part where the special rates apply. No offset or levy is applied here.",
+        ],
+    ),
+    (
+        "smsf_member_allocation",
+        &[
+            "The allocation method is the trustee's, under the fund's deed and SISR reg 5.03(2); daily weighted balances are one fair and reasonable method, not the only one. Contributions tax and earnings tax are shared from the fund's stated tax, which the worksheet does not check.",
         ],
     ),
     (
@@ -5889,7 +5912,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, salary-dividend, sole-trader-set-aside, salary-packaging, novated-lease, psi-test, minors-income, smsf-tax, smsf-member-allocation, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, book-to-tax, cgt-rollover and its facts, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -7037,6 +7060,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "small_business_income_offset.shares_invalid",
         "shares is not a list of at most 50 objects, each with amount and deductions.",
+    ),
+    (
+        "smsf_member_allocation.account_invalid",
+        "accounts is not a list of 1 to 30 objects, each a label, a kind, an opening balance from 0 and, on a pension only, an age from 0 to 150 and an optional minimum_exception boolean.",
+    ),
+    (
+        "smsf_member_allocation.balance_negative",
+        "Withdrawals, or the account's share of losses and tax, take its balance below nil.",
+    ),
+    (
+        "smsf_member_allocation.method_unsupported",
+        "allocation_method is not daily_weighted_balance.",
+    ),
+    (
+        "smsf_member_allocation.no_balance",
+        "net_earnings is not nil but no account held a balance in the year.",
+    ),
+    (
+        "smsf_member_allocation.pension_not_whole_year",
+        "A pension has a nil balance on 1 July or is exhausted or fully commuted in the year.",
+    ),
+    (
+        "smsf_member_allocation.refund_with_retirement_phase",
+        "The fund's income tax less contributions tax is below nil whilst a retirement phase pension is held.",
+    ),
+    (
+        "smsf_member_allocation.tax_unallocable",
+        "The fund's income tax less contributions tax is not nil but no taxed account held a balance.",
+    ),
+    (
+        "smsf_member_allocation.transaction_invalid",
+        "transactions is not a list of at most 1,000 objects, each a date in the year, a known type and an amount above nil.",
+    ),
+    (
+        "smsf_member_allocation.transaction_not_allowed",
+        "A contribution or roll-over into a pension, or a pension payment from an accumulation account, was given.",
+    ),
+    (
+        "smsf_member_allocation.transition_reaches_65",
+        "A transition to retirement pension's recipient is 64 or older on 1 July, so it enters the retirement phase by the end of the year.",
     ),
     (
         "smsf_tax.disregarded_small_fund_assets",

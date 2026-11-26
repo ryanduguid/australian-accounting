@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-171 calculation worksheets for established facts; the sections below document
+172 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -254,6 +254,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `payg-instalment` | `method`, `year`, `scope_confirmed`; then `notified_amount` for `amount`; `instalment_number`, `estimated_tax`, `earlier_instalments` and `credits_entitled` for `varied_amount`; `instalment_income` and `instalment_rate` for `rate`; `instalment_income`, `previous_rate`, `estimated_tax`, `estimated_instalment_income`, `earlier_instalments`, `credits_claimed` and `earlier_instalment_income` for `varied_rate`; see [PAYG instalments](#payg-instalments) |
 | `pcg-2021-4` | `gateway_1`, `gateway_2`, `factor_3`, `year`, `scope_confirmed`; `recipients`, or `entitlement`, `returned` and `tax`; with `factor_3`, `benchmark` (and `remuneration` beside the totals) unless the IPP returns all of it; see [PCG 2021/4](#pcg-20214) |
 | `smsf-tax` | `complying_fund`, `australian_superannuation_fund`, `assessable_contributions`, `no_tfn_contributions`, `net_non_arms_length_income`, `general_expense_non_arms_length_income`, `segregated_pension_income`, `unsegregated_income`, `segregated_non_current_income`, `exempt_proportion`, `disregarded_small_fund_assets`, `deductions`, `contribution_deductions`, `non_refundable_offsets`, `carry_forward_offsets`, `refundable_offsets`, `eligible_credits`, `payg_instalments`, `interest_charge`, `newly_registered`, `wound_up`, `year`, `scope_confirmed`; see [SMSF tax](#smsf-tax) |
+| `smsf-member-allocation` | `accounts`, `net_earnings`, `income_tax`, `allocation_method`, `year`, `scope_confirmed`; see [SMSF member allocation](#smsf-member-allocation) |
 | `ess-discount` | `interests`, `income_test`, `foreign_employment`, `year`, `scope_confirmed`; each interest's facts depend on its kind and treatment; see [ESS discount](#ess-discount) |
 | `help-indexation` | `location_preferred`, `year`, `scope_confirmed`, `previous_accumulated_debt`; optional `earlier_debts`, `voluntary_repayments`, `compulsory_repayments`, `assessment_increases`, `assessment_reductions`, `current_debts`, `current_repayments`, `proposed_repayment` and `debts_already_reduced`; see [HELP indexation](#help-indexation) |
 | `defined-benefit-income-cap` | `tax_free_and_taxed`, `untaxed`, `other_defined_benefit_income`, `year`, `scope_confirmed`; optional `first_day`; see [Defined benefit income cap](#defined-benefit-income-cap) |
@@ -587,7 +588,7 @@ outside these worksheets.
 ## Resident tax
 
 `resident_tax` applies Schedule 7 Part I of the Income Tax Rates Act 1986 for
-2024-25 to 2027-28. For a person resident for part of the year, give
+2019-20 to 2027-28, the years before 2024-25 from the Act as in force in them. For a person resident for part of the year, give
 `part_year_residency_months`, an integer from 1 to 12 counting the month
 residency began or ended (s 18(1)), and `eligible_pensioner`. The tax-free
 threshold is then $13,464 plus $4,736 x the months / 12 (s 20(1)), kept exact,
@@ -4821,6 +4822,44 @@ with disregarded small fund assets (s 295-385(7)), a proportion outside 0 to
 1, parts above their totals, and years outside 2020-21 to 2026-27. The tests
 hold it to the ATO's 2026 return instructions' examples; see
 [calculation evidence](docs/calculation-evidence.md#smsf-tax).
+
+## SMSF member allocation
+
+`smsf_member_allocation` shares a complying SMSF's net earnings and income tax
+for 2024-25 to 2026-27 across up to 30 member accounts and checks each
+pension's minimum payment. `accounts` lists each account's label, kind
+(`accumulation`, `account_based_pension` or `transition_to_retirement`),
+1 July balance and dated transactions; a pension also gives the member's age
+on 1 July and, optionally, `minimum_exception`. `net_earnings` and
+`income_tax` are the fund's, as established (for example by `smsf-tax`), and
+`allocation_method` must be `daily_weighted_balance`.
+
+SISR reg 5.03(2) asks only that returns be credited fairly and reasonably
+between members and kinds of benefit, so the method is the trustee's: this
+worksheet weights each 1 July balance by the whole year and each transaction by
+the days from its date to 30 June, both included. Earnings are shared by
+weighted balance. Contributions tax is 15% of each account's concessional
+contributions (Income Tax Rates Act 1986 s 26(1)(a)); the rest of the fund's
+tax is shared among the accounts whose earnings are taxed: accumulation
+accounts, transition to retirement pensions (ITAA 1997 s 307-80(3)) and
+pensions that missed a standard without a stated exception. Shares are
+rounded half up to the cent cumulatively, so they add to the total.
+
+A pension's minimum is worked as `pension-minimum` works it, from the 1 July
+balance and age, against the year's pension payments (partial commutations do
+not count); a transition to retirement pension's 10% maximum is checked too.
+A missed standard is reported with the ATO's consequences, and one-twelfth of
+the minimum is shown for the Commissioner's exception.
+
+It refuses a pension that starts, is exhausted or is fully commuted in the
+year, a transition to retirement pension whose recipient is 64 or older on
+1 July (attaining 65 puts it in the retirement phase, ITAA 1997
+s 307-80(3)(b)), contributions or roll-overs into a pension, a pension payment
+from an accumulation account, a balance below nil before or after its share of
+earnings and tax, earnings or tax with no balance to
+bear them, an earnings tax refund whilst a retirement phase pension is held
+and any other method. See
+[calculation evidence](docs/calculation-evidence.md#smsf-member-allocation).
 
 ## ESS discount
 

@@ -961,9 +961,12 @@ pub const SAPTO_RULES: [(&str, &str); 6] = [
 
 /// Resident tax rates for the income years before [`RESIDENT_TAX_SCALES`], in
 /// its form, for the recent accrual years of `lump_sum_arrears_tax_offset`
-/// only: the ATO's "Tax rates – Australian resident" (last updated 13 August
-/// 2026), read on 16 November 2026, for a full-year resident entitled to the
-/// whole tax-free threshold. In 2014-15 to 2016-17, the temporary budget repair
+/// and, from 2019-20, for `resident_tax`: the ATO's "Tax rates – Australian
+/// resident" (last updated 13 August 2026), read on 16 November 2026, for a
+/// full-year resident entitled to the whole tax-free threshold. The 2019-20 to
+/// 2023-24 rows equal Income Tax Rates Act 1986 Schedule 7 Part I clause 1's
+/// tables in compilations 54 (6 July 2019, in force through 2019-20), 57
+/// (15 October 2020) and 62 (1 April 2024), read on 26 November 2026. In 2014-15 to 2016-17, the temporary budget repair
 /// levy years (Income Tax (Transitional Provisions) Act 1997 s 4-11(5)), the
 /// last row is that levy: extra income tax of 2% on taxable income above
 /// $180,000 (s 4-11(1) and Income Tax Rates Act 1986 s 34), which the ATO's
@@ -1139,7 +1142,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "asic_fees" => vec!["2026-27"],
         "capital_gains" => vec!["2025-26", "2026-27"],
         "quarterly_sg" => vec!["2025-26"],
-        "resident_tax" => keys(RESIDENT_TAX_SCALES),
+        // 2019-20 to 2023-24 from PRIOR_RESIDENT_TAX_SCALES, checked against
+        // the Rates Act compilations in force in those years.
+        "resident_tax" => [PRIOR_RESIDENT_TAX_SCALES, RESIDENT_TAX_SCALES]
+            .into_iter()
+            .flat_map(keys)
+            .filter(|year| *year >= "2019-20")
+            .collect(),
         "foreign_resident_tax" => keys(FOREIGN_RESIDENT_TAX_SCALES),
         "main_residence" => vec!["2024-25", "2025-26", "2026-27"],
         // ITAA 1997 s 25-25 sets no figure by year; its step 1 was last
@@ -1353,6 +1362,10 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "smsf_tax" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // SISR reg 5.03 and Schedule 7, Rates Act s 26(1)(a) and ITAA 1997
+        // s 307-80 read the same for each year; the years pension_minimum and
+        // smsf_tax (for the stated tax) share.
+        "smsf_member_allocation" => vec!["2024-25", "2025-26", "2026-27"],
         // Division 83A reads the same in compilations 234 (1 July 2022) and
         // 268 (1 October 2026); compilation 210 (1 July 2020) adds only the
         // cessation taxing point, applied before 1 July 2022.
@@ -1675,8 +1688,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Fuel Tax Act 2006 ss 41-5, 41-20, 43-5, 43-10, 47-5 and 47-10 at the ATO's legal database; the ATO's 'Rates - business' (QC44494, last updated 29 July 2026) and its pages for 2022-23 to 2026-27 (QC69964 and QC72768, last updated 27 June 2024; QC102637, 29 January 2025; QC105117, 28 April 2026; QC107638, 29 July 2026), their 192 rates equal to data.gov.au's 'Historical FTC rates' (August 2026); 'Working out your fuel tax credits' (QC44511, last updated 6 July 2021, step 3); 'Simplified fuel tax credits' (QC48520, 6 July 2021); 'Basic method for heavy vehicles' (QC64655, 2 June 2021: Table 1 and Jim's example); PCG 2016/2 paras 4 and 9 to 13; PCG 2021/2 paras 4 to 12 and its We Deliver example (paras 19 to 24)",
         ),
         "resident_tax" => (
-            "2026-11-23",
-            "Income Tax Rates Act 1986, Schedule 7 Part I clause 1; ss 3(1), 16, 18 and 20 for a part-year resident's tax-free threshold (compilation 66, compared with the compilations of 1 July 2024 and 28 March 2025)",
+            "2026-11-26",
+            "Income Tax Rates Act 1986, Schedule 7 Part I clause 1; ss 3(1), 16, 18 and 20 for a part-year resident's tax-free threshold (compilation 66, compared with the compilations of 1 July 2024 and 28 March 2025); for 2019-20 to 2023-24, compilations 54 (6 July 2019), 57 (15 October 2020) and 62 (1 April 2024), whose s 20(1) and $18,200 threshold read the same, with the ATO's myTax 'Part-year tax-free threshold' pages for 2020 to 2024 ($13,464 plus $4,736 pro-rated by months)",
         ),
         "foreign_resident_tax" => (
             "2026-11-14",
@@ -2085,6 +2098,10 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "minors_income" => (
             "2026-11-22",
             "ITAA 1936 Division 6AA (ss 102AA to 102AGA), compilation 193 (1 October 2026), against compilation 169 (1 July 2020), which reads the same; Income Tax Rates Act 1986 ss 3, 13 and 15 and Schedules 7 and 11, compilation 66 (1 July 2026), against compilation 55 (1 July 2020), the same but for editorial changes; ITAA 1997 ss 61-115 and 995-1 (apportionable deductions), compilation 268 (1 October 2026); the ATO's 'Tax rates if you're under 18 years old' (last updated 1 June 2026) and 'A1 Under 18 2026' (30 May 2026)",
+        ),
+        "smsf_member_allocation" => (
+            "2026-11-26",
+            "SISR regs 5.03 and 6.01(2) and Schedule 7, compilation of 1 July 2026; ITAA 1997 ss 295-160, 295-385, 295-390 and 307-80, compilation 268 (1 October 2026); Income Tax Rates Act 1986 s 26(1)(a), compilation 66 (1 July 2026); the ATO's 'Income stream (pension) rules and payments' (last updated 30 April 2026) and 'Exception to minimum pension payment requirements' (5 November 2025)",
         ),
         "smsf_tax" => (
             "2026-11-22",
@@ -6918,6 +6935,12 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("apportionable_deductions", "AUD: your apportionable deductions (ITAA 1997 s 995-1: gifts under s 30-15 items 1, 2, 7 and 8 and rates and land tax under s 25-75), apportioned by s 102AD(c)"),
             ("special_income_component", "boolean: your taxable income includes a special income component (an abnormal income amount, Income Tax Rates Act 1986 s 3(1)); true is refused"),
         ],
+        "smsf_member_allocation" => vec![
+            ("accounts", "list of 1 to 30 objects, one per member account (interest), each {label, kind, opening_balance} and optional transactions: kind accumulation, account_based_pension (in the retirement phase) or transition_to_retirement (not in it, ITAA 1997 s 307-80(3); refused once its recipient is 64 or older on 1 July, as attaining 65 ends that); opening_balance AUD from 0, the balance on 1 July, and for a pension SISR Schedule 7 cl 1(2)'s account balance (the withdrawal benefit if higher); a pension also takes age, a whole number from 0 to 150 on 1 July, and optional minimum_exception, a boolean: the trustee has self-assessed, or the ATO has allowed, the Commissioner's exception for a shortfall; transactions a list of at most 1,000 objects {date, type, amount}, date YYYY-MM-DD in the year, amount AUD above nil, type concessional_contribution (an assessable contribution, s 295-160), non_concessional_contribution, rollover_in, pension_payment (a pension only), lump_sum or rollover_out; contributions and roll-overs in are refused on a pension"),
+            ("net_earnings", "AUD that may be negative: the fund's investment return for the year after its costs and before income tax, to share by weighted balance"),
+            ("income_tax", "AUD that may be negative: the fund's income tax for the year as worked out (for example by smsf-tax, before the supervisory levy), contributions tax included"),
+            ("allocation_method", "text: daily_weighted_balance, the trustee's stated method under SISR reg 5.03(2); any other is refused"),
+        ],
         "smsf_tax" => vec![
             ("complying_fund", "boolean: the fund is a complying superannuation fund for the year; false is refused"),
             ("australian_superannuation_fund", "boolean: the fund is an Australian superannuation fund for the year; false is refused"),
@@ -7554,7 +7577,9 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
                 ),
             ),
         ],
-        "resident_tax" | "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
+        // resident_tax's first year is 2019-20; its example stays in 2024-25.
+        "resident_tax" => vec![("year", Text("2024-25")), ("taxable_income", Text("45000"))],
+        "foreign_resident_tax" => vec![("taxable_income", Text("45000"))],
         "capital_gains" => vec![
             ("other_gains", Text("100.00")),
             ("discount_gains", Text("1000.00")),
@@ -8701,6 +8726,19 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("total_net_investment_loss", Text("0.00")),
             ("net_exempt_income", Text("0.00")),
             ("other_income", Text("60000.00")),
+        ],
+        // Fabricated: one accumulation and one pension account in 2025-26.
+        "smsf_member_allocation" => vec![
+            ("year", Text("2025-26")),
+            (
+                "accounts",
+                Json(
+                    r#"[{"label": "Member A accumulation", "kind": "accumulation", "opening_balance": "300000.00", "transactions": [{"date": "2025-10-01", "type": "concessional_contribution", "amount": "10000.00"}, {"date": "2026-01-15", "type": "non_concessional_contribution", "amount": "20000.00"}]}, {"label": "Member B pension", "kind": "account_based_pension", "opening_balance": "500000.00", "age": 68, "transactions": [{"date": "2025-12-31", "type": "pension_payment", "amount": "15000.00"}, {"date": "2026-06-15", "type": "pension_payment", "amount": "10000.00"}]}]"#,
+                ),
+            ),
+            ("net_earnings", Text("60000.00")),
+            ("income_tax", Text("6000.00")),
+            ("allocation_method", Text("daily_weighted_balance")),
         ],
         // The ATO's SAR 2026 Appendix 1 example 1: $234,200 of income, an
         // actuary's 50% and $62,000 of franking credits, a $44,176 refund.
