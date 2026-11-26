@@ -367,7 +367,7 @@ fn tax_and_earnings_with_nowhere_to_go() {
 #[test]
 fn a_transition_to_retirement_pension_reaching_65_is_refused() {
     // ITAA 1997 s 307-80(3)(b): attaining 65 ends a transition to retirement
-    // pension's non-retirement phase status, at 64 on 1 July within the year.
+    // pension's non-retirement phase status, which at 64 on 1 July may fall within the year.
     for age in [64, 65, 80] {
         let mut i = shortfalls(None);
         i["accounts"][0]["age"] = json!(age);
