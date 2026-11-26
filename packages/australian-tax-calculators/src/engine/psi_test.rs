@@ -524,16 +524,8 @@ impl Work {
     /// that decides the outcome and the source holds 2 or more rows won by
     /// offers, whether they are 2 clients is not known, so it refuses.
     fn other_tests(&mut self, f: &Facts, one_source: bool) -> Result<Vec<&'static str>> {
-        let won: Vec<&Payer> = f
-            .payers
-            .iter()
-            .filter(|p| !p.amount.is_zero() && !p.associate && p.offer)
-            .collect();
-        let unrelated = won
-            .iter()
-            .map(|p| p.client.as_ref().unwrap_or(&p.source))
-            .collect::<BTreeSet<_>>()
-            .len();
+        let won = won_by_offer(f);
+        let unrelated = unrelated_clients(&won);
         let employment = share(f.others, f.total)?;
         let fifth = reaches(f.others, f.total, 1, 5)?;
         let employs = fifth || f.apprentice;
@@ -573,15 +565,32 @@ impl Work {
             .insert("unrelated_clients".into(), json!(unrelated));
         self.figures
             .insert("employment_percent".into(), json!(employment));
-        Ok([
-            (clients, "87-20"),
-            (employs, "87-25"),
-            (f.premises, "87-30"),
-        ]
+        Ok(met_sections(clients, employs, f.premises))
+    }
+}
+
+/// Payers with an amount, not associates of the entity, won by offers.
+fn won_by_offer<'a>(f: &'a Facts<'_>) -> Vec<&'a Payer> {
+    f.payers
+        .iter()
+        .filter(|p| !p.amount.is_zero() && !p.associate && p.offer)
+        .collect()
+}
+
+/// Distinct client labels, a row without one counting by its source.
+fn unrelated_clients(won: &[&Payer]) -> usize {
+    won.iter()
+        .map(|p| p.client.as_ref().unwrap_or(&p.source))
+        .collect::<BTreeSet<_>>()
+        .len()
+}
+
+/// The sections of the other 3 tests that are met.
+fn met_sections(clients: bool, employs: bool, premises: bool) -> Vec<&'static str> {
+    [(clients, "87-20"), (employs, "87-25"), (premises, "87-30")]
         .into_iter()
         .filter_map(|(met, section)| met.then_some(section))
-        .collect())
-    }
+        .collect()
 }
 
 /// s 87-15(3) at 80% from one source; otherwise s 87-15(1) by the other 3
