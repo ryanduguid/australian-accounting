@@ -67,10 +67,13 @@ fn events_of(args: &CgtCostBaseArgs, year: &str, last: i64) -> Result<Vec<Event>
                 e.n
             ));
         }
-        if events[..k]
-            .iter()
-            .any(|o| o.security == e.security && o.change.company() != e.change.company())
-        {
+        if events[..k].iter().any(|o| {
+            o.security == e.security
+                && o.change
+                    .company()
+                    .zip(e.change.company())
+                    .is_some_and(|(a, b)| a != b)
+        }) {
             return conflict(format!(
                 "event {}: {} cannot be both a company's shares and a trust's units.",
                 e.n, e.security
@@ -216,7 +219,9 @@ pub fn cgt_cost_base_adjustments(args: &CgtCostBaseArgs) -> Result<Value> {
             .map(|r| row_json(&w, r))
             .collect::<Result<_>>()?,
     );
-    out["parcels"] = Value::Array(w.parcels.iter().map(parcel_json).collect::<Result<_>>()?);
+    // A parcel exchanged under a scrip for scrip roll-over is no longer held.
+    let held = w.parcels.iter().filter(|p| !p.units.is_zero());
+    out["parcels"] = Value::Array(held.map(parcel_json).collect::<Result<_>>()?);
     if w.unindexed {
         let warnings = out["warnings"].as_array_mut().expect("warnings");
         warnings.push(json!(UNINDEXED));

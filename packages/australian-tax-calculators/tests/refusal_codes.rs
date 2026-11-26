@@ -36,6 +36,7 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine",
         "engine/balancing",
         "engine/cgt_parcels",
+        "engine/cgt_parcels/rollovers",
         "engine/fbt_benefits",
         "engine/fbt_benefits/entertainment",
         "engine/fhss",
@@ -214,21 +215,22 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // rd-tax-offset, gst-creditable-purpose-change, gst-annual-apportionment,
     // gst-financial-acquisitions-threshold, gst-going-concern,
     // gst-second-hand-goods, gst-bad-debt, gst-error-correction,
-    // gst-credit-time-limit, tourist-refund, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even,
+    // gst-credit-time-limit, tourist-refund, deferred-tax, book-to-tax, deferred-revenue, leave-provisions, wip-lockup, break-even,
     // cash-forecast, hourly-rate, fixed-fee, staff-cost, impairment-test,
     // consolidation-eliminations, tofa-accruals,
     // super-projection, objection-deadline, lessee-lease, thin-capitalisation, debt-forgiveness,
-    // cgt-cost-base-adjustments, super-withholding, payg-instalment,
+    // cgt-cost-base-adjustments, cgt-rollover, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
-    // smsf-tax, ess-discount, help-indexation,
+    // smsf-tax, smsf-member-allocation, ess-discount, help-indexation,
     // instant-asset-write-off, defined-benefit-income-cap,
     // foreign-pension-upp, scholarship-exemption, super-crystallisation and
     // endorsement-review.
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
-    // gst-food-retailer-sam.
-    assert_eq!(checked, 151);
+    // gst-food-retailer-sam, salary-dividend, sole-trader-set-aside,
+    // salary-packaging and novated-lease.
+    assert_eq!(checked, 158);
 }
 
 /// Every frozen call gives the same answer through either entry point, and
