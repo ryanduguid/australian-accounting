@@ -281,15 +281,42 @@ fn working(
         }
     }
     let reduction = income_reduction(&mut steps, carer, &income)?;
-    let total = reduction.add(&partner_reduction)?;
-    steps.push(step(
-        "rate",
-        AUTH[5],
-        "max(max_rate - (partner_income_reduction + ordinary_income_reduction), 0)",
-        &[&max_rate, &partner_reduction, &reduction],
-        super::py_max(max_rate.sub(&total)?, int(0))?,
-    ));
+    steps.push(rate_step(
+        status,
+        &max_rate,
+        &partner_reduction,
+        &reduction,
+    )?);
     Ok(steps)
+}
+
+/// The rate after the reductions (point 1068-A1 steps 5 and 6); the partner
+/// reduction appears only where the partner income test applies.
+fn rate_step(
+    status: Partner,
+    max_rate: &Decimal,
+    partner_reduction: &Decimal,
+    reduction: &Decimal,
+) -> Result<Step> {
+    let total = reduction.add(partner_reduction)?;
+    let paid = super::py_max(max_rate.sub(&total)?, int(0))?;
+    Ok(if status == Partner::NotReceiving {
+        step(
+            "rate",
+            AUTH[5],
+            "max(max_rate - (partner_income_reduction + ordinary_income_reduction), 0)",
+            &[max_rate, partner_reduction, reduction],
+            paid,
+        )
+    } else {
+        step(
+            "rate",
+            AUTH[5],
+            "max(max_rate - ordinary_income_reduction, 0)",
+            &[max_rate, reduction],
+            paid,
+        )
+    })
 }
 
 /// Pushes the ordinary income reduction step (points 1068-G14 to G17);
