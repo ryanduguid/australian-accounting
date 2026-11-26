@@ -116,11 +116,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "payroll_tax",
-        "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)). Given the payroll tax and any surcharge paid or payable on the year's periodic returns (periodic_tax and, in Queensland, the levy on them, periodic_levy) and, in Victoria, South Australia, Tasmania, the ACT and the Northern Territory, any other refund of payroll tax made for the year (other_refunds, nil if none), it also reconciles the year: what remains payable and what is refunded. The New South Wales reconciliation is refused: its Act could not be read on 26 November 2026.",
+        "One employer's payroll tax for the 2026-27 financial year (1 July 2026 to 30 June 2027) in one of New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory and the Northern Territory, for an employer that is not a member of a group and paid or was liable to pay wages on every day of the year. The operator establishes the employer's taxable wages in the jurisdiction (the wages its Act makes taxable there, after its exemptions) and its Australian wages (those taxable wages with its interstate wages, the wages taxable in every other jurisdiction), and in Victoria whether it is a regional employer (Payroll Tax Act 2007 (Vic) s 3A). The result is the annual liability under each Act's schedule before any rebate, discount or cap, such as Queensland's regional discount (Payroll Tax Act 1971 (Qld) s 10A) and the 6.85% cap for an eligible university in the ACT (DI2026-151 s 5(c)(i)). Given the payroll tax and any surcharge paid or payable on the year's periodic returns (periodic_tax and, in Queensland, the levy on them, periodic_levy) and, in Victoria, South Australia, Tasmania, the ACT and the Northern Territory, any other refund of payroll tax made for the year (other_refunds, nil if none), it also reconciles the year: what remains payable and what is refunded.",
     ),
     (
         "payroll_tax_monthly",
-        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read: an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established and, in the ACT, not an eligible university (DI2026-151 s 4). A deduction the Commissioner notified or determined (stated_deduction: required in the Northern Territory and for an interstate employer in Western Australia; optional in Queensland, South Australia and, with interstate wages, Victoria and the ACT; refused above any cap its Act sets) and Queensland's determined periodic thresholds (stated_primary_threshold and stated_additional_threshold) replace the formula. New South Wales is refused: its Act could not be read on 26 November 2026.",
+        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read: an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established and, in the ACT, not an eligible university (DI2026-151 s 4). A deduction the Commissioner notified or determined (stated_deduction: required in the Northern Territory and for an interstate employer in Western Australia; optional in Queensland, South Australia and, with interstate wages, Victoria and the ACT; refused above any cap its Act sets) and Queensland's determined periodic thresholds (stated_primary_threshold and stated_additional_threshold) replace the formula.",
     ),
     (
         "payroll_tax_group",
@@ -3629,7 +3629,7 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "payroll_tax",
         &[
             "Each revenue office decides which payments are taxable wages and in which jurisdiction they are taxable; this worksheet takes both wage totals as established.",
-            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads; New South Wales's is refused. In Victoria, South Australia, Tasmania, the ACT and the Northern Territory the refund is reduced by other_refunds, any other refund of payroll tax made for the year. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
+            "With periodic_tax (and periodic_levy in Queensland), the year's liability is reconciled against the payroll tax and any surcharge or levy paid or payable on the year's periodic returns, as each Act's annual adjustment reads. In New South Wales, Victoria, South Australia, Tasmania, the ACT and the Northern Territory the refund is reduced by other_refunds, any other refund of payroll tax made for the year. A refund is made on application and within each Act's time limit, which this worksheet does not check.",
         ],
     ),
     (
@@ -6730,10 +6730,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "The employer did not pay wages for the whole year, and the threshold reduced by days is not worked.",
     ),
     (
-        "payroll_tax.reconciliation_unread",
-        "The New South Wales Act could not be read today, so its annual adjustment is not worked.",
-    ),
-    (
         "payroll_tax.wages_conflict",
         "australian_wages is less than taxable_wages, which it includes.",
     ),
@@ -6812,10 +6808,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax_group.test_invalid",
         "A controlling interest's test is not one the worksheet takes.",
-    ),
-    (
-        "payroll_tax_monthly.act_unread",
-        "The jurisdiction's Act could not be read today, so its monthly provisions are not worked.",
     ),
     (
         "payroll_tax_monthly.deduction_above_cap",

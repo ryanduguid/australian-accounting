@@ -2914,8 +2914,8 @@ Tasmanian, ACT and Northern Territory Acts, Pay-roll Tax Assessment Act 2002
 determines a shortfall under $20 to be nil). Those 5 Acts reduce the refund by
 any other refund of payroll tax made for the year (s 83(4), in the ACT
 s 83(5)), so there `other_refunds` is required, nil if none. Queensland
-settles the tax and the levy apart. New South Wales's reconciliation is refused: its Act could not be
-read on 26 November 2026. The tests hold it to the examples
+settles the tax and the levy apart. New South Wales's s 83, read at AustLII
+on 27 November 2026, settles the year as Victoria's does. The tests hold it to the examples
 Revenue NSW, the Victorian and Tasmanian State Revenue Offices, the Queensland
 Revenue Office, RevenueWA and RevenueSA publish, and to examples worked from
 the ACT and Northern Territory Acts; see
@@ -2962,8 +2962,9 @@ Australian group with no designated group employer. See
 ## Payroll tax monthly returns
 
 `payroll_tax_monthly` works out what one employer outside a group owes on one
-monthly return for a month of 2026-27 in Victoria, Queensland, Western
-Australia, South Australia, Tasmania, the ACT or the Northern Territory, as
+monthly return for a month of 2026-27 in New South Wales, Victoria,
+Queensland, Western Australia, South Australia, Tasmania, the ACT or the
+Northern Territory, as
 each Act's monthly provisions read. It takes:
 
 - `jurisdiction` and `month` (`2026-07` to `2027-06`);
@@ -2984,6 +2985,7 @@ each Act's monthly provisions read. It takes:
 
 | Jurisdiction | Monthly deduction | Rate, and any surcharge or levy |
 | --- | --- | --- |
+| New South Wales | The year's tax on the month's wages annualised by days, in the month's share of the year (Sch 2 cll 2 and 3) | 5.45% above $1,200,000 a year (Sch 1 cl 1) |
 | Victoria | $83,333 less (estimate - $3,000,000) / 12 x 50% (Sch 2 cl 5); with interstate wages, the cl 6(3) amount shared by the estimate | 4.85% or 1.2125%; 2 surcharges on the month's wages above $833,333, or above the estimate's share of $10 million / 12 (cl 4(3) and (4)) |
 | Queensland | Actual periodic deduction, $108,333 less $1 for every $7 of the month's wages above it; with interstate wages, or for a previous interstate wage payer, the fixed periodic deduction on the estimates (s 17) | 4.75%, or 4.95% above $541,666 in the month; the levy above the estimate's share of $10 million / 12 and $100 million / 12 (ss 43C to 43F) |
 | Western Australia | Nil tax to $83,333, a taper to $625,000, then none (ss 8, 11 and 12); an interstate employer deducts the amount the Commissioner nominated (s 15) | 5.5% |
@@ -2992,11 +2994,11 @@ each Act's monthly provisions read. It takes:
 | ACT | $145,833.33, shared by the estimate with interstate wages (Sch 2 ss 2.3 and 2.4; DI2026-151 s 5(b)) | DI2026-151 Table 2 by the month's total wages: 6.75% to 8.75% |
 | Northern Territory | The stated amount, at most $2,500,000 / 12 (Sch 2 cll 6 and 7) | 5.5% (s 7A(1)) |
 
-New South Wales is refused: its Act could not be read on 26 November 2026. So
-are a member of a group, an employer paying wages for only part of the year,
-June in Queensland (its last periodic return period, worked by the annual
-return), a Queensland regional employer, a Tasmanian employer with interstate
-wages (Sch 2 cl 3 annualises only the taxable wages), a Victorian month whose
+Refused: a member of a group, an employer paying wages for only part of the
+year, June in Queensland (its last periodic return period, worked by the
+annual return) and in New South Wales (incorporated into the annual return),
+a Queensland regional employer, a New South Wales or Tasmanian employer with
+interstate wages (Sch 2 cl 3 of each Act annualises only the taxable wages), a Victorian month whose
 cl 4(4) surcharge formula gives less than nil, a Western Australian
 nomination above the month's wages (s 15 does not say how a negative
 difference is treated), an ACT month whose total wages Table 2 gives no rate
