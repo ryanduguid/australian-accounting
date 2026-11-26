@@ -630,6 +630,83 @@ fn missing_gst_facts_give_no_figure_and_name_what_is_missing() {
     assert_eq!(r["journals"]["gst_booked"], false);
 }
 
+#[test]
+fn an_empty_gst_object_names_registered_as_missing() {
+    let r = run(json!({"gst": {}})).unwrap();
+    assert_eq!(r["gst"], json!({"computed": false, "missing": ["registered"]}));
+    assert_eq!(amount(&r, "input_tax_credit"), "absent");
+}
+
+#[test]
+fn malformed_gst_facts_are_refused_with_what_they_must_be() {
+    let refused = |overrides: Value| {
+        let mut input = json!({
+            "amount_financed": "1000.00", "instalment": "100.00", "instalments": 2,
+            "balloon": "1000.00", "timing": "in_arrears", "start_date": "2026-07-15",
+            "year": "2026-27", "scope_confirmed": true,
+        });
+        for (k, v) in overrides.as_object().unwrap() {
+            input[k] = v.clone();
+        }
+        let error = api::evaluate_coded("hire-purchase-schedule", &input).unwrap_err();
+        (error.code, error.message)
+    };
+    // Darren's car: capped by the car limit, so a split invoice may be given.
+    let darren = |changes: Value| {
+        let mut gst = json!({"registered": true, "accounting_basis": "accruals",
+                             "creditable_purpose": "1", "asset": "passenger_car",
+                             "first_used_year": "2026-27", "gst_inclusive_market_value": "91242.80",
+                             "luxury_car_tax": "2407.80", "quotes_abn_for_luxury_car_tax": false});
+        for (k, v) in changes.as_object().unwrap() {
+            gst[k] = v.clone();
+        }
+        json!({"amount_financed": "91242.80", "instalment": "1800.00", "instalments": 60,
+               "balloon": "0.00", "start_date": "2026-07-12", "gst": gst})
+    };
+    let invalid = "hire_purchase.gst_fact_invalid";
+    let cases = [
+        (
+            json!({"gst": {"registered": "yes"}}),
+            "input.flag_invalid",
+            "gst: registered must be a boolean.",
+        ),
+        (
+            json!({"gst": {"registered": true, "lease": true}}),
+            "input.field_unknown",
+            "gst: lease is not a GST fact this worksheet takes",
+        ),
+        (
+            darren(json!({"first_used_year": 2026})),
+            invalid,
+            "gst: first_used_year must be an income year such as 2026-27.",
+        ),
+        (
+            darren(json!({"luxury_car_tax": "lots"})),
+            "input.amount_invalid",
+            "Amounts must be finite non-negative Decimals, at most 2dp and 1e12.",
+        ),
+        (
+            darren(json!({"separate_tax_invoice": "held"})),
+            invalid,
+            "gst: separate_tax_invoice must be an object.",
+        ),
+        (
+            darren(json!({"separate_tax_invoice": {"tax_invoice_held": true, "goods_price": "1.00"}})),
+            invalid,
+            "gst: separate_tax_invoice does not take goods_price.",
+        ),
+        (
+            json!({"gst": {"registered": true, "accounting_basis": "cash", "creditable_purpose": "1",
+                           "asset": "other", "separate_tax_invoice": {"tax_invoice_held": true}}}),
+            invalid,
+            "gst: separate_tax_invoice applies only to a passenger car reached by the hire purchase car limit.",
+        ),
+    ];
+    for (overrides, code, message) in cases {
+        assert_eq!(refused(overrides.clone()), (code, message.to_string()), "{overrides}");
+    }
+}
+
 /// A week spanning 30 June is set apart in the interest and the journals.
 #[test]
 fn a_period_spanning_30_june_is_set_apart_in_the_journals_too() {

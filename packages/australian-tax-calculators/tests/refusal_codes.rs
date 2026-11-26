@@ -292,6 +292,23 @@ fn unreadable_decimal_text_and_an_undefined_step_have_their_own_codes() {
 }
 
 #[test]
+fn a_trapped_decimal_signal_reads_as_python_names_it_with_its_own_code() {
+    use australian_tax_calculators::decimal::Signal;
+    use australian_tax_calculators::engine::Error;
+    let cases = [
+        (Signal::InvalidOperation, "decimal.InvalidOperation", "decimal.invalid_operation"),
+        (Signal::DivisionByZero, "decimal.DivisionByZero", "decimal.division_by_zero"),
+        (Signal::Overflow, "decimal.Overflow", "decimal.overflow"),
+    ];
+    for (signal, shown, code) in cases {
+        let error = Error::from(signal);
+        assert_eq!(error, Error::Decimal(signal));
+        assert_eq!(error.to_string(), shown);
+        assert_eq!(error.code(), code);
+    }
+}
+
+#[test]
 fn gst_accepts_plain_decimal_strings_at_the_cli_boundary() {
     let input = |amount| {
         json!({"amount": amount, "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"})
