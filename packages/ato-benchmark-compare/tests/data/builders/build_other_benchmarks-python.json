@@ -736,6 +736,56 @@
    "output_sha256": {}
   },
   {
+   "name": "help-with-value",
+   "files": {},
+   "args": [
+    "--help=x"
+   ],
+   "check": "argparse",
+   "exit": 2,
+   "stderr": "argument -h/--help: ignored explicit argument 'x'",
+   "stdout": "",
+   "output_sha256": {}
+  },
+  {
+   "name": "short-help-with-value",
+   "files": {},
+   "args": [
+    "-h=x"
+   ],
+   "check": "argparse",
+   "exit": 2,
+   "stderr": "argument -h/--help: ignored explicit argument 'x'",
+   "stdout": "",
+   "output_sha256": {}
+  },
+  {
+   "name": "abbreviated-help-with-value",
+   "files": {},
+   "args": [
+    "--pages-dir",
+    "p",
+    "--he=x"
+   ],
+   "check": "argparse",
+   "exit": 2,
+   "stderr": "argument -h/--help: ignored explicit argument 'x'",
+   "stdout": "",
+   "output_sha256": {}
+  },
+  {
+   "name": "short-help-joined",
+   "files": {},
+   "args": [
+    "-hx"
+   ],
+   "check": "help",
+   "exit": 0,
+   "stdout": "",
+   "stderr": "",
+   "output_sha256": {}
+  },
+  {
    "name": "missing-dataset",
    "files": {},
    "args": [

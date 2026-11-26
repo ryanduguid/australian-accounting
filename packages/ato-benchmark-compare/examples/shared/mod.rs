@@ -11,6 +11,7 @@ use std::io::Write;
 use std::process::ExitCode;
 
 use ato_benchmark_compare::cli::{decode_os, output_bytes};
+use ato_benchmark_compare::py::repr_str;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
@@ -71,6 +72,7 @@ fn is_negative_number(arg: &str) -> bool {
 enum Token {
     Value(String),
     Help,
+    HelpWithValue(String),
     Flag(&'static str, Option<String>),
     Unknown(String),
 }
@@ -111,6 +113,10 @@ impl Spec {
                 }
             }
         }
+        if arg.starts_with("-h") && !arg.starts_with("--") {
+            // `-hx`: argparse runs `-h` first, which prints help and exits.
+            return Ok(Token::Help);
+        }
         if arg.contains(' ') || is_negative_number(arg) {
             return Ok(Token::Value(arg.to_string()));
         }
@@ -120,7 +126,7 @@ impl Spec {
     fn token(&self, name: &str, inline: Option<String>) -> Token {
         match self.flags.iter().find(|f| f.0 == name) {
             Some(flag) => Token::Flag(flag.0, inline),
-            None => Token::Help,
+            None => inline.map_or(Token::Help, Token::HelpWithValue),
         }
     }
 
@@ -141,6 +147,13 @@ impl Spec {
         while let Some(token) = tokens.next() {
             match token {
                 Token::Help => return Ok(None),
+                Token::HelpWithValue(v) => {
+                    let msg = format!(
+                        "argument -h/--help: ignored explicit argument {}",
+                        repr_str(&v)
+                    );
+                    return Err(self.error(&msg));
+                }
                 Token::Value(v) | Token::Unknown(v) => extras.push(v),
                 Token::Flag(name, inline) => {
                     let value = match (inline, tokens.peek()) {

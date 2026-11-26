@@ -24,7 +24,7 @@
 
 ## Parity
 
-`tests/data/builders/` holds the answers the Python scripts gave, recorded by running them under CPython 3.15 and openpyxl 3.1.5 on 24 `build_dataset` cases (16 workbooks in `xlsx/`, written as raw OOXML so shared strings, inline strings, sparse rows and number spellings are exercised) and 31 `build_other_benchmarks` cases (every refusal the page builder has, plus agreeing, excluded, aliased and CRLF pages). Each example's `port_answers_as_the_python_script_did` test lays out every case's inputs, runs the port in process and compares the exit code, stdout, stderr and every file written, byte for byte. The `about` field of each file says which cases compare less than everything and why.
+`tests/data/builders/` holds the answers the Python scripts gave, recorded by running them under CPython 3.15 and openpyxl 3.1.5 on 24 `build_dataset` cases (16 workbooks in `xlsx/`, written as raw OOXML so shared strings, inline strings, sparse rows and number spellings are exercised) and 35 `build_other_benchmarks` cases (every refusal the page builder has, agreeing, excluded, aliased and CRLF pages, and help given a value). Each example's `port_answers_as_the_python_script_did` test lays out every case's inputs, runs the port in process and compares the exit code, stdout, stderr and every file written, byte for byte. The `about` field of each file says which cases compare less than everything and why.
 
 ## Intended divergences
 
