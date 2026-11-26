@@ -132,16 +132,6 @@ pub struct RentAssistanceArgs<'a> {
     pub scope_confirmed: &'a Arg,
 }
 
-fn period(given: &Arg) -> Result<&'static Indexed> {
-    match super::dated(given, &RATES, UNTIL) {
-        Some(rates) => Ok(rates),
-        None => refuse(
-            "rent_assistance.date_uncovered",
-            "Not computed: date must be a YYYY-MM-DD day from 1 July 2026 to 19 March 2027, the days the indexed rates were read for.",
-        ),
-    }
-}
-
 fn facts(given: &Arg) -> Result<()> {
     let Arg::Json(Value::Object(fields)) = given else {
         return refuse(
@@ -156,6 +146,16 @@ fn facts(given: &Arg) -> Result<()> {
             format!(
                 "Not computed: the worksheet covers only the stated case; not stated: {missing}."
             ),
+        ),
+    }
+}
+
+fn period(given: &Arg) -> Result<&'static Indexed> {
+    match super::dated(given, &RATES, UNTIL) {
+        Some(rates) => Ok(rates),
+        None => refuse(
+            "rent_assistance.date_uncovered",
+            "Not computed: date must be a YYYY-MM-DD day from 1 July 2026 to 19 March 2027, the days the indexed rates were read for.",
         ),
     }
 }
