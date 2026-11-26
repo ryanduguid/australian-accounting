@@ -6898,6 +6898,26 @@ either side, the 90% assets threshold a cent either side, a negative net debt
 deductions widening the excess, a negative tax EBITDA, every tax EBITDA line,
 the year boundaries and every refusal.
 
+Subdivisions 820-B to 820-E were added on 27 November 2026 from the same
+compilation, confirmed through the Federal Register of Legislation's API
+that day as still the latest, with no unincorporated amendments. The
+formulas in ss 820-90(3)(c), 820-115(3), 820-190(2)(c), 820-220(3), 820-325
+and 820-415 are images: average Australian assets over statement worldwide
+assets, and each debt deduction times excess debt (or capital shortfall)
+over average debt. The Act's own examples are the vectors.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| GLM Limited (ss 820-100, 820-110) | assets 160m, reductions 5m, 5m, 5m, 9m, 6m, 5m, zero-capital 4m, on-lent 35m, worldwide debt 120m and equity 40m | total debt amount **117,437,500**, adjusted on-lent amount **87,000,000**, worldwide gearing debt amount **94,750,000** |
+| GLM with debt | adjusted average debt 96m, average debt 110m, deductions 8.8m | excess **1,250,000**, disallowed **100,000** |
+| TRR Limited (s 820-111) | statement debt 90m and equity 30m, total debt base 100m, zero-capital 5m | worldwide gearing debt amount **80,000,000** |
+| Inward investor (s 820-210) | Australian investments 120m, reductions 5m, 5m, 2m, 3m, zero-capital 5m, on-lent 35m | total debt amount **98,750,000**, adjusted on-lent amount **75,000,000** |
+| Southern Cross Bank (ss 820-310, 820-320) | risk-weighted assets 150m, tier 1 deductions 2m, group 14m over 160m | safe harbour **11,000,000**, worldwide **15,125,000**; with equity 10m, average debt 200m and deductions 10m, disallowed **50,000** |
+| Global Bank (s 820-405) | risk-weighted assets 140m | safe harbour **8,400,000**; with equity 8.2m, average debt 100m and deductions 5m, disallowed **10,000** |
+
+`general_class_results_unchanged` compares 11 general class inputs with
+their results recorded on main at 4df634bb, refusals included.
+
 ## Debt forgiveness
 
 Added on 26 November 2026, when the sources were read: ITAA 1997 compilation

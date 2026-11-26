@@ -4,6 +4,15 @@
 
 ### Added
 
+- `thin-capitalisation` now applies ITAA 1997 Subdivisions 820-B to 820-E:
+  a financial entity (non-ADI) by its maximum allowable debt (safe harbour
+  and worldwide gearing debt amounts) or its third party debt choice, and
+  an ADI by its minimum capital amount (safe harbour, worldwide and stated
+  arm's length capital amounts), for the whole year, from stated averages.
+  An amount the result turns on that was not stated is refused, never
+  estimated. General class results are unchanged. New codes:
+  `thin_capitalisation.amount_not_worked_out` and `part_year_not_built`;
+  `thin_capitalisation.entity_class_not_built` is retired.
 - `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee` and `staff-cost`
   mirror the site's break-even, 13-week cash, hourly, fixed fee and staff
   cost calculators and agree with every one of their vectors;

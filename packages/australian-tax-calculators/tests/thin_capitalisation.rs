@@ -393,6 +393,7 @@ fn carried_amounts_and_their_refusals() {
 
 #[test]
 fn entity_classes_and_scope() {
+    // Subdivision 820-AA's tests are not those of the other classes.
     for class in [
         "outward_investing_financial_entity",
         "inward_investing_financial_entity",
@@ -401,10 +402,17 @@ fn entity_classes_and_scope() {
     ] {
         let mut i = t1();
         i["entity_class"] = json!(class);
-        assert_eq!(
-            code(&i),
-            "thin_capitalisation.entity_class_not_built",
-            "{class}"
+        assert_eq!(code(&i), "thin_capitalisation.fact_invalid", "{class}");
+    }
+    for test in ["maximum_allowable_debt", "minimum_capital_amount"] {
+        let mut i = t1();
+        i["test"] = json!(test);
+        let e = api::evaluate_coded(CMD, &i).unwrap_err();
+        assert_eq!(e.code, "thin_capitalisation.fact_invalid", "{test}");
+        assert!(
+            e.message
+                .contains("fixed_ratio, group_ratio or third_party_debt."),
+            "{test}"
         );
     }
     let mut i = t1();
@@ -471,4 +479,571 @@ fn missing_and_malformed_inputs() {
     let mut i = t1();
     i["interest_and_equivalent_income"] = json!("-1.00");
     assert_eq!(code(&i), "input.amount_invalid");
+}
+
+// Subdivisions 820-B to 820-E, read on 27 November 2026. GLM Limited, TRR
+// Limited, Southern Cross Bank and Global Bank are the Act's own examples
+// (ss 820-100, 820-110, 820-111, 820-210, 820-310, 820-320 and 820-405); the
+// adjusted average debt, equity capital and deductions around them are
+// made-up figures worked by hand.
+
+fn older(class: &str, test: &str, deductions: Value) -> Value {
+    let mut i = base(test, deductions);
+    i["entity_class"] = json!(class);
+    i["whole_year"] = json!(true);
+    i
+}
+
+fn drop(i: &mut Value, keys: &[&str]) {
+    for k in keys {
+        i.as_object_mut().unwrap().remove(*k);
+    }
+}
+
+fn refusal(i: &Value) -> api::Refusal {
+    api::evaluate_coded(CMD, i).unwrap_err()
+}
+
+/// GLM Limited (ss 820-100(2), (3) and 820-110), with $110m of average debt
+/// capital and $8.8m of debt deductions.
+fn glm() -> Value {
+    let mut i = older(
+        "outward_investing_financial_entity",
+        "maximum_allowable_debt",
+        json!([dd("Bonds", "8000000.00"), dd("Loan", "800000.00")]),
+    );
+    for (k, v) in [
+        ("average_debt_capital", "110000000.00"),
+        ("average_associate_entity_debt", "5000000.00"),
+        ("average_controlled_foreign_entity_debt", "9000000.00"),
+        ("average_borrowed_securities_amount", "0.00"),
+        ("average_cost_free_debt_capital", "0.00"),
+        ("average_assets", "160000000.00"),
+        ("average_excluded_equity_interests", "5000000.00"),
+        ("average_associate_entity_equity", "5000000.00"),
+        ("average_controlled_foreign_entity_equity", "6000000.00"),
+        ("average_non_debt_liabilities", "5000000.00"),
+        ("average_zero_capital_amount", "4000000.00"),
+        ("average_associate_entity_excess_amount", "0.00"),
+        ("average_on_lent_amount", "35000000.00"),
+        ("average_worldwide_debt", "120000000.00"),
+        ("average_worldwide_equity", "40000000.00"),
+    ] {
+        i[k] = json!(v);
+    }
+    i["inward_investment_vehicle"] = json!(false);
+    i
+}
+
+#[test]
+fn glm_outward_financial_entity() {
+    let r = run(&glm());
+    assert_eq!(amount(&r, "adjusted_average_debt"), "96000000.00");
+    assert_eq!(amount(&r, "total_debt_base"), "121000000.00");
+    assert_eq!(amount(&r, "total_debt_amount"), "117437500.00");
+    assert_eq!(amount(&r, "on_lent_base"), "95000000.00");
+    assert_eq!(amount(&r, "adjusted_on_lent_amount"), "87000000.00");
+    assert_eq!(amount(&r, "safe_harbour_debt_amount"), "87000000.00");
+    assert_eq!(amount(&r, "worldwide_gearing_debt_amount"), "94750000.00");
+    assert_eq!(amount(&r, "maximum_allowable_debt"), "94750000.00");
+    assert_eq!(amount(&r, "excess_debt"), "1250000.00");
+    // 8,800,000 x 1,250,000 / 110,000,000.
+    assert_eq!(amount(&r, "total_disallowed_amount"), "100000.00");
+    assert_eq!(
+        column(&r, "debt_deductions", "disallowed"),
+        ["90909.09", "9090.91"]
+    );
+    assert_eq!(r["exemption"], Value::Null);
+    // Within the maximum allowable debt nothing is disallowed.
+    let mut i = glm();
+    i["average_debt_capital"] = json!("108750000.00");
+    assert_eq!(amount(&run(&i), "total_disallowed_amount"), "0.00");
+    // Worldwide equity of nil leaves the safe harbour debt amount alone
+    // (s 820-90(1)(c)): excess 96m - 87m = 9m; 8.8m x 9 / 110 = 720,000.
+    let mut i = glm();
+    i["average_worldwide_equity"] = json!("0.00");
+    let r = run(&i);
+    assert_eq!(amount(&r, "maximum_allowable_debt"), "87000000.00");
+    assert_eq!(amount(&r, "total_disallowed_amount"), "720000.00");
+    assert!(r["amounts"].get("worldwide_gearing_debt_amount").is_none());
+    // Adjusted average debt of nil or less exceeds nothing (s 820-85(4)).
+    let mut i = glm();
+    i["average_debt_capital"] = json!("1000000.00");
+    assert_eq!(amount(&run(&i), "excess_debt"), "0.00");
+}
+
+#[test]
+fn a_maximum_allowable_debt_not_worked_out_is_refused() {
+    // Without the worldwide figures an excess over the safe harbour debt
+    // amount is refused, never estimated (ss 820-90 and 820-190).
+    let mut i = glm();
+    drop(
+        &mut i,
+        &["average_worldwide_debt", "average_worldwide_equity"],
+    );
+    let e = refusal(&i);
+    assert_eq!(e.code, "thin_capitalisation.amount_not_worked_out");
+    assert!(e.message.contains("ss 820-90 and 820-190"));
+    // Below the safe harbour debt amount the answer needs nothing more.
+    i["average_debt_capital"] = json!("100000000.00");
+    assert_eq!(amount(&run(&i), "total_disallowed_amount"), "0.00");
+    // Half the worldwide figures are refused.
+    let mut i = glm();
+    drop(&mut i, &["average_worldwide_debt"]);
+    assert_eq!(code(&i), "thin_capitalisation.input_missing");
+}
+
+/// TRR Limited (s 820-111): an outward investor that is also an inward
+/// investment vehicle, with a total debt base of $100m (140m less 5m, 5m,
+/// 5m, 9m, 6m, 5m and a zero-capital amount of 5m).
+fn trr() -> Value {
+    let mut i = glm();
+    i["inward_investment_vehicle"] = json!(true);
+    drop(
+        &mut i,
+        &["average_worldwide_debt", "average_worldwide_equity"],
+    );
+    i["average_assets"] = json!("140000000.00");
+    i["average_zero_capital_amount"] = json!("5000000.00");
+    i["statement_worldwide_debt"] = json!("90000000.00");
+    i["statement_worldwide_equity"] = json!("30000000.00");
+    i["statement_worldwide_assets"] = json!("120000000.00");
+    i["statement_average_australian_assets"] = json!("60000000.00");
+    i["audited_consolidated_statements"] = json!(true);
+    i
+}
+
+#[test]
+fn trr_outward_investor_also_an_inward_investment_vehicle() {
+    let r = run(&trr());
+    assert_eq!(amount(&r, "total_debt_base"), "100000000.00");
+    assert_eq!(amount(&r, "worldwide_gearing_debt_amount"), "80000000.00");
+    assert_eq!(amount(&r, "maximum_allowable_debt"), "80000000.00");
+    // Above half Australian assets, without audited statements or with nil
+    // statement equity or assets, the worldwide gearing debt amount is not
+    // available (s 820-90(3)).
+    for (k, v) in [
+        ("statement_average_australian_assets", json!("60000000.01")),
+        ("audited_consolidated_statements", json!(false)),
+        ("statement_worldwide_equity", json!("-1.00")),
+        ("statement_worldwide_assets", json!("0.00")),
+    ] {
+        let mut i = trr();
+        i[k] = v;
+        let r = run(&i);
+        assert!(
+            r["amounts"].get("worldwide_gearing_debt_amount").is_none(),
+            "{k}"
+        );
+        assert_eq!(amount(&r, "maximum_allowable_debt"), "75000000.00", "{k}");
+    }
+    let mut i = trr();
+    drop(&mut i, &["audited_consolidated_statements"]);
+    assert_eq!(code(&i), "thin_capitalisation.input_missing");
+    let mut i = trr();
+    drop(
+        &mut i,
+        &[
+            "statement_worldwide_debt",
+            "statement_worldwide_equity",
+            "statement_worldwide_assets",
+            "statement_average_australian_assets",
+        ],
+    );
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    let mut i = trr();
+    i["average_worldwide_debt"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+}
+
+/// The inward investor of s 820-210's examples: Australian investments of
+/// $120m; its statements are not audited, so s 820-190(2)(b) leaves it the
+/// safe harbour debt amount.
+fn investor() -> Value {
+    let mut i = older(
+        "inward_investing_financial_entity",
+        "maximum_allowable_debt",
+        json!([dd("Loan", "6000000.00")]),
+    );
+    for (k, v) in [
+        ("average_debt_capital", "90000000.00"),
+        ("average_associate_entity_debt", "5000000.00"),
+        ("average_pe_associate_entity_debt", "10000000.00"),
+        ("average_borrowed_securities_amount", "0.00"),
+        ("average_cost_free_debt_capital", "0.00"),
+        ("average_assets", "120000000.00"),
+        ("average_excluded_equity_interests", "5000000.00"),
+        ("average_associate_entity_equity", "2000000.00"),
+        ("average_non_debt_liabilities", "3000000.00"),
+        ("average_zero_capital_amount", "5000000.00"),
+        ("average_associate_entity_excess_amount", "0.00"),
+        ("average_on_lent_amount", "35000000.00"),
+        ("statement_worldwide_debt", "90000000.00"),
+        ("statement_worldwide_equity", "30000000.00"),
+        ("statement_worldwide_assets", "200000000.00"),
+        ("statement_average_australian_assets", "100000000.00"),
+    ] {
+        i[k] = json!(v);
+    }
+    i["audited_consolidated_statements"] = json!(false);
+    i["inward_investment_vehicle"] = json!(false);
+    i
+}
+
+#[test]
+fn inward_investor_and_inward_investment_vehicle() {
+    let r = run(&investor());
+    assert_eq!(amount(&r, "total_debt_amount"), "98750000.00");
+    assert_eq!(amount(&r, "adjusted_on_lent_amount"), "75000000.00");
+    assert_eq!(amount(&r, "safe_harbour_debt_amount"), "75000000.00");
+    // 90m less 10m of associate entity debt attributable to the Australian
+    // permanent establishments = 80m; excess 5m; 6m x 5 / 90 = 333,333.33.
+    assert_eq!(amount(&r, "adjusted_average_debt"), "80000000.00");
+    assert_eq!(amount(&r, "total_disallowed_amount"), "333333.33");
+    // Step 7 of s 820-210(3) takes a negative result as nil.
+    let mut i = investor();
+    i["average_associate_entity_debt"] = json!("90000000.00");
+    assert_eq!(amount(&run(&i), "adjusted_on_lent_amount"), "0.00");
+    // The associate entity excess amount is added after that floor (step 8).
+    i["average_associate_entity_excess_amount"] = json!("1000000.00");
+    assert_eq!(amount(&run(&i), "adjusted_on_lent_amount"), "1000000.00");
+    // An inward investment vehicle reduces by all associate entity debt and
+    // has no step 7 floor (s 820-200(3)); adjusted average debt of nil
+    // exceeds nothing (s 820-185(4)).
+    let mut i = investor();
+    i["inward_investment_vehicle"] = json!(true);
+    drop(&mut i, &["average_pe_associate_entity_debt"]);
+    i["average_associate_entity_debt"] = json!("90000000.00");
+    let r = run(&i);
+    assert_eq!(amount(&r, "adjusted_average_debt"), "0.00");
+    assert_eq!(amount(&r, "adjusted_on_lent_amount"), "-10000000.00");
+    assert_eq!(amount(&r, "excess_debt"), "0.00");
+    // Audited statements for s 820-217: 90 / 30 = 3; 3 / 4 x 100m + 5m.
+    let mut i = investor();
+    i["inward_investment_vehicle"] = json!(true);
+    drop(&mut i, &["average_pe_associate_entity_debt"]);
+    i["audited_consolidated_statements"] = json!(true);
+    let r = run(&i);
+    assert_eq!(amount(&r, "worldwide_gearing_debt_amount"), "80000000.00");
+    assert_eq!(amount(&r, "maximum_allowable_debt"), "80000000.00");
+    // And s 820-219 for the inward investor.
+    let mut i = investor();
+    i["audited_consolidated_statements"] = json!(true);
+    assert_eq!(
+        amount(&run(&i), "worldwide_gearing_debt_amount"),
+        "80000000.00"
+    );
+    // Without the statement figures an excess is refused, and below the safe
+    // harbour debt amount nothing more is needed.
+    let mut i = investor();
+    drop(
+        &mut i,
+        &[
+            "statement_worldwide_debt",
+            "statement_worldwide_equity",
+            "statement_worldwide_assets",
+            "statement_average_australian_assets",
+            "audited_consolidated_statements",
+        ],
+    );
+    assert_eq!(code(&i), "thin_capitalisation.amount_not_worked_out");
+    i["average_debt_capital"] = json!("80000000.00");
+    assert_eq!(amount(&run(&i), "total_disallowed_amount"), "0.00");
+    // Inward entities have no controlled foreign entity figures or s 820-37.
+    let mut i = investor();
+    i["average_controlled_foreign_entity_debt"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    let mut i = investor();
+    i["outward_investor_only"] = json!(true);
+    assert_eq!(code(&i), "thin_capitalisation.fact_invalid");
+    let mut i = investor();
+    drop(&mut i, &["average_pe_associate_entity_debt"]);
+    assert_eq!(code(&i), "thin_capitalisation.input_missing");
+}
+
+#[test]
+fn financial_entity_edges() {
+    // More excess than average debt disallows all of each deduction, no more.
+    let mut i = glm();
+    i["average_borrowed_securities_amount"] = json!("1000000000.00");
+    let r = run(&i);
+    assert_eq!(amount(&r, "total_disallowed_amount"), "8800000.00");
+    assert_eq!(amount(&r, "allowed_debt_deductions"), "0.00");
+    // Excess debt with nil average debt has no proportion to apply.
+    let mut i = glm();
+    for k in [
+        "average_debt_capital",
+        "average_associate_entity_debt",
+        "average_controlled_foreign_entity_debt",
+    ] {
+        i[k] = json!("0.00");
+    }
+    i["average_borrowed_securities_amount"] = json!("200000000.00");
+    assert_eq!(code(&i), "thin_capitalisation.fact_invalid");
+    // The third party debt choice (ss 820-85(2C) and 820-185(2C)).
+    let mut i = older(
+        "outward_investing_financial_entity",
+        "third_party_debt",
+        json!([{"label": "A", "amount": "3000000.00", "third_party": true},
+               {"label": "B", "amount": "1000000.00", "third_party": false}]),
+    );
+    let r = run(&i);
+    assert_eq!(amount(&r, "total_disallowed_amount"), "1000000.00");
+    i["entity_class"] = json!("inward_investing_financial_entity");
+    assert_eq!(amount(&run(&i), "total_disallowed_amount"), "1000000.00");
+    i["average_assets"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    // Exemptions apply to every class (ss 820-35 and 820-37).
+    let mut i = glm();
+    i["associate_inclusive_debt_deductions"] = json!("2000000.00");
+    i["debt_deductions"] = json!([dd("A", "2000000.00")]);
+    assert!(
+        run(&i)["exemption"]
+            .as_str()
+            .unwrap()
+            .starts_with("s 820-35")
+    );
+    let mut i = glm();
+    i["outward_investor_only"] = json!(true);
+    i["average_australian_assets"] = json!("90.00");
+    i["average_total_assets"] = json!("100.00");
+    assert!(
+        run(&i)["exemption"]
+            .as_str()
+            .unwrap()
+            .starts_with("s 820-37")
+    );
+    // Part-year periods are refused with their provisions named.
+    let mut i = glm();
+    i["whole_year"] = json!(false);
+    let e = refusal(&i);
+    assert_eq!(e.code, "thin_capitalisation.part_year_not_built");
+    assert!(
+        e.message
+            .contains("ss 820-120, 820-225, 820-330 or 820-420")
+    );
+    for key in [
+        "whole_year",
+        "inward_investment_vehicle",
+        "average_on_lent_amount",
+    ] {
+        let mut i = glm();
+        drop(&mut i, &[key]);
+        assert_eq!(code(&i), "thin_capitalisation.input_missing", "{key}");
+    }
+    // The other Subdivisions' inputs are refused, either way round.
+    let mut i = glm();
+    i["taxable_income"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    let mut i = glm();
+    i["average_risk_weighted_assets"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    let mut i = t1();
+    i["average_assets"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    // Under every general class test, whatever the test (review S1).
+    for test in ["group_ratio", "third_party_debt"] {
+        let marked = json!([{"label": "A", "amount": "1.00", "third_party": true}]);
+        let mut i = base(
+            test,
+            if test == "group_ratio" {
+                json!([dd("A", "1.00")])
+            } else {
+                marked
+            },
+        );
+        i["average_assets"] = json!("1.00");
+        assert_eq!(code(&i), "thin_capitalisation.input_not_used", "{test}");
+        i["entity_class"] = json!("not_covered");
+        assert_eq!(code(&i), "thin_capitalisation.input_not_used", "{test}");
+    }
+    let mut i = glm();
+    i["test"] = json!("minimum_capital_amount");
+    assert_eq!(code(&i), "thin_capitalisation.fact_invalid");
+    let mut i = glm();
+    i["debt_deductions"] = json!([{"label": "A", "amount": "1.00", "third_party": true}]);
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    let mut i = glm();
+    i["plantation_forestry_entity"] = json!(true);
+    assert_eq!(code(&i), "thin_capitalisation.plantation_forestry");
+}
+
+/// Southern Cross Bank (ss 820-310 and 820-320), with $10m of ADI equity
+/// capital, $200m of average debt and $10m of debt deductions.
+fn southern_cross() -> Value {
+    let mut i = older(
+        "outward_investing_adi",
+        "minimum_capital_amount",
+        json!([dd("Deposits", "10000000.00")]),
+    );
+    for (k, v) in [
+        ("average_debt_capital", "200000000.00"),
+        ("average_adi_equity_capital", "10000000.00"),
+        ("average_controlled_foreign_entity_equity", "0.00"),
+        ("average_risk_weighted_assets", "150000000.00"),
+        ("average_tier_1_prudential_capital_deductions", "2000000.00"),
+        ("worldwide_capital_risk_weighted_assets", "150000000.00"),
+        (
+            "worldwide_capital_tier_1_prudential_capital_deductions",
+            "2000000.00",
+        ),
+        ("group_average_tier_1_capital", "14000000.00"),
+        ("group_average_risk_weighted_assets", "160000000.00"),
+        ("arm_length_capital_amount", "12000000.00"),
+    ] {
+        i[k] = json!(v);
+    }
+    i["foreign_controlled_australian_entity"] = json!(false);
+    i
+}
+
+#[test]
+fn southern_cross_outward_adi() {
+    let r = run(&southern_cross());
+    assert_eq!(amount(&r, "safe_harbour_capital_amount"), "11000000.00");
+    assert_eq!(amount(&r, "worldwide_capital_amount"), "15125000.00");
+    assert_eq!(amount(&r, "minimum_capital_amount"), "11000000.00");
+    assert_eq!(amount(&r, "capital_shortfall"), "1000000.00");
+    // 10m x 1m / 200m.
+    assert_eq!(amount(&r, "total_disallowed_amount"), "50000.00");
+    // A lower arm's length capital amount, as stated, sets the minimum.
+    let mut i = southern_cross();
+    i["arm_length_capital_amount"] = json!("9000000.00");
+    assert_eq!(amount(&run(&i), "total_disallowed_amount"), "0.00");
+    // Without it a shortfall is refused, never estimated (s 820-315).
+    let mut i = southern_cross();
+    drop(&mut i, &["arm_length_capital_amount"]);
+    let e = refusal(&i);
+    assert_eq!(e.code, "thin_capitalisation.amount_not_worked_out");
+    assert!(e.message.contains("s 820-315"));
+    // With enough equity capital nothing more is needed.
+    i["average_adi_equity_capital"] = json!("11000000.00");
+    assert_eq!(amount(&run(&i), "total_disallowed_amount"), "0.00");
+    // Without the worldwide figures, s 820-320 is named too.
+    let mut i = southern_cross();
+    drop(
+        &mut i,
+        &[
+            "worldwide_capital_risk_weighted_assets",
+            "worldwide_capital_tier_1_prudential_capital_deductions",
+            "group_average_tier_1_capital",
+            "group_average_risk_weighted_assets",
+            "arm_length_capital_amount",
+        ],
+    );
+    assert!(refusal(&i).message.contains("s 820-320"));
+    // A foreign controlled Australian entity has no worldwide capital amount.
+    i["foreign_controlled_australian_entity"] = json!(true);
+    i["arm_length_capital_amount"] = json!("12000000.00");
+    assert_eq!(amount(&run(&i), "minimum_capital_amount"), "11000000.00");
+    let mut i = southern_cross();
+    i["foreign_controlled_australian_entity"] = json!(true);
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    let mut i = southern_cross();
+    i["group_average_risk_weighted_assets"] = json!("0.00");
+    assert_eq!(code(&i), "thin_capitalisation.fact_invalid");
+    let mut i = southern_cross();
+    i["average_interest_free_pe_loans"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+    let mut i = southern_cross();
+    i["test"] = json!("maximum_allowable_debt");
+    assert_eq!(code(&i), "thin_capitalisation.fact_invalid");
+}
+
+/// Global Bank (s 820-405): a foreign bank's Australian branch, with $8.2m
+/// of average equity capital and $5m of debt deductions.
+fn global_bank() -> Value {
+    let mut i = older(
+        "inward_investing_adi",
+        "minimum_capital_amount",
+        json!([dd("Branch funding", "5000000.00")]),
+    );
+    for (k, v) in [
+        ("average_debt_capital", "100000000.00"),
+        ("average_adi_equity_capital", "8000000.00"),
+        ("average_interest_free_pe_loans", "200000.00"),
+        ("average_risk_weighted_assets", "140000000.00"),
+        ("arm_length_capital_amount", "9000000.00"),
+    ] {
+        i[k] = json!(v);
+    }
+    i
+}
+
+#[test]
+fn global_bank_inward_adi() {
+    let r = run(&global_bank());
+    assert_eq!(amount(&r, "safe_harbour_capital_amount"), "8400000.00");
+    assert_eq!(amount(&r, "average_equity_capital"), "8200000.00");
+    assert_eq!(amount(&r, "minimum_capital_amount"), "8400000.00");
+    // 5m x 200,000 / 100m.
+    assert_eq!(amount(&r, "total_disallowed_amount"), "10000.00");
+    let mut i = global_bank();
+    drop(&mut i, &["arm_length_capital_amount"]);
+    let e = refusal(&i);
+    assert_eq!(e.code, "thin_capitalisation.amount_not_worked_out");
+    assert!(e.message.contains("s 820-410"));
+    let mut i = global_bank();
+    i["average_tier_1_prudential_capital_deductions"] = json!("1.00");
+    assert_eq!(code(&i), "thin_capitalisation.input_not_used");
+}
+
+/// What a class's Subdivision does not provide, or this worksheet does not
+/// apply, is refused with the provision named, for each of the 4 classes.
+#[test]
+fn unmodelled_tests_and_periods_are_refused_with_the_provision() {
+    let classes = [
+        (glm(), "s 820-90 or 820-190", "minimum_capital_amount"),
+        (investor(), "s 820-90 or 820-190", "minimum_capital_amount"),
+        (southern_cross(), "s 820-305 or 820-400", "third_party_debt"),
+        (global_bank(), "s 820-305 or 820-400", "third_party_debt"),
+    ];
+    for (base, provision, other) in classes {
+        let class = base["entity_class"].clone();
+        for test in ["fixed_ratio", "group_ratio", other] {
+            let mut i = base.clone();
+            i["test"] = json!(test);
+            let e = refusal(&i);
+            assert_eq!(e.code, "thin_capitalisation.fact_invalid", "{class} {test}");
+            assert!(e.message.contains(provision), "{class} {test}");
+        }
+        let mut i = base;
+        i["whole_year"] = json!(false);
+        let e = refusal(&i);
+        assert_eq!(e.code, "thin_capitalisation.part_year_not_built", "{class}");
+        assert!(
+            e.message
+                .contains("ss 820-120, 820-225, 820-330 or 820-420"),
+            "{class}"
+        );
+    }
+}
+
+/// Every general class result recorded on main before Subdivisions 820-B to
+/// 820-E were built (4df634bb) is unchanged: amounts, rates, each deduction's
+/// share and every refusal. Only the descriptive scope, sources, date read
+/// and warnings text may differ.
+#[test]
+fn general_class_results_unchanged() {
+    let rows: Vec<Value> =
+        serde_json::from_str(include_str!("data/thin_capitalisation_general.json")).unwrap();
+    assert_eq!(rows.len(), 11);
+    let text = ["scope", "sources", "source_checked", "warnings"];
+    for row in rows {
+        let input = &row["input"];
+        match api::evaluate_coded(CMD, input) {
+            Ok(mut r) => {
+                let mut was = row["result"].clone();
+                for k in text {
+                    r.as_object_mut().unwrap().remove(k);
+                    was.as_object_mut().unwrap().remove(k);
+                }
+                assert_eq!(r, was, "{input}");
+            }
+            Err(e) => {
+                assert_eq!(e.code, row["refusal"]["code"], "{input}");
+                assert_eq!(e.message, row["refusal"]["message"], "{input}");
+            }
+        }
+    }
 }

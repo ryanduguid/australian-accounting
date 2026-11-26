@@ -1,0 +1,627 @@
+[
+  {
+    "input": {
+      "test": "fixed_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "5000000.00",
+      "debt_deductions": [
+        {
+          "label": "Interest",
+          "amount": "5000000.00"
+        }
+      ],
+      "interest_and_equivalent_income": "1000000.00",
+      "taxable_income": "0.00",
+      "division_40_43_deductions": "2000000.00",
+      "excess_tax_ebitda_amount": "4000000.00",
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2025-26",
+      "amounts": {
+        "debt_deductions": "5000000.00",
+        "net_debt_deductions": "4000000.00",
+        "tax_ebitda": "10000000.00",
+        "fixed_ratio_earnings_limit": "3000000.00",
+        "total_disallowed_amount": "1000000.00",
+        "allowed_debt_deductions": "4000000.00",
+        "special_deduction": "0.00"
+      },
+      "rates": {
+        "fixed_ratio": "0.3"
+      },
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "fixed_ratio",
+      "exemption": null,
+      "debt_deductions": [
+        {
+          "label": "Interest",
+          "amount": "5000000.00",
+          "disallowed": "1000000.00",
+          "allowed": "4000000.00"
+        }
+      ],
+      "frt_disallowed_amounts": []
+    }
+  },
+  {
+    "input": {
+      "test": "group_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "4000000.00"
+        },
+        {
+          "label": "B",
+          "amount": "2000000.00"
+        }
+      ],
+      "interest_and_equivalent_income": "500000.00",
+      "taxable_income": "4000000.00",
+      "division_40_43_deductions": "1000000.00",
+      "gr_group_net_third_party_interest_expense": "30000000.00",
+      "gr_group_net_profit": "50000000.00",
+      "gr_group_adjusted_net_third_party_interest_expense": "30000000.00",
+      "gr_group_depreciation_and_amortisation": "20000000.00",
+      "gr_group_negative_member_ebitda": [
+        "-5000000.00",
+        "-0.01"
+      ],
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2025-26",
+      "amounts": {
+        "debt_deductions": "6000000.00",
+        "net_debt_deductions": "5500000.00",
+        "tax_ebitda": "10500000.00",
+        "gr_group_ebitda": "105000000.01",
+        "group_ratio_earnings_limit": "3000000.00",
+        "total_disallowed_amount": "2500000.00",
+        "allowed_debt_deductions": "3500000.00"
+      },
+      "rates": {
+        "group_ratio": "0.2857142856870748299345643019109938760085"
+      },
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "group_ratio",
+      "exemption": null,
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "4000000.00",
+          "disallowed": "1666666.67",
+          "allowed": "2333333.33"
+        },
+        {
+          "label": "B",
+          "amount": "2000000.00",
+          "disallowed": "833333.33",
+          "allowed": "1166666.67"
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "test": "third_party_debt",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "3000000.00",
+          "third_party": true
+        },
+        {
+          "label": "B",
+          "amount": "1000000.00",
+          "third_party": false
+        }
+      ],
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2025-26",
+      "amounts": {
+        "debt_deductions": "4000000.00",
+        "third_party_earnings_limit": "3000000.00",
+        "total_disallowed_amount": "1000000.00",
+        "allowed_debt_deductions": "3000000.00"
+      },
+      "rates": {},
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "third_party_debt",
+      "exemption": null,
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "3000000.00",
+          "third_party": true,
+          "disallowed": "750000.00",
+          "allowed": "2250000.00"
+        },
+        {
+          "label": "B",
+          "amount": "1000000.00",
+          "third_party": false,
+          "disallowed": "250000.00",
+          "allowed": "750000.00"
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "test": "fixed_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00"
+        }
+      ],
+      "interest_and_equivalent_income": "2000000.00",
+      "taxable_income": "-5000000.00",
+      "franking_credits": "1.00",
+      "associate_dividends": "2.00",
+      "rd_notional_deductions": "3.00",
+      "division_40_43_deductions": "9000000.00",
+      "forestry_deductions": "4.00",
+      "section_70_120_deductions": "5.00",
+      "excess_tax_ebitda_amount": "6.00",
+      "frt_disallowed_amounts": [
+        {
+          "year": "2023-24",
+          "amount": "100000.00",
+          "available": true
+        },
+        {
+          "year": "2024-25",
+          "amount": "5000000.00",
+          "available": true
+        }
+      ],
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2025-26",
+      "amounts": {
+        "debt_deductions": "1000000.00",
+        "net_debt_deductions": "-1000000.00",
+        "tax_ebitda": "3000009.00",
+        "fixed_ratio_earnings_limit": "900002.70",
+        "total_disallowed_amount": "0.00",
+        "allowed_debt_deductions": "1000000.00",
+        "special_deduction": "1900002.70"
+      },
+      "rates": {
+        "fixed_ratio": "0.3"
+      },
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "fixed_ratio",
+      "exemption": null,
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00",
+          "disallowed": "0.00",
+          "allowed": "1000000.00"
+        }
+      ],
+      "frt_disallowed_amounts": [
+        {
+          "year": "2023-24",
+          "amount": "100000.00",
+          "available": true,
+          "applied": "100000.00",
+          "remaining": "0.00"
+        },
+        {
+          "year": "2024-25",
+          "amount": "5000000.00",
+          "available": true,
+          "applied": "1800002.70",
+          "remaining": "3199997.30"
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "test": "fixed_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": true,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "average_australian_assets": "950.00",
+      "average_total_assets": "1000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00"
+        }
+      ],
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2025-26",
+      "amounts": {
+        "debt_deductions": "1000000.00",
+        "total_disallowed_amount": "0.00",
+        "allowed_debt_deductions": "1000000.00"
+      },
+      "rates": {
+        "de_minimis_threshold": "2000000",
+        "assets_threshold": "0.9"
+      },
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "fixed_ratio",
+      "exemption": "s 820-37(1): average Australian assets at least 90% of average total assets, associates' included",
+      "australian_assets_ratio": "0.95",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00",
+          "disallowed": "0.00",
+          "allowed": "1000000.00"
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "test": "fixed_ratio",
+      "entity_class": "not_covered",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00"
+        }
+      ],
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2025-26",
+      "amounts": {
+        "debt_deductions": "1000000.00",
+        "total_disallowed_amount": "0.00",
+        "allowed_debt_deductions": "1000000.00"
+      },
+      "rates": {
+        "de_minimis_threshold": "2000000",
+        "assets_threshold": "0.9"
+      },
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "fixed_ratio",
+      "exemption": "s 820-46(2): not a general class investor, and no other Subdivision of Division 820 covers the entity",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00",
+          "disallowed": "0.00",
+          "allowed": "1000000.00"
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "test": "group_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": true,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00"
+        }
+      ],
+      "year": "2024-25",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2024-25",
+      "amounts": {
+        "debt_deductions": "1000000.00",
+        "total_disallowed_amount": "0.00",
+        "allowed_debt_deductions": "1000000.00"
+      },
+      "rates": {
+        "de_minimis_threshold": "2000000",
+        "assets_threshold": "0.9"
+      },
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "group_ratio",
+      "exemption": "s 820-39(1): a special purpose entity meeting s 820-39(3) throughout the year",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00",
+          "disallowed": "0.00",
+          "allowed": "1000000.00"
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "test": "third_party_debt",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "1500000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1500000.00",
+          "third_party": false
+        }
+      ],
+      "year": "2026-27",
+      "scope_confirmed": true
+    },
+    "result": {
+      "ok": true,
+      "engine": "australian-tax-calculators",
+      "engine_version": "1.4.0",
+      "calculation": "thin_capitalisation",
+      "period": "2026-27",
+      "amounts": {
+        "debt_deductions": "1500000.00",
+        "total_disallowed_amount": "0.00",
+        "allowed_debt_deductions": "1500000.00"
+      },
+      "rates": {
+        "de_minimis_threshold": "2000000",
+        "assets_threshold": "0.9"
+      },
+      "scope": "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+      "sources": [
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+        "https://www.legislation.gov.au/C2024A00023/asmade/text",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+        "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test"
+      ],
+      "source_checked": "2026-11-26",
+      "warnings": [
+        "Operator-confirmed facts and scope; eligibility is not independently verified.",
+        "Worksheet only, not advice, an assessment or a lodgment. Obtain human review.",
+        "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them."
+      ],
+      "test": "third_party_debt",
+      "exemption": "s 820-35: debt deductions of the entity and its associate entities of $2 million or less",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1500000.00",
+          "third_party": false,
+          "disallowed": "0.00",
+          "allowed": "1500000.00"
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "test": "fixed_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00"
+        }
+      ],
+      "interest_and_equivalent_income": "0.00",
+      "taxable_income": "100.00",
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "refusal": {
+      "code": "thin_capitalisation.input_missing",
+      "message": "division_40_43_deductions is needed: tax EBITDA adds it (s 820-52(1)(c)(ii)); state 0.00 if none."
+    }
+  },
+  {
+    "input": {
+      "test": "group_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": false,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00"
+        }
+      ],
+      "interest_and_equivalent_income": "0.00",
+      "taxable_income": "100.00",
+      "division_40_43_deductions": "0.00",
+      "excess_tax_ebitda_amount": "1.00",
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "refusal": {
+      "code": "thin_capitalisation.input_not_used",
+      "message": "excess_tax_ebitda_amount is not used here: s 820-60 adds it only where no choice is made (fixed ratio test)."
+    }
+  },
+  {
+    "input": {
+      "test": "fixed_ratio",
+      "entity_class": "general_class_investor",
+      "plantation_forestry_entity": true,
+      "special_purpose_entity": false,
+      "outward_investor_only": false,
+      "associate_inclusive_debt_deductions": "50000000.00",
+      "debt_deductions": [
+        {
+          "label": "A",
+          "amount": "1000000.00"
+        }
+      ],
+      "year": "2025-26",
+      "scope_confirmed": true
+    },
+    "refusal": {
+      "code": "thin_capitalisation.plantation_forestry",
+      "message": "An Australian plantation forestry entity stays under Division 820 as it stood before the 2024 amendments (Treasury Laws Amendment (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act 2024 Schedule 2 item 146), which this worksheet does not apply."
+    }
+  }
+]

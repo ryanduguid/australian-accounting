@@ -2135,7 +2135,7 @@ pub fn commands() -> Vec<&'static str> {
 /// each line and class carries the authority for its row instead.
 /// `thin-capitalisation`'s optional inputs: those of tax EBITDA, the group
 /// ratio test, the assets threshold and the carry-forward.
-const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
+const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 50] = [
     ("interest_and_equivalent_income", Dec),
     ("taxable_income", Dec),
     ("franking_credits", Dec),
@@ -2153,6 +2153,42 @@ const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
     ("gr_group_negative_member_ebitda", Json),
     ("average_australian_assets", Dec),
     ("average_total_assets", Dec),
+    ("whole_year", Raw),
+    ("inward_investment_vehicle", Raw),
+    ("foreign_controlled_australian_entity", Raw),
+    ("average_debt_capital", Dec),
+    ("average_associate_entity_debt", Dec),
+    ("average_pe_associate_entity_debt", Dec),
+    ("average_controlled_foreign_entity_debt", Dec),
+    ("average_borrowed_securities_amount", Dec),
+    ("average_cost_free_debt_capital", Dec),
+    ("average_assets", Dec),
+    ("average_excluded_equity_interests", Dec),
+    ("average_associate_entity_equity", Dec),
+    ("average_controlled_foreign_entity_equity", Dec),
+    ("average_non_debt_liabilities", Dec),
+    ("average_zero_capital_amount", Dec),
+    ("average_associate_entity_excess_amount", Dec),
+    ("average_on_lent_amount", Dec),
+    ("average_worldwide_debt", Dec),
+    ("average_worldwide_equity", Dec),
+    ("statement_worldwide_debt", Dec),
+    ("statement_worldwide_equity", Dec),
+    ("statement_worldwide_assets", Dec),
+    ("statement_average_australian_assets", Dec),
+    ("audited_consolidated_statements", Raw),
+    ("average_adi_equity_capital", Dec),
+    ("average_interest_free_pe_loans", Dec),
+    ("average_risk_weighted_assets", Dec),
+    ("average_tier_1_prudential_capital_deductions", Dec),
+    ("worldwide_capital_risk_weighted_assets", Dec),
+    (
+        "worldwide_capital_tier_1_prudential_capital_deductions",
+        Dec,
+    ),
+    ("group_average_tier_1_capital", Dec),
+    ("group_average_risk_weighted_assets", Dec),
+    ("arm_length_capital_amount", Dec),
 ];
 
 const DERIVED: [&str; 111] = [

@@ -2301,8 +2301,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "AASB 16 compilation no. 8 (F2024C00049, the latest on the Federal Register) paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A 'short-term lease'; IFRS 16 Illustrative Examples, Example 13; the site's assets/lease.mjs and its 8 cases",
         ),
         "thin_capitalisation" => (
-            "2026-11-26",
-            "ITAA 1997 compilation 268 (C2026C00471, from 1 October 2026) ss 820-1 to 820-60 and 820-427 to 820-427E with the endnotes' amendment history (Subdivisions 820-AA and 820-EAB added by No. 23, 2024 and not amended since); Treasury Laws Amendment (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 items 144 to 146; Income Tax Assessment (1997 Act) Regulations 2021 compilation 16 (F2026C00602), which makes no regulation for ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d); the ATO's fixed ratio test (12 December 2025), group ratio test (24 July 2024) and third party debt test (24 July 2024) pages",
+            "2026-11-27",
+            "ITAA 1997 compilation 268 (C2026C00471, from 1 October 2026, still the latest on 27 November 2026) ss 820-1 to 820-60, Subdivisions 820-B to 820-E (ss 820-65 to 820-420, with the formulas in ss 820-90(3), 820-115(3), 820-190(2), 820-220(3), 820-325 and 820-415 read from the compilation's images) and ss 820-427 to 820-427E with the endnotes' amendment history (Subdivisions 820-AA and 820-EAB added by No. 23, 2024 and not amended since); Treasury Laws Amendment (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 items 144 to 146; Income Tax Assessment (1997 Act) Regulations 2021 compilation 16 (F2026C00602), which makes no regulation for ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d); the ATO's fixed ratio test (12 December 2025), group ratio test (24 July 2024) and third party debt test (24 July 2024) pages",
         ),
         "debt_forgiveness" => (
             "2026-11-26",
@@ -3554,6 +3554,138 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "average_total_assets",
                 "AUD above 0: the average total assets of the entity and its associates (s 820-37(1)); with outward_investor_only true",
+            ),
+            (
+                "whole_year",
+                "boolean, needed for a financial entity or ADI: the entity is in its stated class for all of the income year; false is refused, as the part-year rules (ss 820-120, 820-225, 820-330 and 820-420) are not applied",
+            ),
+            (
+                "inward_investment_vehicle",
+                "boolean, needed for a financial entity under maximum_allowable_debt: for an outward investing financial entity, it is also an inward investment vehicle (financial) for all or part of the year (ss 820-90(2) and 820-111); for an inward investing one, true is an inward investment vehicle (financial), a foreign controlled Australian entity (ss 820-200 and 820-217), and false an inward investor (financial), a foreign entity (ss 820-210 and 820-219)",
+            ),
+            (
+                "foreign_controlled_australian_entity",
+                "boolean, needed for an outward investing ADI: it is also a foreign controlled Australian entity throughout the year, so it has no worldwide capital amount (s 820-320(1))",
+            ),
+            (
+                "average_debt_capital",
+                "AUD from 0, needed for a financial entity or ADI: the average value (Subdivision 820-G) of debt capital giving rise to debt deductions (s 820-85(3) or 820-185(3) step 1, s 820-325 or s 820-415 'average debt'), less any attributable to overseas permanent establishments for an outward entity and, for an inward ADI, any giving rise to allowable OB deductions",
+            ),
+            (
+                "average_associate_entity_debt",
+                "AUD from 0, needed for a financial entity: average associate entity debt (ss 820-85(3) step 2, 820-100 and 820-200); for an inward investor (financial), the associate entity debt arising because of the Australian investments (s 820-210)",
+            ),
+            (
+                "average_pe_associate_entity_debt",
+                "AUD from 0, needed for an inward investor (financial): average associate entity debt attributable to its Australian permanent establishments (s 820-185(3) step 2(b))",
+            ),
+            (
+                "average_controlled_foreign_entity_debt",
+                "AUD from 0, needed for an outward investing financial entity: average controlled foreign entity debt (ss 820-85(3) step 3 and 820-100)",
+            ),
+            (
+                "average_borrowed_securities_amount",
+                "AUD from 0, needed for a financial entity: the average borrowed securities amount (s 820-85(3) step 4 or 820-185(3) step 3)",
+            ),
+            (
+                "average_cost_free_debt_capital",
+                "AUD from 0, needed for a financial entity: average cost-free debt capital (s 820-85(3) step 5 or 820-185(3) step 4)",
+            ),
+            (
+                "average_assets",
+                "AUD from 0, needed for a financial entity: average value of all the entity's assets, other than those attributable to overseas permanent establishments for an outward entity (ss 820-100 and 820-200 step 1); for an inward investor (financial), its Australian investments (s 820-210 step 1)",
+            ),
+            (
+                "average_excluded_equity_interests",
+                "AUD from 0, needed for a financial entity: average excluded equity interests in the entity (step 1A)",
+            ),
+            (
+                "average_associate_entity_equity",
+                "AUD from 0, needed for a financial entity: average associate entity equity (for an inward investor (financial), arising because of the Australian investments)",
+            ),
+            (
+                "average_controlled_foreign_entity_equity",
+                "AUD from 0, needed for an outward investing financial entity or ADI: average controlled foreign entity equity (ss 820-100 and 820-300(3)(b)), other than any attributable to overseas permanent establishments for an ADI",
+            ),
+            (
+                "average_non_debt_liabilities",
+                "AUD from 0, needed for a financial entity: average non-debt liabilities (for an inward investor (financial), arising because of the Australian investments)",
+            ),
+            (
+                "average_zero_capital_amount",
+                "AUD from 0, needed for a financial entity: the average zero-capital amount (for an outward entity, other than any attributable to overseas permanent establishments; for an inward investor (financial), arising because of the Australian investments)",
+            ),
+            (
+                "average_associate_entity_excess_amount",
+                "AUD from 0, needed for a financial entity: the average associate entity excess amount",
+            ),
+            (
+                "average_on_lent_amount",
+                "AUD from 0, needed for a financial entity: the average on-lent amount (for an outward entity, other than controlled foreign entity debt; for an inward investor (financial), to the extent it is the value of the Australian investments)",
+            ),
+            (
+                "average_worldwide_debt",
+                "AUD from 0, with average_worldwide_equity, for an outward investing financial entity that is not also an inward investment vehicle: average worldwide debt (s 820-110 step 1); without both, an excess over the safe harbour debt amount is refused",
+            ),
+            (
+                "average_worldwide_equity",
+                "AUD that may be negative: average worldwide equity (s 820-110 step 1); nil or negative leaves no worldwide gearing debt amount (s 820-90(1)(c))",
+            ),
+            (
+                "statement_worldwide_debt",
+                "AUD from 0, with the other statement figures and audited_consolidated_statements, for a financial entity that is or is also an inward investment vehicle, or an inward investor (financial): statement worldwide debt (ss 820-111, 820-217 and 820-219); without them, an excess over the safe harbour debt amount is refused",
+            ),
+            (
+                "statement_worldwide_equity",
+                "AUD that may be negative: statement worldwide equity; nil or negative leaves no worldwide gearing debt amount (ss 820-90(3)(a) and 820-190(2)(a))",
+            ),
+            (
+                "statement_worldwide_assets",
+                "AUD that may be negative: statement worldwide assets after any reduction under s 820-90(5) or 820-190(4); nil or negative leaves no worldwide gearing debt amount",
+            ),
+            (
+                "statement_average_australian_assets",
+                "AUD from 0: average Australian assets for the statement period (ss 820-90(3) and (4) and 820-190(2) and (3)); above half of statement worldwide assets leaves no worldwide gearing debt amount",
+            ),
+            (
+                "audited_consolidated_statements",
+                "boolean, needed with the statement figures: audited consolidated financial statements for the entity exist for the income year; false leaves no worldwide gearing debt amount (ss 820-90(3)(b) and 820-190(2)(b))",
+            ),
+            (
+                "average_adi_equity_capital",
+                "AUD from 0, needed for an ADI: average ADI equity capital, other than any attributable to overseas permanent establishments and with s 820-300(4)'s treasury shares (outward, s 820-300(3)(a)); for an inward ADI, that attributable to its Australian permanent establishments and not allocated to OB activities (s 820-395(3)(a))",
+            ),
+            (
+                "average_interest_free_pe_loans",
+                "AUD from 0, needed for an inward ADI: average amounts the entity makes available to its Australian permanent establishments as loans giving rise to no debt deductions (s 820-395(3)(b))",
+            ),
+            (
+                "average_risk_weighted_assets",
+                "AUD from 0, needed for an ADI: for an outward ADI, average risk-weighted assets and capitalised software intangibles after the exclusions in s 820-310(1) step 1; for an inward ADI, average risk-weighted assets of the Australian permanent establishments not attributable to OB activities (s 820-405)",
+            ),
+            (
+                "average_tier_1_prudential_capital_deductions",
+                "AUD from 0, needed for an outward ADI: average tier 1 prudential capital deductions after the exclusions in s 820-310(1) step 3",
+            ),
+            (
+                "worldwide_capital_risk_weighted_assets",
+                "AUD from 0, with the other 3 worldwide capital inputs, for an outward ADI that is not a foreign controlled Australian entity: average risk-weighted assets after the exclusions in s 820-320(2) step 1; without them, a capital shortfall is refused",
+            ),
+            (
+                "worldwide_capital_tier_1_prudential_capital_deductions",
+                "AUD from 0: average tier 1 prudential capital deductions after the exclusions in s 820-320(2) step 4",
+            ),
+            (
+                "group_average_tier_1_capital",
+                "AUD from 0: the average tier 1 capital of the entity's consolidated group under the prudential standards (s 820-320(3) step 1)",
+            ),
+            (
+                "group_average_risk_weighted_assets",
+                "AUD above 0: the average risk-weighted assets of that group under the prudential standards (s 820-320(3) step 2)",
+            ),
+            (
+                "arm_length_capital_amount",
+                "AUD from 0, for an ADI: the arm's length capital amount the entity worked out under s 820-315 or 820-410 (records under s 820-980); the worksheet does not work it out, and without it a capital shortfall is refused",
             ),
         ],
         "impairment_test" => vec![
@@ -7465,8 +7597,8 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("remeasurement", "boolean: the liability has been or must be remeasured for a reassessment, modification, change in an index or rate or revised in-substance fixed payment (paras 36(c) and 39 to 46); true is refused"),
         ],
         "thin_capitalisation" => vec![
-            ("test", "fixed_ratio (no choice made, s 820-46(1)(b)(i)), group_ratio (a choice under s 820-46(3)) or third_party_debt (a choice under s 820-46(4), or taken to be made under s 820-46(5) and s 820-48)"),
-            ("entity_class", "general_class_investor (s 820-46(2)) or not_covered (no Subdivision of Division 820 applies); outward_investing_financial_entity, inward_investing_financial_entity, outward_investing_adi and inward_investing_adi are refused"),
+            ("test", "for a general class investor (or an entity no Subdivision covers): fixed_ratio (no choice made, s 820-46(1)(b)(i)), group_ratio (a choice under s 820-46(3)) or third_party_debt (a choice under s 820-46(4), or taken to be made under s 820-46(5) and s 820-48); for a financial entity (non-ADI): maximum_allowable_debt (ss 820-90 and 820-190) or third_party_debt (a choice under s 820-85(2C) or 820-185(2C)); for an ADI: minimum_capital_amount (ss 820-305 and 820-400)"),
+            ("entity_class", "general_class_investor (s 820-46(2)), outward_investing_financial_entity (s 820-85(2), Subdivision 820-B), inward_investing_financial_entity (s 820-185(2), and not also outward, Subdivision 820-C), outward_investing_adi (s 820-300(2), Subdivision 820-D), inward_investing_adi (s 820-395(2), Subdivision 820-E) or not_covered (no Subdivision of Division 820 applies); a stated fact"),
             ("plantation_forestry_entity", "boolean: an Australian plantation forestry entity for all or part of the year, kept under the older law (Act No. 23, 2024 Schedule 2 item 146); true is refused"),
             ("special_purpose_entity", "boolean: the entity meets the conditions in s 820-39(3) throughout the income year"),
             ("outward_investor_only", "boolean: assuming it were a financial entity all year, the entity would be an outward investing financial entity (non-ADI) and not an inward investing one (s 820-37(1)(a)(ii) and (b)); true needs average_australian_assets and average_total_assets"),
