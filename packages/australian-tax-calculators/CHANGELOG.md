@@ -87,6 +87,22 @@
 
 ### Changed
 
+- `luxury-car-tax` requires `supplied_in` on a refund line. It used to take
+  the tax period's year when the field was blank, so a car supplied before
+  1 July 2019 could take the $10,000 refund of ss 18-5(3) and 18-10(3) (as
+  substituted by Act No. 94 of 2019) instead of being refused: a refund is
+  claimed up to 4 years after the entitlement arises, so the tax period's
+  year does not show which refund applies. A refund line without it is now
+  refused with `input.missing_field`.
+- `psi-test` takes an optional `client` label on every payer, or none, for
+  the unrelated clients test (ITAA 1997 s 87-20(1)(a)): the operator's
+  statement of which payers are one entity or associates of each other. Rows
+  sharing a `source` were always counted as one client, so 2 payers that are
+  each an associate of a third entity, but not of each other, counted once.
+  Without client labels the count is unchanged, but where it decides the
+  outcome and 2 or more payers won by offers share a source the command now
+  refuses instead of returning 'not a personal services business'. New codes:
+  `psi_test.clients_invalid` and `psi_test.clients_needed`.
 - `resident-tax` also takes 2019-20 to 2023-24, from Income Tax Rates Act 1986
   Schedule 7 Part I as in force in those years (compilations 54, 57 and 62).
   The Python 0.2.0 corpus's 2 refused 2023-24 inputs now give $8,286.75 and

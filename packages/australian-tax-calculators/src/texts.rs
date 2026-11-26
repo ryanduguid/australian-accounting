@@ -7046,6 +7046,14 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "At least 75% of an agent's payments from the principal are commission or performance fees, so s 87-40 may apply; the worksheet does not apply it.",
     ),
     (
+        "psi_test.clients_invalid",
+        "Client labels are on some payers but not all, or one client label spans 2 sources.",
+    ),
+    (
+        "psi_test.clients_needed",
+        "The unrelated clients test decides the outcome and 2 or more payers won by offers share a source without client labels.",
+    ),
+    (
         "psi_test.earner_invalid",
         "earner is not employee, religious_practitioner, sole_trader or entity.",
     ),

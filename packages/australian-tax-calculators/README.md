@@ -4837,7 +4837,9 @@ PSI page:
    not a personal services business unless a determination is in force
    (s 87-15(3));
 6. otherwise the unrelated clients test (2 or more unrelated payers won by
-   offers to the public, s 87-20), the employment test (others' principal
+   offers to the public, s 87-20, counting the rows with one `client` label,
+   or without labels one `source`, once, and refusing where rows sharing a
+   source decide it), the employment test (others' principal
    work at least 20% of the PSI by market value, or an apprentice for half the
    year, s 87-25) and the business premises test (all 4 conditions at all
    times, s 87-30): any one met makes a personal services business.
