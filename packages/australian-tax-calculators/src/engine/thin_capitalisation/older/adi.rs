@@ -102,7 +102,7 @@ pub(super) fn adi(a: &ThinCapitalisationArgs, c: Class, items: &[Deduction]) -> 
             &mut steps,
             outward,
             eq_id,
-            (&least, &eq, shortfall),
+            [&least, &eq, &shortfall],
             &debt_capital,
         )?;
         Ok(Worked {
@@ -256,9 +256,10 @@ fn shortfall_steps(
     steps: &mut Vec<Step>,
     outward: bool,
     eq_id: &str,
-    (least, eq, shortfall): (&Decimal, &Decimal, Decimal),
+    amounts: [&Decimal; 3],
     debt_capital: &Decimal,
 ) -> Result<()> {
+    let [least, eq, shortfall] = amounts;
     steps.push(step(
         "capital_shortfall",
         if outward {
@@ -268,7 +269,7 @@ fn shortfall_steps(
         },
         &format!("max(minimum_capital_amount - {eq_id}, 0)"),
         &[least, eq],
-        shortfall,
+        shortfall.clone(),
     ));
     steps.push(step(
         "average_debt",

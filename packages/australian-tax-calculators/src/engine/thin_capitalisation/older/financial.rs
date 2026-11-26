@@ -243,7 +243,7 @@ pub(super) fn financial(
         let mut steps = vec![dd_step(items)?, adjusted_average_debt(&f, auth.aad)?];
         let (base, tda) = total_debt(&mut steps, &f, auth.tda)?;
         let ola = on_lent(&mut steps, &f, case, auth.ola)?;
-        let mad = maximum(&mut steps, case, &f, (&base, &tda, &ola), &auth)?;
+        let mad = maximum(&mut steps, case, &f, [&base, &tda, &ola], &auth)?;
         excess(&mut steps, &mad, f.worldwide.is_some())?;
         steps.push(step(
             "average_debt",
@@ -365,9 +365,10 @@ fn maximum(
     steps: &mut Vec<Step>,
     case: Fe,
     f: &Facts,
-    (base, tda, ola): (&Decimal, &Decimal, &Decimal),
+    amounts: [&Decimal; 3],
     auth: &Auth,
 ) -> Result<Decimal> {
+    let [base, tda, ola] = amounts;
     let sh = if ola.lt(tda)? {
         ola.clone()
     } else {
