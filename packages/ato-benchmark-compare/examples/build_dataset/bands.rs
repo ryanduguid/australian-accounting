@@ -16,7 +16,11 @@ use serde_json::{Value, json};
 use crate::shared::sha256_hex;
 use crate::xlsx::{COLS_READ, CellValue, SheetRows, read_first_sheet_rows};
 
-const BAND_SPEC: [(&str, usize, usize, usize, usize, usize); 3] = [
+/// A band's name and its columns: total expenses min and max, cost of sales
+/// min and max, and the turnover range label.
+type BandCols = (&'static str, usize, usize, usize, usize, usize);
+
+const BAND_SPEC: [BandCols; 3] = [
     ("low", 1, 2, 7, 8, 13),
     ("medium", 3, 4, 9, 10, 14),
     ("high", 5, 6, 11, 12, 15),
@@ -154,12 +158,18 @@ fn pair(
 }
 
 /// One band's entry: its bounds and both ratio pairs, read from `row`.
+/// Where a band's turnover starts, whether that start is inclusive, and where it ends.
+struct Bounds<'a> {
+    from: Decimal,
+    inclusive: bool,
+    to: Option<&'a Decimal>,
+}
+
 fn band_entry(
     row: &[CellValue],
-    spec: (&str, usize, usize, usize, usize, usize),
+    spec: BandCols,
     name: &str,
-    from: (Decimal, bool),
-    printed_to: Option<&Decimal>,
+    bounds: Bounds<'_>,
 ) -> Result<Value, String> {
     let (band, te_min, te_max, cos_min, cos_max, label_col) = spec;
     let ratio_pair = |lo: usize, hi: usize, what: &str| {
@@ -174,9 +184,9 @@ fn band_entry(
     Ok(json!({
         "band": band,
         "label": row[label_col].py_str().trim_matches(is_space),
-        "turnover_from": from.0.to_sci_string(),
-        "turnover_from_inclusive": from.1,
-        "turnover_to": printed_to.map(Decimal::to_sci_string),
+        "turnover_from": bounds.from.to_sci_string(),
+        "turnover_from_inclusive": bounds.inclusive,
+        "turnover_to": bounds.to.map(Decimal::to_sci_string),
         "total_expenses_to_turnover": te,
         "cost_of_sales_to_turnover": cos,
     }))
@@ -219,8 +229,14 @@ pub fn build_bands(
         let Some((printed_from, printed_to)) = parse_range_label(&row[spec.5], &where_)? else {
             continue;
         };
-        let from = band_start(&printed_from, previous_to.as_ref(), &where_, anomalies)?;
-        bands.push(band_entry(row, spec, name, from, printed_to.as_ref())?);
+        let (from, inclusive) =
+            band_start(&printed_from, previous_to.as_ref(), &where_, anomalies)?;
+        let bounds = Bounds {
+            from,
+            inclusive,
+            to: printed_to.as_ref(),
+        };
+        bands.push(band_entry(row, spec, name, bounds)?);
         previous_to = printed_to;
     }
     if bands.is_empty() {

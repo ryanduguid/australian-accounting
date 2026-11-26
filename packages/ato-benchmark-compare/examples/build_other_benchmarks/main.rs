@@ -28,6 +28,7 @@ use std::fs;
 use std::process::ExitCode;
 
 use ato_benchmark_compare::py::PyPath;
+use serde_json::Value;
 
 use shared::{Outcome, Spec, last, to_json_indented};
 
@@ -81,7 +82,12 @@ fn run(args: &[String]) -> Outcome {
         Ok(built) => built,
         Err(err) => return Outcome::fail(1, format!("error: {}\n", err.message())),
     };
-    if let Err(e) = fs::write(out.fs(), to_json_indented(&built).as_bytes()) {
+    write_built(&out, &built)
+}
+
+/// Writes the file and reports it as the Python script did.
+fn write_built(out: &PyPath, built: &Value) -> Outcome {
+    if let Err(e) = fs::write(out.fs(), to_json_indented(built).as_bytes()) {
         return Outcome::fail(1, format!("error: {}: {e}\n", out.display()));
     }
     let count = built["business_type_count"].as_u64().unwrap_or(0);
@@ -101,7 +107,7 @@ fn run(args: &[String]) -> Outcome {
         stdout: format!(
             "wrote {}: {count} business types, {} ranges\n",
             out.display(),
-            build::count_filled_ranges(&built)
+            build::count_filled_ranges(built)
         ),
         stderr,
     }

@@ -191,10 +191,16 @@ pub fn parse_cell_node(
         .find(|n| n.has_tag_name("v"))
         .and_then(|n| n.text())
         .filter(|s| !s.is_empty());
-    let Some(raw) = raw else {
-        return Ok((row, col, CellValue::Empty));
+    let val = match raw {
+        Some(raw) => typed_value(data_type, raw, shared)?,
+        None => CellValue::Empty,
     };
-    let val = match data_type {
+    Ok((row, col, val))
+}
+
+/// A `<v>` element's text as openpyxl reads a cell of type `data_type`.
+fn typed_value(data_type: &str, raw: &str, shared: &[String]) -> Result<CellValue, String> {
+    Ok(match data_type {
         "n" => cast_number(raw)?,
         "s" => {
             let idx: usize = raw
@@ -216,8 +222,7 @@ pub fn parse_cell_node(
         }
         "str" | "e" | "d" => CellValue::Str(raw.to_string()),
         other => return Err(format!("unsupported cell type {other:?}")),
-    };
-    Ok((row, col, val))
+    })
 }
 
 fn parse_row_number(attr: &str) -> Result<usize, String> {
