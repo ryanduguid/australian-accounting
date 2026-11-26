@@ -52,7 +52,8 @@ with $NAME in it; a path or name does not start with -. Each command runs:
   in this list, as npm's shell carries on after a failing command; the
   package has no preNAME or postNAME script.
 - node --test [--test-concurrency=N] FILE.test.js ...: those files.
-- cargo build, clippy or fmt, rustup target add or node SCRIPT.mjs: nothing.
+- cargo build, clippy or fmt, cargo llvm-cov report (which reads the last run),
+  rustup target add or node SCRIPT.mjs: nothing.
 
 Conditions. A job's or step's if: is a && of terms: NAME == 'value' or
 NAME != 'value', or a parenthesised || of those, on a string input of a
@@ -131,7 +132,7 @@ PLAIN = r"[\w+=:./-]+"
 VARIABLE = r'"(?:[\w+=:./-]|\$[A-Za-z_]\w*)+"'
 CAPTURE = re.compile(rf"""[a-z_]+="\$\(jq(?: {PLAIN}| {VARIABLE}| '[^']*')*\)\"""")
 OTHER = re.compile(
-    rf"(?:cargo (?:build|clippy|fmt)|rustup target add|node {PLAIN}\.mjs)(?: {PLAIN}| {VARIABLE})*"
+    rf"(?:cargo (?:build|clippy|fmt|llvm-cov report)|rustup target add|node {PLAIN}\.mjs)(?: {PLAIN}| {VARIABLE})*"
 )
 CARGO = r"cargo(?: \+[\w.-]+)?"
 # A path or name, which an option cannot pass for.
