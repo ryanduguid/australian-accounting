@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 /// under `income` (an absent line as 0) and, given other taxable income,
 /// `resident_tax`, none of which `named` or the evaluator reads, so
 /// `tests/rental_property.rs` checks its workings instead.
-const DERIVED: [&str; 110] = [
+const DERIVED: [&str; 112] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
