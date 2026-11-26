@@ -342,7 +342,8 @@ pub fn run_local(case: &Case) -> R<(String, Money, Vec<S>)> {
     let mut reasons = vec![pts(
         "The s 109N gate was supplied to this trial as an asserted fact, so the repayment \
          arithmetic could be compared. It was not derived from the provider and it is not a \
-         conclusion about the loan.",
+         conclusion about the loan. The local trial does not calculate or compare s 109E(7) \
+         interest_accrued.",
     )];
     reasons.extend(result.reasons.iter().map(|r| pts(r)));
     Ok((result.verdict.to_owned(), values, reasons))
@@ -519,6 +520,7 @@ mod tests {
             ("total_repayments", figure("total_repayments", "0.00")),
             ("shortfall", figure("shortfall", "0.00")),
             ("benchmark_rate", figure("benchmark_rate", "0.0837")),
+            ("interest_accrued", Json::str("294.80")),
             (
                 "remaining_term_years",
                 Json::Int(case.remaining_term_years.into()),
@@ -608,6 +610,10 @@ mod tests {
         let met = case("D7A-1-met-first-real-year");
         let comparison = compared(&met, &answered(&met, &[]));
         assert_eq!(comparison.evaluation, Evaluation::Match);
+        assert!(super::super::get(&comparison.local, &pts("interest_accrued")).is_none());
+        assert!(comparison.reasons.iter().any(|reason| {
+            crate::pyvalue::points_lossy(reason).contains("does not calculate or compare s 109E(7)")
+        }));
         let statutory = pts("statutory_myr");
         let local = super::super::get(&comparison.local, &statutory).unwrap();
         assert!(local.equals(&dec("19450.97")).unwrap());
