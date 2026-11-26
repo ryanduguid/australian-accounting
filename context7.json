@@ -26,6 +26,7 @@
     "`super-projection` projects one super account to retirement; `objection-deadline` gives the s 14ZW objection deadline; `lessee-lease` gives the AASB 16 lessee schedule. Each mirrors a site page and takes the rates and facts as stated.",
     "`help-to-buy` tests the Program Directions' caps, limits and income test from stated facts; `help-to-buy-review` gives the s 37 repayment. Housing Australia's judgements stay with the operator.",
     "`home-guarantee` tests a First Home or Family Home Guarantee's price cap, loan-to-value ratio and borrowers on the issue date; eligibility facts are stated, not decided.",
-    "`age-pension` and `ftb-part-a` apply the income and assets tests to stated income and assets for dated periods; they refuse dates outside the published rates."
+    "`age-pension` and `ftb-part-a` apply the income and assets tests to stated income and assets for dated periods; they refuse dates outside the published rates.",
+    "`thin-capitalisation` (Subdivision 820-AA) and `debt-forgiveness` (Division 245) apply the statutory tests and order to the entity class, test choice, values and reducible amounts the operator states; neither decides a classification or election."
   ]
 }

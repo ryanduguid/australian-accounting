@@ -591,6 +591,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "A lessee's lease under AASB 16 commencing in a financial year from 2024-25 to 2026-27, as the site's AASB 16 lease page measures it: level payments weekly to yearly in arrears or in advance, with any residual value guarantee or purchase option price; the lease liability at commencement (paras 26 and 27), the right-of-use asset's cost (para 24), interest by period half up to the cent (para 37), straight-line depreciation over the lease term or useful life (para 32), and each income year's interest, payments that reduce the liability (a payment at commencement is in the journal), depreciation and 30 June balances, with the commencement journal. The operator confirms that any incentive was received at or before commencement (none receivable later, para 27(a)), the initial direct costs were paid at commencement, the restoration amount is the para 24(d) provision measured under AASB 137, and, where no useful life is given, the asset's useful life is not shorter than the lease term. Refused: remeasurement (paras 39 to 46), and incentives as large as the rest of the cost. Not decided: whether a contract contains a lease, the lease term, the discount rate, reasonable certainty, low-value assets, non-lease components, variable payments, the revaluation or fair value models, not-for-profit concessionary leases or impairment.",
     ),
     (
+        "thin_capitalisation",
+        "One company's debt deductions for an income year starting on or after 1 July 2023 (2023-24 to 2026-27) under ITAA 1997 Subdivision 820-AA, from figures and classifications the operator has established. Nothing is disallowed for an entity Division 820 does not cover, a special purpose entity meeting s 820-39(3) throughout the year, an entity whose debt deductions with those of its associate entities are $2 million or less (s 820-35), or one that would be an outward investing financial entity (non-ADI) only and whose average Australian assets are at least 90% of its average total assets, associates' included (s 820-37). Otherwise, by the stated test: fixed ratio (no choice made), the amount by which net debt deductions (debt deductions less the assessable amounts in s 820-50(3)(b): interest, amounts in the nature of or economically equivalent to interest, amounts another entity incurred to obtain or keep the benefits of a debt interest and any prescribed expense; possibly negative) exceed 30% of tax EBITDA (ss 820-50(1)(a) and 820-51(1)); group ratio (a choice under s 820-46(3)), the excess over the group ratio times tax EBITDA, the group ratio being the GR group net third party interest expense over GR group EBITDA, each member's negative entity EBITDA disregarded (ss 820-51(2), 820-53 and 820-55); third party debt (a choice made or taken to be made under s 820-46(4) or (5)), the amount by which debt deductions exceed those attributable to debt interests satisfying the third party debt conditions (ss 820-50(1)(c) and 820-427A). Tax EBITDA is the stated taxable income or tax loss, earlier years' tax losses deducted (s 820-52(1A)), less franking credits, associate dividends and R&D notional deductions, plus net debt deductions, Division 40 and 43, forestry and s 70-120 deductions and any stated excess tax EBITDA amount, nil if negative (s 820-52); no regulation under s 820-52(1)(d) was in force when read. Each debt deduction bears the disallowed amount in proportion (s 820-50(2)), shares rounded half up to the cent cumulatively. Under the fixed ratio test, any excess of the earnings limit over net debt deductions is applied to the stated available fixed ratio test disallowed amounts of the previous 15 income years, earliest first, as a deduction (ss 820-56 and 820-57). The arithmetic is exact and amounts are shown half up to the cent. The operator establishes the entity class, the test and its choice (ss 820-46 to 820-48), debt deductions after Subdivision 820-EAA, the s 820-50(3)(b) amounts, taxable income with s 820-52(1A), (6), (6B) and (8) applied, the GR group and its figures (ss 820-53 to 820-55), each debt interest's third party debt conditions including conduit financing (ss 820-427A to 820-427C), the excess tax EBITDA amount (s 820-60), associate entities, the averages (Subdivision 820-G) and whether each carried amount is treated as nil (ss 820-58 and 820-59). Excludes trusts, partnerships and AMITs (s 820-52(4) to (8)), Subdivision 820-EAA, transfers of fixed ratio test disallowed amounts within consolidated groups (Subdivision 820-FA), foreign bank branches (Subdivision 820-FB), substituted accounting periods and part-year special purpose entities (s 820-39(2)). Refuses financial entities (non-ADI) and ADIs, which keep Subdivisions 820-B to 820-E, Australian plantation forestry entities, which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative GR group net third party interest expense, GR group EBITDA of nil or less (s 820-46(3)(b)) and carried amounts in a year nothing is disallowed.",
+    ),
+    (
+        "debt_forgiveness",
+        "One debtor's commercial debts forgiven in one income year from 2020-21 to 2026-27 under ITAA 1997 Division 245, from figures the operator has established. For each debt to which Division 245 applies (ss 245-10, 245-15 and 245-40), the gross forgiven amount is the stated value of the debt when forgiven (ss 245-55, 245-60 and 245-61) less the stated amount offset (s 245-65), nil if not more (s 245-75); where several entities were liable each takes an equal share (s 245-77), rounded half up to the cent. The net forgiven amount is that less the amounts other provisions include in assessable income or take off deductions or cost bases because of the forgiveness (s 245-85), nil rather than negative, less any amount a creditor under common ownership agreed in writing to forgo, which may not exceed it (s 245-90). The total net forgiven amount (s 245-105) reduces, in order and each class only to the extent of the amounts in it, tax losses deductible in the year or later (s 245-115), net capital losses of earlier years (s 245-130), expenditure in the table in s 245-145 incurred before the year, and the cost bases and reduced cost bases of CGT assets, investments in associates last (ss 245-175 and 245-185), each item in the order given (the choice in ss 245-120, 245-135, 245-150 and 245-180); any part left is disregarded (s 245-195). The operator establishes whether each debt is commercial and forgiven (Subdivisions 245-A and 245-B), its value and the amount offset, the amounts in s 245-85, any s 245-90 agreement and its conditions (common ownership throughout, the creditor's capital loss or deduction and s 245-90(4)), which losses, expenditures and assets qualify and the most each may be reduced (ss 245-155, 245-157 and 245-190(3)). Excludes the later effect of each reduction on deductions and cost bases (ss 245-155 to 245-160 and 245-190), consolidated groups' transferred losses (s 707-415) and record keeping (Subdivision 245-G). Refuses a partnership (Subdivision 245-F), the attributable income of a non-resident trust estate or a CFC (s 245-100) and a forgone amount without section_245_90_agreement true.",
+    ),
+    (
         "impairment_test",
         "One asset's or cash-generating unit's impairment test under AASB 136 at a reporting date ending in a financial year from 2020-21 to 2026-27, from figures the preparer has established. Value in use is the present value of the stated pre-tax net cash flows for years 1 to n, each at the end of its year, and of a stated terminal value at the end of year n, at one stated pre-tax discount rate above 0 and at most 100% (limits of this worksheet), rounded half up to the cent (paras 30, 31, 33, 39, 50 to 52, 55 and A21). Recoverable amount is the higher of value in use and any stated fair value less costs of disposal (paras 18 to 20). An impairment loss is the carrying amount less recoverable amount where positive (paras 59 and 104). It is allocated first to goodwill (para 104(a)), then to the other assets pro rata to their carrying amounts (para 104(b)), none below the higher of its own stated fair value less costs of disposal and value in use or nil, the excess passed pro rata to the others (para 105); any loss left once every asset is at its floor is shown unallocated, a liability only where another Standard requires one (para 62). Each share is rounded half up to the cent cumulatively. The preparer establishes the cash flows (paras 33 and 39 to 53), the rate (paras 55 to 57), the unit and its assets (paras 65 to 79), goodwill's allocation (paras 80 to 99), corporate assets (paras 100 to 103) and the floors. Excludes indications of impairment (paras 9 to 17), reversals (paras 109 to 125), deferred tax and disclosure. Refuses a revalued asset (para 60), a unit with goodwill and a non-controlling interest (Appendix C) and a goodwill line alone (para 81).",
     ),
@@ -1225,6 +1233,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "lessee_lease",
         "https://www.aasb.gov.au/admin/file/content105/c9/AASB16_02-16_COMPnov22_01-24.pdf",
+    ),
+    (
+        "thin_capitalisation",
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
+    ),
+    (
+        "debt_forgiveness",
+        "https://www.legislation.gov.au/C2004A05138/latest/text",
     ),
     (
         "impairment_test",
@@ -2804,6 +2820,21 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "thin_capitalisation",
+        &[
+            "https://www.legislation.gov.au/C2024A00023/asmade/text",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/fixed-ratio-test",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/group-ratio-test",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/thin-capitalisation/understanding-thin-capitalisation/how-the-rules-work/third-party-debt-test",
+        ],
+    ),
+    (
+        "debt_forgiveness",
+        &[
+            "https://www.ato.gov.au/forms-and-instructions/company-tax-return-2022-instructions/appendixes/appendix-1-commercial-debt-forgiveness",
+        ],
+    ),
+    (
         "impairment_test",
         &["https://www.aasb.gov.au/admin/file/content105/c9/AASB136_08-15_COMPdec22_01-23.pdf"],
     ),
@@ -3059,6 +3090,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "lessee_lease",
         &[
             "The lease term, the discount rate and whether a purchase option is reasonably certain are the preparer's judgements. Rounding each period's interest to the cent, the last period taking the rest, and sharing a period across 30 June by days are conventions, not rules of AASB 16.",
+        ],
+    ),
+    (
+        "thin_capitalisation",
+        &[
+            "The entity class, the test chosen, each debt interest's third party debt conditions, the GR group's figures, the excess tax EBITDA amount and each carried amount's availability are the operator's stated facts (ss 820-46 to 820-60 and 820-427A); the worksheet applies Subdivision 820-AA to them and does not decide them.",
+        ],
+    ),
+    (
+        "debt_forgiveness",
+        &[
+            "Whether a debt is commercial and forgiven, its value, the amount offset, the s 245-85 amounts, any s 245-90 agreement and the most each loss, expenditure and cost base may be reduced are the operator's stated facts; the worksheet applies Division 245's order to them and does not decide them.",
         ],
     ),
     (
@@ -4359,6 +4402,30 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A roll-over under s 20H(2), (2AA) or (2A) of the Superannuation (Unclaimed Money and Lost Members) Act 1999 with an element untaxed in the fund was given; s 5(2) is outside the command.",
     ),
     (
+        "debt_forgiveness.attributable_income",
+        "The calculation stated is of the attributable income of a non-resident trust estate or a CFC, to which Subdivision 245-E does not apply (s 245-100).",
+    ),
+    (
+        "debt_forgiveness.debt_invalid",
+        "debts is not a list of 1 to 200 objects, each a label, commercial_debt and excluded true or false and a value from 0, with optional amounts from 0, an optional section_245_90_agreement flag and debtors from 1 to 100.",
+    ),
+    (
+        "debt_forgiveness.forgone_exceeds_provisional",
+        "A creditor's forgone amount exceeds the debt's provisional net forgiven amount (s 245-90(2)(a) and (3)(a)).",
+    ),
+    (
+        "debt_forgiveness.forgone_not_eligible",
+        "A creditor's forgone amount is given without the stated s 245-90 facts: companies under common ownership throughout, a capital loss or deduction to forgo and an agreement meeting s 245-90(4).",
+    ),
+    (
+        "debt_forgiveness.item_invalid",
+        "A list of tax losses, net capital losses, expenditures or cost bases is not a list of at most 200 objects, each a label and an amount from 0, with item 1 to 8 for expenditure and an optional associate flag for a cost base.",
+    ),
+    (
+        "debt_forgiveness.partnership",
+        "The debtor stated is a partnership (Subdivision 245-F).",
+    ),
+    (
         "decimal.division_by_zero",
         "A worksheet step divided by zero.",
     ),
@@ -5618,7 +5685,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, help-to-buy, help-to-buy-review, home-guarantee, age-pension, ftb-part-a, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, super-projection, objection-deadline, lessee-lease, impairment-test, consolidation-eliminations, tofa-accruals, thin-capitalisation and its debt_deductions and frt_disallowed_amounts, debt-forgiveness and its debts, tax_losses, net_capital_losses, expenditures and cost_bases, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -6830,6 +6897,46 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_withholding.schedule_not_read",
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
+    ),
+    (
+        "thin_capitalisation.carry_forward_invalid",
+        "frt_disallowed_amounts is not a list of at most 15 objects, each a year from 2023-24 within the 15 years before this one, given once, an amount from 0 and available true or false.",
+    ),
+    (
+        "thin_capitalisation.carry_forward_unsettled",
+        "Earlier fixed ratio test disallowed amounts were stated for a year Subdivision 820-AA disallows nothing, which the sources read do not settle.",
+    ),
+    (
+        "thin_capitalisation.debt_deductions_invalid",
+        "debt_deductions is not a list of 1 to 200 objects, each a label, an amount from 0 and optionally third_party true or false.",
+    ),
+    (
+        "thin_capitalisation.entity_class_not_built",
+        "A financial entity (non-ADI) or ADI was stated; Subdivisions 820-B to 820-E are not applied.",
+    ),
+    (
+        "thin_capitalisation.fact_invalid",
+        "test, entity_class, the s 820-37 averages, gr_group_negative_member_ebitda or the associate-inclusive debt deductions are not a stated fact the worksheet takes.",
+    ),
+    (
+        "thin_capitalisation.gr_group_ebitda_not_positive",
+        "The GR group EBITDA is nil or less, so the group ratio test cannot be chosen (s 820-46(3)(b)).",
+    ),
+    (
+        "thin_capitalisation.group_ratio_negative",
+        "A negative GR group net third party interest expense was stated, which the sources read do not settle.",
+    ),
+    (
+        "thin_capitalisation.input_missing",
+        "An input the stated test or exemption needs is missing.",
+    ),
+    (
+        "thin_capitalisation.input_not_used",
+        "An input the stated test does not use was given.",
+    ),
+    (
+        "thin_capitalisation.plantation_forestry",
+        "An Australian plantation forestry entity was stated; the older Division 820 is not applied.",
     ),
     (
         "tofa_accruals.accruals_not_chosen",

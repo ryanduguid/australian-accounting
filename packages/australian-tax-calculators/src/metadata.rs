@@ -1468,6 +1468,13 @@ pub fn supported_periods(kind: &str) -> Vec<&'static str> {
         "tofa_accruals" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
+        // Subdivision 820-AA applies to income years starting on or after
+        // 1 July 2023 (Act No. 23, 2024 Schedule 2 item 144); Division 245 reads
+        // the same for every year shown (s 245-145 last amended by No. 93, 2011).
+        "thin_capitalisation" => vec!["2023-24", "2024-25", "2025-26", "2026-27"],
+        "debt_forgiveness" => vec![
+            "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
+        ],
         "impairment_test" => vec![
             "2020-21", "2021-22", "2022-23", "2023-24", "2024-25", "2025-26", "2026-27",
         ],
@@ -2214,6 +2221,14 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         "lessee_lease" => (
             "2026-11-26",
             "AASB 16 compilation no. 8 (F2024C00049, the latest on the Federal Register) paras 5, 23 to 27, 29 to 32, 36 to 39 and Appendix A 'short-term lease'; IFRS 16 Illustrative Examples, Example 13; the site's assets/lease.mjs and its 8 cases",
+        ),
+        "thin_capitalisation" => (
+            "2026-11-26",
+            "ITAA 1997 compilation 268 (C2026C00471, from 1 October 2026) ss 820-1 to 820-60 and 820-427 to 820-427E with the endnotes' amendment history (Subdivisions 820-AA and 820-EAB added by No. 23, 2024 and not amended since); Treasury Laws Amendment (Making Multinationals Pay Their Fair Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 items 144 to 146; Income Tax Assessment (1997 Act) Regulations 2021 compilation 16 (F2026C00602), which makes no regulation for ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d); the ATO's fixed ratio test (12 December 2025), group ratio test (24 July 2024) and third party debt test (24 July 2024) pages",
+        ),
+        "debt_forgiveness" => (
+            "2026-11-26",
+            "ITAA 1997 compilation 268 (C2026C00471) Division 245, ss 245-1 to 245-265, with the endnotes' amendment history (substituted by No. 79, 2010; s 245-145 amended by No. 93, 2011, nothing since); the ATO's Company tax return 2022 instructions, Appendix 1 (19 December 2023)",
         ),
         "impairment_test" => (
             "2026-11-24",
@@ -3377,6 +3392,76 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
             (
                 "purchase_option",
                 "boolean: the lease contains a purchase option, reasonably certain or not, so it is not a short-term lease (Appendix A); default false",
+            ),
+        ],
+        "thin_capitalisation" => vec![
+            (
+                "interest_and_equivalent_income",
+                "AUD from 0: interest, amounts in the nature of interest or economically equivalent to it, and the other amounts in s 820-50(3)(b), included in assessable income; needed by the fixed ratio and group ratio tests",
+            ),
+            (
+                "taxable_income",
+                "AUD that may be negative: taxable income or a tax loss (negative), disregarding Division 820 other than Subdivision 820-EAA, with all tax losses of earlier loss years deducted (s 820-52(1)(a) and (1A)) and s 820-52(6), (6B) and (8) applied; needed by the fixed ratio and group ratio tests",
+            ),
+            (
+                "franking_credits",
+                "AUD from 0: franking credits included in assessable income under Division 207, which s 820-52(2) disregards; default nil",
+            ),
+            (
+                "associate_dividends",
+                "AUD from 0: dividends and non-share dividends from associate entities (s 820-52(9)) included under ITAA 1936 s 44, which s 820-52(3) disregards; default nil",
+            ),
+            (
+                "rd_notional_deductions",
+                "AUD from 0: Division 355 notional deductions, which s 820-52(10) subtracts; default nil",
+            ),
+            (
+                "division_40_43_deductions",
+                "AUD from 0: Division 40 and 43 deductions other than for the entire amount of an expense (s 820-52(1)(c)(ii)); needed by the fixed ratio and group ratio tests",
+            ),
+            (
+                "forestry_deductions",
+                "AUD from 0: general deductions for forestry establishment and preparation costs, other than for clearing native forests (s 820-52(1)(c)(i)); default nil",
+            ),
+            (
+                "section_70_120_deductions",
+                "AUD from 0: deductions under s 70-120 (s 820-52(1)(c)(iii)); default nil",
+            ),
+            (
+                "excess_tax_ebitda_amount",
+                "AUD from 0: the excess tax EBITDA amount worked out under s 820-60(3) for a controlling entity; fixed ratio test only; default nil",
+            ),
+            (
+                "frt_disallowed_amounts",
+                "list of at most 15 objects {year, amount, available}: each earlier income year's fixed ratio test disallowed amount (s 820-57) not yet applied under s 820-56, year from 2023-24 and within the 15 years before this one, available false where s 820-58 or s 820-59 treats it as nil; fixed ratio test only",
+            ),
+            (
+                "gr_group_net_third_party_interest_expense",
+                "AUD from 0: the GR group net third party interest expense (s 820-54(1) and (2)); group ratio test",
+            ),
+            (
+                "gr_group_net_profit",
+                "AUD that may be negative: the GR group's net profit disregarding tax expenses (s 820-55(2)(a) and (4)); group ratio test",
+            ),
+            (
+                "gr_group_adjusted_net_third_party_interest_expense",
+                "AUD that may be negative: the GR group's adjusted net third party interest expense (s 820-54(4)(b)); group ratio test",
+            ),
+            (
+                "gr_group_depreciation_and_amortisation",
+                "AUD from 0: the GR group's depreciation and amortisation expenses (s 820-55(2)(c)); group ratio test",
+            ),
+            (
+                "gr_group_negative_member_ebitda",
+                "list of at most 200 decimal strings below nil: each GR group member's entity EBITDA that is less than zero, which s 820-55(3) disregards; group ratio test; default none",
+            ),
+            (
+                "average_australian_assets",
+                "AUD from 0: the average Australian assets of the entity and its associates (s 820-37(1)); with outward_investor_only true",
+            ),
+            (
+                "average_total_assets",
+                "AUD above 0: the average total assets of the entity and its associates (s 820-37(1)); with outward_investor_only true",
             ),
         ],
         "impairment_test" => vec![
@@ -7138,6 +7223,24 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("ownership_transfers", "boolean: ownership transfers by the end of the lease term or a purchase option is reasonably certain to be exercised (para 32)"),
             ("remeasurement", "boolean: the liability has been or must be remeasured for a reassessment, modification, change in an index or rate or revised in-substance fixed payment (paras 36(c) and 39 to 46); true is refused"),
         ],
+        "thin_capitalisation" => vec![
+            ("test", "fixed_ratio (no choice made, s 820-46(1)(b)(i)), group_ratio (a choice under s 820-46(3)) or third_party_debt (a choice under s 820-46(4), or taken to be made under s 820-46(5) and s 820-48)"),
+            ("entity_class", "general_class_investor (s 820-46(2)) or not_covered (no Subdivision of Division 820 applies); outward_investing_financial_entity, inward_investing_financial_entity, outward_investing_adi and inward_investing_adi are refused"),
+            ("plantation_forestry_entity", "boolean: an Australian plantation forestry entity for all or part of the year, kept under the older law (Act No. 23, 2024 Schedule 2 item 146); true is refused"),
+            ("special_purpose_entity", "boolean: the entity meets the conditions in s 820-39(3) throughout the income year"),
+            ("outward_investor_only", "boolean: assuming it were a financial entity all year, the entity would be an outward investing financial entity (non-ADI) and not an inward investing one (s 820-37(1)(a)(ii) and (b)); true needs average_australian_assets and average_total_assets"),
+            ("associate_inclusive_debt_deductions", "AUD from 0: the total debt deductions of the entity and all its associate entities for the year (s 820-35)"),
+            ("debt_deductions", "list of 1 to 200 objects {label, amount} and, under the third party debt test, third_party: the year's debt deductions (s 820-40) after any disallowed under Subdivision 820-EAA (s 820-31), amounts in AUD from 0; third_party true where the deduction is attributable to a debt interest satisfying the third party debt conditions (s 820-427A(1) to (3))"),
+        ],
+        "debt_forgiveness" => vec![
+            ("debts", "list of 1 to 200 objects {label, commercial_debt, excluded, value} with optional amount_offset, debtors, assessable_income, deductions_reduced, cost_bases_reduced, forgone_by_creditor and section_245_90_agreement: commercial_debt whether s 245-10 or s 245-15 applies; excluded whether s 245-40 applies; value the debt's value when forgiven (ss 245-55, 245-60 and 245-61), amount_offset the amount offset (s 245-65), assessable_income, deductions_reduced and cost_bases_reduced the amounts in s 245-85(1)(a) to (c) and forgone_by_creditor the amount agreed under s 245-90, each in AUD from 0 (default nil); section_245_90_agreement true or false (default false), required true with any forgone_by_creditor: debtor and creditor are companies under common ownership from when the debt was incurred until it was forgiven (s 245-90(1)), the creditor would otherwise have a capital loss or a deduction under s 8-1 or s 25-35 of at least the agreed amount (s 245-90(2) and (3)) and the agreement meets s 245-90(4); debtors the number of entities liable (s 245-77), a whole number from 1 to 100, default 1"),
+            ("tax_losses", "list of at most 200 objects {label, amount}: tax losses deductible in the forgiveness income year or later (s 245-115), in the order chosen (s 245-120), AUD from 0"),
+            ("net_capital_losses", "list of at most 200 objects {label, amount}: net capital losses of earlier income years (s 245-130(2)), in the order chosen, AUD from 0"),
+            ("expenditures", "list of at most 200 objects {label, item, amount}: expenditure in the table in s 245-145 incurred before the forgiveness income year and not covered by s 245-145(2), item its row from 1 to 8, amount the most it may be reduced (the base amount less what was deductible before the year, s 245-155(2), or the undeducted balance, s 245-157), in the order chosen, AUD from 0"),
+            ("cost_bases", "list of at most 200 objects {label, amount} with optional associate: CGT assets not excluded by s 245-175(2), amount the most its cost base and reduced cost base may be reduced (s 245-190(3)), associate true for an investment in an associate, reduced last (s 245-185), in the order chosen, AUD from 0"),
+            ("partnership", "boolean: the debtor is a partnership (Subdivision 245-F); true is refused"),
+            ("attributable_income", "boolean: the calculation is of the attributable income of a non-resident trust estate or a CFC (s 245-100); true is refused"),
+        ],
         "impairment_test" => vec![
             ("cash_flows", "list of 1 to 50 decimal strings, AUD that may be negative: the stated pre-tax net cash flows of years 1 to n from continuing use, each at the end of its year (AASB 136 paras 33, 39(a) and (b), 50 and 51), excluding financing and tax"),
             ("discount_rate", "decimal fraction above 0 and at most 1 (100%), at most 6 places, limits of this worksheet rather than AASB 136: the stated pre-tax rate (paras 55, 56 and A20)"),
@@ -9104,6 +9207,53 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             ("threshold_failed_earlier", Flag(false)),
             ("division_230_election", Flag(false)),
             ("elections", Json("[]")),
+        ],
+        // The ATO's fixed ratio test example (corporate tax entity) scaled by
+        // 100,000, dated in 2025-26.
+        "thin_capitalisation" => vec![
+            ("year", Text("2025-26")),
+            ("test", Text("fixed_ratio")),
+            ("entity_class", Text("general_class_investor")),
+            ("plantation_forestry_entity", Flag(false)),
+            ("special_purpose_entity", Flag(false)),
+            ("outward_investor_only", Flag(false)),
+            ("associate_inclusive_debt_deductions", Text("5000000.00")),
+            (
+                "debt_deductions",
+                Json(r#"[{"label": "Interest", "amount": "5000000.00"}]"#),
+            ),
+            ("interest_and_equivalent_income", Text("1000000.00")),
+            ("taxable_income", Text("0.00")),
+            ("division_40_43_deductions", Text("2000000.00")),
+            ("excess_tax_ebitda_amount", Text("4000000.00")),
+        ],
+        // Section 245-50's example: Samara accepts $60 for Daniel's $100 debt.
+        "debt_forgiveness" => vec![
+            ("year", Text("2025-26")),
+            (
+                "debts",
+                Json(
+                    r#"[{"label": "Owed to Samara", "commercial_debt": true, "excluded": false, "value": "100.00", "amount_offset": "60.00"}]"#,
+                ),
+            ),
+            (
+                "tax_losses",
+                Json(r#"[{"label": "2023-24 tax loss", "amount": "25.00"}]"#),
+            ),
+            (
+                "net_capital_losses",
+                Json(r#"[{"label": "2022-23 net capital loss", "amount": "10.00"}]"#),
+            ),
+            (
+                "expenditures",
+                Json(r#"[{"label": "Plant", "item": 1, "amount": "3.00"}]"#),
+            ),
+            (
+                "cost_bases",
+                Json(r#"[{"label": "Shares in a listed company", "amount": "50.00"}]"#),
+            ),
+            ("partnership", Flag(false)),
+            ("attributable_income", Flag(false)),
         ],
         "impairment_test" => vec![
             ("year", Text("2025-26")),

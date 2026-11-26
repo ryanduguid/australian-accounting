@@ -6557,6 +6557,61 @@ command and compares the liability, asset, interest, dates, every income year
 and the first and last schedule rows; a local run compared every schedule row
 as well, and all agreed to the cent.
 
+## Thin capitalisation
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+268 (C2026C00471, in force from 1 October 2026), Subdivisions 820-A, 820-AA
+and 820-EAB, from the Federal Register of Legislation's API; the endnotes show
+Subdivision 820-AA and ss 820-427A to 820-427E added by No. 23, 2024 and not
+amended since. Treasury Laws Amendment (Making Multinationals Pay Their Fair
+Share—Integrity and Transparency) Act 2024 (C2024A00023) Schedule 2 item 144
+applies them to income years starting on or after 1 July 2023 (Subdivision
+820-EAA from 1 July 2024) and item 146 keeps the older law for Australian
+plantation forestry entities. The Income Tax Assessment (1997 Act) Regulations
+2021, compilation 16 (F2026C00602), make no regulation for
+ss 820-40(1)(a)(iv), 820-50(3)(b)(iii) or 820-52(1)(d). The s 820-37 formula
+is an image in the compilation; its text alternative reads the sum of the
+average Australian assets of the entity and its associates over the sum of
+their average total assets. The ATO's fixed ratio test page (last updated
+12 December 2025) gives the worked example T1 scales by 100,000.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| T1 | taxable income nil after earlier losses, interest deductions 5,000,000, interest income 1,000,000, depreciation 2,000,000, excess tax EBITDA amount 4,000,000 | tax EBITDA **10,000,000**, limit **3,000,000**, disallowed **1,000,000** |
+| T1 unscaled | the same in dollars, associates' debt deductions $50 | nothing disallowed (s 820-35) |
+| T2 | 2026-27, limit 4,500,000, net debt deductions 3,000,000; carried 2023-24 1,000,000, 2024-25 800,000, 2025-26 300,000 not available | special deduction **1,500,000**: 1,000,000, **500,000**, nil |
+| T3 | group ratio test, tax EBITDA 10,500,000, GR group 30,000,000 over 105,000,000 (a negative member of 5,000,000 disregarded), deductions 4,000,000 and 2,000,000 | limit **3,000,000**, disallowed **2,500,000**: **1,666,666.67** and **833,333.33** |
+| T4 | third party debt test, 3,000,000 and 500,000 (hedging) qualifying, 1,000,000 to an associate | limit **3,500,000**, disallowed **1,000,000**: 666,666.67, 222,222.22, 111,111.11 |
+
+`tests/thin_capitalisation.rs` also covers the $2 million threshold a cent
+either side, the 90% assets threshold a cent either side, a negative net debt
+deductions widening the excess, a negative tax EBITDA, every tax EBITDA line,
+the year boundaries and every refusal.
+
+## Debt forgiveness
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+268 (C2026C00471) Division 245, from the Federal Register of Legislation's
+API; the endnotes show it substituted by No. 79, 2010, s 245-145 amended by
+No. 93, 2011 and nothing since, so the rules read the same for 2020-21 to
+2026-27. The s 245-77 formula is an image whose text alternative reads the
+gross forgiven amount over the number of entities liable to pay the debt. The
+ATO's Company tax return 2022 instructions, Appendix 1 (last updated
+19 December 2023), describe the same steps and order. D1 builds on the
+example under s 245-50.
+
+| Vector | Facts given | Result |
+| --- | --- | --- |
+| D1 | debt of 100 settled for 60; tax loss 25, net capital loss 10, plant 3, shares 50 | net forgiven **40**: 25, 10, 3, **2** |
+| D2 | 1,000 owed by 3 debtors | each **333.33** |
+| D3 | value 10,000, offset 2,000, s 245-85 amounts 1,500, forgone 1,500 | net **5,000**; forgone above **6,500** refused |
+| D6 | 1,000 against losses 300 and 200, 100, expenditure 150, an associate's shares 500 listed before land 100 | land **100** before the shares **150** (s 245-185) |
+| D7 | 1,000 and nothing to reduce | **1,000** disregarded |
+
+`tests/debt_forgiveness.rs` also covers excluded and non-commercial debts,
+offsets at and above the value, s 245-85 amounts above the share and every
+refusal.
+
 ## Impairment test
 
 Added on 24 November 2026, when the sources were read: AASB 136 compilation

@@ -1763,6 +1763,34 @@ const COMMAND_ARGS: &[(&str, &[(&str, Kind)])] = &[
         ],
     ),
     (
+        "thin-capitalisation",
+        &[
+            ("test", Raw),
+            ("entity_class", Raw),
+            ("plantation_forestry_entity", Raw),
+            ("special_purpose_entity", Raw),
+            ("outward_investor_only", Raw),
+            ("associate_inclusive_debt_deductions", Dec),
+            ("debt_deductions", Json),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
+        "debt-forgiveness",
+        &[
+            ("debts", Json),
+            ("tax_losses", Json),
+            ("net_capital_losses", Json),
+            ("expenditures", Json),
+            ("cost_bases", Json),
+            ("partnership", Raw),
+            ("attributable_income", Raw),
+            ("year", Raw),
+            ("scope_confirmed", Raw),
+        ],
+    ),
+    (
         "leave-provisions",
         &[
             ("lines", Json),
@@ -1947,7 +1975,29 @@ pub fn commands() -> Vec<&'static str> {
 /// command on its `gross_pay` shows that withholding. The classifier's amounts
 /// are totals over lines whose shares a decision table sets, not a formula;
 /// each line and class carries the authority for its row instead.
-const DERIVED: [&str; 104] = [
+/// `thin-capitalisation`'s optional inputs: those of tax EBITDA, the group
+/// ratio test, the assets threshold and the carry-forward.
+const THIN_CAPITALISATION_OPTIONAL: [(&str, Kind); 17] = [
+    ("interest_and_equivalent_income", Dec),
+    ("taxable_income", Dec),
+    ("franking_credits", Dec),
+    ("associate_dividends", Dec),
+    ("rd_notional_deductions", Dec),
+    ("division_40_43_deductions", Dec),
+    ("forestry_deductions", Dec),
+    ("section_70_120_deductions", Dec),
+    ("excess_tax_ebitda_amount", Dec),
+    ("frt_disallowed_amounts", Json),
+    ("gr_group_net_third_party_interest_expense", Dec),
+    ("gr_group_net_profit", Dec),
+    ("gr_group_adjusted_net_third_party_interest_expense", Dec),
+    ("gr_group_depreciation_and_amortisation", Dec),
+    ("gr_group_negative_member_ebitda", Json),
+    ("average_australian_assets", Dec),
+    ("average_total_assets", Dec),
+];
+
+const DERIVED: [&str; 106] = [
     "fbt",
     "fbt-car-statutory",
     "fbt-car-operating-cost",
@@ -1995,6 +2045,8 @@ const DERIVED: [&str; 104] = [
     "instant-asset-write-off",
     "deferred-tax",
     "leave-provisions",
+    "thin-capitalisation",
+    "debt-forgiveness",
     "horticulture-shearing-withholding",
     "upward-variation-withholding",
     "daily-casual-withholding",
@@ -2571,6 +2623,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
             | "impairment-test"
             | "consolidation-eliminations"
             | "tofa-accruals"
+            | "thin-capitalisation"
+            | "debt-forgiveness"
             | "long-service-leave"
             | "foreign-income-conversion"
             | "foreign-income-tax-offset"
@@ -4829,6 +4883,38 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 scope_confirmed: &a[13],
             })
         }
+        "thin-capitalisation" => {
+            // Optional: the inputs each test, exemption or carry-forward uses.
+            let mut given = Vec::new();
+            for (key, kind) in THIN_CAPITALISATION_OPTIONAL {
+                if let Some(arg) = optional(v, key, kind)? {
+                    given.push((key, arg));
+                }
+            }
+            engine::thin_capitalisation(&engine::ThinCapitalisationArgs {
+                test: &a[0],
+                entity_class: &a[1],
+                plantation_forestry_entity: &a[2],
+                special_purpose_entity: &a[3],
+                outward_investor_only: &a[4],
+                associate_inclusive_debt_deductions: &a[5],
+                debt_deductions: &a[6],
+                year: &a[7],
+                scope_confirmed: &a[8],
+                given: &given,
+            })
+        }
+        "debt-forgiveness" => engine::debt_forgiveness(&engine::DebtForgivenessArgs {
+            debts: &a[0],
+            tax_losses: &a[1],
+            net_capital_losses: &a[2],
+            expenditures: &a[3],
+            cost_bases: &a[4],
+            partnership: &a[5],
+            attributable_income: &a[6],
+            year: &a[7],
+            scope_confirmed: &a[8],
+        }),
         "leave-provisions" => engine::leave_provisions(&engine::LeaveProvisionsArgs {
             lines: &a[0],
             defined_benefit_plan: &a[1],

@@ -6606,6 +6606,10 @@ mod consolidation_eliminations;
 pub use consolidation_eliminations::{ConsolidationEliminationsArgs, consolidation_eliminations};
 mod tofa_accruals;
 pub use tofa_accruals::{TofaAccrualsArgs, tofa_accruals};
+mod thin_capitalisation;
+pub use thin_capitalisation::{ThinCapitalisationArgs, thin_capitalisation};
+mod debt_forgiveness;
+pub use debt_forgiveness::{DebtForgivenessArgs, debt_forgiveness};
 mod leave_provisions;
 mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
@@ -6653,7 +6657,7 @@ pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
 mod staff_cost;
 pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 163] = [
+const KINDS: [&str; 165] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6792,6 +6796,8 @@ const KINDS: [&str; 163] = [
     "impairment_test",
     "consolidation_eliminations",
     "tofa_accruals",
+    "thin_capitalisation",
+    "debt_forgiveness",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",

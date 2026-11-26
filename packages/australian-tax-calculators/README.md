@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-163 calculation worksheets for established facts; the sections below document
+165 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -280,6 +280,8 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
 | `consolidation-eliminations` | `parent`, `subsidiaries`, `intra_group_balances`, `intra_group_transactions`, `unrealised_profits`, `tax_rate`, `acquired_in_period`, `fair_value_adjustments`, `previously_held_interest`, `ownership_changed`, `intra_group_dividends`, `year`, `scope_confirmed`; see [Consolidation eliminations](#consolidation-eliminations) |
 | `tofa-accruals` | `start`, `end`, `interval_months`, `financial_benefits`, `method`, `approximation_confirmed`, `accruals_chosen`, `entity_type`, `qualifying_security`, `threshold_failed_earlier`, `division_230_election`, `elections`, `year`, `scope_confirmed`; optional `aggregated_turnover`, `assets` and `financial_assets`; see [TOFA accruals](#tofa-accruals) |
+| `thin-capitalisation` | `test`, `entity_class`, `plantation_forestry_entity`, `special_purpose_entity`, `outward_investor_only`, `associate_inclusive_debt_deductions`, `debt_deductions`, `year`, `scope_confirmed`; by test, `interest_and_equivalent_income`, `taxable_income`, `division_40_43_deductions` and optional `franking_credits`, `associate_dividends`, `rd_notional_deductions`, `forestry_deductions`, `section_70_120_deductions`, `excess_tax_ebitda_amount`, `frt_disallowed_amounts` and the `gr_group_` figures; with an outward investor `average_australian_assets` and `average_total_assets`; see [Thin capitalisation](#thin-capitalisation) |
+| `debt-forgiveness` | `debts`, `tax_losses`, `net_capital_losses`, `expenditures`, `cost_bases`, `partnership`, `attributable_income`, `year`, `scope_confirmed`; see [Debt forgiveness](#debt-forgiveness) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
 | `foreign-income-conversion` | `items`, `year`, `scope_confirmed`; see [Foreign income conversion](#foreign-income-conversion) |
@@ -303,9 +305,9 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `charity-check` | `abns`, a list of 1 to 10,000 ABNs, and `as_at`, the check date; see [Charity check](#charity-check) |
 | `personal-tax-estimate` | `year`, `scope_confirmed`, `residency`, `taxable_income` or `assessable_labour_income` (then optional `other_assessable_income`, `work_related_deductions`, `other_deductions`), optional `tax_withheld` or, to work it out, one of `payg-withholding`, `study-loan-withholding` and `seniors-pensioners-withholding` with `pays_in_year` and optional `schedule-5-method-a`, for a resident from 2027-28 `net_labour_income` (required beside `taxable_income`), for a full-year resident `medicare-levy` and `medicare-levy-surcharge`, and for a part-year resident before 2027-28 `part_year_residency_months`, `eligible_pensioner` and `medicare-levy`; optional `seniors-pensioners-tax-offset`, `study-loan-repayment`, `division-293` and `private-health-insurance-rebate`; see [Personal tax estimate](#personal-tax-estimate) |
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
-| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `deferred-tax`, `leave-provisions`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `rd-tax-offset`, `esic`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `smsf-tax`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `etp-tax-free-component`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `cgt-cost-base-adjustments`, `foreign-income-tax-offset`, `fbt-instalment`, `vic-property-taxes`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, `age-pension`, `ftb-part-a`, and `input`, that command's arguments; see [Derivations](#derivations) |
+| `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `deferred-tax`, `leave-provisions`, `thin-capitalisation`, `debt-forgiveness`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `rd-tax-offset`, `esic`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `smsf-tax`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `etp-tax-free-component`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `cgt-cost-base-adjustments`, `foreign-income-tax-offset`, `fbt-instalment`, `vic-property-taxes`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, `age-pension`, `ftb-part-a`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `help-to-buy`, `help-to-buy-review`, `home-guarantee`, `age-pension`, `ftb-part-a`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup`,, `super-projection`, `objection-deadline`, `lessee-lease` `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee`, `staff-cost`, `impairment-test`, `consolidation-eliminations` and `tofa-accruals` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, `schedule-5`, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, `annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding`, `voluntary-agreement-withholding`, `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `help-to-buy`, `help-to-buy-review`, `home-guarantee`, `age-pension`, `ftb-part-a`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup`, `super-projection`, `objection-deadline`, `lessee-lease`, `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee`, `staff-cost`, `impairment-test`, `thin-capitalisation`, `debt-forgiveness`, `consolidation-eliminations` and `tofa-accruals` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -540,6 +542,8 @@ DI2026-157).
 | Hourly rate and fixed fee | A period in 2020-21 to 2026-27; stated costs, profit, hours, rate and margin; GST at 10% (GST Act s 9-70) on a fee the operator has established is taxable |
 | Staff cost | 2021-22 to 2026-27; super stated or the super guarantee on a stated base (ATO tables 21, 23 and 24); payroll tax and workers compensation at stated rates; no Norfolk Island rate |
 | Impairment test | Reporting periods ending in 2020-21 to 2026-27; one asset or cash-generating unit with stated pre-tax cash flows, terminal value, pre-tax rate, fair value less costs of disposal, carrying amounts and floors; no revalued assets, goodwill with a non-controlling interest, reversals or deferred tax |
+| Thin capitalisation | 2023-24 to 2026-27; one company that is a general class investor, or not covered, at stated debt deductions, s 820-50(3)(b) amounts, tax EBITDA lines, GR group figures, third party debt conditions and carried amounts; no financial entities, ADIs, plantation forestry entities, trusts, partnerships, Subdivision 820-EAA or consolidated group transfers |
+| Debt forgiveness | 2020-21 to 2026-27; one debtor's commercial debts forgiven in the year, at stated values, amounts offset, s 245-85 amounts, s 245-90 agreements and reducible amounts; no partnerships or attributable income |
 | Leave provisions | Reporting periods ending in 2020-21 to 2026-27; annual and long service leave only; established hours, rates, settlement expectations and rights to defer, and stated discount rate, salary growth and probabilities; no defined benefit plans, plan assets or on-costs |
 | Long service leave | Last days from 1 July 2020 to 30 June 2027 and not before each Act's text as read; one employee under a state or territory's general Act; established dates, excluded days, leave taken, reason and ordinary weekly pay; no award, agreement or portable scheme |
 | SMSF tax | 2020-21 to 2026-27; one complying SMSF that is an Australian superannuation fund; the actuary's proportion, segregated income, non-arm's length income, deductions, offsets and credits established; no tax losses carried forward |
@@ -5587,6 +5591,95 @@ interval, shorter first or last intervals, benefits that net to nil or change
 sign more than once and years before 2020-21 and after 2026-27. Re-estimation,
 reassessment and balancing adjustments are outside it. See
 [calculation evidence](docs/calculation-evidence.md#tofa-accruals).
+
+## Thin capitalisation
+
+`thin-capitalisation` works out the debt deductions one company that is a
+general class investor has disallowed under ITAA 1997 Subdivision 820-AA for
+an income year from 2023-24, by the test the company stated, and the special
+deduction for earlier fixed ratio test disallowed amounts.
+
+```text
+net_debt_deductions        = debt_deductions - interest_and_equivalent_income                       s 820-50(3)
+tax_ebitda                 = max(taxable_income - franking_credits - associate_dividends
+                                 - rd_notional_deductions + net_debt_deductions
+                                 + division_40_43_deductions + forestry_deductions
+                                 + section_70_120_deductions + excess_tax_ebitda_amount, 0)  s 820-52
+fixed ratio test           limit 0.3 x tax_ebitda;                                    ss 820-50(1)(a), 820-51(1)
+                           disallowed max(net_debt_deductions - limit, 0)
+group ratio test           limit (gr_group_net_third_party_interest_expense
+                                  / gr_group_ebitda) x tax_ebitda;                    ss 820-50(1)(b), 820-51(2), 820-53
+                           disallowed max(net_debt_deductions - limit, 0)
+gr_group_ebitda            = net profit + adjusted net third party interest expense
+                             + depreciation and amortisation - each negative member   s 820-55(2), (3)
+third party debt test      limit = debt deductions with third_party true;            ss 820-50(1)(c), 820-427A
+                           disallowed max(debt_deductions - limit, 0)
+special_deduction          = min(max(limit - net_debt_deductions, 0),
+                                 available carried amounts)  fixed ratio test only    s 820-56
+```
+
+`interest_and_equivalent_income` is the sum of the assessable amounts in
+s 820-50(3)(b): interest, amounts in the nature of or economically equivalent
+to interest, amounts another entity incurred to obtain or keep the benefits of
+a debt interest and any prescribed expense, not interest alone.
+`taxable_income` is the taxable income or tax loss (negative) disregarding
+Division 820 other than Subdivision 820-EAA, with every tax loss of an
+earlier year deducted (s 820-52(1A)) and s 820-52(6), (6B) and (8) applied.
+Debt deductions are those left after Subdivision 820-EAA (s 820-31). Each
+debt deduction bears the disallowed amount in proportion (s 820-50(2)), the
+shares rounded half up to the cent cumulatively so they add to the total;
+`debt_deductions` in the result gives each one's share. Carried amounts,
+`frt_disallowed_amounts`, are applied earliest first up to the excess
+(s 820-56(3)); one marked `available` false is one s 820-58 or s 820-59
+treats as nil. A year's fixed ratio test disallowed amount (s 820-57) is its
+`total_disallowed_amount`. No regulation under ss 820-40(1)(a)(iv),
+820-50(3)(b)(iii) or 820-52(1)(d) was in force when the regulations were read.
+
+Nothing is disallowed for an entity Division 820 does not cover
+(`entity_class` `not_covered`), a special purpose entity meeting s 820-39(3)
+all year, debt deductions of the entity and its associate entities of
+$2 million or less (s 820-35), or an outward investor whose average Australian
+assets are at least 90% of its average total assets, associates' included
+(s 820-37); `exemption` names the provision. A test refuses the inputs it does
+not use. The command refuses financial entities (non-ADI) and ADIs, which
+keep Subdivisions 820-B to 820-E, Australian plantation forestry entities,
+which keep the older law (Act No. 23, 2024 Schedule 2 item 146), a negative
+GR group net third party interest expense, a GR group EBITDA of nil or less
+(s 820-46(3)(b)) and carried amounts in a year nothing is disallowed, which
+the sources read do not settle. See
+[calculation evidence](docs/calculation-evidence.md#thin-capitalisation).
+
+## Debt forgiveness
+
+`debt-forgiveness` applies the commercial debt forgiveness rules of ITAA 1997
+Division 245 to one debtor's debts forgiven in one income year from 2020-21.
+
+```text
+gross_forgiven_amount   = max(value - amount_offset, 0) / debtors, in cents     ss 245-75, 245-77
+net_forgiven_amount     = max(gross share - s 245-85 amounts, 0) - forgone      ss 245-85, 245-90
+total_net_forgiven_amount = sum of the debts' net forgiven amounts               s 245-105
+then, in order, each class to the extent of its amounts:
+  tax losses, net capital losses, s 245-145 expenditure, cost bases           ss 245-115, 245-130, 245-145, 245-175
+unapplied                = what is left, disregarded                             s 245-195
+```
+
+A debt that is not commercial (ss 245-10 and 245-15) or whose forgiveness
+s 245-40 excludes has nil. Within each class the items are reduced in the
+order given, the debtor's choice (ss 245-120, 245-135, 245-150 and 245-180),
+except that investments in associates (`associate` true) come after the other
+cost bases (s 245-185). Each amount given is the most that item may be
+reduced: for expenditure the base amount less what was deductible before the
+year (s 245-155(2)) or the undeducted balance (s 245-157), for a cost base the
+limit in s 245-190(3). A creditor's forgone amount may not exceed the
+provisional net forgiven amount (s 245-90) and needs `section_245_90_agreement`
+true: the stated fact that debtor and creditor are companies under common
+ownership from when the debt was incurred until it was forgiven, that the
+creditor would otherwise have a capital loss or deduction of at least that
+amount and that the agreement meets s 245-90(4). The result lists each debt and
+each item with its reduction and what remains. The command refuses a
+partnership (Subdivision 245-F) and the attributable income of a
+non-resident trust estate or a CFC (s 245-100). See
+[calculation evidence](docs/calculation-evidence.md#debt-forgiveness).
 
 ## Leave provisions
 
