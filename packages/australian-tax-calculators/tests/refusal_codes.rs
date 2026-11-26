@@ -71,6 +71,8 @@ fn every_code_at_a_refusal_site_is_catalogued_and_every_entry_is_used() {
         "engine/residential_vacancy_fee",
         "engine/portable_lsl_levy",
         "engine/portable_lsl_levy/coal",
+        "engine/consolidation_eliminations",
+        "engine/tofa_accruals",
     ]
     .into_iter()
     .flat_map(|dir| {
@@ -212,6 +214,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // gst-second-hand-goods, gst-bad-debt, gst-error-correction,
     // gst-credit-time-limit, tourist-refund, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even,
     // cash-forecast, hourly-rate, fixed-fee, staff-cost, impairment-test,
+    // consolidation-eliminations, tofa-accruals,
     // cgt-cost-base-adjustments, super-withholding, payg-instalment,
     // foreign-income-conversion,
     // foreign-income-tax-offset, trading-stock, prepayments, minors-income,
@@ -222,7 +225,7 @@ fn every_catalogued_required_input_of_a_strict_command_is_read() {
     // With transfer-balance, excess-contributions, asic-fees, vic-property-taxes, land-tax, pcg-2021-4,
     // workers-compensation-premium, transfer-duty, foreign-purchaser-surcharge, esic and
     // gst-food-retailer-sam.
-    assert_eq!(checked, 139);
+    assert_eq!(checked, 141);
 }
 
 /// Every frozen call gives the same answer through either entry point, and

@@ -16,7 +16,7 @@ keeps the calculator release and MCP integration separate.
 
 </div>
 
-153 calculation worksheets for established facts; the sections below document
+155 calculation worksheets for established facts; the sections below document
 their inputs and `worksheet-catalogue` lists them. Callers must establish every scope
 condition before calculating. `personal-tax-estimate` composes the personal
 ones into one year's tax and levies, and `fbt-return` composes the FBT ones
@@ -270,6 +270,8 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fixed-fee` | `hours`, `rate`, `margin_percent`, `round_to`, `add_gst`, `instalments`, `year`, `scope_confirmed`; see [Hourly rate and fixed fee](#hourly-rate-and-fixed-fee) |
 | `staff-cost` | `wages`, `other_costs`, `year`, `scope_confirmed`, and `super_amount` or `super_base`; optional `payroll_tax_rate` and `workers_compensation_rate`; see [Staff cost](#staff-cost) |
 | `impairment-test` | `cash_flows`, `discount_rate`, `assets`, `revalued`, `non_controlling_interest`, `year`, `scope_confirmed`; optional `terminal_value` and `fair_value_less_costs_of_disposal`; see [Impairment test](#impairment-test) |
+| `consolidation-eliminations` | `parent`, `subsidiaries`, `intra_group_balances`, `intra_group_transactions`, `unrealised_profits`, `tax_rate`, `acquired_in_period`, `fair_value_adjustments`, `previously_held_interest`, `ownership_changed`, `intra_group_dividends`, `year`, `scope_confirmed`; see [Consolidation eliminations](#consolidation-eliminations) |
+| `tofa-accruals` | `start`, `end`, `interval_months`, `financial_benefits`, `method`, `approximation_confirmed`, `accruals_chosen`, `entity_type`, `qualifying_security`, `threshold_failed_earlier`, `division_230_election`, `elections`, `year`, `scope_confirmed`; optional `aggregated_turnover`, `assets` and `financial_assets`; see [TOFA accruals](#tofa-accruals) |
 | `leave-provisions` | `lines`, `defined_benefit_plan`, `plan_assets`, `year`, `scope_confirmed`; see [Leave provisions](#leave-provisions) |
 | `long-service-leave` | `jurisdiction`, `start`, `end`, `excluded_days`, `leave_taken`, `status`, `weekly_pay`, `year`, `scope_confirmed`; with `status` `ends`, `reason`; optionally `hours_per_week`; see [Long service leave](#long-service-leave) |
 | `foreign-income-conversion` | `items`, `year`, `scope_confirmed`; see [Foreign income conversion](#foreign-income-conversion) |
@@ -295,7 +297,7 @@ booleans and counts, ages, days, quarters and scales are JSON integers.
 | `fbt-return` | `employer`, `year_ended`, `scope_confirmed` and `benefits`, a list of objects each with `employee`, `command` (an FBT benefit worksheet), `input` (that worksheet's arguments), `gst_type` (`type_1` or `type_2`) and `excluded`, and for a not-for-profit employer `entertainment`; optionally `employer_kind`, `rebatable_days` and `employer_days`, and `instalments_reported`; see [FBT return](#fbt-return) |
 | `derive` | `command`, one of `fbt`, `fbt-car-statutory`, `fbt-car-operating-cost`, `fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `division-293`, `pension-minimum`, `payg-withholding`, `schedule-5-method-a`, `schedule-5-method-b-i`, `schedule-5-method-b-ii`, `termination-payment`, `unused-leave-payment`, `working-holiday-maker-withholding`, `study-loan-withholding`, `seniors-pensioners-withholding`, `quarterly-sg`, `borrowing-expenses`, `borrowing-expenses-schedule`, `resident-tax`, `foreign-resident-tax`, `low-income-tax-offset`, `seniors-pensioners-tax-offset`, `medicare-levy`, `medicare-levy-surcharge`, `division-296`, `contribution-caps`, `study-loan-repayment`, `capital-gains`, `main-residence`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board`, `fbt-tax-exempt-body-entertainment`, `gst`, `depreciation`, `depreciation-low-value-pool`, `depreciation-small-business-pool`, `capital-works`, `instant-asset-write-off`, `deferred-tax`, `leave-provisions`, `horticulture-shearing-withholding`, `upward-variation-withholding`, `daily-casual-withholding`, `no-abn-withholding`, `entertainer-withholding`, `return-to-work-withholding`, `annuity-withholding`, `voluntary-agreement-withholding`, `rd-tax-offset`, `esic`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `income-tests`, `government-super-amounts`, `smsf-tax`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `gst-margin-scheme`, `transfer-duty`, `etp-tax-free-component`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `motor-vehicle-duty`, `insurance-duty`, `gst-food-retailer-sam`, `portable-lsl-levy`, `cgt-parcels`, `work-expenses`, `rental-property`, `gst-creditable-purpose-change`, `gst-annual-apportionment`, `gst-financial-acquisitions-threshold`, `gst-second-hand-goods`, `gst-bad-debt`, `tourist-refund`, `cgt-cost-base-adjustments`, `foreign-income-tax-offset`, `fbt-instalment`, `vic-property-taxes`, `defined-benefit-income-cap`, `foreign-pension-upp`, `super-crystallisation` and `residential-vacancy-fee`, and `input`, that command's arguments; see [Derivations](#derivations) |
 
-The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup`, `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee`, `staff-cost` and `impairment-test` have no Python original; their arguments follow the same
+The 2 car commands, the 11 FBT benefit commands (`fbt-loan`, `fbt-meal-entertainment`, `fbt-car-parking`, `fbt-debt-waiver`, `fbt-expense-payment`, `fbt-property`, `fbt-residual`, `fbt-housing`, `fbt-lafha`, `fbt-board` and `fbt-tax-exempt-body-entertainment`), `main-residence`, `borrowing-expenses`, `borrowing-expenses-schedule`, `fuel-tax-credits`, `division-296`, `termination-payment`, `etp-tax-free-component`, `unused-leave-payment`, the 3 `schedule-5` commands, `working-holiday-maker-withholding`, `seniors-pensioners-withholding`, the 8 schedule withholding commands (`annuity-withholding`, `daily-casual-withholding`, `entertainer-withholding`, `horticulture-shearing-withholding`, `no-abn-withholding`, `return-to-work-withholding`, `upward-variation-withholding` and `voluntary-agreement-withholding`), `seniors-pensioners-tax-offset`, `medicare-levy-surcharge`, `foreign-resident-tax`, `payg-gross-up`, `hire-purchase-schedule`, `chattel-mortgage-schedule`, `loan-transactions`, `lump-sum-arrears-tax-offset`, `fbt-entertainment-classifier`, `fbt-meal-entertainment-register`, `fbt-minor-benefit-check`, `fhss`, `ppsr-timing`, `income-tests`, `business-capital-expenditure`, `balancing-adjustment`, `trade-in`, `gst-margin-scheme`, `gst-food-retailer-sam`, `transfer-duty`, `franking-account`, `wine-equalisation-tax`, `vic-property-taxes`, `luxury-car-tax`, `alcohol-excise`, `asic-fees`, `payroll-tax`, `payroll-tax-group`, `land-tax`, `workers-compensation-premium`, `motor-vehicle-duty`, `insurance-duty`, `foreign-purchaser-surcharge`, `dasp-tax`, `super-benefit-tax`, `super-withholding`, `cgt-parcels`, `cgt-cost-base-adjustments`, `fbt-ev-exemption-check`, `sb-cgt-concessions`, `ato-interest-penalties`, `government-super-amounts`, `non-commercial-losses`, `small-business-income-offset`, `psi-test`, `first-home-owner-grant`, `payg-instalment`, `pcg-2021-4`, `rental-property`, `residency-tests`, `lodgment-required`, `deferred-tax`, `foreign-income-conversion`, `foreign-income-tax-offset`, `trading-stock`, `prepayments`, `minors-income`, `smsf-tax`, `fbt-instalment`, `ess-discount`, `help-indexation`, `defined-benefit-income-cap`, `foreign-pension-upp`, `scholarship-exemption`, `super-crystallisation`, `endorsement-review`, `leave-provisions`, `deferred-revenue`, `wip-lockup`, `break-even`, `cash-forecast`, `hourly-rate`, `fixed-fee`, `staff-cost`, `impairment-test`, `consolidation-eliminations` and `tofa-accruals` have no Python original; their arguments follow the same
 rules. `division-296` takes a negative amount in `total_super_earnings`, and `deferred-tax` in `accounting_profit`. `main-residence` also takes dates as `YYYY-MM-DD` strings, lists of
 `{"start", "end"}` periods (with `"floor_area"` for income use) and `null`
 for no new home. `borrowing-expenses` takes `loan_start` as a `YYYY-MM-DD`
@@ -5313,6 +5315,69 @@ limits, not the Standard's) and years before 2020-21 and after 2026-27.
 Indications of impairment, reversals, deferred tax and disclosure are outside
 it. See
 [calculation evidence](docs/calculation-evidence.md#impairment-test).
+
+## Consolidation eliminations
+
+`consolidation-eliminations` combines a parent's and its directly held
+subsidiaries' stated trial balances and makes the AASB 10 elimination
+journals. Each line is an account, its class and its amount on the class's
+natural side; each entity's lines must balance.
+
+```text
+combined           = sum of each entity's line, by account                          para B86(a)
+goodwill           = consideration + nci_at_acquisition - equity_at_acquisition      para B86(b); AASB 3 para 32
+nci_since          = cents((1 - ownership) x (equity line - equity line at acquisition))   paras 22, B94
+intra-group        = balances and income and expenses eliminated in full            para B86(c)
+unrealised profit  = Dr seller's cost of sales, Cr buyer's inventory;
+                     tax = cents(profit x tax_rate): Dr deferred tax asset, Cr income tax expense   para B86(c); AASB 112
+nci_profit         = cents((1 - ownership) x (subsidiary profit - its after-tax unrealised profit))   para B94
+```
+
+`journals` lists each elimination with its debits, credits and paragraph;
+`lines` each account's combined, eliminated and consolidated amounts. The
+amounts give goodwill, consolidated profit and its attribution, the
+non-controlling interests (at acquisition, since and in this year's profit)
+and the equity attributable to the owners of the parent.
+
+It refuses a subsidiary acquired in the period (para B88), fair value
+adjustments at acquisition (AASB 3 para 18), a combination achieved in stages,
+a bargain purchase (AASB 3 paras 34 to 36), an investment line not carried at
+the consideration, a change in ownership (para 23),
+intra-group dividends, an elimination larger than its line and years before
+2020-21 and after 2026-27. Indirect holdings, opening unrealised profit,
+profit in assets other than inventory, foreign operations and loss of control
+are outside it. See
+[calculation evidence](docs/calculation-evidence.md#consolidation-eliminations).
+
+## TOFA accruals
+
+`tofa-accruals` says whether ITAA 1997 Division 230 reaches one financial
+arrangement under s 230-455 and, where it does and the accruals method applies
+to a sufficiently certain overall gain or loss (s 230-100(2)), spreads that
+gain or loss over the arrangement's life.
+
+```text
+excluded  = individual, or the entity's s 230-455(2), (3) or (4) test met,
+            and (ends within 12 months or not a qualifying security),
+            unless a s 230-455(7) election applies or an earlier test failed    s 230-455(1), (6), (9)
+rate      = the one rate per interval at which the benefits net to nil          s 230-135(2)(a)
+accrual_k = opening balance_k x rate (the last takes the remainder)              s 230-135(5), (6)
+straight  = gain x days in the income year / days of the life                    s 230-135(2)(b)
+straddle  = an interval's accrual split between income years by days             s 230-170(2)
+```
+
+Intervals are equal, of 1 to 12 whole months, and every financial benefit
+falls on the start or an interval's last day. Amounts are rounded to the cent
+cumulatively. A straight line needs the operator's statement that its results
+approximate compounding accruals; both are shown by income year.
+
+It refuses the elective methods and portfolio treatment of fees, the effective
+interest method, particular gains and the realisation method (where accruals
+are neither chosen nor required by s 230-100(4)), a benefit inside an
+interval, shorter first or last intervals, benefits that net to nil or change
+sign more than once and years before 2020-21 and after 2026-27. Re-estimation,
+reassessment and balancing adjustments are outside it. See
+[calculation evidence](docs/calculation-evidence.md#tofa-accruals).
 
 ## Leave provisions
 

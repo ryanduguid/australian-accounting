@@ -6487,6 +6487,58 @@ flows and terminal values, an unmeasurable fair value, floors above carrying
 amount, losses a cent below goodwill and a cent above the carrying amount, a
 non-controlling interest without goodwill and every refusal.
 
+## Consolidation eliminations
+
+Added on 26 November 2026, when the sources were read: AASB 10 compilation
+ACOMPnov24_01-26 (periods beginning from 1 January 2026 to before 1 January
+2027) with its tables of standards and amendments, and AASB 3 compilation
+no. 5 (F2023C00389, periods beginning from 1 January 2023 to before 1 July
+2026). The AASB 10 tables list changes since July 2015 to paras
+Aus4.1, Aus4.2, AusCF1, 25 and 26, Aus33.1, B74, B99A, C1C and C1E only; none
+of paras 19 to 24 and B86 to B96 changed, so the rules applied read the same
+for every reporting period ending in 2020-21 to 2026-27. AASB 3's table of
+amendments lists no change to paras 18, 19, 32, 34, 36 or 42, and AASB
+2022-9 (F2023L00015, from 1 July 2026, not in that compilation) changes only
+AASB 3 paras Aus17.1 and AusB63.1.
+Neither Standard gives a numeric consolidation example.
+
+C1 (`tests/consolidation_eliminations.rs`, the catalogue example) is made up:
+P Ltd holds 80% of S Ltd, bought for $80,000 when S Ltd's equity was $80,000
+(share capital $60,000, retained earnings $20,000), with a non-controlling
+interest at acquisition of $20,000, so goodwill is $20,000. S Ltd's retained
+earnings are now $30,000, so the non-controlling interest takes $2,000 of the
+$10,000 since. S Ltd sold $40,000 of inventory to P Ltd, $5,000 of whose
+profit is in P Ltd's closing inventory; deferred tax at 30% is $1,500. P Ltd
+is owed $10,000 by S Ltd. Profit is $16,000 (P Ltd) plus $28,000 (S Ltd) less
+$3,500 after-tax unrealised profit, $40,500; the non-controlling share is 20%
+of ($28,000 - $3,500), $4,900. The non-controlling interests are $20,000 +
+$2,000 + $4,900 = $26,900; owners' equity is share capital $100,000, retained
+earnings $58,000 and profit $35,600, $193,600; assets are $220,500, which
+equals both. C2 is the same group wholly owned with no unrealised profit.
+
+## TOFA accruals
+
+Added on 26 November 2026, when the sources were read: ITAA 1997 compilation
+no. 268 (1 October 2026), volume 5, ss 230-100, 230-135 and their neighbours,
+checked against the ATO legal database's text of ss 230-15, 230-40, 230-45,
+230-100 to 230-190 and 230-445 to 230-460. The amending Acts their history
+notes name, as the page text shows them, are No. 136 of 2010, No. 85 of 2013
+and No. 4 of 2018; on that basis the rules applied are taken to read the same
+for arrangements started in 2020-21 to 2026-27.
+
+The ATO's Guide to the taxation of financial arrangements (Default methods)
+gives 2 examples the tests reproduce, moved into supported years. Chris Co
+lends $10,000 for 4 years and receives $20,736 at the end: 20% compounding
+gives $2,000, $2,400, $2,880 and $3,456 (T1). Iron Co buys a 3-year zero
+coupon bond for $100 with a face value of $133.10: 10% gives $10.00, $11.00
+and $12.10 (T2). T2 starts on 1 January, so each interval straddles 2 income
+years and is split by days (s 230-170(2)): 181 of 365 days of the first
+interval fall in the first income year, giving $4.96, $10.49, $11.55 and
+$6.10, worked in Python's `decimal`. T4's straight line spreads $10,736 over
+the 1,461 days from 1 July 2021 to 30 June 2025. T5 (a $950 bond paying $50 a
+year and $1,000 at 3 years) has a rate of 6.9018424518% a year, found
+independently by bisection in Python.
+
 ## Leave provisions
 
 Added on 22 November 2026, when the sources were read: AASB 119 compilation

@@ -571,6 +571,14 @@ pub const SCOPES: &[(&str, &str)] = &[
         "One staff member's annual cost and monthly average in an income year from 2021-22 to 2026-27: wages plus super plus payroll tax plus workers compensation plus other annual costs, the month a twelfth rounded half up, as the site's staff cost page works it. Super is the stated amount or, from a stated base, the super guarantee at the year's percentage (10% in 2021-22 rising to 12% from 2025-26), rounded half up to the cent, on ordinary time earnings no higher than one quarter's maximum contribution base to 2025-26 or on qualifying earnings capped at the annual maximum contribution base ($270,830) in 2026-27 (ATO 'Super guarantee' tables 21, 23 and 24; SGAA s 17A(2)). Payroll tax and workers compensation are the operator's stated effective rates on wages plus super, rounded half up to the cent. The operator establishes the base, that the super guarantee applies and the rates. Excludes Norfolk Island's transitional percentage, salary sacrifice arrangements, award pay, leave loading and the statutory payroll tax and premium calculations (payroll-tax, workers-compensation-premium). Refuses both or neither of super_amount and super_base, and, before 2026-27, a base above one quarter's maximum contribution base, since the quarters' split decides the cap.",
     ),
     (
+        "consolidation_eliminations",
+        "A parent's consolidation at a reporting date ending in a financial year from 2020-21 to 2026-27, with up to 20 subsidiaries it controls and holds directly, from trial balances the preparer has established on uniform accounting policies and a common reporting date (AASB 10 paras 19, B87 and B92). Each line is an account, its class (asset, liability, equity, income or expense) and its amount on its natural side, a contra balance negative; each entity's lines must balance. Like lines are combined by account (para B86(a)). For each subsidiary the parent's investment, at the stated consideration, is eliminated against the stated equity at acquisition, with the stated non-controlling interest at acquisition (at fair value or its proportionate share of identifiable net assets, AASB 3 para 19) and goodwill as consideration plus that interest less equity at acquisition (para B86(b); AASB 3 para 32). The non-controlling interest takes its share of each equity line's movement since acquisition, rounded half up to the cent (paras 22 and B94). Stated intra-group balances and income and expenses are eliminated in full (para B86(c)), as is stated unrealised profit in a buyer's closing inventory, against the seller's cost of sales, with deferred tax at the stated rate (para B86(c); AASB 112). Profit is attributed to the non-controlling interests at their share of each subsidiary's profit less its own after-tax unrealised profit, rounded half up to the cent, and the rest to the owners of the parent (para B94). The preparer establishes control, ownership, the balances, the acquisition figures and the amounts to eliminate. Refuses a subsidiary acquired in the period, fair value adjustments at acquisition, a combination achieved in stages, a bargain purchase (AASB 3 paras 34 to 36), an investment line not carried at the consideration, a change in ownership and intra-group dividends. Excludes indirect holdings, opening unrealised profit, intra-group profit in assets other than inventory, impairment, foreign operations, loss of control, cumulative preference shares (para B95), investment entities and disclosure.",
+    ),
+    (
+        "tofa_accruals",
+        "Whether ITAA 1997 Division 230 reaches one financial arrangement under s 230-455, and the spreading of its sufficiently certain overall gain or loss under the accruals method, for an arrangement the taxpayer starts to have in an income year from 2020-21 to 2026-27. The operator states the entity's kind (an individual; a superannuation entity, superannuation fund or managed investment scheme; an ADI, securitisation vehicle or entity required to register under the Financial Sector (Collection of Data) Act 2001; or another entity) and, other than for an individual, its aggregated turnover, assets and financial assets for the year s 230-455(2) to (4) test; whether the arrangement is a qualifying security; whether the entity failed its test for an earlier year (s 230-455(9)); and whether a s 230-455(7) election applies. Division 230 does not apply where the entity is an individual or meets its subsection (assets under $100 million; aggregated turnover under $20 million; or aggregated turnover and financial assets each under $100 million and assets under $300 million), and the arrangement ends within 12 months or is not a qualifying security. Where it applies, the accruals method applies to the overall gain or loss if the taxpayer chooses it or s 230-100(4) applies (s 230-100(2)). The gain or loss (benefits received less benefits provided) is spread from the start to the end of the arrangement (s 230-130(1)) over equal intervals of 1 to 12 whole months (s 230-135(4)), each financial benefit falling on the start or an interval's last day: by compounding accruals at the one rate of return per interval at which the benefits net to nil, each interval's part the opening balance times that rate (s 230-135(2)(a), (5) and (6)), or, where the operator establishes that its results approximate those, by straight line over the days (s 230-135(2)(b)). An interval straddling 2 income years is allocated between them by days (s 230-170(2)). Amounts are rounded half up to the cent cumulatively. The operator establishes that the gain or loss and each benefit are sufficiently certain (ss 230-105 and 230-115) and that no other exception (ss 230-450 and 230-460) applies. Refuses the elective methods (Subdivisions 230-C to 230-F) and portfolio treatment of fees (s 230-150), the effective interest method (s 230-140), particular gains and the realisation method, a benefit inside an interval, shorter first or last intervals, benefits that net to nil and benefits that change sign more than once. Excludes re-estimation and reassessment (ss 230-185 to 230-200), balancing adjustments (Subdivision 230-G), arrangements with a notional principal (s 230-120), foreign currency, consolidated groups and substituted accounting periods.",
+    ),
+    (
         "impairment_test",
         "One asset's or cash-generating unit's impairment test under AASB 136 at a reporting date ending in a financial year from 2020-21 to 2026-27, from figures the preparer has established. Value in use is the present value of the stated pre-tax net cash flows for years 1 to n, each at the end of its year, and of a stated terminal value at the end of year n, at one stated pre-tax discount rate above 0 and at most 100% (limits of this worksheet), rounded half up to the cent (paras 30, 31, 33, 39, 50 to 52, 55 and A21). Recoverable amount is the higher of value in use and any stated fair value less costs of disposal (paras 18 to 20). An impairment loss is the carrying amount less recoverable amount where positive (paras 59 and 104). It is allocated first to goodwill (para 104(a)), then to the other assets pro rata to their carrying amounts (para 104(b)), none below the higher of its own stated fair value less costs of disposal and value in use or nil, the excess passed pro rata to the others (para 105); any loss left once every asset is at its floor is shown unallocated, a liability only where another Standard requires one (para 62). Each share is rounded half up to the cent cumulatively. The preparer establishes the cash flows (paras 33 and 39 to 53), the rate (paras 55 to 57), the unit and its assets (paras 65 to 79), goodwill's allocation (paras 80 to 99), corporate assets (paras 100 to 103) and the floors. Excludes indications of impairment (paras 9 to 17), reversals (paras 109 to 125), deferred tax and disclosure. Refuses a revalued asset (para 60), a unit with goodwill and a non-controlling interest (Appendix C) and a goodwill line alone (para 81).",
     ),
@@ -1165,6 +1173,14 @@ pub const SOURCES: &[(&str, &str)] = &[
     (
         "staff_cost",
         "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+    ),
+    (
+        "consolidation_eliminations",
+        "https://standards.aasb.gov.au/sites/default/files/2026-03/AASB10_07-15_ACOMPnov24_01-26.pdf",
+    ),
+    (
+        "tofa_accruals",
+        "https://www.legislation.gov.au/C2004A05138/2026-10-01/2026-10-01/text/original/epub/OEBPS/document_5/document_5.html",
     ),
     (
         "impairment_test",
@@ -2693,6 +2709,17 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         ],
     ),
     (
+        "consolidation_eliminations",
+        &["https://www.aasb.gov.au/admin/file/content105/c9/AASB3_08-15_COMPdec22_01-23.pdf"],
+    ),
+    (
+        "tofa_accruals",
+        &[
+            "https://www.ato.gov.au/law/view/document?docid=PAC/19970038/230-135",
+            "https://www.ato.gov.au/businesses-and-organisations/corporate-tax-measures-and-assurance/taxation-of-financial-arrangements-tofa/guide-to-the-taxation-of-financial-arrangements-tofa/default-methods",
+        ],
+    ),
+    (
         "impairment_test",
         &["https://www.aasb.gov.au/admin/file/content105/c9/AASB136_08-15_COMPdec22_01-23.pdf"],
     ),
@@ -2879,6 +2906,18 @@ pub const EXTRA_WARNINGS: &[(&str, &[&str])] = &[
         "wip_lockup",
         &[
             "Lock-up is a management measure, not an accounting or tax result: the entries, their valuation basis and the flows are the firm's, and WIP and its flow, and receivables and billings, must each be on one basis.",
+        ],
+    ),
+    (
+        "consolidation_eliminations",
+        &[
+            "Control, the ownership interest, the trial balances, the acquisition figures and every intra-group amount are the preparer's stated facts (AASB 10 paras 5 to 18 and B86); the worksheet eliminates them and neither tests control nor finds intra-group items.",
+        ],
+    ),
+    (
+        "tofa_accruals",
+        &[
+            "Whether the gain or loss and each financial benefit are sufficiently certain (ss 230-105 and 230-115), the entity's turnover and assets, a qualifying security and any election are the operator's stated facts. A straight line is allowed only where its results approximate compounding accruals (s 230-135(2)(b)): the income_years rows show both for comparison.",
         ],
     ),
     (
@@ -3992,6 +4031,70 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A chattel mortgage is given both or neither of instalment and annual_rate.",
     ),
     ("command.unknown", "The command does not exist."),
+    (
+        "consolidation_eliminations.account_invalid",
+        "An account named by an elimination is not a line of that entity with the class it needs, or a trial balance names an account twice or uses a name the worksheet keeps for itself.",
+    ),
+    (
+        "consolidation_eliminations.acquired_in_period",
+        "A subsidiary was acquired during the period, which needs its results split at the date control was obtained (AASB 10 paras 20 and B88).",
+    ),
+    (
+        "consolidation_eliminations.bargain_purchase",
+        "Net assets at acquisition exceed the consideration and non-controlling interest, a bargain purchase recognised only after AASB 3's reassessment (paras 34 to 36).",
+    ),
+    (
+        "consolidation_eliminations.class_conflict",
+        "One account name is given with more than one class, so like items cannot combine (AASB 10 para B86(a)).",
+    ),
+    (
+        "consolidation_eliminations.entity_unknown",
+        "An elimination names an entity that is not the parent or a subsidiary given.",
+    ),
+    (
+        "consolidation_eliminations.exceeds_line",
+        "An elimination takes more from an entity's line than the line holds.",
+    ),
+    (
+        "consolidation_eliminations.fair_value_adjustments",
+        "Identifiable net assets at acquisition had fair values other than their carrying amounts (AASB 3 para 18).",
+    ),
+    (
+        "consolidation_eliminations.intra_group_dividends",
+        "Intra-group dividends were stated, which this worksheet does not eliminate.",
+    ),
+    (
+        "consolidation_eliminations.investment_not_eliminated",
+        "The parent's investment line is not carried at the stated consideration of the subsidiaries it holds, so it cannot be eliminated in full (AASB 10 para B86(b)).",
+    ),
+    (
+        "consolidation_eliminations.item_invalid",
+        "A trial balance, subsidiary or elimination item is not in the documented shape.",
+    ),
+    (
+        "consolidation_eliminations.nci_invalid",
+        "The non-controlling interest at acquisition is not nil for a wholly owned subsidiary or not above nil for a partly owned one (AASB 3 para 19).",
+    ),
+    (
+        "consolidation_eliminations.ownership_changed",
+        "The parent's interest in a subsidiary changed without loss of control (AASB 10 paras 23 and B96).",
+    ),
+    (
+        "consolidation_eliminations.ownership_invalid",
+        "ownership is not a fraction above 0 and at most 1, at most 6 places.",
+    ),
+    (
+        "consolidation_eliminations.previously_held_interest",
+        "A combination was achieved in stages (AASB 3 paras 32(a)(iii) and 42).",
+    ),
+    (
+        "consolidation_eliminations.tax_rate_invalid",
+        "tax_rate is not a fraction from 0 to below 1, at most 6 places.",
+    ),
+    (
+        "consolidation_eliminations.unbalanced",
+        "An entity's assets and expenses do not equal its liabilities, equity and income.",
+    ),
     (
         "contract_register.argument_invalid",
         "A contract-register argument is missing, unknown, repeated or not valid.",
@@ -5222,7 +5325,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "input.field_unknown",
-        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, impairment-test, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
+        "A field the worksheet or command does not take, or does not take beside the other inputs given, was given (fbt-loan, fbt-meal-entertainment, fbt-car-parking, fbt-debt-waiver, fbt-expense-payment, fbt-property, fbt-residual, fbt-housing, fbt-lafha, fbt-board, fbt-tax-exempt-body-entertainment, fbt-entertainment-classifier, fbt-meal-entertainment-register and its entries, fbt-minor-benefit-check, aml-cdd-review, ppsr-timing, fhss and its contributions, government-super-amounts, personal_deductions and determination, division-296, depreciation, fuel-tax-credits and its lines, alcohol-excise and its lines, asic-fees, foreign-resident-tax, medicare-levy, medicare-levy-surcharge, payg-withholding, payg-gross-up, termination-payment, etp-tax-free-component, unused-leave-payment, the Schedule 5 methods, working-holiday-maker-withholding, study-loan-withholding, seniors-pensioners-withholding, seniors-pensioners-tax-offset, lump-sum-arrears-tax-offset, hire-purchase-schedule, chattel-mortgage-schedule, loan-transactions and its transactions and rate_changes, borrowing-expenses-schedule and its loans, business-capital-expenditure and its items, balancing-adjustment, its years and car_limit, trade-in, franking-account and its events, distributions and income_tax, foreign-purchaser-surcharge, dasp-tax, super-benefit-tax, super-withholding, gst-margin-scheme, wine-equalisation-tax and its dealings, gst-error-correction, gst-credit-time-limit, tourist-refund and its items, luxury-car-tax and its lines, foreign-resident-withholding and its vendors, non-resident-withholding, residential-vacancy-fee, payroll-tax, payroll-tax-group and its persons and facts, land-tax, vic-property-taxes and its parcels, workers-compensation-premium, motor-vehicle-duty, insurance-duty, gst-food-retailer-sam, transfer-duty, portable-lsl-levy, cgt-parcels, its parcels and disposals, cgt-cost-base-adjustments, its parcels and events, fbt-ev-exemption-check, fbt-instalment, sb-cgt-concessions, small-business-income-offset, ess-discount, pcg-2021-4, residency-tests, lodgment-required, trading-stock and its items, prepayments, depreciation-low-value-pool, gst-creditable-purpose-change, gst-annual-apportionment, gst-financial-acquisitions-threshold, gst-going-concern, gst-second-hand-goods, gst-bad-debt, depreciation-small-business-pool, capital-works, instant-asset-write-off, non-commercial-losses, first-home-owner-grant, psi-test, minors-income, smsf-tax, payg-instalment, beneficiary-tax-offset, invalid-carer-tax-offset, zone-tax-offset and its dependants, net-medical-expenses-tax-offset, work-expenses, notice-period, ato-interest-penalties and its payments and parts, private-health-insurance-rebate, rental-property and its loans, capital_works and depreciating_assets, horticulture-shearing-withholding, upward-variation-withholding, daily-casual-withholding, no-abn-withholding, entertainer-withholding, return-to-work-withholding, annuity-withholding, voluntary-agreement-withholding, rd-tax-offset, esic, deferred-tax, deferred-revenue, leave-provisions, wip-lockup, break-even, cash-forecast and its delayed receipt, hourly-rate, fixed-fee, staff-cost, impairment-test, consolidation-eliminations, tofa-accruals, long-service-leave, foreign-income-conversion, foreign-income-tax-offset, transfer-balance and its events, excess-contributions, help-indexation and its debts and repayments, defined-benefit-income-cap, foreign-pension-upp and the inputs of each method, scholarship-exemption, super-crystallisation, endorsement-review, contribution-caps given a carry-forward input, derive, personal-tax-estimate, dgr-check, charity-check, income-tests and fbt-return only).",
     ),
     ("input.flag_invalid", "A flag is not a JSON boolean."),
     ("input.fraction_invalid", "A fraction is outside 0 to 1."),
@@ -6398,6 +6501,66 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "super_withholding.schedule_not_read",
         "The payment date is before 13 October 2020; Schedule 12 as it stood then was not read for this command.",
+    ),
+    (
+        "tofa_accruals.accruals_not_chosen",
+        "The accruals method was not chosen and s 230-100(4) does not apply, so the overall gain or loss is not accrued (s 230-100(2)(c)); particular gains and the realisation method are not built.",
+    ),
+    (
+        "tofa_accruals.approximation_not_confirmed",
+        "straight_line was asked for without approximation_confirmed (s 230-135(2)(b)).",
+    ),
+    (
+        "tofa_accruals.benefit_within_interval",
+        "A financial benefit falls inside an interval rather than on start or an interval's last day (s 230-135(6)).",
+    ),
+    (
+        "tofa_accruals.benefits_invalid",
+        "financial_benefits is not a list of 2 to 361 dated, non-zero amounts.",
+    ),
+    (
+        "tofa_accruals.election_not_built",
+        "An elective method or portfolio treatment of fees applies (s 230-40(4) and (5); Subdivisions 230-C to 230-F; s 230-150), which this worksheet does not apply.",
+    ),
+    (
+        "tofa_accruals.elections_invalid",
+        "elections is not a list of known elective methods.",
+    ),
+    (
+        "tofa_accruals.entity_type_invalid",
+        "entity_type is not individual, super_or_scheme, adi_or_securitisation or other (s 230-455(1)(a)).",
+    ),
+    (
+        "tofa_accruals.interval_invalid",
+        "interval_months is not a whole number from 1 to 12 (s 230-135(4)(a)).",
+    ),
+    (
+        "tofa_accruals.method_invalid",
+        "method is not compounding or straight_line.",
+    ),
+    (
+        "tofa_accruals.method_not_built",
+        "The effective interest method (s 230-140) was asked for, which this worksheet does not apply.",
+    ),
+    (
+        "tofa_accruals.no_gain_or_loss",
+        "The financial benefits net to nil, so there is no overall gain or loss to spread (s 230-100(2)(a)).",
+    ),
+    (
+        "tofa_accruals.rate_not_unique",
+        "The financial benefits do not change sign exactly once, so one rate of return is not assured.",
+    ),
+    (
+        "tofa_accruals.rate_out_of_range",
+        "The rate of return per interval is outside -75% to 300%, this worksheet's bounds.",
+    ),
+    (
+        "tofa_accruals.term_invalid",
+        "start is outside the year, or end is not the last day of a whole number of intervals from start, at most 360.",
+    ),
+    (
+        "tofa_accruals.threshold_input",
+        "A s 230-455 figure is missing for an entity other than an individual, or given for an individual.",
     ),
     (
         "tourist_refund.date_invalid",

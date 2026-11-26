@@ -6594,6 +6594,10 @@ mod deferred_revenue;
 pub use deferred_revenue::{DeferredRevenueArgs, deferred_revenue};
 mod impairment_test;
 pub use impairment_test::{ImpairmentTestArgs, impairment_test};
+mod consolidation_eliminations;
+pub use consolidation_eliminations::{ConsolidationEliminationsArgs, consolidation_eliminations};
+mod tofa_accruals;
+pub use tofa_accruals::{TofaAccrualsArgs, tofa_accruals};
 mod leave_provisions;
 mod wip_lockup;
 pub use leave_provisions::{LeaveProvisionsArgs, leave_provisions};
@@ -6635,7 +6639,7 @@ pub use pricing::{FixedFeeArgs, HourlyRateArgs, fixed_fee, hourly_rate};
 mod staff_cost;
 pub use staff_cost::{StaffCostArgs, staff_cost};
 
-const KINDS: [&str; 153] = [
+const KINDS: [&str; 155] = [
     "gst",
     "gst_margin_scheme",
     "gst_food_retailer_sam",
@@ -6769,6 +6773,8 @@ const KINDS: [&str; 153] = [
     "deferred_revenue",
     "wip_lockup",
     "impairment_test",
+    "consolidation_eliminations",
+    "tofa_accruals",
     "long_service_leave",
     "foreign_income_conversion",
     "foreign_income_tax_offset",
