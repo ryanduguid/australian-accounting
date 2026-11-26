@@ -2,6 +2,14 @@
 codecov:
   notify:
     after_n_builds: 2
+# cargo llvm-cov writes absolute runner paths into australian-tax-calculators' lcov report.
+fixes:
+  - "/home/runner/work/australian-accounting/australian-accounting/::"
+# The crate uploads only when a pull request runs it; other commits carry its last report forward.
+flag_management:
+  individual_flags:
+    - name: australian-tax-calculators
+      carryforward: true
 coverage:
   round: down
   status:
@@ -12,6 +20,9 @@ coverage:
         target: 100%
         threshold: 0%
         if_not_found: failure
+        flags:
+          - aus-accounting-mcp
+          - lodgment-calendar
       aus-accounting-mcp:
         target: 100%
         threshold: 0%
@@ -24,6 +35,14 @@ coverage:
         if_not_found: failure
         flags:
           - lodgment-calendar
+      # The crate's enforced line floor in .github/ci/rust_coverage_floors.json.
+      australian-tax-calculators:
+        target: 95%
+        threshold: 0%
+        # The base report lacks this flag until main's first crate upload.
+        if_not_found: success
+        flags:
+          - australian-tax-calculators
     patch:
       default:
         informational: true

@@ -916,7 +916,8 @@ class GateWiringTests(unittest.TestCase):
                 assert needs is not None, workflow
                 listed = {name.strip() for name in needs.group(1).split(",")}
                 text = (WORKFLOWS / workflow).read_text(encoding="utf-8")
-                exempt = set(re.findall(r"--exempt (\S+)", call.group(3)))
+                # check_gates.py exempts every argument after --exempt.
+                exempt = set(call.group(3).partition("--exempt")[2].split())
                 self.assertEqual(check_gates.job_ids(text) - {gate} - exempt, listed)
 
 
