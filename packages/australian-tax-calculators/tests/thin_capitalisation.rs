@@ -854,6 +854,8 @@ fn financial_entity_edges() {
         );
         i["average_assets"] = json!("1.00");
         assert_eq!(code(&i), "thin_capitalisation.input_not_used", "{test}");
+        i["entity_class"] = json!("not_covered");
+        assert_eq!(code(&i), "thin_capitalisation.input_not_used", "{test}");
     }
     let mut i = glm();
     i["test"] = json!("minimum_capital_amount");
@@ -991,14 +993,14 @@ fn global_bank_inward_adi() {
 #[test]
 fn unmodelled_tests_and_periods_are_refused_with_the_provision() {
     let classes = [
-        (glm(), "s 820-90 or 820-190"),
-        (investor(), "s 820-90 or 820-190"),
-        (southern_cross(), "s 820-305 or 820-400"),
-        (global_bank(), "s 820-305 or 820-400"),
+        (glm(), "s 820-90 or 820-190", "minimum_capital_amount"),
+        (investor(), "s 820-90 or 820-190", "minimum_capital_amount"),
+        (southern_cross(), "s 820-305 or 820-400", "third_party_debt"),
+        (global_bank(), "s 820-305 or 820-400", "third_party_debt"),
     ];
-    for (base, provision) in classes {
+    for (base, provision, other) in classes {
         let class = base["entity_class"].clone();
-        for test in ["fixed_ratio", "group_ratio"] {
+        for test in ["fixed_ratio", "group_ratio", other] {
             let mut i = base.clone();
             i["test"] = json!(test);
             let e = refusal(&i);
