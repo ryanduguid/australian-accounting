@@ -66,7 +66,7 @@ mod tests {
     fn floats_are_read_and_duplicate_fields_refused() {
         let value = parse(br#"{"a": [1.5, -2.5e3], "b": {"c": 0.0}}"#).unwrap();
         assert_eq!(value["a"][0].to_string(), "1.5");
-        assert_eq!(value["a"][1].to_string(), "-2.5e3");
+        assert_eq!(value["a"][1].as_f64(), Some(-2500.0));
         let error = parse(br#"{"a": 1.5, "a": 2}"#).unwrap_err().to_string();
         assert!(error.starts_with("duplicate JSON field: \"a\""), "{error}");
     }

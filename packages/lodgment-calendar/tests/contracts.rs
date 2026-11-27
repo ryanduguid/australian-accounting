@@ -234,3 +234,41 @@ fn os_text_and_output_bytes_round_trip() {
     assert_eq!(text, "due-dates é");
     assert_eq!(cli::output_bytes(&text), "due-dates é".as_bytes());
 }
+
+/// The longest roll a caller can cause: 50 supplied weekdays straight after a recorded
+/// due date. It still ends on a business day, which is why the due-date rows treat a
+/// holiday roll as infallible.
+#[test]
+fn fifty_caller_holidays_after_a_due_date_roll_it_to_the_next_business_day() {
+    let table = [
+        "2026-11-03",
+        "2026-12-24",
+        "2026-12-25",
+        "2026-12-28",
+        "2026-12-31",
+        "2027-01-01",
+    ];
+    let mut extra = serde_json::Map::new();
+    let mut day = jiff::civil::date(2026, 10, 28);
+    while extra.len() < 50 {
+        let key = day.to_string();
+        if day.weekday().to_monday_zero_offset() < 5 && !table.contains(&key.as_str()) {
+            extra.insert(key, json!("Synthetic holiday"));
+        }
+        day = day.tomorrow().unwrap();
+    }
+    let mut r = request();
+    r["extra_holidays"] = Value::Object(extra);
+    let actual = api::evaluate("due-dates", &r).unwrap();
+    let row = actual["obligations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["nominal_due_date"] == "2026-10-28")
+        .unwrap();
+    assert_eq!(row["status"], "DETERMINED");
+    assert_eq!(row["due_date"], "2027-01-14");
+    let skipped = row["holiday_roll"]["skipped"].as_array().unwrap();
+    assert_eq!(skipped.first().unwrap()["date"], "2026-10-28");
+    assert_eq!(skipped.last().unwrap()["date"], "2027-01-13");
+}
