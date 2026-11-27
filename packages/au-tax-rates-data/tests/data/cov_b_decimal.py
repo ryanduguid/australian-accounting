@@ -4,7 +4,8 @@ Run with CPython 3.15: `python -I tests/data/cov_b_decimal.py`. The default cont
 InvalidOperation, DivisionByZero and Overflow; a trapped signal prints as the exception's name.
 """
 
-from decimal import Decimal as D, ROUND_DOWN
+from decimal import ROUND_DOWN
+from decimal import Decimal as D
 
 CASES = [
     ("add NaN 1", lambda: D("NaN") + D("1")),

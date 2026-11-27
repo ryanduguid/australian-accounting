@@ -37,7 +37,7 @@ fn bracketed_hosts_are_checked_as_python_checks_them() {
     assert_eq!(netloc("http://x[::1]/x"), Err("Invalid IPv6 URL".into()));
     assert_eq!(netloc("http://[::1]x/x"), Err("Invalid IPv6 URL".into()));
     // The last '@' leaves no bracket in the host, so the host is the text before any ':'.
-    assert_eq!(netloc("http://[::1]@host]/x"), not_an_address("host]"));
+    assert_eq!(netloc("http://[v1.x]@host]/x"), not_an_address("host]"));
     assert_eq!(
         netloc("http://[1.2.3.4]/x"),
         Err("An IPv4 address cannot be in brackets".into())

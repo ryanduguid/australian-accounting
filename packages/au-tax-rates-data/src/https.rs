@@ -603,170 +603,56 @@ mod tests {
         }
     }
 
+    const OK: &[u8] = b"HTTP/1.1 200 OK\r\n";
+    const CHUNKED: &[u8] = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n";
+    const LONG: usize = 65537;
+
+    /// Each reply as pieces, each repeated a number of times, and the answer
+    /// tests/data/cov_b_https.py printed for it under CPython 3.15.0.
+    #[rustfmt::skip]
+    const CASES: &[(&str, &[(&[u8], usize)], &str)] = &[
+        ("short_body", &[(OK, 1), (b"Content-Length: 5\r\n\r\nab", 1)], "error IncompleteRead(2 bytes read, 3 more expected)"),
+        ("blank_status", &[(b"\r\n", 1)], "error \r\n"),
+        ("version_only", &[(b"HTTP/1.1\r\n\r\n", 1)], "error HTTP/1.1\r\n"),
+        ("no_reason", &[(b"HTTP/1.1 200\r\nContent-Length: 2\r\n\r\n{}", 1)], "body {}"),
+        ("long_status", &[(b"HTTP/1.1 200 ", 1), (b"x", LONG)], "error got more than 65536 bytes when reading status line"),
+        ("not_http", &[(b"ICY 200 OK\r\n\r\n", 1)], "error ICY 200 OK\r\n"),
+        ("word_status", &[(b"HTTP/1.1 OK 200\r\n\r\n", 1)], "error HTTP/1.1 OK 200\r\n"),
+        ("low_status", &[(b"HTTP/1.1 99 Low\r\n\r\n", 1)], "error HTTP/1.1 99 Low\r\n"),
+        ("long_header", &[(OK, 1), (b"X: ", 1), (b"y", LONG)], "error got more than 65536 bytes when reading header line"),
+        ("many_headers", &[(OK, 1), (b"X: y\r\n", 101), (b"\r\n{}", 1)], "error got more than 100 headers"),
+        ("continue", &[(b"HTTP/1.1 100 Continue\r\nX: y\r\n\r\n", 1), (OK, 1), (b"Content-Length: 2\r\n\r\n{}", 1)], "body {}"),
+        ("endless_continue", &[(b"HTTP/1.1 100 Continue\r\n\r\n", 101)], "error got more than 100 interim responses"),
+        ("http2", &[(b"HTTP/2.0 200 OK\r\n\r\n", 1)], "error HTTP/2.0"),
+        ("no_content", &[(b"HTTP/1.1 204 No Content\r\nContent-Length: 9\r\n\r\n", 1)], "status 204"),
+        ("bare_lf", &[(b"HTTP/1.1 200 OK\nContent-Length: 2\n\n{}JUNK", 1)], "body {}"),
+        ("lone_cr", &[(OK, 1), (b"Content-Length: 2\rX: y\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("header_at_eof", &[(OK, 1), (b"Content-Length: 2", 1)], "error IncompleteRead(0 bytes read, 2 more expected)"),
+        ("folded", &[(OK, 1), (b"Content-Length:\r\n 2\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("leading_fold", &[(OK, 1), (b" X: y\r\nContent-Length: 2\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("from_line", &[(OK, 1), (b"From nobody\r\n:x\r\nContent-Length: 2\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("chunks", &[(CHUNKED, 1), (b"2\r\n{}\r\n1;ext=1\r\n \r\n0\r\nX: y\r\n\r\n", 1)], "body {} "),
+        ("long_chunk_size", &[(CHUNKED, 1), (b"1", LONG)], "error got more than 65536 bytes when reading chunk size"),
+        ("bad_chunk_size", &[(CHUNKED, 1), (b"2\r\n{}\r\nzz\r\n", 1)], "error IncompleteRead(2 bytes read)"),
+        ("non_ascii_chunk_size", &[(CHUNKED, 1), (b"\xe9\r\n", 1)], "error IncompleteRead(0 bytes read)"),
+        ("separator_chunk_size", &[(CHUNKED, 1), (b"2\x1c\r\n{}\r\n0\r\n\r\n", 1)], "error IncompleteRead(0 bytes read)"),
+        ("negative_chunk_size", &[(CHUNKED, 1), (b"-2\r\n{}\r\n0\r\n\r\n", 1)], "error IncompleteRead(9 bytes read)"),
+        ("empty_chunk_size", &[(CHUNKED, 1), (b"\r\n", 1)], "error IncompleteRead(0 bytes read)"),
+        ("minus_zero_chunk_size", &[(CHUNKED, 1), (b"-0\r\n\r\n", 1)], "body "),
+        ("short_chunk_end",&[(CHUNKED, 1), (b"2\r\n{}\r", 1)], "error IncompleteRead(2 bytes read)"),
+        ("short_chunk", &[(CHUNKED, 1), (b"2\r\n{}\r\n5\r\nab", 1)], "error IncompleteRead(2 bytes read)"),
+        ("huge_chunk", &[(CHUNKED, 1), (b"f", 20), (b"\r\nab", 1)], "error IncompleteRead(0 bytes read)"),
+        ("long_trailer", &[(CHUNKED, 1), (b"0\r\nX: ", 1), (b"y", LONG)], "error got more than 65536 bytes when reading trailer line"),
+        ("many_trailers", &[(CHUNKED, 1), (b"0\r\n", 1), (b"X: y\r\n", 101), (b"\r\n", 1)], "error got more than 100 trailers"),
+    ];
+
     #[test]
     fn replies_are_read_or_refused_as_cpython_does() {
-        let ok = b"HTTP/1.1 200 OK\r\n".to_vec();
-        let chunked = [&ok[..], b"Transfer-Encoding: chunked\r\n\r\n"].concat();
-        let long = |head: &[u8]| [head, &[b'y'; 65537][..]].concat();
-        let with = |head: &[u8], tail: &[u8]| [head, tail].concat();
-        // Each answer is what tests/data/cov_b_https.py printed under CPython 3.15.0.
-        let cases: [(&str, Vec<u8>, &str); 31] = [
-            (
-                "short_body",
-                with(&ok, b"Content-Length: 5\r\n\r\nab"),
-                "error IncompleteRead(2 bytes read, 3 more expected)",
-            ),
-            ("blank_status", b"\r\n".to_vec(), "error \r\n"),
-            (
-                "version_only",
-                b"HTTP/1.1\r\n\r\n".to_vec(),
-                "error HTTP/1.1\r\n",
-            ),
-            (
-                "no_reason",
-                b"HTTP/1.1 200\r\nContent-Length: 2\r\n\r\n{}".to_vec(),
-                "body {}",
-            ),
-            (
-                "long_status",
-                long(b"HTTP/1.1 200 "),
-                "error got more than 65536 bytes when reading status line",
-            ),
-            (
-                "not_http",
-                b"ICY 200 OK\r\n\r\n".to_vec(),
-                "error ICY 200 OK\r\n",
-            ),
-            (
-                "word_status",
-                b"HTTP/1.1 OK 200\r\n\r\n".to_vec(),
-                "error HTTP/1.1 OK 200\r\n",
-            ),
-            (
-                "low_status",
-                b"HTTP/1.1 99 Low\r\n\r\n".to_vec(),
-                "error HTTP/1.1 99 Low\r\n",
-            ),
-            (
-                "long_header",
-                long(&with(&ok, b"X: ")),
-                "error got more than 65536 bytes when reading header line",
-            ),
-            (
-                "many_headers",
-                with(&with(&ok, &b"X: y\r\n".repeat(101)), b"\r\n{}"),
-                "error got more than 100 headers",
-            ),
-            (
-                "continue",
-                with(
-                    &with(b"HTTP/1.1 100 Continue\r\nX: y\r\n\r\n", &ok),
-                    b"Content-Length: 2\r\n\r\n{}",
-                ),
-                "body {}",
-            ),
-            (
-                "endless_continue",
-                b"HTTP/1.1 100 Continue\r\n\r\n".repeat(101),
-                "error got more than 100 interim responses",
-            ),
-            (
-                "http2",
-                b"HTTP/2.0 200 OK\r\n\r\n".to_vec(),
-                "error HTTP/2.0",
-            ),
-            (
-                "no_content",
-                b"HTTP/1.1 204 No Content\r\nContent-Length: 9\r\n\r\n".to_vec(),
-                "status 204",
-            ),
-            (
-                "bare_lf",
-                b"HTTP/1.1 200 OK\nContent-Length: 2\n\n{}JUNK".to_vec(),
-                "body {}",
-            ),
-            (
-                "lone_cr",
-                with(&ok, b"Content-Length: 2\rX: y\r\n\r\n{}JUNK"),
-                "body {}",
-            ),
-            (
-                "header_at_eof",
-                with(&ok, b"Content-Length: 2"),
-                "error IncompleteRead(0 bytes read, 2 more expected)",
-            ),
-            (
-                "folded",
-                with(&ok, b"Content-Length:\r\n 2\r\n\r\n{}JUNK"),
-                "body {}",
-            ),
-            (
-                "leading_fold",
-                with(&ok, b" X: y\r\nContent-Length: 2\r\n\r\n{}JUNK"),
-                "body {}",
-            ),
-            (
-                "from_line",
-                with(&ok, b"From nobody\r\n:x\r\nContent-Length: 2\r\n\r\n{}JUNK"),
-                "body {}",
-            ),
-            (
-                "chunks",
-                with(&chunked, b"2\r\n{}\r\n1;ext=1\r\n \r\n0\r\nX: y\r\n\r\n"),
-                "body {} ",
-            ),
-            (
-                "long_chunk_size",
-                [&chunked[..], &[b'1'; 65537][..]].concat(),
-                "error got more than 65536 bytes when reading chunk size",
-            ),
-            (
-                "bad_chunk_size",
-                with(&chunked, b"2\r\n{}\r\nzz\r\n"),
-                "error IncompleteRead(2 bytes read)",
-            ),
-            (
-                "non_ascii_chunk_size",
-                with(&chunked, b"\xe9\r\n"),
-                "error IncompleteRead(0 bytes read)",
-            ),
-            (
-                "separator_chunk_size",
-                with(&chunked, b"2\x1c\r\n{}\r\n0\r\n\r\n"),
-                "error IncompleteRead(0 bytes read)",
-            ),
-            (
-                "negative_chunk_size",
-                with(&chunked, b"-2\r\n{}\r\n0\r\n\r\n"),
-                "error IncompleteRead(9 bytes read)",
-            ),
-            (
-                "short_chunk_end",
-                with(&chunked, b"2\r\n{}\r"),
-                "error IncompleteRead(2 bytes read)",
-            ),
-            (
-                "short_chunk",
-                with(&chunked, b"2\r\n{}\r\n5\r\nab"),
-                "error IncompleteRead(2 bytes read)",
-            ),
-            (
-                "huge_chunk",
-                with(&chunked, &with(&b"f".repeat(20), b"\r\nab")),
-                "error IncompleteRead(0 bytes read)",
-            ),
-            (
-                "long_trailer",
-                long(&with(&chunked, b"0\r\nX: ")),
-                "error got more than 65536 bytes when reading trailer line",
-            ),
-            (
-                "many_trailers",
-                with(&with(&chunked, b"0\r\n"), &b"X: y\r\n".repeat(101)),
-                "error got more than 100 trailers",
-            ),
-        ];
-        for (name, reply, expected) in cases {
+        for &(name, pieces, expected) in CASES {
+            let reply: Vec<u8> = pieces
+                .iter()
+                .flat_map(|&(bytes, n)| bytes.repeat(n))
+                .collect();
             assert_eq!(answer(&reply), expected, "{name}");
         }
     }

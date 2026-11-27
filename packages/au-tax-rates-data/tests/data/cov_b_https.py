@@ -59,6 +59,8 @@ CASES = {
     "non_ascii_chunk_size": CHUNKED + b"\xe9\r\n",
     "separator_chunk_size": CHUNKED + b"2\x1c\r\n{}\r\n0\r\n\r\n",
     "negative_chunk_size": CHUNKED + b"-2\r\n{}\r\n0\r\n\r\n",
+    "empty_chunk_size": CHUNKED + b"\r\n",
+    "minus_zero_chunk_size": CHUNKED + b"-0\r\n\r\n",
     "short_chunk_end": CHUNKED + b"2\r\n{}\r",
     "short_chunk": CHUNKED + b"2\r\n{}\r\n5\r\nab",
     "huge_chunk": CHUNKED + b"f" * 20 + b"\r\nab",

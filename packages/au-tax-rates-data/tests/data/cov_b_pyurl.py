@@ -13,7 +13,7 @@ URLS = [
     "http://user@[::1]:80/x",
     "http://x[::1]/x",
     "http://[::1]x/x",
-    "http://[::1]@host]/x",
+    "http://[v1.x]@host]/x",
     "http://[v1.fe]/x",
     "http://[V1.fe]/x",
     "http://[vz.x]/x",
