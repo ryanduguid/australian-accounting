@@ -210,3 +210,59 @@ fn rejects_identity_layout_and_geometry_drift() {
     assert!(restyle_mcprush_card(&" ".repeat(32_769)).is_err());
     assert!(restyle_mcprush_card(&format!("<svg>{}</svg>", "<g/>".repeat(300))).is_err());
 }
+
+#[test]
+fn each_card_drift_is_refused_with_its_own_reason() {
+    let mut empty_defs = DARK.to_owned();
+    let start = empty_defs.find("<defs>").unwrap() + 6;
+    let end = empty_defs.find("</defs>").unwrap();
+    empty_defs.replace_range(start..end, "");
+    let cases = [
+        (empty_defs, "Unexpected card glyph count"),
+        (
+            DARK.replace("<path id=\"g0\"", "<path id=\"g1000\""),
+            "Unsupported card glyph ID",
+        ),
+        (
+            DARK.replacen("href=\"#g0\"", "href=\"#g0\" y=\"1\"", 1),
+            "Unexpected attributes",
+        ),
+        (
+            DARK.replacen(" role=\"img\"", "", 1),
+            "Unexpected attributes",
+        ),
+        (
+            DARK.replace("<circle cx=\"29\"", "<rect cx=\"29\""),
+            "Unsupported card field order",
+        ),
+        (
+            DARK.replacen(
+                "aria-label=\"Aus Accounting MCP on mcprush: security A",
+                "aria-label=\"Aus Accounting MCP on mcprush: security B",
+                1,
+            ),
+            "Card accessibility labels disagree",
+        ),
+        (
+            DARK.replace(" stroke-width=\"1.5\"", ""),
+            "Unexpected attributes",
+        ),
+        (
+            DARK.replace("r=\"10.25\"", "r=\"10.5\""),
+            "Unexpected attribute value",
+        ),
+        (
+            DARK.replacen(" stroke-linejoin=\"round\"", "", 1),
+            "Unexpected attributes",
+        ),
+        (DARK.replace(" rx=\"4\"", ""), "Unexpected attributes"),
+    ];
+    for (index, (changed, reason)) in cases.iter().enumerate() {
+        assert_ne!(changed, DARK, "mutation {index} must affect the fixture");
+        assert_eq!(
+            restyle_mcprush_card(changed).unwrap_err().to_string(),
+            *reason,
+            "mutation {index}"
+        );
+    }
+}
