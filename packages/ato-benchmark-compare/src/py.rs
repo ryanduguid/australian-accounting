@@ -474,14 +474,11 @@ pub fn resolve_text(path: &Path) -> String {
             .ok()
             .map(|real| (real, split))
     });
-    // With none (a drive that is not there), the absolute path as it is.
-    #[cfg(windows)]
+    // With none (an empty path, a drive that is not there, or a relative path
+    // when the working directory is gone), the absolute path as it is.
     let Some((mut resolved, split)) = found else {
         return absolute.to_string_lossy().into_owned();
     };
-    // Elsewhere `/` always exists; only an empty path finds nothing.
-    #[cfg(not(windows))]
-    let (mut resolved, split) = found.unwrap_or_default();
     for component in &components[split..] {
         match component {
             std::path::Component::ParentDir => {

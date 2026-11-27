@@ -35,6 +35,12 @@ fn resolve_follows_the_existing_prefix_and_normalises_the_rest() {
     std::fs::remove_dir_all(dir).unwrap();
 }
 
+#[test]
+fn a_path_with_no_existing_prefix_is_returned_as_it_is() {
+    // An empty path has no absolute form and no prefix to canonicalise.
+    assert_eq!(py::resolve_text(std::path::Path::new("")), "");
+}
+
 // A drive letter that is not there: the absolute path as it is (GetFullPathNameW
 // drops `.` and `..` but keeps a trailing separator; a verbatim path is untouched).
 #[cfg(windows)]
