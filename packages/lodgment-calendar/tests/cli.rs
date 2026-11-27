@@ -100,3 +100,58 @@ fn hostile_refusal_values_do_not_panic_or_emit_controls() {
         assert!(!output.stderr.contains(&27));
     }
 }
+
+#[test]
+fn duplicate_fields_are_found_past_negative_fractional_and_null_values() {
+    let output = run(
+        &["due-dates"],
+        br#"{"a":-1,"b":1.5,"c":null,"d":[-2,0.25,null],"a":2}"#,
+    );
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    assert_eq!(
+        String::from_utf8(output.stderr).unwrap(),
+        "error: invalid JSON: duplicate JSON field: \"a\" at line 1 column 47\n"
+    );
+}
+
+#[test]
+fn a_negative_overflowing_number_is_named_as_negative_infinity() {
+    let output = run(&["due-dates"], br#"{"obligation":-1e99999}"#);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    let err = String::from_utf8(output.stderr).unwrap();
+    assert!(err.contains("-inf"), "{err}");
+}
+
+#[cfg(unix)]
+#[test]
+fn an_unreadable_input_stream_is_reported_and_refused() {
+    let output = Command::new(env!("CARGO_BIN_EXE_lodgment-calendar"))
+        .arg("due-dates")
+        .stdin(std::fs::File::open("/").unwrap())
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    let err = String::from_utf8(output.stderr).unwrap();
+    assert!(
+        err.starts_with("error: ") && err.contains("directory"),
+        "{err}"
+    );
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn a_failed_output_write_exits_1() {
+    let full = std::fs::OpenOptions::new()
+        .write(true)
+        .open("/dev/full")
+        .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_lodgment-calendar"))
+        .arg("--help")
+        .stdout(full)
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(1));
+}
