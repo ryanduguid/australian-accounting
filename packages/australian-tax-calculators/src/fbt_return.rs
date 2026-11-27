@@ -215,12 +215,11 @@ fn check_operating_cost(at: &str, valued: &Valued) -> Result<(), Refusal> {
     if valued.given.command != "fbt-car-operating-cost" || valued.exempt {
         return Ok(());
     }
-    let (Some(operating), Some(statutory)) = (
-        amount(&valued.result, "operating_cost_taxable_value")?,
-        amount(&valued.result, "statutory_formula_taxable_value")?,
-    ) else {
-        return Ok(());
-    };
+    // The method takes a required statutory formula value and always works
+    // both values (engine.rs, S10_PAYMENT_STEPS and S10_5_STEPS).
+    let car_amount = |key: &str| amount(&valued.result, key).map(|a| a.expect("the car's amount"));
+    let operating = car_amount("operating_cost_taxable_value")?;
+    let statutory = car_amount("statutory_formula_taxable_value")?;
     if !operating.gt(&statutory).map_err(signal)? {
         return Ok(());
     }

@@ -386,8 +386,8 @@ fn worked(place: &str, w: &Wages, regional: bool) -> Result<Worked> {
         "tas" => tasmania(w),
         "act" => australian_capital_territory(w),
         _ => northern_territory(w),
-    }?;
-    totalled(worked, TOTAL)
+    };
+    totalled(worked?, TOTAL)
 }
 
 /// `worked` with a `total` step (cited by `authority`) that adds its charges,
