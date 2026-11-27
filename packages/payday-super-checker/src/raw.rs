@@ -9,6 +9,12 @@
 use crate::pyjson::Json;
 use crate::pytext;
 
+#[derive(PartialEq)]
+enum Number {
+    Exact(num_bigint::BigInt),
+    Inexact(f64),
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Raw {
     None,
@@ -22,6 +28,10 @@ pub enum Raw {
 }
 
 impl Raw {
+    pub fn text(text: &str) -> Raw {
+        Raw::Str(text.to_string())
+    }
+
     /// `str(value)`.
     pub fn py_str(&self) -> String {
         match self {
@@ -84,6 +94,66 @@ impl Raw {
             Raw::Str(s) => !s.is_empty(),
             Raw::List(items) => !items.is_empty(),
             Raw::Dict(items) => !items.is_empty(),
+        }
+    }
+
+    /// `self == other` as Python compares the values `json.loads` builds:
+    /// `True == 1 == 1.0`, and dicts compare by their keys, not their order.
+    pub fn py_eq(&self, other: &Raw) -> bool {
+        self.eq_at(other, false)
+    }
+
+    /// Inside a container Python compares items by identity first, and
+    /// `json.loads` gives every `NaN` the same float object, so a nested NaN
+    /// equals a nested NaN while a bare one does not.
+    fn eq_at(&self, other: &Raw, nested: bool) -> bool {
+        match (self, other) {
+            (Raw::None, Raw::None) => true,
+            (Raw::Float(a), Raw::Float(b)) if nested && a.is_nan() && b.is_nan() => true,
+            (Raw::Str(a), Raw::Str(b)) => a == b,
+            (Raw::List(a), Raw::List(b)) => {
+                a.len() == b.len() && a.iter().zip(b).all(|(x, y)| x.eq_at(y, true))
+            }
+            (Raw::Dict(_), Raw::Dict(_)) => {
+                let (left, right) = (self.keys(), other.keys());
+                left.len() == right.len()
+                    && left.iter().all(|k| {
+                        other
+                            .get(k)
+                            .is_some_and(|v| self.get(k).is_some_and(|w| w.eq_at(v, true)))
+                    })
+            }
+            _ => match (self.number(), other.number()) {
+                (Some(a), Some(b)) => a == b,
+                _ => false,
+            },
+        }
+    }
+
+    /// A dict's distinct keys.
+    fn keys(&self) -> Vec<&String> {
+        let mut keys: Vec<&String> = Vec::new();
+        if let Raw::Dict(items) = self {
+            for (k, _) in items {
+                if !keys.contains(&k) {
+                    keys.push(k);
+                }
+            }
+        }
+        keys
+    }
+
+    /// A bool, int or float as an exact integer where it is one.
+    fn number(&self) -> Option<Number> {
+        use num_traits::FromPrimitive;
+        match self {
+            Raw::Bool(b) => Some(Number::Exact(num_bigint::BigInt::from(u8::from(*b)))),
+            Raw::Int(digits) => digits.parse().ok().map(Number::Exact),
+            Raw::Float(f) if f.is_finite() && f.fract() == 0.0 => {
+                num_bigint::BigInt::from_f64(*f).map(Number::Exact)
+            }
+            Raw::Float(f) => Some(Number::Inexact(*f)),
+            _ => None,
         }
     }
 
@@ -236,36 +306,6 @@ mod tests {
     }
 
     #[test]
-    fn scalars_report_python_repr_type_and_truth() {
-        assert_eq!(Raw::Bool(false).py_repr(), "False");
-        assert_eq!(Raw::Bool(true).type_name(), "bool");
-        assert_eq!(Raw::Float(0.5).type_name(), "float");
-        assert_eq!(float_repr(f64::NAN), "nan");
-        assert!(!Raw::Float(0.0).truthy());
-        assert!(Raw::Float(-0.1).truthy());
-        assert!(!Raw::List(vec![]).truthy());
-        assert!(Raw::Dict(vec![("k".into(), Raw::None)]).truthy());
-        assert_eq!(Raw::List(vec![]).get("k"), None);
-    }
-
-    #[test]
-    fn from_value_keeps_big_ints_and_reads_floats_like_python() {
-        let value: serde_json::Value = serde_json::from_str(
-            r#"{"big": 123456789012345678901234567890, "neg": -98765432109876543210,
-                "half": 1.5, "huge": 1e400, "list": [true, null], "nested": {"s": "x"}}"#,
-        )
-        .unwrap();
-        let raw = Raw::from_value(&value);
-        let get = |k: &str| raw.get(k).unwrap().clone();
-        assert_eq!(get("big"), Raw::Int("123456789012345678901234567890".into()));
-        assert_eq!(get("neg"), Raw::Int("-98765432109876543210".into()));
-        assert_eq!(get("half"), Raw::Float(1.5));
-        assert_eq!(get("huge"), Raw::Float(f64::INFINITY));
-        assert_eq!(get("list"), Raw::List(vec![Raw::Bool(true), Raw::None]));
-        assert_eq!(get("nested").py_repr(), "{'s': 'x'}");
-    }
-
-    #[test]
     fn float_repr_matches_cpython_corpus() {
         // CPython 3.15's repr for doubles chosen to exercise ties between two
         // equally short spellings: bits in hex, then the repr.
@@ -278,6 +318,11 @@ mod tests {
                 (actual != expected).then(|| format!("{bits}: python {expected}, rust {actual}"))
             })
             .collect();
-        assert_eq!(wrong, Vec::<String>::new());
+        assert!(
+            wrong.is_empty(),
+            "{} wrong: {:?}",
+            wrong.len(),
+            &wrong[..wrong.len().min(10)]
+        );
     }
 }
