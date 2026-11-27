@@ -47,10 +47,6 @@ pub fn stdio() -> (
     )
 }
 
-/// Preserve one original bootstrap error that rmcp emits before service dispatch.
-/// Once a session starts, all SDK metadata validation remains authoritative.
-#[derive(Clone)]
-struct MetaPresence(bool);
 fn metadata_message(meta: &RequestMetaObject, present: bool) -> Option<String> {
     if !present {
         return Some("params._meta must be an object carrying the required 'io.modelcontextprotocol/protocolVersion' and 'io.modelcontextprotocol/clientCapabilities' envelope keys".into());
@@ -73,11 +69,40 @@ fn metadata_message(meta: &RequestMetaObject, present: bool) -> Option<String> {
     }
     None
 }
+fn method_not_found(method: &str) -> ErrorData {
+    ErrorData::new(
+        ErrorCode::METHOD_NOT_FOUND,
+        "Method not found",
+        Some(json!(method)),
+    )
+}
+/// pydantic's refusal of a request body, as the Python server sends it.
+fn invalid_request_parameters() -> ErrorData {
+    ErrorData::invalid_params("Invalid request parameters", Some(json!("")))
+}
+/// The methods Python's 2026-07-28 surface defines; it refuses any other method
+/// before it validates the body.
+fn modern_method(request: &ClientRequest) -> bool {
+    matches!(
+        request,
+        ClientRequest::CompleteRequest(_)
+            | ClientRequest::GetPromptRequest(_)
+            | ClientRequest::ListPromptsRequest(_)
+            | ClientRequest::ListResourcesRequest(_)
+            | ClientRequest::ReadResourceRequest(_)
+            | ClientRequest::ListResourceTemplatesRequest(_)
+            | ClientRequest::DiscoverRequest(_)
+            | ClientRequest::SubscriptionsListenRequest(_)
+            | ClientRequest::CallToolRequest(_)
+            | ClientRequest::ListToolsRequest(_)
+    )
+}
+/// Preserve one original bootstrap error that rmcp emits before service dispatch.
+/// Only a legacy-era request reaches rmcp with incomplete 2026-07-28 metadata:
+/// `Era::rejection` refuses every modern one first.
 pub(super) struct BootstrapError {
     id: RequestId,
     custom: Option<String>,
-    metadata: Option<String>,
-    legacy: bool,
 }
 pub(super) type PendingSend<E> = Pin<Box<dyn Future<Output = Result<(), E>> + Send>>;
 pub(super) struct BootstrapTransport<T: rmcp::transport::Transport<RoleServer>> {
@@ -139,13 +164,22 @@ impl Era {
                 // rmcp permits ping during bootstrap; Python's modern era has
                 // already removed that method, including before discovery.
                 if matches!(request, ClientRequest::PingRequest(_)) {
-                    return Some(ErrorData::new(
-                        ErrorCode::METHOD_NOT_FOUND,
-                        "Method not found",
-                        Some(json!("ping")),
-                    ));
+                    return Some(method_not_found("ping"));
+                }
+                // Capabilities that are present but not an object fail pydantic's
+                // body validation, which runs only for a method the surface defines.
+                if meta.client_capabilities().is_none() {
+                    return Some(if modern_method(request) {
+                        invalid_request_parameters()
+                    } else {
+                        method_not_found(request.method())
+                    });
                 }
                 None
+            }
+            // Python's legacy surfaces define no server/discover, whatever its _meta holds.
+            (Self::Legacy, ClientRequest::DiscoverRequest(_)) => {
+                Some(method_not_found("server/discover"))
             }
             _ => None,
         }
@@ -154,8 +188,6 @@ impl Era {
 fn record_bootstrap<T: rmcp::transport::Transport<RoleServer>>(
     transport: &mut BootstrapTransport<T>,
     request: &JsonRpcRequest<ClientRequest>,
-    present: bool,
-    era: Era,
 ) {
     if transport.bootstrap.load(Ordering::Relaxed)
         && !request
@@ -170,9 +202,7 @@ fn record_bootstrap<T: rmcp::transport::Transport<RoleServer>>(
     {
         transport.pending = Some(BootstrapError {
             id: request.id.clone(),
-            custom: legacy_method(&request.request, era),
-            metadata: metadata_message(request.request.get_meta(), present),
-            legacy: matches!(era, Era::Legacy),
+            custom: legacy_method(&request.request),
         });
     }
 }
@@ -191,23 +221,12 @@ impl<T: rmcp::transport::Transport<RoleServer>> rmcp::transport::Transport<RoleS
                 .as_ref()
                 .is_some_and(|p| Some(&p.id) == error.id.as_ref())
         {
-            let pending = self.pending.take().unwrap();
-            if self.bootstrap.load(Ordering::Relaxed)
-                && error.error.code == ErrorCode::INVALID_PARAMS
-            {
-                if let Some(method) = pending.custom {
-                    error.error = ErrorData::new(
-                        ErrorCode::METHOD_NOT_FOUND,
-                        "Method not found",
-                        Some(json!(method)),
-                    );
-                } else if pending.legacy {
-                    error.error =
-                        ErrorData::invalid_params("Invalid request parameters", Some(json!("")));
-                } else if let Some(message) = pending.metadata {
-                    error.error.message = message.into();
-                }
-            }
+            // rmcp answers a pending request in its bootstrap loop, before any
+            // dispatch, always with its -32602 missing-metadata error.
+            error.error = match self.pending.take().unwrap().custom {
+                Some(method) => method_not_found(&method),
+                None => invalid_request_parameters(),
+            };
         }
         self.inner.send(message)
     }
@@ -237,11 +256,7 @@ impl<T: rmcp::transport::Transport<RoleServer>> rmcp::transport::Transport<RoleS
                     ));
                     continue;
                 }
-                request
-                    .request
-                    .extensions_mut()
-                    .insert(MetaPresence(present));
-                record_bootstrap(self, request, present, era);
+                record_bootstrap(self, request);
             }
             return Some(message);
         }
@@ -277,7 +292,7 @@ impl Drop for SubscriptionSlot<'_> {
         self.0.fetch_sub(1, Ordering::Relaxed);
     }
 }
-fn legacy_method(request: &ClientRequest, era: Era) -> Option<String> {
+fn legacy_method(request: &ClientRequest) -> Option<String> {
     match request {
         ClientRequest::ListToolsRequest(_)
         | ClientRequest::CallToolRequest(_)
@@ -286,40 +301,15 @@ fn legacy_method(request: &ClientRequest, era: Era) -> Option<String> {
         | ClientRequest::ReadResourceRequest(_)
         | ClientRequest::ListPromptsRequest(_)
         | ClientRequest::GetPromptRequest(_) => None,
-        _ if matches!(era, Era::Legacy) => Some(request.method().to_owned()),
-        _ => None,
+        _ => Some(request.method().to_owned()),
     }
 }
 
-fn rewrite(
-    result: &mut Result<ServerResult, ErrorData>,
-    inline: bool,
-    version: Option<ProtocolVersion>,
-    method: &str,
-    metadata_message: Option<String>,
-) {
-    if inline
-        && version.is_some_and(|v| v >= ProtocolVersion::V_2026_07_28)
-        && let Err(error) = &mut *result
-        && error.code == ErrorCode(-32022)
-        && let Some(data) = &mut error.data
-    {
-        data["supported"] = json!(["2026-07-28"]);
-    }
+fn rewrite(result: &mut Result<ServerResult, ErrorData>, method: &str) {
     if let Err(error) = &mut *result
         && error.code == ErrorCode::METHOD_NOT_FOUND
     {
-        error.message = "Method not found".into();
-        error.data = Some(json!(method));
-    }
-    if let Err(error) = &mut *result
-        && error.code == ErrorCode::INVALID_PARAMS
-        && error
-            .message
-            .starts_with("request _meta is missing or has malformed required fields:")
-        && let Some(message) = metadata_message
-    {
-        error.message = message.into();
+        *error = method_not_found(method);
     }
 }
 
@@ -333,21 +323,8 @@ impl rmcp::service::Service<RoleServer> for AccountingService {
             self.bootstrap.store(false, Ordering::Relaxed);
         }
         let method = request.method().to_owned();
-        let inline = !matches!(request, ClientRequest::InitializeRequest(_));
-        let version = context.meta.protocol_version();
-        let metadata_message = metadata_message(
-            &context.meta,
-            context
-                .extensions
-                .get::<MetaPresence>()
-                .is_some_and(|p| p.0),
-        );
         let _slot = if matches!(request, ClientRequest::SubscriptionsListenRequest(_))
-            && version.as_ref() == Some(&ProtocolVersion::V_2026_07_28)
-            && context
-                .meta
-                .missing_required_keys(&ProtocolVersion::V_2026_07_28)
-                .is_empty()
+            && context.meta.protocol_version().as_ref() == Some(&ProtocolVersion::V_2026_07_28)
         {
             Some(SubscriptionSlot::reserve(&self.subscriptions)?)
         } else {
@@ -355,7 +332,7 @@ impl rmcp::service::Service<RoleServer> for AccountingService {
         };
         let mut result =
             rmcp::service::Service::handle_request(&self.server, request, context).await;
-        rewrite(&mut result, inline, version, &method, metadata_message);
+        rewrite(&mut result, &method);
         result
     }
     async fn handle_notification(
