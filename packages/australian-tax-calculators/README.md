@@ -4508,7 +4508,7 @@ it to the ATO's 6 examples; see
 ## Super crystallisation
 
 `super_crystallisation` works out the crystallised segment of a taxed
-superannuation interest just before 1 July 2007 (ITTPA 1997 s 307-225): the
+superannuation interest just before 1 July 2007 (ITAA 1997 s 307-225): the
 concessional, post-June 1994 invalidity and CGT exempt components and the
 undeducted contributions the fund holds, plus the pre-July 83 component under
 former ITAA 1936 s 27AA(1)(d), the lesser of the base times the eligible

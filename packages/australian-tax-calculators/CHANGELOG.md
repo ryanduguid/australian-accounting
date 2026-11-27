@@ -163,6 +163,11 @@
   under each Act's annual adjustment. New code:
   `payroll_tax.reconciliation_unread` (New South Wales).
 
+### Fixed
+
+- `super-crystallisation` cites s 307-225 as ITAA 1997, not the ITTPA 1997;
+  its income stream refusal still cites ITTPA 1997 s 307-125.
+
 ## 1.4.0
 
 ### Added
@@ -507,7 +512,7 @@
   `commonwealth_payment_invalid`, `friendly_society_plan` and
   `payment_type_invalid`.
 - `super-crystallisation` works out a taxed super interest's crystallised
-  segment at 30 June 2007 (ITTPA 1997 s 307-225), with the pre-July 83
+  segment at 30 June 2007 (ITAA 1997 s 307-225), with the pre-July 83
   component under former ITAA 1936 s 27AA(1)(d). New codes:
   `super_crystallisation.components_exceed_value`, `dates_invalid`,
   `income_stream_before_july_2007` and `untaxed_source`.
