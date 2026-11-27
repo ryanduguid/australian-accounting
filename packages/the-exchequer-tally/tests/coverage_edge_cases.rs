@@ -177,6 +177,14 @@ fn api_array_and_refund_classification_errors() {
         .unwrap_err(),
         "includes_r_and_d_offset must be a boolean"
     );
+    assert_eq!(
+        api::evaluate(
+            "franking-account",
+            &json!({"financial_year": 2027, "append_entries": [{"entry_date": "2026-09-01", "entry_type": "PAYG_INSTALMENT", "amount": "-1", "description": "x"}]})
+        )
+        .unwrap_err(),
+        "amount must be a non-negative finite Decimal"
+    );
 }
 
 #[test]
@@ -203,6 +211,17 @@ fn engine_account_opening_and_record_validation() {
         )
         .unwrap_err();
     assert!(err.contains("must be a positive finite amount"));
+
+    let overflow_bre = engine::Bre {
+        fy: 2025,
+        turnover: engine::d("0"),
+        assessable: engine::d("1"),
+        passive: engine::d("1e30"),
+    };
+    assert_eq!(
+        overflow_bre.passive_pct().unwrap_err(),
+        "decimal.InvalidOperation"
+    );
 }
 
 #[test]
@@ -280,7 +299,7 @@ fn cli_close_match_and_option_parsing_edges() {
     let empty_cmd = run_cli(&[""], &[("PYTHON_COLORS", Some("0"))]);
     assert_eq!(empty_cmd.status.code(), Some(2));
 
-    let long_cmd = format!("{}bre-test", "a".repeat(205));
+    let long_cmd = format!("{}re-tes{}", "b".repeat(100), "t".repeat(105));
     let long_out = run_cli(&[&long_cmd], &[("PYTHON_COLORS", Some("0"))]);
     assert_eq!(long_out.status.code(), Some(2));
     assert!(
@@ -314,7 +333,7 @@ fn cli_equals_and_abbreviated_options_succeed() {
         &[
             "--",
             "bre-test",
-            "--fy=+2025",
+            "--fy=+2_025",
             "--turn=60000000",
             "--assessable",
             "0",
@@ -495,4 +514,19 @@ fn unix_pty_and_broken_pipe_paths() {
     drop(child.stdout.take());
     let status = child.wait().unwrap();
     assert_eq!(status.code(), Some(1));
+
+    let dir = std::fs::File::open(".").unwrap();
+    let dir_stdin = Command::new(BIN)
+        .arg("corporate-tax")
+        .stdin(Stdio::from(dir))
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .unwrap();
+    assert_eq!(dir_stdin.status.code(), Some(2));
+    assert!(
+        String::from_utf8(dir_stdin.stderr)
+            .unwrap()
+            .contains("error:")
+    );
 }
