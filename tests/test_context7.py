@@ -103,5 +103,15 @@ def test_the_age_pension_rule_names_every_stated_circumstance() -> None:
     assert {name for name in circumstances if name not in rule} == set()
 
 
+def test_the_age_pension_rules_name_each_conditional_circumstance_and_its_parent() -> None:
+    """A circumstance age-pension reads only under another must be named with that parent."""
+    engine = (ROOT / "packages/australian-tax-calculators/src/engine/age_pension.rs").read_text(encoding="utf-8")
+    pairs = re.findall(r'\(\s*"(\w+)",\s*"[^"]*",\s*Some\("(\w+)"\)', engine)
+    assert sorted(pairs) == [("rate_before_november_1986", "armed_services_payment"),
+                             ("remote_area_child", "remote_area")]
+    rule = next(rule for rule in CONFIG["rules"] if "only where" in rule and "`age-pension`" in rule)
+    assert [(child, parent) for child, parent in pairs if f"{child} " not in rule or f"{parent} is true" not in rule] == []
+
+
 def test_folders_are_directories() -> None:
     assert all((ROOT / folder).is_dir() for folder in CONFIG["folders"])
