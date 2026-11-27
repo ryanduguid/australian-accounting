@@ -28,9 +28,6 @@ impl<'de> Visitor<'de> for UniqueVisitor {
     fn visit_u64<E: de::Error>(self, _: u64) -> Result<Unique, E> {
         Ok(Unique)
     }
-    fn visit_f64<E: de::Error>(self, _: f64) -> Result<Unique, E> {
-        Ok(Unique)
-    }
     fn visit_str<E: de::Error>(self, _: &str) -> Result<Unique, E> {
         Ok(Unique)
     }
@@ -56,4 +53,30 @@ impl<'de> Visitor<'de> for UniqueVisitor {
 pub fn parse(bytes: &[u8]) -> Result<serde_json::Value, serde_json::Error> {
     serde_json::from_slice::<Unique>(bytes)?;
     serde_json::from_slice(bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Unique, parse};
+    use serde::Deserialize;
+
+    /// With serde_json's `arbitrary_precision` (this crate's build) a float reaches the
+    /// check as a number token inside a map, so the check needs no float arm.
+    #[test]
+    fn floats_are_read_and_duplicate_fields_refused() {
+        let value = parse(br#"{"a": [1.5, -2.5e3], "b": {"c": 0.0}}"#).unwrap();
+        assert_eq!(value["a"][0].to_string(), "1.5");
+        assert_eq!(value["a"][1].to_string(), "-2.5e3");
+        let error = parse(br#"{"a": 1.5, "a": 2}"#).unwrap_err().to_string();
+        assert!(error.starts_with("duplicate JSON field: \"a\""), "{error}");
+    }
+
+    #[test]
+    fn a_value_json_cannot_hold_is_described_as_the_check_expects() {
+        let bytes = serde::de::value::BytesDeserializer::<serde::de::value::Error>::new(b"x");
+        assert_eq!(
+            Unique::deserialize(bytes).err().unwrap().to_string(),
+            "invalid type: byte array, expected JSON with unique object fields"
+        );
+    }
 }
