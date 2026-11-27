@@ -297,7 +297,8 @@ fn treatment(
         flag(terminal, "terminal_medical_condition")?,
         age,
         preservation,
-    )?;
+    );
+    let t = t?;
     Ok((t, Some((age, preservation))))
 }
 

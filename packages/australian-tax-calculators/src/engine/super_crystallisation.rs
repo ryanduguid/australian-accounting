@@ -3,7 +3,7 @@
 // Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
 //! `super_crystallisation`: the crystallised segment of a superannuation
-//! interest's tax free component at 30 June 2007 (ITTPA 1997 s 307-225), with
+//! interest's tax free component at 30 June 2007 (ITAA 1997 s 307-225), with
 //! its pre-July 83 component under former ITAA 1936 s 27AA(1)(d), read on
 //! 24 November 2026 in the compilation of 19 February 2007 (C2007C00085,
 //! the formula by OCR of its image) and on the ATO's legal database. The
@@ -42,7 +42,7 @@ fn refused_facts(args: &SuperCrystallisationArgs) -> Result<()> {
     if flag(args.untaxed_source, "untaxed_source")? {
         return refuse(
             "super_crystallisation.untaxed_source",
-            "The interest is from an untaxed source: ITTPA 1997 s 307-225(3) disregards the element untaxed in the fund for the pre-July 83 component, and the ATO's crystallisation calculator does not take such an interest.",
+            "The interest is from an untaxed source: ITAA 1997 s 307-225(3) disregards the element untaxed in the fund for the pre-July 83 component, and the ATO's crystallisation calculator does not take such an interest.",
         );
     }
     if flag(
@@ -64,7 +64,7 @@ fn service_days(start: i64) -> Result<(i64, i64)> {
     if start > end {
         return refuse(
             "super_crystallisation.dates_invalid",
-            "eligible_service_start must be on or before 30 June 2007: the eligible service period runs to the notional payment just before 1 July 2007 (ITTPA 1997 s 307-225(1)).",
+            "eligible_service_start must be on or before 30 June 2007: the eligible service period runs to the notional payment just before 1 July 2007 (ITAA 1997 s 307-225(1)).",
         );
     }
     let before = dates::parse("1983-06-30").expect("30 June 1983");
@@ -144,7 +144,7 @@ fn segment_steps(c: &Components, pre: &Decimal) -> Result<[Step; 2]> {
     Ok([
         step(
             "crystallised_segment",
-            "ITTPA 1997 s 307-225(2): the concessional component, post-June 1994 invalidity component, undeducted contributions, CGT exempt component and pre-July 83 component",
+            "ITAA 1997 s 307-225(2): the concessional component, post-June 1994 invalidity component, undeducted contributions, CGT exempt component and pre-July 83 component",
             "concessional_component + post_june_1994_invalidity_component + undeducted_contributions + cgt_exempt_component + pre_july_83_component",
             &[&c.concessional, &c.invalidity, &c.undeducted, &c.cgt, pre],
             segment.clone(),

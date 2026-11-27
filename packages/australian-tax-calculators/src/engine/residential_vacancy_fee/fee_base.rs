@@ -140,6 +140,20 @@ fn stated_application_fee_base(
     })
 }
 
+/// The notional fee's authority where the post-2024 fee is waived: only a
+/// notice or an order reaches it.
+fn waived_fee_authority(basis: AcquisitionBasis) -> &'static str {
+    match basis {
+        AcquisitionBasis::NotifiableAction => {
+            "Fees Regulations 2020 s 43(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
+        }
+        AcquisitionBasis::NoNoticeOrder => {
+            "Fees Regulations 2020 s 46(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
+        }
+        _ => unreachable!(),
+    }
+}
+
 fn waived_post_2024_base(
     basis: AcquisitionBasis,
     window: VacancyWindow,
@@ -156,15 +170,7 @@ fn waived_post_2024_base(
     let tier_one = int(sched.tier_one);
     let em = int(estab_mult);
     let whole = tier_one.mul(&em)?;
-    let authority = match basis {
-        AcquisitionBasis::NotifiableAction => {
-            "Fees Regulations 2020 s 43(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
-        }
-        AcquisitionBasis::NoNoticeOrder => {
-            "Fees Regulations 2020 s 46(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
-        }
-        _ => unreachable!(),
-    };
+    let authority = waived_fee_authority(basis);
     let whole_step = step(
         "whole_property_application_fee",
         authority,
@@ -425,4 +431,23 @@ pub(super) fn resolve_fee_base(
         return waived_fee_base(basis, ownership, window, optional);
     }
     notional_fee_base(basis, ownership, window, optional)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{AcquisitionBasis, stated_fee_authority, waived_fee_authority};
+
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code")]
+    fn a_developer_certificate_has_no_stated_fee() {
+        stated_fee_authority(AcquisitionBasis::DeveloperExemptionCertificate);
+    }
+
+    /// Only a notice or an order is waived under the post-2024 rules, so no
+    /// input brings an exemption certificate here.
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code")]
+    fn an_exemption_certificate_has_no_waived_fee() {
+        waived_fee_authority(AcquisitionBasis::OtherExemptionCertificate);
+    }
 }
