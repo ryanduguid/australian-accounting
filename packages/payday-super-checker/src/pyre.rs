@@ -801,7 +801,7 @@ mod tests {
 
     #[test]
     fn escapes_classes_and_boundaries_follow_python() {
-        assert!(Regex::python(r"\t\n\rA").fullmatch("\t\n\rA"));
+        assert!(Regex::python(r"\t\n\r\u0041").fullmatch("\t\n\rA"));
         assert!(Regex::python(r"[\n\-]+").fullmatch("\n-"));
         assert!(Regex::python(r"\D+").fullmatch("ab"));
         assert!(!Regex::python(r"\D").search("12"));
@@ -826,6 +826,18 @@ mod tests {
         assert_eq!((m.group(1), m.end), (Some("ab".into()), 5));
         let m = Regex::python(r"(?!(a)b)\w").captures("ac").unwrap();
         assert_eq!((m.group(1), m.end), (None, 1));
+    }
+
+    #[test]
+    fn dots_lookaheads_and_possessive_groups_follow_python() {
+        assert!(Regex::python("a.c").fullmatch("abc"));
+        assert!(!Regex::python("a.c").fullmatch("a\nc"));
+        assert!(Regex::python(r"(?=(a)b)\w").captures("ac").is_none());
+        assert!(!Regex::python(r"(?:ab|a)*+b").fullmatch("abab"));
+        assert!(Regex::python(r"(?:ab|a)*+b").fullmatch("ababb"));
+        assert!(Regex::python(r"(?:ab)*?c").fullmatch("ababc"));
+        assert!(Regex::python(r"(?:a|b)+c").fullmatch("abc"));
+        assert!(!Regex::python(r"(?:a|b)+c").fullmatch("c"));
     }
 
     #[test]

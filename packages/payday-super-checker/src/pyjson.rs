@@ -457,9 +457,9 @@ mod tests {
             loads(r#""\"\\\/\b\f\n\r\t""#).unwrap(),
             Json::Str("\"\\/\u{8}\u{c}\n\r\t".into())
         );
-        assert_eq!(loads(r#""A""#).unwrap(), Json::Str("A".into()));
+        assert_eq!(loads(r#""\u0041""#).unwrap(), Json::Str("A".into()));
         assert_eq!(
-            loads(r#""😀""#).unwrap(),
+            loads(r#""\ud83d\ude00""#).unwrap(),
             Json::Str("\u{1f600}".into())
         );
     }
@@ -483,7 +483,7 @@ mod tests {
             "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)"
         );
         assert_eq!(
-            err(r#""\ud800A""#),
+            err(r#""\ud800\u0041""#),
             "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)"
         );
     }
