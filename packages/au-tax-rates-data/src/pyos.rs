@@ -16,10 +16,9 @@ pub enum Style {
     Native,
 }
 
-/// An `OSError`: its `str()` and the condition callers branch on.
+/// An `OSError`: its `str()`, from which [`OsError::class`] reads the subclass.
 #[derive(Debug)]
 pub struct OsError {
-    pub kind: io::ErrorKind,
     pub text: String,
 }
 
@@ -29,10 +28,7 @@ impl OsError {
             Some(name) => py::oserror_str(error, name, style.into()),
             None => without_filename(error, style),
         };
-        OsError {
-            kind: error.kind(),
-            text,
-        }
+        OsError { text }
     }
 
     /// The `OSError` subclass Python raises for this error.

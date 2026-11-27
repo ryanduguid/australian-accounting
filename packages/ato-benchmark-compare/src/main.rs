@@ -82,3 +82,44 @@ fn unflushed(stream: &str, e: &std::io::Error) -> String {
         .map_or(text.as_str(), |i| &text[..i]);
     format!("Exception ignored while flushing sys.{stream}:\n{class}: [Errno {code}] {text}\n")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Error;
+
+    const FAILED: i32 = if cfg!(unix) { 120 } else { 1 };
+
+    #[test]
+    fn a_stream_that_cannot_be_written_sets_the_exit_status() {
+        assert_eq!(finish(3, Ok(()), Ok(())), 3);
+        assert_eq!(finish(0, Err(Error::other("gone")), Ok(())), FAILED);
+        assert_eq!(finish(0, Ok(()), Err(Error::other("gone"))), FAILED);
+    }
+
+    #[test]
+    fn an_error_without_an_os_code_is_an_oserror_with_errno_0() {
+        assert_eq!(
+            unflushed("stdout", &Error::other("boom")),
+            "Exception ignored while flushing sys.stdout:\nOSError: [Errno 0] boom\n"
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn os_errors_take_python_class_names_and_drop_rusts_suffix() {
+        let message = |code| unflushed("stdout", &Error::from_raw_os_error(code));
+        assert_eq!(
+            message(32),
+            "Exception ignored while flushing sys.stdout:\nBrokenPipeError: [Errno 32] Broken pipe\n"
+        );
+        assert!(
+            message(104).contains("\nConnectionResetError: [Errno 104] Connection reset by peer\n")
+        );
+        assert!(
+            message(11)
+                .contains("\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n")
+        );
+        assert!(message(28).contains("\nOSError: [Errno 28] No space left on device\n"));
+    }
+}

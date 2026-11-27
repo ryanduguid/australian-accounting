@@ -60,12 +60,11 @@ fn ymd_to_ord(year: i32, month: i32, day: i32) -> i64 {
 
 /// `ord_to_ymd`, without a range limit.
 fn ord_to_ymd(ordinal: i64) -> (i32, i32, i32) {
+    // This estimate is never above the true year for any ordinal from 1 to
+    // date.max (checked against date.fromordinal over the whole range), only below.
     let mut year = ((ordinal - 1) * 400 / 146_097 + 1) as i32;
     while ymd_to_ord(year + 1, 1, 1) <= ordinal {
         year += 1;
-    }
-    while ymd_to_ord(year, 1, 1) > ordinal {
-        year -= 1;
     }
     let mut rest = (ordinal - ymd_to_ord(year, 1, 1) + 1) as i32;
     let mut month = 1;
@@ -184,8 +183,9 @@ fn parse_clock(b: &Buf, start: usize, end: usize) -> (i32, [i32; 4]) {
     (i32::from(b.at(p) != 0), v)
 }
 
-/// `check_time_args`.
-fn check_time(h: i32, m: i32, s: i32, us: i32) -> Result<(), String> {
+/// `check_time_args`, less its microsecond check: `parse_clock` reads at most 6
+/// fraction digits, so the microsecond is always in 0..999999.
+fn check_time(h: i32, m: i32, s: i32) -> Result<(), String> {
     if !(0..=23).contains(&h) {
         return Err(format!("hour must be in 0..23, not {h}"));
     }
@@ -194,9 +194,6 @@ fn check_time(h: i32, m: i32, s: i32, us: i32) -> Result<(), String> {
     }
     if !(0..=59).contains(&s) {
         return Err(format!("second must be in 0..59, not {s}"));
-    }
-    if !(0..=999_999).contains(&us) {
-        return Err(format!("microsecond must be in 0..999999, not {us}"));
     }
     Ok(())
 }
@@ -242,7 +239,7 @@ fn parse_time(t: &Buf) -> Time {
     }
     let sign = if t.at(tz) == b'-' { -1 } else { 1 };
     let (rv, [h, m, s, us]) = parse_clock(t, tz + 1, len);
-    if let Err(message) = check_time(h, m, s, us) {
+    if let Err(message) = check_time(h, m, s) {
         return Time::Offset(message);
     }
     if rv != 0 {
@@ -363,7 +360,7 @@ pub fn datetime_fromisoformat(string: &[u32]) -> Result<DateTime, String> {
         }
     }
     let date = Date::new(year.into(), month.into(), day.into())?;
-    check_time(hour, minute, second, microsecond)?;
+    check_time(hour, minute, second)?;
     Ok(DateTime {
         date,
         hour,
@@ -386,23 +383,6 @@ pub fn date_fromisoformat(string: &str) -> Result<Date, String> {
     Date::new(year.into(), month.into(), day.into())
 }
 
-impl DateTime {
-    /// `self.astimezone(timezone.utc).date()` for an aware datetime; the
-    /// error is the `OverflowError` message.
-    pub fn utc_date(&self) -> Result<Date, String> {
-        let offset = self.offset_us.unwrap_or(0);
-        let micros =
-            (i64::from(self.hour) * 3600 + i64::from(self.minute) * 60 + i64::from(self.second))
-                * 1_000_000
-                + i64::from(self.microsecond)
-                - offset;
-        let days = micros.div_euclid(86_400 * 1_000_000);
-        self.date
-            .add_days(days)
-            .ok_or_else(|| "date value out of range".to_string())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -415,9 +395,9 @@ mod tests {
     fn download_timestamps_parse_with_their_offset() {
         let dt = parse("2026-10-24T01:02:03.456789+00:00").unwrap();
         assert_eq!(dt.offset_us, Some(0));
-        assert_eq!(dt.utc_date().unwrap().isoformat(), "2026-10-24");
+        assert_eq!(dt.microsecond, 456_789);
         let dt = parse("2026-10-24T01:02:03+10:00").unwrap();
-        assert_eq!(dt.utc_date().unwrap().isoformat(), "2026-10-23");
+        assert_eq!(dt.offset_us, Some(36_000_000_000));
         assert_eq!(parse("2026-10-24").unwrap().offset_us, None);
     }
 
@@ -443,13 +423,6 @@ mod tests {
             parse("9999-12-31T24:00").unwrap_err(),
             "year must be in 1..9999, not 10000"
         );
-        assert_eq!(
-            parse("0001-01-01T00:00+01:00")
-                .unwrap()
-                .utc_date()
-                .unwrap_err(),
-            "date value out of range"
-        );
         assert_eq!(parse("2026-W01-1").unwrap().date.isoformat(), "2025-12-29");
         assert_eq!(
             date_fromisoformat("20261024").unwrap().isoformat(),
@@ -457,3 +430,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a_pydatetime.rs"]
+mod cov_a_tests;

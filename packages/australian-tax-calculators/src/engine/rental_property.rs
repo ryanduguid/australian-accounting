@@ -586,3 +586,28 @@ pub fn rental_property(args: &RentalPropertyArgs) -> Result<Value> {
     out["held"] = json!({"from": dates::format(held.from), "to": dates::format(held.to)});
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::decimal::Signal;
+    use crate::engine::Error;
+
+    #[test]
+    fn sum_step_of_no_parts_is_nil() {
+        let total = sum_step("total", "s 1", &[]).unwrap();
+        assert_eq!(
+            (total.formula.as_str(), total.value.to_sci_string()),
+            ("0", "0".into())
+        );
+    }
+
+    #[test]
+    fn a_decimal_signal_passes_through_unlabelled() {
+        let signal: Result<()> = Err(Error::Decimal(Signal::Overflow));
+        assert!(matches!(
+            at("a label", signal),
+            Err(Error::Decimal(Signal::Overflow))
+        ));
+    }
+}
