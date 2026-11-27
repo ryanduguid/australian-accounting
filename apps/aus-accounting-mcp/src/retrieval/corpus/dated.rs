@@ -349,11 +349,14 @@ mod tests {
     impl TempDir {
         fn new(label: &str) -> Self {
             static NEXT: AtomicU64 = AtomicU64::new(0);
-            let dir = std::env::temp_dir().join(format!(
-                "aus-accounting-mcp-dated-{label}-{}-{}",
-                std::process::id(),
-                NEXT.fetch_add(1, Ordering::Relaxed)
-            ));
+            let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("target")
+                .join("scratch")
+                .join(format!(
+                    "aus-accounting-mcp-dated-{label}-{}-{}",
+                    std::process::id(),
+                    NEXT.fetch_add(1, Ordering::Relaxed)
+                ));
             fs::create_dir_all(&dir).unwrap();
             Self(dir)
         }

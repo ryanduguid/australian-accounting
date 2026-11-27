@@ -133,7 +133,6 @@ mod tests {
     #[derive(Default)]
     struct Queue {
         messages: VecDeque<ServerJsonRpcMessage>,
-        closed: bool,
         waker: Option<Waker>,
     }
 
@@ -182,8 +181,6 @@ mod tests {
                 let mut state = queue.lock().unwrap();
                 if let Some(msg) = state.messages.pop_front() {
                     Poll::Ready(Some(msg))
-                } else if state.closed {
-                    Poll::Ready(None)
                 } else {
                     state.waker = Some(cx.waker().clone());
                     Poll::Pending
@@ -192,9 +189,6 @@ mod tests {
         }
 
         async fn close(&mut self) -> Result<(), Self::Error> {
-            let mut state = self.0.lock().unwrap();
-            state.closed = true;
-            let _ = state.waker.take().map(Waker::wake);
             Ok(())
         }
     }

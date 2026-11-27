@@ -379,11 +379,14 @@ mod tests {
     #[test]
     fn path_refuses_file_whose_canonical_target_leaves_root() {
         static NEXT: AtomicU64 = AtomicU64::new(0);
-        let base = std::env::temp_dir().join(format!(
-            "aus-accounting-mcp-lib-escape-{}-{}",
-            std::process::id(),
-            NEXT.fetch_add(1, Ordering::Relaxed)
-        ));
+        let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join("scratch")
+            .join(format!(
+                "aus-accounting-mcp-lib-escape-{}-{}",
+                std::process::id(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
         let real = base.join("real");
         let alias = base.join("alias");
         fs::create_dir_all(&real).unwrap();
