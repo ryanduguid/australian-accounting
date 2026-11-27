@@ -735,11 +735,8 @@ mod tests {
         assert_eq!(join("/", "r.csv"), "/r.csv");
         assert_eq!(join("/home/a", "r.csv"), format!("/home/a{sep}r.csv"));
         // ntpath treats a trailing backslash as a separator; posixpath does not.
-        let after_backslash = if cfg!(windows) {
-            "C:\\r.csv"
-        } else {
-            "C:\\/r.csv"
-        };
+        // Indexed by platform, not branched, so each platform runs every line.
+        let after_backslash = ["C:\\/r.csv", "C:\\r.csv"][usize::from(cfg!(windows))];
         assert_eq!(join("C:\\", "r.csv"), after_backslash);
     }
 }
