@@ -50,8 +50,7 @@ impl Dial for EmptyList {
 
 /// A fresh, empty folder for one test.
 fn tmp_dir(name: &str) -> PathBuf {
-    let dir =
-        std::env::temp_dir().join(format!("lodgeit-cov-d-cli-{}-{name}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("lodgeit-cov-d-cli-{}-{name}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("create the test folder");
     dir
@@ -60,7 +59,10 @@ fn tmp_dir(name: &str) -> PathBuf {
 /// `dir/name.json` holding `text`, and the `--contract` value naming it.
 fn snapshot(dir: &Path, name: &str, text: &str) -> String {
     std::fs::write(dir.join(format!("{name}.json")), text).expect("write the snapshot");
-    dir.join(name).to_str().expect("a UTF-8 temp path").to_owned()
+    dir.join(name)
+        .to_str()
+        .expect("a UTF-8 temp path")
+        .to_owned()
 }
 
 /// `cli.main(argv)` with captured streams, no environment and every dial
@@ -117,7 +119,14 @@ fn drift_without_openapi_schemas_reports_live_discovery_agreeing() {
     let dir = tmp_dir("agree");
     let text = format!(r#"{{{SNAPSHOT}, "calculators": {{}}, "response_contract": {{}}}}"#);
     let contract = snapshot(&dir, "empty", &text);
-    let args = ["--contract", &contract, "drift", "--enable-network", "--base-url", HOST];
+    let args = [
+        "--contract",
+        &contract,
+        "drift",
+        "--enable-network",
+        "--base-url",
+        HOST,
+    ];
     assert_eq!(
         run(&args),
         (
