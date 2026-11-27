@@ -268,6 +268,26 @@ fn forced_key() -> Option<String> {
     None
 }
 
+#[cfg(test)]
+thread_local! {
+    /// An OS error code every mapping read fails with, so a test can show an
+    /// unreadable file.
+    static FAILED_READ: std::cell::Cell<Option<i32>> = const { std::cell::Cell::new(None) };
+}
+
+#[cfg(test)]
+fn read_file(path: &std::path::Path) -> std::io::Result<Vec<u8>> {
+    match FAILED_READ.with(std::cell::Cell::get) {
+        Some(code) => Err(std::io::Error::from_raw_os_error(code)),
+        None => std::fs::read(path),
+    }
+}
+
+#[cfg(not(test))]
+fn read_file(path: &std::path::Path) -> std::io::Result<Vec<u8>> {
+    std::fs::read(path)
+}
+
 /// A stable digest of an account's logical identity.
 pub fn account_key(account: &str) -> String {
     forced_key().unwrap_or_else(|| {
@@ -578,19 +598,11 @@ pub fn write_mapping(path: &PyPath, rows: &[MappingRow]) -> Result<(), Failure> 
 
 /// Read a mapping file, keyed by stable account digest.
 pub fn read_mapping(path: &PyPath) -> Result<Mapping, Failure> {
-    read_mapping_with(path, std::fs::read)
-}
-
-/// `read_mapping` with the file read by `read`, which a test can make fail.
-fn read_mapping_with(
-    path: &PyPath,
-    read: impl FnOnce(std::path::PathBuf) -> std::io::Result<Vec<u8>>,
-) -> Result<Mapping, Failure> {
     let shown = path.display();
     if !path.fs().is_file() {
         return fail(format!("mapping file not found: {shown}"));
     }
-    let data = read(path.fs()).map_err(|e| {
+    let data = read_file(&path.fs()).map_err(|e| {
         Failure::Value(crate::py::oserror_str(
             &e,
             &shown,
@@ -928,12 +940,10 @@ Rent,10
 
     #[test]
     fn an_unreadable_mapping_file_is_reported_with_its_errno() {
-        let path = scratch(
-            "unreadable.csv",
-            "account
-",
-        );
-        let failure = read_mapping_with(&path, |_| Err(std::io::Error::from_raw_os_error(2)));
+        let path = scratch("unreadable.csv", "account\n");
+        FAILED_READ.with(|f| f.set(Some(2)));
+        let failure = read_mapping(&path);
+        FAILED_READ.with(|f| f.set(None));
         assert_eq!(
             message(failure),
             format!(
@@ -945,14 +955,7 @@ Rent,10
 
     #[test]
     fn a_header_over_the_field_limit_is_a_csv_error() {
-        let path = scratch(
-            "wide.csv",
-            &format!(
-                "{}
-",
-                "a".repeat(131_073)
-            ),
-        );
+        let path = scratch("wide.csv", &format!("{}\n", "a".repeat(131_073)));
         assert_eq!(
             read_mapping(&path).unwrap_err(),
             Failure::Uncaught("_csv.Error: field larger than field limit (131072)".into())

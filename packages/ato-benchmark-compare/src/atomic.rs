@@ -123,8 +123,11 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    /// A fresh folder under the crate's ignored `target/`, the working
+    /// directory cargo runs unit tests in.
     fn scratch(tag: &str) -> std::path::PathBuf {
-        let dir = std::env::temp_dir().join(format!("ato-atomic-{tag}-{}", std::process::id()));
+        let dir =
+            std::path::Path::new("target").join(format!("atomic-{tag}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir

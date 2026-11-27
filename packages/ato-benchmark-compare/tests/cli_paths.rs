@@ -144,8 +144,8 @@ fn bakery_without_interest(mapping: &str, confirm: bool) -> String {
     ));
     std::fs::create_dir_all(&dir).unwrap();
     let (pnl, reviewed) = (dir.join("pnl.csv"), dir.join("mapping.csv"));
-    let source = include_str!("../examples/bakery-pnl.csv")
-        .replace("Interest received,1200.00,900.00\n", "");
+    let source =
+        include_str!("../examples/bakery-pnl.csv").replace("Interest received,1200.00,900.00", "");
     std::fs::write(&pnl, source).unwrap();
     std::fs::write(&reviewed, mapping).unwrap();
     let (pnl, reviewed) = (pnl.to_str().unwrap(), reviewed.to_str().unwrap());
