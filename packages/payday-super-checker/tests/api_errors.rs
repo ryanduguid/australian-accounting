@@ -121,3 +121,19 @@ fn a_mapping_pair_that_is_not_two_strings_is_refused() {
         );
     }
 }
+
+#[test]
+fn overrides_that_are_not_a_list_are_refused() {
+    assert_eq!(
+        refused("load-mapping", json!({"overrides": 5})),
+        "overrides must be a list of strings"
+    );
+}
+
+#[test]
+fn an_orphan_super_row_keeps_its_unreconciled_refund_flag() {
+    let row = json!({"employee_id": "E9", "paid_date": "2026-07-20", "amount": "10.00", "row": 2, "refund_unreconciled": true});
+    let joined = evaluate("join", &json!({"payroll_rows": [], "super_rows": [row]})).unwrap();
+    assert_eq!(joined["orphans"][0]["refund_unreconciled"], json!(true));
+    assert_eq!(joined["orphans"][0]["employee_id"], json!("E9"));
+}

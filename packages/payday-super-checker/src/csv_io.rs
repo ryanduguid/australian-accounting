@@ -191,10 +191,10 @@ impl Mapping {
     }
 
     fn set(&mut self, field: &str, column: &str) {
-        match self.columns.iter_mut().find(|(f, _)| f == field) {
-            Some(entry) => entry.1 = column.to_string(),
-            None => self.columns.push((field.to_string(), column.to_string())),
-        }
+        // Only `load_mapping` sets a field: it starts from DEFAULT_MAPPING,
+        // which holds every canonical field, and sets canonical fields only.
+        let entry = self.columns.iter_mut().find(|(f, _)| f == field);
+        entry.expect("every canonical field is in DEFAULT_MAPPING").1 = column.to_string();
     }
 }
 
@@ -390,13 +390,8 @@ fn parse_date(value: &str, field: &str, row: i64) -> Result<Date> {
 pub fn parse_amount(value: &str, field: &str, row: i64, empty_is_error: bool) -> Result<Decimal> {
     let mut text = pytext::strip(&pytext::strip(value).replace('$', "")).to_string();
     if text.starts_with('(') && text.ends_with(')') {
-        let inner: Vec<char> = text.chars().collect();
-        let body: String = if inner.len() >= 2 {
-            inner[1..inner.len() - 1].iter().collect()
-        } else {
-            String::new()
-        };
-        text = format!("-{}", pytext::strip(&body));
+        // '(' and ')' are one byte each, and both present, so the slice is the body.
+        text = format!("-{}", pytext::strip(&text[1..text.len() - 1]));
     }
     if empty_is_error && text.is_empty() {
         return Err(csv_error(format!("row {row}: {field} is empty")));
@@ -569,18 +564,15 @@ pub fn malformed_row_problem(row: &DictRow, i: i64) -> Option<String> {
             repr_list(&short)
         ));
     }
-    let surplus: Vec<String> = row
-        .iter()
-        .find(|(k, _)| k.is_none())
-        .map(|(_, v)| match v {
-            Cell::Surplus(values) => values
-                .iter()
-                .filter(|v| !pytext::strip(v).is_empty())
-                .cloned()
-                .collect(),
-            _ => Vec::new(),
-        })
-        .unwrap_or_default();
+    // The rest key holds only `Cell::Surplus`; a row with no rest key has none.
+    let surplus: Vec<String> = match row.iter().find(|(k, _)| k.is_none()) {
+        Some((_, Cell::Surplus(values))) => values
+            .iter()
+            .filter(|v| !pytext::strip(v).is_empty())
+            .cloned()
+            .collect(),
+        _ => Vec::new(),
+    };
     if !surplus.is_empty() {
         return Some(format!(
             "row {i} carries more values than the header has columns: \
@@ -754,14 +746,12 @@ fn parse_rows_bytes(
             problems.push(problem);
             continue;
         }
+        // An absent column, or a missing value under a blank heading, reads as blank.
         let cell = |column: &str| -> String {
-            row.iter()
-                .find(|(k, _)| k.as_deref() == Some(column))
-                .map(|(_, v)| match v {
-                    Cell::Value(s) => s.clone(),
-                    _ => String::new(),
-                })
-                .unwrap_or_default()
+            match row.iter().find(|(k, _)| k.as_deref() == Some(column)) {
+                Some((_, Cell::Value(s))) => s.clone(),
+                _ => String::new(),
+            }
         };
         // An optional field the mapping lacks raises KeyError where it is read.
         let optional = |field: &str| -> Result<String> {
@@ -1069,14 +1059,12 @@ fn attach_event(
 }
 
 fn read_event(row: &DictRow, i: i64) -> Result<(String, Date, ContribEvent)> {
+    // An absent column, or a missing value under a blank heading, reads as blank.
     let cell = |column: &str| -> String {
-        row.iter()
-            .find(|(k, _)| k.as_deref() == Some(column))
-            .map(|(_, v)| match v {
-                Cell::Value(s) => pytext::strip(s).to_string(),
-                _ => String::new(),
-            })
-            .unwrap_or_default()
+        match row.iter().find(|(k, _)| k.as_deref() == Some(column)) {
+            Some((_, Cell::Value(s))) => pytext::strip(s).to_string(),
+            _ => String::new(),
+        }
     };
     let at = format!("event row {i}");
     let required = |column: &str| -> Result<String> {
