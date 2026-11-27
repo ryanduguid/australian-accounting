@@ -311,3 +311,17 @@ fn offset_amounts(
         Ok((before_cap, offset, applied))
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Arg, small_business_entity};
+
+    /// optional_facts requires the 4 turnover inputs with net small business
+    /// income of the individual's own, so no input reaches this without them.
+    #[test]
+    #[should_panic(expected = "required with net small business income")]
+    fn the_turnover_inputs_are_checked_before_this_runs() {
+        let business = Arg::Text("carried_on".into());
+        let _ = small_business_entity([Some(&business), None, None, None, None, None]);
+    }
+}

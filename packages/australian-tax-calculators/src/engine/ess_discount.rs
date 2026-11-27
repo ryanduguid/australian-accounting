@@ -218,8 +218,9 @@ pub fn ess_discount(args: &EssDiscountArgs) -> Result<Value> {
     let mut rows = Vec::new();
     for (interest, assessed) in interests.iter_mut().zip(&assessed) {
         let ok = relies_on_4(interest, assessed.as_ref(), &sacrifice)?;
-        let row = match (&mut interest.state, assessed) {
-            (State::Held(held), Some(a)) => {
+        let row = match &mut interest.state {
+            State::Held(held) => {
+                let a = assessed.expect("assessed every held interest");
                 let ctx = Context {
                     number: interest.number,
                     kind: interest.kind,
@@ -228,10 +229,7 @@ pub fn ess_discount(args: &EssDiscountArgs) -> Result<Value> {
                 };
                 held_row(&ctx, held, a, ok, &mut totals)?
             }
-            (State::Forfeited(f), _) => {
-                forfeited_row(interest.number, interest.kind, f, &mut totals)?
-            }
-            _ => unreachable!("assessed every held interest"),
+            State::Forfeited(f) => forfeited_row(interest.number, interest.kind, f, &mut totals)?,
         };
         rows.push(row);
     }

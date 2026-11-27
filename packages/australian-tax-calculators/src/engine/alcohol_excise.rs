@@ -188,12 +188,15 @@ pub fn alcohol_excise(args: &AlcoholExciseArgs) -> Result<Value> {
     let remission = remission_facts(args, &lines, bounds, &year)?;
     let mut out = match &remission {
         Some(facts) => with_remission(&year, &duty, &eligible, facts)?,
-        None => result(
-            KIND,
-            &year,
-            vec![("excise_duty", duty.clone()), ("net_duty", duty)],
-            held_rates(),
-        )?,
+        None => {
+            let plain = result(
+                KIND,
+                &year,
+                vec![("excise_duty", duty.clone()), ("net_duty", duty)],
+                held_rates(),
+            );
+            plain?
+        }
     };
     out["lines"] = Value::Array(worked);
     out["return_lines"] = Value::Array(returned);

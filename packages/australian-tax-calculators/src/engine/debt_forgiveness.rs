@@ -448,28 +448,31 @@ fn totals(debts: &[Debt], worked: &[(Decimal, Decimal, Decimal)]) -> Calc<Vec<St
     let brought: Vec<&Decimal> = debts.iter().map(|x| &x.brought_to_account).collect();
     let forgone: Vec<&Decimal> = debts.iter().map(|x| &x.forgone).collect();
     let nets: Vec<&Decimal> = worked.iter().map(|w| &w.2).collect();
-    Ok(vec![
-        sum_step(
+    [
+        (
             "gross_forgiven_amount",
             "ss 245-75 and 245-77: each debt's value less the amount offset, nil if not more, shared equally between the debtors (in cents, half up), nil where Division 245 does not apply (ss 245-10 and 245-40)",
             &shares,
-        )?,
-        sum_step(
+        ),
+        (
             "brought_to_account",
             "s 245-85(1): amounts included in assessable income, deductions reduced and cost bases reduced by other provisions because of the forgiveness",
             &brought,
-        )?,
-        sum_step(
+        ),
+        (
             "forgone_by_creditors",
             "s 245-90: capital losses and deductions creditors under common ownership agreed to forgo",
             &forgone,
-        )?,
-        sum_step(
+        ),
+        (
             "total_net_forgiven_amount",
             "ss 245-85(2), 245-90 and 245-105(1): the debts' net forgiven amounts, each nil rather than negative",
             &nets,
-        )?,
-    ])
+        ),
+    ]
+    .into_iter()
+    .map(|(id, authority, terms)| sum_step(id, authority, terms))
+    .collect()
 }
 
 /// What is left after the 4 reductions (s 245-195(1)).

@@ -693,14 +693,16 @@ fn base_steps(
             &[&agreement.balloon],
             total.clone(),
         ),
-        (None, Some((instalment, count))) => step(
-            total_id,
-            total_authority,
-            level_formula,
-            &[instalment, &int(*count), &agreement.balloon],
-            total.clone(),
-        ),
-        (None, None) => unreachable!("a level regime has its instalment"),
+        (None, level) => {
+            let (instalment, count) = level.expect("a level regime has its instalment");
+            step(
+                total_id,
+                total_authority,
+                level_formula,
+                &[instalment, &int(*count), &agreement.balloon],
+                total.clone(),
+            )
+        }
     };
     vec![
         step(

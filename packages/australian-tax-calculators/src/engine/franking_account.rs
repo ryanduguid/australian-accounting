@@ -566,11 +566,12 @@ fn inputs(a: &FrankingArgs, facts: &Facts) -> Result<Inputs> {
         "distribution",
         &DISTRIBUTION_FIELDS,
         "franking_account.distribution_invalid",
-    )?
-    .into_iter()
-    .enumerate()
-    .map(|(i, o)| distribution(i + 1, o, facts))
-    .collect::<Result<Vec<_>>>()?;
+    );
+    let dists = dists?
+        .into_iter()
+        .enumerate()
+        .map(|(i, o)| distribution(i + 1, o, facts))
+        .collect::<Result<Vec<_>>>()?;
     let tax = income_tax(a.income_tax, facts.private)?;
     let determination = match a.commissioner_determination {
         None => false,

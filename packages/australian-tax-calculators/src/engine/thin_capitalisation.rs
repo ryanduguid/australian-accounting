@@ -297,6 +297,23 @@ fn group_ratio(a: &ThinCapitalisationArgs, items: &[Deduction]) -> Result<Worked
     })
 }
 
+/// The test an entity neither financial nor an ADI chose.
+fn general_test(
+    t: Test,
+    a: &ThinCapitalisationArgs,
+    items: &[Deduction],
+    year: &str,
+) -> Result<Worked> {
+    match t {
+        Test::Fixed => fixed_ratio(a, items, year),
+        Test::Group => group_ratio(a, items),
+        Test::ThirdParty => third_party_debt(items),
+        Test::MaxDebt | Test::MinCapital => {
+            unreachable!("check_test keeps these to financial entities and ADIs")
+        }
+    }
+}
+
 fn third_party_debt(items: &[Deduction]) -> Result<Worked> {
     precise(|| {
         let mut steps = opening(items, None)?;
@@ -375,12 +392,7 @@ pub fn thin_capitalisation(a: &ThinCapitalisationArgs) -> Result<Value> {
             );
         }
         (Some(why), _) => exempt(&items, why)?,
-        (None, Test::Fixed) => fixed_ratio(a, &items, &year)?,
-        (None, Test::Group) => group_ratio(a, &items)?,
-        (None, Test::ThirdParty) => third_party_debt(&items)?,
-        (None, Test::MaxDebt | Test::MinCapital) => {
-            unreachable!("check_test keeps these to financial entities and ADIs")
-        }
+        (None, t) => general_test(t, a, &items, &year)?,
     };
     let disallowed = value_of(&worked.steps, "total_disallowed_amount").clone();
     let mut out = derived_result(KIND, &year, worked.steps, worked.rates)?;
@@ -394,4 +406,31 @@ pub fn thin_capitalisation(a: &ThinCapitalisationArgs) -> Result<Value> {
         out["frt_disallowed_amounts"] = rows;
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Arg, Test, ThinCapitalisationArgs, general_test};
+
+    /// check_test refuses these tests for a general or not-covered entity, and
+    /// a financial entity or ADI takes the older rules first, so no input
+    /// reaches this arm.
+    #[test]
+    #[should_panic(expected = "check_test keeps these to financial entities and ADIs")]
+    fn a_general_entity_never_reaches_the_debt_or_capital_tests() {
+        let x = Arg::Bool(false);
+        let a = ThinCapitalisationArgs {
+            test: &x,
+            entity_class: &x,
+            plantation_forestry_entity: &x,
+            special_purpose_entity: &x,
+            outward_investor_only: &x,
+            associate_inclusive_debt_deductions: &x,
+            debt_deductions: &x,
+            year: &x,
+            scope_confirmed: &x,
+            given: &[],
+        };
+        let _ = general_test(Test::MaxDebt, &a, &[], "2025-26");
+    }
 }

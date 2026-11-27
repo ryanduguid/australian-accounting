@@ -269,12 +269,13 @@ fn increase(pool: &mut [Unused], year: &Earlier, written: &str) -> Result<Vec<St
         .position(|u| u.start >= from)
         .unwrap_or(pool.len());
     let source: Source = |u| Ok(u.formula());
-    Ok(apply(
+    let applied = apply(
         &mut pool[start..],
         year.start,
         (&formula, vec![cap], excess),
         source,
-    )?)
+    );
+    Ok(applied?)
 }
 
 /// Each earlier year's increase and unused cap, in year order.

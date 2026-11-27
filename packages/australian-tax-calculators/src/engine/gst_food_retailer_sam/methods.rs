@@ -211,7 +211,7 @@ fn every(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Resu
         if purchases.is_zero() {
             return nil("trading_stock_purchases");
         }
-        share(
+        let shared = share(
             "gst_free_sales",
             EVERY,
             [
@@ -220,7 +220,8 @@ fn every(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Resu
                 "trading_stock_purchases",
             ],
             [&sales, &free.value, purchases],
-        )?
+        );
+        shared?
     } else {
         let win = half_window(given, period)?;
         let step = sales_from_sample(given, &sales, win, &mut rates)?;
@@ -269,7 +270,7 @@ fn samples(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Re
     let mut rates = Rates::new();
     let (free, s) = purchases_from_sample(given, purchases, win, &mut rates)?;
     let free_sales = if m == Method::StockSamples {
-        share(
+        let shared = share(
             "gst_free_sales",
             PURCHASE_SAMPLE,
             [
@@ -278,7 +279,8 @@ fn samples(m: Method, given: &Given, period: &Period, purchases: &Decimal) -> Re
                 "purchases_sample_total",
             ],
             [&sales, &s.gst_free, &s.total],
-        )?
+        );
+        shared?
     } else {
         sales_from_sample(given, &sales, win, &mut rates)?
     };
