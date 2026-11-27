@@ -117,10 +117,8 @@ pub fn cgt_rollover(args: &CgtRolloverArgs) -> Result<Value> {
     f.none_left()?;
     let mut out = result(KIND, &year, amounts, Vec::new())?;
     out["rollover"] = json!(rollover);
-    let warnings: Vec<Value> = match extra.get("warnings") {
-        Some(Value::Array(w)) => w.clone(),
-        _ => Vec::new(),
-    };
+    let warnings = extra.get("warnings").and_then(Value::as_array);
+    let warnings: Vec<Value> = warnings.cloned().unwrap_or_default();
     for (k, v) in extra {
         if k != "warnings" {
             out[k] = v;

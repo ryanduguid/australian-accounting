@@ -222,3 +222,31 @@ fn a_register_that_is_not_utf8_names_its_bad_byte() {
         ))
     );
 }
+
+#[test]
+fn json_string_escapes_decode_and_a_bad_one_is_placed() {
+    let holds_str = "<f> must be a JSON object with 'verified_until', 'citation' and 'rates'; it \
+                     holds a str";
+    // `~` stands for a backslash.
+    let escaped = |json: &str| json.replace('~', "\\");
+    assert_eq!(override_error(&escaped(r#""~"~~~/~b~f~n~r~t""#)), holds_str);
+    // A surrogate pair joins into one code point.
+    assert_eq!(override_error(&escaped(r#""~ud83d~ude00""#)), holds_str);
+    assert_eq!(
+        json_error(&escaped(r#""~x""#)),
+        r"Invalid \escape: line 1 column 2 (char 1)"
+    );
+}
+
+#[test]
+fn a_rate_table_field_over_the_csv_limit_is_refused_as_python_raises_it() {
+    let mut text =
+        "# reviewed_until: 2026-27\n# reviewed_on: 2026-07-01\nyear_of_income,rate\n".to_string();
+    text.push_str(&"x".repeat(131_073));
+    text.push('\n');
+    let path = file(text.as_bytes());
+    assert_eq!(
+        rates::load_table(&py_path(&path)).unwrap_err(),
+        Failure::Uncaught("_csv.Error: field larger than field limit (131072)".into())
+    );
+}
