@@ -5426,6 +5426,7 @@ fn method_a_steps(pay: &AdditionalPay, additional: &Decimal, periods: i64) -> Re
             (&earnings, "earnings_used", &[&earnings]),
             on_earnings.clone(),
         );
+        let withholding_on_earnings = withholding_on_earnings?;
         let withholding_on_earnings_and_share = pay.table_step(
             "withholding_on_earnings_and_share",
             "Schedule 5, Method A steps 4 and 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
@@ -5436,6 +5437,7 @@ fn method_a_steps(pay: &AdditionalPay, additional: &Decimal, periods: i64) -> Re
             ),
             with_share.clone(),
         );
+        let withholding_on_earnings_and_share = withholding_on_earnings_and_share?;
         Ok(vec![
             step(
                 "earnings_used",
@@ -5444,7 +5446,7 @@ fn method_a_steps(pay: &AdditionalPay, additional: &Decimal, periods: i64) -> Re
                 &[&pay.earnings],
                 earnings.clone(),
             ),
-            withholding_on_earnings?,
+            withholding_on_earnings,
             step(
                 "additional_payment_per_period",
                 "Schedule 5, Method A step 3",
@@ -5452,7 +5454,7 @@ fn method_a_steps(pay: &AdditionalPay, additional: &Decimal, periods: i64) -> Re
                 &[additional, &n],
                 share.clone(),
             ),
-            withholding_on_earnings_and_share?,
+            withholding_on_earnings_and_share,
             step(
                 "withholding_before_limit",
                 "Schedule 5, Method A steps 6 and 7",
@@ -5597,6 +5599,7 @@ fn method_b_i_steps(pay: &AdditionalPay, periods: &[BackPaidPeriod]) -> Result<V
             (&pay.earnings, "earnings", &[&pay.earnings]),
             on_earnings.clone(),
         );
+        let withholding_on_earnings = withholding_on_earnings?;
         Ok(vec![
             step(
                 "back_payment",
@@ -5612,7 +5615,7 @@ fn method_b_i_steps(pay: &AdditionalPay, periods: &[BackPaidPeriod]) -> Result<V
                 &[],
                 on_back_payment.clone(),
             ),
-            withholding_on_earnings?,
+            withholding_on_earnings,
             step(
                 "withholding",
                 "Schedule 5, Method B(i) step 7",
@@ -5687,6 +5690,7 @@ fn method_b_ii_steps(
             (&average, "average_total_earnings", &[&average]),
             on_average.clone(),
         );
+        let withholding_on_average_earnings = withholding_on_average_earnings?;
         let withholding_on_average_and_share = pay.table_step(
             "withholding_on_average_and_share",
             "Schedule 5, Method B(ii) steps 4 and 5; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
@@ -5697,12 +5701,14 @@ fn method_b_ii_steps(
             ),
             with_share.clone(),
         );
+        let withholding_on_average_and_share = withholding_on_average_and_share?;
         let withholding_on_earnings = pay.table_step(
             "withholding_on_earnings",
             "Schedule 5, Method B(ii) step 11; Schedule 1, 'Using a formula', with Schedule 8 for a study loan",
             (&pay.earnings, "earnings", &[&pay.earnings]),
             on_earnings.clone(),
         );
+        let withholding_on_earnings = withholding_on_earnings?;
         Ok(vec![
             step(
                 "average_total_earnings",
@@ -5711,7 +5717,7 @@ fn method_b_ii_steps(
                 &[&to_date.earnings, &pays],
                 average.clone(),
             ),
-            withholding_on_average_earnings?,
+            withholding_on_average_earnings,
             step(
                 "additional_payments_per_period",
                 "Schedule 5, Method B(ii) step 3 and 'Pay periods per financial year'",
@@ -5719,7 +5725,7 @@ fn method_b_ii_steps(
                 &[&to_date.earlier, additional, &per_year],
                 share.clone(),
             ),
-            withholding_on_average_and_share?,
+            withholding_on_average_and_share,
             step(
                 "withholding_for_the_year",
                 "Schedule 5, Method B(ii) steps 6 and 7",
@@ -5741,7 +5747,7 @@ fn method_b_ii_steps(
                 &[&extra, &to_date.earlier_withheld, &limit],
                 on_additional.clone(),
             ),
-            withholding_on_earnings?,
+            withholding_on_earnings,
             step(
                 "withholding",
                 "Schedule 5, Method B(ii) step 12",
