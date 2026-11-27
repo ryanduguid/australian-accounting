@@ -174,3 +174,57 @@ fn supplied_facts_never_become_missing_and_unknown_rows_never_gain_a_due_date() 
         }
     }
 }
+
+#[test]
+fn command_names_are_quoted_with_their_control_characters_escaped() {
+    assert_eq!(
+        api::evaluate("a\b\nc\rd\te", &json!({})).unwrap_err(),
+        r"unknown JSON command: 'a\b\nc\rd\te'"
+    );
+}
+
+#[test]
+fn a_caller_holiday_mapping_replaces_the_built_in_holidays() {
+    let built_in = holidays::roll(&json!({"day": "2026-12-25"})).unwrap();
+    assert_eq!(built_in[0], "2026-12-29");
+    let caller = holidays::roll(&json!({
+        "day": "2026-12-25",
+        "holidays": {"2026-12-25": "Caller holiday"},
+        "covers_to": "2027-06-30"
+    }))
+    .unwrap();
+    assert_eq!(caller[0], "2026-12-28");
+}
+
+#[test]
+fn malformed_roll_requests_are_refused() {
+    for (request, error) in [
+        (json!({"day": "2026-12-25", "when": 1}), "unknown roll field: \"when\""),
+        (json!({"day": "2026-12-25", "holidays": []}), "holidays must be an object"),
+        (
+            json!({"day": "2026-12-25", "holidays": {"2026-12-25": 1}}),
+            "holiday name must be text",
+        ),
+    ] {
+        assert_eq!(holidays::roll(&request).unwrap_err(), error);
+    }
+}
+
+#[test]
+fn provenance_names_the_program_period_and_its_sources() {
+    let value = lodgment_calendar::provenance();
+    assert_eq!(value["program_year"], "2026-27");
+    assert_eq!(value["covers_from"], "2026-07-01");
+    assert_eq!(value["covers_to"], "2027-06-30");
+    assert_eq!(value["source_checked"], "2026-10-31");
+    assert!(value["sources"].is_array() || value["sources"].is_object());
+    assert!(!value["holiday_provision"].is_null());
+}
+
+#[test]
+fn os_text_and_output_bytes_round_trip() {
+    use lodgment_calendar::cli;
+    let text = cli::decode_os(std::ffi::OsStr::new("due-dates é"));
+    assert_eq!(text, "due-dates é");
+    assert_eq!(cli::output_bytes(&text), "due-dates é".as_bytes());
+}
