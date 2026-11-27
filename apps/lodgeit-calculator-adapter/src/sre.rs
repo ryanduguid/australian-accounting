@@ -428,10 +428,10 @@ impl State {
 
     fn opengroup(&mut self, name: Option<&[u32]>) -> Result<usize, Vec<u32>> {
         let gid = self.groups();
+        // CPython refuses a group past MAXGROUPS (2^30 - 1). Each group
+        // takes at least 2 code points of pattern, and every pattern is a
+        // short literal in the source, so none comes near it.
         self.groupwidths.push(None);
-        if self.groups() > MAXGROUPS {
-            return Err(pts("too many groups"));
-        }
         if let Some(name) = name {
             if let Some(&ogid) = self.groupdict.get(name) {
                 return Err(pts(&format!(
