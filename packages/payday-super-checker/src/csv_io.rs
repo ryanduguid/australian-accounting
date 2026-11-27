@@ -194,7 +194,9 @@ impl Mapping {
         // Only `load_mapping` sets a field: it starts from DEFAULT_MAPPING,
         // which holds every canonical field, and sets canonical fields only.
         let entry = self.columns.iter_mut().find(|(f, _)| f == field);
-        entry.expect("every canonical field is in DEFAULT_MAPPING").1 = column.to_string();
+        entry
+            .expect("every canonical field is in DEFAULT_MAPPING")
+            .1 = column.to_string();
     }
 }
 

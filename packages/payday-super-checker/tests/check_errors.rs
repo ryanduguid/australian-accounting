@@ -80,7 +80,10 @@ fn an_empty_events_file_has_no_header_row() {
 #[test]
 fn an_events_header_with_no_rows_is_refused() {
     let (err, path) = events_error("events-header-only", EVENTS_HEADER.as_bytes());
-    assert_eq!(err, format!("error: {path} has a header but no data rows\n"));
+    assert_eq!(
+        err,
+        format!("error: {path} has a header but no data rows\n")
+    );
 }
 
 #[test]
@@ -104,16 +107,25 @@ fn more_than_twenty_event_problems_are_counted_not_listed() {
         events.push_str("EMP001,2026-07-09,bogus,2026-07-10,1\n");
     }
     let (err, path) = events_error("events-many", events.as_bytes());
-    assert!(err.starts_with(&format!("error: 22 problem(s) in {path}:\n")), "{err}");
+    assert!(
+        err.starts_with(&format!("error: 22 problem(s) in {path}:\n")),
+        "{err}"
+    );
     assert!(err.contains("  - event row 21: event 'bogus' is not received, returned or allocated ... and 2 more problem(s).\n"), "{err}");
     assert!(!err.contains("event row 22"), "{err}");
 }
 
 #[test]
 fn an_events_field_over_the_csv_limit_is_python_csv_error() {
-    let events = format!("{EVENTS_HEADER}EMP001,2026-07-09,{},2026-07-10,1\n", "x".repeat(131_073));
+    let events = format!(
+        "{EVENTS_HEADER}EMP001,2026-07-09,{},2026-07-10,1\n",
+        "x".repeat(131_073)
+    );
     let (err, _) = events_error("events-field-limit", events.as_bytes());
-    assert_eq!(err, "error: _csv.Error: field larger than field limit (131072)\n");
+    assert_eq!(
+        err,
+        "error: _csv.Error: field larger than field limit (131072)\n"
+    );
 }
 
 #[test]
@@ -150,7 +162,10 @@ fn a_report_under_a_file_is_refused_as_unwritable() {
     let output = text(&dir.join("afile").join("report.csv"));
     let (code, out, err) = check(&dir, &[], &["-o".into(), output.clone()]);
     assert_eq!((code, out.as_str()), (1, ""));
-    assert!(err.starts_with(&format!("error: cannot write {output}: ")), "{err}");
+    assert!(
+        err.starts_with(&format!("error: cannot write {output}: ")),
+        "{err}"
+    );
 }
 
 #[test]

@@ -1686,8 +1686,14 @@ mod tests {
         };
         let want = "error: AssertionError: exposed result has a partial SG charge estimate\n";
         let pack = output.replace("report.csv", "pack");
-        assert_eq!(write_pack(Streams::default(), &[partial()], &facts, &pack), (1, String::new(), want.into()));
-        assert_eq!(report(&[partial()], &output, &rates()), (1, String::new(), want.into()));
+        assert_eq!(
+            write_pack(Streams::default(), &[partial()], &facts, &pack),
+            (1, String::new(), want.into())
+        );
+        assert_eq!(
+            report(&[partial()], &output, &rates()),
+            (1, String::new(), want.into())
+        );
         assert!(!Path::new(&output).exists() && !Path::new(&pack).exists());
     }
 
@@ -1738,6 +1744,35 @@ mod tests {
              figures are incomplete\n"
         );
         assert!(Path::new(&output).exists());
+    }
+
+    #[test]
+    fn an_os_error_without_strerror_is_shown_as_str_exc() {
+        let e = crate::OsError {
+            errno: 0,
+            strerror: String::new(),
+            filename: None,
+            text: "boom".into(),
+        };
+        assert_eq!(strerror(&e), "boom");
+    }
+
+    #[test]
+    fn only_an_unverified_profile_is_marked() {
+        let mut profile = crate::profiles::load_profiles(Some("super"))
+            .unwrap()
+            .remove(0);
+        profile.verified = true;
+        let line = profile_line("super", &profile);
+        assert_eq!(
+            line,
+            format!("super profile: {} -- {}", profile.key, profile.name)
+        );
+        profile.verified = false;
+        assert_eq!(
+            profile_line("super", &profile),
+            format!("{line} (unverified against a real export)")
+        );
     }
 
     #[test]
