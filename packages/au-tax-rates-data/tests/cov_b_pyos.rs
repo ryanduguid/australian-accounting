@@ -90,6 +90,44 @@ fn makedirs_makes_every_missing_parent_and_refuses_a_file_in_the_way() {
     assert_ne!(error.class(), "FileNotFoundError", "{}", error.text);
 }
 
+#[test]
+fn makedirs_tries_again_once_the_parent_of_a_dotdot_path_exists() {
+    // CPython 3.15: `Path(dir, "missing", "..").mkdir(parents=True, exist_ok=True)` succeeds;
+    // POSIX finds `missing` absent, makes it and retries, Windows resolves `..` lexically first.
+    let dir = scratch("dotdot");
+    assert!(makedirs(&py(&dir.join("missing").join(".."))).is_ok());
+    assert_eq!(dir.join("missing").is_dir(), cfg!(unix));
+    // The retry for `gone/../file` meets a file: FileExistsError naming the path as given.
+    std::fs::write(dir.join("file"), b"").unwrap();
+    let path = dir.join("gone").join("..").join("file");
+    let error = makedirs(&py(&path)).unwrap_err();
+    assert_eq!(error.class(), "FileExistsError", "{}", error.text);
+    let sep = if cfg!(windows) { "\\\\" } else { "/" };
+    assert!(
+        error.text.ends_with(&format!("..{sep}file'")),
+        "{}",
+        error.text
+    );
+}
+
+#[cfg(windows)]
+#[test]
+fn makedirs_on_a_missing_drive_raises_the_roots_file_not_found() {
+    // CPython 3.15 on Windows: FileNotFoundError [WinError 3] ... 'Y:\\', the drive root itself.
+    let letter = ('D'..='Z')
+        .rev()
+        .find(|c| !std::path::Path::new(&format!("{c}:\\")).exists())
+        .expect("a free drive letter");
+    let error = makedirs(&PyPath::new(&format!("{letter}:\\x"))).unwrap_err();
+    assert_eq!(error.class(), "FileNotFoundError", "{}", error.text);
+    assert!(error.text.starts_with("[WinError 3] "), "{}", error.text);
+    assert!(
+        error.text.ends_with(&format!("'{letter}:\\\\'")),
+        "{}",
+        error.text
+    );
+}
+
 #[cfg(unix)]
 #[test]
 fn undecodable_name_bytes_become_surrogate_escapes() {
