@@ -13,8 +13,8 @@ use sha2::{Digest, Sha256};
 use crate::client::Outcome;
 use crate::py;
 use crate::pyencode::{self, Options};
-use crate::pyjson::{self, DecodeError, Json};
-use crate::pyops::{Exc, R, S, get_attr, json_str, pts};
+use crate::pyjson::{self, Json};
+use crate::pyops::{Exc, LoadsError, R, S, get_attr, json_str, loads_error, pts};
 use crate::pyos::{OsError, Style};
 use crate::pypath::PyPath;
 use crate::pyvalue::{py_eq, repr, str_points, type_name, utf8_strict_error};
@@ -302,7 +302,9 @@ pub fn write(record: &Json, path: &PyPath) -> R<()> {
     let mut file = std::fs::File::create(path.fs()).map_err(|e| os_error(&e))?;
     let mut translated = Vec::with_capacity(text.len());
     for cp in text {
-        if cfg!(windows) && cp == u32::from('\n') {
+        // Compiled for Windows only, where its CI leg tests it.
+        #[cfg(windows)]
+        if cp == u32::from('\n') {
             translated.push(u32::from('\r'));
         }
         translated.push(cp);
@@ -421,15 +423,9 @@ pub fn read(path: &PyPath) -> Result<Json, ReadError> {
             ReadError::Uncaught(Exc::msg("UnicodeDecodeError", &error.to_string()))
         }
     })?;
-    pyjson::loads_standard(&text).map_err(|error| match error {
-        DecodeError::Invalid(m) if m.starts_with("Exceeds the limit") => {
-            ReadError::Uncaught(Exc::msg("ValueError", &m))
-        }
-        DecodeError::Invalid(m) => ReadError::Reported(m),
-        DecodeError::Recursion(kind) => {
-            ReadError::Uncaught(Exc::msg("RecursionError", &pyjson::recursion_message(kind)))
-        }
-        other => unreachable!("json.loads has no hooks here: {other:?}"),
+    pyjson::loads_standard(&text).map_err(|error| match loads_error(error) {
+        LoadsError::Decode(m) => ReadError::Reported(m),
+        LoadsError::Other(exc) => ReadError::Uncaught(exc),
     })
 }
 
