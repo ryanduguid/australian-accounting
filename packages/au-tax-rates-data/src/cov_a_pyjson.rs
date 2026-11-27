@@ -9,78 +9,54 @@
 use super::*;
 use crate::pyvalue::repr;
 
+const TEXT_CASES: &[(&str, Result<&str, &str>)] = &[
+    ("[Infinity, -Infinity, NaN]", Ok("[inf, -inf, nan]")),
+    (
+        "{\u{22}a\u{22} 1}",
+        Err("Expecting ':' delimiter: line 1 column 6 (char 5)"),
+    ),
+    (
+        "[1 2]",
+        Err("Expecting ',' delimiter: line 1 column 4 (char 3)"),
+    ),
+    (
+        "[1,]",
+        Err("Illegal trailing comma before end of array: line 1 column 3 (char 2)"),
+    ),
+    (
+        "{\u{22}a\u{22}: 1 \u{22}b\u{22}: 2}",
+        Err("Expecting ',' delimiter: line 1 column 9 (char 8)"),
+    ),
+    (
+        "\u{22}a\u{1}b\u{22}",
+        Err("Invalid control character at: line 1 column 3 (char 2)"),
+    ),
+    (
+        "\u{22}\u{5c}/\u{5c}b\u{5c}f\u{5c}n\u{5c}r\u{5c}t\u{22}",
+        Ok("'/\u{5c}x08\u{5c}x0c\u{5c}n\u{5c}r\u{5c}t'"),
+    ),
+    ("1e", Err("Extra data: line 1 column 2 (char 1)")),
+    ("1e+", Err("Extra data: line 1 column 2 (char 1)")),
+    ("1e5", Ok("100000.0")),
+    ("-1.5E-3", Ok("-0.0015")),
+    (
+        "[\u{a}1,\u{a}2,\u{a} x]",
+        Err("Expecting value: line 4 column 2 (char 9)"),
+    ),
+    (
+        "{\u{22}a\u{22}: 1, \u{22}a\u{22}: 2, \u{22}b\u{22}: [true, false, null]}",
+        Ok("{'a': 2, 'b': [True, False, None]}"),
+    ),
+    ("\u{22}\u{5c}ud800\u{22}", Ok("'\u{5c}ud800'")),
+    ("\u{22}x\u{5c}u00e9\u{22}", Ok("'x\u{e9}'")),
+];
+
 #[test]
 fn text_decodes_or_fails_as_json_loads_does() {
-    let cases: &[(&str, Result<&str, DecodeError>)] = &[
-        ("[Infinity, -Infinity, NaN]", Ok("[inf, -inf, nan]")),
-        (
-            "{\u{22}a\u{22} 1}",
-            Err(DecodeError::Invalid(
-                "Expecting ':' delimiter: line 1 column 6 (char 5)".into(),
-            )),
-        ),
-        (
-            "[1 2]",
-            Err(DecodeError::Invalid(
-                "Expecting ',' delimiter: line 1 column 4 (char 3)".into(),
-            )),
-        ),
-        (
-            "[1,]",
-            Err(DecodeError::Invalid(
-                "Illegal trailing comma before end of array: line 1 column 3 (char 2)".into(),
-            )),
-        ),
-        (
-            "{\u{22}a\u{22}: 1 \u{22}b\u{22}: 2}",
-            Err(DecodeError::Invalid(
-                "Expecting ',' delimiter: line 1 column 9 (char 8)".into(),
-            )),
-        ),
-        (
-            "\u{22}a\u{1}b\u{22}",
-            Err(DecodeError::Invalid(
-                "Invalid control character at: line 1 column 3 (char 2)".into(),
-            )),
-        ),
-        (
-            "\u{22}\u{5c}/\u{5c}b\u{5c}f\u{5c}n\u{5c}r\u{5c}t\u{22}",
-            Ok("'/\u{5c}x08\u{5c}x0c\u{5c}n\u{5c}r\u{5c}t'"),
-        ),
-        (
-            "1e",
-            Err(DecodeError::Invalid(
-                "Extra data: line 1 column 2 (char 1)".into(),
-            )),
-        ),
-        (
-            "1e+",
-            Err(DecodeError::Invalid(
-                "Extra data: line 1 column 2 (char 1)".into(),
-            )),
-        ),
-        ("1e5", Ok("100000.0")),
-        ("-1.5E-3", Ok("-0.0015")),
-        (
-            "[\u{a}1,\u{a}2,\u{a} x]",
-            Err(DecodeError::Invalid(
-                "Expecting value: line 4 column 2 (char 9)".into(),
-            )),
-        ),
-        (
-            "{\u{22}a\u{22}: 1, \u{22}a\u{22}: 2, \u{22}b\u{22}: [true, false, null]}",
-            Ok("{'a': 2, 'b': [True, False, None]}"),
-        ),
-        ("\u{22}\u{5c}ud800\u{22}", Ok("'\u{5c}ud800'")),
-        ("\u{22}x\u{5c}u00e9\u{22}", Ok("'x\u{e9}'")),
-    ];
-    for (text, want) in cases {
+    for (text, want) in TEXT_CASES {
         let got = loads_standard(text).map(|v| repr(&v));
-        assert_eq!(
-            got.as_deref().map_err(Clone::clone),
-            want.clone(),
-            "{text:?}"
-        );
+        let want = want.map_err(|message| DecodeError::Invalid(message.into()));
+        assert_eq!(got.as_deref().map_err(Clone::clone), want, "{text:?}");
     }
 }
 
