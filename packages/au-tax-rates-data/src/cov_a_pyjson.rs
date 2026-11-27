@@ -126,9 +126,8 @@ fn truthiness_is_python_s() {
 #[test]
 fn accessors_refuse_the_wrong_kind() {
     let lone = loads_standard("\"\\ud800\"").unwrap();
-    let Json::Str(s) = &lone else {
-        panic!("a string")
-    };
+    let s = PyStr::from_code_points(vec![0xd800]);
+    assert_eq!(lone, Json::Str(s.clone()));
     assert_eq!(s.as_str(), None);
     assert_eq!(s.code_points(), [0xd800]);
     assert_eq!(loads_standard("1").unwrap().as_str(), None);
