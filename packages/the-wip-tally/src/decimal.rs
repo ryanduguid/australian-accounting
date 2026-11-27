@@ -171,17 +171,20 @@ impl Decimal {
     }
 
     /// `_fix_nan`: keep at most `prec` payload digits, dropping the leading ones.
-    /// Only NaNs reach it; any other value is returned unchanged.
     fn fix_nan(&self) -> Decimal {
-        let mut out = self.clone();
-        if let Kind::NaN(payload, _) = &mut out.kind
-            && payload.len() as i128 > PREC
-        {
-            *payload = payload[payload.len() - PREC as usize..]
+        let Kind::NaN(payload, signalling) = &self.kind else {
+            return self.clone();
+        };
+        let mut payload = payload.clone();
+        if payload.len() as i128 > PREC {
+            payload = payload[payload.len() - PREC as usize..]
                 .trim_start_matches('0')
                 .to_string();
         }
-        out
+        Decimal {
+            kind: Kind::NaN(payload, *signalling),
+            ..self.clone()
+        }
     }
 
     /// `-self`: a zero becomes positive under ROUND_HALF_EVEN.

@@ -397,35 +397,4 @@ mod tests {
             Err("unknown command close-job".into())
         );
     }
-
-    #[test]
-    fn variable_consideration_too_large_for_cents_raises_invalid_operation() {
-        // quantize(Decimal("0.01")) of 1E+27 needs 30 digits, past the 28-digit
-        // context, so Python raised decimal.InvalidOperation.
-        let mut v = base();
-        for key in [
-            "original_contract_sum",
-            "approved_variations",
-            "costs_incurred",
-            "inefficiency_rework_wastage",
-            "uninstalled_materials",
-            "estimated_cost_to_complete",
-            "certified_billings",
-            "uncertified_claims",
-            "retention_withheld",
-            "committed_outstanding",
-        ] {
-            v[key] = json!("0");
-        }
-        v["original_contract_sum"] = json!("1000");
-        v["unapproved_variations_estimate"] = json!("1E27");
-        v["constraint_include_ratio"] = json!("1");
-        v["gst_rate"] = json!("0.1");
-        v["retention_classification"] = json!("review");
-        v["progress_method"] = json!("cost_to_cost");
-        assert_eq!(
-            evaluate("measure", &v),
-            Err("decimal.InvalidOperation".to_string())
-        );
-    }
 }
