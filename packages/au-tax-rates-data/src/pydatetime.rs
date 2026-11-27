@@ -60,12 +60,11 @@ fn ymd_to_ord(year: i32, month: i32, day: i32) -> i64 {
 
 /// `ord_to_ymd`, without a range limit.
 fn ord_to_ymd(ordinal: i64) -> (i32, i32, i32) {
+    // This estimate is never above the true year for any ordinal from 1 to
+    // date.max (checked against date.fromordinal over the whole range), only below.
     let mut year = ((ordinal - 1) * 400 / 146_097 + 1) as i32;
     while ymd_to_ord(year + 1, 1, 1) <= ordinal {
         year += 1;
-    }
-    while ymd_to_ord(year, 1, 1) > ordinal {
-        year -= 1;
     }
     let mut rest = (ordinal - ymd_to_ord(year, 1, 1) + 1) as i32;
     let mut month = 1;
@@ -184,8 +183,9 @@ fn parse_clock(b: &Buf, start: usize, end: usize) -> (i32, [i32; 4]) {
     (i32::from(b.at(p) != 0), v)
 }
 
-/// `check_time_args`.
-fn check_time(h: i32, m: i32, s: i32, us: i32) -> Result<(), String> {
+/// `check_time_args`, less its microsecond check: `parse_clock` reads at most 6
+/// fraction digits, so the microsecond is always in 0..999999.
+fn check_time(h: i32, m: i32, s: i32) -> Result<(), String> {
     if !(0..=23).contains(&h) {
         return Err(format!("hour must be in 0..23, not {h}"));
     }
@@ -194,9 +194,6 @@ fn check_time(h: i32, m: i32, s: i32, us: i32) -> Result<(), String> {
     }
     if !(0..=59).contains(&s) {
         return Err(format!("second must be in 0..59, not {s}"));
-    }
-    if !(0..=999_999).contains(&us) {
-        return Err(format!("microsecond must be in 0..999999, not {us}"));
     }
     Ok(())
 }
@@ -242,7 +239,7 @@ fn parse_time(t: &Buf) -> Time {
     }
     let sign = if t.at(tz) == b'-' { -1 } else { 1 };
     let (rv, [h, m, s, us]) = parse_clock(t, tz + 1, len);
-    if let Err(message) = check_time(h, m, s, us) {
+    if let Err(message) = check_time(h, m, s) {
         return Time::Offset(message);
     }
     if rv != 0 {
@@ -363,7 +360,7 @@ pub fn datetime_fromisoformat(string: &[u32]) -> Result<DateTime, String> {
         }
     }
     let date = Date::new(year.into(), month.into(), day.into())?;
-    check_time(hour, minute, second, microsecond)?;
+    check_time(hour, minute, second)?;
     Ok(DateTime {
         date,
         hour,

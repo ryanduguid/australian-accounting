@@ -216,4 +216,14 @@ fn a_run_of_lone_surrogates_is_one_encode_error() {
         encode_print(&[0xd800, 0xdc80]).unwrap_err(),
         "'utf-8' codec can't encode characters in position 0-1: surrogates not allowed"
     );
+    assert_eq!(
+        utf8_strict_error(&[0x61, 0xd800]).as_deref(),
+        Some(
+            "'utf-8' codec can't encode character '\u{5c}ud800' in position 1: surrogates not allowed"
+        )
+    );
+    assert_eq!(
+        encode_print(&[0x61, 0xd800]).unwrap_err(),
+        "'utf-8' codec can't encode character '\u{5c}ud800' in position 1: surrogates not allowed"
+    );
 }
