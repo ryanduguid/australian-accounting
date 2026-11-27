@@ -147,17 +147,17 @@ fn number_text(s: &str) -> Option<String> {
 
 /// `int(s, base)`; the error is the `ValueError` message.
 pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
-    // CPython takes the first 200 characters, then `%.200R` cuts their repr
-    // to 200 characters, closing quote included.
+    // CPython's `%.200R`: the repr of the whole string (which picks the quote),
+    // cut to 200 characters, closing quote included.
     let invalid = || {
         format!(
             "invalid literal for int() with base {base}: {}",
-            prefix_chars(&repr_str(prefix_chars(s, 200)), 200)
+            prefix_chars(&repr_str(s), 200)
         )
     };
     let text = number_text(s).ok_or_else(invalid)?;
-    let text =
-        text.trim_matches(|c: char| c.is_ascii_whitespace() || ('\x1c'..='\x1f').contains(&c));
+    // `Py_ISSPACE`: ASCII whitespace with \v; str.isspace's \x1c-\x1f are kept.
+    let text = text.trim_matches(|c: char| matches!(c, ' ' | '\t' | '\n' | '\x0b' | '\x0c' | '\r'));
     let (negative, mut body) = match text.as_bytes().first() {
         Some(b'-') => (true, &text[1..]),
         Some(b'+') => (false, &text[1..]),
@@ -627,6 +627,20 @@ mod tests {
                 "invalid literal for int() with base 10: '{}",
                 "x".repeat(199)
             )
+        );
+        // An apostrophe past the 200th character still picks the double quote.
+        assert_eq!(
+            parse_int(&format!("{}'", "x".repeat(200)), 10).unwrap_err(),
+            format!(
+                "invalid literal for int() with base 10: \"{}",
+                "x".repeat(199)
+            )
+        );
+        // int() strips \v but not \x1c, which str.isspace accepts.
+        assert_eq!(parse_int("\x0b1", 10).unwrap(), BigInt::from(1));
+        assert_eq!(
+            parse_int("1\x1c", 10).unwrap_err(),
+            "invalid literal for int() with base 10: '1\\x1c'"
         );
         let quoted = format!("{}'", "\u{e9}".repeat(150));
         assert_eq!(
