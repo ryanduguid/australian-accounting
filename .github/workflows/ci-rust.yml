@@ -106,16 +106,16 @@ jobs:
         run: |
           floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
           cargo llvm-cov --locked --fail-under-lines "$floor"
-      # ci.yml's codecov-rust job uploads this crate's report of the run above,
-      # so Codecov measures its changed lines; report runs no tests.
+      # The caller's codecov-rust job uploads this crate's report of the run above
+      # under the crate's own flag; report runs no tests.
       - name: Write the coverage report for the Codecov upload
-        if: runner.os == 'Linux' && inputs.package == 'australian-tax-calculators'
+        if: runner.os == 'Linux'
         run: cargo llvm-cov report --lcov --output-path lcov.info
       - name: Keep the coverage report for the Codecov upload
-        if: runner.os == 'Linux' && inputs.package == 'australian-tax-calculators'
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: coverage-codecov-${{ inputs.package }}
+          name: coverage-codecov-rust-${{ inputs.package }}
           path: ${{ inputs.root }}/${{ inputs.package }}/lcov.info
           if-no-files-found: error
           retention-days: 1

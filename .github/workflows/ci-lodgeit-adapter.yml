@@ -65,6 +65,32 @@ jobs:
     permissions:
       contents: read
 
+  # The adapter's report from its ci-rust.yml coverage run, under the flag its
+  # retired Python upload used.
+  codecov-rust:
+    name: upload lodgeit-calculator-adapter coverage to Codecov
+    needs: rust
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # Authenticate the Codecov upload with OIDC; no stored token.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-codecov-rust-lodgeit-calculator-adapter
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          files: lcov.info
+          disable_search: true
+          fail_ci_if_error: true
+          flags: lodgeit-calculator-adapter
+
   lodgeit-gates:
     needs: [changes, rust]
     if: always()
@@ -89,4 +115,4 @@ jobs:
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/check_gates.py .github/workflows/ci-lodgeit-adapter.yml lodgeit-gates --no-results
+        run: python3 .github/ci/check_gates.py .github/workflows/ci-lodgeit-adapter.yml lodgeit-gates --no-results --exempt codecov-rust
