@@ -713,7 +713,7 @@ fn a_balance_never_above_nil_is_indexed_in_full() {
 #[test]
 fn malformed_events_and_dates_are_refused() {
     let one = [("2018-10-01", "new_income_stream", "1200000.00")];
-    let mut bad_to = tba(&one, "2026-02-30", "2025-26", false);
+    let bad_to = tba(&one, "2026-02-30", "2025-26", false);
     let mut empty = bad_to.clone();
     empty["events"] = json!([]);
     let mut not_object = bad_to.clone();
