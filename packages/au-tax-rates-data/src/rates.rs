@@ -2665,22 +2665,26 @@ fn report(result: R<i32>) -> i32 {
     match result {
         Ok(code) => code,
         Err(e) => {
-            // stderr's backslashreplace shows a lone surrogate as an escape.
-            let message: String = e
-                .text
-                .iter()
-                .map(|&cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
-                .collect();
-            let last = if message.is_empty() {
-                e.class.to_string()
-            } else {
-                format!("{}: {message}", e.class)
-            };
-            let report = format!("Traceback (most recent call last):\n{last}\n");
-            let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
+            let _ = std::io::stderr().write_all(&newlines(traceback(&e).as_bytes()));
             1
         }
     }
+}
+
+/// The first and last lines of the traceback CPython prints for `e`.
+fn traceback(e: &Exc) -> String {
+    // stderr's backslashreplace shows a lone surrogate as an escape.
+    let message: String = e
+        .text
+        .iter()
+        .map(|&cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
+        .collect();
+    let last = if message.is_empty() {
+        e.class.to_string()
+    } else {
+        format!("{}: {message}", e.class)
+    };
+    format!("Traceback (most recent call last):\n{last}\n")
 }
 
 #[cfg(test)]

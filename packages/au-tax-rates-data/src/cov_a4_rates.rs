@@ -149,3 +149,58 @@ fn wide_decode_errors_name_the_codec_family() {
         assert_eq!(bytes_decode_error(&data), WIDE, "{input}");
     }
 }
+
+/// What `subprocess.run(command, capture_output=True)` raised under CPython
+/// 3.15.0 on Linux before the program ran.
+#[cfg(not(windows))]
+#[test]
+fn a_command_that_cannot_start_raises_as_subprocess_does() {
+    let missing = "/nonexistent-rates-browser";
+    let not_str = "TypeError: expected str, bytes or os.PathLike object, not int";
+    let cases = [
+        (
+            vec![Json::str(missing)],
+            format!("FileNotFoundError: [Errno 2] No such file or directory: '{missing}'"),
+        ),
+        (
+            vec![Json::str("a\0b")],
+            String::from("ValueError: embedded null byte"),
+        ),
+        (vec![Json::Int(BigInt::from(1))], String::from(not_str)),
+        (
+            vec![Json::str(missing), Json::Int(BigInt::from(2))],
+            String::from(not_str),
+        ),
+    ];
+    for (command, want) in cases {
+        let got = run_with_limit(&command, Duration::from_secs(5)).map(|_| String::new());
+        let got = shown(got).replacen('!', "", 1);
+        assert_eq!(got, want);
+    }
+}
+
+/// The first and last lines CPython 3.15.0 wrote to stderr for an uncaught
+/// `ValueError('\ud800x')`, `MemoryError()` and `json.loads('x')`'s error;
+/// the exit status is 1.
+#[test]
+fn an_uncaught_exception_reports_as_cpython_does() {
+    let lone = Exc::new("ValueError", vec![0xD800, u32::from('x')]);
+    let json = Exc::msg(
+        "json.decoder.JSONDecodeError",
+        "Expecting value: line 1 column 1 (char 0)",
+    );
+    let first = "Traceback (most recent call last):";
+    let cases = [
+        (lone, "ValueError: \\ud800x"),
+        (Exc::msg("MemoryError", ""), "MemoryError"),
+        (
+            json,
+            "json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+        ),
+    ];
+    for (e, last) in cases {
+        assert_eq!(traceback(&e), format!("{first}\n{last}\n"));
+        assert_eq!(report(Err(e)), 1);
+    }
+    assert_eq!(report(Ok(3)), 3);
+}
