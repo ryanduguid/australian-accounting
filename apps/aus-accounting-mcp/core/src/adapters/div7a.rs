@@ -107,8 +107,8 @@ pub fn loan(input: &Value) -> Result<Value, String> {
         facts.maximum_term_years.as_ref(),
         None,
         None,
-    )
-    .map_err(|e| e.to_string())?;
+    );
+    let myr = myr.map_err(|e| e.to_string())?;
     let g = gate.to_json();
     let m = myr.to_json().map_err(|e| format!("decimal.{}", e.name()))?;
     let mut payload = json!({"gate":g,"minimum_yearly_repayment":m});

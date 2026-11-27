@@ -308,9 +308,11 @@ mod tests {
         super::int(&int_rule, &json!(-5), "n", &mut errors);
         super::int(&int_rule, &json!(-1), "n", &mut errors);
         super::int(&int_rule, &json!(-3), "n", &mut errors);
-        assert_eq!(errors.len(), 2);
+        super::int(&json!({"le": -1}), &json!(0), "n", &mut errors);
+        assert_eq!(errors.len(), 3);
         assert_eq!(errors[0].code, "greater_than");
         assert_eq!(errors[1].code, "less_than");
+        assert_eq!(errors[2].code, "less_than_equal");
 
         errors.clear();
         let lit_rule = json!({"expected": [true, false]});

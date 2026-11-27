@@ -104,6 +104,10 @@ fn freshness_report_on_propagates_dataset_errors_and_filters_tools() {
     let rows = out["datasets"].as_array().unwrap();
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0]["as_at_status"], "UNKNOWN");
+
+    let unfiltered = call("get_data_freshness", &json!({}));
+    assert_eq!(unfiltered["isError"], false);
+    assert!(unfiltered["structuredContent"]["tool"].is_null());
 }
 
 #[test]
@@ -128,23 +132,24 @@ fn div7a_benchmark_rate_supports_full_detail_and_rejects_bad_detail() {
 
 #[test]
 fn div7a_loan_defaults_loan_id_and_refuses_invalid_numeric_fields() {
-    let ok = call(
-        "review_div7a_loan",
-        &json!({
-            "year_of_income": "2026-27",
-            "year_loan_made": "2025-26",
-            "written_agreement": true,
-            "terms_in_place_before_lodgment_day": true,
-            "maximum_term_years": "7",
-            "secured_by_registered_mortgage_over_real_property": false,
-            "interest_rate_for_years_after_year_loan_made": "0.0877",
-            "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
-            "remaining_term_years": "7",
-            "payments_applied_during_the_year": "19715.97"
-        }),
-    );
+    let loan_args = json!({
+        "year_of_income": "2026-27",
+        "year_loan_made": "2025-26",
+        "written_agreement": true,
+        "terms_in_place_before_lodgment_day": true,
+        "maximum_term_years": "7",
+        "secured_by_registered_mortgage_over_real_property": false,
+        "interest_rate_for_years_after_year_loan_made": "0.0877",
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00",
+        "remaining_term_years": "7",
+        "payments_applied_during_the_year": "19715.97"
+    });
+    let ok = call("review_div7a_loan", &loan_args);
     assert_eq!(ok["isError"], false);
     assert_eq!(ok["structuredContent"]["gate"]["loan_id"], "mcp-div7a-1");
+
+    let direct = adapters::evaluate("review_div7a_loan", &loan_args).unwrap();
+    assert_eq!(direct["gate"]["loan_id"], "mcp-div7a-1");
 
     for bad in [
         json!({"year_of_income": "2026-27", "remaining_term_years": "bad"}),
@@ -219,6 +224,16 @@ fn payday_refuses_ambiguous_unparseable_blank_and_overflow_dates() {
         let text = reply["content"][0]["text"].as_str().unwrap();
         assert!(text.contains(expected));
     }
+
+    let day_first = call(
+        "calc_payday_super_deadline",
+        &json!({"qe_day": "20/08/2026", "sg_amount": "120.00", "as_at": "2026-09-01"}),
+    );
+    assert_eq!(day_first["isError"], false);
+    assert_eq!(
+        day_first["structuredContent"]["result"]["due"],
+        "2026-08-31"
+    );
 }
 
 #[test]

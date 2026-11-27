@@ -89,10 +89,11 @@ fn div7a() -> Result<Value, String> {
         .flat_map(|entry| [json!(entry.primary_url), json!(entry.verify_at)])
         .collect();
     let retrieved: Vec<Value> = entries.iter().map(|e| json!(e.retrieved_on)).collect();
-    let periods = entries
+    let periods: Result<Vec<_>, _> = entries
         .iter()
         .map(|entry| financial_year(&entry.year.label(), "year of income"))
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect();
+    let periods = periods?;
     let tables: Vec<Value> = table
         .sources
         .iter()
@@ -184,10 +185,11 @@ fn sg_parameters() -> Result<Value, String> {
         .ok_or("financial_years")?;
     let mut labels: Vec<&String> = years.keys().collect();
     labels.sort();
-    let periods = labels
+    let periods: Result<Vec<_>, _> = labels
         .iter()
         .map(|label| financial_year(label, "financial year"))
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect();
+    let periods = periods?;
     let sources: Map<String, Value> = years
         .iter()
         .map(|(label, entry)| {
