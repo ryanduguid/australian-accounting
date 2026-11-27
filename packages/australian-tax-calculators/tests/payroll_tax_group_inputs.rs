@@ -40,7 +40,10 @@ fn refused(input: &Value) -> (&'static str, String) {
 fn malformed_persons_are_refused() {
     for (persons, message) in [
         (json!(["A"]), "Each of persons must be an object."),
-        (json!([{"taxable_wages": "1.00"}]), "Each person needs an id string."),
+        (
+            json!([{"taxable_wages": "1.00"}]),
+            "Each person needs an id string.",
+        ),
         (
             json!([{"id": "A", "taxable_wages": 500000}]),
             "taxable_wages must be an amount as a string.",
@@ -61,9 +64,18 @@ fn malformed_persons_are_refused() {
 #[test]
 fn malformed_id_lists_are_refused() {
     for (changes, message) in [
-        (json!({"exclusions": "C"}), "exclusions must be a list of person ids."),
-        (json!({"exclusions": {"C": true}}), "exclusions must be a list of person ids."),
-        (json!({"exclusions": ["C", "C"]}), "exclusions names \"C\" twice."),
+        (
+            json!({"exclusions": "C"}),
+            "exclusions must be a list of person ids.",
+        ),
+        (
+            json!({"exclusions": {"C": true}}),
+            "exclusions must be a list of person ids.",
+        ),
+        (
+            json!({"exclusions": ["C", "C"]}),
+            "exclusions names \"C\" twice.",
+        ),
         (
             json!({"controlling_interests": [
                 {"holders": [], "business": "B", "test": "sole_owner"},

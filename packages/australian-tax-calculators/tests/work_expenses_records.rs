@@ -485,13 +485,23 @@ fn a_log_book_and_diary_must_be_well_formed() {
     let not_object = api::evaluate_coded("work-expenses", &from_log(json!("84 days"))).unwrap_err();
     assert_eq!(not_object.code, "work_expenses.fact_invalid");
     assert_eq!(not_object.message, "log_book must be an object.");
-    let text = with(home("2025-26", "0"), json!({"hours": "remove", "hours_diary": "40 hours"}));
+    let text = with(
+        home("2025-26", "0"),
+        json!({"hours": "remove", "hours_diary": "40 hours"}),
+    );
     let not_list = api::evaluate_coded("work-expenses", &text).unwrap_err();
     assert_eq!(not_list.code, "work_expenses.fact_invalid");
-    assert!(not_list.message.starts_with("hours_diary must be a list of 1 to"));
+    assert!(
+        not_list
+            .message
+            .starts_with("hours_diary must be a list of 1 to")
+    );
     let mut none = from_log(log(84));
     none["total_kilometres"] = json!("0");
     let nil = api::evaluate_coded("work-expenses", &none).unwrap_err();
     assert_eq!(nil.code, "work_expenses.fact_conflict");
-    assert_eq!(nil.message, "total_kilometres must be above 0 (s 28-90(3)).");
+    assert_eq!(
+        nil.message,
+        "total_kilometres must be above 0 (s 28-90(3))."
+    );
 }

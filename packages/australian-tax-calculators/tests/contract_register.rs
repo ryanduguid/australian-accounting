@@ -997,13 +997,23 @@ fn the_executable_runs_the_register_from_stdin() {
     use std::io::Write;
     use std::process::{Command, Stdio};
     let mut child = Command::new(env!("CARGO_BIN_EXE_australian-tax-calculators"))
-        .args(["contract-register", "--balance-date", BALANCE, "--scope-confirmed"])
+        .args([
+            "contract-register",
+            "--balance-date",
+            BALANCE,
+            "--scope-confirmed",
+        ])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
-    child.stdin.take().unwrap().write_all(EXAMPLE.as_bytes()).unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(EXAMPLE.as_bytes())
+        .unwrap();
     let out = child.wait_with_output().unwrap();
     assert_eq!(out.status.code(), Some(0));
     let text = String::from_utf8(out.stdout).unwrap().replace("\r\n", "\n");

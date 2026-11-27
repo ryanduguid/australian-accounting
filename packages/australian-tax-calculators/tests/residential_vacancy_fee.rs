@@ -856,9 +856,18 @@ fn sara_with(changes: Value) -> Value {
 #[test]
 fn the_dwelling_application_date_and_share_are_required_in_form() {
     for (changes, expected) in [
-        (json!({"dwelling_kind": "townhouse"}), "residential_vacancy_fee.dwelling_kind_invalid"),
-        (json!({"application_date": null}), "residential_vacancy_fee.application_date_unsupported"),
-        (json!({"ownership_share": 0.25}), "residential_vacancy_fee.ownership_invalid"),
+        (
+            json!({"dwelling_kind": "townhouse"}),
+            "residential_vacancy_fee.dwelling_kind_invalid",
+        ),
+        (
+            json!({"application_date": null}),
+            "residential_vacancy_fee.application_date_unsupported",
+        ),
+        (
+            json!({"ownership_share": 0.25}),
+            "residential_vacancy_fee.ownership_invalid",
+        ),
     ] {
         assert_eq!(refuse_code(&sara_with(changes)), expected);
     }

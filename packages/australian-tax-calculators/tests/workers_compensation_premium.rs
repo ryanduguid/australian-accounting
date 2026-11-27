@@ -588,7 +588,10 @@ fn a_refused_premium_groups_its_thousands() {
         json!({"apprentice_wages": "100000.01"}),
     );
     let error = api::evaluate_coded("workers-compensation-premium", &qld).unwrap_err();
-    assert_eq!(error.code, "workers_compensation_premium.rounding_unsettled");
+    assert_eq!(
+        error.code,
+        "workers_compensation_premium.rounding_unsettled"
+    );
     assert!(error.message.starts_with("The premium is $8,000.01 with"));
     assert!(error.message.contains(" and $8,000.00 with neither"));
 }
