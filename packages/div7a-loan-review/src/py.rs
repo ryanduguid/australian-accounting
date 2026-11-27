@@ -53,11 +53,6 @@ pub fn decimal_value(c: char) -> Option<u32> {
     (cp - zero < 10).then_some(cp - zero)
 }
 
-/// `str.split()` with no separator.
-pub fn split_whitespace(s: &str) -> Vec<&str> {
-    s.split(is_space).filter(|part| !part.is_empty()).collect()
-}
-
 /// `str.casefold()`.
 pub fn casefold(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -77,11 +72,6 @@ pub fn prefix_chars(s: &str, n: usize) -> &str {
         Some((i, _)) => &s[..i],
         None => s,
     }
-}
-
-/// `len(s)`: a count of code points.
-pub fn char_len(s: &str) -> usize {
-    s.chars().count()
 }
 
 /// `repr(s)` for a `str`.
@@ -460,12 +450,16 @@ impl PyPath {
         out
     }
 
+    /// `path.is_absolute()`: a drive with a root, or a UNC share.
+    #[cfg(windows)]
     pub fn is_absolute(&self) -> bool {
-        if cfg!(windows) {
-            self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
-        } else {
-            !self.anchor.is_empty()
-        }
+        self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
+    }
+
+    /// `path.is_absolute()`: any anchor.
+    #[cfg(not(windows))]
+    pub fn is_absolute(&self) -> bool {
+        !self.anchor.is_empty()
     }
 }
 
@@ -490,26 +484,39 @@ pub fn resolve_text(path: &Path) -> String {
                 std::path::Component::ParentDir => {
                     resolved.pop();
                 }
-                std::path::Component::CurDir => {}
                 other => resolved.push(other.as_os_str()),
             }
         }
-        let text = resolved.to_string_lossy().into_owned();
-        return match text.strip_prefix(r"\\?\UNC\") {
-            Some(rest) => format!(r"\\{rest}"),
-            None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
-        };
+        return without_verbatim(resolved.to_string_lossy().into_owned());
     }
     absolute.to_string_lossy().into_owned()
 }
 
-/// `Path.__eq__` between resolved paths: case-insensitive on Windows.
-pub fn same_resolved(a: &str, b: &str) -> bool {
-    if cfg!(windows) {
-        a.to_lowercase() == b.to_lowercase()
-    } else {
-        a == b
+/// Windows' canonical form without its `\\?\` verbatim prefix, as Python shows it.
+#[cfg(windows)]
+fn without_verbatim(text: String) -> String {
+    match text.strip_prefix(r"\\?\UNC\") {
+        Some(rest) => format!(r"\\{rest}"),
+        None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
     }
+}
+
+/// Elsewhere a canonical path has no verbatim prefix.
+#[cfg(not(windows))]
+fn without_verbatim(text: String) -> String {
+    text
+}
+
+/// `Path.__eq__` between resolved paths: case-insensitive on Windows.
+#[cfg(windows)]
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    a.to_lowercase() == b.to_lowercase()
+}
+
+/// `Path.__eq__` between resolved paths: exact elsewhere.
+#[cfg(not(windows))]
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    a == b
 }
 
 #[cfg(test)]
@@ -547,7 +554,6 @@ mod tests {
 
     #[test]
     fn string_predicates_match_python() {
-        assert_eq!(split_whitespace("\x1c x \u{3000}y "), vec!["x", "y"]);
         assert_eq!(casefold("Straße ΣΑΣ"), "strasse σασ");
         assert_eq!(decimal_value('\u{0663}'), Some(3));
         assert_eq!(parse_int(" 1\u{0661}", 10).unwrap(), BigInt::from(11));
