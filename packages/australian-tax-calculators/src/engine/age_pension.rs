@@ -13,7 +13,7 @@
 //! 4.10.3, 5.1.8.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10), read on 26 November
 //! 2026, for each day from 20 September 2025 to 19 March 2027.
 
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 
 use super::stated;
 use super::{
@@ -47,6 +47,98 @@ const COUPLE_FACTS: [(&str, &str); 1] = [(
     "partner_pensioner",
     "the partner also receives age pension and the couple are not illness separated, in respite care or apart because the partner is imprisoned",
 )];
+
+/// The circumstances `facts` must state true or false: (key, what it is, the
+/// key whose truth makes it needed, the provision that refuses it when true).
+type Circumstance = (
+    &'static str,
+    &'static str,
+    Option<&'static str>,
+    Option<&'static str>,
+);
+const CIRCUMSTANCES: [Circumstance; 8] = [
+    (
+        "underage_de_facto",
+        "underage_de_facto: the person is in a de facto relationship in which either is under the age of consent (s 1064(4))",
+        None,
+        Some(
+            "s 1064(4) limits the rate to the one payable were the other person the partner, which needs that person's income and assets",
+        ),
+    ),
+    (
+        "advance_deduction",
+        "advance_deduction: a special employment advance deduction (Part 3.16B) or advance payment deduction (Part 3.16A) applies",
+        None,
+        Some(
+            "s 1064-A1 step 12(a) and (b) subtract the advance deductions, whose amounts Services Australia sets",
+        ),
+    ),
+    (
+        "armed_services_payment",
+        "armed_services_payment: the person is an armed services widow or widower receiving a Veterans' Entitlements Act Part II or IV pension at a rate under s 30(1), or the MRCA s 234(1)(b) weekly amount or s 236(5) lump sum (s 1064(5) to (7))",
+        None,
+        None,
+    ),
+    (
+        "rate_before_november_1986",
+        "rate_before_november_1986: an armed services widow (s 1064(5)(c); not a widower under (6)) has received that pension continuously since before 1 November 1986 and was then receiving a pension of the same type at a rate above $3,247.40 a year (s 1064(5)(c))",
+        Some("armed_services_payment"),
+        Some("s 1064(5)(c) limits the rate to the one received immediately before 1 November 1986"),
+    ),
+    (
+        "remote_area",
+        "remote_area: the person's usual place of residence is in the remote area and the person is physically present there (s 14, s 1064-H1)",
+        None,
+        None,
+    ),
+    (
+        "remote_area_child",
+        "remote_area_child: the person has an FTB child or regular care child, counting a partner's under s 1064-H5 to H7",
+        Some("remote_area"),
+        Some(
+            "s 1064-H2 adds an additional remote area allowance for each FTB child and regular care child",
+        ),
+    ),
+    (
+        "pension_supplement_election",
+        "pension_supplement_election: an election under s 1061VA(1) to receive the minimum pension supplement amount quarterly is in force (s 1064-BA2)",
+        None,
+        None,
+    ),
+    (
+        "quarterly_energy_supplement",
+        "quarterly_energy_supplement: quarterly energy supplement is payable to the person (s 1064-C2)",
+        None,
+        None,
+    ),
+];
+
+/// What the stated circumstances change.
+struct Circumstances {
+    limited: bool,
+    remote_area: bool,
+    election: bool,
+    quarterly_energy: bool,
+}
+
+impl Circumstances {
+    /// For a payment whose own facts exclude every circumstance.
+    const NONE: Self = Self {
+        limited: false,
+        remote_area: false,
+        election: false,
+        quarterly_energy: false,
+    };
+}
+
+/// The minimum pension supplement amount a year, `[single, partnered each]`,
+/// from its date (SS Guide 5.1.9.10); the earlier periods' were not read.
+const MINIMUM_SUPPLEMENT: (&str, [&str; 2]) = ("2026-09-20", ["1235.00", "930.80"]);
+/// The remote area allowance a year, `[single, partnered]` (s 1064-H2 Table H
+/// column 3, which s 1191 does not index).
+const REMOTE_AREA: [&str; 2] = ["473.20", "405.60"];
+/// The yearly limit of s 1064(5)(d), (6) and (7), which s 1191 does not index.
+const RATE_LIMIT: &str = "3247.40";
 
 /// One day's annual amounts: MBR and pension supplement `[single, partnered
 /// each]`, the deeming rates `[below, above the threshold]`, the income free
@@ -185,15 +277,19 @@ pub(super) struct Payment {
     pub kind: &'static str,
     pub facts: &'static [(&'static str, &'static str)],
     pub couple_facts: &'static [(&'static str, &'static str)],
+    /// Whether `facts` states the [`CIRCUMSTANCES`] and they are worked; a
+    /// payment without them states exclusions of its own instead.
+    pub circumstances: bool,
 }
 
 const AGE: Payment = Payment {
     kind: KIND,
     facts: &FACTS,
     couple_facts: &COUPLE_FACTS,
+    circumstances: true,
 };
 
-fn facts(given: &Arg, couple: bool, payment: &Payment) -> Result<()> {
+fn facts(given: &Arg, couple: bool, payment: &Payment) -> Result<Circumstances> {
     let Arg::Json(Value::Object(fields)) = given else {
         return refuse(
             "age_pension.facts_invalid",
@@ -205,10 +301,17 @@ fn facts(given: &Arg, couple: bool, payment: &Payment) -> Result<()> {
         .iter()
         .chain(payment.couple_facts)
         .copied()
+        .chain(
+            CIRCUMSTANCES
+                .iter()
+                .filter(|_| payment.circumstances)
+                .map(|c| (c.0, c.1)),
+        )
         .collect();
     let needed = payment.facts.len() + usize::from(couple) * payment.couple_facts.len();
     match stated::unstated(fields, &all, needed)? {
-        None => Ok(()),
+        None if payment.circumstances => circumstances(fields),
+        None => Ok(Circumstances::NONE),
         Some(missing) => refuse(
             "age_pension.facts_not_stated",
             format!(
@@ -216,6 +319,74 @@ fn facts(given: &Arg, couple: bool, payment: &Payment) -> Result<()> {
             ),
         ),
     }
+}
+
+/// Reads each circumstance needed, refusing one unstated or one this command
+/// does not work (`age_pension.case_not_built`, naming the provision).
+fn circumstances(fields: &Map<String, Value>) -> Result<Circumstances> {
+    let mut stated: Vec<(&str, bool)> = Vec::new();
+    let mut missing = Vec::new();
+    for (key, text, under, _) in CIRCUMSTANCES {
+        if under.is_some_and(|u| !stated.contains(&(u, true))) {
+            continue;
+        }
+        match fields.get(key) {
+            Some(Value::Bool(value)) => stated.push((key, *value)),
+            None => missing.push(text),
+            Some(_) => {
+                return refuse(
+                    "input.flag_invalid",
+                    format!("facts: {key} must be a boolean."),
+                );
+            }
+        }
+    }
+    if !missing.is_empty() {
+        return refuse(
+            "age_pension.facts_not_stated",
+            format!(
+                "Not computed: facts must state each circumstance true or false; not stated: {}.",
+                missing.join("; ")
+            ),
+        );
+    }
+    let is = |key: &str| stated.contains(&(key, true));
+    if let Some((_, _, _, Some(why))) = CIRCUMSTANCES.iter().find(|c| c.3.is_some() && is(c.0)) {
+        return not_built(why);
+    }
+    Ok(Circumstances {
+        limited: is("armed_services_payment"),
+        remote_area: is("remote_area"),
+        election: is("pension_supplement_election"),
+        quarterly_energy: is("quarterly_energy_supplement"),
+    })
+}
+
+fn not_built<T>(why: &str) -> Result<T> {
+    refuse(
+        "age_pension.case_not_built",
+        format!("Not computed: {why}; this command does not work that case."),
+    )
+}
+
+/// The minimum pension supplement amount a year where an s 1061VA(1)
+/// election is in force (s 1064-BA4), refused where not read or where the
+/// s 1064(5) to (7) limit would also apply.
+fn minimum_supplement(c: &Circumstances, date: &str, i: usize) -> Result<Option<Decimal>> {
+    if !c.election {
+        return Ok(None);
+    }
+    if date < MINIMUM_SUPPLEMENT.0 {
+        return not_built(
+            "s 1064-BA4 subtracts the minimum pension supplement amount, which was read only for days from 20 September 2026 (SS Guide 5.1.9.10)",
+        );
+    }
+    if c.limited {
+        return not_built(
+            "s 1064(5) to (7) limit the pension rate and s 1061VA pays the minimum pension supplement amount quarterly; how the limit meets the quarterly amount is not settled here",
+        );
+    }
+    Ok(Some(d(MINIMUM_SUPPLEMENT.1[i])))
 }
 
 pub fn age_pension(args: &AgePensionArgs) -> Result<Value> {
@@ -229,7 +400,9 @@ pub(super) fn pension(payment: &Payment, args: &AgePensionArgs) -> Result<Value>
     let p = period(args.date, &year)?;
     let couple = couple(args.relationship)?;
     let homeowner = flag(args.homeowner, "homeowner")?;
-    facts(args.facts, couple, payment)?;
+    let c = facts(args.facts, couple, payment)?;
+    let i = usize::from(couple);
+    let minimum = minimum_supplement(&c, args.date.text().unwrap_or_default(), i)?;
     let income = money(args.ordinary_income)?;
     let financial = money(args.financial_assets)?;
     let assets = money(args.assets)?;
@@ -239,16 +412,18 @@ pub(super) fn pension(payment: &Payment, args: &AgePensionArgs) -> Result<Value>
             "financial_assets cannot be more than assets, which include them (s 1118 and Division 1B of Part 3.10).",
         );
     }
-    let i = usize::from(couple);
     let rates = Rates {
         mbr: d(p.mbr[i]),
         supplement: d(p.supplement[i]),
-        energy: d(ENERGY[i]),
+        energy: (!c.quarterly_energy).then(|| d(ENERGY[i])),
         threshold: d(p.thresholds[i]),
         lower: d(p.deeming[0]),
         upper: d(p.deeming[1]),
         free_area: d(p.free_area[i]).div(&int(26))?,
         limit: d(p.limits[usize::from(!homeowner)][i]),
+        minimum,
+        remote_area: c.remote_area.then(|| d(REMOTE_AREA[i])),
+        rate_limit: c.limited.then(|| d(RATE_LIMIT)),
     };
     let steps = precise(|| working(couple, &rates, [&income, &financial, &assets]))?;
     let mut out = derived_result(payment.kind, &year, steps, rates.shown(couple))?;
@@ -266,12 +441,19 @@ pub(super) fn pension(payment: &Payment, args: &AgePensionArgs) -> Result<Value>
 struct Rates {
     mbr: Decimal,
     supplement: Decimal,
-    energy: Decimal,
+    /// The energy supplement, none where quarterly energy supplement is payable.
+    energy: Option<Decimal>,
     threshold: Decimal,
     lower: Decimal,
     upper: Decimal,
     free_area: Decimal,
     limit: Decimal,
+    /// The minimum pension supplement amount where an election is in force.
+    minimum: Option<Decimal>,
+    /// The remote area allowance a year where Module H applies.
+    remote_area: Option<Decimal>,
+    /// The yearly limit where s 1064(5) to (7) apply.
+    rate_limit: Option<Decimal>,
 }
 
 impl Rates {
@@ -283,25 +465,67 @@ impl Rates {
         } else {
             self.limit.clone()
         };
-        vec![
+        let mut shown = vec![
             rate("mbr", &self.mbr),
             rate("pension_supplement", &self.supplement),
-            rate("energy_supplement", &self.energy),
+        ];
+        shown.extend(self.energy.iter().map(|e| rate("energy_supplement", e)));
+        shown.extend([
             rate("deeming_threshold", &self.threshold),
             rate("lower_deeming_rate", &self.lower),
             rate("upper_deeming_rate", &self.upper),
             rate("income_free_area", &self.free_area),
             rate("assets_value_limit", limit),
-        ]
+        ]);
+        for (name, value) in [
+            ("minimum_pension_supplement", &self.minimum),
+            ("remote_area_allowance", &self.remote_area),
+            ("rate_limit", &self.rate_limit),
+        ] {
+            shown.extend(value.iter().map(|v| rate(name, v)));
+        }
+        shown
+    }
+
+    /// The maximum payment rate per fortnight, less `minimum` a year if any.
+    fn max_rate(&self, minimum: Option<&Decimal>) -> Result<Decimal> {
+        let mut yearly = self.mbr.add(&self.supplement)?;
+        if let Some(minimum) = minimum {
+            yearly = yearly.sub(minimum)?;
+        }
+        if let Some(energy) = &self.energy {
+            yearly = yearly.add(energy)?;
+        }
+        Ok(yearly.div(&int(26))?)
+    }
+
+    /// The maximum payment rate's authority, formula and operands, a year.
+    fn maximum(&self) -> (&'static str, String, Vec<&Decimal>) {
+        let mut formula = String::from("(mbr + pension_supplement");
+        let mut operands = vec![&self.mbr, &self.supplement];
+        if let Some(minimum) = &self.minimum {
+            formula.push_str(" - minimum_pension_supplement");
+            operands.push(minimum);
+        }
+        if let Some(energy) = &self.energy {
+            formula.push_str(" + energy_supplement");
+            operands.push(energy);
+        }
+        formula.push_str(") / 26");
+        let changed = self.minimum.is_some() || self.energy.is_none();
+        (AUTH[if changed { 5 } else { 0 }], formula, operands)
     }
 }
 
-const AUTH: [&str; 5] = [
+const AUTH: [&str; 8] = [
     "SSA s 1064-A1 steps 1 to 4, Module B (MBR), Module BA (pension supplement) and s 1061VA (energy supplement): the maximum payment rate, per year / 26",
     "SSA s 1076 and s 1082: financial assets deemed to earn the below threshold rate up to the deeming threshold and the above threshold rate on the rest, per year / 26",
     "SSA s 1064-E1, E2, E4, E10 and E11: 50% of ordinary income over the free area; a couple's income is combined and halved, so 25% of the couple's income over the couple's combined free area",
     "SSA s 1064-G1 to G5 and G7: $19.50 a year for each whole $250 of assets over the assets value limit, a couple's assets combined and halved against each member's limit, per year / 26",
     "SSA s 1064-A1 steps 5 to 12: the maximum payment rate less the greater of the income and assets reductions, not below nil",
+    "SSA s 1064-A1 steps 1 to 4, Module B (MBR), Module BA (pension supplement, less the minimum pension supplement amount under BA4 where an s 1061VA(1) election is in force) and Module C (energy supplement, not added under C2 where quarterly energy supplement is payable): the maximum payment rate, per year / 26",
+    "SSA s 1064-A1 step 12(c) and Module H (H1 and H2 Table H, not indexed under s 1191): the remote area allowance, added where the rate apart from it is above nil or is nil only because an s 1061VA(1) election is in force, per year / 26",
+    "SSA s 1064-A1 step 12, with s 1064(5)(d), (6) and (7) where they apply: the provisional rate plus any remote area allowance, not above $3,247.40 a year / 26",
 ];
 
 /// The deemed income per fortnight (s 1082).
@@ -362,7 +586,8 @@ fn working(
     r: &Rates,
     [income, financial, assets]: [&Decimal; 3],
 ) -> Result<Vec<Step>> {
-    let max_rate = r.mbr.add(&r.supplement)?.add(&r.energy)?.div(&int(26))?;
+    let (max_authority, max_formula, max_operands) = r.maximum();
+    let max_rate = r.max_rate(r.minimum.as_ref())?;
     let deemed = deemed(r, financial)?;
     let taper = d(if couple { "0.25" } else { "0.5" });
     let excess = super::py_max(income.add(&deemed)?.sub(&r.free_area)?, int(0))?;
@@ -371,12 +596,12 @@ fn working(
     let reduction = super::py_max(income_reduction.clone(), assets_reduction.clone())?;
     let pension = super::py_max(max_rate.sub(&reduction)?, int(0))?;
     let (income_formula, assets_formula) = FORMULAS[usize::from(couple)];
-    Ok(vec![
+    let mut steps = vec![
         step(
             "max_rate",
-            AUTH[0],
-            "(mbr + pension_supplement + energy_supplement) / 26",
-            &[&r.mbr, &r.supplement, &r.energy],
+            max_authority,
+            &max_formula,
+            &max_operands,
             max_rate.clone(),
         ),
         deemed_step(r, financial, deemed.clone()),
@@ -394,12 +619,79 @@ fn working(
             &[assets, &limit],
             assets_reduction.clone(),
         ),
-        step(
-            "rate",
-            AUTH[4],
-            "max(max_rate - max(income_reduction, assets_reduction), 0)",
-            &[&max_rate, &income_reduction, &assets_reduction],
-            pension,
-        ),
-    ])
+    ];
+    steps.extend(rate_steps(
+        r,
+        [&max_rate, &income_reduction, &assets_reduction],
+        pension,
+    )?);
+    Ok(steps)
+}
+
+/// Step 11's rate from the maximum payment rate and the 2 reductions, then
+/// step 12 where it changes anything (`provisional_rate` then `rate`).
+fn rate_steps(r: &Rates, operands: [&Decimal; 3], pension: Decimal) -> Result<Vec<Step>> {
+    let provisional = r.remote_area.is_some() || r.rate_limit.is_some();
+    let mut steps = vec![step(
+        if provisional {
+            "provisional_rate"
+        } else {
+            "rate"
+        },
+        AUTH[4],
+        "max(max_rate - max(income_reduction, assets_reduction), 0)",
+        &operands,
+        pension.clone(),
+    )];
+    if provisional {
+        let reduction = super::py_max(operands[1].clone(), operands[2].clone())?;
+        let allowance = allowance(r, &reduction, &pension)?;
+        steps.extend(step_12(r, pension, allowance)?);
+    }
+    Ok(steps)
+}
+
+/// The remote area allowance per fortnight where Module H applies: nil
+/// unless the rate apart from it is above nil, or is nil only because the
+/// s 1061VA(1) election took the minimum pension supplement amount out of
+/// the maximum payment rate (s 1064-H1(aa)).
+fn allowance(r: &Rates, reduction: &Decimal, provisional: &Decimal) -> Result<Option<Decimal>> {
+    let Some(yearly) = &r.remote_area else {
+        return Ok(None);
+    };
+    let unelected = r.max_rate(None)?;
+    let applies = provisional.gt(&int(0))? || unelected.gt(reduction)?;
+    Ok(Some(if applies {
+        yearly.div(&int(26))?
+    } else {
+        int(0)
+    }))
+}
+
+/// Step 12(c) and the limits of s 1064(5)(d), (6) and (7) after the
+/// provisional rate: the allowance step, if any, then `rate`.
+fn step_12(r: &Rates, provisional: Decimal, allowance: Option<Decimal>) -> Result<Vec<Step>> {
+    let mut rate = provisional.clone();
+    let mut steps = Vec::new();
+    let mut formula = String::from("provisional_rate");
+    let mut operands = vec![&provisional];
+    if let (Some(value), Some(yearly)) = (&allowance, &r.remote_area) {
+        rate = rate.add(value)?;
+        steps.push(step(
+            "remote_area_allowance",
+            AUTH[6],
+            "remote_area_allowance / 26",
+            &[yearly],
+            value.clone(),
+        ));
+        formula.push_str(" + remote_area_allowance");
+        operands.push(value);
+    }
+    if let Some(limit) = &r.rate_limit {
+        rate = super::py_min(rate, limit.div(&int(26))?)?;
+        formula = format!("min({formula}, rate_limit / 26)");
+        operands.push(limit);
+    }
+    steps.push(step("rate", AUTH[7], &formula, &operands, rate));
+    Ok(steps)
 }

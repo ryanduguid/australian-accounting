@@ -464,7 +464,9 @@ const DSP_FACTS: &str = r#"{"aged_21_or_with_child": true, "not_blind": true, "n
 const CARER_FACTS: &str = r#"{"carer_payment_only": true, "in_australia": true,
     "not_transitional": true, "no_rent_assistance": true, "no_quarterly_election": true, "no_armed_services_cap": true, "no_underage_relationship": true, "no_adjustments": true}"#;
 const AGE_FACTS: &str = r#"{"in_australia": true, "not_blind": true, "not_transitional": true,
-    "no_rent_assistance": true}"#;
+    "no_rent_assistance": true, "underage_de_facto": false, "advance_deduction": false,
+    "armed_services_payment": false, "remote_area": false, "pension_supplement_election": false,
+    "quarterly_energy_supplement": false}"#;
 
 /// One Calculator A case for `command` on 1 October 2026.
 fn calc_a(command: &str, relationship: &str, homeowner: bool, income: &str, assets: &str) -> Value {
@@ -608,6 +610,13 @@ fn dsp_and_carer_payment_refuse_what_they_do_not_model() {
     let mut blind = calc_a("carer-payment", "single", true, "0", "0");
     blind["facts"]["not_blind"] = json!(true);
     assert_eq!(code("carer-payment", &blind), "input.field_unknown");
+    // Their own exclusions stand for age-pension's circumstances, which
+    // neither command takes.
+    for command in ["disability-support-pension", "carer-payment"] {
+        let mut stated = calc_a(command, "single", true, "0", "0");
+        stated["facts"]["remote_area"] = json!(false);
+        assert_eq!(code(command, &stated), "input.field_unknown");
+    }
 }
 
 #[test]

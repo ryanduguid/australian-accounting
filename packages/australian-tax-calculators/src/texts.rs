@@ -120,11 +120,11 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "payroll_tax_monthly",
-        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read: an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established and, in the ACT, not an eligible university (DI2026-151 s 4). A deduction the Commissioner notified or determined (stated_deduction: required in the Northern Territory and for an interstate employer in Western Australia; optional in Queensland, South Australia and, with interstate wages, Victoria and the ACT; refused above any cap its Act sets) and Queensland's determined periodic thresholds (stated_primary_threshold and stated_additional_threshold) replace the formula.",
+        "One employer's payroll tax, and any surcharge or levy, on one monthly return for a month of 2026-27 (July 2026 to June 2027) in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, as each Act's monthly provisions read (in New South Wales the actual-wages method only, Payroll Tax Act 2007 (NSW) Sch 2 cll 2 and 3; the estimated monthly payroll tax an eligible taxpayer may opt for under Sch 2 cll 3B to 3D is not worked): an employer outside a group, paying wages on every day of the year, with its taxable and interstate wages for the month and its estimates for the year established and, in the ACT, not an eligible university (DI2026-151 s 4). A deduction the Commissioner notified or determined (stated_deduction: required in the Northern Territory and for an interstate employer in Western Australia; optional in Queensland, South Australia and, with interstate wages, Victoria and the ACT; refused above any cap its Act sets) and Queensland's determined periodic thresholds (stated_primary_threshold and stated_additional_threshold) replace the formula.",
     ),
     (
         "payroll_tax_group",
-        "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in Victoria, Queensland, Western Australia, South Australia or the Australian Capital Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order.",
+        "One employer's payroll tax group for 2026-27 (1 July 2026 to 30 June 2027) in New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, the Australian Capital Territory or the Northern Territory, from stated facts: the members each Act's grouping Part joins (related bodies corporate, common employees, common control, tracing of interests in corporations, smaller groups subsumed) less any person under an exclusion order, the designated group employer, and the group's single deduction worked on the group's wages and claimed by that employer alone (in Western Australia, by the group), with Queensland's excess deduction shared in the nominated order; in New South Wales, Tasmania and the Northern Territory, whether any member is liable at all, with every member's interstate wages stated. A group arising from former entities (Payroll Tax Act 2007 (NSW) s 74A) is not a stated fact this worksheet takes: such a group is not worked.",
     ),
     (
         "transfer_duty",
@@ -688,7 +688,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "age_pension",
-        "One fortnight's age pension rate for a single person, or for each member of a couple who both receive it, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064): the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income and the reduction for assets, not below nil. Income is the stated ordinary income per fortnight plus deemed income from financial assets (s 1082: the below threshold rate up to the deeming threshold and the above threshold rate on the rest, per year / 26); its reduction is 50% of income over the free area, or for a couple 25% of the couple's combined income over their combined free area (s 1064-E2). The assets reduction is $19.50 a year for each whole $250 of assets over the assets value limit for the person's home ownership, a couple's assets halved against each member's limit (s 1064-G2, G4 and G7), per year / 26. Rates are the DSS Social Security Guide's indexed amounts for the day. Excludes rent assistance, the work bonus (the stated income is after it), transitional rates, the blind (Calculator B), illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
+        "One fortnight's age pension rate for a single person, or for each member of a couple who both receive it, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064): the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income and the reduction for assets, not below nil. Income is the stated ordinary income per fortnight plus deemed income from financial assets (s 1082: the below threshold rate up to the deeming threshold and the above threshold rate on the rest, per year / 26); its reduction is 50% of income over the free area, or for a couple 25% of the couple's combined income over their combined free area (s 1064-E2). The assets reduction is $19.50 a year for each whole $250 of assets over the assets value limit for the person's home ownership, a couple's assets halved against each member's limit (s 1064-G2, G4 and G7), per year / 26. Rates are the DSS Social Security Guide's indexed amounts for the day. Where stated, an s 1061VA election takes the minimum pension supplement amount out of the maximum rate (s 1064-BA4, from 20 September 2026), quarterly energy supplement leaves the energy supplement out (C2), the remote area allowance is added (step 12(c), Module H) and the rate is held to $3,247.40 a year for an armed services widow or widower (s 1064(5)(d), (6) and (7)). Refuses s 1064(4), s 1064(5)(c), the step 12(a) and (b) advance deductions and the allowance for a child (H2). Excludes rent assistance, the work bonus (the stated income is after it), transitional rates, the blind (Calculator B), illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
     ),
     (
         "ftb_part_a",
@@ -1825,6 +1825,9 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
             "https://www.legislation.act.gov.au/a/2011-18/",
             "https://www.sro.vic.gov.au/businesses-and-organisations/payroll-tax/thresholds-and-grouping/grouping",
             "https://qro.qld.gov.au/payroll-tax/calculate/deductions/",
+            "https://classic.austlii.edu.au/au/legis/nsw/consol_act/pta2007155/sch1.html",
+            "https://www.legislation.tas.gov.au/view/whole/html/inforce/current/act-2008-016",
+            "https://legislation.nt.gov.au/api/sitecore/Act/PDF?id=12078",
         ],
     ),
     (
@@ -3171,6 +3174,7 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "age_pension",
         &[
             "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/1/9/10",
             "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
             "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
             "https://guides.dss.gov.au/social-security-guide/4/10/3",
@@ -4155,6 +4159,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "financial_assets is more than assets, which include them.",
     ),
     (
+        "age_pension.case_not_built",
+        "A stated circumstance needs a provision the command does not work: s 1064(4), s 1064(5)(c), an advance deduction under step 12, the remote area allowance for a child, or an s 1061VA election before 20 September 2026 or beside the s 1064(5) to (7) limit.",
+    ),
+    (
         "age_pension.date_invalid",
         "date is not a YYYY-MM-DD day in the year.",
     ),
@@ -4168,7 +4176,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "age_pension.facts_not_stated",
-        "A fact the worksheet needs was not stated true: in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together.",
+        "A fact the worksheet needs was not stated true (in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together), or a circumstance was not stated true or false.",
     ),
     (
         "age_pension.relationship_invalid",
@@ -6834,10 +6842,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "australian_wages is less than taxable_wages, which it includes.",
     ),
     (
-        "payroll_tax_group.act_unread",
-        "The jurisdiction's Act could not be read today, so its grouping Part is not worked.",
-    ),
-    (
         "payroll_tax_group.business_unstated",
         "A person holds a controlling interest alone, and whether it carries on a business is not stated.",
     ),
@@ -6870,10 +6874,6 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "A stated fact is not in the form the worksheet takes.",
     ),
     (
-        "payroll_tax_group.formula_unread",
-        "The jurisdiction's group deduction formula could not be read as text today.",
-    ),
-    (
         "payroll_tax_group.interest_cycle",
         "The stated voting interests hold one another in a cycle.",
     ),
@@ -6888,6 +6888,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     (
         "payroll_tax_group.not_grouped",
         "The employer is not a member of a group on the stated facts.",
+    ),
+    (
+        "payroll_tax_group.nt_annual_unallowed",
+        "A Northern Territory group with a designated group employer is above its threshold, and the Commissioner's written permission to calculate under Sch 1 cl 9 is not stated as given.",
     ),
     (
         "payroll_tax_group.part_year",

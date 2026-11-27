@@ -89,12 +89,14 @@ const DSP: Payment = Payment {
     kind: "disability_support_pension",
     facts: &DSP_FACTS,
     couple_facts: &PARTNER,
+    circumstances: false,
 };
 
 const CARER: Payment = Payment {
     kind: "carer_payment",
     facts: &CARER_FACTS,
     couple_facts: &PARTNER,
+    circumstances: false,
 };
 
 pub fn disability_support_pension(args: &AgePensionArgs) -> Result<Value> {
