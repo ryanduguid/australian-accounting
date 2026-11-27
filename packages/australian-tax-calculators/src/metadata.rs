@@ -1772,7 +1772,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "payroll_tax_group" => (
             "2026-11-24",
-            "Payroll Tax Act 2007 (Vic) Pt 5 (ss 67 to 80) and Sch 1 Pts 3 and 4 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and Pt 4 (ss 67 to 75; current reprint); Pay-roll Tax Assessment Act 2002 (WA) s 17 and Pt 4 (ss 30 to 39; 04-d0-03); Payroll Tax Act 2009 (SA) Pt 5 and Sch 1 Pt 3 (31.3.2026); Payroll Tax Act 2011 (ACT) Pt 5 and Sch 1 Pts 1.3 and 1.4 (current republication); with SRO Victoria's 'Grouping' and QRO's 'Payroll tax deductions'. NSW (a Cloudflare challenge) and the Tasmanian and Northern Territory group formulas (images) could not be read and are refused",
+            "Payroll Tax Act 2007 (Vic) Pt 5 (ss 67 to 80) and Sch 1 Pts 3 and 4 (authorised version 041, 1 May 2026); Payroll Tax Act 1971 (Qld) ss 32, 33 and 44 to 48 and Pt 4 (ss 67 to 75; current reprint); Pay-roll Tax Assessment Act 2002 (WA) s 17 and Pt 4 (ss 30 to 39; 04-d0-03); Payroll Tax Act 2009 (SA) Pt 5 and Sch 1 Pt 3 (31.3.2026); Payroll Tax Act 2011 (ACT) Pt 5 and Sch 1 Pts 1.3 and 1.4 (current republication); with SRO Victoria's 'Grouping' and QRO's 'Payroll tax deductions'; read on 27 November 2026, Payroll Tax Act 2007 (NSW) Pt 5 (ss 67 to 81) and Sch 1 Pts 3 and 4 (AustLII consolidation as at 22 October 2026, the formulas from its page images), Payroll Tax Act 2008 (Tas) Pt 5 and Sch 1 cl 1 and Pts 3 and 4 (current version, the formulas from its images) and Payroll Tax Act 2009 (NT) Pt 5 and Sch 1 Pts 3 and 4 (as in force at 1 July 2026)",
         ),
         "payroll_tax_monthly" => (
             "2026-11-26",
@@ -2139,8 +2139,8 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
             "Housing Australia Investment Mandate Direction 2018, compilations 20 (from 7 February 2026, the text in force from 1 October 2025 to 30 June 2026) and 22 (18 July 2026), ss 4A, 28ZF, 29C, 29D, 29F, 44 and 46; the Investment Mandate Amendment (2026 Measures No. 2) Direction 2026 (F2026L00542) as made",
         ),
         "age_pension" => (
-            "2026-11-26",
-            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064 Modules A, E and G; DSS Social Security Guide version 1.345 (3 November 2026), 4.2.1.10, 4.2.3, 4.4.1.10, 4.10.3, 5.1.8.10, 5.1.9.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's age pension income and assets test pages (cut-off points from 20 September 2026)",
+            "2026-11-27",
+            "Social Security Act 1991 compilation 234 (20 September 2026), s 1064(4) to (7) and Modules A, BA, C, E, G and H, and s 1191; DSS Social Security Guide version 1.345 (3 November 2026), 4.2.1.10, 4.2.3, 4.4.1.10, 4.10.3, 5.1.8.10, 5.1.9.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's age pension income and assets test pages (cut-off points from 20 September 2026)",
         ),
         "ftb_part_a" => (
             "2026-11-26",
@@ -4604,6 +4604,10 @@ pub fn optional_inputs(kind: &str) -> Vec<(&'static str, &'static str)> {
                 "excess_deduction_order",
                 "list of person ids, Queensland only and with a designated group employer, required when the deduction exceeds that employer's wages: the order, nominated by the DGE or determined by the commissioner, in which entitled group members share the excess (Payroll Tax Act 1971 (Qld) ss 44, 46 and 47)",
             ),
+            (
+                "annual_calculation_allowed",
+                "boolean, Northern Territory only: true when the Commissioner has allowed the group, by writing, to calculate payroll tax under Payroll Tax Act 2009 (NT) Sch 1 cl 9 (cl 9(1)(c)); required for a group with a designated group employer above the group threshold amount, where false or absent is refused",
+            ),
         ],
         "payroll_tax_monthly" => vec![
             (
@@ -6094,7 +6098,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
         ],
         "payroll_tax_group" => vec![
-            ("jurisdiction", "vic, qld, wa, sa or act; nsw, tas and nt are refused"),
+            ("jurisdiction", "nsw, vic, qld, wa, sa, tas, act or nt"),
             ("employer", "the person id whose group is worked"),
             (
                 "persons",
@@ -7253,7 +7257,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("ordinary_income", "AUD per fortnight: ordinary income other than from financial assets, after any work bonus (s 1073AA), the couple's combined for a couple"),
             ("financial_assets", "AUD: the value of financial investments deemed under s 1082, the couple's combined"),
             ("assets", "AUD: the value of assessable assets, financial assets included, the couple's combined (s 1118 disregards the home)"),
-            ("facts", "object of booleans, each your statement, not tested: in_australia, not_blind, not_transitional and no_rent_assistance, and for a couple partner_pensioner; every one required true"),
+            ("facts", "object of booleans, each your statement, not tested: in_australia, not_blind, not_transitional and no_rent_assistance, and for a couple partner_pensioner, every one required true; and each of underage_de_facto, advance_deduction, armed_services_payment, remote_area, pension_supplement_election and quarterly_energy_supplement true or false, with rate_before_november_1986 where armed_services_payment and remote_area_child where remote_area. True refuses underage_de_facto (s 1064(4)), advance_deduction (step 12(a) and (b)), rate_before_november_1986 (s 1064(5)(c)) and remote_area_child (H2); armed_services_payment limits the rate to $3,247.40 a year (s 1064(5)(d), (6) and (7)); remote_area adds the allowance (Module H); pension_supplement_election subtracts the minimum pension supplement amount, from 20 September 2026 only (BA4); quarterly_energy_supplement leaves out the energy supplement (C2)"),
         ],
         "ftb_part_a" => vec![
             ("children_under_13", "integer from 0 to 20: FTB children under 13 all year"),
@@ -9173,7 +9177,7 @@ pub fn examples(kind: &str) -> Vec<(&'static str, Example)> {
             (
                 "facts",
                 Json(
-                    r#"{"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true}"#,
+                    r#"{"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true, "underage_de_facto": false, "advance_deduction": false, "armed_services_payment": false, "remote_area": false, "pension_supplement_election": false, "quarterly_energy_supplement": false}"#,
                 ),
             ),
         ],

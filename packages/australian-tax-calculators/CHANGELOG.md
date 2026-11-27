@@ -4,6 +4,16 @@
 
 ### Added
 
+- `payroll-tax-group` works New South Wales, Tasmania and the Northern
+  Territory from each Act's Sch 1 Pts 3 and 4, read on 27 November 2026:
+  the group deduction claimed by the designated group employer, no member
+  liable at or below the group threshold (`members_liable`), Tasmania's top
+  bracket deduction above $2,000,000 and, in the Northern Territory, the
+  Commissioner's permission under Sch 1 cl 9(1)(c)
+  (`annual_calculation_allowed`). New code:
+  `payroll_tax_group.nt_annual_unallowed`; removed:
+  `payroll_tax_group.act_unread` and `payroll_tax_group.formula_unread`.
+
 - `thin-capitalisation` now applies ITAA 1997 Subdivisions 820-B to 820-E:
   a financial entity (non-ADI) by its maximum allowable debt (safe harbour
   and worldwide gearing debt amounts) or its third party debt choice, and
@@ -95,6 +105,20 @@
   `transaction_not_allowed` and `transition_reaches_65`.
 
 ### Changed
+
+- `age-pension` now works Social Security Act 1991 s 1064(5)(d), (6) and (7)
+  (the $3,247.40 limit for an armed services widow or widower), step 12(c)
+  and Module H (remote area allowance), Module BA4 (an s 1061VA election, from
+  20 September 2026) and C2 (quarterly energy supplement), and refuses
+  s 1064(4), s 1064(5)(c), the step 12(a) and (b) advance deductions and the
+  allowance for a child with the new code `age_pension.case_not_built`.
+  Before, it gave the uncapped or unadjusted rate. `facts` must now state
+  `underage_de_facto`, `advance_deduction`, `armed_services_payment`,
+  `remote_area`, `pension_supplement_election` and
+  `quarterly_energy_supplement` true or false; a call without them is refused
+  with `age_pension.facts_not_stated`. With all 6 false every result is
+  unchanged. `disability-support-pension` and `carer-payment` keep refusing
+  these cases through their own facts and do not take the circumstances.
 
 - `luxury-car-tax` requires `supplied_in` on a refund line. It used to take
   the tax period's year when the field was blank, so a car supplied before

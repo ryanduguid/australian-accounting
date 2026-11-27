@@ -3427,6 +3427,8 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 exclusions: exclusions?.as_ref(),
                 designated_group_employers: dges?.as_ref(),
                 excess_deduction_order: order?.as_ref(),
+                annual_calculation_allowed: optional(v, "annual_calculation_allowed", Raw)?
+                    .as_ref(),
                 employed_all_year: &a[3],
                 year: &a[4],
                 scope_confirmed: &a[5],

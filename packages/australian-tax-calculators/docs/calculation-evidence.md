@@ -2913,11 +2913,33 @@ Pt 4 (current reprint); the Pay-roll Tax Assessment Act 2002 (WA) s 17 and
 Pt 4 (version 04-d0-03, current from 1 July 2019); the Payroll Tax Act 2009
 (SA) Pt 5 and Sch 1 Pt 3 (version 31.3.2026); the Payroll Tax Act 2011 (ACT)
 Pt 5 and Sch 1 Pts 1.3 and 1.4; and the Payroll Tax Act 2008 (Tas) and
-Payroll Tax Act 2009 (NT) Pt 5. legislation.nsw.gov.au answered with a
-Cloudflare challenge, so New South Wales is refused; the Tasmanian (Sch 1
-cl 8 to 9B) and Northern Territory (Sch 1 cl 7) group formulas are images
-the text does not carry, so both are refused. SRO Victoria's 'Grouping' and
-QRO's 'Payroll tax deductions' were read the same day.
+Payroll Tax Act 2009 (NT) Pt 5. SRO Victoria's 'Grouping' and QRO's 'Payroll
+tax deductions' were read the same day.
+
+New South Wales, Tasmania and the Northern Territory were added on 27
+November 2026 from these copies, each read that day:
+
+- Payroll Tax Act 2007 (NSW), AustLII consolidation as at 22 October 2026
+  (legislation.nsw.gov.au answered with a Cloudflare challenge): the Pt 5
+  table of provisions, ss 79 and 80, and Sch 1 Pts 3 and 4 from a full-page
+  image of `sch1.html`, whose formulas are images. Cl 8: no member is liable
+  when the group's taxable and interstate wages are not more than TA x C /
+  FY; cl 9(2): the designated group employer pays [TW - [GTW / (GTW + GIW) x
+  TA x C / FY]] x R; cl 9(3) and cl 12 (no designated group employer): TW x
+  R.
+- Payroll Tax Act 2008 (Tas), current version at legislation.tas.gov.au, with
+  the formula images it links: cl 8(1) initial threshold TA x C / FY and cl
+  8(2) subsequent threshold TTB x C / FY; cl 9: no member liable at or below
+  the initial threshold; cl 9A(2): [TW - [GTW / (GTW + GIW) x TA x C / FY]] x
+  R1, others TW x R1; cl 9B(2): [TTB - TA] x GTW / (GTW + GIW) x C / FY x R1
+  + [TW - [GTW / (GTW + GIW) x TTB x C / FY]] x R2, others TW x R2; cl 12: TW
+  x R2.
+- Payroll Tax Act 2009 (NT) as in force at 1 July 2026, the PDF at
+  legislation.nt.gov.au: cl 7 AD = GTA - [(GTW + GIW - GTA) / 2], nil if not
+  positive; cl 8 group threshold amount TA x C / FY, at or below which no
+  member is liable; cl 9(1)(c): cl 9 applies only where the Commissioner
+  allows it in writing; cl 9(2) [TW - [GTW / (GTW + GIW) x AD]] x R; cl 9(3)
+  and cl 12: TW x R.
 
 | Case | Source | Result |
 |---|---|---|
@@ -2929,6 +2951,11 @@ QRO's 'Payroll tax deductions' were read the same day.
 | $1,000,000 (DGE) and $400,000 in Queensland | s 33, ss 45 and 48(2); QRO | $1,285,714.29; DGE $1,000,000; B $285,714.29 |
 | $800,000 and $700,000 in Western Australia | s 17(3A) | $923,076.92, with or without a DGE |
 | $1,800,000 in South Australia; $2,500,000 in the ACT | SA Sch 1 cl 9(2); ACT Sch 1 s 1.9(2) | $600,000; $1,750,000 |
+| $3,000,000 of $4,000,000 in New South Wales | NSW Sch 1 cl 9(2) | $900,000 |
+| $1,100,000 and $1,200,000 in New South Wales with a DGE | NSW Sch 1 cl 8 | no member liable |
+| $1,500,000 in Tasmania | Tas Sch 1 cl 9A(2) | $1,250,000 |
+| $4,000,000 of $5,000,000 in Tasmania | Tas Sch 1 cl 9B(2) | $1,000,000; top bracket $1,600,000 |
+| $4,000,000 of $5,000,000 in the Northern Territory | NT Sch 1 cl 7 and 9(2) | AD $1,250,000; $1,000,000 |
 
 `tests/payroll_tax_group.rs` holds these cases.
 
@@ -5861,7 +5888,14 @@ Added on 26 November 2026, when these were read:
   5.1.8.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's assets test
   page. The tests meet Services Australia's cut-off points from 20 September
   2026 (assets $745,750 single and $1,121,000 a couple, homeowners; income
-  $2,701.40 and $4,128.00 a fortnight) to the cent.
+  $2,701.40 and $4,128.00 a fortnight) to the cent. Added on 27 November
+  2026: s 1064(4) to (7), Modules BA, C and H and step 12 of the same
+  compilation, s 1191's CPI table (which indexes neither Table H nor the
+  $3,247.40 limit) and the Social Security Guide 5.1.9.10 (minimum pension
+  supplement amount from 20 September 2026). Tests worked by hand from the Act
+  give the limit, the allowance (including H1(aa)(ii)), the election and the
+  quarterly energy supplement; a golden file holds every result from before
+  the change for 96 inputs outside the new rules.
 - Family tax benefit Part A: A New Tax System (Family Assistance) Act 1999
   (C2004A00490, compilation 124 of 1 July 2026), Schedule 1; the Department
   of Social Services' rates list for 1 July 2026; Services Australia's
