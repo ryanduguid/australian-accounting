@@ -393,16 +393,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Scans every tracked file; a release build keeps it near a minute.
-          - tool: fixture-screen
-            profile: --release
-          - tool: glama-badge-server
-            profile: ""
-          - tool: glama-badge-worker
-            profile: ""
+        tool: [fixture-screen, glama-badge-server, glama-badge-worker]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # fixture-screen scans every tracked file, slower without a release build.
+    timeout-minutes: 30
     permissions:
       contents: read
     defaults:
@@ -418,10 +412,14 @@ jobs:
         with:
           tool: cargo-llvm-cov@0.9.1
           fallback: none
-      - name: Run the tests under coverage
+      # Each floor is in .github/ci/rust_coverage_floors.json, as for the crates.
+      - name: Run the tests with a line coverage floor
         env:
-          PROFILE: ${{ matrix.profile }}
-        run: cargo +1.99 llvm-cov --locked ${PROFILE:+"$PROFILE"} --lcov --output-path lcov.info
+          CRATE: ${{ matrix.tool }}
+        run: |
+          floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
+          cargo +1.99 llvm-cov --locked --fail-under-lines "$floor"
+      - run: cargo +1.99 llvm-cov report --lcov --output-path lcov.info
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-codecov-tool-${{ matrix.tool }}
