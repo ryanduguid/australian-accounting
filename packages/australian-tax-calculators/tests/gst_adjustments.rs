@@ -651,3 +651,32 @@ fn the_catalogue_examples_run() {
         assert!(api::evaluate(command, &facts).is_ok(), "{command}");
     }
 }
+
+/// s 129-20(1): with annual tax periods and an acquisition attributable to a
+/// period ending 30 September 2021, the year to 30 June 2023 starts within 12
+/// months, so the first adjustment period is the year to 30 June 2024.
+#[test]
+fn an_annual_period_starting_within_12_months_moves_the_first_a_year() {
+    let annual = bill(
+        json!({"tax_period_months": 12, "attributed_period_end": "2021-09-30",
+                             "year": "2022-23"}),
+    );
+    let r = run(CPC, &annual);
+    assert_eq!(r["adjustment_period"]["is_adjustment_period"], false);
+    assert_eq!(
+        r["adjustment_period"]["first"],
+        "the tax period ending 30 June 2024"
+    );
+    let next = with(annual, json!({"year": "2023-24"}));
+    assert_eq!(run(CPC, &next)["adjustment_period"]["number"], 1);
+}
+
+/// ss 129-70 and 129-75: an actual application equal to the intended one
+/// gives neither an increasing nor a decreasing adjustment.
+#[test]
+fn an_unchanged_application_gives_no_adjustment() {
+    let r = run(CPC, &bill(json!({"actual_application": "0.9"})));
+    assert_eq!(amounts(&r, CPC_KEYS), ["0.00", "0.00"]);
+    assert_eq!(r["adjustment_period"]["number"], 1);
+    assert_eq!(r["no_adjustment_reason"], Value::Null);
+}

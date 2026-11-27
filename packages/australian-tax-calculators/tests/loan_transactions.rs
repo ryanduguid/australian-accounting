@@ -237,3 +237,22 @@ fn input_the_statement_cannot_represent_is_refused() {
         assert_eq!(code(overrides.clone()), expected, "{overrides}");
     }
 }
+
+/// A month with a nil balance accrues no interest and debits none: the first
+/// drawing on 1 August gives interest rows for August and September only.
+/// By hand: August 31 days at $2.00, $62.00; September 30 days at $2.0124,
+/// $60.372, so $60.37.
+#[test]
+fn a_month_at_a_nil_balance_debits_no_interest() {
+    let r = run(json!({"transactions": [
+        {"date": "2026-08-01", "kind": "drawing", "amount": "10000.00"},
+    ]}));
+    assert_eq!(
+        interest(&r),
+        [
+            ("2026-08-31".to_string(), "62.00".to_string()),
+            ("2026-09-30".to_string(), "60.37".to_string()),
+        ]
+    );
+    assert_eq!(amount(&r, "total_interest"), "122.37");
+}
