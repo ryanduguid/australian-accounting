@@ -128,18 +128,18 @@ pub fn int_digits_error(digits: usize) -> String {
     )
 }
 
-/// Unicode digits to ASCII and Unicode spaces to ' ', as `int()` and `float()` first do.
+/// Non-ASCII digits to ASCII and non-ASCII spaces to ' ', as `int()` and `float()`
+/// first do (`_PyUnicode_TransformDecimalAndSpaceToASCII`). ASCII is kept as it
+/// is, so `\x1c`-`\x1f`, which `str.isspace` accepts, stay.
 fn number_text(s: &str) -> Option<String> {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
-        if is_space(c) {
-            out.push(' ');
-        } else if let Some(d) = decimal_value(c) {
-            out.push(char::from_digit(d, 10).expect("digit"));
-        } else if c.is_ascii() {
+        if c.is_ascii() {
             out.push(c);
+        } else if is_space(c) {
+            out.push(' ');
         } else {
-            return None;
+            out.push(char::from_digit(decimal_value(c)?, 10).expect("digit"));
         }
     }
     Some(out)
