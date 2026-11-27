@@ -1246,17 +1246,14 @@ fn import_main(args: &[String]) -> (i32, String, String) {
             return s.done(EXIT_ERROR);
         }
         Err(Failure::Os(e)) => {
-            let target = e
-                .filename
-                .clone()
-                .unwrap_or_else(|| format!("{payroll} or {super_path}"));
-            let writing = match &e.filename {
-                None => false,
-                Some(name) => match atomic::csv_destination(&output) {
-                    Ok(destination) => *name == destination.display(),
-                    // Python raised this inside the handler, uncaught.
-                    Err(f) => return uncaught(s, &Failure::Uncaught(f.traceback_line())),
-                },
+            // Every OSError on the import path names its file: `from_io` and
+            // `renamed` always set one, and only review-pack's getcwd error
+            // has none. So Python's `exc.filename or ...` fallback never ran.
+            let target = e.filename.clone().unwrap_or_default();
+            let writing = match atomic::csv_destination(&output) {
+                Ok(destination) => target == destination.display(),
+                // Python raised this inside the handler, uncaught.
+                Err(f) => return uncaught(s, &Failure::Uncaught(f.traceback_line())),
             };
             let verb = if writing {
                 "cannot write"

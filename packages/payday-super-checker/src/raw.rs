@@ -391,5 +391,49 @@ mod tests {
             ("b".into(), int("2")),
             ("a".into(), int("1"))
         ])));
+        // None is None, and two strs compare by their text.
+        assert!(Raw::None.py_eq(&Raw::None));
+        assert!(Raw::text("a").py_eq(&Raw::text("a")) && !Raw::text("a").py_eq(&Raw::text("b")));
+    }
+
+    #[test]
+    fn false_reads_as_python_spells_it() {
+        assert_eq!(Raw::Bool(false).py_repr(), "False");
+        assert_eq!(Raw::List(vec![Raw::Bool(false)]).py_str(), "[False]");
+    }
+
+    #[test]
+    fn get_finds_nothing_outside_a_dict() {
+        assert_eq!(Raw::List(vec![Raw::text("a")]).get("a"), None);
+        assert_eq!(Raw::None.get("a"), None);
+    }
+
+    #[test]
+    fn from_value_builds_what_json_loads_builds() {
+        let parse = |text: &str| Raw::from_value(&serde_json::from_str(text).unwrap());
+        // An int too big for u64 keeps its digits, as Python's int does.
+        let big = "123456789012345678901234567890";
+        assert_eq!(parse(big), Raw::Int(big.into()));
+        assert_eq!(parse(&format!("-{big}")), Raw::Int(format!("-{big}")));
+        assert_eq!(parse("0.5"), Raw::Float(0.5));
+        // float("1e400") is inf, and json.loads gives the same.
+        assert_eq!(parse("1e400"), Raw::Float(f64::INFINITY));
+        assert_eq!(parse("-1e400"), Raw::Float(f64::NEG_INFINITY));
+        assert_eq!(
+            parse(r#"[1, {"a": null, "b": "x"}]"#),
+            Raw::List(vec![
+                Raw::Int("1".into()),
+                Raw::Dict(vec![("a".into(), Raw::None), ("b".into(), Raw::text("x"))]),
+            ])
+        );
+        // Truthiness as the JSON API's join flags read it.
+        assert!(!parse("[]").truthy() && parse("[0]").truthy() && !parse("{}").truthy());
+    }
+
+    #[test]
+    fn an_integer_lexeme_is_an_optional_minus_then_digits() {
+        assert!(is_integer_lexeme("12") && is_integer_lexeme("-12"));
+        assert!(!is_integer_lexeme("") && !is_integer_lexeme("-") && !is_integer_lexeme("1.5"));
+        assert!(!is_integer_lexeme("1e5"));
     }
 }

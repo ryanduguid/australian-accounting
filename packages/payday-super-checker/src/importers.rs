@@ -188,15 +188,19 @@ pub fn read_super(
     let (headers, raw_rows) = read_dicts(path)?;
     let profile = profiles::detect(&headers, "super", vendor)?;
     let resolved = profiles::resolve_columns(&profile, &headers);
+    // Profiles are bundled only, and the test
+    // `every_super_profile_filters_its_contribution_types` holds each one to a filter.
+    let filter = profile
+        .sg_filter
+        .as_ref()
+        .expect("every bundled super profile has an sg_filter");
     if resolved_get(&resolved, "amount").is_none() {
         return Err(csv_error(format!(
             "{path}: no amount column found for profile {}",
             profile.key
         )));
     }
-    if let Some(filter) = &profile.sg_filter
-        && resolved_get(&resolved, &filter.column).is_none()
-    {
+    if resolved_get(&resolved, &filter.column).is_none() {
         return Err(csv_error(format!(
             "{path} has no contribution type column, so salary sacrifice and \
              additional contributions cannot be told apart from super guarantee. \
@@ -213,11 +217,7 @@ pub fn read_super(
              Re-run the report with that column included, or map the file by hand."
         )));
     }
-    let wanted: Vec<String> = profile
-        .sg_filter
-        .iter()
-        .flat_map(|f| f.include.iter().map(|v| normalise_header(v)))
-        .collect();
+    let wanted: Vec<String> = filter.include.iter().map(|v| normalise_header(v)).collect();
     let sent: Vec<String> = profile
         .remitted_status
         .iter()
@@ -237,12 +237,10 @@ pub fn read_super(
     let mut skipped = Vec::new();
     for (i, raw) in raw_rows.iter().enumerate() {
         let i = i as i64 + 2;
-        if let Some(filter) = &profile.sg_filter {
-            let kind = cell(raw, &resolved, &filter.column);
-            if !wanted.contains(&normalise_header(&kind)) {
-                skipped.push((i, kind));
-                continue;
-            }
+        let kind = cell(raw, &resolved, &filter.column);
+        if !wanted.contains(&normalise_header(&kind)) {
+            skipped.push((i, kind));
+            continue;
         }
         let mut paid_date = date(
             &cell(raw, &resolved, "paid_date"),
@@ -302,14 +300,11 @@ pub fn read_super(
         });
     }
     if rows.is_empty() {
-        return Err(csv_error(match &profile.sg_filter {
-            Some(filter) => format!(
-                "{path} has rows but none of them is super guarantee. Check the \
-                 contribution types against {}",
-                repr_list(&filter.include)
-            ),
-            None => format!("{path} has no usable rows"),
-        }));
+        return Err(csv_error(format!(
+            "{path} has rows but none of them is super guarantee. Check the \
+             contribution types against {}",
+            repr_list(&filter.include)
+        )));
     }
     Ok((rows, profile, resolved, skipped))
 }

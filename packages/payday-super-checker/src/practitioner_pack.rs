@@ -14,7 +14,7 @@ use std::collections::BTreeSet;
 
 use sha2::{Digest, Sha256};
 
-use crate::csvread::{self, Reader};
+use crate::csvread::Reader;
 use crate::decimal::Decimal;
 use crate::py::{Date, PyPath};
 use crate::pytext;
@@ -387,11 +387,10 @@ pub fn parse_report_snapshot(
         match reader.next_row() {
             Ok(Some(row)) => table.push(row),
             Ok(None) => break,
-            Err(csvread::ReadError::Csv(m)) => {
-                return Err(pack_error(format!("{source} is malformed CSV: {m}")));
-            }
-            Err(csvread::ReadError::Decode { .. }) => {
-                return Err(pack_error(format!("{source} is not UTF-8 CSV")));
+            // Only `ReadError::Csv` can arrive: the bytes passed the UTF-8
+            // check above, and `utf8_decode` is the only source of `Decode`.
+            Err(e) => {
+                return Err(pack_error(format!("{source} is malformed CSV: {e}")));
             }
         }
     }
@@ -730,12 +729,17 @@ mod tests {
     #[test]
     fn a_bare_name_joins_its_folder_as_os_path_join_does() {
         // CPython 3.15 posixpath.join and ntpath.join.
+        // One assertion per case on every platform, so no branch of the test
+        // goes unrun on any one of them.
+        let sep = std::path::MAIN_SEPARATOR;
         assert_eq!(join("/", "r.csv"), "/r.csv");
-        if cfg!(windows) {
-            assert_eq!(join("C:\\", "r.csv"), "C:\\r.csv");
-            assert_eq!(join("C:\\x", "r.csv"), "C:\\x\\r.csv");
+        assert_eq!(join("/home/a", "r.csv"), format!("/home/a{sep}r.csv"));
+        // ntpath treats a trailing backslash as a separator; posixpath does not.
+        let after_backslash = if cfg!(windows) {
+            "C:\\r.csv"
         } else {
-            assert_eq!(join("/home/a", "r.csv"), "/home/a/r.csv");
-        }
+            "C:\\/r.csv"
+        };
+        assert_eq!(join("C:\\", "r.csv"), after_backslash);
     }
 }
