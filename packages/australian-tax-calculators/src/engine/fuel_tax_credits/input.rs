@@ -374,3 +374,20 @@ fn line_quantity(
         from_cost,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn expected_names_a_single_choice_alone() {
+        assert_eq!(
+            expected(3, "fuel", &["diesel"]),
+            "line 3: fuel must be diesel."
+        );
+        assert_eq!(
+            expected(3, "fuel", &["a", "b"]),
+            "line 3: fuel must be a or b."
+        );
+    }
+}

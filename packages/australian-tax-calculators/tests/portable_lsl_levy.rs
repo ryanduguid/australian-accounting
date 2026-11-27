@@ -903,3 +903,31 @@ fn refusals_cover_invalid_or_unverified_jurisdictions_schemes_years_and_exemptio
         "input.field_unknown"
     );
 }
+
+/// NSW's building and construction levy was verified for 2023-24 to 2026-27,
+/// which are the worksheet's supported years; a later supported year needs the
+/// levy read again for it. Any other year is refused before the levy.
+#[test]
+fn nsw_construction_runs_in_each_supported_year() {
+    let periods = api::evaluate("periods", &json!({"kind": "portable_lsl_levy"})).unwrap();
+    let years: Vec<&str> = periods
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|p| p["id"].as_str().unwrap())
+        .collect();
+    assert_eq!(years, ["2023-24", "2024-25", "2025-26", "2026-27"]);
+    let nsw = |year: &str| {
+        json!({
+            "jurisdiction": "nsw",
+            "scheme": "construction",
+            "year": year,
+            "scope_confirmed": true,
+            "project_cost": "400000.00"
+        })
+    };
+    for year in years {
+        assert_eq!(run(&nsw(year))["amounts"]["levy"], "1000.00", "{year}");
+    }
+    assert_eq!(refused(&nsw("2027-28")), "period.unsupported");
+}

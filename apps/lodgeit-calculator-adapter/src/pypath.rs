@@ -1,10 +1,8 @@
-//! `pathlib.Path` and `os.path` as CPython 3.15 parses, prints, joins and resolves paths.
+//! `pathlib.Path` and `os.path` as CPython 3.15 parses, prints and joins paths.
 //!
 //! The radar prints its output paths and names its inputs in messages, so a
 //! path is carried in pathlib's parsed form: drive, root and the non-empty,
-//! non-`.` parts. Resolution follows `ntpath.realpath` on Windows (lexical
-//! `..`, then the final path name of the longest existing prefix) and
-//! `posixpath.realpath` elsewhere (symbolic links in order).
+//! non-`.` parts.
 use std::path::PathBuf;
 
 #[cfg(windows)]
@@ -63,10 +61,6 @@ pub fn splitroot(p: &str) -> (&str, &str, &str) {
     }
 }
 
-fn is_sep(c: char) -> bool {
-    c == '/' || cfg!(windows) && c == '\\'
-}
-
 /// `os.path.join(a, b)`.
 #[cfg(windows)]
 pub fn join(a: &str, b: &str) -> String {
@@ -116,76 +110,6 @@ pub fn join(a: &str, b: &str) -> String {
     }
 }
 
-/// `os.path.split(p)`.
-pub fn split(p: &str) -> (String, String) {
-    let (d, r, rest) = splitroot(p);
-    let i = rest.rfind(is_sep).map_or(0, |i| i + 1);
-    let head = rest[..i].trim_end_matches(is_sep);
-    (format!("{d}{r}{head}"), rest[i..].to_string())
-}
-
-/// `os.path.isabs(p)`.
-pub fn isabs(p: &str) -> bool {
-    if cfg!(windows) {
-        let start: String = p.chars().take(3).collect::<String>().replace('/', "\\");
-        start.get(1..).is_some_and(|s| s.starts_with(":\\")) || start.starts_with("\\\\")
-    } else {
-        p.starts_with('/')
-    }
-}
-
-/// `os.path.normpath(p)` (Windows).
-#[cfg(windows)]
-pub fn normpath(p: &str) -> String {
-    let p = p.replace('/', "\\");
-    let (drive, root, rest) = splitroot(&p);
-    let mut comps: Vec<&str> = Vec::new();
-    for comp in rest.split('\\') {
-        if comp.is_empty() || comp == "." {
-            continue;
-        }
-        if comp == ".." {
-            if comps.last().is_some_and(|c| *c != "..") {
-                comps.pop();
-                continue;
-            }
-            if comps.is_empty() && !root.is_empty() {
-                continue;
-            }
-        }
-        comps.push(comp);
-    }
-    if drive.is_empty() && root.is_empty() && comps.is_empty() {
-        return ".".into();
-    }
-    format!("{drive}{root}{}", comps.join("\\"))
-}
-
-/// `os.path.normpath(p)` (POSIX): two leading slashes are kept, three or more
-/// become one.
-#[cfg(not(windows))]
-pub fn normpath(p: &str) -> String {
-    let leading = p.len() - p.trim_start_matches('/').len();
-    let prefix = match leading {
-        0 => "",
-        2 => "//",
-        _ => "/",
-    };
-    let mut comps: Vec<&str> = Vec::new();
-    for comp in p.split('/') {
-        if comp.is_empty() || comp == "." {
-            continue;
-        }
-        if comp != ".." || (prefix.is_empty() && comps.is_empty()) || comps.last() == Some(&"..") {
-            comps.push(comp);
-        } else if !comps.is_empty() {
-            comps.pop();
-        }
-    }
-    let path = format!("{prefix}{}", comps.join("/"));
-    if path.is_empty() { ".".into() } else { path }
-}
-
 impl PyPath {
     /// `Path(text)`.
     pub fn new(text: &str) -> Self {
@@ -196,24 +120,22 @@ impl PyPath {
                 tail: Vec::new(),
             };
         }
-        let text = if cfg!(windows) {
-            text.replace('/', "\\")
-        } else {
-            text.to_string()
-        };
-        let (drv, mut root, rel) = splitroot(&text);
+        #[cfg(windows)]
+        let text = &text.replace('/', "\\");
+        let (drv, root, rel) = splitroot(text);
         let sep = SEP.chars().next().unwrap_or('/');
-        let mut root_owned = root.to_string();
-        if root.is_empty() && drv.starts_with(sep) && !drv.ends_with(sep) {
+        #[cfg(windows)]
+        let root = if root.is_empty() && drv.starts_with(sep) && !drv.ends_with(sep) && {
             let drv_parts: Vec<&str> = drv.split(sep).collect();
-            if drv_parts.len() == 4 && !"?.".contains(drv_parts[2]) || drv_parts.len() == 6 {
-                root = SEP;
-                root_owned = root.to_string();
-            }
-        }
+            drv_parts.len() == 4 && !"?.".contains(drv_parts[2]) || drv_parts.len() == 6
+        } {
+            SEP
+        } else {
+            root
+        };
         PyPath {
             drv: drv.to_string(),
-            root: root_owned,
+            root: root.to_string(),
             tail: rel
                 .split(sep)
                 .filter(|part| !part.is_empty() && *part != ".")
@@ -227,8 +149,8 @@ impl PyPath {
         if !self.drv.is_empty() || !self.root.is_empty() {
             return format!("{}{}{}", self.drv, self.root, self.tail.join(SEP));
         }
-        if cfg!(windows)
-            && let Some(first) = self.tail.first()
+        #[cfg(windows)]
+        if let Some(first) = self.tail.first()
             && !splitroot(first).0.is_empty()
         {
             return format!(".{SEP}{}", self.tail.join(SEP));
@@ -249,345 +171,10 @@ impl PyPath {
         PyPath::new(&join(&self.display(), other))
     }
 
-    pub fn name(&self) -> &str {
-        self.tail.last().map_or("", String::as_str)
-    }
-
     pub fn parent(&self) -> Self {
         let mut out = self.clone();
         out.tail.pop();
         out
-    }
-
-    /// `path.with_suffix(suffix)` for a suffix that starts with a dot.
-    pub fn with_suffix(&self, suffix: &str) -> Result<Self, String> {
-        let name = self.name();
-        let stem = match name.rfind('.') {
-            Some(i) if !name[..i].trim_start_matches('.').is_empty() => &name[..i],
-            _ => name,
-        };
-        if stem.is_empty() {
-            return Err(format!("{} has an empty name", self.repr()));
-        }
-        let mut out = self.clone();
-        if let Some(last) = out.tail.last_mut() {
-            *last = format!("{stem}{suffix}");
-        }
-        Ok(out)
-    }
-
-    /// `repr(path)`.
-    pub fn repr(&self) -> String {
-        let class = if cfg!(windows) {
-            "WindowsPath"
-        } else {
-            "PosixPath"
-        };
-        format!("{class}({})", crate::py::repr_str(&self.display()))
-    }
-
-    pub fn is_absolute(&self) -> bool {
-        isabs(&self.display())
-    }
-
-    fn normcase(&self) -> String {
-        if cfg!(windows) {
-            self.display().to_lowercase()
-        } else {
-            self.display()
-        }
-    }
-
-    /// `self == other`.
-    pub fn same(&self, other: &PyPath) -> bool {
-        self.normcase() == other.normcase()
-    }
-
-    /// `self.is_relative_to(other)`: `other` is this path or one of its parents.
-    pub fn is_relative_to(&self, other: &PyPath) -> bool {
-        let mut path = self.clone();
-        loop {
-            if path.same(other) {
-                return true;
-            }
-            if path.tail.is_empty() {
-                return false;
-            }
-            path.tail.pop();
-        }
-    }
-
-    /// `self.relative_to(other)`, or the `ValueError` message.
-    pub fn relative_to(&self, other: &PyPath) -> Result<Self, String> {
-        if !self.is_relative_to(other) {
-            return Err(format!(
-                "{} is not in the subpath of {}",
-                crate::py::repr_str(&self.display()),
-                crate::py::repr_str(&other.display())
-            ));
-        }
-        Ok(PyPath {
-            drv: String::new(),
-            root: String::new(),
-            tail: self.tail[other.tail.len()..].to_vec(),
-        })
-    }
-
-    /// `path.stem`: the name less its last suffix, unless that leaves only dots.
-    pub fn stem(&self) -> &str {
-        let name = self.name();
-        match name.rfind('.') {
-            Some(i) if !name[..i].trim_start_matches('.').is_empty() => &name[..i],
-            _ => name,
-        }
-    }
-
-    /// `Path.cwd()`.
-    pub fn cwd() -> Result<Self, crate::pyos::OsError> {
-        std::env::current_dir()
-            .map(|dir| PyPath::new(&dir.to_string_lossy()))
-            .map_err(|error| crate::pyos::OsError::new(&error, None, crate::pyos::Style::Native))
-    }
-
-    /// `path.resolve()`.
-    pub fn resolve(&self) -> Result<Self, crate::pyos::OsError> {
-        realpath(&self.display()).map(|text| PyPath::new(&text))
-    }
-}
-
-impl std::fmt::Display for PyPath {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.display())
-    }
-}
-
-#[cfg(windows)]
-fn final_path_name(path: &str) -> Result<String, std::io::Error> {
-    std::fs::canonicalize(path).map(|p| p.to_string_lossy().into_owned())
-}
-
-#[cfg(windows)]
-fn winerror(error: &std::io::Error) -> i32 {
-    error.raw_os_error().unwrap_or(0)
-}
-
-/// `ntpath._readlink_deep`, enough for broken symbolic links and junctions.
-#[cfg(windows)]
-fn readlink_deep(path: &str) -> String {
-    let mut path = path.to_string();
-    let mut seen = std::collections::HashSet::new();
-    while seen.insert(path.to_lowercase()) {
-        let old = path.clone();
-        let Ok(target) = std::fs::read_link(&path) else {
-            break;
-        };
-        path = target.to_string_lossy().into_owned();
-        if !isabs(&path) {
-            let is_link = std::fs::symlink_metadata(&old).is_ok_and(|m| m.file_type().is_symlink());
-            if !is_link {
-                path = old;
-                break;
-            }
-            path = normpath(&join(&split(&old).0, &path));
-        }
-    }
-    path
-}
-
-/// `ntpath._getfinalpathname_nonstrict`.
-///
-/// shortcut: CPython asks `FindFirstFileW` for the stored name of a component
-/// it may not open (access denied, sharing violation); this keeps the name as
-/// given there. Only the letter case of such a component can differ.
-#[cfg(windows)]
-fn final_path_name_nonstrict(path: &str) -> Result<String, crate::pyos::OsError> {
-    const ALLOWED: &[i32] = &[
-        1, 2, 3, 5, 21, 32, 50, 53, 65, 67, 87, 123, 161, 1005, 1920, 1921,
-    ];
-    let mut path = path.to_string();
-    let mut tail = String::new();
-    while !path.is_empty() {
-        match final_path_name(&path) {
-            Ok(found) => {
-                return Ok(if tail.is_empty() {
-                    found
-                } else {
-                    join(&found, &tail)
-                });
-            }
-            Err(error) => {
-                if !ALLOWED.contains(&winerror(&error)) {
-                    return Err(crate::pyos::OsError::new(
-                        &error,
-                        Some(&path),
-                        crate::pyos::Style::Native,
-                    ));
-                }
-                let new_path = readlink_deep(&path);
-                if new_path != path {
-                    return Ok(if tail.is_empty() {
-                        new_path
-                    } else {
-                        join(&new_path, &tail)
-                    });
-                }
-                let (head, name) = split(&path);
-                path = head;
-                if !path.is_empty() && name.is_empty() {
-                    return Ok(format!("{path}{tail}"));
-                }
-                tail = if tail.is_empty() {
-                    name
-                } else {
-                    join(&name, &tail)
-                };
-            }
-        }
-    }
-    Ok(tail)
-}
-
-/// `os.path.realpath(path)`.
-#[cfg(windows)]
-pub fn realpath(path: &str) -> Result<String, crate::pyos::OsError> {
-    const PREFIX: &str = "\\\\?\\";
-    const UNC_PREFIX: &str = "\\\\?\\UNC\\";
-    let mut path = normpath(path);
-    if path.to_lowercase() == "nul" {
-        return Ok("\\\\.\\NUL".into());
-    }
-    let had_prefix = path.starts_with(PREFIX);
-    if !had_prefix && !isabs(&path) {
-        let cwd = std::env::current_dir()
-            .map_err(|error| crate::pyos::OsError::new(&error, None, crate::pyos::Style::Native))?;
-        path = join(&cwd.to_string_lossy(), &path);
-    }
-    let initial_winerror;
-    match final_path_name(&path) {
-        Ok(found) => {
-            path = found;
-            initial_winerror = 0;
-        }
-        Err(error) => {
-            initial_winerror = winerror(&error);
-            path = final_path_name_nonstrict(&path)?;
-        }
-    }
-    if !had_prefix && path.starts_with(PREFIX) {
-        let spath = match path.strip_prefix(UNC_PREFIX) {
-            Some(rest) => format!("\\\\{rest}"),
-            None => path[PREFIX.len()..].to_string(),
-        };
-        match final_path_name(&spath) {
-            Ok(found) if found == path => path = spath,
-            Ok(_) => {}
-            Err(error) if winerror(&error) == initial_winerror => path = spath,
-            Err(_) => {}
-        }
-    }
-    Ok(path)
-}
-
-/// `os.path.realpath(path)`.
-#[cfg(not(windows))]
-pub fn realpath(filename: &str) -> Result<String, crate::pyos::OsError> {
-    use std::collections::HashMap;
-    let mut rest: Vec<Option<String>> = filename
-        .trim_end_matches('/')
-        .split('/')
-        .rev()
-        .map(|s| Some(s.to_string()))
-        .collect();
-    let mut part_count = rest.len();
-    let mut path = if filename.starts_with('/') {
-        "/".to_string()
-    } else {
-        std::env::current_dir()
-            .map_err(|error| crate::pyos::OsError::new(&error, None, crate::pyos::Style::Native))?
-            .to_string_lossy()
-            .into_owned()
-    };
-    let mut seen: HashMap<String, Option<String>> = HashMap::new();
-    while part_count > 0 {
-        let Some(entry) = rest.pop() else { break };
-        let Some(name) = entry else {
-            if let Some(Some(link)) = rest.pop() {
-                seen.insert(link, Some(path.clone()));
-            }
-            continue;
-        };
-        part_count -= 1;
-        if name.is_empty() || name == "." {
-            continue;
-        }
-        if name == ".." {
-            path = match path.rfind('/') {
-                Some(0) | None => "/".into(),
-                Some(i) => path[..i].to_string(),
-            };
-            continue;
-        }
-        let newpath = if path == "/" {
-            format!("/{name}")
-        } else {
-            format!("{path}/{name}")
-        };
-        let Ok(meta) = std::fs::symlink_metadata(&newpath) else {
-            path = newpath;
-            continue;
-        };
-        if !meta.file_type().is_symlink() {
-            path = newpath;
-            continue;
-        }
-        if let Some(cached) = seen.get(&newpath) {
-            match cached {
-                Some(resolved) => path = resolved.clone(),
-                None => path = newpath,
-            }
-            continue;
-        }
-        let Ok(target) = std::fs::read_link(&newpath) else {
-            path = newpath;
-            continue;
-        };
-        let target = target.to_string_lossy().into_owned();
-        if target.starts_with('/') {
-            path = "/".into();
-        }
-        seen.insert(newpath.clone(), None);
-        rest.push(Some(newpath));
-        rest.push(None);
-        let parts: Vec<&str> = target.split('/').collect();
-        part_count += parts.len();
-        rest.extend(parts.into_iter().rev().map(|s| Some(s.to_string())));
-    }
-    Ok(path)
-}
-
-/// `os.path.abspath(path)`: on Windows `GetFullPathNameW` of the normalised
-/// path, which resolves a drive-relative path against that drive's working
-/// directory, else the lexical join with the working directory.
-pub fn abspath(path: &str) -> String {
-    #[cfg(windows)]
-    if let Ok(full) = std::path::absolute(normpath(path))
-        && let Some(text) = full.to_str()
-    {
-        return text.to_string();
-    }
-    if isabs(path) {
-        return normpath(path);
-    }
-    let cwd = std::env::current_dir().unwrap_or_default();
-    normpath(&join(&cwd.to_string_lossy(), path))
-}
-
-/// `os.path.normcase(path)`: on Windows lower case with backslashes; elsewhere unchanged.
-pub fn normcase(path: &str) -> String {
-    if cfg!(windows) {
-        path.replace('/', "\\").to_lowercase()
-    } else {
-        path.to_string()
     }
 }
 
@@ -601,24 +188,17 @@ mod tests {
         assert_eq!(PyPath::new("./a//b/.").display(), format!("a{SEP}b"));
         assert_eq!(PyPath::new("a/b/").display(), format!("a{SEP}b"));
         assert_eq!(PyPath::new("a").join("b").display(), format!("a{SEP}b"));
-        assert_eq!(
-            PyPath::new("a/b.json")
-                .with_suffix(".md")
-                .unwrap()
-                .display(),
-            format!("a{SEP}b.md")
-        );
-        assert_eq!(
-            PyPath::new(".json").with_suffix(".md").unwrap().display(),
-            ".json.md"
-        );
-        assert_eq!(
-            PyPath::new("a.").with_suffix(".md").unwrap().display(),
-            "a.md"
-        );
-        assert!(PyPath::new("/").with_suffix(".md").is_err());
-        assert!(PyPath::new("a/b/c").is_relative_to(&PyPath::new("a")));
-        assert!(!PyPath::new("ab/c").is_relative_to(&PyPath::new("a")));
+        // CPython 3.15's str(PurePosixPath(...)) and posixpath.join on each.
+        #[cfg(not(windows))]
+        {
+            assert_eq!(PyPath::new("//a/b").display(), "//a/b");
+            assert_eq!(PyPath::new("///a/b").display(), "/a/b");
+            assert_eq!(PyPath::new("/").join("b").display(), "/b");
+            assert_eq!(PyPath::new("a").join("/b").display(), "/b");
+            assert_eq!(PyPath::new("/a/b").parent().display(), "/a");
+            assert_eq!(join("", "b"), "b");
+            assert_eq!(join("a/", "b"), "a/b");
+        }
     }
 
     #[cfg(windows)]
@@ -637,10 +217,6 @@ mod tests {
         assert_eq!(join("C:\\x", "\\y"), "C:\\y");
         assert_eq!(join("C:\\x", "D:y"), "D:y");
         assert_eq!(join("C:\\x", "c:y"), "c:\\x\\y");
-        assert_eq!(normpath("C:a\\..\\..\\b"), "C:..\\b");
-        assert_eq!(normpath("\\\\server\\share\\.."), "\\\\server\\share\\");
-        assert!(PyPath::new("A\\B").same(&PyPath::new("a/b")));
-        assert_eq!(realpath("nul").unwrap(), "\\\\.\\NUL");
     }
 
     #[cfg(windows)]

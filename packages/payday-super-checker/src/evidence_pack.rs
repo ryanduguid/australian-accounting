@@ -407,6 +407,15 @@ mod tests {
     }
 
     #[test]
+    fn json_escapes_controls_as_python_does() {
+        // CPython: json.dumps("\\\n\r\t\b\f\x01") == '"\\\\\\n\\r\\t\\b\\f\\u0001"'.
+        assert_eq!(
+            Out::Str("\\\n\r\t\u{8}\u{c}\u{1}".into()).dumps(),
+            r#""\\\n\r\t\b\f\u0001""#
+        );
+    }
+
+    #[test]
     fn the_writer_refuses_other_names_and_an_existing_directory() {
         let dir = std::env::temp_dir().join(format!("payday-pack-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
