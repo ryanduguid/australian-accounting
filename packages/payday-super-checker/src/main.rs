@@ -76,13 +76,19 @@ mod tests {
         assert!(line(ErrorKind::ConnectionReset).contains("\nConnectionResetError: [Errno 0] "));
         assert!(line(ErrorKind::WouldBlock).contains("\nBlockingIOError: [Errno 0] "));
         let other = unflushed("stdout", &Error::other("disk gone"));
-        assert!(other.ends_with("\nOSError: [Errno 0] disk gone\n"), "{other}");
+        assert!(
+            other.ends_with("\nOSError: [Errno 0] disk gone\n"),
+            "{other}"
+        );
     }
 
     #[cfg(unix)]
     #[test]
     fn an_os_error_keeps_its_errno() {
         let raw = unflushed("stdout", &Error::from_raw_os_error(32));
-        assert!(raw.ends_with("BrokenPipeError: [Errno 32] Broken pipe\n"), "{raw}");
+        assert!(
+            raw.ends_with("BrokenPipeError: [Errno 32] Broken pipe\n"),
+            "{raw}"
+        );
     }
 }

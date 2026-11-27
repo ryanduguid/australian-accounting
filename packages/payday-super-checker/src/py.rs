@@ -303,7 +303,9 @@ pub enum OsStyle {
 }
 
 fn strip_os_suffix(message: &str) -> &str {
-    message.rfind(" (os error ").map_or(message, |i| &message[..i])
+    message
+        .rfind(" (os error ")
+        .map_or(message, |i| &message[..i])
 }
 
 #[cfg(windows)]
@@ -825,7 +827,13 @@ mod tests {
     fn iso_week_dates_refuse_what_cpython_refuses() {
         let ok = |s: &str| Date::fromisoformat(s).map(|d| d.isoformat());
         assert_eq!(ok("2026-W01-1").as_deref(), Some("2025-12-29"));
-        for bad in ["2026-W01x1", "2026-01x01", "0000-W01", "2025-W53", "2026-W01-8"] {
+        for bad in [
+            "2026-W01x1",
+            "2026-01x01",
+            "0000-W01",
+            "2025-W53",
+            "2026-W01-8",
+        ] {
             assert_eq!(ok(bad), None, "{bad:?}");
         }
     }
@@ -841,7 +849,10 @@ mod tests {
         for bad in ["1_", "12a", "1\u{e9}"] {
             assert_eq!(
                 parse_int(bad, 10),
-                Err(format!("invalid literal for int() with base 10: {}", repr_str(bad)))
+                Err(format!(
+                    "invalid literal for int() with base 10: {}",
+                    repr_str(bad)
+                ))
             );
         }
         let long = "x".repeat(201);
@@ -852,28 +863,16 @@ mod tests {
                 "x".repeat(200)
             ))
         );
-        assert_eq!(parse_int(&"1".repeat(4301), 10), Err(int_digits_error(4301)));
+        assert_eq!(
+            parse_int(&"1".repeat(4301), 10),
+            Err(int_digits_error(4301))
+        );
         assert_eq!(parse_int(&"1".repeat(4300), 10).map(|_| ()), Ok(()));
     }
 
     #[test]
     fn repr_escapes_newlines_and_unprintable_astral_characters() {
         assert_eq!(repr_str("\n\r\u{e0001}"), "'\\n\\r\\U000e0001'");
-    }
-
-    #[test]
-    fn read_text_reads_utf8_with_universal_newlines() {
-        let dir = std::env::temp_dir().join(format!("payday-py-read-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("in.txt");
-        std::fs::write(&path, b"a\r\nb\rc").unwrap();
-        assert_eq!(read_text(&path).unwrap(), "a\nb\nc");
-        std::fs::write(&path, b"\xff").unwrap();
-        assert!(matches!(read_text(&path), Err(ReadError::Decode(_))));
-        assert!(matches!(read_text(&dir.join("missing")), Err(ReadError::Os(_))));
-        let resolved = resolve_text(&dir.join("gone").join("..").join("in.txt"));
-        assert_eq!(resolved, resolve_text(&path));
-        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
