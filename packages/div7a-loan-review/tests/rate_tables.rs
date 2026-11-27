@@ -19,7 +19,13 @@ fn table_file(name: &str, data: &[u8]) -> PyPath {
 }
 
 const HEAD: &str = "# reviewed_until: 2026-27\n# reviewed_on: 2026-07-01\n\
-year_of_income,rate,primary_url,retrieved_on,snapshot_sha256\n";
+year_of_income,rate,rba_table,rba_series,rba_month,source,seen,\
+primary_url,retrieved_on,snapshot_sha256\n";
+
+/// One rate row for `year` citing the snapshot `url`, `on` and `sha`.
+fn row(year: &str, url: &str, on: &str, sha: &str) -> String {
+    format!("{year},0.05,F5,S,2025-05,RBA,2025-06-01,{url},{on},{sha}\n")
+}
 
 fn source(name: &str, rows: &str) -> TableSource {
     let table =
@@ -27,43 +33,42 @@ fn source(name: &str, rows: &str) -> TableSource {
     table.sources.into_iter().next().expect("one source")
 }
 
+fn cited(source: &TableSource) -> (&str, &str, &str) {
+    (
+        source.primary_url.as_str(),
+        source.retrieved_on.as_str(),
+        source.snapshot_sha256.as_str(),
+    )
+}
+
+const URL: &str = "https://example.test/f5";
+
 #[test]
 fn rows_citing_one_snapshot_name_it_as_the_tables_source() {
-    let one = source(
-        "one",
-        "2025-26,0.05,https://example.test/f5,2026-07-01,aa\n\n2026-27,0.06,https://example.test/f5,2026-07-01,aa\n",
+    // The blank line between the rows is skipped, as csv.reader's empty row is.
+    let rows = format!(
+        "{}\n{}",
+        row("2025-26", URL, "2026-07-01", "aa"),
+        row("2026-27", URL, "2026-07-01", "aa")
     );
-    assert_eq!(
-        (
-            one.primary_url.as_str(),
-            one.retrieved_on.as_str(),
-            one.snapshot_sha256.as_str()
-        ),
-        ("https://example.test/f5", "2026-07-01", "aa")
-    );
+    assert_eq!(cited(&source("one", &rows)), (URL, "2026-07-01", "aa"));
 }
 
 #[test]
 fn rows_citing_different_snapshots_leave_the_source_unnamed() {
-    let mixed = source(
-        "mixed",
-        "2025-26,0.05,https://example.test/f5,2026-07-01,aa\n2026-27,0.06,https://example.test/f5,2026-07-02,bb\n",
+    let rows = format!(
+        "{}{}",
+        row("2025-26", URL, "2026-07-01", "aa"),
+        row("2026-27", URL, "2026-07-02", "bb")
     );
-    assert_eq!(
-        (
-            mixed.primary_url.as_str(),
-            mixed.retrieved_on.as_str(),
-            mixed.snapshot_sha256.as_str()
-        ),
-        ("", "", "")
-    );
+    assert_eq!(cited(&source("mixed", &rows)), ("", "", ""));
 }
 
 #[test]
 fn a_table_that_is_not_utf8_raises_python_s_decode_error() {
     let mut data = HEAD.as_bytes().to_vec();
-    data.extend(b"2025-26,0.05,\xff,2026-07-01,aa\n");
-    let at = data.len() - 16;
+    data.extend(b"2025-26,0.05,\xff\n");
+    let at = data.len() - 2;
     assert_eq!(
         rates::load_table(&table_file("bad-byte", &data)).unwrap_err(),
         Failure::Uncaught(format!(
