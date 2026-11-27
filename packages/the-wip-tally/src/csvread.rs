@@ -7,8 +7,6 @@
 //! Records are parsed by `_csv.c`'s state machine for the default excel
 //! dialect, non-strict, with the default field size limit.
 
-use std::fmt;
-
 const CHUNK_SIZE: usize = 8192;
 const FIELD_LIMIT: usize = 131_072;
 const BOM: &[u8] = b"\xef\xbb\xbf";
@@ -20,15 +18,6 @@ pub enum ReadError {
     Decode { start: usize, reason: &'static str },
     /// `csv.Error`.
     Csv(String),
-}
-
-impl fmt::Display for ReadError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ReadError::Decode { start, reason } => write!(f, "byte {start} ({reason})"),
-            ReadError::Csv(message) => f.write_str(message),
-        }
-    }
 }
 
 /// The `utf-8-sig` incremental decoder behind a newline decoder with
@@ -132,20 +121,15 @@ impl<'a> TextReader<'a> {
     fn readline(&mut self) -> Result<Option<Vec<char>>, ReadError> {
         loop {
             let rest = &self.text[self.cursor..];
-            let end = rest
-                .iter()
-                .position(|c| *c == '\n' || *c == '\r')
-                .and_then(|i| {
-                    if rest[i] == '\n' {
-                        Some(i + 1)
-                    } else if i + 1 < rest.len() {
-                        Some(if rest[i + 1] == '\n' { i + 2 } else { i + 1 })
-                    } else if self.eof {
-                        Some(i + 1)
-                    } else {
-                        None
-                    }
-                });
+            // `read_chunk` holds a trailing '\r' back until the data ends, so a
+            // '\r' is never the last character before the end of the data.
+            let end = rest.iter().position(|c| *c == '\n' || *c == '\r').map(|i| {
+                if rest[i] == '\r' && rest.get(i + 1) == Some(&'\n') {
+                    i + 2
+                } else {
+                    i + 1
+                }
+            });
             if let Some(end) = end {
                 let line = rest[..end].to_vec();
                 self.cursor += end;
@@ -230,18 +214,17 @@ impl<'a> Reader<'a> {
     /// `parse_process_char` for the excel dialect.
     fn process(&mut self, input: Input) -> Result<(), ReadError> {
         let newline = matches!(input, Input::Char('\n' | '\r'));
+        // `readline` never yields an empty line, and the state returns to
+        // StartRecord only at a line's Eol, so a line's first character comes here.
         if self.state == State::StartRecord {
-            if input == Input::Eol {
-                return Ok(());
-            }
-            if newline {
-                self.state = State::EatCrnl;
-                return Ok(());
-            }
-            self.state = State::StartField;
+            self.state = if newline {
+                State::EatCrnl
+            } else {
+                State::StartField
+            };
         }
         match self.state {
-            State::StartField => match input {
+            State::StartField | State::StartRecord => match input {
                 Input::Eol | Input::Char('\n' | '\r') => self.end_of_line(input),
                 Input::Char('"') => self.state = State::InQuotedField,
                 Input::Char(',') => self.save_field(),
@@ -278,18 +261,13 @@ impl<'a> Reader<'a> {
                     self.state = State::InField;
                 }
             },
-            State::EatCrnl => match input {
-                Input::Char('\n' | '\r') => {}
-                Input::Eol => self.state = State::StartRecord,
-                Input::Char(_) => {
-                    return Err(ReadError::Csv(
-                        "new-line character seen in unquoted field - \
-                         do you need to open the file with newline=''?"
-                            .into(),
-                    ));
+            // `readline` ends a line at its first break, so only the '\n' of
+            // "\r\n" can follow one; C's "new-line character seen" never fires.
+            State::EatCrnl => {
+                if input == Input::Eol {
+                    self.state = State::StartRecord;
                 }
-            },
-            State::StartRecord => unreachable!("handled above"),
+            }
         }
         Ok(())
     }
@@ -386,5 +364,26 @@ mod tests {
                 "field larger than field limit (131072)".into()
             ))
         );
+    }
+
+    #[test]
+    fn a_carriage_return_at_a_chunk_boundary_waits_for_the_next_chunk() {
+        // CPython's csv.reader over TextIOWrapper(encoding="utf-8-sig", newline="").
+        let long = "a".repeat(CHUNK_SIZE - 1);
+        let mut crlf = long.clone().into_bytes();
+        crlf.extend_from_slice(b"\r\nb,c\r");
+        assert_eq!(
+            rows(&crlf).unwrap(),
+            vec![vec![long.clone()], vec!["b".to_string(), "c".to_string()]]
+        );
+        let mut cr = long.clone().into_bytes();
+        cr.extend_from_slice(b"\rb");
+        assert_eq!(
+            rows(&cr).unwrap(),
+            vec![vec![long.clone()], vec!["b".to_string()]]
+        );
+        let mut last = long.clone().into_bytes();
+        last.push(b'\r');
+        assert_eq!(rows(&last).unwrap(), vec![vec![long]]);
     }
 }

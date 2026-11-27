@@ -220,17 +220,8 @@ pub fn render_console(schedule: &Schedule) -> Calc<String> {
     let zero = crate::money::d("0");
     let key = |row: &ContractPosition| row.profit_fade_points.clone().unwrap_or(zero.clone());
     let mut ranked = review.clone();
-    let mut failure = None;
-    ranked.sort_by(|a, b| match key(b).compare(&key(a)) {
-        Ok(ordering) => ordering,
-        Err(signal) => {
-            failure = Some(signal);
-            std::cmp::Ordering::Equal
-        }
-    });
-    if let Some(signal) = failure {
-        return Err(signal);
-    }
+    // Only a NaN fails to compare, and every CSV figure is a finite amount.
+    ranked.sort_by(|a, b| key(b).compare(&key(a)).expect("fades are finite"));
     for position in ranked {
         let fade = match &position.profit_fade_points {
             Some(p) => points(p)?,

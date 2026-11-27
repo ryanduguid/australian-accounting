@@ -192,12 +192,12 @@ fn write_scenario(
     let mut reader = Reader::new(source_bytes);
     let fields = reader
         .next_row()
-        .map_err(|e| Failure::Message(e.to_string()))?
+        .expect("read_contracts has read these bytes")
         .unwrap_or_default();
     let mut rows = Vec::new();
     while let Some(row) = reader
         .next_row()
-        .map_err(|e| Failure::Message(e.to_string()))?
+        .expect("read_contracts has read these bytes")
     {
         if !row.is_empty() {
             rows.push(row);

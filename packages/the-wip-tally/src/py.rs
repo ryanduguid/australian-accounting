@@ -472,13 +472,13 @@ pub fn resolve_text(path: &Path) -> String {
         let Ok(mut resolved) = std::fs::canonicalize(&prefix) else {
             continue;
         };
+        // `components()` yields `.` only first, and `split` is at least 1 here,
+        // as no empty prefix canonicalises.
         for component in &components[split..] {
-            match component {
-                std::path::Component::ParentDir => {
-                    resolved.pop();
-                }
-                std::path::Component::CurDir => {}
-                other => resolved.push(other.as_os_str()),
+            if *component == std::path::Component::ParentDir {
+                resolved.pop();
+            } else {
+                resolved.push(component.as_os_str());
             }
         }
         return without_verbatim(resolved.to_string_lossy().into_owned());
