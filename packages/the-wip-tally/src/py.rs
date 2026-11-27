@@ -489,9 +489,9 @@ pub fn resolve_text(path: &Path) -> String {
 /// `canonicalize` gives Windows verbatim paths; `realpath` does not.
 #[cfg(windows)]
 fn without_verbatim(text: String) -> String {
-    match text.strip_prefix(r"\\?\UNC\") {
-        Some(rest) => format!(r"\\{rest}"),
-        None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
+    match text.strip_prefix("\\\\?\\UNC\\") {
+        Some(rest) => format!("\\\\{rest}"),
+        None => text.strip_prefix("\\\\?\\").unwrap_or(&text).to_string(),
     }
 }
 
@@ -850,7 +850,9 @@ mod tests {
 
     #[test]
     fn a_missing_tail_is_normalised_lexically_after_the_existing_prefix() {
-        let root = std::env::temp_dir().join(format!("wip-resolve-{}", std::process::id()));
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("wip-resolve-{}", std::process::id()));
         std::fs::create_dir_all(&root).unwrap();
         let real = resolve_text(&root);
         // os.path.realpath drops `missing/..` once no prefix beyond `root` exists.
