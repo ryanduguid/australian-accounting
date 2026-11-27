@@ -86,7 +86,7 @@ fn unflushed(stream: &str, e: &std::io::Error) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{Error, ErrorKind};
+    use std::io::Error;
 
     const FAILED: i32 = if cfg!(unix) { 120 } else { 1 };
 
@@ -100,7 +100,7 @@ mod tests {
     #[test]
     fn an_error_without_an_os_code_is_an_oserror_with_errno_0() {
         assert_eq!(
-            unflushed("stdout", &Error::new(ErrorKind::Other, "boom")),
+            unflushed("stdout", &Error::other("boom")),
             "Exception ignored while flushing sys.stdout:\nOSError: [Errno 0] boom\n"
         );
     }
