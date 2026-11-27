@@ -164,5 +164,29 @@ mod tests {
         assert_eq!(repr("caf\u{e9}"), "'caf\u{e9}'");
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
+        assert_eq!(repr("a\tb"), "'a\\tb'");
+    }
+
+    #[test]
+    fn a_genuine_escape_code_point_round_trips_through_os_text() {
+        // An OS string holding U+10F7FF itself is written as a doubled ESCAPE,
+        // read back as one code point and counted once, as Python's len does.
+        let mut text = String::new();
+        push_code_point(&mut text, 0x10_F7FF);
+        push_code_point(&mut text, 'a' as u32);
+        assert_eq!(text, "\u{10F7FF}\u{10F7FF}a");
+        assert_eq!(code_points(&text).collect::<Vec<_>>(), [0x10_F7FF, 0x61]);
+        assert_eq!(py_len(&text), 2);
+        assert_eq!(repr_os(&text), "'\\U0010f7ffa'");
+    }
+
+    #[test]
+    fn an_escape_not_followed_by_a_carried_code_point_stands_for_itself() {
+        // JSON-derived text is not escaped: a lone ESCAPE, at the end or before
+        // an ordinary character, is the code point U+10F7FF.
+        assert_eq!(
+            code_points("\u{10F7FF}a\u{10F7FF}").collect::<Vec<_>>(),
+            [0x10_F7FF, 0x61, 0x10_F7FF]
+        );
     }
 }

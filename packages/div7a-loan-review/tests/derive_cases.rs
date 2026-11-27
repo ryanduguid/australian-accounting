@@ -66,4 +66,15 @@ fn derive_refuses_input_that_is_not_an_object_or_a_decimal_it_cannot_hold() {
         "gate_result": gate,
     } }));
     assert_eq!(overflow.unwrap_err(), "decimal.InvalidOperation");
+    // Refused before the formula runs (a nil remaining term), the same balance
+    // still cannot be shown in cents, so writing the derivation's steps fails.
+    let refused = derive(&json!({ "facts": {
+        "year_of_income": "2026-27",
+        "year_loan_made": "2023-24",
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "9E+999999",
+        "remaining_term_years": "0",
+        "payments_applied_during_the_year": "0",
+        "gate_result": gate,
+    } }));
+    assert_eq!(refused.unwrap_err(), "decimal.InvalidOperation");
 }
