@@ -189,7 +189,7 @@ fn decimal_special_and_extreme_arithmetic() {
 }
 
 #[test]
-fn decimal_division_quantize_rounding_and_ordering() {
+fn decimal_division_and_quantize() {
     let huge = d("1000000000000000000000000000000");
     assert_eq!(
         huge.div(&d("2")).unwrap().to_sci_string(),
@@ -216,6 +216,10 @@ fn decimal_division_quantize_rounding_and_ordering() {
             .err(),
         Some(Signal::InvalidOperation)
     );
+}
+
+#[test]
+fn decimal_rounding_and_extreme_exponents() {
     assert_eq!(d("1E-10").fixed(2, false), "0.00");
     assert_eq!(d("0.005").to_sci_string(), "0.005");
     assert_eq!(d("0.005").fixed(2, false), "0.00");
@@ -532,7 +536,7 @@ fn cli_windows_unpaired_surrogate_arg_is_backslash_escaped() {
 }
 
 #[test]
-fn cli_difflib_escapes_and_trust_loss_income_now_validation() {
+fn cli_difflib_escapes_and_negative_decimal_arg() {
     let esc = run_cli(&["\\\t\n\r"], &[]);
     assert_eq!(esc.status.code(), Some(2));
     assert!(
@@ -557,6 +561,11 @@ fn cli_difflib_escapes_and_trust_loss_income_now_validation() {
     ] {
         let r = run_cli(&[bad_cmd], &[]);
         assert_eq!(r.status.code(), Some(2));
+        assert!(
+            String::from_utf8(r.stderr)
+                .unwrap()
+                .contains("invalid choice:")
+        );
     }
 
     let dot_neg = run_cli(
@@ -564,7 +573,15 @@ fn cli_difflib_escapes_and_trust_loss_income_now_validation() {
         &[],
     );
     assert_eq!(dot_neg.status.code(), Some(2));
+    assert!(
+        String::from_utf8(dot_neg.stderr)
+            .unwrap()
+            .contains("distribution amount must be positive")
+    );
+}
 
+#[test]
+fn trust_loss_rejects_non_boolean_income_now_fact() {
     let err = api::evaluate(
         "trust-loss-tests",
         &json!({
