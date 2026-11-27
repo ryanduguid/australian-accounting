@@ -170,10 +170,8 @@ pub fn loads(text: &str) -> Result<Json, DecodeError> {
                     idx = skip(idx);
                     if idx < len && s[idx] == ']' {
                         idx += 1;
-                        let Some(Frame::Array(items)) = stack.pop() else {
-                            unreachable!()
-                        };
-                        value = Json::Array(items);
+                        value = Json::Array(std::mem::take(items));
+                        stack.pop();
                         continue;
                     }
                     if idx >= len || s[idx] != ',' {
@@ -195,9 +193,8 @@ pub fn loads(text: &str) -> Result<Json, DecodeError> {
                     idx = skip(idx);
                     if idx < len && s[idx] == '}' {
                         idx += 1;
-                        let Some(Frame::Object(pairs, _)) = stack.pop() else {
-                            unreachable!()
-                        };
+                        let pairs = std::mem::take(pairs);
+                        stack.pop();
                         // A plain dict: a repeated key keeps its first position
                         // and takes the last value.
                         let mut object: Vec<(String, Json)> = Vec::with_capacity(pairs.len());
@@ -445,5 +442,94 @@ mod tests {
                 ("b".into(), Json::Int(2.into()))
             ])
         );
+    }
+
+    // Each expected value and message below is what CPython's json.loads gives.
+    #[test]
+    fn literals_numbers_and_containers_read_as_python_does() {
+        assert_eq!(
+            loads("{\"a\": {}, \"b\": [true, false, null]}").unwrap(),
+            Json::Object(vec![
+                ("a".into(), Json::Object(vec![])),
+                (
+                    "b".into(),
+                    Json::Array(vec![Json::Bool(true), Json::Bool(false), Json::Null])
+                ),
+            ])
+        );
+        assert_eq!(
+            loads("[-12, -0, 1.5e3, 2E-2, 7e+1]").unwrap(),
+            Json::Array(vec![
+                Json::Int((-12).into()),
+                Json::Int(0.into()),
+                Json::Float(1500.0),
+                Json::Float(0.02),
+                Json::Float(70.0),
+            ])
+        );
+        assert_eq!(
+            loads("[Infinity, -Infinity]").unwrap(),
+            Json::Array(vec![
+                Json::Float(f64::INFINITY),
+                Json::Float(f64::NEG_INFINITY)
+            ])
+        );
+        // json.loads('NaN') is a float NaN; '3.25' keeps both fraction digits.
+        assert!(matches!(loads("NaN").unwrap(), Json::Float(f) if f.is_nan()));
+        assert_eq!(loads("3.25").unwrap(), Json::Float(3.25));
+        assert_eq!(loads(" [ ] ").unwrap(), Json::Array(Vec::new()));
+        assert_eq!(loads("{ }").unwrap(), Json::Object(Vec::new()));
+    }
+
+    #[test]
+    fn number_and_position_errors_match_the_c_scanner() {
+        assert_eq!(
+            err("[\n1 2]"),
+            "Expecting ',' delimiter: line 2 column 3 (char 4)"
+        );
+        // An exponent marker with no digits is not part of the number.
+        assert_eq!(
+            err("[1e]"),
+            "Expecting ',' delimiter: line 1 column 3 (char 2)"
+        );
+        assert_eq!(err("[x]"), "Expecting value: line 1 column 2 (char 1)");
+        assert_eq!(err("[-x]"), "Expecting value: line 1 column 2 (char 1)");
+    }
+
+    #[test]
+    fn string_escapes_decode_as_python_does() {
+        let text = |json: &str| loads(json).unwrap();
+        let s = |text: &str| Json::Str(text.into());
+        assert_eq!(text(r#""\"\\\/\b\f\n\r\t""#), s("\"\\/\u{8}\u{c}\n\r\t"));
+        // `~` stands for the backslash of a JSON \u escape.
+        let escaped = |json: &str| json.replace('~', "\\");
+        assert_eq!(text(&escaped(r#""~u00e9~u20AC""#)), s("\u{e9}\u{20ac}"));
+        // A surrogate pair joins into one code point.
+        assert_eq!(text(&escaped(r#""~ud83d~ude00""#)), s("\u{1f600}"));
+        // A high surrogate before a non-low escape stays unpaired.
+        assert_eq!(
+            err(&escaped(r#""~ud800~u0041""#)),
+            "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)"
+        );
+        assert_eq!(
+            err(r#""\u12g4""#),
+            "Invalid \\uXXXX escape: line 1 column 3 (char 2)"
+        );
+        assert_eq!(
+            err(r#""\ud800\u12g4""#),
+            "Invalid \\uXXXX escape: line 1 column 9 (char 8)"
+        );
+    }
+
+    #[test]
+    fn a_lone_surrogate_is_refused_at_its_escape() {
+        // Python keeps a lone surrogate; a Rust string cannot hold one.
+        for json in [r#""\ud800""#, r#""\udc00""#] {
+            assert_eq!(
+                err(json),
+                "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)",
+                "{json}"
+            );
+        }
     }
 }

@@ -161,6 +161,16 @@ CSVREAD_COPIES = {
             "    fn save_field(&mut self) {\n",
         ),
         (
+            "        if self.state == State::StartRecord {\n"
+            "            if newline {\n",
+            "        if self.state == State::StartRecord {\n"
+            "            // Only a list of lines can hold an empty one, which reads as [].\n"
+            "            if input == Input::Eol {\n"
+            "                return Ok(());\n"
+            "            }\n"
+            "            if newline {\n",
+        ),
+        (
             "            let Some(line) = self.text.readline()? else {\n",
             "            let next = match self.lines.as_mut() {\n"
             "                Some(lines) => lines.pop_front(),\n"

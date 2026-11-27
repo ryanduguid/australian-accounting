@@ -18,11 +18,9 @@ pub(super) fn make_rows(
     family: &str,
     pending: &Pending<'_>,
     cal: &holidays::Calendar,
-) -> Result<Vec<Value>, String> {
+) -> Vec<Value> {
     if rule.is_none() || !missing.is_empty() {
-        return Ok(vec![pending_row(
-            label, period, missing, family, pending, cal,
-        )?]);
+        return vec![pending_row(label, period, missing, family, pending, cal)];
     }
     let rule = rule.expect("present rule");
     let payment = match &rule.payment {
@@ -37,11 +35,11 @@ pub(super) fn make_rows(
         &[],
         Some(payment),
         cal,
-    )?];
+    )];
     if let Payment::Separate(payment) = &rule.payment {
-        result.push(row(label, period, "payment", payment, &[], None, cal)?);
+        result.push(row(label, period, "payment", payment, &[], None, cal));
     }
-    Ok(result)
+    result
 }
 
 fn pending_row(
@@ -51,7 +49,7 @@ fn pending_row(
     family: &str,
     pending: &Pending<'_>,
     cal: &holidays::Calendar,
-) -> Result<Value, String> {
+) -> Value {
     let meanings: Vec<_> = missing
         .iter()
         .map(|n| data()["fact_meanings"][n].as_str().expect("fact meaning"))
@@ -84,10 +82,10 @@ pub(super) fn row(
     missing: &[String],
     payment: Option<&str>,
     cal: &holidays::Calendar,
-) -> Result<Value, String> {
+) -> Value {
     let source = &data()["sources"][&rule.source];
     let mut needed = fact_lines(missing);
-    let (due, holiday_roll) = schedule(kind, rule, &mut needed, cal)?;
+    let (due, holiday_roll) = schedule(kind, rule, &mut needed, cal);
     let status = if needed.is_empty() {
         "DETERMINED"
     } else {
@@ -99,7 +97,7 @@ pub(super) fn row(
     if kind == "lodgment" {
         result["payment"] = json!(payment);
     }
-    Ok(result)
+    result
 }
 
 fn fact_lines(missing: &[String]) -> Vec<String> {
@@ -119,15 +117,19 @@ fn schedule(
     rule: &Rule,
     needed: &mut Vec<String>,
     cal: &holidays::Calendar,
-) -> Result<(Option<jiff::civil::Date>, Value), String> {
+) -> (Option<jiff::civil::Date>, Value) {
     if let Some(unresolved) = &rule.unresolved {
         needed.push(unresolved.clone());
-        return Ok((None, Value::Null));
+        return (None, Value::Null);
     }
     let Some(nominal) = rule.nominal.filter(|_| needed.is_empty()) else {
-        return Ok((None, Value::Null));
+        return (None, Value::Null);
     };
-    let (mut due, skipped, question) = holidays::roll_day(nominal, cal)?;
+    // `cal` comes from `holidays::calendar`: the recorded table plus at most 50 caller
+    // weekdays. A roll from a recorded nominal date therefore crosses at most those
+    // holidays and the weekends between them, and never reaches 9999-12-31.
+    let (mut due, skipped, question) =
+        holidays::roll_day(nominal, cal).expect("a bounded holiday roll");
     let holiday_roll = if !skipped.is_empty() || due.is_none() {
         json!({"skipped":skipped,"source_url":data()["holiday_source"]})
     } else {
@@ -142,7 +144,7 @@ fn schedule(
     if !needed.is_empty() {
         due = None;
     }
-    Ok((due, holiday_roll))
+    (due, holiday_roll)
 }
 
 fn concession_question(

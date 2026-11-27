@@ -364,18 +364,10 @@ fn group_steps(
 /// GIW is the group's actual interstate wages (Sch 1 cl 7), so in the Acts
 /// with a `nil` clause a member's omitted interstate wages are refused, not
 /// taken as nil.
-fn giw_stated(persons: &Arg, f: &Facts, members: &[usize], act: &Act) -> Result<()> {
-    let list = if let Arg::Json(Value::Array(l)) = persons {
-        l.as_slice()
-    } else {
-        &[]
-    };
+fn giw_stated(f: &Facts, members: &[usize], act: &Act) -> Result<()> {
     for &p in members.iter().filter(|_| !act.nil.is_empty()) {
         let id = f.persons[p].id.as_str();
-        if !list
-            .iter()
-            .any(|v| v["id"] == id && v.get("interstate_wages").is_some())
-        {
+        if !f.persons[p].interstate_stated {
             return refuse(
                 "payroll_tax_group.fact_invalid",
                 format!(
@@ -592,7 +584,7 @@ pub fn payroll_tax_group(args: &PayrollTaxGroupArgs) -> Result<Value> {
     let (f, index, employer) = gather(args)?;
     let excluded = named(&index, args.exclusions, "exclusions")?;
     let (members, mut groups) = group_of(&f, employer, &excluded, (place, act))?;
-    giw_stated(args.persons, &f, &members, act)?;
+    giw_stated(&f, &members, act)?;
     let stated_dges = named(
         &index,
         args.designated_group_employers,

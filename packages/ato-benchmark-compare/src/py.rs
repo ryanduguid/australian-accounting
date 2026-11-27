@@ -79,11 +79,6 @@ pub fn prefix_chars(s: &str, n: usize) -> &str {
     }
 }
 
-/// `len(s)`: a count of code points.
-pub fn char_len(s: &str) -> usize {
-    s.chars().count()
-}
-
 /// `repr(s)` for a `str`.
 pub fn repr_str(s: &str) -> String {
     let quote = if s.contains('\'') && !s.contains('"') {
@@ -133,18 +128,18 @@ pub fn int_digits_error(digits: usize) -> String {
     )
 }
 
-/// Unicode digits to ASCII and Unicode spaces to ' ', as `int()` and `float()` first do.
+/// Non-ASCII digits to ASCII and non-ASCII spaces to ' ', as `int()` and `float()`
+/// first do (`_PyUnicode_TransformDecimalAndSpaceToASCII`). ASCII is kept as it
+/// is, so `\x1c`-`\x1f`, which `str.isspace` accepts, stay.
 fn number_text(s: &str) -> Option<String> {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
-        if is_space(c) {
-            out.push(' ');
-        } else if let Some(d) = decimal_value(c) {
-            out.push(char::from_digit(d, 10).expect("digit"));
-        } else if c.is_ascii() {
+        if c.is_ascii() {
             out.push(c);
+        } else if is_space(c) {
+            out.push(' ');
         } else {
-            return None;
+            out.push(char::from_digit(decimal_value(c)?, 10).expect("digit"));
         }
     }
     Some(out)
@@ -152,20 +147,17 @@ fn number_text(s: &str) -> Option<String> {
 
 /// `int(s, base)`; the error is the `ValueError` message.
 pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
+    // CPython's `%.200R`: the repr of the whole string (which picks the quote),
+    // cut to 200 characters, closing quote included.
     let invalid = || {
-        let shown: String = if char_len(s) > 200 {
-            prefix_chars(s, 200).to_string()
-        } else {
-            s.to_string()
-        };
         format!(
             "invalid literal for int() with base {base}: {}",
-            repr_str(&shown)
+            prefix_chars(&repr_str(s), 200)
         )
     };
     let text = number_text(s).ok_or_else(invalid)?;
-    let text =
-        text.trim_matches(|c: char| c.is_ascii_whitespace() || ('\x1c'..='\x1f').contains(&c));
+    // `Py_ISSPACE`: ASCII whitespace with \v; str.isspace's \x1c-\x1f are kept.
+    let text = text.trim_matches(|c: char| matches!(c, ' ' | '\t' | '\n' | '\x0b' | '\x0c' | '\r'));
     let (negative, mut body) = match text.as_bytes().first() {
         Some(b'-') => (true, &text[1..]),
         Some(b'+') => (false, &text[1..]),
@@ -462,14 +454,6 @@ impl PyPath {
         out.parts.pop();
         out
     }
-
-    pub fn is_absolute(&self) -> bool {
-        if cfg!(windows) {
-            self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
-        } else {
-            !self.anchor.is_empty()
-        }
-    }
 }
 
 impl std::fmt::Display for PyPath {
@@ -483,36 +467,57 @@ impl std::fmt::Display for PyPath {
 pub fn resolve_text(path: &Path) -> String {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let components: Vec<_> = absolute.components().collect();
-    for split in (0..=components.len()).rev() {
+    // The longest prefix that exists, canonicalised.
+    let found = (0..=components.len()).rev().find_map(|split| {
         let prefix: PathBuf = components[..split].iter().collect();
-        let Ok(mut resolved) = std::fs::canonicalize(&prefix) else {
-            continue;
-        };
-        for component in &components[split..] {
-            match component {
-                std::path::Component::ParentDir => {
-                    resolved.pop();
-                }
-                std::path::Component::CurDir => {}
-                other => resolved.push(other.as_os_str()),
+        std::fs::canonicalize(&prefix)
+            .ok()
+            .map(|real| (real, split))
+    });
+    // With none (an empty path, a drive that is not there, or a relative path
+    // when the working directory is gone), the absolute path as it is.
+    let Some((mut resolved, split)) = found else {
+        return absolute.to_string_lossy().into_owned();
+    };
+    for component in &components[split..] {
+        match component {
+            std::path::Component::ParentDir => {
+                resolved.pop();
             }
+            // Only a verbatim Windows path keeps a `.` after its start.
+            #[cfg(windows)]
+            std::path::Component::CurDir => {}
+            other => resolved.push(other.as_os_str()),
         }
-        let text = resolved.to_string_lossy().into_owned();
-        return match text.strip_prefix(r"\\?\UNC\") {
-            Some(rest) => format!(r"\\{rest}"),
-            None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
-        };
     }
-    absolute.to_string_lossy().into_owned()
+    without_verbatim(resolved.to_string_lossy().into_owned())
+}
+
+/// Windows' canonical form without its `\\?\` verbatim prefix, as Python shows it.
+#[cfg(windows)]
+fn without_verbatim(text: String) -> String {
+    match text.strip_prefix("\\\\?\\UNC\\") {
+        Some(rest) => format!("\\\\{rest}"),
+        None => text.strip_prefix("\\\\?\\").unwrap_or(&text).to_string(),
+    }
+}
+
+/// Elsewhere a canonical path has no verbatim prefix.
+#[cfg(not(windows))]
+fn without_verbatim(text: String) -> String {
+    text
 }
 
 /// `Path.__eq__` between resolved paths: case-insensitive on Windows.
+#[cfg(windows)]
 pub fn same_resolved(a: &str, b: &str) -> bool {
-    if cfg!(windows) {
-        a.to_lowercase() == b.to_lowercase()
-    } else {
-        a == b
-    }
+    a.to_lowercase() == b.to_lowercase()
+}
+
+/// `Path.__eq__` between resolved paths: exact elsewhere.
+#[cfg(not(windows))]
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    a == b
 }
 
 #[cfg(test)]
@@ -566,5 +571,99 @@ mod tests {
         );
         assert_eq!(PyPath::new("./a//b/.").display(), format!("a{SEP}b"));
         assert_eq!(PyPath::new("").display(), ".");
+        // Joining an anchored path replaces the base, as `PurePath / "/x"` does.
+        assert_eq!(
+            PyPath::new("a").join("/etc/x").to_string(),
+            format!("{SEP}etc{SEP}x")
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn two_leading_slashes_stay_an_anchor_on_posix() {
+        assert_eq!(PyPath::new("//srv/x").display(), "//srv/x");
+        assert_eq!(PyPath::new("///srv/x").display(), "/srv/x");
+    }
+
+    // Each value and message below is what CPython's repr() and int() give.
+    #[test]
+    fn repr_escapes_newlines_and_unprintable_astral_characters() {
+        assert_eq!(repr_str("a\nb\rc"), "'a\\nb\\rc'");
+        assert_eq!(repr_str("\u{e0001}"), "'\\U000e0001'");
+    }
+
+    #[test]
+    fn int_reads_signs_prefixes_and_unicode_digits() {
+        for (text, base, want) in [
+            ("-12", 10, -12),
+            ("+7", 10, 7),
+            ("0xff", 16, 255),
+            ("0o17", 8, 15),
+            ("0X_1f", 16, 31),
+            ("ff", 16, 255),
+            ("1_000", 10, 1000),
+            ("\u{661}\u{662}", 10, 12),
+        ] {
+            assert_eq!(parse_int(text, base), Ok(BigInt::from(want)), "{text}");
+        }
+    }
+
+    #[test]
+    fn int_refusals_read_as_python_words_them() {
+        for (text, shown) in [
+            ("1__0", "'1__0'"),
+            ("1_", "'1_'"),
+            ("_1", "'_1'"),
+            ("12a", "'12a'"),
+            ("", "''"),
+            ("1\u{20ac}", "'1\u{20ac}'"),
+        ] {
+            assert_eq!(
+                parse_int(text, 10).unwrap_err(),
+                format!("invalid literal for int() with base 10: {shown}"),
+                "{text}"
+            );
+        }
+        // `%.200R` cuts the representation, so the closing quote goes.
+        assert_eq!(
+            parse_int(&"x".repeat(250), 10).unwrap_err(),
+            format!(
+                "invalid literal for int() with base 10: '{}",
+                "x".repeat(199)
+            )
+        );
+        // An apostrophe past the 200th character still picks the double quote.
+        assert_eq!(
+            parse_int(&format!("{}'", "x".repeat(200)), 10).unwrap_err(),
+            format!(
+                "invalid literal for int() with base 10: \"{}",
+                "x".repeat(199)
+            )
+        );
+        // int() strips \v but not \x1c, which str.isspace accepts.
+        assert_eq!(parse_int("\x0b1", 10).unwrap(), BigInt::from(1));
+        // Non-ASCII spaces read as spaces: int("\u30001\x85") is 1.
+        assert_eq!(parse_int("\u{3000}1\u{85}", 10).unwrap(), BigInt::from(1));
+        assert_eq!(
+            parse_int("1\x1c", 10).unwrap_err(),
+            "invalid literal for int() with base 10: '1\\x1c'"
+        );
+        let quoted = format!("{}'", "\u{e9}".repeat(150));
+        assert_eq!(
+            parse_int(&quoted, 10).unwrap_err(),
+            format!("invalid literal for int() with base 10: \"{quoted}\"")
+        );
+        assert_eq!(
+            parse_int(&"1".repeat(4301), 10).unwrap_err(),
+            "Exceeds the limit (4300 digits) for integer string conversion: value has 4301 \
+             digits; use sys.set_int_max_str_digits() to increase the limit"
+        );
+    }
+
+    #[test]
+    fn an_error_without_an_os_code_prints_its_own_message() {
+        let error = io::Error::other("no code here");
+        assert_eq!(oserror_str(&error, "f.csv", OsStyle::Errno), "no code here");
+        assert_eq!(strip_os_suffix("plain message"), "plain message");
     }
 }

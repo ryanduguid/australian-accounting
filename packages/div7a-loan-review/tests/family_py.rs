@@ -1,0 +1,96 @@
+// Copyright 2026 Ryan Duguid
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Additional terms under AGPL-3.0 section 7(b): see NOTICE.
+
+//! The shared `py.rs` path and text helpers. The same file runs in every crate
+//! that holds that copy, so each crate's run measures its own copy. Expected
+//! values are what CPython 3.15's `pathlib` and text mode give.
+use div7a_loan_review::py::{self, PyPath};
+use std::path::{MAIN_SEPARATOR, PathBuf};
+
+fn scratch(name: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join(format!("family-py-{}-{name}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    dir
+}
+
+#[test]
+fn a_parent_drops_the_last_part_and_keeps_the_anchor() {
+    assert_eq!(PyPath::new("a/b").parent().to_string(), "a");
+    assert_eq!(PyPath::new("a").parent().to_string(), ".");
+    assert_eq!(
+        PyPath::new("/").parent().to_string(),
+        MAIN_SEPARATOR.to_string()
+    );
+}
+
+#[test]
+fn resolve_follows_the_existing_prefix_and_normalises_the_rest() {
+    let dir = scratch("resolve");
+    let real = py::resolve_text(&dir);
+    let got = py::resolve_text(&dir.join("missing").join("..").join("x"));
+    assert_eq!(got, format!("{real}{MAIN_SEPARATOR}x"));
+    // Python shows a Windows path without its verbatim prefix.
+    assert!(!real.starts_with("\\\\?\\"));
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn a_path_with_no_existing_prefix_is_returned_as_it_is() {
+    // An empty path has no absolute form and no prefix to canonicalise.
+    assert_eq!(py::resolve_text(std::path::Path::new("")), "");
+}
+
+// A drive letter that is not there: the absolute path as it is (GetFullPathNameW
+// drops `.` and `..` but keeps a trailing separator; a verbatim path is untouched).
+#[cfg(windows)]
+#[test]
+fn a_path_on_a_missing_drive_resolves_to_its_absolute_form_on_windows() {
+    let drive = ('D'..='Z')
+        .rev()
+        .find(|d| !std::path::Path::new(&format!(r"{d}:\")).exists())
+        .expect("a drive letter with no drive");
+    let resolve = |p: &str| py::resolve_text(std::path::Path::new(p));
+    assert_eq!(
+        resolve(&format!(r"{drive}:\no\such.csv")),
+        format!(r"{drive}:\no\such.csv")
+    );
+    assert_eq!(
+        resolve(&format!(r"{drive}:\no\..\x.csv")),
+        format!(r"{drive}:\x.csv")
+    );
+    assert_eq!(resolve(&format!(r"{drive}:\no\")), format!(r"{drive}:\no\"));
+    let verbatim = format!(r"\\?\{drive}:\no\..\x.csv");
+    assert_eq!(resolve(&verbatim), verbatim);
+}
+
+// A verbatim path keeps `.` as a part; it is dropped after the existing prefix.
+#[cfg(windows)]
+#[test]
+fn a_dot_in_a_verbatim_path_is_dropped_on_windows() {
+    let dir = scratch("verbatim");
+    let real = py::resolve_text(&dir);
+    let got = py::resolve_text(std::path::Path::new(&format!(r"\\?\{real}\missing\.\x")));
+    assert_eq!(got, format!(r"{real}\missing\x"));
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[cfg(not(windows))]
+#[test]
+fn resolved_paths_compare_exactly_on_posix() {
+    assert!(py::same_resolved("/a/b", "/a/b"));
+    assert!(!py::same_resolved("/a/b", "/A/b"));
+}
+
+#[cfg(windows)]
+#[test]
+fn resolved_paths_compare_without_case_on_windows() {
+    assert!(py::same_resolved("C:\\a\\b", "c:\\A\\B"));
+    assert!(!py::same_resolved("C:\\a\\b", "C:\\a\\c"));
+}
+
+#[test]
+fn text_mode_reads_every_line_end_as_a_newline() {
+    assert_eq!(py::universal_newlines("a\r\nb\rc\n"), "a\nb\nc\n");
+    assert_eq!(py::universal_newlines("a\nb"), "a\nb");
+}

@@ -626,11 +626,12 @@ fn working(
             assets_reduction.clone(),
         ),
     ];
-    steps.extend(rate_steps(
+    let rates = rate_steps(
         r,
         [&max_rate, &income_reduction, &assets_reduction],
         pension,
-    )?);
+    );
+    steps.extend(rates?);
     Ok(steps)
 }
 
