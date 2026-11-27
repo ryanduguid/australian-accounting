@@ -333,7 +333,9 @@ mod tests {
             got
         });
         let mut connection = Net.dial("127.0.0.1", port, false, 5.0).unwrap();
-        assert_eq!(connection.write(b"ping").unwrap(), 4);
+        let written = connection.write(b"ping").unwrap();
+        assert!(written > 0);
+        connection.write_all(&b"ping"[written..]).unwrap();
         connection.write_all(b"!").unwrap();
         let mut reply = String::new();
         connection.read_to_string(&mut reply).unwrap();

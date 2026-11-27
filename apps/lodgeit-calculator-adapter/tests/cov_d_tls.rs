@@ -90,7 +90,9 @@ fn a_trusted_certificate_carries_a_request_and_its_reply() {
         got
     });
     let mut connection = Net.dial("127.0.0.1", port, true, 5.0).unwrap();
-    assert_eq!(connection.write(b"ping").unwrap(), 4);
+    let written = connection.write(b"ping").unwrap();
+    assert!(written > 0);
+    connection.write_all(&b"ping"[written..]).unwrap();
     connection.write_all(b"!").unwrap();
     connection.flush().unwrap();
     let mut reply = String::new();
