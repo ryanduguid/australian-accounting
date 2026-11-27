@@ -110,3 +110,54 @@ fn conversion_errors_print_as_python_prints_them() {
         Ok("-Infinity".to_string())
     );
 }
+
+#[test]
+fn finite_arithmetic_edges_match_python() {
+    // Unicode whitespace inside the number becomes a space, which is bad syntax.
+    assert_eq!(
+        Decimal::parse_exact("1\u{2003}0").unwrap_err(),
+        Conversion::Syntax
+    );
+    assert_eq!(Decimal::parse_exact("1E").unwrap_err(), Conversion::Syntax);
+    // An exponent beyond libmpdec's limits; leading zeros do not count towards its length.
+    let long = format!("1E{}", "1".repeat(30));
+    assert_eq!(Decimal::parse_exact(&long).unwrap_err(), Conversion::Range);
+    assert_eq!(
+        s(Decimal::parse(&format!("1E{}5", "0".repeat(30)))),
+        ok("1E+5")
+    );
+    assert_eq!(
+        s(d("1E-40").div(&d("3"))),
+        ok("3.333333333333333333333333333E-41")
+    );
+    assert_eq!(
+        s(d("2").div(&d("3E+40"))),
+        ok("6.666666666666666666666666667E-41")
+    );
+    // 1/7's 29th digit is a 5 with a remainder: _pydecimal bumps it before rounding.
+    assert_eq!(s(d("1").div(&d("7"))), ok("0.1428571428571428571428571429"));
+    assert_eq!(s(d("1").add(&d("-2.5"))), ok("-1.5"));
+    assert_eq!(s(d("-1").add(&d("2.5"))), ok("1.5"));
+    assert_eq!(s(d("9E+999999").mul(&d("10"))), Err(Signal::Overflow));
+    assert_eq!(s(d("1E+2").to_integral_value()), ok("1E+2"));
+    assert_eq!(s(d("2.000").to_integral_value()), ok("2"));
+    assert_eq!(s(d("2.00").to_integral_rounded(Rounding::Down)), ok("2"));
+    assert_eq!(s(d("2.50").to_integral_rounded(Rounding::Down)), ok("2"));
+    assert_eq!(d("0E+3").fixed_format(), "0");
+    assert_eq!(d("-0E+3").fixed_format(), "-0");
+}
+
+#[test]
+fn comparison_orders_infinities_and_signs() {
+    use std::cmp::Ordering::{Greater, Less};
+    for (a, b, expected) in [
+        ("-Infinity", "Infinity", Less),
+        ("Infinity", "5", Greater),
+        ("-1", "2", Less),
+        ("1", "-2", Greater),
+        ("-1", "-2", Greater),
+        ("-2", "-1", Less),
+    ] {
+        assert_eq!(d(a).compare(&d(b)), Ok(expected), "{a} vs {b}");
+    }
+}

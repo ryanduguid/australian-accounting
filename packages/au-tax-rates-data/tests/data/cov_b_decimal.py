@@ -4,7 +4,7 @@ Run with CPython 3.15: `python -I tests/data/cov_b_decimal.py`. The default cont
 InvalidOperation, DivisionByZero and Overflow; a trapped signal prints as the exception's name.
 """
 
-from decimal import Decimal as D, ROUND_DOWN, ROUND_HALF_EVEN
+from decimal import Decimal as D, ROUND_DOWN
 
 CASES = [
     ("add NaN 1", lambda: D("NaN") + D("1")),
@@ -45,6 +45,28 @@ CASES = [
     ("float 5e-324", lambda: D(5e-324)),
     ("fixed Inf", lambda: f"{D('-Infinity'):f}"),
     ("fixed NaN", lambda: f"{D('NaN'):f}"),
+    ("space inside", lambda: D("1 0")),
+    ("empty exponent", lambda: D("1E")),
+    ("long exponent", lambda: D("1E" + "1" * 30)),
+    ("zero-led exponent", lambda: D("1E" + "0" * 30 + "5")),
+    ("div 1E-40 3", lambda: D("1E-40") / D("3")),
+    ("div 2 3E+40", lambda: D("2") / D("3E+40")),
+    ("div 1 7", lambda: D("1") / D("7")),
+    ("add 1 -2.5", lambda: D("1") + D("-2.5")),
+    ("add -1 2.5", lambda: D("-1") + D("2.5")),
+    ("overflow", lambda: D("9E+999999") * D("10")),
+    ("integral 1E+2", lambda: D("1E+2").to_integral_value()),
+    ("integral 2.000", lambda: D("2.000").to_integral_value()),
+    ("integral down 2.00", lambda: D("2.00").to_integral_value(rounding=ROUND_DOWN)),
+    ("integral down 2.50", lambda: D("2.50").to_integral_value(rounding=ROUND_DOWN)),
+    ("fixed 0E+3", lambda: f"{D('0E+3'):f}"),
+    ("fixed -0E+3", lambda: f"{D('-0E+3'):f}"),
+    ("compare -Inf Inf", lambda: D("-Infinity").compare(D("Infinity"))),
+    ("compare Inf 5", lambda: D("Infinity").compare(D("5"))),
+    ("compare -1 2", lambda: D("-1").compare(D("2"))),
+    ("compare 1 -2", lambda: D("1").compare(D("-2"))),
+    ("compare -1 -2", lambda: D("-1").compare(D("-2"))),
+    ("compare -2 -1", lambda: D("-2").compare(D("-1"))),
 ]
 
 for name, case in CASES:
@@ -52,4 +74,3 @@ for name, case in CASES:
         print(f"{name}: {case()}")
     except ArithmeticError as error:
         print(f"{name}: {type(error).__name__}")
-print("round", ROUND_HALF_EVEN)

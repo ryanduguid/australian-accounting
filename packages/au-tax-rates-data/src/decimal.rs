@@ -297,19 +297,15 @@ impl Decimal {
 
     /// `_fix_nan`: keep at most `prec` payload digits, dropping the leading ones.
     fn fix_nan(&self) -> Decimal {
-        let Kind::NaN(payload, signalling) = &self.kind else {
-            return self.clone();
-        };
-        let mut payload = payload.clone();
-        if payload.len() as i128 > prec() {
-            payload = payload[payload.len() - prec() as usize..]
+        let mut nan = self.clone();
+        if let Kind::NaN(payload, _) = &mut nan.kind
+            && payload.len() as i128 > prec()
+        {
+            *payload = payload[payload.len() - prec() as usize..]
                 .trim_start_matches('0')
                 .to_string();
         }
-        Decimal {
-            kind: Kind::NaN(payload, *signalling),
-            ..self.clone()
-        }
+        nan
     }
 
     pub fn add(&self, other: &Decimal) -> Calc<Decimal> {
