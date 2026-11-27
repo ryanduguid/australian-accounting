@@ -2698,3 +2698,7 @@ mod cov_a2_tests;
 #[cfg(test)]
 #[path = "cov_a4_rates.rs"]
 mod cov_a4_tests;
+
+#[cfg(test)]
+#[path = "cov_a6_rates.rs"]
+mod cov_a6_tests;

@@ -73,7 +73,7 @@ fn compile_and_search_answer_as_cpython_does() {
             (format!("{case} {got}"), format!("{case} {want}"))
         })
         .unzip();
-    assert_eq!(got.len(), 124);
+    assert_eq!(got.len(), 140);
     assert_eq!(got, want);
 }
 
