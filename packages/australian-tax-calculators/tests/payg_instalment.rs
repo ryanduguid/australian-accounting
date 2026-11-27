@@ -424,3 +424,14 @@ fn a_nil_rate_credits_the_earlier_instalments_net_of_credits() {
     assert_eq!(applied(&out), "0.00");
     assert_eq!(amounts(&out), ["-", "0.00", "0.00", "2500.00"]);
 }
+
+/// An instalment rate given as a JSON number or a boolean, not a decimal
+/// string, is refused as an invalid rate.
+#[test]
+fn a_rate_that_is_not_a_decimal_is_refused() {
+    for t2 in [json!(true), json!(["1.7"])] {
+        let mut input = rate("20100", "1.7");
+        input["instalment_rate"] = t2;
+        assert_eq!(code(&input), "payg_instalment.rate_invalid");
+    }
+}
