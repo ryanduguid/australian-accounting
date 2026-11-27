@@ -1304,3 +1304,18 @@ pub fn dispatch(args: &[String]) -> (i32, String, String) {
         _ => run(args),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The command tables call `value` at compile time; this checks what it builds.
+    #[test]
+    fn a_value_option_takes_one_argument_shown_as_its_dest() {
+        let opt = value("--year", "year", true, "year of income");
+        assert!(opt.takes == Takes::Value && opt.required);
+        assert_eq!((opt.flag, opt.help), ("--year", "year of income"));
+        assert!(opt.metavar.is_none() && opt.choices.is_none());
+        assert_eq!(opt.shown_metavar(), "YEAR");
+    }
+}
