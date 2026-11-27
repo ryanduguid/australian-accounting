@@ -1219,3 +1219,32 @@ fn a_share_at_15_years_and_a_right_sold_within_30_days() {
     assert_eq!(row(&r, 0)["taxing_point_rule"], "s 83A-120(3)");
     assert_eq!(amount(&r, "deferred_amounts"), "2500.00");
 }
+
+/// s 83A-20(1): consideration above market value is no discount, shown as
+/// nil rather than negative.
+#[test]
+fn consideration_above_market_value_shows_a_nil_discount() {
+    let r = run(&call(
+        "2025-26",
+        json!([share("2025-07-29", "3500.00", "3000.00")]),
+        Value::Null,
+    ));
+    assert_eq!(row(&r, 0)["discount"], "0.00");
+    assert_eq!(row(&r, 0)["treatment"], "no_discount");
+    assert_eq!(amount(&r, "assessable_discount"), "0.00");
+}
+
+/// s 83A-105(1)(b): an interest not acquired as an employee fails s 83A-45(1),
+/// so even at a real risk of forfeiture nothing defers it and the discount is
+/// taxed upfront without the reduction.
+#[test]
+fn an_interest_outside_the_general_conditions_is_not_deferred() {
+    let interest = with_conditions(
+        share("2025-07-29", "1500.00", "3000.00"),
+        json!({"employed": false, "real_risk_of_forfeiture": true}),
+    );
+    let r = run(&call("2025-26", json!([interest]), Value::Null));
+    assert_eq!(row(&r, 0)["treatment"], "upfront");
+    assert_eq!(amount(&r, "upfront_other_discounts"), "1500.00");
+    assert_eq!(amount(&r, "assessable_discount"), "1500.00");
+}

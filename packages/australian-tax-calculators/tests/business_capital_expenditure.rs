@@ -540,3 +540,9 @@ fn the_catalogue_lists_the_worksheet_with_a_runnable_example() {
         "docs/calculation-evidence.md#business-capital-expenditure"
     );
 }
+
+#[test]
+fn exclusions_that_are_not_a_list_are_refused() {
+    let items = json!([item(json!({"exclusions": "5(a)"}))]);
+    assert_eq!(code(items, "2020-21"), "business_capital.fact_invalid");
+}

@@ -689,3 +689,117 @@ fn trading_started_metadata_qualifies_first_two_months_and_points_to_december() 
         "missing December window pointer for January to June periods: {desc}"
     );
 }
+
+/// Each case's refusal code (or "accepted"), so one run shows every mismatch.
+fn outcome(input: &Value) -> &'static str {
+    api::evaluate_coded(C, input).map_or_else(|refusal| refusal.code, |_| "accepted")
+}
+
+#[test]
+fn malformed_eligibility_lines_and_totals_are_refused() {
+    let norms = || {
+        input(
+            "business_norms",
+            "100.00",
+            "100.00",
+            json!({"retailer_type": "cake_shop"}),
+        )
+    };
+    let mut not_object = norms();
+    not_object["eligibility"] = json!("met");
+    let mut not_flag = norms();
+    not_flag["eligibility"]["same_premises_taxable_and_gst_free_food"] = json!("yes");
+    let five = |lines: Value| {
+        input(
+            "stock_purchases_five_percent",
+            "40000.00",
+            "24000.00",
+            json!({"stock_role": "reseller", "gst_free_purchases": "750.00", "product_lines": lines}),
+        )
+    };
+    let line = json!({"gst_free_purchases": "500.00", "markup_percent": "40"});
+    let rural = |fuel: &str, post: &str| {
+        input(
+            "business_norms",
+            "50000.00",
+            "40000.00",
+            json!({"retailer_type": "rural_convenience_store", "stock_role": "converter",
+                   "fuel_and_post_sales": fuel, "fuel_and_post_purchases": post}),
+        )
+    };
+    let shop = |sales: &str, free: &str| {
+        let mut v = input(
+            "supermarket_sales_percentage",
+            sales,
+            "100.00",
+            json!({"gst_free_sales": free}),
+        );
+        v["eligibility"] = supermarket();
+        v["tax_period_start"] = json!("2025-10-01");
+        v["tax_period_end"] = json!("2025-12-31");
+        v
+    };
+    let two = |gst_free: &str, total: &str| {
+        input(
+            "stock_purchases_two_samples",
+            "1000.00",
+            "1000.00",
+            json!({"stock_role": "reseller",
+                   "purchases_sample": sample("2025-06-01", "2025-06-28", gst_free, total)}),
+        )
+    };
+    let cases = [
+        (not_object, "input.not_object"),
+        (not_flag, "input.flag_invalid"),
+        (five(json!({"line": line})), "input.not_object"),
+        (five(json!([])), "input.count_invalid"),
+        (five(json!(vec![line.clone(); 51])), "input.count_invalid"),
+        (five(json!([1])), "input.not_object"),
+        (
+            five(json!([line, line])),
+            "gst_food_retailer_sam.amount_exceeds_total",
+        ),
+        (
+            rural("50000.01", "1.00"),
+            "gst_food_retailer_sam.amount_exceeds_total",
+        ),
+        (
+            rural("1.00", "40000.01"),
+            "gst_food_retailer_sam.amount_exceeds_total",
+        ),
+        (shop("0.00", "0.00"), "gst_food_retailer_sam.total_nil"),
+        (
+            shop("100.00", "100.01"),
+            "gst_food_retailer_sam.amount_exceeds_total",
+        ),
+        (two("0.00", "0.00"), "gst_food_retailer_sam.sample_invalid"),
+        (
+            two("10.01", "10.00"),
+            "gst_food_retailer_sam.sample_invalid",
+        ),
+    ];
+    let (inputs, want): (Vec<Value>, Vec<&str>) = cases.into_iter().unzip();
+    assert_eq!(inputs.iter().map(outcome).collect::<Vec<_>>(), want);
+}
+
+#[test]
+fn a_restaurant_that_starts_trading_then_the_method_in_the_period_samples_from_trading() {
+    let mut v = anil();
+    v["trading_started"] = json!("2026-10-20");
+    v["method_started"] = json!("2026-10-25");
+    v["purchases_sample"] = sample("2026-11-01", "2026-11-28", "10500.00", "15000.00");
+    assert_eq!(amounts(&v)["gst_free_purchases"], "45500.00");
+    v["purchases_sample"] = sample("2026-10-10", "2026-11-06", "10500.00", "15000.00");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    // A trading start after the tax period ends is refused.
+    v["trading_started"] = json!("2027-01-15");
+    assert_eq!(code(&v), "gst_food_retailer_sam.sample_invalid");
+    // A tax period running from November to January spans both halves.
+    let mut across = anil();
+    across["tax_period_start"] = json!("2026-11-01");
+    across["tax_period_end"] = json!("2027-01-31");
+    assert_eq!(
+        code(&across),
+        "gst_food_retailer_sam.tax_period_spans_halves"
+    );
+}
