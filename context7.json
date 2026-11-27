@@ -27,6 +27,7 @@
     "`help-to-buy` tests the Program Directions' caps, limits and income test from stated facts; `help-to-buy-review` gives the s 37 repayment. Housing Australia's judgements stay with the operator.",
     "`home-guarantee` tests a First Home or Family Home Guarantee's price cap, loan-to-value ratio and borrowers on the issue date; eligibility facts are stated, not decided.",
     "`age-pension` and `ftb-part-a` apply the income and assets tests to stated income and assets for dated periods; they refuse dates outside the published rates.",
+    "`age-pension`'s facts state 6 circumstances true or false (underage_de_facto, advance_deduction, armed_services_payment, remote_area, pension_supplement_election, quarterly_energy_supplement); without them it refuses.",
     "`thin-capitalisation` (Subdivisions 820-AA to 820-E) and `debt-forgiveness` (Division 245) apply the statutory tests and order to the stated entity class, test choice, values and reducible amounts; neither decides a classification or election.",
     "`salary-dividend`, `sole-trader-set-aside`, `salary-packaging` and `novated-lease` mirror the site's pages for 2024-25 to 2026-27: comparisons of stated facts, not advice; FBT gross-ups use FBTAA s 5B's formulas.",
     "`book-to-tax` reconciles accounting profit to taxable income from stated differences and feeds `deferred-tax`; `cgt-rollover` carries cost bases through stated roll-overs. Neither decides a difference or eligibility.",
