@@ -161,3 +161,37 @@ fn comparison_orders_infinities_and_signs() {
         assert_eq!(d(a).compare(&d(b)), Ok(expected), "{a} vs {b}");
     }
 }
+
+#[test]
+fn an_exponent_with_no_digits_or_a_stray_character_is_a_syntax_error() {
+    for text in ["1E+", "1E1x"] {
+        assert_eq!(
+            Decimal::parse_exact(text).unwrap_err(),
+            Conversion::Syntax,
+            "{text}"
+        );
+    }
+}
+
+#[test]
+fn a_dividend_longer_than_the_precision_is_rounded_to_28_digits() {
+    let ones = d(&"1".repeat(40));
+    assert_eq!(
+        s(ones.div(&d("1"))),
+        ok("1.111111111111111111111111111E+39")
+    );
+    assert_eq!(
+        s(ones.div(&d("3"))),
+        ok("3.703703703703703703703703704E+38")
+    );
+}
+
+#[test]
+fn rounding_that_carries_past_emax_overflows() {
+    let nines = |exp: &str| d(&format!("{}E+{exp}", "9".repeat(29)));
+    assert_eq!(s(nines("999971").add(&d("0"))), Err(Signal::Overflow));
+    assert_eq!(
+        s(nines("999970").add(&d("0"))),
+        ok("1.000000000000000000000000000E+999999")
+    );
+}

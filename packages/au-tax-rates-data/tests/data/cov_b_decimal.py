@@ -67,6 +67,12 @@ CASES = [
     ("compare 1 -2", lambda: D("1").compare(D("-2"))),
     ("compare -1 -2", lambda: D("-1").compare(D("-2"))),
     ("compare -2 -1", lambda: D("-2").compare(D("-1"))),
+    ("parse 1E+", lambda: D("1E+")),
+    ("parse 1E1x", lambda: D("1E1x")),
+    ("div 40 ones by 1", lambda: D("1" * 40) / D("1")),
+    ("div 40 ones by 3", lambda: D("1" * 40) / D("3")),
+    ("add 29 nines E+999971 0", lambda: D("9" * 29 + "E+999971") + D("0")),
+    ("add 29 nines E+999970 0", lambda: D("9" * 29 + "E+999970") + D("0")),
 ]
 
 for name, case in CASES:
