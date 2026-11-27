@@ -70,7 +70,11 @@ pub fn theme(stream: Stream) -> &'static Theme {
 
 /// `_colorize.can_colorize(file=stream)` for a command started without `-I`.
 fn can_colorize(stream: Stream) -> bool {
-    let var = |name: &str| std::env::var_os(name);
+    colorize_with(|name| std::env::var_os(name), stream)
+}
+
+/// `can_colorize` reading the environment through `var`.
+fn colorize_with(var: impl Fn(&str) -> Option<std::ffi::OsString>, stream: Stream) -> bool {
     match var("PYTHON_COLORS").as_deref().and_then(|v| v.to_str()) {
         Some("0") => return false,
         Some("1") => return true,
@@ -153,5 +157,54 @@ mod console {
 
     pub fn isatty(_stream: Stream) -> bool {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::OsString;
+
+    fn with(vars: &[(&str, &str)], stream: Stream) -> bool {
+        let vars: Vec<(String, OsString)> = vars
+            .iter()
+            .map(|(k, v)| (k.to_string(), OsString::from(v)))
+            .collect();
+        colorize_with(
+            |name| vars.iter().find(|(k, _)| k == name).map(|(_, v)| v.clone()),
+            stream,
+        )
+    }
+
+    // The order `_colorize.can_colorize` checks the variables in.
+    #[test]
+    fn python_colors_then_no_color_then_force_color_then_term_decide() {
+        assert!(with(
+            &[("PYTHON_COLORS", "1"), ("NO_COLOR", "1")],
+            Stream::Stdout
+        ));
+        assert!(!with(
+            &[("PYTHON_COLORS", "0"), ("FORCE_COLOR", "1")],
+            Stream::Stdout
+        ));
+        assert!(!with(
+            &[("NO_COLOR", "1"), ("FORCE_COLOR", "1")],
+            Stream::Stderr
+        ));
+        assert!(with(
+            &[("NO_COLOR", ""), ("FORCE_COLOR", "1"), ("TERM", "dumb")],
+            Stream::Stderr
+        ));
+        assert!(!with(&[("TERM", "dumb")], Stream::Stdout));
+    }
+
+    #[test]
+    fn with_no_variable_set_the_console_decides() {
+        for stream in [Stream::Stdout, Stream::Stderr] {
+            assert_eq!(
+                with(&[("TERM", "xterm")], stream),
+                console::supports_virtual_terminal() && console::isatty(stream)
+            );
+        }
     }
 }

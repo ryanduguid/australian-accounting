@@ -83,3 +83,43 @@ fn unflushed(stream: &str, e: &std::io::Error) -> String {
         .map_or(text.as_str(), |i| &text[..i]);
     format!("Exception ignored while flushing sys.{stream}:\n{class}: [Errno {code}] {text}\n")
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{Error, ErrorKind};
+
+    #[test]
+    fn a_stream_that_fails_sets_pythons_shutdown_status() {
+        let failed = || Err(Error::from(ErrorKind::BrokenPipe));
+        let want = if cfg!(unix) { 120 } else { 1 };
+        assert_eq!(finish(0, failed(), Ok(())), want);
+        assert_eq!(finish(2, Ok(()), failed()), want);
+        assert_eq!(finish(2, Ok(()), Ok(())), 2);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unflushed_stdout_is_reported_with_pythons_exception_class() {
+        for (errno, class, text) in [
+            (libc::EPIPE, "BrokenPipeError", "Broken pipe"),
+            (
+                libc::ECONNRESET,
+                "ConnectionResetError",
+                "Connection reset by peer",
+            ),
+            (
+                libc::EAGAIN,
+                "BlockingIOError",
+                "Resource temporarily unavailable",
+            ),
+            (libc::ENOSPC, "OSError", "No space left on device"),
+        ] {
+            assert_eq!(
+                unflushed("stdout", &Error::from_raw_os_error(errno)),
+                format!(
+                    "Exception ignored while flushing sys.stdout:\n{class}: [Errno {errno}] {text}\n"
+                )
+            );
+        }
+    }
+}
