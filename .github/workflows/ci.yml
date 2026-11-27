@@ -385,11 +385,84 @@ jobs:
           fail_ci_if_error: true
           flags: ${{ (matrix.package == 'aus-accounting-mcp' || matrix.package == 'lodgment-calendar') && format('{0}-rust', matrix.package) || matrix.package }}
 
+  # The tool crates outside the crate matrix. Their own workflows gate their
+  # tests; this job only measures them, on every run, for the uploads below.
+  tool-coverage:
+    name: measure ${{ matrix.tool }} coverage
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Scans every tracked file; a release build keeps it near a minute.
+          - tool: fixture-screen
+            profile: --release
+          - tool: glama-badge-server
+            profile: ""
+          - tool: glama-badge-worker
+            profile: ""
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: tools/${{ matrix.tool }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.99 --profile minimal --component llvm-tools
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-llvm-cov@0.9.1
+          fallback: none
+      - name: Run the tests under coverage
+        env:
+          PROFILE: ${{ matrix.profile }}
+        run: cargo +1.99 llvm-cov --locked ${PROFILE:+"$PROFILE"} --lcov --output-path lcov.info
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-codecov-tool-${{ matrix.tool }}
+          path: tools/${{ matrix.tool }}/lcov.info
+          if-no-files-found: error
+          retention-days: 1
+
+  codecov-tools:
+    name: upload ${{ matrix.tool }} coverage to Codecov
+    needs: tool-coverage
+    if: >-
+      !cancelled() && needs.tool-coverage.result != 'skipped'
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [fixture-screen, glama-badge-server, glama-badge-worker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # Authenticate the Codecov upload with OIDC; no stored token.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-codecov-tool-${{ matrix.tool }}
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          files: lcov.info
+          disable_search: true
+          fail_ci_if_error: true
+          flags: ${{ matrix.tool }}
+
   # codecov.yml sets manual_trigger, so Codecov posts its statuses only when
   # told, here, once every upload of this run has finished or been skipped.
   codecov-notify:
     name: send Codecov statuses after the uploads
-    needs: [packages, codecov, codecov-rust]
+    needs: [packages, codecov, codecov-rust, codecov-tools]
     if: >-
       !cancelled()
       && (github.event_name == 'push' || github.event_name == 'pull_request')
@@ -437,4 +510,4 @@ jobs:
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates --no-results --exempt codecov codecov-rust codecov-notify
+        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates --no-results --exempt codecov codecov-rust tool-coverage codecov-tools codecov-notify
