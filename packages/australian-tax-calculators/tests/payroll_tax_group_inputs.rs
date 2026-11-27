@@ -139,3 +139,36 @@ fn an_excess_order_must_be_a_list() {
     let (code, _) = refused(&input);
     assert_eq!(code, "payroll_tax_group.excess_order_invalid");
 }
+
+/// A designated group employer of another group is passed over: each group
+/// designates its own.
+#[test]
+fn another_groups_designated_employer_is_passed_over() {
+    let persons = json!([
+        {"id": "A", "taxable_wages": "500000.00"},
+        {"id": "B", "taxable_wages": "400000.00"},
+        {"id": "C", "taxable_wages": "300000.00"},
+        {"id": "D", "taxable_wages": "200000.00"},
+    ]);
+    let input = group(json!({
+        "persons": persons,
+        "common_employees": [],
+        "related_bodies_corporate": [["A", "B"], ["C", "D"]],
+        "designated_group_employers": ["C", "A"],
+    }));
+    let result = run(&input);
+    assert_eq!(result["group"], json!(["A", "B"]));
+    assert_eq!(result["designated_group_employer"], "A");
+}
+
+/// An excluded member's voting shares are not traced.
+#[test]
+fn an_excluded_members_votes_are_not_traced() {
+    let input = group(json!({
+        "voting_interests": [{"holders": ["C"], "corporation": "B", "percent": "60"}],
+        "exclusions": ["C"],
+    }));
+    let result = run(&input);
+    assert_eq!(result["group"], json!(["A", "B"]));
+    assert_eq!(result["excluded"], json!(["C"]));
+}
