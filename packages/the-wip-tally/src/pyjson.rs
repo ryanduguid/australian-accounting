@@ -474,6 +474,11 @@ mod tests {
                 Json::Float(f64::NEG_INFINITY)
             ])
         );
+        // json.loads('NaN') is a float NaN; '3.25' keeps both fraction digits.
+        assert!(matches!(loads("NaN").unwrap(), Json::Float(f) if f.is_nan()));
+        assert_eq!(loads("3.25").unwrap(), Json::Float(3.25));
+        assert_eq!(loads(" [ ] ").unwrap(), Json::Array(Vec::new()));
+        assert_eq!(loads("{ }").unwrap(), Json::Object(Vec::new()));
     }
 
     #[test]

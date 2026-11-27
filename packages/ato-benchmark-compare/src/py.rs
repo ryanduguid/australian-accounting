@@ -479,22 +479,26 @@ impl std::fmt::Display for PyPath {
 pub fn resolve_text(path: &Path) -> String {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let components: Vec<_> = absolute.components().collect();
-    for split in (0..=components.len()).rev() {
-        let prefix: PathBuf = components[..split].iter().collect();
-        let Ok(mut resolved) = std::fs::canonicalize(&prefix) else {
-            continue;
-        };
-        for component in &components[split..] {
-            match component {
-                std::path::Component::ParentDir => {
-                    resolved.pop();
-                }
-                other => resolved.push(other.as_os_str()),
+    // The longest prefix that exists, canonicalised. With none (a path on a
+    // drive that is not there, on Windows), every part is kept as it is.
+    let (mut resolved, split) = (0..=components.len())
+        .rev()
+        .find_map(|split| {
+            let prefix: PathBuf = components[..split].iter().collect();
+            std::fs::canonicalize(&prefix)
+                .ok()
+                .map(|real| (real, split))
+        })
+        .unwrap_or_default();
+    for component in &components[split..] {
+        match component {
+            std::path::Component::ParentDir => {
+                resolved.pop();
             }
+            other => resolved.push(other.as_os_str()),
         }
-        return without_verbatim(resolved.to_string_lossy().into_owned());
     }
-    absolute.to_string_lossy().into_owned()
+    without_verbatim(resolved.to_string_lossy().into_owned())
 }
 
 /// Windows' canonical form without its `\\?\` verbatim prefix, as Python shows it.

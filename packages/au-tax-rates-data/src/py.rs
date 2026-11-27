@@ -570,13 +570,12 @@ impl Date {
         if !(1..=MAX_DATE.ordinal()).contains(&ordinal) {
             return None;
         }
-        // Estimate the year, then correct it.
+        // Estimate the year, then correct it upwards. The estimate is never too
+        // high: days_before_year(y) <= 365.2425 * (y - 1) + 0.99, and the estimate
+        // y has 365.2425 * (y - 1) <= ordinal - 1, so days_before_year(y) < ordinal.
         let mut year = ((ordinal - 1) * 400 / 146_097 + 1) as i32;
         while days_before_year(year + 1) < ordinal {
             year += 1;
-        }
-        while days_before_year(year) >= ordinal {
-            year -= 1;
         }
         let mut rest = ordinal - days_before_year(year);
         let mut month = 1;
@@ -682,12 +681,7 @@ mod tests {
                 (actual != expected).then(|| format!("{bits}: python {expected}, rust {actual}"))
             })
             .collect();
-        assert!(
-            wrong.is_empty(),
-            "{} wrong: {:?}",
-            wrong.len(),
-            &wrong[..wrong.len().min(10)]
-        );
+        assert_eq!(wrong, Vec::<String>::new());
     }
 
     #[test]
@@ -724,5 +718,12 @@ mod tests {
         assert_eq!(parse_float("1.e+5").unwrap(), 100000.0);
         assert_eq!(parse_float("1_0.5").unwrap(), 10.5);
         assert!(parse_float("1._5").is_err());
+    }
+
+    #[test]
+    fn an_error_without_an_os_code_prints_its_own_message() {
+        let error = io::Error::other("no code here");
+        assert_eq!(oserror_str(&error, "f.csv", OsStyle::Errno), "no code here");
+        assert_eq!(strip_os_suffix("plain message"), "plain message");
     }
 }

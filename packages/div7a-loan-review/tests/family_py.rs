@@ -50,6 +50,21 @@ fn resolve_follows_the_existing_prefix_and_normalises_the_rest() {
     std::fs::remove_dir_all(dir).unwrap();
 }
 
+// CPython 3.15 on a drive letter that is not there: Path(r"Y:\no\such.csv").resolve()
+// is the same text, r"Y:\no\..\x.csv" is r"Y:\x.csv" and r"Y:\no\" is r"Y:\no".
+#[cfg(windows)]
+#[test]
+fn a_path_on_a_missing_drive_resolves_lexically_on_windows() {
+    let drive = ('D'..='Z')
+        .rev()
+        .find(|d| !std::path::Path::new(&format!(r"{d}:\")).exists())
+        .expect("a drive letter with no drive");
+    let resolve = |p: &str| py::resolve_text(std::path::Path::new(&format!("{drive}:{p}")));
+    assert_eq!(resolve(r"\no\such.csv"), format!(r"{drive}:\no\such.csv"));
+    assert_eq!(resolve(r"\no\..\x.csv"), format!(r"{drive}:\x.csv"));
+    assert_eq!(resolve(r"\no\"), format!(r"{drive}:\no"));
+}
+
 #[cfg(not(windows))]
 #[test]
 fn resolved_paths_compare_exactly_on_posix() {

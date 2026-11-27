@@ -232,9 +232,6 @@ impl<'a> Reader<'a> {
     fn process(&mut self, input: Input) -> Result<(), ReadError> {
         let newline = matches!(input, Input::Char('\n' | '\r'));
         if self.state == State::StartRecord {
-            if input == Input::Eol {
-                return Ok(());
-            }
             if newline {
                 self.state = State::EatCrnl;
                 return Ok(());
@@ -280,17 +277,13 @@ impl<'a> Reader<'a> {
                     self.state = State::InField;
                 }
             },
-            State::EatCrnl => match input {
-                Input::Char('\n' | '\r') => {}
-                Input::Eol => self.state = State::StartRecord,
-                Input::Char(_) => {
-                    return Err(ReadError::Csv(
-                        "new-line character seen in unquoted field - \
-                         do you need to open the file with newline=''?"
-                            .into(),
-                    ));
+            // A line's only \r or \n end it (or \r\n does), so after one comes
+            // only the \n of a \r\n, then the end of the line.
+            State::EatCrnl => {
+                if input == Input::Eol {
+                    self.state = State::StartRecord;
                 }
-            },
+            }
         }
         Ok(())
     }
@@ -379,6 +372,15 @@ mod tests {
             })
         );
         assert_eq!(rows(b"\xef\xbb").unwrap(), Vec::<Vec<String>>::new());
+        // CPython: b"a\xe2(".decode() fails at byte 1, an invalid continuation byte.
+        assert_eq!(
+            rows(b"a\xe2("),
+            Err(ReadError::Decode {
+                start: 1,
+                byte: 0xe2,
+                reason: "invalid continuation byte"
+            })
+        );
     }
 
     #[test]
@@ -389,6 +391,10 @@ mod tests {
             Err(ReadError::Csv(
                 "field larger than field limit (131072)".into()
             ))
+        );
+        assert_eq!(
+            rows(&data).unwrap_err().to_string(),
+            "field larger than field limit (131072)"
         );
     }
 
