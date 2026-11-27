@@ -49,25 +49,34 @@ amalgamated_loan_unpaid_at_end_of_previous_year,remaining_term_years,\
 payments_applied_during_the_year";
 
 #[test]
-fn a_balance_too_large_to_work_in_cents_stops_the_register_review() {
-    // A complying 7-year loan whose unpaid balance, 9E+999999, cannot be
-    // quantised to cents: the decimal signal ends the review, as the Python
-    // engine's uncaught decimal.InvalidOperation does, from rows or a file.
-    let row = "F1,2023-24,true,true,7,false,unknown,0.0827,9E+999999,5,0.00";
+fn a_rate_too_small_to_move_the_formula_stops_the_register_review() {
+    // A caller's table with a benchmark rate of 1E-70: at 60 digits 1 + rate
+    // is 1, so the s 109E(6) denominator is nil and the decimal signal ends
+    // the review, as the Python engine's uncaught decimal.DivisionByZero
+    // does, whether the rows come as JSON or from a file.
+    let mut table = String::from(
+        "# reviewed_until: 2026-27\n# reviewed_on: 2026-07-01\n\
+         year_of_income,rate,rba_table,rba_series,rba_month,source,seen\n",
+    );
+    for year in ["2023-24", "2024-25", "2025-26", "2026-27"] {
+        table.push_str(&format!("{year},1E-70,F5,S,2023-05,RBA,2023-06-01\n"));
+    }
+    let table = register("tiny-rate-table", &table);
+    let row = "F1,2023-24,true,true,7,false,unknown,0.0827,100000.00,5,0.00";
     let mapping: serde_json::Map<String, Value> = HEADER
         .split(',')
         .zip(row.split(','))
         .map(|(k, v)| (k.to_string(), json!(v)))
         .collect();
-    let rows = json!({ "rows": [mapping], "year_of_income": "2026-27" });
+    let rows = json!({ "rows": [mapping], "year_of_income": "2026-27", "table": table });
     assert_eq!(
         evaluate("review-register", &rows).unwrap_err(),
-        "decimal.InvalidOperation"
+        "decimal.DivisionByZero"
     );
-    let path = register("too-large", &format!("{HEADER}\n{row}\n"));
-    let file = json!({ "path": path, "year_of_income": "2026-27" });
+    let path = register("tiny-rate", &format!("{HEADER}\n{row}\n"));
+    let file = json!({ "path": path, "year_of_income": "2026-27", "table": table });
     assert_eq!(
         evaluate("review-register-file", &file).unwrap_err(),
-        "decimal.InvalidOperation"
+        "decimal.DivisionByZero"
     );
 }
