@@ -114,7 +114,8 @@ pub(super) fn spouse(
     let limit = greater(
         &int(0),
         &base.sub(&greater(&int(0), &income.sub(&start)?)?)?,
-    )?;
+    );
+    let limit = limit?;
     let met = [
         Some(!made.is_zero()),
         Some(income.lt(&below)?),

@@ -65,14 +65,16 @@ pub(super) fn business_norms(given: &Given, purchases: &Decimal) -> Result<Worke
         names("sales_norm_percent"),
         &sales,
         &d(s),
-    )?;
+    );
+    let free_sales = free_sales?;
     let free = percent(
         "gst_free_purchases",
         NORMS,
         ("trading_stock_purchases", "purchases_norm_percent"),
         purchases,
         &d(p),
-    )?;
+    );
+    let free = free?;
     let rates = vec![
         rate("sales_norm_percent", s),
         rate("purchases_norm_percent", p),

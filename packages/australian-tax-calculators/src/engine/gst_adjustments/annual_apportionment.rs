@@ -168,13 +168,14 @@ fn apportioned(gst: &Decimal, e: &Extents, applies: bool, without: &Step) -> Res
     if e.non_input_taxed().equals(&one)? && e.consideration().equals(&one)? {
         return Ok(step(ID, FULL, "gst_on_acquisition", &[gst], gst.clone()));
     }
-    let (formula, operands, value) = product(
+    let adjusted = product(
         ("gst_on_acquisition", gst),
         [
             ("non_input_taxed_extent", e.non_input_taxed.as_ref()),
             ("consideration_extent", e.consideration.as_ref()),
         ],
-    )?;
+    );
+    let (formula, operands, value) = adjusted?;
     Ok(step(ID, PART, &formula, &operands, value))
 }
 
@@ -182,13 +183,14 @@ fn apportioned(gst: &Decimal, e: &Extents, applies: bool, without: &Step) -> Res
 /// adjustment.
 fn credits(gst: &Decimal, e: &Extents, applies: bool) -> Result<Vec<Step>> {
     precise(|| {
-        let (formula, operands, plain) = product(
+        let multiplied = product(
             ("gst_on_acquisition", gst),
             [
                 ("creditable_purpose", Some(&e.purpose)),
                 ("consideration_extent", e.consideration.as_ref()),
             ],
-        )?;
+        );
+        let (formula, operands, plain) = multiplied?;
         let id = "credit_without_annual_apportionment";
         let without = step(id, WITHOUT, &formula, &operands, plain);
         let with = apportioned(gst, e, applies, &without)?;

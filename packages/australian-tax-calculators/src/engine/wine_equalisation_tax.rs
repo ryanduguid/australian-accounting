@@ -251,7 +251,7 @@ pub fn wine_equalisation_tax(args: &WetArgs) -> Result<Value> {
     } else {
         left
     };
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -266,7 +266,8 @@ pub fn wine_equalisation_tax(args: &WetArgs) -> Result<Value> {
             rate("wine_tax_rate", WINE_TAX_RATE),
             rate("producer_rebate_cap", cap.to_string()),
         ],
-    )?;
+    );
+    let mut out = out?;
     out["dealings"] = Value::Array(worked);
     out["producer_rebate_cap_authority"] = json!(CAP);
     out["labels_authority"] = json!(LABELS);
