@@ -591,3 +591,22 @@ fn inputs(a: &FrankingArgs, facts: &Facts) -> Result<Inputs> {
         determination,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{credit, debit};
+
+    #[test]
+    fn event_helpers_set_the_side() {
+        let paid = credit("payg_instalment", "item 1");
+        assert_eq!(
+            (paid.name, paid.credit, paid.item),
+            ("payg_instalment", true, "item 1")
+        );
+        let refund = debit("dmt_refund", "item 14");
+        assert_eq!(
+            (refund.name, refund.credit, refund.item),
+            ("dmt_refund", false, "item 14")
+        );
+    }
+}

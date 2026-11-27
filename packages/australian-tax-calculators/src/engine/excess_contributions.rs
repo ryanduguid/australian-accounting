@@ -134,7 +134,7 @@ fn concessional_charge(facts: &Map<String, Value>, period: &str) -> Result<Value
     }
     let owed = charge(&tax, start, due)?;
     let one = BigInt::from(1);
-    let mut out = result(
+    let out = result(
         KIND,
         period,
         vec![(
@@ -142,7 +142,8 @@ fn concessional_charge(facts: &Map<String, Value>, period: &str) -> Result<Value
             dollars(&owed, &one),
         )],
         Vec::new(),
-    )?;
+    );
+    let mut out = out?;
     out["question"] = json!("concessional_charge");
     out["first_day"] = json!(dates::format(first_day(start)));
     out["last_day"] = json!(dates::format(due - 1));
@@ -246,7 +247,7 @@ fn non_concessional_release(facts: &Map<String, Value>, period: &str) -> Result<
     let determination = fact_date(facts, item, "determination_date")?;
     let start: i64 = period[..4].parse().expect("a supported year");
     let r = release(&excess, start, period, determination)?;
-    let mut out = result(
+    let out = result(
         KIND,
         period,
         vec![
@@ -256,7 +257,8 @@ fn non_concessional_release(facts: &Map<String, Value>, period: &str) -> Result<
             ("associated_earnings_tax_offset", r.offset),
         ],
         vec![rate("proxy_rate_percent", &r.proxy_percent)],
-    )?;
+    );
+    let mut out = out?;
     out["question"] = json!("non_concessional_release");
     out["days"] = json!(r.days);
     out["earnings_authority"] = json!(EARNINGS);

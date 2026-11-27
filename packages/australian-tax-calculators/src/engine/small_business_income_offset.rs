@@ -242,7 +242,7 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
         offset_amounts(&year, &taxable, &liability, &first, &total)?;
     let unused = offset.sub(&applied)?;
 
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -259,7 +259,8 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
             rate("cap", CAP),
             rate("turnover_threshold", TURNOVER),
         ],
-    )?;
+    );
+    let mut out = out?;
     explain(&mut out, entity);
     Ok(out)
 }

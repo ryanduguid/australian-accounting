@@ -136,7 +136,8 @@ fn division_293_tax(taxable: &Decimal, contributions: &Decimal, year: &str) -> R
         &Arg::Decimal(contributions.clone()),
         &Arg::Text(year.to_string()),
         &Arg::Bool(true),
-    )?;
+    );
+    let out = out?;
     let text = out["amounts"]["division_293_tax"]
         .as_str()
         .expect("an amount");
@@ -364,7 +365,8 @@ pub fn owner_pay_split(args: &SalaryDividendArgs) -> Result<Value> {
             &profit,
             &other,
             &law,
-        )?;
+        );
+        let best = best?;
         let all_salary = split(&largest, &profit, &other, &law)?.kept;
         let all_dividends = split(&int(0), &profit, &other, &law)?.kept;
         let mut amounts = amounts(&chosen);

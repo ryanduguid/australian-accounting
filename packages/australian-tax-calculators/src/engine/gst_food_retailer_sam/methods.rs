@@ -134,7 +134,8 @@ fn pairs(
             "gst_free_sales",
             total,
             &free.value,
-        )?;
+        );
+        let other = other?;
         steps.extend([free, other]);
     }
     let other = rest(
@@ -143,7 +144,8 @@ fn pairs(
         "gst_free_purchases",
         purchases,
         &gst_free.value,
-    )?;
+    );
+    let other = other?;
     steps.extend([gst_free, other]);
     Ok(steps)
 }
@@ -244,7 +246,8 @@ fn sample_share(
         PURCHASE_SAMPLE,
         ["trading_stock_purchases", &gst_free_key, &total_key],
         [purchases, &s.gst_free, &s.total],
-    )?;
+    );
+    let free = free?;
     Ok((free, s))
 }
 
@@ -383,7 +386,8 @@ fn supermarket(given: &Given, purchases: &Decimal) -> Result<Worked> {
         SUPERMARKET,
         ["trading_stock_purchases", "gst_free_sales", "total_sales"],
         [purchases, &free, &sales],
-    )?;
+    );
+    let free_purchases = free_purchases?;
     let mut steps = pairs(Some((&sales, free_sales)), purchases, free_purchases)?;
     let other = steps.last().expect("other_purchases").value.clone();
     steps.push(credits(SUPERMARKET, &other)?);

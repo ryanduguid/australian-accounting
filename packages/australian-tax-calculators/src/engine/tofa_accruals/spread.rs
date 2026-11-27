@@ -201,7 +201,8 @@ pub(super) fn year_rows(
             .iter()
             .map(|(_, v)| v.clone())
             .collect::<Vec<_>>(),
-    )?;
+    );
+    let c = c?;
     let s = match straight {
         Some(s) => Some(rounded(
             &s.iter().map(|(_, v)| v.clone()).collect::<Vec<_>>(),

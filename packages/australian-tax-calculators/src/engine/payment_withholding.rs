@@ -295,7 +295,8 @@ pub fn return_to_work_withholding(
             ("payment", &payment),
             foreign,
             "Schedule 4, 'When a TFN has not been provided': the payment, ignoring any cents",
-        )?;
+        );
+        let steps = steps?;
         return derived_result(RETURN_TO_WORK, &year, steps, no_tfn_rate(foreign));
     }
     let a = d("0.32");
@@ -370,7 +371,8 @@ pub fn annuity_withholding(
             ("payment", &payment),
             foreign,
             "Schedule 6, 'When a TFN has not been provided': the annuity payment, ignoring any cents",
-        )?;
+        );
+        let steps = steps?;
         return derived_result(ANNUITY, &year, steps, no_tfn_rate(foreign));
     }
     let income = annuity_income(&payment, &deductible, instalments)?;

@@ -362,7 +362,7 @@ fn with_remission(
     let mut rates_held = held_rates();
     rates_held.push(rate("remission_cap", facts.cap.to_string()));
     rates_held.push(rate("remission_cap_left", left.to_string()));
-    let mut out = result(
+    let out = result(
         KIND,
         year,
         vec![
@@ -374,7 +374,8 @@ fn with_remission(
             ("net_duty", duty.sub(&applied)?),
         ],
         rates_held,
-    )?;
+    );
+    let mut out = out?;
     let mut authority = vec![REMISSION, CAP];
     if let Some((from, days)) = facts.part_year {
         authority.push(PART_YEAR);

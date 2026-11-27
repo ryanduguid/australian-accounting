@@ -482,14 +482,15 @@ pub fn contribution_caps_by_year(
             )
         })
         .collect();
-    let mut out = caps_result(
+    let out = caps_result(
         &year,
         &balance,
         steps,
         (&non_concessional, *under_75),
         rates,
         (carry.determination_date, carry.downsizer),
-    )?;
+    );
+    let mut out = out?;
     out["unused_cap_expiry"] = expiry(&out, current);
     Ok(out)
 }

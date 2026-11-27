@@ -356,7 +356,8 @@ pub fn daily_casual_withholding(
             ("earnings", &earnings),
             foreign,
             "Tax table for daily and casual workers, 'When a TFN has not been provided': the payment, ignoring any cents",
-        )?;
+        );
+        let steps = steps?;
         let a = if foreign {
             NO_TFN_RATES.1
         } else {

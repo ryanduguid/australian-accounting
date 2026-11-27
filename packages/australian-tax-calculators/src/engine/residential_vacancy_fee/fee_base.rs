@@ -426,3 +426,14 @@ pub(super) fn resolve_fee_base(
     }
     notional_fee_base(basis, ownership, window, optional)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{AcquisitionBasis, stated_fee_authority};
+
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code")]
+    fn a_developer_certificate_has_no_stated_fee() {
+        stated_fee_authority(AcquisitionBasis::DeveloperExemptionCertificate);
+    }
+}

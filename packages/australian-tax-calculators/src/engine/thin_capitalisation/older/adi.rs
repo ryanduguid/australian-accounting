@@ -47,7 +47,8 @@ fn world(a: &ThinCapitalisationArgs) -> Result<World> {
         a,
         "foreign_controlled_australian_entity",
         "the worldwide capital amount is not available to a foreign controlled Australian entity (s 820-320(1))",
-    )?;
+    );
+    let controlled = controlled?;
     let w = all_or_none(a, &WORLD, "the worldwide capital amount uses all of them")?;
     if controlled && w.is_some() {
         return not_used(

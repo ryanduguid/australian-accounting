@@ -66,7 +66,8 @@ fn mit_non_eoi_case(payment: &Decimal, steps: &mut Vec<Value>) -> Result<MitOutc
         MIT_NON_EOI_RATE,
         &wh,
         "TAA Sch 1 ss 12-385(3)(b), 12-390(3)(b) and (6)(b); IT(MITWHT)A 2008 s 4(1)(b)",
-    )?;
+    );
+    let comp = comp?;
     Ok(MitOutcome {
         withholding: wh,
         components: json!([comp]),

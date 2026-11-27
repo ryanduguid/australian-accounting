@@ -509,3 +509,25 @@ fn in_house_payment<'a>(
     };
     taxable_steps(steps, available, authority)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::in_house;
+
+    #[test]
+    fn in_house_cites_the_contribution_then_the_taxable_value() {
+        let built = in_house("portion", "contribution", "taxable", "reduced");
+        assert_eq!(
+            (built.portion, built.reduced, built.taxable),
+            ("portion", "reduced", "taxable")
+        );
+        assert_eq!(
+            built.rows.map(|(name, cite, _)| (name, cite)),
+            [
+                ("recipients_portion_applied", "contribution"),
+                ("excess_recipients_portion", "contribution"),
+                ("value_after_contribution", "taxable"),
+            ]
+        );
+    }
+}
