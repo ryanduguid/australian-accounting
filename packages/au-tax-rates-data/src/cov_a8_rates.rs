@@ -207,7 +207,7 @@ fn report_missing_url_and_duplicate_column_edges() {
             {"name":"DT_EFFECT"},{"name":"DT_END"},{"name":"TX_DESC"},
             {"name":"AM_INC_MIN"},{"name":"AM_INC_MAX"},{"name":"AM_OFFSET"},
             {"name":"PC_TAX_RATE"},{"name":"PC_TAX_RATE"}
-        ],"rows":[["2025-07-01","9999-12-31","Resident Full Year",0,18200,0,10,30]]}"#,
+        ],"rows":[["2025-07-01","9999-12-31","Resident Full Year",0,18200,0,0.10,0.30]]}"#,
     )
     .unwrap();
     let brackets = ato_brackets(
@@ -290,6 +290,6 @@ fn table_decode_and_help_flush_errors() {
         pause: false,
         get: &mut get_table,
     };
-    let argv = [OsString::from("rates"), OsString::from("--help")];
+    let argv = [OsString::from("--help")];
     assert_eq!(run(&ctx, &argv, world, FailFlush), 120);
 }
