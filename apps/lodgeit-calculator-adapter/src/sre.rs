@@ -1,7 +1,8 @@
-//! Python's `re` for the patterns the records carry.
+//! Python's `re` for the adapter's own patterns.
 //!
-//! A record's `pattern` is Python regular-expression syntax read from data, so
-//! it is parsed as CPython 3.15's `re/_parser.py` parses it: the same
+//! Every pattern is fixed in the source (argparse's argument patterns and
+//! `strptime`'s), none read from data. Each is parsed as CPython 3.15's
+//! `re/_parser.py` parses it: the same
 //! `re.error` messages and positions, the same group count, and the same
 //! `OverflowError` and `ValueError` for repeat counts. The tree is then
 //! matched by a backtracking matcher that follows `_sre`: leftmost search,
