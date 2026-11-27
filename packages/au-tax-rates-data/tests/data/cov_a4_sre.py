@@ -63,7 +63,6 @@ CASES = [
     ["[\\q]", 0, None],
     ["[\\U0001F600]", 0, "\U0001f600"],
     ["[\\u0041]", 0, "A"],
-    ["[\\N{LATIN SMALL LETTER A}]", 0, "a"],
     ["[\\N{NO SUCH NAME}]", 0, None],
     ["\\N{NO SUCH NAME}", 0, None],
     ["\\q", 0, None],

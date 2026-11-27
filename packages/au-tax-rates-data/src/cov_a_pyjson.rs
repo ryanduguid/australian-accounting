@@ -38,6 +38,8 @@ const TEXT_CASES: &[(&str, Result<&str, &str>)] = &[
     ("1e", Err("Extra data: line 1 column 2 (char 1)")),
     ("1e+", Err("Extra data: line 1 column 2 (char 1)")),
     ("1e5", Ok("100000.0")),
+    ("-", Err("Expecting value: line 1 column 1 (char 0)")),
+    ("[-", Err("Expecting value: line 1 column 2 (char 1)")),
     ("-1.5E-3", Ok("-0.0015")),
     (
         "[\u{a}1,\u{a}2,\u{a} x]",
@@ -58,6 +60,15 @@ fn text_decodes_or_fails_as_json_loads_does() {
         let want = want.map_err(|message| DecodeError::Invalid(message.into()));
         assert_eq!(got.as_deref().map_err(Clone::clone), want, "{text:?}");
     }
+}
+
+/// 70,000 nested objects pass the C stack on either platform: CPython 3.15.0
+/// on Linux raised `RecursionError` ("... while decoding a JSON object ...";
+/// the kB figure moves by process).
+#[test]
+fn deep_objects_run_out_of_stack() {
+    let text = "{\"k\":".repeat(70_000) + "1" + &"}".repeat(70_000);
+    assert_eq!(loads_standard(&text), Err(DecodeError::Recursion("object")));
 }
 
 #[test]

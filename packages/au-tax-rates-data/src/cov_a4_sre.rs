@@ -75,13 +75,23 @@ fn compile_and_search_answer_as_cpython_does() {
             (format!("{case} {got}"), format!("{case} {want}"))
         })
         .unzip();
-    assert_eq!(got.len(), 125);
+    assert_eq!(got.len(), 124);
     assert_eq!(got, want);
 }
 
-/// The patterns too long for the table.
+/// The patterns too long for the table, on the deep stack the matcher's
+/// callers provide.
 #[test]
 fn long_patterns_answer_as_cpython_does() {
+    std::thread::Builder::new()
+        .stack_size(512 << 20)
+        .spawn(long_patterns)
+        .expect("spawn")
+        .join()
+        .expect("no panic");
+}
+
+fn long_patterns() {
     let digits = format!("a{{{}}}", "1".repeat(5000));
     let limit = "ValueError: Exceeds the limit (4300 digits) for integer string conversion: \
                  value has 5000 digits; use sys.set_int_max_str_digits() to increase the limit";

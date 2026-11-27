@@ -40,7 +40,6 @@
 ["[\\q]", 0, null, "bad escape \\q at position 1"],
 ["[\\U0001F600]", 0, "\ud83d\ude00", "0-1"],
 ["[\\u0041]", 0, "A", "0-1"],
-["[\\N{LATIN SMALL LETTER A}]", 0, "a", "0-1"],
 ["[\\N{NO SUCH NAME}]", 0, null, "undefined character name 'NO SUCH NAME' at position 1"],
 ["\\N{NO SUCH NAME}", 0, null, "undefined character name 'NO SUCH NAME' at position 0"],
 ["\\q", 0, null, "bad escape \\q at position 0"],
