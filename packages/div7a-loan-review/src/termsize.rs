@@ -100,17 +100,20 @@ fn stdout_terminal() -> Option<(i64, i64)> {
 /// positive integer; otherwise the terminal on stdout, else 80. The terminal
 /// is asked whenever either $COLUMNS or $LINES is not a positive integer.
 pub fn columns() -> i64 {
-    let env_int = |name: &str| {
-        std::env::var(name)
-            .ok()
-            .and_then(|value| py_int(&value))
-            .unwrap_or(0)
-    };
+    columns_with(|name| std::env::var(name).ok(), stdout_terminal)
+}
+
+/// `columns` reading the environment through `var` and the terminal through `terminal`.
+fn columns_with(
+    var: impl Fn(&str) -> Option<String>,
+    terminal: impl FnOnce() -> Option<(i64, i64)>,
+) -> i64 {
+    let env_int = |name: &str| var(name).and_then(|value| py_int(&value)).unwrap_or(0);
     let columns = env_int("COLUMNS");
     if columns > 0 && env_int("LINES") > 0 {
         return columns;
     }
-    let terminal = stdout_terminal();
+    let terminal = terminal();
     if columns > 0 {
         return columns;
     }
@@ -133,5 +136,29 @@ mod tests {
         for bad in ["", " ", "4__0", "_40", "40_", "4.0", "0x10", "--1"] {
             assert_eq!(py_int(bad), None, "{bad}");
         }
+    }
+
+    fn columns_for(vars: &[(&str, &str)], terminal: Option<(i64, i64)>) -> i64 {
+        columns_with(
+            |name| {
+                vars.iter()
+                    .find(|(k, _)| *k == name)
+                    .map(|(_, v)| v.to_string())
+            },
+            || terminal,
+        )
+    }
+
+    // shutil.get_terminal_size((80, 24)).columns in CPython 3.15 for each case.
+    #[test]
+    fn columns_follow_shutil_get_terminal_size() {
+        // $COLUMNS and $LINES both positive: the terminal is not asked.
+        assert_eq!(columns_for(&[("COLUMNS", "50"), ("LINES", "10")], None), 50);
+        // $COLUMNS alone still wins over the terminal's width.
+        assert_eq!(columns_for(&[("COLUMNS", "50")], Some((120, 40))), 50);
+        // No usable $COLUMNS: the terminal's width, else the 80-column fallback.
+        assert_eq!(columns_for(&[("COLUMNS", "abc")], Some((120, 40))), 120);
+        assert_eq!(columns_for(&[("COLUMNS", "-5")], Some((0, 0))), 80);
+        assert_eq!(columns_for(&[], None), 80);
     }
 }
