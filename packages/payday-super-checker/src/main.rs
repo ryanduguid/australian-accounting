@@ -63,6 +63,7 @@ mod tests {
         let pipe = || Err(Error::from(ErrorKind::BrokenPipe));
         assert_eq!(finish(0, pipe(), Ok(())), failed);
         assert_eq!(finish(2, Ok(()), pipe()), failed);
+        assert_eq!(finish(2, pipe(), pipe()), failed);
         assert_eq!(finish(2, Ok(()), Ok(())), 2);
     }
 
