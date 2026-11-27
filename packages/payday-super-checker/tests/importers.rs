@@ -460,3 +460,29 @@ fn super_rows_alike_but_for_their_amount_are_both_matched() {
         [["Ann", "2026-08-10", "150.00", "150.00"].map(String::from)]
     );
 }
+
+/// Python (CPython 3.14 on the Linux test host) refuses the same files with
+/// this message, listing 20 rows and counting the rest.
+#[test]
+fn more_than_twenty_allocation_rows_are_counted_after_the_twentieth() {
+    let mut payroll = PAYROLL_HEADER.to_string();
+    for d in 1..=21 {
+        payroll.push_str(&format!("Ann,2026-07-{d:02},2026-07-{d:02},10.00\n"));
+    }
+    let super_csv =
+        format!("{BEAM_HEADER}Ann,SG,2026-06-29,2026-07-02,2026-07-10,10.00,Sent to Fund\n");
+    let (report, written) = import_beam("allocation", &payroll, &super_csv);
+    let rows: Vec<String> = (2..=21).map(|r| r.to_string()).collect();
+    let expected = format!(
+        "1 employee allocation group(s) contain more than one positive payday (payroll rows \
+         {} and 1 more). LCR 2026/2 paragraphs 31-33 apply contributions in fund-receipt \
+         order to the earliest QE day with a base or final shortfall. These exports contain \
+         employer payment dates and vendor periods, not fund-receipt order or assessment \
+         facts, so they cannot establish the canonical allocation. Reconcile every relevant \
+         payday, contribution receipt and assessment, then rerun with \
+         --confirm-statutory-allocation; no output was written",
+        rows.join(", ")
+    );
+    assert_eq!(report.err().unwrap().message(), expected);
+    assert!(written.is_empty());
+}
