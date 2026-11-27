@@ -113,10 +113,7 @@ fn validate(
     if kind == "default" && value.is_none() {
         return rule["default"].clone();
     }
-    let Some(value) = value else {
-        // Model fields supply the full original object for missing diagnostics.
-        unreachable!("missing fields are handled at their model boundary")
-    };
+    let value = value.expect("missing fields are handled at their model boundary");
     match kind {
         "model-field" | "default" => validate(&rule["schema"], Some(value), path, config, errors),
         "nullable" if value.is_null() => Value::Null,
@@ -345,4 +342,79 @@ pub fn arguments(name: &str, input: &Value) -> Result<Value, String> {
         );
     }
     Err(message)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn run(rule: &Value, value: Option<&Value>) -> (Value, Vec<Issue>) {
+        let mut errors = vec![];
+        let out = validate(rule, value, "p", &Value::Null, &mut errors);
+        (out, errors)
+    }
+
+    #[test]
+    fn list_descriptor_validates_type_bounds_and_items() {
+        let rule = json!({"type": "list", "min_length": 2, "items_schema": {"type": "int"}});
+        let (_, bad_type) = run(&rule, Some(&json!("bad")));
+        let (_, bad_item) = run(&rule, Some(&json!(["bad"])));
+        assert_eq!(bad_type[0].code, "list_type");
+        assert_eq!(bad_item[0].path, "p.0");
+        assert_eq!(bad_item[0].code, "int_type");
+        assert_eq!(bad_item[1].code, "too_short");
+
+        let max_one = json!({"type": "list", "max_length": 1, "items_schema": {"type": "int"}});
+        let (_, too_long) = run(&max_one, Some(&json!([1, "x"])));
+        assert_eq!(too_long.len(), 1);
+        assert_eq!(too_long[0].code, "too_long");
+        assert!(too_long[0].message.contains("at most 1 item "));
+
+        let ok = json!({"type": "list", "min_length": 1, "max_length": 2, "items_schema": {"type": "int"}});
+        let (out, errors) = run(&ok, Some(&json!([1, 2])));
+        assert_eq!(out, json!([1, 2]));
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn dict_descriptor_validates_type_keys_values_and_size() {
+        let dict_rule = json!({
+            "type": "dict", "min_length": 2, "max_length": 2,
+            "keys_schema": {"type": "str", "min_length": 2},
+            "values_schema": {"type": "int"}
+        });
+        let (_, bad_type) = run(&dict_rule, Some(&json!([])));
+        let (_, bad_item) = run(&dict_rule, Some(&json!({"a": "x"})));
+        assert_eq!(bad_type[0].code, "dict_type");
+        assert_eq!(bad_item.len(), 2);
+        assert_eq!(bad_item[0].path, "p.a.[key]");
+        assert_eq!(bad_item[1].path, "p.a");
+
+        let pass = json!({"type": "dict", "min_length": 2, "max_length": 1, "keys_schema": null, "values_schema": null});
+        let (out, short) = run(&pass, Some(&json!({"ab": 1})));
+        assert_eq!(out, json!({"ab": 1}));
+        assert_eq!(short[0].code, "too_short");
+        let (_, long) = run(&pass, Some(&json!({"a": 1, "b": 2})));
+        assert_eq!(long[0].code, "too_long");
+        assert!(long[0].message.contains("at most 1 item "));
+    }
+
+    #[test]
+    fn model_and_default_descriptors_cover_non_object_dotted_keys_and_unsupported() {
+        let model_rule = json!({
+            "type": "model", "name": "Demo", "config": {},
+            "schema": {"type": "model-fields", "fields": {"a.b": {"type": "model-field", "schema": {"type": "str"}}}}
+        });
+        assert_eq!(run(&model_rule, Some(&json!(1))).1[0].code, "model_type");
+        assert_eq!(run(&model_rule, Some(&json!({}))).1[0].path, "p.`a.b`");
+        let def = json!({"type": "default", "default": "x", "schema": {"type": "str"}});
+        assert_eq!(run(&def, None).0, json!("x"));
+    }
+
+    #[test]
+    #[should_panic(expected = "unsupported embedded input descriptor")]
+    fn unsupported_descriptor_type_panics() {
+        run(&json!({"type": "tuple"}), Some(&json!(1)));
+    }
 }

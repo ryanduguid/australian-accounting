@@ -567,4 +567,13 @@ The operator confirmed this scope:
             assert!(invented.is_empty(), "{kind} states {invented:?}");
         }
     }
+
+    #[test]
+    fn file_note_helpers_handle_null_values_and_empty_tables() {
+        assert_eq!(super::shown(&Value::Null), "None");
+        assert!(super::table("Rate", &json!({})).is_empty());
+        let mut record = json!({});
+        super::served_scope("gst", &mut record);
+        assert!(record.get("scope").is_none());
+    }
 }

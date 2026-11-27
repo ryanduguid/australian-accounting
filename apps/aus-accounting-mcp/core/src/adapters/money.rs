@@ -102,5 +102,16 @@ mod tests {
                     .contains("omit an unknown amount or send null")
             );
         }
+        assert_eq!(
+            optional(Some(&Value::from(123)), "amount").unwrap_err(),
+            "amount must be a string or null"
+        );
+        for over in ["1000000000001.00", "10000000000000"] {
+            assert!(
+                amount(over, "amount")
+                    .unwrap_err()
+                    .contains("must not exceed")
+            );
+        }
     }
 }
