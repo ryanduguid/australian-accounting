@@ -566,11 +566,12 @@ fn inputs(a: &FrankingArgs, facts: &Facts) -> Result<Inputs> {
         "distribution",
         &DISTRIBUTION_FIELDS,
         "franking_account.distribution_invalid",
-    )?
-    .into_iter()
-    .enumerate()
-    .map(|(i, o)| distribution(i + 1, o, facts))
-    .collect::<Result<Vec<_>>>()?;
+    );
+    let dists = dists?
+        .into_iter()
+        .enumerate()
+        .map(|(i, o)| distribution(i + 1, o, facts))
+        .collect::<Result<Vec<_>>>()?;
     let tax = income_tax(a.income_tax, facts.private)?;
     let determination = match a.commissioner_determination {
         None => false,
@@ -590,4 +591,23 @@ fn inputs(a: &FrankingArgs, facts: &Facts) -> Result<Inputs> {
         tax,
         determination,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{credit, debit};
+
+    #[test]
+    fn event_helpers_set_the_side() {
+        let paid = credit("payg_instalment", "item 1");
+        assert_eq!(
+            (paid.name, paid.credit, paid.item),
+            ("payg_instalment", true, "item 1")
+        );
+        let refund = debit("dmt_refund", "item 14");
+        assert_eq!(
+            (refund.name, refund.credit, refund.item),
+            ("dmt_refund", false, "item 14")
+        );
+    }
 }

@@ -159,7 +159,8 @@ pub(super) fn work_base_rate(args: &PortableLslLevyArgs, ctx: &CoalContext) -> R
             supplied: true,
         },
         ctx.sacrificed,
-    )?;
+    );
+    let gross_s = gross_s?;
     let fa_val = gross_s.value.add(&bonus_s.value)?;
     let formula_a = step(
         "formula_a",
@@ -221,7 +222,8 @@ pub(super) fn work_annual_salary(
             supplied: true,
         },
         ctx.sacrificed,
-    )?;
+    );
+    let gross_s = gross_s?;
     finish_simple_worked(
         SimpleBranch {
             coal_branch: "s 3B(2)",
@@ -343,7 +345,8 @@ fn work_casual_2024_3a(pay: &CasualPay, bonus_s: Step, ctx: &CoalContext) -> Res
             supplied: pay.base.1,
         },
         ctx.sacrificed,
-    )?;
+    );
+    let gross_s = gross_s?;
     let formula = if pay.loading.1 {
         "base_rate_grossed_up + counted_bonuses + casual_loading"
     } else {
@@ -379,7 +382,8 @@ fn work_casual_2024_3b(pay: &CasualPay, bonus_s: Step, ctx: &CoalContext) -> Res
             supplied: pay.ordinary.1,
         },
         ctx.sacrificed,
-    )?;
+    );
+    let gross_s = gross_s?;
     finish_simple_worked(
         SimpleBranch {
             coal_branch: "s 3B(3)(b)",

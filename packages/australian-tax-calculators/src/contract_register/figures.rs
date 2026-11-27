@@ -196,10 +196,11 @@ pub(super) fn by_month(contract: &Contract) -> Result<BTreeMap<String, Decimal>,
 pub(super) fn by_income_year(contract: &Contract) -> Result<BTreeMap<String, Year>, Refusal> {
     let mut years = BTreeMap::new();
     for (day, amount) in &contract.payments {
-        add_to(
+        let added = add_to(
             &mut year_of(&mut years, income_year(*day).0).payments,
             amount,
-        )?;
+        );
+        added?;
     }
     for period in &contract.periods {
         let (key, opens) = income_year(period.to - 1);
@@ -385,13 +386,8 @@ pub(super) fn set_out(rows: &[Row], options: &Options) -> Result<SetOut, Refusal
         }
         let own_years = by_income_year(&contract)?;
         merge_years(&mut years, &own_years)?;
-        contracts.push(contract_json(
-            &contract,
-            &result,
-            options,
-            &own_months,
-            &own_years,
-        )?);
+        let pushed = contract_json(&contract, &result, options, &own_months, &own_years);
+        contracts.push(pushed?);
     }
     Ok(SetOut {
         contracts,

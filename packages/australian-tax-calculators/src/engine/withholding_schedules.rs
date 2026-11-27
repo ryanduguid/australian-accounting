@@ -159,7 +159,7 @@ pub fn horticulture_shearing_withholding(
         (false, true) => NO_TFN_RATES.1,
     };
     let steps = if tfn {
-        flat_rate_steps(
+        let flat = flat_rate_steps(
             ("earnings", &earnings),
             a,
             Rounding::HalfUp,
@@ -167,7 +167,8 @@ pub fn horticulture_shearing_withholding(
                 used,
                 "Schedule 2, 'Using a formula', Table A (TFN provided) and 'Rounding of withholding amounts': to the nearest dollar, 50 cents up",
             ),
-        )?
+        );
+        flat?
     } else {
         no_tfn_steps(("earnings", &earnings), foreign, used)?
     };
@@ -356,7 +357,8 @@ pub fn daily_casual_withholding(
             ("earnings", &earnings),
             foreign,
             "Tax table for daily and casual workers, 'When a TFN has not been provided': the payment, ignoring any cents",
-        )?;
+        );
+        let steps = steps?;
         let a = if foreign {
             NO_TFN_RATES.1
         } else {
@@ -408,7 +410,7 @@ pub fn no_abn_withholding(
     }
     let threshold = d(NO_ABN_THRESHOLD);
     let steps = if total.gt(&threshold)? {
-        flat_rate_steps(
+        let flat = flat_rate_steps(
             ("payment", &payment),
             TOP_RATE,
             Rounding::Down,
@@ -416,7 +418,8 @@ pub fn no_abn_withholding(
                 "Taxation Administration Regulations 2017 s 26(1)(a), (2) and (3): cents in the payment disregarded",
                 "Regulations s 38(2): the top rate (s 4: 45% plus the 2% Medicare levy) times the payment; s 26(1)(b), (2) and (3): cents in the result disregarded",
             ),
-        )?
+        );
+        flat?
     } else {
         vec![step(
             "withholding",

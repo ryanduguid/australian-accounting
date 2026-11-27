@@ -124,7 +124,8 @@ fn limited(portion: &Decimal, rate: &Decimal, used: i64, spent: i64) -> Result<(
         full
     } else {
         undeducted.clone()
-    })?;
+    });
+    let deduction = deduction?;
     Ok((undeducted, deduction))
 }
 

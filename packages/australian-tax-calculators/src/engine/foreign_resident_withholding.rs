@@ -417,7 +417,7 @@ pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Re
     let payable = precise(|| payable(&facts, &mut rows, &full_amount, nil.is_some()))?;
     let mut rates = vec![rate("rate", full_rate)];
     rates.push(rate("threshold", threshold.unwrap_or("none")));
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -426,7 +426,8 @@ pub fn foreign_resident_withholding(args: &ForeignResidentWithholdingArgs) -> Re
             ("amount_payable", payable),
         ],
         rates,
-    )?;
+    );
+    let mut out = out?;
     explain(&mut out, &facts, &rows, nil);
     Ok(out)
 }

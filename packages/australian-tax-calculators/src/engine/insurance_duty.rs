@@ -274,3 +274,18 @@ pub fn insurance_duty(args: &InsuranceDutyArgs) -> Result<Value> {
     let (step, rates) = precise(|| worked(class, &premium, taken_out))?;
     derived_result(KIND, &year, vec![step], rates)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{Duty, class};
+
+    #[test]
+    fn class_keeps_each_field() {
+        let built = class("nsw", "type_a", Duty::Percent("9"), "authority");
+        assert_eq!(
+            (built.place, built.code, built.authority),
+            ("nsw", "type_a", "authority")
+        );
+        assert!(matches!(built.duty, Duty::Percent("9")));
+    }
+}

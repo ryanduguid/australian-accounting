@@ -286,7 +286,7 @@ pub fn fuel_tax_credits(args: &FuelArgs) -> Result<Value> {
     }
     let label = total.quantize(0, Rounding::Down)?;
     let last = rates().periods.last().expect("a period").to;
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![("fuel_tax_credits", total), ("label_7d", label)],
@@ -295,7 +295,8 @@ pub fn fuel_tax_credits(args: &FuelArgs) -> Result<Value> {
             rate("rates_from", "2022-07-01"),
             rate("rates_to", dates::format(last)),
         ],
-    )?;
+    );
+    let mut out = out?;
     out["lines"] = Value::Array(worked);
     out["label_7d_authority"] = json!(LABEL_7D);
     add_warnings(&mut out, args, &lines, end_day)?;

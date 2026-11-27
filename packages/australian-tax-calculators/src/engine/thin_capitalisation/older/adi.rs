@@ -47,7 +47,8 @@ fn world(a: &ThinCapitalisationArgs) -> Result<World> {
         a,
         "foreign_controlled_australian_entity",
         "the worldwide capital amount is not available to a foreign controlled Australian entity (s 820-320(1))",
-    )?;
+    );
+    let controlled = controlled?;
     let w = all_or_none(a, &WORLD, "the worldwide capital amount uses all of them")?;
     if controlled && w.is_some() {
         return not_used(
@@ -98,13 +99,14 @@ pub(super) fn adi(a: &ThinCapitalisationArgs, c: Class, items: &[Deduction]) -> 
                 missing.join(" and ")
             ));
         }
-        shortfall_steps(
+        let stepped = shortfall_steps(
             &mut steps,
             outward,
             eq_id,
             [&least, &eq, &shortfall],
             &debt_capital,
-        )?;
+        );
+        stepped?;
         Ok(Worked {
             steps,
             rates: vec![rate("safe_harbour_capital_rate", "0.06")],
