@@ -147,3 +147,30 @@ fn snapshot_pauses_two_seconds_after_each_page() {
     assert_eq!(printed, newlines_of("saved c-page.txt\n"));
     let _ = std::fs::remove_dir_all(&root);
 }
+
+/// `tests/data/cov_a6_validate.py` printed the expected lines: a record with
+/// no `source_url` is checked against the snapshot `snapshots/.txt`.
+#[test]
+fn validate_reports_the_missing_snapshot_of_a_record_without_a_url() {
+    let root = folder("validate");
+    std::fs::write(root.join("data").join("r0.json"), r#"{"id": "r0"}"#).expect("write record");
+    let real = Ctx::new();
+    let ctx = Ctx {
+        data: PyPath::new(&root.join("data").to_string_lossy()),
+        snapshots: real.snapshots,
+        root: real.root,
+    };
+    let mut out = Out::new(Vec::new());
+    let code = cmd_validate(&ctx, &mut out);
+    let printed = String::from_utf8(out.w).expect("UTF-8 output");
+    assert_eq!(code.ok(), Some(1));
+    let missing = ["label", "unit", "period", "source_url", "retrieved_at", "quote"]
+        .map(|field| format!("r0: missing or wrong type: {field}\n"))
+        .concat();
+    let sep = std::path::MAIN_SEPARATOR;
+    let expected = format!(
+        "{missing}r0: missing: value\nr0: no snapshot at snapshots{sep}.txt\n1 record(s) with problems\n"
+    );
+    assert_eq!(printed, newlines_of(&expected));
+    let _ = std::fs::remove_dir_all(&root);
+}
