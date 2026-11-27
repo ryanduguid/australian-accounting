@@ -194,3 +194,16 @@ fn writing_over_a_folder_raises_the_open_error() {
     );
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// Linux only: `/dev/full` opens and then refuses every write. CPython 3.15's
+/// `Path("/dev/full").write_text(...)` raises `OSError(28, 'No space left on
+/// device')` with no filename, as only the open names the file.
+#[cfg(target_os = "linux")]
+#[test]
+fn a_failed_write_raises_without_the_filename() {
+    let path = PyPath::new("/dev/full");
+    assert_eq!(
+        refusal(evidence::write(&Json::Object(Vec::new()), &path)),
+        ("OSError", "[Errno 28] No space left on device".to_owned())
+    );
+}

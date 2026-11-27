@@ -296,10 +296,13 @@ pub fn write(record: &Json, path: &PyPath) -> R<()> {
     crate::pyos::makedirs(&path.parent()).map_err(|e| crate::pyops::os_exc(&e))?;
     let mut text = pyencode::dumps(record, &Options::EVIDENCE)?;
     text.push(u32::from('\n'));
-    let os_error = |e: &std::io::Error| {
-        crate::pyops::os_exc(&OsError::new(e, Some(&path.display()), Style::Errno))
+    // Only the open names the file: a failed write (a full disk) raises
+    // `OSError` without a filename, as `TextIOWrapper` does.
+    let os_error = |e: &std::io::Error, filename: Option<&str>| {
+        crate::pyops::os_exc(&OsError::new(e, filename, Style::Errno))
     };
-    let mut file = std::fs::File::create(path.fs()).map_err(|e| os_error(&e))?;
+    let mut file =
+        std::fs::File::create(path.fs()).map_err(|e| os_error(&e, Some(&path.display())))?;
     let mut translated = Vec::with_capacity(text.len());
     for cp in text {
         // Compiled for Windows only, where its CI leg tests it.
@@ -316,7 +319,7 @@ pub fn write(record: &Json, path: &PyPath) -> R<()> {
         .iter()
         .filter_map(|&cp| char::from_u32(cp))
         .collect();
-    std::io::Write::write_all(&mut file, bytes.as_bytes()).map_err(|e| os_error(&e))
+    std::io::Write::write_all(&mut file, bytes.as_bytes()).map_err(|e| os_error(&e, None))
 }
 
 /// `verify(record)`: findings against an evidence record; empty means it
