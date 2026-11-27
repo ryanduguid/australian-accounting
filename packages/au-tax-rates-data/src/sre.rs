@@ -2310,3 +2310,7 @@ mod tests {
         assert_eq!(lower("AUGUST"), "august");
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a4_sre.rs"]
+mod cov_a4_tests;
