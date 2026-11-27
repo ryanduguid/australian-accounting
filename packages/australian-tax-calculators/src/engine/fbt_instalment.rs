@@ -256,3 +256,14 @@ pub fn fbt_instalment(args: &FbtInstalmentArgs) -> Result<Value> {
     out["activity_statement_labels"] = labels(&out, code);
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::varied;
+
+    #[test]
+    #[should_panic(expected = "varied is called with an estimate")]
+    fn varying_needs_an_estimate() {
+        let _ = varied(0, &[None; 5]);
+    }
+}

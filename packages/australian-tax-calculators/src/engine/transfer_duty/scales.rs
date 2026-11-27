@@ -345,3 +345,21 @@ const NT: Place = Place {
 };
 
 pub(super) const PLACES: [Place; 8] = [NSW, VIC, QLD, WA, SA, TAS, ACT, NT];
+
+#[cfg(test)]
+mod tests {
+    use super::{Charge, band, hundred};
+
+    #[test]
+    fn band_helpers_keep_each_field() {
+        let built = band(18_000, "225", "0.015", 18_000, Charge::Excess);
+        assert_eq!(
+            (built.from, built.base, built.rate, built.over),
+            (18_000, "225", "0.015", 18_000)
+        );
+        assert!(built.charge == Charge::Excess);
+        let per_hundred = hundred(38_000, "525", "1.75", 38_000);
+        assert_eq!((per_hundred.from, per_hundred.base), (38_000, "525"));
+        assert!(per_hundred.charge == Charge::PerHundred);
+    }
+}

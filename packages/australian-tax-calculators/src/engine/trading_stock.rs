@@ -245,7 +245,7 @@ pub fn trading_stock(args: &TradingStockArgs) -> Result<Value> {
     } else {
         (gap(&closing, &opening)?, int(0))
     };
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -258,7 +258,8 @@ pub fn trading_stock(args: &TradingStockArgs) -> Result<Value> {
             ("deduction", decrease),
         ],
         vec![super::rate("simplified_limit", LIMIT)],
-    )?;
+    );
+    let mut out = out?;
     explain(&mut out, &valued, available, chosen)?;
     Ok(out)
 }

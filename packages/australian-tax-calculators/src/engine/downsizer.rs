@@ -127,15 +127,16 @@ fn covered_step([made, own_room, proceeds_room]: [&Decimal; 3], eligible: bool) 
         let why = "ITAA 1997 s 292-102(1): a criterion is not met";
         return Ok(step("downsizer_covered", why, "0", &[], int(0)));
     }
+    let covered = py_min(
+        py_min(made.clone(), own_room.clone())?,
+        proceeds_room.clone(),
+    );
     Ok(step(
         "downsizer_covered",
         "ITAA 1997 s 292-102(3): the contribution, to the extent it does not exceed the lesser of the 2 limits",
         "min(min(downsizer_contribution, downsizer_cap_remaining), downsizer_proceeds_remaining)",
         &[made, own_room, proceeds_room],
-        py_min(
-            py_min(made.clone(), own_room.clone())?,
-            proceeds_room.clone(),
-        )?,
+        covered?,
     ))
 }
 

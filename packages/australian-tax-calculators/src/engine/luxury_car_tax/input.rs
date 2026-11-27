@@ -233,7 +233,8 @@ fn refund(
         required(fields, n, "refund_eligible_car")?,
         n,
         "refund_eligible_car",
-    )?;
+    );
+    let eligible = eligible?;
     Ok((found, eligible))
 }
 

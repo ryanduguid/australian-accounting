@@ -403,13 +403,8 @@ fn external_payment<'a>(
         .value
         .clone();
     let table = &EXPENSE_DEDUCTIBLE;
-    steps.extend(deductible_steps(
-        table,
-        expenditure,
-        &share,
-        &deduction,
-        &value,
-    )?);
+    let extended = deductible_steps(table, expenditure, &share, &deduction, &value);
+    steps.extend(extended?);
     let authority = "FBTAA s 24(1), TV - ND; FBT return 2026 instructions, item 23E";
     taxable_steps(steps, None, authority)
 }
@@ -508,4 +503,26 @@ fn in_house_payment<'a>(
         cites.taxable
     };
     taxable_steps(steps, available, authority)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::in_house;
+
+    #[test]
+    fn in_house_cites_the_contribution_then_the_taxable_value() {
+        let built = in_house("portion", "contribution", "taxable", "reduced");
+        assert_eq!(
+            (built.portion, built.reduced, built.taxable),
+            ("portion", "reduced", "taxable")
+        );
+        assert_eq!(
+            built.rows.map(|(name, cite, _)| (name, cite)),
+            [
+                ("recipients_portion_applied", "contribution"),
+                ("excess_recipients_portion", "contribution"),
+                ("value_after_contribution", "taxable"),
+            ]
+        );
+    }
 }

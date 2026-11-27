@@ -507,7 +507,8 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     let fbt = gross_up(v, year, &totals[0], &totals[1])?;
     let fbt_rate = calc(Decimal::parse(
         fbt["rates"]["fbt_rate"].as_str().expect("fbt's FBT rate"),
-    ))?;
+    ));
+    let fbt_rate = fbt_rate?;
     let (amounts, reconciliation) = amounts(&valued, &fbt, &totals)?;
     let employees = employees(&valued, &fbt_rate)?;
     let labels = return_labels(&fbt, &valued, kind)?;

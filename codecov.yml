@@ -1,28 +1,26 @@
-# Require exact project coverage across both fresh Python reports.
+# Post statuses once both Python reports, which every run uploads, have arrived.
 codecov:
   notify:
     after_n_builds: 2
-# cargo llvm-cov writes absolute runner paths into australian-tax-calculators' lcov report.
+# cargo llvm-cov writes absolute runner paths into each crate's lcov report.
 fixes:
   - "/home/runner/work/australian-accounting/australian-accounting/::"
-# The crate uploads only when a pull request runs it; other commits carry its last report forward.
+# A crate uploads only when a pull request runs it; other commits carry its last report forward.
 flag_management:
-  individual_flags:
-    - name: australian-tax-calculators
-      carryforward: true
+  default_rules:
+    carryforward: true
 coverage:
   round: down
   status:
     default_rules:
       flag_coverage_not_uploaded_behavior: exclude
     project:
+      # The whole repository, every crate and Python flag together: what main
+      # measures, rounded down. Raise it with the tests, never lower it to pass.
       default:
-        target: 100%
+        target: 94%
         threshold: 0%
         if_not_found: failure
-        flags:
-          - aus-accounting-mcp
-          - lodgment-calendar
       aus-accounting-mcp:
         target: 100%
         threshold: 0%

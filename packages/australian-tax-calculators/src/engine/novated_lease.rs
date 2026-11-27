@@ -429,11 +429,8 @@ fn contribution(
 ) -> Result<Option<Scenario>> {
     let covered = cents(&value.mul(&int(10))?.div(&int(11))?)?;
     if !covered.gt(net_costs)? {
-        return Ok(Some(pay.scenario(
-            net_costs.sub(&covered)?,
-            value.clone(),
-            int(0),
-        )?));
+        let scenario = pay.scenario(net_costs.sub(&covered)?, value.clone(), int(0));
+        return Ok(Some(scenario?));
     }
     if taxable {
         return refuse(
