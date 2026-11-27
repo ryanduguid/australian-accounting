@@ -370,3 +370,93 @@ fn read_super_lists_the_rows_it_skipped() {
     assert_eq!(mixed["rows"].as_array().unwrap().len(), 1);
     assert!(only_sg.get("skipped").is_none(), "{only_sg}");
 }
+
+// Expected values below are what the pre-port Python engine (`paydaysuper`
+// at 5874033^) wrote for the same files under CPython.
+
+#[test]
+fn every_super_profile_filters_its_contribution_types() {
+    // read_super relies on this: a super file is always filtered to SG rows.
+    let profiles = payday_super_checker::profiles::load_profiles(Some("super")).unwrap();
+    assert!(!profiles.is_empty());
+    for profile in profiles {
+        assert!(
+            profile.sg_filter.is_some(),
+            "{} has no sg_filter",
+            profile.key
+        );
+    }
+}
+
+#[test]
+fn a_blank_header_column_may_be_short_and_blank_extra_cells_are_ignored() {
+    // Bob's row stops before the blank-named column; Ann's adds 2 blank cells.
+    let payroll = "Employee,Date Paid,Pay Period Ending,Super Guarantee,\n\
+                   Ann,2026-08-06,2026-08-02,100.00,,\n\
+                   Bob,2026-08-06,2026-08-02,50.00\n";
+    let super_csv = format!(
+        "{BEAM_HEADER}Ann,SG,2026-07-27,2026-08-02,2026-08-10,100.00,Sent to Fund\n\
+         Bob,SG,2026-07-27,2026-08-02,2026-08-10,50.00,Sent to Fund\n"
+    );
+    let (report, written) = import_beam("blank-column", payroll, &super_csv);
+    assert!(report.is_ok(), "{:?}", report.err());
+    assert_eq!(
+        written,
+        [
+            ["Ann", "2026-08-10", "100.00", "100.00"].map(String::from),
+            ["Bob", "2026-08-10", "50.00", "50.00"].map(String::from),
+        ]
+    );
+}
+
+#[test]
+fn a_super_payment_larger_than_owed_is_credited_only_the_amount_owed() {
+    let payroll = format!("{PAYROLL_HEADER}Ann,2026-08-06,2026-08-02,100.00\n");
+    let super_csv =
+        format!("{BEAM_HEADER}Ann,SG,2026-07-27,2026-08-02,2026-08-10,150.00,Sent to Fund\n");
+    let (report, written) = import_beam("over", &payroll, &super_csv);
+    assert_eq!(report.unwrap().count("over"), 1);
+    assert_eq!(
+        written,
+        [["Ann", "2026-08-10", "100.00", "100.00"].map(String::from)]
+    );
+}
+
+#[test]
+fn more_than_twenty_pre_regime_paydays_are_counted_after_the_twentieth() {
+    let mut payroll = PAYROLL_HEADER.to_string();
+    for d in 1..=21 {
+        payroll.push_str(&format!("E{d:02},2026-06-{d:02},2026-06-{d:02},10.00\n"));
+    }
+    payroll.push_str("Z,2026-08-06,2026-08-02,10.00\n");
+    let super_csv =
+        format!("{BEAM_HEADER}Z,SG,2026-07-27,2026-08-02,2026-08-10,10.00,Sent to Fund\n");
+    let (report, _) = import_beam("early", &payroll, &super_csv);
+    let rows: Vec<String> = (2..=21).map(|r| r.to_string()).collect();
+    let expected = format!(
+        "21 payroll row(s) have a payday before 2026-07-01 (row(s) {} and 1 more; earliest \
+         2026-06-01), and the check refuses any file containing one: those paydays are \
+         governed by the old quarterly SG law, which this tool does not model. They are \
+         written to the output anyway, because they are real payroll rows -- delete them \
+         from it, or re-export from the start of the financial year in which payday super \
+         applies, before running the check.",
+        rows.join(", ")
+    );
+    let report = report.unwrap();
+    assert!(report.warnings.contains(&expected), "{:?}", report.warnings);
+}
+
+#[test]
+fn super_rows_alike_but_for_their_amount_are_both_matched() {
+    let payroll = format!("{PAYROLL_HEADER}Ann,2026-08-06,2026-08-02,150.00\n");
+    let super_csv = format!(
+        "{BEAM_HEADER}Ann,SG,2026-07-27,2026-08-02,2026-08-10,100.00,Sent to Fund\n\
+         Ann,SG,2026-07-27,2026-08-02,2026-08-10,50.00,Sent to Fund\n"
+    );
+    let (report, written) = import_beam("alike", &payroll, &super_csv);
+    assert_eq!(report.unwrap().count("matched"), 1);
+    assert_eq!(
+        written,
+        [["Ann", "2026-08-10", "150.00", "150.00"].map(String::from)]
+    );
+}
