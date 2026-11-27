@@ -5330,12 +5330,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
-        "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
-            lines: &a[0],
-            year: &a[1],
-            scope_confirmed: &a[2],
-        }),
-        _ => unreachable!("listed command"),
+        // The COMMAND_ARGS lookup above refuses every unlisted command, so the
+        // last listed one takes the catch-all arm.
+        _ => {
+            assert_eq!(command, "luxury-car-tax", "listed command");
+            engine::luxury_car_tax(&engine::LctArgs {
+                lines: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
     };
     let mut result = result.or_else(|e| refusal(e.code(), e.to_string()))?;
     engine::attach_source_quotes(command, v, &mut result);
