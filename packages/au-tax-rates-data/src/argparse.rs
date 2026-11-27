@@ -175,6 +175,7 @@ fn metavar(action: &Action, default: &str) -> String {
     }
 }
 
+/// The argument text after an option or for a positional; empty for an option that takes none.
 fn format_args(action: &Action, default: &str) -> String {
     let m = metavar(action, default);
     match action.nargs {
@@ -203,10 +204,10 @@ fn usage_parts(p: &Parser, t: &Theme) -> (Vec<Part>, Vec<Part>) {
         } else {
             t.summary_short_option
         };
-        let (plain, coloured) = if action.nargs == Nargs::Zero {
+        let args = format_args(action, &action.dest.to_uppercase());
+        let (plain, coloured) = if args.is_empty() {
             (option.clone(), format!("{colour}{option}{}", t.reset))
         } else {
-            let args = format_args(action, &action.dest.to_uppercase());
             (
                 format!("{option} {args}"),
                 format!("{colour}{option} {}{args}{}", t.summary_label, t.reset),
@@ -322,10 +323,10 @@ fn invocation(action: &Action, t: &Theme) -> Part {
         .map(colour)
         .collect::<Vec<_>>()
         .join(", ");
-    if action.nargs == Nargs::Zero {
+    let args = format_args(action, &action.dest.to_uppercase());
+    if args.is_empty() {
         return part(plain_options, coloured_options);
     }
-    let args = format_args(action, &action.dest.to_uppercase());
     part(
         format!("{plain_options} {args}"),
         format!("{coloured_options} {}{args}{}", t.label, t.reset),
@@ -478,10 +479,9 @@ impl From<ArgError> for Fail {
 /// option string, the separator and any explicit argument.
 type OptionTuple = (Option<usize>, String, Option<String>, Option<String>);
 
+/// `_negative_number_matcher` for an argument `parse_optional` has seen start with '-'.
 fn looks_like_negative_number(arg: &str) -> bool {
-    let Some(body) = arg.strip_prefix('-') else {
-        return false;
-    };
+    let body = &arg[1..];
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
     (!body.is_empty() && body.chars().all(digit))
         || body.split_once('.').is_some_and(|(int, frac)| {
@@ -551,6 +551,8 @@ impl Parser {
             let short: String = arg.chars().take(2).collect();
             let short_explicit: String = arg.chars().skip(2).collect();
             for (s, i) in map {
+                // argparse also matches a single-dash option longer than 2 characters by
+                // prefix; every single-dash option here is 2 characters long.
                 if *s == short {
                     result.push((
                         Some(*i),
@@ -558,8 +560,6 @@ impl Parser {
                         Some(String::new()),
                         Some(short_explicit.clone()),
                     ));
-                } else if s.starts_with(prefix) {
-                    result.push((Some(*i), s.clone(), sep.clone(), explicit.clone()));
                 }
             }
         }
