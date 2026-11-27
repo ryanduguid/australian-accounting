@@ -493,16 +493,14 @@ mod tests {
 
     #[test]
     fn string_escapes_decode_as_python_does() {
-        let text = |json: &str| match loads(json).unwrap() {
-            Json::Str(s) => s,
-            other => panic!("not a string: {other:?}"),
-        };
-        assert_eq!(text(r#""\"\\\/\b\f\n\r\t""#), "\"\\/\u{8}\u{c}\n\r\t");
+        let text = |json: &str| loads(json).unwrap();
+        let s = |text: &str| Json::Str(text.into());
+        assert_eq!(text(r#""\"\\\/\b\f\n\r\t""#), s("\"\\/\u{8}\u{c}\n\r\t"));
         // `~` stands for the backslash of a JSON \u escape.
         let escaped = |json: &str| json.replace('~', "\\");
-        assert_eq!(text(&escaped(r#""~u00e9~u20AC""#)), "\u{e9}\u{20ac}");
+        assert_eq!(text(&escaped(r#""~u00e9~u20AC""#)), s("\u{e9}\u{20ac}"));
         // A surrogate pair joins into one code point.
-        assert_eq!(text(&escaped(r#""~ud83d~ude00""#)), "\u{1f600}");
+        assert_eq!(text(&escaped(r#""~ud83d~ude00""#)), s("\u{1f600}"));
         // A high surrogate before a non-low escape stays unpaired.
         assert_eq!(
             err(&escaped(r#""~ud800~u0041""#)),
