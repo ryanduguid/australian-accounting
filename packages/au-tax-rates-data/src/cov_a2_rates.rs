@@ -16,21 +16,27 @@ const CASES: &str = include_str!("../tests/data/cov_a2_validate_record.json");
 
 /// `dict(record, **set)` without the `drop` keys, keeping Python's key order.
 fn variant(base: &Json, case: &Json) -> Json {
-    let mut record = base.clone();
-    if let Json::Object(pairs) = &mut record {
-        if let Some(Json::Object(set)) = case.get("set") {
-            for (key, value) in set {
-                match pairs.iter_mut().find(|(k, _)| k == key) {
-                    Some(pair) => pair.1 = value.clone(),
-                    None => pairs.push((key.clone(), value.clone())),
-                }
-            }
-        }
-        if let Some(Json::Array(drop)) = case.get("drop") {
-            pairs.retain(|(k, _)| !drop.contains(&Json::Str(k.clone())));
+    let text = |key: &Json| key.as_str().expect("text keys").to_string();
+    let keys = iterate(base).expect("a record is a dict");
+    let mut pairs: Vec<(PyStr, Json)> = Vec::new();
+    for key in keys.iter().map(text) {
+        let value = base.at(&key).clone();
+        pairs.push((PyStr::Text(key), value));
+    }
+    let set = case.at("set");
+    for key in iterate(set).expect("set is a dict").iter().map(text) {
+        let value = set.at(&key).clone();
+        match pairs
+            .iter_mut()
+            .find(|(k, _)| k.as_str() == Some(key.as_str()))
+        {
+            Some(pair) => pair.1 = value,
+            None => pairs.push((PyStr::Text(key), value)),
         }
     }
-    record
+    let drop = iterate(case.at("drop")).expect("drop is a list");
+    pairs.retain(|(k, _)| !drop.contains(&Json::Str(k.clone())));
+    Json::Object(pairs)
 }
 
 /// The problems, or `!Class: message` for the exception Python raised.
@@ -52,13 +58,8 @@ fn validate_record_answers_as_rates_py_does() {
         .iter()
         .filter_map(|case| check(&ctx, &records, case))
         .collect();
-    let shown = wrong.join("\n");
-    assert!(
-        wrong.is_empty(),
-        "{} of {}:\n{shown}",
-        wrong.len(),
-        cases.len()
-    );
+    let shown = format!("{} of {}:\n{}", wrong.len(), cases.len(), wrong.join("\n"));
+    assert!(wrong.is_empty(), "{shown}");
 }
 
 /// `None` when `validate_record` answers the case as `rates.py` did.
@@ -81,4 +82,77 @@ fn check(ctx: &Ctx, records: &[Json], case: &Json) -> Option<String> {
     let got = answer(validate_record(&record, page.as_deref()));
     let shown = repr(&Json::Array(got.iter().cloned().map(json_str).collect()));
     (got != want).then(|| format!("{} got {shown}", repr(case.at("why"))))
+}
+
+const ATO_CASES: &str = include_str!("../tests/data/cov_a2_ato_table_report.json");
+
+/// The base tables with each `[table, row, column, value]` cell replaced.
+fn edited(tables: &Json, cells: &Json) -> Json {
+    let index = |n: &Json| {
+        as_int(n)
+            .and_then(|n| usize::try_from(n).ok())
+            .expect("an index")
+    };
+    let mut out = tables.clone();
+    for cell in iterate(cells).expect("cells are a list") {
+        let cell = iterate(&cell).expect("a cell");
+        let name = cell[0].as_str().expect("a table name");
+        let table = out.at(name);
+        let mut rows = iterate(table.at("rows")).expect("rows");
+        let mut values = iterate(&rows[index(&cell[1])]).expect("a row");
+        values[index(&cell[2])] = cell[3].clone();
+        rows[index(&cell[1])] = Json::Array(values);
+        let columns = table.at("columns").clone();
+        let table = Json::obj([("columns", columns), ("rows", Json::Array(rows))]);
+        let keys = iterate(&out).expect("tables are a dict");
+        let pairs = keys.iter().map(|key| {
+            let key = key.as_str().expect("a table name");
+            let value = if key == name {
+                table.clone()
+            } else {
+                out.at(key).clone()
+            };
+            (PyStr::Text(key.to_string()), value)
+        });
+        out = Json::Object(pairs.collect());
+    }
+    out
+}
+
+/// `(name, table)` pairs, in the dict's order.
+fn table_pairs(tables: &Json) -> Vec<(String, Json)> {
+    let keys = iterate(tables).expect("tables are a dict");
+    let name = |key: &Json| key.as_str().expect("a table name").to_string();
+    keys.iter()
+        .map(|k| (name(k), tables.at(&name(k)).clone()))
+        .collect()
+}
+
+#[test]
+fn ato_table_report_answers_as_rates_py_does() {
+    let doc = loads_standard(ATO_CASES).expect("case file");
+    let base = doc.at("base");
+    let cases = iterate(doc.at("cases")).expect("a list of cases");
+    assert!(cases.len() > 400, "{} cases", cases.len());
+    let mut wrong = Vec::new();
+    for case in &cases {
+        let records = iterate(case.get("records").unwrap_or(base.at("records")));
+        let records = records.expect("records are a list");
+        let tables = match case.get("tables") {
+            Some(tables) => tables.clone(),
+            None => edited(base.at("tables"), case.at("cells")),
+        };
+        let pairs = table_pairs(&tables);
+        let pairs: Vec<(&str, Json)> = pairs.iter().map(|(k, v)| (k.as_str(), v.clone())).collect();
+        let got = match ato_table_report(&records, &pairs) {
+            Ok((lines, findings)) => [lines, vec![pts(&format!("findings: {findings}"))]].concat(),
+            Err(e) => answer(Err(e)),
+        };
+        let want = iterate(case.at("want")).expect("a list of lines");
+        let want: Vec<S> = want.iter().map(pyvalue::str_points).collect();
+        let shown = repr(&Json::Array(got.iter().cloned().map(json_str).collect()));
+        wrong.extend((got != want).then(|| format!("{} got {shown}", repr(case.at("why")))));
+    }
+    let shown = format!("{} of {}:\n{}", wrong.len(), cases.len(), wrong.join("\n"));
+    assert!(wrong.is_empty(), "{shown}");
 }
