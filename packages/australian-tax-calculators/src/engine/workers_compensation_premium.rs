@@ -350,3 +350,15 @@ fn scaled_text(millionths: i128) -> String {
         format!("{whole}.{part}")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::decimal::Signal;
+
+    #[test]
+    fn a_decimal_signal_on_the_actual_wages_passes_through_unlabelled() {
+        let error = on_actual(Error::Decimal(Signal::Overflow));
+        assert!(matches!(error, Error::Decimal(Signal::Overflow)));
+    }
+}

@@ -325,7 +325,7 @@ fn optional_text(row: &Raw, key: &str, default: &str) -> Result<String, Failure>
 }
 
 /// `dict(zip(fieldnames, row))` with DictReader's `None` for a short row.
-pub fn dict_row(header: &[String], row: &[String]) -> Raw {
+pub fn dict_row(header: &[String], row: &[String]) -> Vec<(String, Raw)> {
     let mut items: Vec<(String, Raw)> = Vec::new();
     for (i, key) in header.iter().enumerate() {
         let value = row.get(i).map_or(Raw::None, |v| Raw::Str(v.clone()));
@@ -334,7 +334,7 @@ pub fn dict_row(header: &[String], row: &[String]) -> Raw {
             None => items.push((key.clone(), value)),
         }
     }
-    Raw::Dict(items)
+    items
 }
 
 fn table_from_text(text: &str, shown: &str, uri: String) -> Result<BenchmarkTable, Failure> {
@@ -362,7 +362,7 @@ fn table_from_text(text: &str, shown: &str, uri: String) -> Result<BenchmarkTabl
         if cells.is_empty() {
             continue;
         }
-        let row = &dict_row(&header, &cells);
+        let row = &Raw::Dict(dict_row(&header, &cells));
         let where_ = format!("benchmark rate row {} in {shown}", n + 1);
         let year = parse_year(
             &Raw::Str(required(row, "year_of_income", &where_)?),
@@ -614,16 +614,15 @@ mod tests {
         assert_eq!(table.reviewed_on, "2026-08-28");
         assert_eq!(table.coverage(), "2019-20 to 2026-27");
         let hosts = ["rba.gov.au", "ato.gov.au", "legislation.gov.au"];
+        let cited = |host: &str| {
+            hosts
+                .iter()
+                .any(|h| host == *h || host.ends_with(&format!(".{h}")))
+        };
         for entry in table.entries.values() {
             let rest = entry.primary_url.strip_prefix("https://").unwrap();
             let host = rest.split('/').next().unwrap();
-            assert!(
-                hosts
-                    .iter()
-                    .any(|h| host == *h || host.ends_with(&format!(".{h}"))),
-                "{} cites {host}",
-                entry.year.label()
-            );
+            assert!(cited(host), "{host}");
             assert!(!entry.retrieved_on.is_empty());
             assert_eq!(entry.snapshot_sha256.len(), 64);
         }
@@ -675,15 +674,10 @@ mod tests {
             let text = format!(
                 r#"{{"verified_until": "2027-28", "citation": {citation}, "rates": [{{"year_of_income": "2027-28", "rate": "0.05"}}]}}"#
             );
-            match load_override_text("citation", &text) {
-                Err(Failure::Value(message)) => {
-                    assert!(
-                        message.contains("has no 'citation'"),
-                        "{citation}: {message}"
-                    )
-                }
-                _ => panic!("{citation}: an override without a citation was accepted"),
-            }
+            let refused = load_override_text("citation", &text).err();
+            let named =
+                matches!(&refused, Some(Failure::Value(m)) if m.contains("has no 'citation'"));
+            assert!(named, "{citation}");
         }
     }
 }

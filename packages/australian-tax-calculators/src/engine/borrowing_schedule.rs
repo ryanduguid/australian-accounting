@@ -126,13 +126,13 @@ fn uses(value: &Value, years: &[SpreadYear]) -> Result<Vec<Decimal>> {
     }
     years
         .iter()
-        .map(
-            |row| match by_year.get(&income_year(row.first)).map(fraction) {
-                Some(Ok(Some(share))) => Ok(share),
-                Some(Err(error)) => Err(error),
-                _ => income_use_invalid(years),
-            },
-        )
+        .map(|row| {
+            let found = by_year.get(&income_year(row.first)).map(fraction);
+            match found.transpose()?.flatten() {
+                Some(share) => Ok(share),
+                None => income_use_invalid(years),
+            }
+        })
         .collect()
 }
 
@@ -565,4 +565,19 @@ pub fn borrowing_expenses_schedule(
     out["loans"] = Value::Array(out_loans);
     out["schedule"] = Value::Array(totals);
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::decimal::Signal;
+
+    #[test]
+    fn a_decimal_signal_passes_through_unlabelled() {
+        let signal: Result<()> = Err(Error::Decimal(Signal::Overflow));
+        assert!(matches!(
+            at(1, signal),
+            Err(Error::Decimal(Signal::Overflow))
+        ));
+    }
 }

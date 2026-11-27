@@ -540,3 +540,15 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     nfp::instalment_labels(&mut out, instalments)?;
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_decimal_signal_is_refused_with_its_code_and_name() {
+        let refusal = signal(Signal::DivisionByZero);
+        assert_eq!(refusal.code, "decimal.division_by_zero");
+        assert_eq!(refusal.message, "decimal.DivisionByZero");
+    }
+}
