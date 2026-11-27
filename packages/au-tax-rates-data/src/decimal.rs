@@ -175,8 +175,9 @@ impl Decimal {
     /// `Decimal(f)` for a float: its exact binary value.
     pub fn from_float(f: f64) -> Decimal {
         if f.is_nan() {
+            // _decimal always makes a positive NaN, whatever the float's sign bit.
             return Decimal {
-                negative: f.is_sign_negative(),
+                negative: false,
                 digits: "0".into(),
                 exp: 0,
                 kind: Kind::NaN(String::new(), false),
