@@ -211,7 +211,8 @@ fn an_uncaught_exception_reports_as_cpython_does() {
 
 /// pathlib joins a snapshot name holding a lone surrogate as it joins any
 /// other name (CPython 3.15.0: `str(Path('/r/snapshots') / 'a\ud800.txt')`,
-/// its `.name` and `.relative_to('/r')`); no OS path can hold it.
+/// its `.name` and `.relative_to('/r')`). Only a Windows path, which is
+/// UTF-16, can hold it.
 #[test]
 fn a_snapshot_name_with_a_lone_surrogate_joins_like_any_name() {
     let ctx = Ctx::new();
@@ -226,7 +227,7 @@ fn a_snapshot_name_with_a_lone_surrogate_joins_like_any_name() {
     assert_eq!(lone.relative, plain.relative.clone().map(|t| swap(&t)));
     assert_eq!(lone.name, p!("a", vec![0xD800], ".txt"));
     assert!(plain.fs.is_some());
-    assert_eq!(lone.fs, None);
+    assert_eq!(lone.fs.is_some(), cfg!(windows));
 }
 
 /// A URL already using every stand-in code point leaves none for its lone
