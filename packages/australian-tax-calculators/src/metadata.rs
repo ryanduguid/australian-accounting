@@ -2372,7 +2372,7 @@ pub fn source_review(kind: &str) -> (&'static str, &'static str) {
         ),
         "super_crystallisation" => (
             "2026-11-24",
-            "ITTPA 1997 s 307-225 and ITAA 1997 ss 307-210 and 307-220 on the ATO's legal database; former ITAA 1936 s 27AA(1)(d), compilation of 19 February 2007 (C2007C00085); ATO 'Calculating components of a super benefit' (last updated 12 November 2025), example 9; ATO 'Super crystallisation calculator'",
+            "ITAA 1997 ss 307-210, 307-220 and 307-225 and ITTPA 1997 s 307-125 on the ATO's legal database; former ITAA 1936 s 27AA(1)(d), compilation of 19 February 2007 (C2007C00085); ATO 'Calculating components of a super benefit' (last updated 12 November 2025), example 9; ATO 'Super crystallisation calculator'",
         ),
         "endorsement_review" => (
             "2026-11-24",
@@ -6110,7 +6110,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
         ],
         "payroll_tax_monthly" => vec![
-            ("jurisdiction", "vic, qld, wa, sa, tas, act or nt; nsw is refused"),
+            (
+                "jurisdiction",
+                "nsw, vic, qld, wa, sa, tas, act or nt; in nsw the actual-wages method of Sch 2 cll 2 and 3 only, as the estimated method of cll 3B to 3D is not worked",
+            ),
             (
                 "month",
                 "YYYY-MM, a month of 2026-27 from 2026-07 to 2027-06; 2027-06 is refused in Queensland",
@@ -7798,7 +7801,7 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ("undeducted_contributions", "AUD at 30 June 2007: the undeducted contributions"),
             (
                 "untaxed_source",
-                "boolean: the interest is from an untaxed source; true is refused (ITTPA 1997 s 307-225(3))",
+                "boolean: the interest is from an untaxed source; true is refused (ITAA 1997 s 307-225(3))",
             ),
             (
                 "income_stream_before_july_2007",

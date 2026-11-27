@@ -214,12 +214,13 @@ pub(super) fn acquisition(o: &Map<String, Value>, name: &str) -> Result<Acquisit
             ))
         })
         .collect::<Result<Vec<_>>>()?;
+    let investment_account = label(
+        &o["investment_account"],
+        &format!("{name} investment_account"),
+    );
     Ok(Acquisition {
         ownership: own,
-        investment_account: label(
-            &o["investment_account"],
-            &format!("{name} investment_account"),
-        )?,
+        investment_account: investment_account?,
         consideration: amount(&o["consideration"], &format!("{name} consideration"), false)?,
         nci,
         equity,

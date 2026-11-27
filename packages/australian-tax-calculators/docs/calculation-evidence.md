@@ -5597,7 +5597,7 @@ in the course, exempt), Megan (exempt) and Diego (not principally educational).
 
 ## Super crystallisation
 
-This command was added on 24 November 2026. ITTPA 1997 s 307-225 was read that
+This command was added on 24 November 2026. ITAA 1997 s 307-225 was read that
 day in the ATO's legal database, and former ITAA 1936 ss 27A and 27AA in the 19
 February 2007 compilation, the law just before 1 July 2007. The pre-July 83
 component is s 27AA(1)(d): the lesser of (ETP - C - IC - NQ - EC - CGT) x

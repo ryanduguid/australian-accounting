@@ -128,18 +128,20 @@ pub(super) fn queensland(w: &Wages) -> Result<Worked> {
     );
     let applied = if w.australian.gt(&upper)? { high } else { low };
     let mut steps = one_rate(w, base, QLD_SHARED, (QLD_RATE, &applied))?;
-    steps.push(levy(
+    let pushed = levy(
         w,
         ("mental_health_levy_primary", QLD_PRIMARY),
         &[("levy_threshold", &first)],
         ("levy_rate", &primary),
-    )?);
-    steps.push(levy(
+    );
+    steps.push(pushed?);
+    let pushed = levy(
         w,
         ("mental_health_levy_additional", QLD_ADDITIONAL),
         &[("additional_levy_threshold", &second)],
         ("additional_levy_rate", &additional),
-    )?);
+    );
+    steps.push(pushed?);
     let rates = vec![
         rate("threshold", &k),
         rate("rate", &applied),

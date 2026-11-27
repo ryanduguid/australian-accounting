@@ -332,7 +332,8 @@ fn listo(values: &Values, facts: &Facts, conditions: &mut Vec<Condition>) -> Res
     let got = lesser(
         &maximum,
         &greater(&minimum, &fifteen.quantize(-2, Rounding::HalfUp)?)?,
-    )?;
+    );
+    let got = got?;
     let (amount, paid) = amount_step(
         ok,
         "listo",

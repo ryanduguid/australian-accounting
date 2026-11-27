@@ -327,7 +327,13 @@ fn circumstances(fields: &Map<String, Value>) -> Result<Circumstances> {
     let mut stated: Vec<(&str, bool)> = Vec::new();
     let mut missing = Vec::new();
     for (key, text, under, _) in CIRCUMSTANCES {
-        if under.is_some_and(|u| !stated.contains(&(u, true))) {
+        if let Some(parent) = under.filter(|u| !stated.contains(&(*u, true))) {
+            if fields.contains_key(key) {
+                return refuse(
+                    "input.field_unknown",
+                    format!("facts: {key} is an input only where {parent} is true."),
+                );
+            }
             continue;
         }
         match fields.get(key) {
