@@ -387,43 +387,71 @@ jobs:
 
   # The tool crates outside the crate matrix. Their own workflows gate their
   # tests; this job only measures them, on every run, for the uploads below.
+  # One step per crate: the orphan test check reads only literal directories.
   tool-coverage:
-    name: measure ${{ matrix.tool }} coverage
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    strategy:
-      fail-fast: false
-      matrix:
-        tool: [fixture-screen, glama-badge-server, glama-badge-worker]
+    name: measure the tool crates' coverage
     runs-on: ubuntu-latest
     # fixture-screen scans every tracked file, slower without a release build.
-    timeout-minutes: 30
+    timeout-minutes: 40
     permissions:
       contents: read
-    defaults:
-      run:
-        working-directory: tools/${{ matrix.tool }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: rustup toolchain install 1.99 --profile minimal --component llvm-tools
+      # The default toolchain, so llvm-cov's test and report steps share it.
+      - run: rustup toolchain install 1.99 --profile minimal --component llvm-tools && rustup default 1.99
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
         with:
           tool: cargo-llvm-cov@0.9.1
           fallback: none
       # Each floor is in .github/ci/rust_coverage_floors.json, as for the crates.
-      - name: Run the tests with a line coverage floor
+      - name: Run the fixture-screen tests with a line coverage floor
+        working-directory: tools/fixture-screen
         env:
-          CRATE: ${{ matrix.tool }}
+          CRATE: fixture-screen
         run: |
           floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
-          cargo +1.99 llvm-cov --locked --fail-under-lines "$floor"
-      - run: cargo +1.99 llvm-cov report --lcov --output-path lcov.info
+          cargo llvm-cov --locked --fail-under-lines "$floor"
+      - working-directory: tools/fixture-screen
+        run: cargo llvm-cov report --lcov --output-path lcov.info
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: coverage-codecov-tool-${{ matrix.tool }}
-          path: tools/${{ matrix.tool }}/lcov.info
+          name: coverage-codecov-tool-fixture-screen
+          path: tools/fixture-screen/lcov.info
+          if-no-files-found: error
+          retention-days: 1
+      # Each floor is in .github/ci/rust_coverage_floors.json, as for the crates.
+      - name: Run the glama-badge-server tests with a line coverage floor
+        working-directory: tools/glama-badge-server
+        env:
+          CRATE: glama-badge-server
+        run: |
+          floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
+          cargo llvm-cov --locked --fail-under-lines "$floor"
+      - working-directory: tools/glama-badge-server
+        run: cargo llvm-cov report --lcov --output-path lcov.info
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-codecov-tool-glama-badge-server
+          path: tools/glama-badge-server/lcov.info
+          if-no-files-found: error
+          retention-days: 1
+      # Each floor is in .github/ci/rust_coverage_floors.json, as for the crates.
+      - name: Run the glama-badge-worker tests with a line coverage floor
+        working-directory: tools/glama-badge-worker
+        env:
+          CRATE: glama-badge-worker
+        run: |
+          floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
+          cargo llvm-cov --locked --fail-under-lines "$floor"
+      - working-directory: tools/glama-badge-worker
+        run: cargo llvm-cov report --lcov --output-path lcov.info
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-codecov-tool-glama-badge-worker
+          path: tools/glama-badge-worker/lcov.info
           if-no-files-found: error
           retention-days: 1
 
@@ -432,6 +460,7 @@ jobs:
     needs: tool-coverage
     if: >-
       !cancelled() && needs.tool-coverage.result != 'skipped'
+      && (github.event_name == 'push' || github.event_name == 'pull_request')
     strategy:
       fail-fast: false
       matrix:
