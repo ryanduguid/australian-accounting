@@ -15,118 +15,68 @@ fn text(points: Vec<u32>) -> String {
         .collect()
 }
 
-const DUMPS_CASES: &[(&str, Option<usize>, bool, bool, &str)] = &[
+/// Each option set `json.dumps` was called with: indent, ensure_ascii, sort_keys.
+const DUMPS_OPTIONS: [(Option<usize>, bool, bool); 4] = [
+    (None, false, false),
+    (Some(2), true, true),
+    (Some(1), false, true),
+    (None, true, false),
+];
+
+/// A document and what `json.dumps` wrote for it under each of `DUMPS_OPTIONS`.
+const DUMPS_CASES: &[(&str, [&str; 4])] = &[
     (
         "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
-        None,
-        false,
-        false,
-        "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e+300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
-    ),
-    (
-        "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
-        Some(2),
-        true,
-        true,
-        "{\u{a}  \u{22}a\u{22}: {\u{a}    \u{22}y\u{22}: {},\u{a}    \u{22}z\u{22}: []\u{a}  },\u{a}  \u{22}b\u{22}: [\u{a}    1,\u{a}    2.5,\u{a}    -0.0,\u{a}    1e+300,\u{a}    null,\u{a}    true,\u{a}    false\u{a}  ]\u{a}}",
-    ),
-    (
-        "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
-        Some(1),
-        false,
-        true,
-        "{\u{a} \u{22}a\u{22}: {\u{a}  \u{22}y\u{22}: {},\u{a}  \u{22}z\u{22}: []\u{a} },\u{a} \u{22}b\u{22}: [\u{a}  1,\u{a}  2.5,\u{a}  -0.0,\u{a}  1e+300,\u{a}  null,\u{a}  true,\u{a}  false\u{a} ]\u{a}}",
-    ),
-    (
-        "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
-        None,
-        true,
-        false,
-        "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e+300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
+        [
+            "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e+300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
+            "{\u{a}  \u{22}a\u{22}: {\u{a}    \u{22}y\u{22}: {},\u{a}    \u{22}z\u{22}: []\u{a}  },\u{a}  \u{22}b\u{22}: [\u{a}    1,\u{a}    2.5,\u{a}    -0.0,\u{a}    1e+300,\u{a}    null,\u{a}    true,\u{a}    false\u{a}  ]\u{a}}",
+            "{\u{a} \u{22}a\u{22}: {\u{a}  \u{22}y\u{22}: {},\u{a}  \u{22}z\u{22}: []\u{a} },\u{a} \u{22}b\u{22}: [\u{a}  1,\u{a}  2.5,\u{a}  -0.0,\u{a}  1e+300,\u{a}  null,\u{a}  true,\u{a}  false\u{a} ]\u{a}}",
+            "{\u{22}b\u{22}: [1, 2.5, -0.0, 1e+300, null, true, false], \u{22}a\u{22}: {\u{22}z\u{22}: [], \u{22}y\u{22}: {}}}",
+        ],
     ),
     (
         "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
-        None,
-        false,
-        false,
-        "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{e9}\u{4e2d}\u{22}, \u{22}\u{1f600}\u{22}, \u{22}?\u{22}]",
-    ),
-    (
-        "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
-        Some(2),
-        true,
-        true,
-        "[\u{a}  \u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22},\u{a}  \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22},\u{a}  \u{22}\u{5c}ud83d\u{5c}ude00\u{22},\u{a}  \u{22}\u{5c}ud800\u{22}\u{a}]",
-    ),
-    (
-        "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
-        Some(1),
-        false,
-        true,
-        "[\u{a} \u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22},\u{a} \u{22}\u{e9}\u{4e2d}\u{22},\u{a} \u{22}\u{1f600}\u{22},\u{a} \u{22}?\u{22}\u{a}]",
-    ),
-    (
-        "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
-        None,
-        true,
-        false,
-        "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
+        [
+            "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{e9}\u{4e2d}\u{22}, \u{22}\u{1f600}\u{22}, \u{22}?\u{22}]",
+            "[\u{a}  \u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22},\u{a}  \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22},\u{a}  \u{22}\u{5c}ud83d\u{5c}ude00\u{22},\u{a}  \u{22}\u{5c}ud800\u{22}\u{a}]",
+            "[\u{a} \u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22},\u{a} \u{22}\u{e9}\u{4e2d}\u{22},\u{a} \u{22}\u{1f600}\u{22},\u{a} \u{22}?\u{22}\u{a}]",
+            "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
+        ],
     ),
     (
         "[NaN, Infinity, -Infinity, 5e-324]",
-        None,
-        false,
-        false,
-        "[NaN, Infinity, -Infinity, 5e-324]",
+        [
+            "[NaN, Infinity, -Infinity, 5e-324]",
+            "[\u{a}  NaN,\u{a}  Infinity,\u{a}  -Infinity,\u{a}  5e-324\u{a}]",
+            "[\u{a} NaN,\u{a} Infinity,\u{a} -Infinity,\u{a} 5e-324\u{a}]",
+            "[NaN, Infinity, -Infinity, 5e-324]",
+        ],
     ),
+    ("[]", ["[]", "[]", "[]", "[]"]),
+    ("{}", ["{}", "{}", "{}", "{}"]),
     (
-        "[NaN, Infinity, -Infinity, 5e-324]",
-        Some(2),
-        true,
-        true,
-        "[\u{a}  NaN,\u{a}  Infinity,\u{a}  -Infinity,\u{a}  5e-324\u{a}]",
+        "\u{22}x\u{22}",
+        [
+            "\u{22}x\u{22}",
+            "\u{22}x\u{22}",
+            "\u{22}x\u{22}",
+            "\u{22}x\u{22}",
+        ],
     ),
-    (
-        "[NaN, Infinity, -Infinity, 5e-324]",
-        Some(1),
-        false,
-        true,
-        "[\u{a} NaN,\u{a} Infinity,\u{a} -Infinity,\u{a} 5e-324\u{a}]",
-    ),
-    (
-        "[NaN, Infinity, -Infinity, 5e-324]",
-        None,
-        true,
-        false,
-        "[NaN, Infinity, -Infinity, 5e-324]",
-    ),
-    ("[]", None, false, false, "[]"),
-    ("[]", Some(2), true, true, "[]"),
-    ("[]", Some(1), false, true, "[]"),
-    ("[]", None, true, false, "[]"),
-    ("{}", None, false, false, "{}"),
-    ("{}", Some(2), true, true, "{}"),
-    ("{}", Some(1), false, true, "{}"),
-    ("{}", None, true, false, "{}"),
-    ("\u{22}x\u{22}", None, false, false, "\u{22}x\u{22}"),
-    ("\u{22}x\u{22}", Some(2), true, true, "\u{22}x\u{22}"),
-    ("\u{22}x\u{22}", Some(1), false, true, "\u{22}x\u{22}"),
-    ("\u{22}x\u{22}", None, true, false, "\u{22}x\u{22}"),
-    ("7", None, false, false, "7"),
-    ("7", Some(2), true, true, "7"),
-    ("7", Some(1), false, true, "7"),
-    ("7", None, true, false, "7"),
+    ("7", ["7", "7", "7", "7"]),
 ];
 
 #[test]
 fn dumps_with_writes_what_json_dumps_writes() {
-    for (doc, indent, ascii, sort, want) in DUMPS_CASES {
+    for (doc, wants) in DUMPS_CASES {
         let value = loads_standard(doc).unwrap();
-        assert_eq!(
-            text(dumps_with(&value, *indent, *ascii, *sort)),
-            *want,
-            "{doc} {indent:?} {ascii} {sort}"
-        );
+        for ((indent, ascii, sort), want) in DUMPS_OPTIONS.iter().zip(wants) {
+            assert_eq!(
+                text(dumps_with(&value, *indent, *ascii, *sort)),
+                *want,
+                "{doc} {indent:?} {ascii} {sort}"
+            );
+        }
     }
 }
 

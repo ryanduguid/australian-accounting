@@ -62,7 +62,8 @@ fn text_decodes_or_fails_as_json_loads_does() {
 
 #[test]
 fn bytes_decode_in_the_encoding_json_detects() {
-    let cases: &[(&[u8], Result<&str, Option<DecodeError>>)] = &[
+    type Case<'a> = (&'a [u8], Result<&'a str, Option<DecodeError>>);
+    let cases: &[Case] = &[
         (b"\xef\xbb\xbf{\x22k\x22: [\x22\xc3\xa9\x22, 1]}", Ok("{'k': ['\u{e9}', 1]}")),
         (b"\xff\xfe{\x00\x22\x00k\x00\x22\x00:\x00 \x00[\x00\x22\x00\xe9\x00\x22\x00,\x00 \x001\x00]\x00}\x00", Ok("{'k': ['\u{e9}', 1]}")),
         (b"\x00{\x00\x22\x00k\x00\x22\x00:\x00 \x00[\x00\x22\x00\xe9\x00\x22\x00,\x00 \x001\x00]\x00}", Ok("{'k': ['\u{e9}', 1]}")),
