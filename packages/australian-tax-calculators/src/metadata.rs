@@ -6110,7 +6110,10 @@ pub fn input_units(kind: &str) -> Vec<(&'static str, &'static str)> {
             ),
         ],
         "payroll_tax_monthly" => vec![
-            ("jurisdiction", "vic, qld, wa, sa, tas, act or nt; nsw is refused"),
+            (
+                "jurisdiction",
+                "nsw, vic, qld, wa, sa, tas, act or nt; in nsw the actual-wages method of Sch 2 cll 2 and 3 only, as the estimated method of cll 3B to 3D is not worked",
+            ),
             (
                 "month",
                 "YYYY-MM, a month of 2026-27 from 2026-07 to 2027-06; 2027-06 is refused in Queensland",

@@ -170,6 +170,9 @@
 - `age-pension` refuses `rate_before_november_1986` stated without
   `armed_services_payment` true, and `remote_area_child` without
   `remote_area` true (`input.field_unknown`), instead of ignoring them.
+- `payroll-tax-monthly`'s `jurisdiction` input and README section name New
+  South Wales and its actual-wages method only; the input had said `nsw` is
+  refused.
 
 ## 1.4.0
 
