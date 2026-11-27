@@ -492,9 +492,9 @@ pub fn resolve_text(path: &Path) -> String {
 /// Windows' canonical form without its `\\?\` verbatim prefix, as Python shows it.
 #[cfg(windows)]
 fn without_verbatim(text: String) -> String {
-    match text.strip_prefix(r"\\?\UNC\") {
-        Some(rest) => format!(r"\\{rest}"),
-        None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
+    match text.strip_prefix("\\\\?\\UNC\\") {
+        Some(rest) => format!("\\\\{rest}"),
+        None => text.strip_prefix("\\\\?\\").unwrap_or(&text).to_string(),
     }
 }
 
