@@ -121,7 +121,10 @@ fn explicit_and_abbreviated_option_values_are_read() {
         refusal(&p, &["--count", "x"]),
         "argument --count: invalid int value: 'x'"
     );
-    assert_eq!(refusal(&p, &["--count"]), "argument --count: expected one argument");
+    assert_eq!(
+        refusal(&p, &["--count"]),
+        "argument --count: expected one argument"
+    );
 }
 
 #[test]
@@ -157,6 +160,18 @@ fn a_long_flag_refuses_an_explicit_value() {
         refusal(&p, &["--verbose=1"]),
         "argument --verbose: ignored explicit argument '1'"
     );
+}
+
+#[test]
+fn a_single_dash_long_option_may_be_abbreviated() {
+    let p = Parser::new("prog").arg(Action::option("-foo"));
+    assert_eq!(parse(&p, &["-fo", "x"]).str("foo").as_deref(), Some("x"));
+}
+
+#[test]
+fn an_optional_positional_is_bracketed_in_the_usage() {
+    let p = Parser::new("prog").arg(Action::optional_positional("dst", Value::None));
+    assert_eq!(usage(&p), "usage: prog [-h] [dst]");
 }
 
 #[test]
@@ -222,8 +237,15 @@ fn one_or_more_values_are_kept_in_order() {
 
 #[test]
 fn one_or_more_values_are_each_checked_against_the_choices() {
-    let p = Parser::new("prog").arg(Action::option("--day").one_or_more().choices(&["mon", "tue"]));
-    assert_eq!(parse(&p, &["--day", "tue", "mon"]).list("day"), ["tue", "mon"]);
+    let p = Parser::new("prog").arg(
+        Action::option("--day")
+            .one_or_more()
+            .choices(&["mon", "tue"]),
+    );
+    assert_eq!(
+        parse(&p, &["--day", "tue", "mon"]).list("day"),
+        ["tue", "mon"]
+    );
     assert_eq!(
         refusal(&p, &["--day", "mon", "wed"]),
         "argument --day: invalid choice: 'wed' (choose from 'mon', 'tue')"
@@ -236,7 +258,10 @@ fn an_option_with_an_optional_value_reads_one_word() {
         nargs: Nargs::Optional,
         ..Action::option("--level")
     });
-    assert_eq!(parse(&p, &["--level", "3"]).str("level").as_deref(), Some("3"));
+    assert_eq!(
+        parse(&p, &["--level", "3"]).str("level").as_deref(),
+        Some("3")
+    );
 }
 
 #[test]
@@ -307,7 +332,9 @@ fn a_long_mistyped_choice_still_matches_through_its_repeated_letters() {
 fn a_sub_command_reports_its_own_errors_and_takes_values_after_dashes() {
     let p = Parser::new("prog")
         .subcommands("command")
-        .sub("run", Some("run it"), |s| s.arg(Action::option("--name").required()));
+        .sub("run", Some("run it"), |s| {
+            s.arg(Action::option("--name").required())
+        });
     let ns = parse(&p, &["--", "run", "--name", "x"]);
     assert_eq!(ns.str("command").as_deref(), Some("run"));
     assert_eq!(ns.str("name").as_deref(), Some("x"));
@@ -355,7 +382,12 @@ fn help_lays_out_metavars_required_options_and_blank_help() {
     setup();
     let p = Parser::new("prog")
         .description("Adds   numbers\n together.")
-        .arg(Action::positional("values").one_or_more().metavar("N").help("numbers to add"))
+        .arg(
+            Action::positional("values")
+                .one_or_more()
+                .metavar("N")
+                .help("numbers to add"),
+        )
         .arg(Action::option("--scale").required().int().help("   "))
         .arg(Action::option("--mode").choices(&["fast", "slow"]));
     let expected = [
@@ -401,7 +433,10 @@ fn wrapped_usage_of_positionals_only_lines_up_under_the_first() {
         p = p.arg(Action::positional(name));
     }
     let [a, b, c] = &names;
-    assert_eq!(usage(&p), format!("usage: prog {a} {b}\n{}{c}", " ".repeat(12)));
+    assert_eq!(
+        usage(&p),
+        format!("usage: prog {a} {b}\n{}{c}", " ".repeat(12))
+    );
     let help = format_help(&p, &PLAIN);
     assert!(help.contains(&format!("positional arguments:\n  {a}\n  {b}\n  {c}\n")));
     assert!(!help.contains("options:"));
@@ -418,7 +453,9 @@ fn a_long_program_name_puts_the_usage_on_the_next_lines() {
     );
     let p = ["aaaaaaaaaa", "bbbbbbbbbb", "cccccccccc"]
         .iter()
-        .fold(Parser::new(&prog), |p, name| p.arg(Action::option(&format!("--{name}"))))
+        .fold(Parser::new(&prog), |p, name| {
+            p.arg(Action::option(&format!("--{name}")))
+        })
         .arg(Action::positional("target"));
     assert_eq!(
         usage(&p),

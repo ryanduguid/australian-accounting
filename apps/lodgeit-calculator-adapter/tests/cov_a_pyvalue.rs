@@ -53,7 +53,10 @@ fn equality_compares_numbers_by_value() {
 #[test]
 fn none_is_hashable_and_a_list_is_not() {
     assert_eq!(key(&Json::Null), Ok(Key::None));
-    assert_eq!(key(&Json::Array(vec![])), Err("unhashable type: 'list'".to_string()));
+    assert_eq!(
+        key(&Json::Array(vec![])),
+        Err("unhashable type: 'list'".to_string())
+    );
 }
 
 #[test]
@@ -82,14 +85,23 @@ fn dumps_writes_every_scalar_as_python_does() {
         text(&dumps_line(&value, true)),
         r#"[null, true, false, 1, NaN, Infinity, -Infinity, 1.5, "1.0"]"#
     );
-    let pairs = Json::obj([("a", Json::Int(BigInt::from(1))), ("b", Json::Int(BigInt::from(2)))]);
+    let pairs = Json::obj([
+        ("a", Json::Int(BigInt::from(1))),
+        ("b", Json::Int(BigInt::from(2))),
+    ]);
     assert_eq!(text(&dumps_line(&pairs, true)), r#"{"a": 1, "b": 2}"#);
 }
 
 #[test]
 fn dumps_sorted_indents_and_orders_keys() {
-    let value = Json::obj([("b", Json::Int(BigInt::from(1))), ("a", Json::Int(BigInt::from(2)))]);
-    assert_eq!(text(&dumps_sorted(&value, Some(2))), "{\n  \"a\": 2,\n  \"b\": 1\n}");
+    let value = Json::obj([
+        ("b", Json::Int(BigInt::from(1))),
+        ("a", Json::Int(BigInt::from(2))),
+    ]);
+    assert_eq!(
+        text(&dumps_sorted(&value, Some(2))),
+        "{\n  \"a\": 2,\n  \"b\": 1\n}"
+    );
 }
 
 #[test]
@@ -97,7 +109,12 @@ fn json_dump_to_a_strict_file_stops_at_the_chunk_holding_a_lone_surrogate() {
     let lone = || Json::Str(PyStr::Lone(vec![LONE]));
     let quoted = vec![u32::from('"'), LONE, u32::from('"')];
 
-    let (written, stop) = dump_until_stop(&Json::Array(vec![Json::str("a"), lone()]), None, false, usize::MAX);
+    let (written, stop) = dump_until_stop(
+        &Json::Array(vec![Json::str("a"), lone()]),
+        None,
+        false,
+        usize::MAX,
+    );
     assert_eq!(text(&written), "[\"a\"");
     let mut chunk = points(", ");
     chunk.extend(&quoted);
@@ -129,6 +146,8 @@ fn a_run_of_unmappable_surrogates_is_one_encoding_error() {
     );
     assert_eq!(
         utf8_strict_error(&[u32::from('a'), LONE, LONE + 1]),
-        Some("'utf-8' codec can't encode characters in position 1-2: surrogates not allowed".into())
+        Some(
+            "'utf-8' codec can't encode characters in position 1-2: surrogates not allowed".into()
+        )
     );
 }

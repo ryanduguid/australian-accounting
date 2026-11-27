@@ -35,7 +35,8 @@ fn conversion_failures_name_their_python_exception() {
         assert_eq!(failure, Conversion::Syntax);
         assert_eq!(failure.text(), "[<class 'decimal.ConversionSyntax'>]");
     }
-    let range = Decimal::parse_exact("1E1000000000000000000").expect_err("beyond the maximum context");
+    let range =
+        Decimal::parse_exact("1E1000000000000000000").expect_err("beyond the maximum context");
     assert_eq!(range.text(), "[<class 'decimal.InvalidOperation'>]");
     assert_eq!(Signal::DivisionByZero.name(), "DivisionByZero");
     assert_eq!(Signal::Overflow.name(), "Overflow");
@@ -43,7 +44,12 @@ fn conversion_failures_name_their_python_exception() {
 
 #[test]
 fn a_libmpdec_string_converts_exactly() {
-    assert_eq!(Decimal::from_mpd_string("-12E3").expect("valid").to_string(), "-1.2E+4");
+    assert_eq!(
+        Decimal::from_mpd_string("-12E3")
+            .expect("valid")
+            .to_string(),
+        "-1.2E+4"
+    );
 }
 
 #[test]
@@ -53,7 +59,10 @@ fn a_float_converts_to_its_exact_binary_value() {
         "0.1000000000000000055511151231257827021181583404541015625"
     );
     assert_eq!(Decimal::from_float(-0.0).to_string(), "-0");
-    assert_eq!(Decimal::from_float(1e20).to_string(), "100000000000000000000");
+    assert_eq!(
+        Decimal::from_float(1e20).to_string(),
+        "100000000000000000000"
+    );
     assert_eq!(Decimal::from_float(2.5).to_string(), "2.5");
     assert_eq!(Decimal::from_float(f64::NAN).to_string(), "NaN");
     assert!(Decimal::from_float(f64::NAN).is_nan_value());
@@ -118,7 +127,10 @@ fn division_of_specials_and_long_dividends() {
     assert_eq!(show(d("Infinity").div(&d("Infinity"))), "InvalidOperation");
     assert_eq!(show(d("-Infinity").div(&d("2"))), "-Infinity");
     let ones = "1".repeat(40);
-    assert_eq!(show(d(&ones).div(&d("3"))), "3.703703703703703703703703704E+38");
+    assert_eq!(
+        show(d(&ones).div(&d("3"))),
+        "3.703703703703703703703703704E+38"
+    );
 }
 
 #[test]
@@ -129,11 +141,17 @@ fn rounding_past_the_largest_exponent_overflows() {
 
 #[test]
 fn quantize_refuses_what_python_refuses() {
-    assert_eq!(show(d("1").quantize(1_000_000, Rounding::HalfEven)), "InvalidOperation");
+    assert_eq!(
+        show(d("1").quantize(1_000_000, Rounding::HalfEven)),
+        "InvalidOperation"
+    );
     assert_eq!(show(d("0.0").quantize(-3, Rounding::HalfEven)), "0.000");
     // Rounding up carries into a 29th digit.
     let nines = d("9.9999999999999999999999999999");
-    assert_eq!(show(nines.quantize(-27, Rounding::HalfEven)), "InvalidOperation");
+    assert_eq!(
+        show(nines.quantize(-27, Rounding::HalfEven)),
+        "InvalidOperation"
+    );
 }
 
 #[test]
@@ -145,7 +163,11 @@ fn quantize_rounds_down_and_towards_positive_infinity() {
         ("-1.29", Rounding::Ceiling, "-1.2"),
         ("1.20", Rounding::Ceiling, "1.2"),
     ] {
-        assert_eq!(show(d(text).quantize(-1, rounding)), expected, "{text} {rounding:?}");
+        assert_eq!(
+            show(d(text).quantize(-1, rounding)),
+            expected,
+            "{text} {rounding:?}"
+        );
     }
 }
 

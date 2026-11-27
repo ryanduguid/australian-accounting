@@ -315,7 +315,9 @@ impl Decimal {
             return Err(Signal::InvalidOperation);
         }
         // The first quiet NaN of self and other propagates.
-        Ok(std::iter::once(self).chain(other).find_map(Decimal::fix_nan))
+        Ok(std::iter::once(self)
+            .chain(other)
+            .find_map(Decimal::fix_nan))
     }
 
     /// `_fix_nan`: keep at most `prec` payload digits, dropping the leading

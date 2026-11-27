@@ -27,22 +27,37 @@ fn refusal(text: &str) -> String {
 #[test]
 fn syntax_errors_give_pythons_message_and_position() {
     for (text, expected) in [
-        ("[\n1 2]", "Expecting ',' delimiter: line 2 column 3 (char 4)"),
+        (
+            "[\n1 2]",
+            "Expecting ',' delimiter: line 2 column 3 (char 4)",
+        ),
         (
             "\u{feff}1",
             "Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)",
         ),
-        ("{\"a\" 1}", "Expecting ':' delimiter: line 1 column 6 (char 5)"),
+        (
+            "{\"a\" 1}",
+            "Expecting ':' delimiter: line 1 column 6 (char 5)",
+        ),
         ("[1 2]", "Expecting ',' delimiter: line 1 column 4 (char 3)"),
-        ("[1,]", "Illegal trailing comma before end of array: line 1 column 3 (char 2)"),
+        (
+            "[1,]",
+            "Illegal trailing comma before end of array: line 1 column 3 (char 2)",
+        ),
         (
             "[1,\n  2,]",
             "Illegal trailing comma before end of array: line 2 column 4 (char 7)",
         ),
-        ("{\"a\":1 \"b\":2}", "Expecting ',' delimiter: line 1 column 8 (char 7)"),
+        (
+            "{\"a\":1 \"b\":2}",
+            "Expecting ',' delimiter: line 1 column 8 (char 7)",
+        ),
         ("-", "Expecting value: line 1 column 1 (char 0)"),
         ("[1e]", "Expecting ',' delimiter: line 1 column 3 (char 2)"),
-        ("\"a\u{1}\"", "Invalid control character at: line 1 column 3 (char 2)"),
+        (
+            "\"a\u{1}\"",
+            "Invalid control character at: line 1 column 3 (char 2)",
+        ),
     ] {
         assert_eq!(refusal(text), expected, "{text:?}");
     }
@@ -89,13 +104,18 @@ fn recursion_messages_name_what_was_being_decoded() {
     let used = if cfg!(windows) { 1952 } else { 8156 };
     assert_eq!(
         recursion_message("array"),
-        format!("Stack overflow (used {used} kB) while decoding a JSON array from a unicode string")
+        format!(
+            "Stack overflow (used {used} kB) while decoding a JSON array from a unicode string"
+        )
     );
     assert_eq!(
         recursion_message("call"),
         format!("Stack overflow (used {used} kB) while calling a Python object")
     );
-    assert_eq!(recursion_message("hook"), format!("Stack overflow (used {used} kB)"));
+    assert_eq!(
+        recursion_message("hook"),
+        format!("Stack overflow (used {used} kB)")
+    );
 }
 
 /// On Windows the default `parse_constant` call checks the stack 544 bytes
@@ -113,7 +133,13 @@ fn a_constant_deep_in_arrays_fails_its_call_on_windows() {
 fn bytes_are_read_in_the_encoding_json_detects() {
     let utf16 = |text: &str, big: bool| -> Vec<u8> {
         text.encode_utf16()
-            .flat_map(|u| if big { u.to_be_bytes() } else { u.to_le_bytes() })
+            .flat_map(|u| {
+                if big {
+                    u.to_be_bytes()
+                } else {
+                    u.to_le_bytes()
+                }
+            })
             .collect()
     };
     let cases: Vec<(Vec<u8>, Json)> = vec![
@@ -166,7 +192,10 @@ fn control_characters_and_infinities_are_written_as_python_does() {
     );
     assert_eq!(
         pyjson::dumps(
-            &Json::Array(vec![Json::Float(f64::INFINITY), Json::Float(f64::NEG_INFINITY)]),
+            &Json::Array(vec![
+                Json::Float(f64::INFINITY),
+                Json::Float(f64::NEG_INFINITY)
+            ]),
             Layout::Canonical
         ),
         "[Infinity,-Infinity]"

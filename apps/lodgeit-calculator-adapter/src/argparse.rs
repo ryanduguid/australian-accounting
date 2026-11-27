@@ -283,12 +283,13 @@ fn metavar(action: &Action, default: &str) -> String {
 
 fn format_args(action: &Action, default: &str) -> String {
     let m = metavar(action, default);
+    // A zero-argument action is always an option, whose usage and help never
+    // format arguments.
     match action.nargs {
-        Nargs::One => m,
         Nargs::Optional => format!("[{m}]"),
         Nargs::Parser => format!("{m} ..."),
         Nargs::OneOrMore => format!("{m} [{m} ...]"),
-        Nargs::Zero => String::new(),
+        Nargs::One | Nargs::Zero => m,
     }
 }
 
