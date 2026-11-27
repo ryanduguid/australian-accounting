@@ -269,12 +269,13 @@ fn increase(pool: &mut [Unused], year: &Earlier, written: &str) -> Result<Vec<St
         .position(|u| u.start >= from)
         .unwrap_or(pool.len());
     let source: Source = |u| Ok(u.formula());
-    Ok(apply(
+    let applied = apply(
         &mut pool[start..],
         year.start,
         (&formula, vec![cap], excess),
         source,
-    )?)
+    );
+    Ok(applied?)
 }
 
 /// Each earlier year's increase and unused cap, in year order.
@@ -430,12 +431,8 @@ fn by_year_steps(earlier: &[Earlier], current: i64, year: &ThisYear) -> Result<V
     let (mut steps, mut pool) = earlier_steps(earlier)?;
     let window = previous_five(&mut pool, current);
     let unused = carried_steps(window, &mut steps)?;
-    steps.extend(concessional_steps(
-        year.balance,
-        year.concessional,
-        &unused,
-        year.cap,
-    )?);
+    let extended = concessional_steps(year.balance, year.concessional, &unused, year.cap);
+    steps.extend(extended?);
     steps.extend(this_year_steps(window, current, year)?);
     if year.proposed.is_some() {
         steps.push(excess_with_proposal(&steps)?);
@@ -482,14 +479,15 @@ pub fn contribution_caps_by_year(
             )
         })
         .collect();
-    let mut out = caps_result(
+    let out = caps_result(
         &year,
         &balance,
         steps,
         (&non_concessional, *under_75),
         rates,
         (carry.determination_date, carry.downsizer),
-    )?;
+    );
+    let mut out = out?;
     out["unused_cap_expiry"] = expiry(&out, current);
     Ok(out)
 }

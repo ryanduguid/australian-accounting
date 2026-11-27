@@ -64,7 +64,8 @@ fn disposal(f: &mut Fields, day: i64, extra: &mut Map<String, Value>) -> Result<
         f,
         "asset_class",
         &["ordinary", "collectable", "personal_use"],
-    )?;
+    );
+    let class = class?;
     let mut amounts = vec![
         ("cost_base", cost.clone()),
         ("reduced_cost_base", reduced.clone()),

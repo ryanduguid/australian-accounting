@@ -147,12 +147,13 @@ fn untaxed_parts(
         counted = py_min(within.clone(), low_left.sub(taxed_low)?)?;
         let formula = "min(min(untaxed_element, untaxed_plan_cap_left), low_rate_cap_left - taxed_within_low_rate_cap)";
         let id = ("untaxed_within_low_rate_cap", UNTAXED_LOW, formula);
-        p.add(
+        let added = p.add(
             id,
             &[untaxed, left, low_left, taxed_low],
             counted.clone(),
             "0.15",
-        )?;
+        );
+        added?;
         rest = "min(untaxed_element, untaxed_plan_cap_left) - untaxed_within_low_rate_cap";
     }
     let operands = [untaxed, left, &counted];

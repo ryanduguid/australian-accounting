@@ -116,12 +116,14 @@ fn totals(all: &[lines::Line], measured: &[Measured]) -> Calc<Vec<Step>> {
         "annual_leave_provision",
         ANNUAL,
         &pick(&|i| !all[i].long_service),
-    )?;
+    );
+    let annual = annual?;
     let long = sum(
         "long_service_leave_provision",
         LONG_SERVICE,
         &pick(&|i| all[i].long_service),
-    )?;
+    );
+    let long = long?;
     let total = annual.value.add(&long.value)?;
     let total = step(
         "total_provision",
@@ -134,7 +136,8 @@ fn totals(all: &[lines::Line], measured: &[Measured]) -> Calc<Vec<Step>> {
         "current_provision",
         CURRENT,
         &pick(&|i| measured[i].current),
-    )?;
+    );
+    let current = current?;
     let rest = total.value.sub(&current.value)?;
     let non_current = step(
         "non_current_provision",

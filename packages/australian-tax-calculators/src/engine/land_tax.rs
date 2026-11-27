@@ -313,12 +313,13 @@ fn tasmanian_surcharge(place: &'static Place, value: &Decimal, c: &Choices) -> R
             "surcharge_value is more than taxable_value: in Tasmania the foreign investor land tax applies to residential general land, part of the owner's taxable land.",
         );
     }
-    let (land, _) = scale_step(
+    let scaled = scale_step(
         ("land_tax", ""),
         main_scale(place, c),
         value,
         (None, Payable::Cents),
-    )?;
+    );
+    let (land, _) = scaled?;
     let surcharge = c.separate.mul(&d(applied))?;
     let apart = tens(&land.value)?.add(&tens(&surcharge)?)?;
     let together = tens(&land.value.add(&surcharge)?)?;

@@ -117,7 +117,8 @@ fn invalidity_step(
             payment
                 .mul(retirement_n)?
                 .div(&employment_n.add(retirement_n)?)?,
-        )?;
+        );
+        let value = value?;
         return Ok(step(
             "invalidity_segment",
             "ITAA 1997 s 82-150(2), to the cent",

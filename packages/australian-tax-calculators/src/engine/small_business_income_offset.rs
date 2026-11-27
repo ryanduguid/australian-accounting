@@ -242,7 +242,7 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
         offset_amounts(&year, &taxable, &liability, &first, &total)?;
     let unused = offset.sub(&applied)?;
 
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -259,7 +259,8 @@ pub fn small_business_income_offset(args: &SmallBusinessIncomeOffsetArgs) -> Res
             rate("cap", CAP),
             rate("turnover_threshold", TURNOVER),
         ],
-    )?;
+    );
+    let mut out = out?;
     explain(&mut out, entity);
     Ok(out)
 }
@@ -309,4 +310,18 @@ fn offset_amounts(
         let applied = py_min(offset.clone(), left)?;
         Ok((before_cap, offset, applied))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Arg, small_business_entity};
+
+    /// optional_facts requires the 4 turnover inputs with net small business
+    /// income of the individual's own, so no input reaches this without them.
+    #[test]
+    #[should_panic(expected = "required with net small business income")]
+    fn the_turnover_inputs_are_checked_before_this_runs() {
+        let business = Arg::Text("carried_on".into());
+        let _ = small_business_entity([Some(&business), None, None, None, None, None]);
+    }
 }
