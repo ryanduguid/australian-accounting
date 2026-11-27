@@ -798,4 +798,47 @@ mod tests {
         );
         assert!(day.captures("123/1").is_none());
     }
+
+    #[test]
+    fn escapes_classes_and_boundaries_follow_python() {
+        assert!(Regex::python(r"\t\n\rA").fullmatch("\t\n\rA"));
+        assert!(Regex::python(r"[\n\-]+").fullmatch("\n-"));
+        assert!(Regex::python(r"\D+").fullmatch("ab"));
+        assert!(!Regex::python(r"\D").search("12"));
+        assert!(Regex::python(r"\S\s\W").search("a \u{2003}!"));
+        assert!(Regex::python(r"a\Bb").search("ab"));
+        assert!(!Regex::python(r"a\Bb").search("a b"));
+        assert!(Regex::python(r"\w").search("_"));
+        assert!(Regex::python(r".*x").fullmatch("abx"));
+        assert!(!Regex::python(r".*x").fullmatch("a\nx"));
+        assert!(!Regex::python(r"(?<=a)b").search("cb"));
+    }
+
+    #[test]
+    fn repeats_and_alternation_backtrack_like_python() {
+        assert!(Regex::python(r"a+?b").fullmatch("aaab"));
+        assert!(Regex::python(r"(?:ab|c)*d").fullmatch("abcabd"));
+        assert!(!Regex::python(r"(?:ab|c)*d").fullmatch("abx"));
+        assert!(Regex::python(r"(?:a|ab)*?c").fullmatch("ababc"));
+        assert!(Regex::python(r"a{1,2}+b").fullmatch("aab"));
+        assert!(!Regex::python(r"a{1,2}+ab").fullmatch("aab"));
+        let m = Regex::python(r"(ab)+c").captures("ababc").unwrap();
+        assert_eq!((m.group(1), m.end), (Some("ab".into()), 5));
+        let m = Regex::python(r"(?!(a)b)\w").captures("ac").unwrap();
+        assert_eq!((m.group(1), m.end), (None, 1));
+    }
+
+    #[test]
+    fn an_empty_match_advances_past_itself_as_python_sub_does() {
+        assert_eq!(Regex::python("x*").sub("-", "abc"), "-a-b-c-");
+        assert_eq!(Regex::python("x*").sub("-", ""), "-");
+    }
+
+    #[test]
+    fn unsupported_patterns_are_refused_at_compile_time() {
+        for bad in [r"a{2", r"\q", r"(a", r"(?x)", r"[a-\d]", r"a)", r"\uzzzz"] {
+            let compiled = std::panic::catch_unwind(|| Regex::python(bad));
+            assert!(compiled.is_err(), "{bad:?} compiled");
+        }
+    }
 }

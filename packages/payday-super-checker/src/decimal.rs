@@ -38,13 +38,6 @@ fn etop() -> i128 {
     EMAX - prec() + 1
 }
 
-/// `with localcontext() as c: c.prec = digits; ...`: run `f` at `digits`.
-pub fn with_precision<T>(digits: i128, f: impl FnOnce() -> T) -> T {
-    let previous = PRECISION.with(|p| p.replace(digits));
-    let result = f();
-    PRECISION.with(|p| p.set(previous));
-    result
-}
 // Exact conversion runs under libmpdec's maximum context on 64-bit builds.
 const MAX_EMAX: i128 = 999_999_999_999_999_999;
 const MAX_PREC: i128 = 999_999_999_999_999_999;
@@ -54,8 +47,6 @@ const MAX_ETINY: i128 = -MAX_EMAX - (MAX_PREC - 1);
 pub enum Rounding {
     HalfEven,
     HalfUp,
-    Down,
-    Ceiling,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -173,10 +164,6 @@ impl Decimal {
         self.is_finite() && self.digits == "0"
     }
 
-    pub fn exponent(&self) -> i128 {
-        self.exp
-    }
-
     pub fn adjusted(&self) -> i128 {
         if self.is_finite() {
             self.exp + self.digits.len() as i128 - 1
@@ -190,16 +177,14 @@ impl Decimal {
         if self.is_snan() || other.is_some_and(Decimal::is_snan) {
             return Err(Signal::InvalidOperation);
         }
-        if self.is_nan() {
-            return Ok(Some(self.fix_nan()));
-        }
-        Ok(other.filter(|o| o.is_nan()).map(Decimal::fix_nan))
+        Ok([Some(self), other].into_iter().flatten().find_map(Decimal::fix_nan))
     }
 
-    /// `_fix_nan`: keep at most `prec` payload digits, dropping the leading ones.
-    fn fix_nan(&self) -> Decimal {
+    /// `_fix_nan`: keep at most `prec` payload digits, dropping the leading
+    /// ones; `None` when the value is not a NaN.
+    fn fix_nan(&self) -> Option<Decimal> {
         let Kind::NaN(payload, signalling) = &self.kind else {
-            return self.clone();
+            return None;
         };
         let mut payload = payload.clone();
         if payload.len() as i128 > prec() {
@@ -207,10 +192,10 @@ impl Decimal {
                 .trim_start_matches('0')
                 .to_string();
         }
-        Decimal {
+        Some(Decimal {
             kind: Kind::NaN(payload, *signalling),
             ..self.clone()
-        }
+        })
     }
 
     /// `-self`: a zero becomes positive under ROUND_HALF_EVEN.
@@ -225,23 +210,6 @@ impl Decimal {
         fix(
             Decimal {
                 negative,
-                ..self.clone()
-            },
-            Rounding::HalfEven,
-        )
-    }
-
-    /// `abs(self)`: the magnitude, rounded to the context.
-    pub fn abs(&self) -> Calc<Decimal> {
-        if !self.is_finite() {
-            if let Some(nan) = self.check_nans(None)? {
-                return Ok(nan);
-            }
-            return Ok(infinity(false));
-        }
-        fix(
-            Decimal {
-                negative: false,
                 ..self.clone()
             },
             Rounding::HalfEven,
@@ -379,57 +347,6 @@ impl Decimal {
         finite(n < 0, n.unsigned_abs().to_string(), 0)
     }
 
-    /// `self % other` for finite operands: the remainder of the truncated
-    /// quotient, with the dividend's sign, as `_pydecimal._divide` gives it.
-    pub fn rem(&self, other: &Decimal) -> Calc<Decimal> {
-        if !self.is_finite() || !other.is_finite() || other.is_zero() {
-            if let Some(nan) = self.check_nans(Some(other))? {
-                return Ok(nan);
-            }
-            if self.is_infinite() || other.is_zero() {
-                return Err(Signal::InvalidOperation);
-            }
-            // A finite dividend over infinity is its own remainder.
-            return fix(self.clone(), Rounding::HalfEven);
-        }
-        let ideal = self.exp.min(other.exp);
-        let expdiff = self.adjusted() - other.adjusted();
-        if self.is_zero() || expdiff <= -2 {
-            return fix(rescale(self, ideal, Rounding::HalfEven), Rounding::HalfEven);
-        }
-        if expdiff > prec() {
-            return Err(Signal::InvalidOperation);
-        }
-        let scale = |d: &Decimal| big(&d.digits) * ten_pow((d.exp - ideal) as usize);
-        let (quotient, remainder) = scale(self).div_rem(&scale(other));
-        if quotient.to_string().len() as i128 > prec() {
-            return Err(Signal::InvalidOperation);
-        }
-        fix(
-            finite(self.negative, remainder.to_string(), ideal),
-            Rounding::HalfEven,
-        )
-    }
-
-    /// `to_integral_value()`: rounded half even to a whole number, unbounded by precision.
-    pub fn to_integral_value(&self) -> Calc<Decimal> {
-        self.to_integral_rounded(Rounding::HalfEven)
-    }
-
-    /// `to_integral_value(rounding=rounding)`.
-    pub fn to_integral_rounded(&self, rounding: Rounding) -> Calc<Decimal> {
-        if !self.is_finite() {
-            if let Some(nan) = self.check_nans(None)? {
-                return Ok(nan);
-            }
-            return Ok(self.clone());
-        }
-        if self.exp >= 0 {
-            return Ok(self.clone());
-        }
-        Ok(rescale(self, 0, rounding))
-    }
-
     /// `str(self)`, Python's to-sci-string with a capital `E`.
     pub fn to_sci_string(&self) -> String {
         let sign = if self.negative { "-" } else { "" };
@@ -455,22 +372,6 @@ impl Decimal {
             format!("E{:+}", leftdigits - dotplace)
         };
         format!("{sign}{intpart}{fracpart}{exp}")
-    }
-
-    /// `format(self, "f")`: every digit, no exponent.
-    pub fn fixed_format(&self) -> String {
-        if !self.is_finite() {
-            return self.to_sci_string();
-        }
-        let sign = if self.negative { "-" } else { "" };
-        let value = if self.is_zero() && self.exp > 0 {
-            finite(self.negative, "0".into(), 0)
-        } else {
-            self.clone()
-        };
-        let dotplace = value.exp + value.digits.len() as i128;
-        let (whole, frac) = place_point(&value.digits, dotplace, false);
-        format!("{sign}{whole}{frac}")
     }
 
     /// `format(self, ",.{places}f")` (grouped) or `format(self, ".{places}f")`.
@@ -690,7 +591,7 @@ fn exact_half(digits: &str, at: usize) -> bool {
 }
 
 /// `_pydecimal`'s rounding functions: 1 increments, -1 truncates inexactly, 0 is exact.
-fn round_change(digits: &str, keep: usize, rounding: Rounding, negative: bool) -> i8 {
+fn round_change(digits: &str, keep: usize, rounding: Rounding) -> i8 {
     let half_up = || {
         if matches!(digits.as_bytes().get(keep), Some(b'5'..=b'9')) {
             1
@@ -702,22 +603,6 @@ fn round_change(digits: &str, keep: usize, rounding: Rounding, negative: bool) -
     };
     match rounding {
         Rounding::HalfUp => half_up(),
-        Rounding::Down => {
-            if all_zeros(digits, keep) {
-                0
-            } else {
-                -1
-            }
-        }
-        Rounding::Ceiling => {
-            if all_zeros(digits, keep) {
-                0
-            } else if negative {
-                -1
-            } else {
-                1
-            }
-        }
         Rounding::HalfEven => {
             let even = keep == 0
                 || matches!(
@@ -748,7 +633,7 @@ fn rescale(value: &Decimal, exp: i128, rounding: Rounding) -> Decimal {
         keep = 0;
     }
     let keep = keep as usize;
-    let changed = round_change(&source.digits, keep, rounding, source.negative);
+    let changed = round_change(&source.digits, keep, rounding);
     let mut coeff = source.digits[..keep].to_string();
     if coeff.is_empty() {
         coeff = "0".into();
@@ -781,7 +666,7 @@ fn fix(value: Decimal, rounding: Rounding) -> Calc<Decimal> {
         keep = 0;
     }
     let keep = keep as usize;
-    let changed = round_change(&source.digits, keep, rounding, source.negative);
+    let changed = round_change(&source.digits, keep, rounding);
     let mut coeff = source.digits[..keep].to_string();
     if coeff.is_empty() {
         coeff = "0".into();
@@ -974,5 +859,59 @@ mod tests {
         assert_eq!(d("1E-999999999").fixed(2, true), "0.00");
         assert_eq!(d("0E+3").fixed(2, true), "0.00");
         assert_eq!(d("-0.001").fixed(2, true), "-0.00");
+    }
+
+    #[test]
+    fn infinities_and_nans_propagate_through_arithmetic() {
+        let invalid = || -> Calc<String> { Err(Signal::InvalidOperation) };
+        assert_eq!(s(d("Infinity").add(&d("-Infinity"))), invalid());
+        assert_eq!(s(d("Infinity").add(&d("1"))), ok("Infinity"));
+        assert_eq!(s(d("1").add(&d("-Infinity"))), ok("-Infinity"));
+        assert_eq!(s(d("NaN").sub(&d("1"))), ok("NaN"));
+        assert_eq!(s(d("1").sub(&d("NaN3"))), ok("NaN3"));
+        assert_eq!(s(d("NaN").mul(&d("1"))), ok("NaN"));
+        assert_eq!(s(d("Infinity").mul(&d("-2"))), ok("-Infinity"));
+        assert_eq!(s(d("NaN").div(&d("1"))), ok("NaN"));
+        assert_eq!(s(d("Infinity").div(&d("Infinity"))), invalid());
+        assert_eq!(s(d("-Infinity").div(&d("2"))), ok("-Infinity"));
+        assert_eq!(d("Infinity").adjusted(), 0);
+        assert_eq!(d("Infinity").gt(&d("1")), Ok(true));
+        assert_eq!(Signal::DivisionByZero.name(), "DivisionByZero");
+    }
+
+    #[test]
+    fn long_dividends_round_to_the_context() {
+        let long = d("1234567890123456789012345678901234567890");
+        assert_eq!(s(long.div(&d("2"))), ok("6.172839450617283945061728395E+38"));
+    }
+
+    #[test]
+    fn quantize_refuses_exponents_and_results_outside_the_context() {
+        let invalid = || -> Calc<String> { Err(Signal::InvalidOperation) };
+        assert_eq!(s(d("1").quantize(EMAX + 1, Rounding::HalfUp)), invalid());
+        let carries = d("9999999999999999999999999999.5");
+        assert_eq!(s(carries.quantize(0, Rounding::HalfUp)), invalid());
+    }
+
+    #[test]
+    fn rounding_carry_past_emax_overflows() {
+        let edge = d(&format!("9.{}E+999999", "9".repeat(28)));
+        assert_eq!(s(edge.mul(&d("1"))), Err(Signal::Overflow));
+    }
+
+    #[test]
+    fn malformed_exponents_and_inner_spaces_are_refused() {
+        for bad in ["1e+", "1e5x", "1\u{2003}0"] {
+            assert!(Decimal::parse(bad).is_err(), "{bad:?}");
+        }
+        let huge = format!("1e{}", "1".repeat(26));
+        assert_eq!(Decimal::parse(&huge).map(|_| ()), Err(Signal::InvalidOperation));
+        assert_eq!(d("\u{2003}1.5\u{2003}").to_sci_string(), "1.5");
+    }
+
+    #[test]
+    fn display_is_the_sci_string() {
+        assert_eq!(format!("{}", d("1.50")), "1.50");
+        assert_eq!(d("-1E+3").to_string(), "-1E+3");
     }
 }
