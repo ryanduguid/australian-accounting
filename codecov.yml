@@ -37,7 +37,7 @@ coverage:
           - lodgment-calendar
       # The crate's enforced line floor in .github/ci/rust_coverage_floors.json.
       australian-tax-calculators:
-        target: 95%
+        target: 98%
         threshold: 0%
         # The base report lacks this flag until main's first crate upload.
         if_not_found: success
