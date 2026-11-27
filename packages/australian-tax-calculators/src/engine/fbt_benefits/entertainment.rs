@@ -278,13 +278,8 @@ pub fn fbt_entertainment_classifier(
     };
     let mut rendered = Vec::new();
     for (i, line) in parsed.iter().enumerate() {
-        rendered.push(classify_line(
-            i + 1,
-            line,
-            valuation,
-            register.as_ref(),
-            &mut totals,
-        )?);
+        let pushed = classify_line(i + 1, line, valuation, register.as_ref(), &mut totals);
+        rendered.push(pushed?);
     }
     summary(&period, totals, valuation, rendered)
 }

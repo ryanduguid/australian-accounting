@@ -66,7 +66,8 @@ fn mit_non_eoi_case(payment: &Decimal, steps: &mut Vec<Value>) -> Result<MitOutc
         MIT_NON_EOI_RATE,
         &wh,
         "TAA Sch 1 ss 12-385(3)(b), 12-390(3)(b) and (6)(b); IT(MITWHT)A 2008 s 4(1)(b)",
-    )?;
+    );
+    let comp = comp?;
     Ok(MitOutcome {
         withholding: wh,
         components: json!([comp]),
@@ -89,29 +90,33 @@ fn mit_eoi_components(
     clean_wh: &Decimal,
     ncmi_wh: &Decimal,
 ) -> Result<Value> {
-    Ok(json!([
-        mit_component(
+    let components = [
+        (
             "standard",
             &parts.standard,
             MIT_EOI_RATE,
             std_wh,
             "TAA Sch 1 ss 12-385(3)(a)(i), 12-390(3)(a)(i) and (6)(a)(i); IT(MITWHT)A 2008 s 4(1)(a)(i)",
-        )?,
-        mit_component(
+        ),
+        (
             "clean_building_mit",
             &parts.clean,
             MIT_CLEAN_BUILDING_RATE,
             clean_wh,
             "TAA Sch 1 ss 12-385(3)(a)(ii), 12-390(3)(a)(ii), (6)(a)(ii) and 12-425; IT(MITWHT)A 2008 s 4(1)(a)(ii)",
-        )?,
-        mit_component(
+        ),
+        (
             "non_concessional_mit_income",
             &parts.ncmi,
             MIT_NON_CONCESSIONAL_RATE,
             ncmi_wh,
             "TAA Sch 1 ss 12-385(3)(a)(iii), 12-390(3)(a)(iii), (6)(a)(iii) and 12-435; IT(MITWHT)A 2008 s 4(1)(a)(iii)",
-        )?,
-    ]))
+        ),
+    ]
+    .into_iter()
+    .map(|(name, amount, rate, wh, authority)| mit_component(name, amount, rate, wh, authority))
+    .collect::<Result<Vec<_>>>()?;
+    Ok(Value::Array(components))
 }
 
 fn mit_eoi_case(parts: &MitParts, steps: &mut Vec<Value>) -> Result<MitOutcome> {

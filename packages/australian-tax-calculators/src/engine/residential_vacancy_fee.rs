@@ -383,3 +383,16 @@ pub fn residential_vacancy_fee(args: &ResidentialVacancyFeeArgs) -> Result<Value
     }
     build_vacancy_output(&parsed, &summary, steps, rates)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{LiabilityStatus, nil_vacancy_steps};
+
+    /// compute_vacancy_steps calls this only for a status that is not liable,
+    /// so no input brings a liable status here.
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code")]
+    fn a_liable_status_has_no_nil_steps() {
+        nil_vacancy_steps(LiabilityStatus::LiableVacant, None);
+    }
+}

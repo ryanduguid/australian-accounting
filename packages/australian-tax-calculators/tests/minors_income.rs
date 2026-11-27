@@ -399,3 +399,22 @@ fn foreign_top_slice() {
     let out = run(&minor("2025-26", "foreign_resident", 135000, 400));
     assert_eq!(taxes(&out)[1], "148.00");
 }
+
+/// A full-time occupation fact that is not a boolean is refused, naming it.
+#[test]
+fn a_full_time_occupation_fact_must_be_a_boolean() {
+    let input = with(
+        minor("2025-26", "resident", 0, 2000),
+        json!({"excepted_person": "full_time_occupation", "full_time_occupation": {
+            "engaged_on_last_day": "yes", "three_months_in_year": true,
+            "intends_full_time_occupation_next_year": true,
+            "intends_full_time_education_next_year": false,
+        }}),
+    );
+    let error = api::evaluate_coded("minors-income", &input).unwrap_err();
+    assert_eq!(error.code, "input.flag_invalid");
+    assert_eq!(
+        error.message,
+        "full_time_occupation: engaged_on_last_day must be a boolean."
+    );
+}

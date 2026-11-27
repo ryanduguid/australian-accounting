@@ -58,12 +58,13 @@ impl Work {
         held.base = int(0);
         held.owning = int(0);
         let amount = (!cash.is_zero()).then_some(cash);
-        self.row(
+        let recorded = self.row(
             event,
             i,
             "scrip_for_scrip",
             (amount, before, gain, ORIGINAL.into()),
-        )?;
+        );
+        recorded?;
         self.add_replacement(event, replacement)
     }
 

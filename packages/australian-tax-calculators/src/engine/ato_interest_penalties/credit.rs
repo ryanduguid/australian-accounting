@@ -128,12 +128,13 @@ pub(super) fn early_payment_interest(f: &Facts, period: &str) -> Result<Value> {
     } else {
         (0, Vec::new())
     };
-    let mut out = result(
+    let out = result(
         KIND,
         period,
         credit_amounts(simple_cents(numerator)),
         Vec::new(),
-    )?;
+    );
+    let mut out = out?;
     out["question"] = json!("early_payment_interest");
     out["days_early"] = json!(early);
     out["entitled"] = json!(early > 14);

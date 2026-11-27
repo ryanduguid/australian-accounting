@@ -101,12 +101,13 @@ fn assess(
         int(0)
     } else {
         let counted = py_min(business.clone(), taxable.clone())?;
-        cents(
+        let offset_share = cents(
             &d(OFFSET_RATE)
                 .mul(&counted)?
                 .mul(&owed.basic)?
                 .div(&taxable)?,
-        )?
+        );
+        offset_share?
     };
     let offset = py_min(py_min(share, d(OFFSET_CAP))?, owed.net_tax()?)?;
     let total = owed.total()?.sub(&offset)?;

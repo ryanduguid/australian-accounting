@@ -831,3 +831,64 @@ fn exhaustive_nine_schedule_date_and_consideration_boundaries() {
         }
     }
 }
+
+/// Sara's tenants in common facts with `changes` applied, `null` removing a
+/// fact.
+fn sara_with(changes: Value) -> Value {
+    let mut input = base("2026-27", "2026-08-01");
+    input["ownership"] = json!("tenants_in_common");
+    input["consideration"] = json!("1500000.00");
+    input["dwelling_kind"] = json!("new_or_near_new");
+    input["application_date"] = json!("2026-08-01");
+    input["ownership_share"] = json!("0.25");
+    for (key, value) in changes.as_object().unwrap() {
+        if value.is_null() {
+            input.as_object_mut().unwrap().remove(key);
+        } else {
+            input[key] = value.clone();
+        }
+    }
+    input
+}
+
+/// A dwelling kind outside the 2 the regulations name, a missing application
+/// date and an ownership share given as a JSON number are each refused.
+#[test]
+fn the_dwelling_application_date_and_share_are_required_in_form() {
+    for (changes, expected) in [
+        (
+            json!({"dwelling_kind": "townhouse"}),
+            "residential_vacancy_fee.dwelling_kind_invalid",
+        ),
+        (
+            json!({"application_date": null}),
+            "residential_vacancy_fee.application_date_unsupported",
+        ),
+        (
+            json!({"ownership_share": 0.25}),
+            "residential_vacancy_fee.ownership_invalid",
+        ),
+    ] {
+        assert_eq!(refuse_code(&sara_with(changes)), expected);
+    }
+}
+
+/// A stated application fee alongside a full waiver, and dwelling facts
+/// given for a pre-9 April 2024 waived fee, are refused: the fee base comes
+/// from the regulations, not from them.
+#[test]
+fn a_waived_fee_takes_no_stated_fee_or_dwelling_facts() {
+    let mut stated = base("2026-27", "2026-08-01");
+    stated["application_fee_waiver"] = json!("full");
+    stated["application_fee_payable"] = json!("15600.00");
+    let mut pre = base("2022-23", "2022-08-01");
+    pre["acquisition_basis"] = json!("no_notice_order");
+    pre["application_fee_waiver"] = json!("full");
+    pre["dwelling_kind"] = json!("established");
+    for input in [stated, pre] {
+        assert_eq!(
+            refuse_code(&input),
+            "residential_vacancy_fee.application_fee_invalid"
+        );
+    }
+}

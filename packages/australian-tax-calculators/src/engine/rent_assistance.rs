@@ -178,12 +178,13 @@ pub fn rent_assistance(args: &RentAssistanceArgs) -> Result<Value> {
     let threshold = d(p[0][at]);
     let rate_b = d(p[1][top]);
     let steps = precise(|| working(share, [&rent, &threshold, &rate_b]))?;
-    let mut out = derived_result(
+    let out = derived_result(
         KIND,
         &year,
         steps,
         vec![rate("rent_threshold", &threshold), rate("rate_b", &rate_b)],
-    )?;
+    );
+    let mut out = out?;
     out["date"] = json!(args.date.text());
     out["situation"] = json!(name);
     out["table_item"] = json!(item);
