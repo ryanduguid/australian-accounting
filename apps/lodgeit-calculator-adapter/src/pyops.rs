@@ -532,6 +532,10 @@ mod tests {
                 "{a} {op} {b}"
             );
         }
+    }
+
+    #[test]
+    fn comparisons_python_cannot_make_raise_its_type_error() {
         let refused = [
             (
                 "1",

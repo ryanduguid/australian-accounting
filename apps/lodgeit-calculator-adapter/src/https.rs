@@ -227,7 +227,7 @@ mod tests {
             status_line(b""),
             Err("Remote end closed connection without response".into())
         );
-        assert_eq!(status_line(b"HTTP/1.1\r\n"), Err(r"'HTTP/1.1\r\n'".into()));
+        assert_eq!(status_line(b"HTTP/1.1\r\n"), Err("'HTTP/1.1\\r\\n'".into()));
         assert_eq!(
             status_line(&vec![b'x'; 65537]),
             Err("got more than 65536 bytes when reading status line".into())

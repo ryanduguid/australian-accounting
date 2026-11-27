@@ -112,63 +112,66 @@ pub(super) fn decimal(value: &Json) -> R<Decimal> {
 /// `_decimal.c`'s `dectuple_as_str`: the string a `[sign, digits, exponent]`
 /// list stands for, with CPython's checks in CPython's order.
 fn dectuple_as_str(items: &[Json]) -> R<Vec<u32>> {
+    let refuse = |text: &str| Exc::msg("ValueError", text);
     let [sign, digits, exponent] = items else {
-        return Err(Exc::msg(
-            "ValueError",
-            "argument must be a sequence of length 3",
-        ));
+        return Err(refuse("argument must be a sequence of length 3"));
     };
-    let bad_sign = || {
-        Exc::msg(
-            "ValueError",
-            "sign must be an integer with the value 0 or 1",
-        )
-    };
+    let bad_sign = || refuse("sign must be an integer with the value 0 or 1");
     let sign: std::ffi::c_long = c_int(&py_int(sign).ok_or_else(bad_sign)?, "long")?;
-    if sign != 0 && sign != 1 {
-        return Err(bad_sign());
-    }
-    let mut out = String::from(if sign == 1 { "-" } else { "+" });
-    let mut exp = None;
-    match exponent {
-        Json::Str(s) => out.push_str(match s.code_points().as_slice() {
-            [0x46] => "Inf",
-            [0x6E] => "NaN",
-            [0x4E] => "sNaN",
-            _ => {
-                return Err(Exc::msg(
-                    "ValueError",
-                    "string argument in the third position must be 'F', 'n' or 'N'",
-                ));
-            }
-        }),
-        other => {
-            let bad = || Exc::msg("ValueError", "exponent must be an integer");
-            exp = Some(c_int::<isize>(&py_int(other).ok_or_else(bad)?, "ssize_t")?);
-        }
-    }
-    let bad_digits = || Exc::msg("ValueError", "coefficient must be a tuple of digits");
-    let Json::Array(digits) = digits else {
-        return Err(bad_digits());
-    };
-    if digits.is_empty() && exp.is_some() {
-        out.push('0');
-    }
-    let infinite = out.ends_with("Inf");
-    for digit in digits {
-        let digit: std::ffi::c_long = c_int(&py_int(digit).ok_or_else(bad_digits)?, "long")?;
-        let digit = u32::try_from(digit)
-            .ok()
-            .and_then(|d| char::from_digit(d, 10))
-            .ok_or_else(bad_digits)?;
-        if !infinite {
-            out.push(digit);
-        }
-    }
-    if let Some(exp) = exp {
-        out.push_str(&format!("E{exp}"));
+    let mut out = String::from(match sign {
+        0 => "+",
+        1 => "-",
+        _ => return Err(bad_sign()),
+    });
+    let exp = exponent_part(exponent, &mut out)?;
+    let coefficient = coefficient(digits, || refuse("coefficient must be a tuple of digits"))?;
+    match exp {
+        Some(exp) if coefficient.is_empty() => out.push_str(&format!("0E{exp}")),
+        Some(exp) => out.push_str(&format!("{coefficient}E{exp}")),
+        // An infinity accepts but ignores a well-formed coefficient.
+        None if out.ends_with("Inf") => {}
+        None => out.push_str(&coefficient),
     }
     Ok(pts(&out))
+}
+
+/// The third position: an exponent, or `F`, `n` or `N` for a special number,
+/// whose name goes onto `out`.
+fn exponent_part(exponent: &Json, out: &mut String) -> R<Option<isize>> {
+    let refuse = |text: &str| Exc::msg("ValueError", text);
+    let Json::Str(s) = exponent else {
+        let bad = || refuse("exponent must be an integer");
+        return Ok(Some(c_int(&py_int(exponent).ok_or_else(bad)?, "ssize_t")?));
+    };
+    out.push_str(match s.code_points().as_slice() {
+        [0x46] => "Inf",
+        [0x6E] => "NaN",
+        [0x4E] => "sNaN",
+        _ => {
+            return Err(refuse(
+                "string argument in the third position must be 'F', 'n' or 'N'",
+            ));
+        }
+    });
+    Ok(None)
+}
+
+/// The digits of a `[sign, digits, exponent]` list's coefficient, each
+/// checked as `dectuple_as_str` checks it.
+fn coefficient(digits: &Json, bad: impl Fn() -> Exc + Copy) -> R<String> {
+    let Json::Array(digits) = digits else {
+        return Err(bad());
+    };
+    digits
+        .iter()
+        .map(|digit| {
+            let digit: std::ffi::c_long = c_int(&py_int(digit).ok_or_else(bad)?, "long")?;
+            u32::try_from(digit)
+                .ok()
+                .and_then(|d| char::from_digit(d, 10))
+                .ok_or_else(bad)
+        })
+        .collect()
 }
 
 /// The int a JSON value is to Python (`bool` is an `int`), or None.
