@@ -579,7 +579,7 @@ fn invalid_scheme_facts_are_refused() {
 }
 
 /// A refused premium of $1,000 or more is shown with its thousands grouped:
-/// $8,000.005 less $2,000.0002 is $8,000.01 rounded step by step and
+/// $10,000.005 less $2,000.0002 is $8,000.01 rounded step by step and
 /// $8,000.00 rounded once.
 #[test]
 fn a_refused_premium_groups_its_thousands() {
