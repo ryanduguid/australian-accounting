@@ -10,7 +10,7 @@
 use std::collections::BTreeMap;
 
 use crate::argtheme::{self, Stream, Theme};
-use crate::assess::{self, ON_TIME, Options};
+use crate::assess::{self, Assessed, ON_TIME, Options};
 use crate::atomic;
 use crate::calendar;
 use crate::csv_io::{self, LATEST_SANE_YEAR};
@@ -1068,54 +1068,87 @@ fn check_main(args: &[String], evidence_pack: bool) -> (i32, String, String) {
         Err(f) => return uncaught(s, &f),
     };
     let remittance_only = parsed.flag("confirm_remittance_only");
-
+    let provenance = gic.provenance();
     if evidence_pack {
         let tables: Vec<rates::TableSource> = gic.source.iter().cloned().collect();
-        let built = evidence_pack::build_evidence_pack(
-            &results,
-            &PackFacts {
-                as_at,
-                assessment_date,
-                gic_provenance: &gic.provenance(),
-                remittance_only_confirmed: remittance_only,
-                rate_tables: &tables,
-            },
-        )
-        .and_then(|files| evidence_pack::write_evidence_pack(&files, &output));
-        match built {
-            Ok(()) => {}
-            Err(
-                f @ (Failure::Os(_)
-                | Failure::Value(_)
-                | Failure::StaleGic(_)
-                | Failure::Signal(_)
-                | Failure::Overflow),
-            ) => {
-                s.err(&format!("error: {}", f.message()));
-                return s.done(EXIT_ERROR);
-            }
-            Err(f) => return uncaught(s, &f),
-        }
-        s.out(&format!("wrote evidence pack to {output}"));
-        let exceptions = results.iter().any(|r| r.verdict != ON_TIME);
-        return s.done(if exceptions { EXIT_LATE_FOUND } else { EXIT_OK });
-    }
-
-    let source = resolved(&csv_path);
-    let written = report::render_csv(
-        &results,
-        &NoteFacts {
+        let facts = PackFacts {
             as_at,
-            law_date: LAW_CONTENT_DATE,
             assessment_date,
-            source: Some(&source),
-            gic_provenance: &gic.provenance(),
+            gic_provenance: &provenance,
+            remittance_only_confirmed: remittance_only,
+            rate_tables: &tables,
+        };
+        return write_pack(s, &results, &facts, &output);
+    }
+    let run = ReportRun {
+        output: &output,
+        source: &resolved(&csv_path),
+        as_at,
+        assessment_date,
+        gic_provenance: &provenance,
+        rates: &rates,
+        remittance_only,
+    };
+    write_report(s, &results, &run)
+}
+
+/// Write the evidence pack of assessed lines.
+fn write_pack(
+    mut s: Streams,
+    results: &[Assessed],
+    facts: &PackFacts,
+    output: &str,
+) -> (i32, String, String) {
+    let built = evidence_pack::build_evidence_pack(results, facts)
+        .and_then(|files| evidence_pack::write_evidence_pack(&files, output));
+    match built {
+        Ok(()) => {}
+        Err(
+            f @ (Failure::Os(_)
+            | Failure::Value(_)
+            | Failure::StaleGic(_)
+            | Failure::Signal(_)
+            | Failure::Overflow),
+        ) => {
+            s.err(&format!("error: {}", f.message()));
+            return s.done(EXIT_ERROR);
+        }
+        Err(f) => return uncaught(s, &f),
+    }
+    s.out(&format!("wrote evidence pack to {output}"));
+    let exceptions = results.iter().any(|r| r.verdict != ON_TIME);
+    s.done(if exceptions { EXIT_LATE_FOUND } else { EXIT_OK })
+}
+
+/// What the CSV report and console summary of a check repeat.
+struct ReportRun<'a> {
+    output: &'a str,
+    /// The input CSV, resolved.
+    source: &'a str,
+    as_at: Date,
+    assessment_date: Option<Date>,
+    gic_provenance: &'a str,
+    rates: &'a Raw,
+    remittance_only: bool,
+}
+
+/// Write the CSV report of assessed lines, then print the console summary.
+fn write_report(mut s: Streams, results: &[Assessed], run: &ReportRun) -> (i32, String, String) {
+    let output = run.output;
+    let written = report::render_csv(
+        results,
+        &NoteFacts {
+            as_at: run.as_at,
+            law_date: LAW_CONTENT_DATE,
+            assessment_date: run.assessment_date,
+            source: Some(run.source),
+            gic_provenance: run.gic_provenance,
         },
         true,
     )
     .and_then(|text| {
         atomic::write(
-            &output,
+            output,
             format!("\u{feff}{text}").as_bytes(),
             atomic::csv_destination,
         )
@@ -1132,16 +1165,16 @@ fn check_main(args: &[String], evidence_pack: bool) -> (i32, String, String) {
         }
         Err(f) => return uncaught(s, &f),
     }
-    let shown = PyPath::new(&output).display();
+    let shown = PyPath::new(output).display();
     let summary = report::console_summary(
-        &results,
+        results,
         &SummaryFacts {
-            as_at,
+            as_at: run.as_at,
             csv_path: &shown,
             law_date: LAW_CONTENT_DATE,
-            rates: &rates,
-            assessment_date,
-            remittance_only_confirmed: remittance_only,
+            rates: run.rates,
+            assessment_date: run.assessment_date,
+            remittance_only_confirmed: run.remittance_only,
         },
     );
     match summary {
@@ -1156,11 +1189,11 @@ fn check_main(args: &[String], evidence_pack: bool) -> (i32, String, String) {
         }
         Err(f) => return uncaught(s, &f),
     }
-    match report::needs_attention(&results, remittance_only) {
-        Ok(true) => s.done(EXIT_LATE_FOUND),
-        Ok(false) => s.done(EXIT_OK),
-        Err(f) => uncaught(s, &f),
-    }
+    // Its one fallible step, remittance_only_unproven, already passed on these
+    // results inside console_summary.
+    let attention = report::needs_attention(results, run.remittance_only);
+    let attention = attention.expect("console_summary ran remittance_only_unproven");
+    s.done(if attention { EXIT_LATE_FOUND } else { EXIT_OK })
 }
 
 /// `exc.strerror or exc`.
@@ -1595,5 +1628,134 @@ pub fn dispatch(args: &[String]) -> (i32, String, String) {
             String::new(),
         ),
         _ => run(args),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    //! A check's last steps given results no real run produces: a result whose
+    //! estimate is partial, an amount no report can show, and rates whose cap
+    //! is infinite.
+
+    use super::*;
+    use crate::assess::tests::{day, dec, result};
+    use crate::assess::{LATE, SKIPPED};
+    use std::path::Path;
+
+    fn scratch(name: &str) -> String {
+        let dir = std::env::temp_dir().join(format!("payday-cli-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir.join("report.csv").to_string_lossy().into_owned()
+    }
+
+    /// A late line with a shortfall but only part of its SG charge estimate.
+    fn partial() -> Assessed {
+        let mut r = result(day(2026, 7, 20), LATE);
+        r.final_shortfall = Some(dec("100"));
+        r.nec = Some(dec("1"));
+        r
+    }
+
+    fn report(results: &[Assessed], output: &str, rates: &Raw) -> (i32, String, String) {
+        let run = ReportRun {
+            output,
+            source: "in.csv",
+            as_at: day(2026, 8, 10),
+            assessment_date: None,
+            gic_provenance: "",
+            rates,
+            remittance_only: false,
+        };
+        write_report(Streams::default(), results, &run)
+    }
+
+    fn rates() -> Raw {
+        rates::load_rates().unwrap()
+    }
+
+    #[test]
+    fn a_partial_estimate_is_an_assertion_in_the_pack_and_the_report() {
+        let output = scratch("partial");
+        let facts = PackFacts {
+            as_at: day(2026, 8, 10),
+            assessment_date: None,
+            gic_provenance: "",
+            remittance_only_confirmed: false,
+            rate_tables: &[],
+        };
+        let want = "error: AssertionError: exposed result has a partial SG charge estimate\n";
+        let pack = output.replace("report.csv", "pack");
+        assert_eq!(write_pack(Streams::default(), &[partial()], &facts, &pack), (1, String::new(), want.into()));
+        assert_eq!(report(&[partial()], &output, &rates()), (1, String::new(), want.into()));
+        assert!(!Path::new(&output).exists() && !Path::new(&pack).exists());
+    }
+
+    #[test]
+    fn an_amount_the_report_cannot_round_is_invalid_operation() {
+        // CPython: Decimal("Infinity").quantize(Decimal("0.01")) raises
+        // InvalidOperation, whose str() is "[<class 'decimal.InvalidOperation'>]".
+        let output = scratch("infinite");
+        let mut r = result(day(2026, 7, 20), LATE);
+        r.line.sg_amount = dec("Infinity");
+        let (code, out, err) = report(&[r], &output, &rates());
+        assert_eq!((code, out.as_str()), (1, ""));
+        assert_eq!(err, "error: [<class 'decimal.InvalidOperation'>]\n");
+        assert!(!Path::new(&output).exists());
+    }
+
+    #[test]
+    fn an_infinite_cap_fails_the_summary_after_the_report_is_written() {
+        let output = scratch("cap");
+        let rates = Raw::from_json(
+            &crate::pyjson::loads(
+                r#"{"financial_years": {"2026-27": {"max_contributions_base": Infinity}}}"#,
+            )
+            .unwrap(),
+        );
+        let mut r = result(day(2026, 7, 20), SKIPPED);
+        r.line.qe_day = day(2026, 7, 9);
+        let (code, out, err) = report(&[r], &output, &rates);
+        assert_eq!((code, out.as_str()), (1, ""));
+        assert_eq!(
+            err,
+            format!(
+                "error: cannot convert float infinity to integer. The report was still \
+                 written to {output}; only this console summary failed.\n"
+            )
+        );
+        assert!(Path::new(&output).exists());
+    }
+
+    #[test]
+    fn an_exposed_line_without_a_shortfall_is_an_assertion_in_the_summary() {
+        let output = scratch("no-shortfall");
+        let (code, out, err) = report(&[result(day(2026, 7, 20), LATE)], &output, &rates());
+        assert_eq!((code, out.as_str()), (1, ""));
+        assert_eq!(
+            err,
+            "error: AssertionError: exposed result has no final shortfall, so its exposure \
+             figures are incomplete\n"
+        );
+        assert!(Path::new(&output).exists());
+    }
+
+    #[test]
+    fn a_nan_amount_fails_the_summary_before_the_exit_code_is_decided() {
+        // CPython: Decimal("NaN") > 0 raises InvalidOperation. The summary makes
+        // that comparison first, so the report stands and only the summary fails.
+        let output = scratch("nan");
+        let mut r = result(day(2026, 7, 20), ON_TIME);
+        r.line.sg_amount = dec("NaN");
+        let (code, out, err) = report(&[r], &output, &rates());
+        assert_eq!((code, out.as_str()), (1, ""));
+        assert_eq!(
+            err,
+            format!(
+                "error: [<class 'decimal.InvalidOperation'>]. The report was still written \
+                 to {output}; only this console summary failed.\n"
+            )
+        );
+        assert!(Path::new(&output).exists());
     }
 }
