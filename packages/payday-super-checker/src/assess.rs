@@ -77,10 +77,6 @@ impl Assessed {
     pub fn is_exposed(&self) -> bool {
         EXPOSED.contains(&self.verdict.as_str())
     }
-
-    pub fn warnings(&self) -> Vec<String> {
-        self.caveats.iter().chain(&self.notes).cloned().collect()
-    }
 }
 
 fn date_problem(line: &ContribLine) -> Option<String> {
@@ -162,25 +158,26 @@ fn same_decimal(a: &Decimal, b: &Decimal) -> Result<bool> {
 
 impl DuplicateKey {
     fn same(&self, other: &DuplicateKey) -> Result<bool> {
-        let optional = |a: &Option<Decimal>, b: &Option<Decimal>| -> Result<bool> {
-            match (a, b) {
-                (None, None) => Ok(true),
-                (Some(a), Some(b)) => same_decimal(a, b),
-                _ => Ok(false),
-            }
+        // A remitted amount is present exactly when there is a remittance
+        // date, and this runs only once the dates are equal, so the two are
+        // both present or both absent.
+        let remitted = || match (
+            &self.effective_remitted_amount,
+            &other.effective_remitted_amount,
+        ) {
+            (Some(a), Some(b)) => same_decimal(a, b),
+            _ => Ok(true),
         };
+        let matched = (
+            &self.effective_matched_amount,
+            &other.effective_matched_amount,
+        );
         Ok(self.employee_id == other.employee_id
             && self.qe_day == other.qe_day
             && same_decimal(&self.sg_amount, &other.sg_amount)?
             && self.remitted == other.remitted
-            && optional(
-                &self.effective_remitted_amount,
-                &other.effective_remitted_amount,
-            )?
-            && same_decimal(
-                &self.effective_matched_amount,
-                &other.effective_matched_amount,
-            )?
+            && remitted()?
+            && same_decimal(matched.0, matched.1)?
             && self.received == other.received
             && self.flags == other.flags)
     }

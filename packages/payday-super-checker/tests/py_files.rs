@@ -26,3 +26,15 @@ fn read_text_reads_utf8_with_universal_newlines() {
     assert_eq!(resolved, resolve_text(&path));
     std::fs::remove_dir_all(&dir).unwrap();
 }
+
+/// A verbatim path keeps `.` as a component; resolving it must still drop it.
+#[cfg(windows)]
+#[test]
+fn a_verbatim_path_resolves_without_its_dot() {
+    let dotted = resolve_text(Path::new("\\\\?\\C:\\payday-no-such-dir\\.\\missing"));
+    assert_eq!(
+        dotted,
+        resolve_text(Path::new("\\\\?\\C:\\payday-no-such-dir\\missing"))
+    );
+    assert!(!dotted.contains("\\.\\"), "{dotted}");
+}
