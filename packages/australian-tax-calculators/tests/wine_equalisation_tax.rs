@@ -394,11 +394,12 @@ fn malformed_average_wholesale_facts_are_refused() {
     not_object["average_wholesale"] = json!("560.00");
     for (input, message) in [
         (input("2024-25", json!([not_object])), "dealing 1: average_wholesale must be an object."),
-        (average(json!({"quantity": 1})), "dealing 1: quantity"),
         (average(json!({"wholesale_sales": "7 at $560"})), "dealing 1: wholesale_sales must be a list"),
     ] {
         let error = api::evaluate_coded("wine-equalisation-tax", &input).unwrap_err();
         assert_eq!(error.code, "wine_equalisation_tax.dealing_invalid");
         assert!(error.message.starts_with(message));
     }
+    let number = api::evaluate_coded("wine-equalisation-tax", &average(json!({"quantity": 1})));
+    assert_eq!(number.unwrap_err().code, "wine_equalisation_tax.quantity_invalid");
 }

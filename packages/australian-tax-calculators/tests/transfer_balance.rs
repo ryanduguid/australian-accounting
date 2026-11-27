@@ -692,14 +692,15 @@ fn contribution_caps_adds_the_release() {
     );
 }
 
-/// An account whose highest balance is below nil has used none of its cap,
+/// An account whose highest end-of-day balance is below nil, here a
+/// commutation on the day the stream started, has used none of its cap,
 /// so indexation raises its personal cap in full (ITAA 1997 s 294-40(3)).
 #[test]
 fn a_balance_never_above_nil_is_indexed_in_full() {
     let out = run(
         &[
             ("2018-10-01", "new_income_stream", "100000.00"),
-            ("2018-11-01", "commutation", "150000.00"),
+            ("2018-10-01", "commutation", "150000.00"),
         ],
         "2024-07-01",
         "2024-25",

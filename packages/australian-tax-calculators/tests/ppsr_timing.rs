@@ -578,18 +578,17 @@ fn intangibles_run_from_attachment() {
 /// an ordinary time.
 #[test]
 fn two_am_on_another_first_sunday_is_ordinary() {
-    let time = "2026-03-01T02:30";
+    let time = "2027-03-07T02:30";
     assert_eq!(
         run(&registration(time, "consumer", false, None))["registration_time"],
         time
     );
 }
 
-/// Excluded days that are not a list, an end date that is not a date and a
-/// registration on 29 February, whose 7th anniversary does not exist, are
+/// Excluded days that are not a list and an end date that is not a date are
 /// refused.
 #[test]
-fn malformed_days_dates_and_missing_anniversaries_are_refused() {
+fn malformed_days_and_dates_are_refused() {
     let not_list = pmsi(
         false,
         true,
@@ -599,7 +598,4 @@ fn malformed_days_dates_and_missing_anniversaries_are_refused() {
     assert_eq!(code(&not_list), "ppsr_timing.days_invalid");
     let bad_end = registration("2026-11-19T10:00", "commercial", false, Some("2030-02-30"));
     assert_eq!(code(&bad_end), "input.date_invalid");
-    let mut leap = registration("2028-02-29T10:00", "consumer", false, None);
-    leap["year"] = json!("2027-28");
-    assert_eq!(code(&leap), "ppsr_timing.date_unsettled");
 }

@@ -125,5 +125,5 @@ fn an_excess_order_must_be_a_list() {
         "excess_deduction_order": "B",
     }));
     let (code, _) = refused(&input);
-    assert_eq!(code, "payroll_tax_group.fact_invalid");
+    assert_eq!(code, "payroll_tax_group.excess_order_invalid");
 }

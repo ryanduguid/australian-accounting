@@ -1069,6 +1069,6 @@ fn sole_trader_without_business_income_sets_aside_nil_shares() {
         json!({"business_income": "0", "business_expenses": "0", "invoice": "0"}),
     )
     .unwrap();
-    assert_eq!(amount(&r, "tax_share_percent"), "0");
-    assert_eq!(amount(&r, "invoice_share_percent"), "0");
+    assert_eq!(amount(&r, "tax_share_percent"), "0.00");
+    assert_eq!(amount(&r, "invoice_share_percent"), "0.00");
 }
