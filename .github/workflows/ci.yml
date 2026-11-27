@@ -211,7 +211,10 @@ jobs:
     if: needs.changes.result == 'success'
     permissions:
       contents: read
-    timeout-minutes: 25
+    # The Windows leg took 15.7 to 20.4 minutes on main's last 7 green runs
+    # (26 and 27 November 2026), then exceeded the old 25-minute limit twice
+    # on one commit with pytest 94 to 97% through.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.changes.outputs.python-matrix) }}
@@ -324,7 +327,12 @@ jobs:
   codecov:
     name: upload coverage to Codecov
     needs: test
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    # Only the ubuntu 3.14 leg writes the report, and it keeps it only when its
+    # whole suite passed, so another leg's failure or timeout still uploads the
+    # complete report; a missing one fails the download below.
+    if: >-
+      !cancelled() && needs.test.result != 'skipped'
+      && (github.event_name == 'push' || github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
