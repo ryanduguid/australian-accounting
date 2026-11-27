@@ -258,17 +258,44 @@ thread_local! {
     static FORCED_KEY: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) };
 }
 
+#[cfg(test)]
+fn forced_key() -> Option<String> {
+    FORCED_KEY.with(|k| k.borrow().clone())
+}
+
+#[cfg(not(test))]
+fn forced_key() -> Option<String> {
+    None
+}
+
+#[cfg(test)]
+thread_local! {
+    /// An OS error code every mapping read fails with, so a test can show an
+    /// unreadable file.
+    static FAILED_READ: std::cell::Cell<Option<i32>> = const { std::cell::Cell::new(None) };
+}
+
+#[cfg(test)]
+fn read_file(path: &std::path::Path) -> std::io::Result<Vec<u8>> {
+    match FAILED_READ.with(std::cell::Cell::get) {
+        Some(code) => Err(std::io::Error::from_raw_os_error(code)),
+        None => std::fs::read(path),
+    }
+}
+
+#[cfg(not(test))]
+fn read_file(path: &std::path::Path) -> std::io::Result<Vec<u8>> {
+    std::fs::read(path)
+}
+
 /// A stable digest of an account's logical identity.
 pub fn account_key(account: &str) -> String {
-    #[cfg(test)]
-    if let Some(key) = FORCED_KEY.with(|k| k.borrow().clone()) {
-        return key;
-    }
-    let identity = normalise_account(account);
-    Sha256::digest(identity.as_bytes())
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect()
+    forced_key().unwrap_or_else(|| {
+        Sha256::digest(normalise_account(account).as_bytes())
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect()
+    })
 }
 
 pub fn suggest_mapping(rows: &[PnlRow]) -> Result<MappingDraft, Failure> {
@@ -575,7 +602,7 @@ pub fn read_mapping(path: &PyPath) -> Result<Mapping, Failure> {
     if !path.fs().is_file() {
         return fail(format!("mapping file not found: {shown}"));
     }
-    let data = std::fs::read(path.fs()).map_err(|e| {
+    let data = read_file(&path.fs()).map_err(|e| {
         Failure::Value(crate::py::oserror_str(
             &e,
             &shown,
@@ -586,12 +613,11 @@ pub fn read_mapping(path: &PyPath) -> Result<Mapping, Failure> {
     // Rows are read as the loop reaches them, so an unreadable row later in
     // the file does not pre-empt a refusal of an earlier one.
     let mut reader = crate::csvread::Reader::new(text.as_bytes());
-    let next = |reader: &mut crate::csvread::Reader| match reader.next_row() {
-        Ok(row) => Ok(row),
-        Err(crate::csvread::ReadError::Csv(message)) => {
-            Err(Failure::Uncaught(format!("_csv.Error: {message}")))
-        }
-        Err(crate::csvread::ReadError::Decode { .. }) => unreachable!("decoded text"),
+    // The text is already decoded, so an error is a CSV one.
+    let next = |reader: &mut crate::csvread::Reader| {
+        reader
+            .next_row()
+            .map_err(|error| Failure::Uncaught(format!("_csv.Error: {error}")))
     };
     let Some(header) = next(&mut reader)? else {
         return fail(format!("{shown}: file is empty"));
@@ -910,5 +936,29 @@ Rent,10
         let line = csv_line(&["a,b".into(), "q\"t".into(), "plain".into(), String::new()]);
         assert_eq!(line, "\"a,b\",\"q\"\"t\",plain,\r\n");
         assert_eq!(csv_line(&[String::new()]), "\"\"\r\n");
+    }
+
+    #[test]
+    fn an_unreadable_mapping_file_is_reported_with_its_errno() {
+        let path = scratch("unreadable.csv", "account\n");
+        FAILED_READ.with(|f| f.set(Some(2)));
+        let failure = read_mapping(&path);
+        FAILED_READ.with(|f| f.set(None));
+        assert_eq!(
+            message(failure),
+            format!(
+                "[Errno 2] No such file or directory: {}",
+                crate::py::repr_str(&path.display())
+            )
+        );
+    }
+
+    #[test]
+    fn a_header_over_the_field_limit_is_a_csv_error() {
+        let path = scratch("wide.csv", &format!("{}\n", "a".repeat(131_073)));
+        assert_eq!(
+            read_mapping(&path).unwrap_err(),
+            Failure::Uncaught("_csv.Error: field larger than field limit (131072)".into())
+        );
     }
 }

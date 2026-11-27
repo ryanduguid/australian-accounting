@@ -160,6 +160,39 @@ pub fn parse(text: &str) -> Result<Json, String> {
 mod tests {
     use super::*;
     #[test]
+    fn members_accept_only_an_object() {
+        // Each expectation comes from the JSON grammar (RFC 8259) and serde's
+        // documented `Unexpected` wording for that value kind, not from this
+        // module: a well-formed non-object is a type error, never a syntax one.
+        for (raw, kind) in [
+            ("[1]", "invalid type: sequence,"),
+            ("1", "invalid type: integer `1`,"),
+            ("\"a\"", "invalid type: string \"a\","),
+            ("null", "invalid type: null,"),
+        ] {
+            let error = serde_json::from_str::<Members>(raw).err().unwrap();
+            assert_eq!(error.classify(), serde_json::error::Category::Data, "{raw}");
+            assert!(error.to_string().starts_with(kind), "{raw}: {error}");
+        }
+        // RFC 8259 section 4: an object's members are name/value pairs in
+        // source order, each value the exact text between the name separator
+        // and the next value separator, less insignificant whitespace.
+        let text = r#"{ "b" : [1, 2] , "a":{"x":null} }"#;
+        let members: Vec<_> = serde_json::from_str::<Members>(text)
+            .unwrap()
+            .0
+            .into_iter()
+            .map(|(name, value)| (name, value.get().to_owned()))
+            .collect();
+        assert_eq!(
+            members,
+            [
+                ("b".to_owned(), "[1, 2]".to_owned()),
+                ("a".to_owned(), r#"{"x":null}"#.to_owned()),
+            ]
+        );
+    }
+    #[test]
     fn preserves_types_precision_and_real_private_number_objects() {
         for (a, b, equal) in [
             ("true", "1", false),

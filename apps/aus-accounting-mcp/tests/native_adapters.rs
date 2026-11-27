@@ -401,3 +401,42 @@ fn frozen_prompt_contracts() {
         }
     }
 }
+
+/// The public adapter entry point, called without the server's input validation.
+#[test]
+fn the_adapter_entry_point_checks_what_validation_would_have() {
+    use aus_accounting_mcp::adapters::evaluate;
+    assert_eq!(
+        evaluate("no_such_tool", &json!({})).unwrap_err(),
+        "no_such_tool: native migration is incomplete; use the existing Python server"
+    );
+    let loan = json!({"year_of_income": "2026-27", "year_loan_made": "2025-26", "written_agreement": true,
+        "terms_in_place_before_lodgment_day": true, "maximum_term_years": "7",
+        "secured_by_registered_mortgage_over_real_property": false, "security_coverage_at_first_made": null,
+        "interest_rate_for_years_after_year_loan_made": "0.0837",
+        "amalgamated_loan_unpaid_at_end_of_previous_year": "100000.00", "remaining_term_years": "1",
+        "payments_applied_during_the_year": "108770.00", "response_detail": "summary"});
+    let with = |key: &str, value: Value| {
+        let mut input = loan.clone();
+        input[key] = value;
+        evaluate("review_div7a_loan", &input)
+    };
+    // Without a loan_id the review names the loan itself.
+    let review = evaluate("review_div7a_loan", &loan).unwrap();
+    assert_eq!(review["ok"], true, "{review}");
+    assert!(review.to_string().contains("mcp-div7a-1"), "{review}");
+    assert_eq!(
+        with("response_detail", json!("brief")).unwrap_err(),
+        "response_detail must be 'summary' or 'full'"
+    );
+    assert_eq!(
+        with(
+            "amalgamated_loan_unpaid_at_end_of_previous_year",
+            json!(100000)
+        )
+        .unwrap_err(),
+        "amalgamated_loan_unpaid_at_end_of_previous_year must be a string or null"
+    );
+    let error = with("remaining_term_years", json!("one")).unwrap_err();
+    assert!(error.contains("remaining_term_years"), "{error}");
+}

@@ -6,7 +6,6 @@
 //! `wiptally.report`, `wiptally.csvsafe` and `wiptally.atomic_io` wrote them.
 
 use std::io::Write;
-use std::path::Path;
 
 use sha2::{Digest, Sha256};
 
@@ -354,7 +353,11 @@ pub fn atomic_write(path: &PyPath, text: &str) -> Result<(), Failure> {
         Failure::Message(py::oserror_str(&e, name, OsStyle::Native))
     };
     std::fs::create_dir_all(parent.fs()).map_err(|e| os_error(e, &parent.display()))?;
-    let (temporary, mut handle) = create_temporary(&parent, path.name())?;
+    let seed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |t| t.as_nanos() as u64)
+        ^ u64::from(std::process::id()).rotate_left(32);
+    let (temporary, mut handle) = create_temporary(&parent, path.name(), seed)?;
     let written = handle
         .write_all(text.as_bytes())
         .and_then(|()| handle.sync_all());
@@ -371,16 +374,14 @@ pub fn atomic_write(path: &PyPath, text: &str) -> Result<(), Failure> {
     result
 }
 
-/// `tempfile.mkstemp(dir=parent, prefix=f".{name}.", suffix=".tmp")`.
+/// `tempfile.mkstemp(dir=parent, prefix=f".{name}.", suffix=".tmp")`, with
+/// names drawn from `seed`.
 fn create_temporary(
     parent: &PyPath,
     name: &str,
+    mut seed: u64,
 ) -> Result<(std::path::PathBuf, std::fs::File), Failure> {
     const LETTERS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789_";
-    let mut seed = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map_or(0, |t| t.as_nanos() as u64)
-        ^ u64::from(std::process::id()).rotate_left(32);
     for _ in 0..100 {
         let suffix: String = (0..8)
             .map(|_| {
@@ -409,10 +410,10 @@ fn create_temporary(
             }
         }
     }
-    Err(Failure::Message(format!(
-        "[Errno 17] No usable temporary file name found: {}",
-        pytext::repr(&parent.display())
-    )))
+    // CPython raises FileExistsError(EEXIST, ...) without a file name.
+    Err(Failure::Message(
+        "[Errno 17] No usable temporary file name found".into(),
+    ))
 }
 
 /// Read a file whole, rendering a failure as `str(OSError)`.
@@ -421,6 +422,81 @@ pub fn read_bytes(path: &PyPath) -> Result<Vec<u8>, Failure> {
         .map_err(|e| Failure::Message(py::oserror_str(&e, &path.display(), OsStyle::Errno)))
 }
 
-pub fn exists(path: &Path) -> bool {
-    path.exists()
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    /// A fresh folder under the build tree, named for the test.
+    fn scratch(name: &str) -> std::path::PathBuf {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("wip-report-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn temporaries(dir: &Path) -> Vec<String> {
+        std::fs::read_dir(dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".tmp"))
+            .collect()
+    }
+
+    #[test]
+    fn a_row_of_one_empty_field_is_quoted_as_csv_writer_does() {
+        // csv.writer(lineterminator="\n").writerow([""]) writes '""\n'.
+        let mut out = String::new();
+        csv_line(&[String::new()], &mut out);
+        assert_eq!(out, "\"\"\n");
+    }
+
+    #[test]
+    fn every_temporary_name_taken_is_mkstemps_eexist() {
+        // A zero seed repeats one name, so all 100 tries collide.
+        let dir = scratch("eexist");
+        std::fs::write(dir.join(".x.csv.aaaaaaaa.tmp"), b"").unwrap();
+        let parent = PyPath::new(&dir.to_string_lossy());
+        assert_eq!(
+            create_temporary(&parent, "x.csv", 0).map(|_| ()),
+            Err(Failure::Message(
+                "[Errno 17] No usable temporary file name found".into()
+            ))
+        );
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unwritable_folder_reports_the_temporary_name() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = scratch("eacces");
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o500)).unwrap();
+        let parent = PyPath::new(&dir.to_string_lossy());
+        let result = create_temporary(&parent, "x.csv", 0).map(|_| ());
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700)).unwrap();
+        assert_eq!(
+            result,
+            Err(Failure::Message(format!(
+                "[Errno 13] Permission denied: '{}/.x.csv.aaaaaaaa.tmp'",
+                dir.display()
+            )))
+        );
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn a_failed_replace_removes_the_staged_file() {
+        // os.replace onto a folder fails; the finally block unlinks the temporary.
+        let dir = scratch("replace");
+        let target = dir.join("schedule.csv");
+        std::fs::create_dir(&target).unwrap();
+        let path = PyPath::new(&target.to_string_lossy());
+        assert!(atomic_write(&path, "a\n").is_err());
+        assert!(temporaries(&dir).is_empty());
+        assert!(target.is_dir());
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 }

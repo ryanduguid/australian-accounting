@@ -190,16 +190,17 @@ impl Decimal {
         if self.is_snan() || other.is_some_and(Decimal::is_snan) {
             return Err(Signal::InvalidOperation);
         }
-        if self.is_nan() {
-            return Ok(Some(self.fix_nan()));
+        if let Some(nan) = self.fix_nan() {
+            return Ok(Some(nan));
         }
-        Ok(other.filter(|o| o.is_nan()).map(Decimal::fix_nan))
+        Ok(other.and_then(Decimal::fix_nan))
     }
 
-    /// `_fix_nan`: keep at most `prec` payload digits, dropping the leading ones.
-    fn fix_nan(&self) -> Decimal {
+    /// `_fix_nan` for a NaN: keep at most `prec` payload digits, dropping the
+    /// leading ones. Any other value gives None.
+    fn fix_nan(&self) -> Option<Decimal> {
         let Kind::NaN(payload, signalling) = &self.kind else {
-            return self.clone();
+            return None;
         };
         let mut payload = payload.clone();
         if payload.len() as i128 > prec() {
@@ -207,10 +208,10 @@ impl Decimal {
                 .trim_start_matches('0')
                 .to_string();
         }
-        Decimal {
+        Some(Decimal {
             kind: Kind::NaN(payload, *signalling),
             ..self.clone()
-        }
+        })
     }
 
     /// `-self`: a zero becomes positive under ROUND_HALF_EVEN.

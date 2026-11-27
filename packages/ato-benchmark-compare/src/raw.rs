@@ -114,8 +114,8 @@ impl Raw {
             (Raw::List(a), Raw::List(b)) => {
                 a.len() == b.len() && a.iter().zip(b).all(|(x, y)| x.eq_at(y, true))
             }
-            (Raw::Dict(_), Raw::Dict(_)) => {
-                let (left, right) = (self.keys(), other.keys());
+            (Raw::Dict(a), Raw::Dict(b)) => {
+                let (left, right) = (keys(a), keys(b));
                 left.len() == right.len()
                     && left.iter().all(|k| {
                         other
@@ -128,19 +128,6 @@ impl Raw {
                 _ => false,
             },
         }
-    }
-
-    /// A dict's distinct keys.
-    fn keys(&self) -> Vec<&String> {
-        let mut keys: Vec<&String> = Vec::new();
-        if let Raw::Dict(items) = self {
-            for (k, _) in items {
-                if !keys.contains(&k) {
-                    keys.push(k);
-                }
-            }
-        }
-        keys
     }
 
     /// A bool, int or float as an exact integer where it is one.
@@ -203,6 +190,17 @@ impl Raw {
             ),
         }
     }
+}
+
+/// A dict's distinct keys.
+fn keys(items: &[(String, Raw)]) -> Vec<&String> {
+    let mut keys: Vec<&String> = Vec::new();
+    for (k, _) in items {
+        if !keys.contains(&k) {
+            keys.push(k);
+        }
+    }
+    keys
 }
 
 /// `format!("{value:e}")`, but where two spellings are equally short, the one
@@ -318,11 +316,80 @@ mod tests {
                 (actual != expected).then(|| format!("{bits}: python {expected}, rust {actual}"))
             })
             .collect();
-        assert!(
-            wrong.is_empty(),
-            "{} wrong: {:?}",
-            wrong.len(),
-            &wrong[..wrong.len().min(10)]
+        assert_eq!(&wrong[..wrong.len().min(10)], [] as [String; 0]);
+    }
+
+    #[test]
+    fn a_power_of_two_whose_nearest_spelling_misses_keeps_the_shortest() {
+        // 2**-1017: rounding to 16 digits gives ...044e-307, which reads back
+        // as a different double, so Python's repr is the ...045 spelling.
+        let value = f64::from_bits(0x0060_0000_0000_0000);
+        assert_eq!(float_repr(value), "7.120236347223045e-307");
+        assert_eq!(float_repr(value).parse::<f64>(), Ok(value));
+    }
+
+    #[test]
+    fn text_builds_a_str() {
+        assert_eq!(Raw::text("it"), Raw::Str("it".into()));
+    }
+
+    #[test]
+    fn type_name_is_pythons_class_name() {
+        let names: Vec<&str> = [
+            Raw::None,
+            Raw::Bool(true),
+            Raw::Int("1".into()),
+            Raw::Float(1.5),
+            Raw::text("a"),
+            Raw::List(vec![]),
+            Raw::Dict(vec![]),
+        ]
+        .iter()
+        .map(Raw::type_name)
+        .collect();
+        assert_eq!(
+            names,
+            ["NoneType", "bool", "int", "float", "str", "list", "dict"]
         );
+    }
+
+    #[test]
+    fn truthiness_follows_python() {
+        let truthy = |v: Raw| v.truthy();
+        assert!(!truthy(Raw::None));
+        assert!(truthy(Raw::Bool(true)) && !truthy(Raw::Bool(false)));
+        assert!(truthy(Raw::Int("-10".into())) && !truthy(Raw::Int("-00".into())));
+        assert!(truthy(Raw::Float(-0.5)) && !truthy(Raw::Float(-0.0)));
+        assert!(truthy(Raw::text(" ")) && !truthy(Raw::text("")));
+        assert!(truthy(Raw::List(vec![Raw::None])) && !truthy(Raw::List(vec![])));
+        assert!(truthy(Raw::Dict(vec![("k".into(), Raw::None)])) && !truthy(Raw::Dict(vec![])));
+    }
+
+    #[test]
+    fn equality_follows_python() {
+        let int = |d: &str| Raw::Int(d.into());
+        // True == 1 == 1.0, and 0.5 == 0.5, but a str never equals a number.
+        assert!(Raw::Bool(true).py_eq(&int("1")) && int("1").py_eq(&Raw::Float(1.0)));
+        assert!(Raw::Float(0.5).py_eq(&Raw::Float(0.5)));
+        assert!(!Raw::Float(0.5).py_eq(&Raw::Float(1.5)));
+        assert!(!Raw::text("1").py_eq(&int("1")));
+        // A bare NaN is not itself; a nested one is.
+        assert!(!Raw::Float(f64::NAN).py_eq(&Raw::Float(f64::NAN)));
+        assert!(
+            Raw::List(vec![Raw::Float(f64::NAN)]).py_eq(&Raw::List(vec![Raw::Float(f64::NAN)]))
+        );
+        // json.loads keeps a repeated key's last value, and order does not matter.
+        let repeated = Raw::Dict(vec![
+            ("a".into(), int("1")),
+            ("b".into(), int("2")),
+            ("a".into(), int("3")),
+        ]);
+        let plain = Raw::Dict(vec![("b".into(), int("2")), ("a".into(), int("3"))]);
+        assert!(repeated.py_eq(&plain));
+        assert!(!repeated.py_eq(&Raw::Dict(vec![("a".into(), int("3"))])));
+        assert!(!plain.py_eq(&Raw::Dict(vec![
+            ("b".into(), int("2")),
+            ("a".into(), int("1"))
+        ])));
     }
 }
