@@ -361,15 +361,10 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
             plain: prog.to_string(),
             coloured: prog.to_string(),
         }];
-        let lines = if !opt_parts.is_empty() {
-            head.extend(opt_parts.iter().cloned());
-            let mut lines = get_lines(&head, &indent, true);
-            lines.extend(get_lines(pos_parts, &indent, false));
-            lines
-        } else {
-            head.extend(pos_parts.iter().cloned());
-            get_lines(&head, &indent, true)
-        };
+        // Every parser registers -h, so there is always an optional part.
+        head.extend(opt_parts.iter().cloned());
+        let mut lines = get_lines(&head, &indent, true);
+        lines.extend(get_lines(pos_parts, &indent, false));
         return lines.join("\n")[prog.len()..].to_string();
     }
     let indent = " ".repeat(prefix_len);
@@ -412,7 +407,8 @@ fn usage_lines(
     lines
 }
 
-type Row = (usize, Part, Option<String>);
+/// Indent, header and help: every argument of these parsers has help.
+type Row = (usize, Part, String);
 
 /// The rows of one help section; argparse aligns help across every section.
 fn action_rows(rows: &[Row], all: &[Row]) -> String {
@@ -429,10 +425,6 @@ fn action_rows(rows: &[Row], all: &[Row]) -> String {
     for (indent, header, help) in rows {
         let action_width = help_position.saturating_sub(indent + 2);
         let pad = " ".repeat(*indent);
-        let Some(help) = help else {
-            out.push_str(&format!("{pad}{}\n", header.coloured));
-            continue;
-        };
         let lines = wrap(help, help_width);
         if pytext::py_len(&header.plain) <= action_width {
             let padded = format!("{pad}{:<action_width$}  {}\n", header.plain, lines[0]);
@@ -509,7 +501,7 @@ fn help_text(parser: &Parser, t: &Theme) -> String {
     let positional: Vec<Row> = parser
         .positional
         .iter()
-        .map(|(name, help)| (2, coloured(name, t.action, t), Some(help.to_string())))
+        .map(|(name, help)| (2, coloured(name, t.action, t), help.to_string()))
         .collect();
     let mut options: Vec<Row> = Vec::new();
     for option in &parser.options {
@@ -539,7 +531,7 @@ fn help_text(parser: &Parser, t: &Theme) -> String {
                 coloured: format!("{coloured_names} {}{}{}", t.label, option.metavar, t.reset),
             }
         };
-        options.push((2, part, Some(option.help.clone())));
+        options.push((2, part, option.help.clone()));
     }
     let all: Vec<Row> = positional.iter().chain(&options).cloned().collect();
     let description = wrap(parser.description, width().max(11)).join("\n");
@@ -643,13 +635,13 @@ fn option_prefix_matches<'a>(
 }
 
 /// argparse's `_negative_number_matcher` on the text after the leading '-'.
+/// `classify` passes a non-empty body: a lone '-' is positional before this.
 fn looks_like_negative_number(body: &str) -> bool {
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
     let mut chars = body.chars();
     match chars.next() {
         Some('.') => chars.next().is_some_and(digit),
-        Some(c) => digit(c),
-        None => false,
+        first => first.is_some_and(digit),
     }
 }
 
@@ -783,7 +775,9 @@ fn parse(parser: &Parser, args: &[String]) -> Result<Parsed, Exit> {
             start = next_option;
         }
         match patterns[start] {
-            Pattern::Unknown => {
+            // `start` is always an option's index here (`next_option` above), so
+            // only `Unknown` takes this arm.
+            Pattern::Unknown | Pattern::Arg | Pattern::Marker => {
                 extras.push(args[start].clone());
                 start += 1;
             }
@@ -843,7 +837,6 @@ fn parse(parser: &Parser, args: &[String]) -> Result<Parsed, Exit> {
                     }
                 }
             }
-            Pattern::Arg | Pattern::Marker => unreachable!("an option starts here"),
         }
     }
     let stop = consume_positional(start, &mut parsed);
@@ -1471,14 +1464,11 @@ fn review_pack_main(args: &[String]) -> (i32, String, String) {
     })();
     let snapshot = match result {
         Ok(snapshot) => snapshot,
-        Err(f @ (Failure::Value(_) | Failure::StaleGic(_))) => {
-            s.err(&format!("error: {}", f.message()));
-            return s.done(EXIT_ERROR);
-        }
+        // Python printed `exc.filename`, which is None for `os.getcwd()`.
         Err(Failure::Os(e)) if e.not_found() => {
             s.err(&format!(
                 "error: file not found: {}",
-                e.filename.clone().unwrap_or_default()
+                e.filename.as_deref().unwrap_or("None")
             ));
             return s.done(EXIT_ERROR);
         }
@@ -1492,7 +1482,13 @@ fn review_pack_main(args: &[String]) -> (i32, String, String) {
             s.err(&format!("error: {verb} {target}: {}", strerror(&e)));
             return s.done(EXIT_ERROR);
         }
-        Err(f) => return uncaught(s, &f),
+        // Every other failure here is a ValueError: the snapshot's amounts are
+        // finite, two-place and inside the CSV field limit, so comparing and
+        // totalling them cannot trap a decimal signal.
+        Err(f) => {
+            s.err(&format!("error: {}", f.message()));
+            return s.done(EXIT_ERROR);
+        }
     };
     s.out(&format!("wrote {output}"));
     s.done(if snapshot.needs_attention() {

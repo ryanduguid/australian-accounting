@@ -726,4 +726,16 @@ mod tests {
     fn the_contract_is_pinned_to_the_report_writer() {
         assert_eq!(EXPECTED_REPORT_HEADER, crate::report::CSV_HEADER);
     }
+
+    #[test]
+    fn a_bare_name_joins_its_folder_as_os_path_join_does() {
+        // CPython 3.15 posixpath.join and ntpath.join.
+        assert_eq!(join("/", "r.csv"), "/r.csv");
+        if cfg!(windows) {
+            assert_eq!(join("C:\\", "r.csv"), "C:\\r.csv");
+            assert_eq!(join("C:\\x", "r.csv"), "C:\\x\\r.csv");
+        } else {
+            assert_eq!(join("/home/a", "r.csv"), "/home/a/r.csv");
+        }
+    }
 }

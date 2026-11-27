@@ -193,3 +193,132 @@ fn a_field_over_the_csv_limit_fails_import() {
     assert_eq!(code, 1);
     assert_eq!(err, FIELD_LIMIT_ERROR);
 }
+
+/// Employment Hero exports with one matched SG payday, for the import command.
+fn import_inputs(dir: &Path) {
+    std::fs::write(
+        dir.join("payroll.csv"),
+        "Employee,Date Paid,Pay Period Ending,Super Guarantee\nAnn,2026-07-10,2026-07-07,100.00\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("super.csv"),
+        "Employee,Super Contribution Type,Period Start,Period End,Payment Date,Amount,Status\n\
+         Ann,SG,2026-07-01,2026-07-07,2026-07-12,100.00,Sent to Fund\n",
+    )
+    .unwrap();
+}
+
+// Expected texts are the pre-port Python CLI's (paydaysuper at 5874033^).
+
+#[test]
+fn import_names_an_export_it_cannot_read() {
+    let dir = folder("import-unreadable");
+    import_inputs(&dir);
+    std::fs::create_dir(dir.join("pdir")).unwrap();
+    let args = ["import", "--payroll", "pdir", "--super", "super.csv"];
+    let (code, out, err) = run(&dir, &[&args[..], &["-o", "out.csv"]].concat(), b"");
+    assert_eq!((code, out.as_str()), (1, ""));
+    assert!(err.starts_with("error: cannot read pdir: "), "{err}");
+    #[cfg(unix)]
+    assert_eq!(err, "error: cannot read pdir: Is a directory\n");
+    // Python checked the output name inside its OSError handler, so a bad
+    // name there escaped as an uncaught ValueError.
+    let (code, _, err) = run(&dir, &[&args[..], &["-o", "out.txt"]].concat(), b"");
+    assert_eq!(code, 1);
+    assert_eq!(
+        err,
+        "error: ValueError: generated output must use a .csv filename: out.txt\n"
+    );
+}
+
+#[test]
+fn import_names_an_output_it_cannot_write() {
+    let dir = folder("import-unwritable");
+    import_inputs(&dir);
+    std::fs::create_dir(dir.join("outdir.csv")).unwrap();
+    let args = [
+        "import",
+        "--payroll",
+        "payroll.csv",
+        "--super",
+        "super.csv",
+        "--vendor",
+        "employment-hero",
+        "-o",
+        "outdir.csv",
+    ];
+    let (code, out, err) = run(&dir, &args, b"");
+    assert_eq!((code, out.as_str()), (1, ""));
+    assert!(err.starts_with("error: cannot write outdir.csv: "), "{err}");
+    #[cfg(unix)]
+    assert_eq!(err, "error: cannot write outdir.csv: Is a directory\n");
+}
+
+/// A folder holding the sample pay run's checker report as `report.csv`.
+fn report_folder(name: &str) -> PathBuf {
+    let dir = folder(name);
+    let sample = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/sample_payrun.csv");
+    std::fs::copy(sample, dir.join("in.csv")).unwrap();
+    let args = [
+        "in.csv",
+        "--as-at",
+        "2026-11-27",
+        "--confirm-transition-allocation",
+        "-o",
+        "report.csv",
+    ];
+    let (code, _, err) = run(&dir, &args, b"");
+    assert_eq!(code, 2, "{err}");
+    dir
+}
+
+#[test]
+fn review_pack_names_a_pack_it_cannot_write() {
+    let dir = report_folder("pack-unwritable");
+    std::fs::create_dir(dir.join("pack.md")).unwrap();
+    let (code, out, err) = run(&dir, &["review-pack", "report.csv", "-o", "pack.md"], b"");
+    assert_eq!((code, out.as_str()), (1, ""));
+    assert!(err.starts_with("error: cannot write pack.md: "), "{err}");
+    #[cfg(unix)]
+    assert_eq!(err, "error: cannot write pack.md: Is a directory\n");
+}
+
+#[test]
+fn a_double_dash_after_the_positional_leaves_the_rest_unrecognised() {
+    let dir = report_folder("pack-marker");
+    let (code, out, err) = run(
+        &dir,
+        &["review-pack", "report.csv", "--", "-o", "x.md"],
+        b"",
+    );
+    assert_eq!((code, out.as_str()), (2, ""));
+    assert!(
+        err.ends_with("review-pack: error: unrecognized arguments: -o x.md\n"),
+        "{err}"
+    );
+    assert!(!dir.join("x.md").exists());
+}
+
+/// `os.getcwd()` fails in a folder removed whilst the command runs in it; its
+/// FileNotFoundError names no file, which Python printed as None.
+#[cfg(unix)]
+#[test]
+fn review_pack_in_a_removed_folder_names_no_file() {
+    let dir = report_folder("pack-cwd-gone");
+    std::fs::create_dir(dir.join("gone")).unwrap();
+    let out = Command::new("sh")
+        .args([
+            "-c",
+            "cd gone && rmdir ../gone && exec \"$0\" review-pack report.csv",
+            env!("CARGO_BIN_EXE_payday-super-check"),
+        ])
+        .current_dir(&dir)
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    assert_eq!(
+        String::from_utf8(out.stderr).unwrap(),
+        "error: file not found: None\n"
+    );
+}

@@ -179,3 +179,67 @@ fn an_evidence_pack_under_a_file_is_refused() {
     assert!(err.contains("pack"), "{err}");
     assert!(!err.contains("Traceback"), "{err}");
 }
+
+// Expected texts below are the pre-port Python engine's (paydaysuper at 5874033^).
+
+#[test]
+fn the_json_api_renders_the_review_pack_of_a_report() {
+    let dir = folder("api-render-pack");
+    let output = dir.join("report.csv");
+    let (code, _, err) = check(&dir, &[], &["-o".into(), text(&output)]);
+    assert_eq!(code, 2, "{err}");
+    let report = std::fs::read_to_string(&output).unwrap();
+    let input = serde_json::json!({
+        "text": report,
+        "source": "report.csv",
+        "identifiers_omitted": false,
+        "decision_log": false,
+    });
+    let pack = payday_super_checker::api::evaluate("render-practitioner-pack", &input).unwrap();
+    let pack = pack.as_str().unwrap();
+    assert!(
+        pack.starts_with(
+            "# Payday Super Practitioner Review Pack\n\n**Status: ATTENTION REQUIRED.**\n"
+        ),
+        "{pack}"
+    );
+    assert!(pack.contains(
+        "| ON_TIME | 5 |\n| AT_RISK | 1 |\n| LATE | 2 |\n| UNPAID | 1 |\n| UNKNOWN | 0 |\n| SKIPPED | 1 |\n"
+    ));
+    assert!(pack.contains("range across LATE and UNPAID rows is **$815.43 to $1,304.69**."));
+}
+
+#[test]
+fn a_review_pack_source_must_have_a_csv_extension() {
+    use payday_super_checker::practitioner_pack::load_report_snapshot;
+    // os.path.splitext: no dot, or only a leading one, is no extension.
+    for (name, message) in [
+        ("report", "report must be a .csv checker report"),
+        (".csv", ".csv must be a .csv checker report"),
+    ] {
+        let failure = load_report_snapshot(name).err().unwrap();
+        assert!(matches!(failure, Failure::Value(_)));
+        assert_eq!(failure.message(), message);
+    }
+}
+
+#[test]
+fn report_bytes_that_are_not_utf8_are_refused() {
+    use payday_super_checker::practitioner_pack::parse_report_snapshot;
+    for data in [&b"\xff"[..], b"\xef\xbb\xbf\xff"] {
+        let failure = parse_report_snapshot(data, "r.csv", false).err().unwrap();
+        assert_eq!(failure.message(), "r.csv is not UTF-8 CSV");
+    }
+}
+
+#[test]
+fn source_rows_order_by_value_not_by_text() {
+    use payday_super_checker::practitioner_pack::RowNumber;
+    let row = |n: &str| RowNumber(n.into());
+    assert!(row("9") < row("10"));
+    assert!(row("12") > row("11"));
+    assert_eq!(
+        row("10").partial_cmp(&row("10")),
+        Some(std::cmp::Ordering::Equal)
+    );
+}

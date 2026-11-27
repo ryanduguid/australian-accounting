@@ -975,9 +975,10 @@ fn attach_events_bytes(
             problems.push(problem);
             continue;
         }
+        // read_event fails only with a ValueError: its dates and amounts are
+        // parsed, and an amount is refused before it could trap a signal.
         match read_event(&row, i) {
-            Err(Failure::Value(m)) => problems.push(m),
-            Err(other) => return Err(other.into()),
+            Err(failure) => problems.push(failure.message()),
             Ok((employee, qe_day, event)) => {
                 attach_event(lines, &employee, qe_day, event, i, &mut problems);
             }
