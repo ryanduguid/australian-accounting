@@ -23,15 +23,15 @@ fn main() {
 /// it could not flush at shutdown, on stderr, and exited 120; on Windows the
 /// binary exits 1 without that message.
 fn finish(code: i32, out: std::io::Result<()>, err: std::io::Result<()>) -> i32 {
+    const FLUSH_FAILED: i32 = if cfg!(unix) { 120 } else { 1 };
     if let Err(e) = &out {
         if cfg!(unix) {
             let _ = std::io::stderr().write_all(unflushed("stdout", e).as_bytes());
-            return 120;
         }
-        return 1;
+        return FLUSH_FAILED;
     }
     if err.is_err() {
-        return if cfg!(unix) { 120 } else { 1 };
+        return FLUSH_FAILED;
     }
     code
 }
@@ -50,4 +50,45 @@ fn unflushed(stream: &str, e: &std::io::Error) -> String {
         .rfind(" (os error ")
         .map_or(text.as_str(), |i| &text[..i]);
     format!("Exception ignored while flushing sys.{stream}:\n{class}: [Errno {code}] {text}\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{Error, ErrorKind};
+
+    #[test]
+    fn a_stream_that_cannot_be_written_fails_the_run() {
+        let failed = if cfg!(unix) { 120 } else { 1 };
+        let pipe = || Err(Error::from(ErrorKind::BrokenPipe));
+        assert_eq!(finish(0, pipe(), Ok(())), failed);
+        assert_eq!(finish(2, Ok(()), pipe()), failed);
+        assert_eq!(finish(2, Ok(()), Ok(())), 2);
+    }
+
+    #[test]
+    fn the_unflushed_message_names_the_python_exception_class() {
+        let line = |kind| unflushed("stdout", &Error::from(kind));
+        assert_eq!(
+            line(ErrorKind::BrokenPipe),
+            "Exception ignored while flushing sys.stdout:\nBrokenPipeError: [Errno 0] broken pipe\n"
+        );
+        assert!(line(ErrorKind::ConnectionReset).contains("\nConnectionResetError: [Errno 0] "));
+        assert!(line(ErrorKind::WouldBlock).contains("\nBlockingIOError: [Errno 0] "));
+        let other = unflushed("stdout", &Error::other("disk gone"));
+        assert!(
+            other.ends_with("\nOSError: [Errno 0] disk gone\n"),
+            "{other}"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_os_error_keeps_its_errno() {
+        let raw = unflushed("stdout", &Error::from_raw_os_error(32));
+        assert!(
+            raw.ends_with("BrokenPipeError: [Errno 32] Broken pipe\n"),
+            "{raw}"
+        );
+    }
 }

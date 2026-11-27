@@ -406,3 +406,14 @@ fn every_year_boundary() {
         );
     }
 }
+
+/// An intra-group balance naming a receivable the parent's trial balance does
+/// not have is refused, naming the entity, class and account.
+#[test]
+fn an_elimination_from_a_missing_line_is_refused() {
+    let v =
+        edited(|v| v["intra_group_balances"][0]["receivable"]["account"] = json!("Loan to S Ltd"));
+    let e = api::evaluate_coded(CMD, &v).unwrap_err();
+    assert_eq!(e.code, "consolidation_eliminations.account_invalid");
+    assert_eq!(e.message, "P Ltd has no asset line Loan to S Ltd.");
+}
