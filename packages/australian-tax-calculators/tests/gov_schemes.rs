@@ -408,7 +408,8 @@ fn pension(
     financial: &str,
     assets: &str,
 ) -> Value {
-    let mut facts = json!({"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true});
+    let mut facts = json!({"in_australia": true, "not_blind": true, "not_transitional": true, "no_rent_assistance": true,
+                           "underage_de_facto": false, "advance_deduction": false, "armed_services_payment": false, "remote_area": false, "pension_supplement_election": false, "quarterly_energy_supplement": false});
     if relationship == "couple" {
         facts["partner_pensioner"] = json!(true);
     }

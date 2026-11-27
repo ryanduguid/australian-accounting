@@ -635,6 +635,17 @@ fn new_south_wales_reconciles_under_s_83() {
         amounts(&short, SETTLED),
         ["16350.00", "16000.00", "350.00", "0.00"]
     );
+    // s 83(4) reduces a refund only: a shortfall stays payable in full.
+    let refunded = reconciled(
+        "nsw",
+        "1500000.00",
+        "1500000.00",
+        &[("periodic_tax", "16000.00"), ("other_refunds", "100.00")],
+    );
+    assert_eq!(
+        amounts(&refunded, SETTLED),
+        ["16350.00", "16000.00", "350.00", "0.00"]
+    );
     let over = reconciled(
         "nsw",
         "1500000.00",

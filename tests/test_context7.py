@@ -92,5 +92,16 @@ def test_rules_name_every_command_that_takes_a_pay_date() -> None:
     assert {command for command in dated if f"`{command}`" not in rule} == set()
 
 
+def test_the_age_pension_rule_names_every_stated_circumstance() -> None:
+    """The circumstances age-pension's example states false must each be named in its rule."""
+    metadata = (ROOT / "packages/australian-tax-calculators/src/metadata.rs").read_text(encoding="utf-8")
+    example = metadata[metadata.rindex('"age_pension" => vec!['):]
+    facts = json.loads(re.search(r'r#"(\{.*?\})"#', example).group(1))
+    circumstances = {name for name, stated in facts.items() if stated is False}
+    assert len(circumstances) == 6
+    rule = next(rule for rule in CONFIG["rules"] if "`age-pension`'s facts" in rule)
+    assert {name for name in circumstances if name not in rule} == set()
+
+
 def test_folders_are_directories() -> None:
     assert all((ROOT / folder).is_dir() for folder in CONFIG["folders"])
