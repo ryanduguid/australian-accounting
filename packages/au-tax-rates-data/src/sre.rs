@@ -54,16 +54,6 @@ pub enum CompileError {
     Other(&'static str, String),
 }
 
-impl CompileError {
-    /// The exception's `str()`.
-    pub fn text(&self) -> Vec<u32> {
-        match self {
-            CompileError::Pattern(text) => text.clone(),
-            CompileError::Other(_, message) => pts(message),
-        }
-    }
-}
-
 fn pattern_error(msg: Vec<u32>, pattern: &[u32], pos: Option<usize>) -> CompileError {
     let mut text = msg;
     if let Some(pos) = pos {
@@ -1840,10 +1830,6 @@ impl Match {
     /// `match.span(i)`, or None where group `i` did not take part.
     pub fn span(&self, i: usize) -> Option<(usize, usize)> {
         self.spans.get(i).copied().flatten()
-    }
-
-    pub fn start(&self) -> usize {
-        self.span(0).map_or(0, |s| s.0)
     }
 
     pub fn end(&self) -> usize {
