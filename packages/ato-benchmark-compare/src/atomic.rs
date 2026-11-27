@@ -35,20 +35,34 @@ fn create_temporary(
     parent: &PyPath,
     name: &str,
 ) -> Result<(std::path::PathBuf, std::fs::File), Failure> {
-    const LETTERS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789_";
-    let mut seed = std::time::SystemTime::now()
+    let seed = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |t| t.as_nanos() as u64)
         ^ u64::from(std::process::id()).rotate_left(32);
-    for _ in 0..100 {
-        let suffix: String = (0..8)
+    create_temporary_from(parent, name, seed)
+}
+
+/// The 8-letter suffixes `mkstemp` tries, from one seed.
+fn suffixes(mut seed: u64) -> impl Iterator<Item = String> {
+    const LETTERS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789_";
+    std::iter::repeat_with(move || {
+        (0..8)
             .map(|_| {
                 seed ^= seed << 13;
                 seed ^= seed >> 7;
                 seed ^= seed << 17;
                 LETTERS[(seed % LETTERS.len() as u64) as usize] as char
             })
-            .collect();
+            .collect()
+    })
+}
+
+fn create_temporary_from(
+    parent: &PyPath,
+    name: &str,
+    seed: u64,
+) -> Result<(std::path::PathBuf, std::fs::File), Failure> {
+    for suffix in suffixes(seed).take(100) {
         let candidate = parent.fs().join(format!(".{name}.{suffix}.tmp"));
         let mut options = std::fs::OpenOptions::new();
         options.write(true).create_new(true);
@@ -107,5 +121,52 @@ mod tests {
         );
         assert!(staged(&dir).is_empty());
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    fn scratch(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("ato-atomic-{tag}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn a_taken_name_moves_on_to_the_next_suffix() {
+        let dir = scratch("taken");
+        let parent = PyPath::new(&dir.to_string_lossy());
+        let names: Vec<String> = suffixes(7).take(2).collect();
+        assert_ne!(names[0], names[1]);
+        std::fs::write(dir.join(format!(".out.{}.tmp", names[0])), "taken").unwrap();
+        let (path, _) = create_temporary_from(&parent, "out", 7).unwrap();
+        assert_eq!(path, dir.join(format!(".out.{}.tmp", names[1])));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_hundred_taken_names_is_errno_17() {
+        let dir = scratch("full");
+        let parent = PyPath::new(&dir.to_string_lossy());
+        for suffix in suffixes(7).take(100) {
+            std::fs::write(dir.join(format!(".out.{suffix}.tmp")), "taken").unwrap();
+        }
+        assert_eq!(
+            create_temporary_from(&parent, "out", 7).unwrap_err(),
+            Failure::Value("[Errno 17] No usable temporary file name found".into())
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_missing_folder_is_reported_with_its_errno() {
+        let dir = scratch("missing").join("absent");
+        let parent = PyPath::new(&dir.to_string_lossy());
+        let Err(Failure::Value(message)) = create_temporary_from(&parent, "out", 7) else {
+            panic!("a missing folder cannot hold a staged file");
+        };
+        assert!(
+            message.starts_with("[Errno 2] No such file or directory: "),
+            "{message}"
+        );
+        let _ = std::fs::remove_dir_all(dir.parent().unwrap());
     }
 }

@@ -125,3 +125,70 @@ fn an_undecodable_argument_byte_is_written_as_its_surrogate_escape() {
     let text = cli::decode_os(std::ffi::OsStr::from_bytes(b"a\xffb"));
     assert_eq!(cli::output_bytes(&text), b"a\\udcffb".to_vec());
 }
+
+#[test]
+fn a_transposed_command_still_gets_a_suggestion() {
+    // difflib.get_close_matches('campore', [...]) is ['compare']; matching it
+    // stops scanning at a 'p' past the block being searched.
+    let (code, _, err) = run(&["campore"]);
+    assert_eq!(code, 2);
+    assert!(err.contains("maybe you meant 'compare'?"), "{err}");
+}
+
+/// `compare` on the bakery example without its interest row, as JSON.
+fn bakery_without_interest(mapping: &str, confirm: bool) -> String {
+    let dir = std::env::temp_dir().join(format!(
+        "ato-confirm-{}-{}-{confirm}",
+        mapping.len(),
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    let (pnl, reviewed) = (dir.join("pnl.csv"), dir.join("mapping.csv"));
+    let source = include_str!("../examples/bakery-pnl.csv")
+        .replace("Interest received,1200.00,900.00\n", "");
+    std::fs::write(&pnl, source).unwrap();
+    std::fs::write(&reviewed, mapping).unwrap();
+    let (pnl, reviewed) = (pnl.to_str().unwrap(), reviewed.to_str().unwrap());
+    let mut args = vec![
+        "compare",
+        "--profit-and-loss",
+        pnl,
+        "--mapping",
+        reviewed,
+        "--industry",
+        BAKERY,
+        "--amount-column",
+        "1",
+        "--json",
+        "-",
+    ];
+    if confirm {
+        args.push("--confirm-other-income-nil");
+    }
+    let (code, out, err) = run(&args);
+    std::fs::remove_dir_all(&dir).unwrap();
+    assert_eq!(code, 0, "{err}");
+    out
+}
+
+#[test]
+fn a_mapped_other_income_account_missing_from_the_export_blocks_the_nil_confirmation() {
+    let mapping = include_str!("../examples/bakery-mapping.csv");
+    assert!(mapping.contains("Interest received,other_income,"));
+    // The mapping still routes Interest received to other income, so a nil
+    // confirmation cannot stand in for it.
+    assert_eq!(
+        bakery_without_interest(mapping, true),
+        bakery_without_interest(mapping, false)
+    );
+    // With that row gone from the mapping too, the confirmation counts.
+    let without: String = mapping
+        .lines()
+        .filter(|l| !l.starts_with("Interest received,"))
+        .map(|l| format!("{l}\n"))
+        .collect();
+    assert_ne!(
+        bakery_without_interest(&without, true),
+        bakery_without_interest(&without, false)
+    );
+}

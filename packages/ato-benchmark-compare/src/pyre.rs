@@ -710,9 +710,7 @@ mod tests {
             "a{2", r"\uZZZZ", r"\q", "(?:a", "(?<=a", "(?=a)", "(a", r"[a-\d]", "a)",
         ] {
             let built = std::panic::catch_unwind(|| Regex::python(pattern));
-            let Err(payload) = built else {
-                panic!("{pattern} compiled");
-            };
+            let payload = built.map(|_| ()).expect_err(pattern);
             let message = *payload.downcast::<String>().unwrap();
             assert!(
                 message.starts_with("unsupported pattern"),

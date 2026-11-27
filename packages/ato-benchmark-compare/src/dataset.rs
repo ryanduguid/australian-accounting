@@ -533,25 +533,21 @@ pub fn merge_page_ranges(
             "{source_name}: business_type_count does not match business_types"
         ));
     }
-    let excluded: Vec<String> = match raw.get("excluded_pages") {
-        Some(Raw::List(items))
-            if items.iter().all(|i| {
-                matches!(i.get("name"), Some(Raw::Str(_))) && matches!(i, Raw::Dict(_))
-            }) =>
-        {
-            items
-                .iter()
-                .map(|i| match i.get("name") {
-                    Some(Raw::Str(n)) => n.clone(),
-                    _ => unreachable!("checked"),
-                })
-                .collect()
-        }
-        _ => {
-            return fail(format!(
-                "{source_name}: excluded_pages is missing or malformed"
-            ));
-        }
+    // Each excluded page is an object with a str name (`get` is None off a dict).
+    let excluded: Option<Vec<String>> = match raw.get("excluded_pages") {
+        Some(Raw::List(items)) => items
+            .iter()
+            .map(|i| match i.get("name") {
+                Some(Raw::Str(n)) => Some(n.clone()),
+                _ => None,
+            })
+            .collect(),
+        _ => None,
+    };
+    let Some(excluded) = excluded else {
+        return fail(format!(
+            "{source_name}: excluded_pages is missing or malformed"
+        ));
     };
     let mut merged: Vec<BusinessType> = Vec::new();
     for entry in &entries {
@@ -578,27 +574,29 @@ pub fn merge_page_ranges(
                 business_type.name
             ));
         }
-        let bands_raw = match entry.get("turnover_bands") {
-            Some(Raw::List(items)) => Some(items.clone()),
+        // One object per dataset band, in order, each naming that band.
+        let bands_raw: Option<Vec<(&Raw, &Vec<(String, Raw)>)>> = match entry.get("turnover_bands")
+        {
+            Some(Raw::List(items)) if items.len() == business_type.bands.len() => items
+                .iter()
+                .zip(&business_type.bands)
+                .map(|(b, band)| match b {
+                    Raw::Dict(fields) if b.get("band") == Some(&Raw::Str(band.band.clone())) => {
+                        Some((b, fields))
+                    }
+                    _ => None,
+                })
+                .collect(),
             _ => None,
         };
-        let matches_bands = bands_raw.as_ref().is_some_and(|items| {
-            items.len() == business_type.bands.len()
-                && items.iter().zip(&business_type.bands).all(|(b, band)| {
-                    matches!(b, Raw::Dict(_)) && b.get("band") == Some(&Raw::Str(band.band.clone()))
-                })
-        });
-        if !matches_bands {
+        let Some(bands_raw) = bands_raw else {
             return fail(format!(
                 "{source_name}: {shown}: turnover bands do not match the dataset"
             ));
-        }
+        };
         let mut bands = Vec::new();
-        for (band, band_raw) in business_type.bands.iter().zip(bands_raw.unwrap()) {
+        for (band, (band_raw, items)) in business_type.bands.iter().zip(bands_raw) {
             let where_ = format!("{source_name}: {shown}/{}", band.band);
-            let Raw::Dict(items) = &band_raw else {
-                unreachable!("checked")
-            };
             let mut unknown: Vec<&String> = items
                 .iter()
                 .map(|(k, _)| k)
@@ -757,12 +755,11 @@ fn read_data(dir: &DataDir, name: &str) -> Result<Option<(String, String)>, Fail
 /// `load(year, data_dir)`: a benchmark year, by default the most recent.
 pub fn load(year: Option<&str>, dir: &DataDir) -> Result<Dataset, Failure> {
     let available = available_years(dir);
-    if available.is_empty() {
-        let shown = match dir {
-            DataDir::Shipped => "data".to_string(),
-            DataDir::Path(p) => p.display(),
-        };
-        return fail(format!("no benchmark data files found in {shown}"));
+    // The shipped data always holds a year, so only a directory can be empty.
+    if available.is_empty()
+        && let DataDir::Path(p) = dir
+    {
+        return fail(format!("no benchmark data files found in {}", p.display()));
     }
     let chosen = match year {
         Some(y) if !y.is_empty() => y.to_string(),
