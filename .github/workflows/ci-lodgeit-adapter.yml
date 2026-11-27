@@ -91,6 +91,29 @@ jobs:
           fail_ci_if_error: true
           flags: lodgeit-calculator-adapter
 
+  # codecov.yml sets manual_trigger: after this workflow's upload, tell Codecov
+  # to post its statuses again with the adapter's report included. Runs only
+  # when the upload ran, so a run that uploads nothing never pre-empts ci.yml.
+  codecov-notify:
+    name: send Codecov statuses after the adapter upload
+    needs: codecov-rust
+    if: >-
+      !cancelled() && needs.codecov-rust.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # Authenticate with OIDC; no stored token.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          run_command: send-notifications
+          fail_ci_if_error: true
+
   lodgeit-gates:
     needs: [changes, rust]
     if: always()
@@ -115,4 +138,4 @@ jobs:
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/check_gates.py .github/workflows/ci-lodgeit-adapter.yml lodgeit-gates --no-results --exempt codecov-rust
+        run: python3 .github/ci/check_gates.py .github/workflows/ci-lodgeit-adapter.yml lodgeit-gates --no-results --exempt codecov-rust codecov-notify
