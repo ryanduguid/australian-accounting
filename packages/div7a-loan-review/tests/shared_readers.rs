@@ -197,7 +197,7 @@ fn names(data: &[u8]) -> Vec<String> {
 #[test]
 fn a_carriage_return_at_a_chunk_boundary_joins_its_newline() {
     // The reader decodes 8,192 bytes at a time; the \r is the last of the first chunk.
-    let long = "x".repeat(8192 - 6);
+    let long = "x".repeat(8192 - 7);
     let mut data = format!("name\r\n{long}").into_bytes();
     assert_eq!(data.len(), 8191);
     data.extend(b"\r\ny\n");
