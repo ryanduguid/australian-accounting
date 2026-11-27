@@ -206,8 +206,7 @@ fn land(
     if !why.is_empty() {
         return Ok(vec![nil(LAND_ID, why)]);
     }
-    let found = land_tax::surcharge_alone(place.code, value)?;
-    let (mut steps, applied) = found.expect("land-tax has each charged surcharge");
+    let (mut steps, applied) = land_tax::surcharge_alone(place.code, value)?;
     rates.extend(applied);
     for step in &mut steps {
         step.formula = step
