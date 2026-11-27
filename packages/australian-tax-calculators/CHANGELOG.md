@@ -96,6 +96,20 @@
 
 ### Changed
 
+- `age-pension` now works Social Security Act 1991 s 1064(5)(d), (6) and (7)
+  (the $3,247.40 limit for an armed services widow or widower), step 12(c)
+  and Module H (remote area allowance), Module BA4 (an s 1061VA election, from
+  20 September 2026) and C2 (quarterly energy supplement), and refuses
+  s 1064(4), s 1064(5)(c), the step 12(a) and (b) advance deductions and the
+  allowance for a child with the new code `age_pension.case_not_built`.
+  Before, it gave the uncapped or unadjusted rate. `facts` must now state
+  `underage_de_facto`, `advance_deduction`, `armed_services_payment`,
+  `remote_area`, `pension_supplement_election` and
+  `quarterly_energy_supplement` true or false; a call without them is refused
+  with `age_pension.facts_not_stated`. With all 6 false every result is
+  unchanged. `disability-support-pension` and `carer-payment` keep refusing
+  these cases through their own facts and do not take the circumstances.
+
 - `luxury-car-tax` requires `supplied_in` on a refund line. It used to take
   the tax period's year when the field was blank, so a car supplied before
   1 July 2019 could take the $10,000 refund of ss 18-5(3) and 18-10(3) (as

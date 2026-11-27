@@ -5861,7 +5861,14 @@ Added on 26 November 2026, when these were read:
   5.1.8.10, 5.1.10.20, 5.2.2.10 and 5.2.8.10; Services Australia's assets test
   page. The tests meet Services Australia's cut-off points from 20 September
   2026 (assets $745,750 single and $1,121,000 a couple, homeowners; income
-  $2,701.40 and $4,128.00 a fortnight) to the cent.
+  $2,701.40 and $4,128.00 a fortnight) to the cent. Added on 27 November
+  2026: s 1064(4) to (7), Modules BA, C and H and step 12 of the same
+  compilation, s 1191's CPI table (which indexes neither Table H nor the
+  $3,247.40 limit) and the Social Security Guide 5.1.9.10 (minimum pension
+  supplement amount from 20 September 2026). Tests worked by hand from the Act
+  give the limit, the allowance (including H1(aa)(ii)), the election and the
+  quarterly energy supplement; a golden file holds every result from before
+  the change for 96 inputs outside the new rules.
 - Family tax benefit Part A: A New Tax System (Family Assistance) Act 1999
   (C2004A00490, compilation 124 of 1 July 2026), Schedule 1; the Department
   of Social Services' rates list for 1 July 2026; Services Australia's

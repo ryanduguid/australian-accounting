@@ -688,7 +688,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "age_pension",
-        "One fortnight's age pension rate for a single person, or for each member of a couple who both receive it, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064): the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income and the reduction for assets, not below nil. Income is the stated ordinary income per fortnight plus deemed income from financial assets (s 1082: the below threshold rate up to the deeming threshold and the above threshold rate on the rest, per year / 26); its reduction is 50% of income over the free area, or for a couple 25% of the couple's combined income over their combined free area (s 1064-E2). The assets reduction is $19.50 a year for each whole $250 of assets over the assets value limit for the person's home ownership, a couple's assets halved against each member's limit (s 1064-G2, G4 and G7), per year / 26. Rates are the DSS Social Security Guide's indexed amounts for the day. Excludes rent assistance, the work bonus (the stated income is after it), transitional rates, the blind (Calculator B), illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
+        "One fortnight's age pension rate for a single person, or for each member of a couple who both receive it, on a day from 20 September 2025 to 19 March 2027, under Pension Rate Calculator A (Social Security Act 1991 s 1064): the maximum payment rate (MBR, pension supplement and energy supplement, per year / 26) less the greater of the reduction for ordinary income and the reduction for assets, not below nil. Income is the stated ordinary income per fortnight plus deemed income from financial assets (s 1082: the below threshold rate up to the deeming threshold and the above threshold rate on the rest, per year / 26); its reduction is 50% of income over the free area, or for a couple 25% of the couple's combined income over their combined free area (s 1064-E2). The assets reduction is $19.50 a year for each whole $250 of assets over the assets value limit for the person's home ownership, a couple's assets halved against each member's limit (s 1064-G2, G4 and G7), per year / 26. Rates are the DSS Social Security Guide's indexed amounts for the day. Where stated, an s 1061VA election takes the minimum pension supplement amount out of the maximum rate (s 1064-BA4, from 20 September 2026), quarterly energy supplement leaves the energy supplement out (C2), the remote area allowance is added (step 12(c), Module H) and the rate is held to $3,247.40 a year for an armed services widow or widower (s 1064(5)(d), (6) and (7)). Refuses s 1064(4), s 1064(5)(c), the step 12(a) and (b) advance deductions and the allowance for a child (H2). Excludes rent assistance, the work bonus (the stated income is after it), transitional rates, the blind (Calculator B), illness-separated, respite and partner-not-pensioner couples, residence and portability rules, compensation, deprivation, income streams' own rules and hardship.",
     ),
     (
         "ftb_part_a",
@@ -3171,6 +3171,7 @@ pub const EXTRA_SOURCES: &[(&str, &[&str])] = &[
         "age_pension",
         &[
             "https://guides.dss.gov.au/social-security-guide/5/1/8/10",
+            "https://guides.dss.gov.au/social-security-guide/5/1/9/10",
             "https://guides.dss.gov.au/social-security-guide/5/2/2/10",
             "https://guides.dss.gov.au/social-security-guide/5/2/8/10",
             "https://guides.dss.gov.au/social-security-guide/4/10/3",
@@ -4155,6 +4156,10 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
         "financial_assets is more than assets, which include them.",
     ),
     (
+        "age_pension.case_not_built",
+        "A stated circumstance needs a provision the command does not work: s 1064(4), s 1064(5)(c), an advance deduction under step 12, the remote area allowance for a child, or an s 1061VA election before 20 September 2026 or beside the s 1064(5) to (7) limit.",
+    ),
+    (
         "age_pension.date_invalid",
         "date is not a YYYY-MM-DD day in the year.",
     ),
@@ -4168,7 +4173,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "age_pension.facts_not_stated",
-        "A fact the worksheet needs was not stated true: in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together.",
+        "A fact the worksheet needs was not stated true (in Australia, not blind, not transitional, no rent assistance or, for a couple, both pensioners living together), or a circumstance was not stated true or false.",
     ),
     (
         "age_pension.relationship_invalid",
