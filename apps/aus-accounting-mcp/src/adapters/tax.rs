@@ -70,17 +70,18 @@ const NARROWED_SCOPE: [(&str, &str, &str); 7] = [
 ];
 
 /// A worksheet's scope as this server serves it: no wider than the periods its input
-/// schema admits.
-fn served_scope(kind: &str, record: &mut Value) {
-    if let Some(text) = record["scope"].as_str() {
-        let narrowed = NARROWED_SCOPE
-            .iter()
-            .filter(|(narrowed, ..)| *narrowed == kind)
-            .fold(text.to_owned(), |text, (_, wide, admitted)| {
-                text.replace(wide, admitted)
-            });
-        record["scope"] = json!(narrowed);
-    }
+/// schema admits. The engine writes a scope string into every worksheet result and
+/// catalogue entry.
+fn served_scope(kind: &str, record: &mut Value) -> Result<(), String> {
+    let text = record["scope"].as_str().ok_or("worksheet scope")?;
+    let narrowed = NARROWED_SCOPE
+        .iter()
+        .filter(|(narrowed, ..)| *narrowed == kind)
+        .fold(text.to_owned(), |text, (_, wide, admitted)| {
+            text.replace(wide, admitted)
+        });
+    record["scope"] = json!(narrowed);
+    Ok(())
 }
 
 /// The engine's worksheets, periods and optional inputs this server's input schema can
@@ -101,7 +102,7 @@ pub fn advertised_worksheets() -> Result<Value, String> {
             .strip_prefix('#')
             .and_then(|pointer| schema.pointer(pointer))
             .ok_or("facts variant")?;
-        served_scope(kind, entry);
+        served_scope(kind, entry)?;
         let fields = entry.as_object_mut().ok_or("worksheet entry")?;
         if let Some(serde_json::Value::Object(optional)) = fields.get_mut("optional_inputs") {
             optional.retain(|name, _| variant["properties"].get(name).is_some());
@@ -109,15 +110,17 @@ pub fn advertised_worksheets() -> Result<Value, String> {
                 fields.remove("optional_inputs");
             }
         }
-        if let Some(periods) = entry["supported_periods"].as_array_mut() {
-            periods.retain(|period| {
-                period["arguments"].as_object().is_none_or(|arguments| {
-                    arguments
-                        .iter()
-                        .all(|(name, value)| admits(&variant["properties"][name], value))
-                })
-            });
-        }
+        // The engine lists every entry's supported periods.
+        let periods = entry["supported_periods"]
+            .as_array_mut()
+            .ok_or("worksheet periods")?;
+        periods.retain(|period| {
+            period["arguments"].as_object().is_none_or(|arguments| {
+                arguments
+                    .iter()
+                    .all(|(name, value)| admits(&variant["properties"][name], value))
+            })
+        });
     }
     Ok(catalogue)
 }
@@ -158,7 +161,7 @@ pub fn calculate(input: &Value) -> Result<Value, String> {
         }
     }
     let mut result = australian_tax_calculators::api::evaluate(&kind, &facts)?;
-    served_scope(&kind.replace('-', "_"), &mut result);
+    served_scope(&kind.replace('-', "_"), &mut result)?;
     if input["file_note"] == true {
         result["file_note"] = json!(file_note(&input["facts"], &result)?);
     }

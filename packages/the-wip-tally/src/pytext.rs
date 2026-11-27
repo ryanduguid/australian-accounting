@@ -164,5 +164,29 @@ mod tests {
         assert_eq!(repr("caf\u{e9}"), "'caf\u{e9}'");
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
+        assert_eq!(repr("a\\b\tc\nd\re"), "'a\\\\b\\tc\\nd\\re'");
+    }
+
+    #[test]
+    fn os_text_round_trips_surrogates_and_a_genuine_escape_character() {
+        let mut text = String::new();
+        for cp in [0x41, 0xDC80, ESCAPE as u32, 0x42] {
+            push_code_point(&mut text, cp);
+        }
+        assert_eq!(text, "A\u{10F7FF}\u{10FC80}\u{10F7FF}\u{10F7FF}B");
+        assert_eq!(
+            code_points(&text).collect::<Vec<_>>(),
+            [0x41, 0xDC80, ESCAPE as u32, 0x42]
+        );
+        assert_eq!(py_len(&text), 4);
+        // An escape character not followed by a carried pair stands for itself.
+        assert_eq!(
+            code_points("\u{10F7FF}x").collect::<Vec<_>>(),
+            [ESCAPE as u32, 'x' as u32]
+        );
+        assert_eq!(
+            code_points("\u{10F7FF}").collect::<Vec<_>>(),
+            [ESCAPE as u32]
+        );
     }
 }

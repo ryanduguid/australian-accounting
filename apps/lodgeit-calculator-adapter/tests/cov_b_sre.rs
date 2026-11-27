@@ -836,6 +836,11 @@ fn patterns_compile_and_match_as_cpython_does() {
             Spans(&[Some((0, 1)), Some((0, 1)), None]),
         ),
         ("", 0, 'f', "", Spans(&[Some((0, 0))])),
+        ("[\u{1f600}a]", 0, 'f', "\u{1f600}", Spans(&[Some((0, 1))])),
+        ("[\u{1f600}a]", 0, 'f', "\u{1f601}", NoMatch),
+        ("[\u{1f600}a]", 2, 'f', "\u{1f600}", Spans(&[Some((0, 1))])),
+        ("[\u{10400}]", 2, 'f', "\u{10428}", Spans(&[Some((0, 1))])),
+        ("[\u{10400}]", 2, 'f', "\u{10401}", NoMatch),
         // END CPYTHON ROWS
     ];
     let mut wrong = Vec::new();

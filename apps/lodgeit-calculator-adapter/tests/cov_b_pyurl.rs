@@ -286,6 +286,36 @@ fn urls_split_and_rejoin_as_cpython_does() {
                 Ok(None),
             )),
         ),
+        (
+            "http://h\u{e9}/",
+            Ok((
+                ["http", "h\u{e9}", "/", "", ""],
+                "http://h\u{e9}/",
+                Some("h\u{e9}"),
+                Ok(None),
+            )),
+        ),
+        (
+            "http://[u@h]/",
+            Err("'h]' does not appear to be an IPv4 or IPv6 address"),
+        ),
+        (
+            "http://[1::2:]/",
+            Err("'1::2:' does not appear to be an IPv4 or IPv6 address"),
+        ),
+        (
+            "http://[1:2:3:4::5:6:7:8]/",
+            Err("'1:2:3:4::5:6:7:8' does not appear to be an IPv4 or IPv6 address"),
+        ),
+        (
+            "http://\u{ff48}/",
+            Ok((
+                ["http", "\u{ff48}", "/", "", ""],
+                "http://\u{ff48}/",
+                Some("\u{ff48}"),
+                Ok(None),
+            )),
+        ),
         // END CPYTHON ROWS
     ];
     let mut wrong = Vec::new();

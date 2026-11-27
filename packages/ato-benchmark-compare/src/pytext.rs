@@ -164,5 +164,34 @@ mod tests {
         assert_eq!(repr("caf\u{e9}"), "'caf\u{e9}'");
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
+        assert_eq!(repr("a\\b\tc\nd\re"), r"'a\\b\tc\nd\re'");
+    }
+
+    #[test]
+    fn os_text_round_trips_the_escape_and_lone_surrogates() {
+        let mut text = String::new();
+        for cp in [u32::from('a'), u32::from(ESCAPE), 0xDC80, u32::from('b')] {
+            push_code_point(&mut text, cp);
+        }
+        // A genuine ESCAPE is doubled; a surrogate becomes ESCAPE + its carrier.
+        assert_eq!(text, "a\u{10F7FF}\u{10F7FF}\u{10F7FF}\u{10FC80}b");
+        assert_eq!(
+            code_points(&text).collect::<Vec<_>>(),
+            [u32::from('a'), u32::from(ESCAPE), 0xDC80, u32::from('b')]
+        );
+        assert_eq!(py_len(&text), 4);
+    }
+
+    #[test]
+    fn an_unpaired_escape_reads_as_itself() {
+        // JSON text is not escaped: ESCAPE before an ordinary char, or last, is one code point.
+        assert_eq!(
+            code_points("\u{10F7FF}x").collect::<Vec<_>>(),
+            [u32::from(ESCAPE), u32::from('x')]
+        );
+        assert_eq!(
+            code_points("\u{10F7FF}").collect::<Vec<_>>(),
+            [u32::from(ESCAPE)]
+        );
     }
 }

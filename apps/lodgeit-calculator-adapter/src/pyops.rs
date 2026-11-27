@@ -177,6 +177,36 @@ pub(crate) fn type_error(text: &str) -> Exc {
     Exc::msg("TypeError", text)
 }
 
+/// How a `json.loads` call with no hooks failed, as an `except
+/// json.JSONDecodeError` clause sees it.
+pub(crate) enum LoadsError {
+    /// `json.JSONDecodeError`, which the clause catches: its message.
+    Decode(String),
+    /// Any other exception, which escapes the clause.
+    Other(Exc),
+}
+
+/// `pyjson`'s error for a `json.loads` with no hooks: the digit limit's plain
+/// `ValueError` and a `RecursionError` escape. `Hook` and `Duplicate` come
+/// only from a parse hook, which such a call has none of; either would be
+/// the `ValueError` a hook raises.
+pub(crate) fn loads_error(error: crate::pyjson::DecodeError) -> LoadsError {
+    use crate::pyjson::{DecodeError, recursion_message};
+    match error {
+        DecodeError::Invalid(m) if m.starts_with("Exceeds the limit") => {
+            LoadsError::Other(Exc::msg("ValueError", &m))
+        }
+        DecodeError::Invalid(m) => LoadsError::Decode(m),
+        DecodeError::Recursion(kind) => {
+            LoadsError::Other(Exc::msg("RecursionError", &recursion_message(kind)))
+        }
+        DecodeError::Hook(m) => LoadsError::Other(Exc::msg("ValueError", &m)),
+        DecodeError::Duplicate => {
+            LoadsError::Other(Exc::msg("ValueError", "duplicate JSON object member"))
+        }
+    }
+}
+
 pub(crate) fn key_error(key: &str) -> Exc {
     Exc::msg("KeyError", &py::repr_str(key))
 }
@@ -659,6 +689,50 @@ mod tests {
         assert_eq!(
             e.traceback(),
             "Traceback (most recent call last):\nValueError: x\nfirst\nsecond\n"
+        );
+    }
+}
+
+#[cfg(test)]
+mod loads_error_tests {
+    use super::{LoadsError, loads_error, pts};
+    use crate::pyjson::{DecodeError, recursion_message};
+
+    /// `Ok(message)` when the clause catches the error, else the class and
+    /// message that escape.
+    fn caught(error: DecodeError) -> Result<String, (&'static str, Vec<u32>)> {
+        match loads_error(error) {
+            LoadsError::Decode(m) => Ok(m),
+            LoadsError::Other(exc) => Err((exc.class, exc.text)),
+        }
+    }
+
+    #[test]
+    fn only_a_decode_error_is_caught() {
+        assert_eq!(
+            caught(DecodeError::Invalid("Expecting value".into())),
+            Ok("Expecting value".to_owned())
+        );
+        let limit = "Exceeds the limit (4300 digits) for integer string conversion";
+        assert_eq!(
+            caught(DecodeError::Invalid(limit.into())),
+            Err(("ValueError", pts(limit)))
+        );
+        assert_eq!(
+            caught(DecodeError::Recursion("array")),
+            Err(("RecursionError", pts(&recursion_message("array"))))
+        );
+    }
+
+    #[test]
+    fn a_hook_error_escapes_as_a_value_error() {
+        assert_eq!(
+            caught(DecodeError::Hook("bad float".into())),
+            Err(("ValueError", pts("bad float")))
+        );
+        assert_eq!(
+            caught(DecodeError::Duplicate),
+            Err(("ValueError", pts("duplicate JSON object member")))
         );
     }
 }

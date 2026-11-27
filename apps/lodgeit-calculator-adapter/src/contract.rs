@@ -16,8 +16,11 @@ use sha2::{Digest, Sha256};
 use crate::decimal::Decimal;
 use crate::errors::CONTRACT;
 use crate::p;
-use crate::pyjson::{self, DecodeError, Json, Numbers};
-use crate::pyops::{Exc, R, S, get_attr, getitem, hash_key, iterate, pts, sorted_set, type_error};
+use crate::pyjson::{self, Json, Numbers};
+use crate::pyops::{
+    Exc, LoadsError, R, S, get_attr, getitem, hash_key, iterate, loads_error, pts, sorted_set,
+    type_error,
+};
 use crate::pyos::{OsError, Style};
 use crate::pypath::PyPath;
 use crate::pyvalue::{Key, item_eq, py_eq, repr, str_points, type_name};
@@ -63,12 +66,12 @@ pub(crate) fn range_gap(
 /// replaces the checkout's package folder.
 #[doc(hidden)]
 pub fn contracts_dirs() -> Vec<PyPath> {
-    let mut package = env!("CARGO_MANIFEST_DIR").to_owned();
-    if cfg!(feature = "differential")
-        && let Some(root) = std::env::var_os("LODGEIT_ADAPTER_PACKAGE")
-    {
-        package = root.to_string_lossy().into_owned();
-    }
+    let package = env!("CARGO_MANIFEST_DIR").to_owned();
+    // Compiled only with the feature, so the default build measures no line
+    // it cannot run.
+    #[cfg(feature = "differential")]
+    let package = std::env::var_os("LODGEIT_ADAPTER_PACKAGE")
+        .map_or(package, |root| root.to_string_lossy().into_owned());
     let mut dirs = vec![PyPath::new(&package).join("contracts")];
     if let Some(parent) = std::env::current_exe()
         .ok()
@@ -247,21 +250,11 @@ pub fn load(name: &str, directory: Option<&PyPath>) -> R<Contract> {
         )))
     };
     let text = crate::py::decode_utf8(&payload).map_err(|e| invalid(e.to_string()))?;
-    let data = match pyjson::loads_standard(&text) {
-        Ok(data) => data,
-        // The digit limit is a plain ValueError, which the except clause missed.
-        Err(DecodeError::Invalid(m)) if m.starts_with("Exceeds the limit") => {
-            return Err(Exc::new("ValueError", pts(&m)));
-        }
-        Err(DecodeError::Invalid(m)) => return Err(invalid(m)),
-        Err(DecodeError::Recursion(kind)) => {
-            return Err(Exc::new(
-                "RecursionError",
-                pts(&pyjson::recursion_message(kind)),
-            ));
-        }
-        Err(other) => unreachable!("json.loads has no hooks here: {other:?}"),
-    };
+    // The digit limit is a plain ValueError, which the except clause missed.
+    let data = pyjson::loads_standard(&text).map_err(|error| match loads_error(error) {
+        LoadsError::Decode(m) => invalid(m),
+        LoadsError::Other(exc) => exc,
+    })?;
     let present = py_set(&data)?;
     let mut missing: Vec<&str> = REQUIRED
         .into_iter()
@@ -700,6 +693,91 @@ mod tests {
         ));
     }
 
+    // The OpenAPI checks have no Python original (commit 336a075 added them
+    // after the port); these cases pin the refusals and findings the source
+    // states.
+    fn openapi(reviewed: &str, calculators: &str, document: &str) -> R<Vec<String>> {
+        let exact = |text: &str| pyjson::loads_numbers(text, Numbers::Exact).unwrap();
+        compare_openapi(&exact(reviewed), &exact(calculators), &exact(document))
+            .map(|findings| findings.iter().map(|f| text(f)).collect())
+    }
+
+    fn openapi_refusal(reviewed: &str, calculators: &str) -> String {
+        let error = openapi(reviewed, calculators, "{}").unwrap_err();
+        assert_eq!(error.class, CONTRACT);
+        text(&error.text)
+    }
+
+    #[test]
+    fn malformed_reviewed_openapi_sections_are_refused() {
+        assert_eq!(
+            openapi_refusal("[]", "{}"),
+            "reviewed OpenAPI input schemas must be an object"
+        );
+        assert_eq!(
+            openapi_refusal(r#"{"\ud800": {}}"#, "{}"),
+            "reviewed OpenAPI schema name is not UTF-8"
+        );
+        assert_eq!(
+            openapi_refusal("{}", "[]"),
+            "reviewed calculators must be an object"
+        );
+        assert_eq!(
+            openapi_refusal("{}", r#"{"c": {"input_schema_ref": "r"}}"#),
+            "reviewed calculator has no route"
+        );
+    }
+
+    #[test]
+    fn schemas_compare_by_shape_and_by_numeric_value() {
+        // A non-object "properties" and a non-array "anyOf" are compared as
+        // they stand; 1 and 1.0 are the same literal.
+        let reviewed = r#"{"S": {"properties": 5, "anyOf": 6, "minimum": 1, "title": "a"}}"#;
+        let live = |minimum: &str| {
+            format!(
+                r#"{{"components": {{"schemas": {{"S": {{"properties": 5, "anyOf": 6,
+                    "minimum": {minimum}, "title": "b"}}}}}}}}"#
+            )
+        };
+        assert!(openapi(reviewed, "{}", &live("1.0")).unwrap().is_empty());
+        assert_eq!(
+            openapi(reviewed, "{}", &live("1.5")).unwrap(),
+            ["live OpenAPI input schema S changed"]
+        );
+        assert_eq!(
+            openapi(r#"{"S": {"minimum": 1.0}}"#, "{}", &live("2")).unwrap(),
+            ["live OpenAPI input schema S changed"]
+        );
+    }
+
+    #[test]
+    fn unreadable_parameter_lists_are_reported_not_guessed() {
+        let route = "/v1/x";
+        let check = |item: &str| {
+            check_request_parameters(&Json::Null, &pyjson::loads_standard(item).unwrap(), route)
+                .iter()
+                .map(|f| text(f))
+                .collect::<Vec<_>>()
+        };
+        let unread = [format!(
+            "live OpenAPI parameters for {route} could not be read"
+        )];
+        assert_eq!(check(r#"{"parameters": {}}"#), unread);
+        assert_eq!(check(r#"{"parameters": [{"in": "query"}]}"#), unread);
+        assert_eq!(
+            check(r#"{"parameters": [{"in": "query", "name": "a", "required": "yes"}]}"#),
+            unread
+        );
+        assert_eq!(
+            check(
+                r#"{"parameters": [{"in": "query", "name": "a"}, {"in": "query", "name": "a"}]}"#
+            ),
+            unread
+        );
+        // With no "required", a parameter is optional and needs nothing sent.
+        assert!(check(r#"{"parameters": [{"in": "query", "name": "a"}]}"#).is_empty());
+    }
+
     #[test]
     fn post_parameters_include_inherited_references_and_allow_operation_overrides() {
         let document = pyjson::loads_standard(
@@ -766,14 +844,14 @@ mod tests {
             r#"{"b": {"supported_periods": ["p1", "p2"], "input_schema_ref": "r1"},
                 "c": {"supported_periods": []}}"#,
         );
-        let live = pyjson::loads_standard(
-            r#"[{"calc_uri": "b", "supported_periods": ["p2", "p3"]}, 5, {"calc_uri": ""},
+        let live = iterate(
+            &pyjson::loads_standard(
+                r#"[{"calc_uri": "b", "supported_periods": ["p2", "p3"]}, 5, {"calc_uri": ""},
                 {"calc_uri": "a"}, {"calc_uri": "d"}, {"calc_uri": "d"}]"#,
+            )
+            .unwrap(),
         )
         .unwrap();
-        let Json::Array(live) = live else {
-            unreachable!()
-        };
         let findings: Vec<String> = compare(&contract, &live)
             .unwrap()
             .iter()
