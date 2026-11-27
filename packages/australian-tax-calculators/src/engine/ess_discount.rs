@@ -220,7 +220,7 @@ pub fn ess_discount(args: &EssDiscountArgs) -> Result<Value> {
         let ok = relies_on_4(interest, assessed.as_ref(), &sacrifice)?;
         let row = match &mut interest.state {
             State::Held(held) => {
-                let a = assessed.expect("assessed every held interest");
+                let a = assessed.as_ref().expect("assessed every held interest");
                 let ctx = Context {
                     number: interest.number,
                     kind: interest.kind,
