@@ -425,6 +425,12 @@ fn cash_forecast_dates_weeks_and_refuses_as_the_site_does() {
             "{delayed:?}"
         );
     }
+    let mut listed = cash("0", last.clone(), "0", None);
+    listed["delayed_receipt"] = json!([1, "1", 1]);
+    assert_eq!(
+        code("cash-forecast", &listed),
+        "cash_forecast.delayed_receipt_invalid"
+    );
     let mut extra = cash("0", last, "0", None);
     extra["extra"] = json!(1);
     assert_eq!(code("cash-forecast", &extra), "input.field_unknown");
