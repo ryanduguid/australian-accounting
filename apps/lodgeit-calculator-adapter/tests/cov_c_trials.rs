@@ -81,6 +81,84 @@ fn an_amount_python_decimal_refuses_is_refused() {
     );
 }
 
+/// `Decimal(list)` is CPython's `(sign, digits, exponent)` form. Each expected
+/// value is CPython 3.15.0's `str(Decimal(json.loads(given)))`, or its
+/// exception as `Class: text`, on Linux and Windows alike.
+#[test]
+fn an_amount_given_as_a_list_reads_as_python_decimal_reads_a_tuple() {
+    let cases = [
+        (
+            "[1, 2]",
+            "ValueError: argument must be a sequence of length 3",
+        ),
+        ("[]", "ValueError: argument must be a sequence of length 3"),
+        (
+            "[2, [1], 0]",
+            "ValueError: sign must be an integer with the value 0 or 1",
+        ),
+        (
+            "[\"0\", [1], 0]",
+            "ValueError: sign must be an integer with the value 0 or 1",
+        ),
+        ("[true, [1, 5], -1]", "-1.5"),
+        (
+            "[18446744073709551616, [1], 0]",
+            "OverflowError: Python int too large to convert to C long",
+        ),
+        (
+            "[0, [1, 2], \"x\"]",
+            "ValueError: string argument in the third position must be 'F', 'n' or 'N'",
+        ),
+        ("[0, [1, 2], \"F\"]", "Infinity"),
+        ("[1, [5], \"F\"]", "-Infinity"),
+        ("[0, [1, 2], \"n\"]", "NaN12"),
+        ("[1, [], \"N\"]", "-sNaN"),
+        ("[0, [1], 1.5]", "ValueError: exponent must be an integer"),
+        (
+            "[0, [1], 18446744073709551616]",
+            "OverflowError: Python int too large to convert to C ssize_t",
+        ),
+        (
+            "[0, \"12\", 0]",
+            "ValueError: coefficient must be a tuple of digits",
+        ),
+        ("[0, [], 3]", "0E+3"),
+        ("[0, [2, 5], -2]", "0.25"),
+        (
+            "[0, [1, 10], 0]",
+            "ValueError: coefficient must be a tuple of digits",
+        ),
+        (
+            "[0, [1, -1], 0]",
+            "ValueError: coefficient must be a tuple of digits",
+        ),
+        (
+            "[0, [1, \"2\"], 0]",
+            "ValueError: coefficient must be a tuple of digits",
+        ),
+        (
+            "[0, [18446744073709551616], 0]",
+            "OverflowError: Python int too large to convert to C long",
+        ),
+        (
+            "[0, [1, 10], \"F\"]",
+            "ValueError: coefficient must be a tuple of digits",
+        ),
+        ("[0, [0, 0, 7], 0]", "7"),
+        (
+            "{}",
+            "TypeError: conversion from dict to Decimal is not supported",
+        ),
+    ];
+    for (given, expected) in cases {
+        let shown = match with_field("amalgamated_base", json(given)) {
+            Ok(cases) => cases[0].amalgamated_base.to_sci_string(),
+            Err(e) => format!("{}: {}", e.class, text(&e.text)),
+        };
+        assert_eq!(shown, expected, "Decimal({given})");
+    }
+}
+
 #[test]
 fn a_field_of_the_wrong_type_names_what_it_should_be() {
     let cases = [

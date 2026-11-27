@@ -90,13 +90,15 @@ impl Case {
     }
 }
 
-/// `Decimal(value)` for a str, an int or a float.
+/// `Decimal(value)` for a str, an int, a float or a list (CPython's
+/// `(sign, digits, exponent)` form).
 pub(super) fn decimal(value: &Json) -> R<Decimal> {
     match value {
         Json::Int(i) => Ok(Decimal::from_bigint(i)),
         Json::Bool(b) => Ok(Decimal::from_int(i64::from(*b))),
         Json::Float(f) => Ok(Decimal::from_float(*f)),
         Json::Str(s) => Decimal::parse_points(&s.code_points()).map_err(conversion),
+        Json::Array(items) => Decimal::parse_points(&dectuple_as_str(items)?).map_err(conversion),
         other => Err(Exc::msg(
             "TypeError",
             &format!(
@@ -105,6 +107,91 @@ pub(super) fn decimal(value: &Json) -> R<Decimal> {
             ),
         )),
     }
+}
+
+/// `_decimal.c`'s `dectuple_as_str`: the string a `[sign, digits, exponent]`
+/// list stands for, with CPython's checks in CPython's order.
+fn dectuple_as_str(items: &[Json]) -> R<Vec<u32>> {
+    let [sign, digits, exponent] = items else {
+        return Err(Exc::msg(
+            "ValueError",
+            "argument must be a sequence of length 3",
+        ));
+    };
+    let bad_sign = || {
+        Exc::msg(
+            "ValueError",
+            "sign must be an integer with the value 0 or 1",
+        )
+    };
+    let sign: std::ffi::c_long = c_int(&py_int(sign).ok_or_else(bad_sign)?, "long")?;
+    if sign != 0 && sign != 1 {
+        return Err(bad_sign());
+    }
+    let mut out = String::from(if sign == 1 { "-" } else { "+" });
+    let mut exp = None;
+    match exponent {
+        Json::Str(s) => out.push_str(match s.code_points().as_slice() {
+            [0x46] => "Inf",
+            [0x6E] => "NaN",
+            [0x4E] => "sNaN",
+            _ => {
+                return Err(Exc::msg(
+                    "ValueError",
+                    "string argument in the third position must be 'F', 'n' or 'N'",
+                ));
+            }
+        }),
+        other => {
+            let bad = || Exc::msg("ValueError", "exponent must be an integer");
+            exp = Some(c_int::<isize>(&py_int(other).ok_or_else(bad)?, "ssize_t")?);
+        }
+    }
+    let bad_digits = || Exc::msg("ValueError", "coefficient must be a tuple of digits");
+    let Json::Array(digits) = digits else {
+        return Err(bad_digits());
+    };
+    if digits.is_empty() && exp.is_some() {
+        out.push('0');
+    }
+    let infinite = out.ends_with("Inf");
+    for digit in digits {
+        let digit: std::ffi::c_long = c_int(&py_int(digit).ok_or_else(bad_digits)?, "long")?;
+        let digit = u32::try_from(digit)
+            .ok()
+            .and_then(|d| char::from_digit(d, 10))
+            .ok_or_else(bad_digits)?;
+        if !infinite {
+            out.push(digit);
+        }
+    }
+    if let Some(exp) = exp {
+        out.push_str(&format!("E{exp}"));
+    }
+    Ok(pts(&out))
+}
+
+/// The int a JSON value is to Python (`bool` is an `int`), or None.
+fn py_int(value: &Json) -> Option<num_bigint::BigInt> {
+    match value {
+        Json::Int(i) => Some(i.clone()),
+        Json::Bool(b) => Some(u8::from(*b).into()),
+        _ => None,
+    }
+}
+
+/// `PyLong_AsLong` and `PyLong_AsSsize_t`: the int as a C `name`, or
+/// CPython's `OverflowError`.
+fn c_int<T: for<'a> TryFrom<&'a num_bigint::BigInt>>(
+    value: &num_bigint::BigInt,
+    name: &str,
+) -> R<T> {
+    T::try_from(value).map_err(|_| {
+        Exc::msg(
+            "OverflowError",
+            &format!("Python int too large to convert to C {name}"),
+        )
+    })
 }
 
 pub(super) fn text(value: &Json) -> R<String> {
