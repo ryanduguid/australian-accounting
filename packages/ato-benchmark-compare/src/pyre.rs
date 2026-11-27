@@ -660,4 +660,61 @@ mod tests {
         let cleaned = Regex::ignore_case(r"[\s$,()]|CR$|DR$");
         assert_eq!(cleaned.sub("", "$ (1,234.50) cr"), "1234.50");
     }
+
+    #[test]
+    fn sub_of_an_empty_match_steps_past_each_character() {
+        // re.sub("x*", "-", "abc") == "-a-b-c-"
+        assert_eq!(Regex::python("x*").sub("-", "abc"), "-a-b-c-");
+        assert_eq!(Regex::python("a+?").sub("-", "aaa"), "---");
+    }
+
+    #[test]
+    fn escapes_and_categories_follow_python() {
+        assert!(Regex::python(r"\w+").fullmatch("h\u{e9}llo_1"));
+        assert!(Regex::python(r"\W\D\S").fullmatch("!a!"));
+        assert!(!Regex::python(r"\D").fullmatch("1"));
+        assert!(!Regex::python(r"\S").fullmatch(" "));
+        assert!(Regex::python(r"\n\t\rA\.").fullmatch("\n\t\rA."));
+        assert!(!Regex::python(r"\.").fullmatch("x"));
+        assert!(Regex::python(r"[\n\d]+").fullmatch("\n1\n"));
+        assert!(Regex::python(r"a\B").search("ab"));
+        assert!(!Regex::python(r"a\B").search("a b"));
+    }
+
+    #[test]
+    fn any_stops_at_a_newline() {
+        assert!(Regex::python(".").fullmatch("a"));
+        assert!(!Regex::python(".").fullmatch("\n"));
+        assert!(Regex::python(".*b").fullmatch("aab"));
+        assert!(!Regex::python(".*b").fullmatch("a\nb"));
+        assert!(Regex::python("(?:.|xy)z").fullmatch("az"));
+        assert!(!Regex::python("(?:.|xy)z").fullmatch("\nz"));
+    }
+
+    #[test]
+    fn lazy_and_possessive_repeats_backtrack_as_python_does() {
+        assert!(Regex::python("a*?b").fullmatch("aab"));
+        assert!(Regex::python("a{1,3}?b").fullmatch("aaab"));
+        assert!(Regex::python("(?:ab)*?c").fullmatch("ababc"));
+        assert!(Regex::python("(?:a|ab)*?c").fullmatch("abac"));
+        assert!(Regex::python("(?:a|ab){2}c").fullmatch("aabc"));
+        // A possessive repeat keeps each iteration's first match.
+        assert!(Regex::python("(?:ab|a)++c").fullmatch("ababc"));
+        assert!(!Regex::python("(?:a|ab)++c").fullmatch("abc"));
+        assert!(!Regex::python("(?:a|ab){2,}+c").fullmatch("ac"));
+    }
+
+    #[test]
+    fn unsupported_patterns_are_programming_errors() {
+        for pattern in [
+            "a{2", r"\uZZZZ", r"\q", "(?:a", "(?<=a", "(?=a)", "(a", r"[a-\d]", "a)",
+        ] {
+            let built = std::panic::catch_unwind(|| Regex::python(pattern));
+            let message = *built.unwrap_err().downcast::<String>().unwrap();
+            assert!(
+                message.starts_with("unsupported pattern"),
+                "{pattern}: {message}"
+            );
+        }
+    }
 }
