@@ -25,6 +25,13 @@ fn run_api_from(command: &str, reader: impl Read) -> cli::Outcome {
         Err(e) => (2, String::new(), format!("error: {e}\n")),
     }
 }
+fn exit_code(code: i32, out_result: std::io::Result<()>, err_result: std::io::Result<()>) -> i32 {
+    if out_result.is_err() || err_result.is_err() {
+        1
+    } else {
+        code
+    }
+}
 fn main() {
     let args: Vec<_> = std::env::args_os()
         .skip(1)
@@ -42,17 +49,13 @@ fn main() {
     let err_result = stderr
         .write_all(err.as_bytes())
         .and_then(|()| stderr.flush());
-    std::process::exit(if out_result.is_err() || err_result.is_err() {
-        1
-    } else {
-        code
-    });
+    std::process::exit(exit_code(code, out_result, err_result));
 }
 
 #[cfg(test)]
 mod tests {
-    use super::run_api_from;
-    use std::io::{self, Read};
+    use super::{exit_code, run_api_from};
+    use std::io::{self, ErrorKind, Read};
 
     struct FailingReader;
     impl Read for FailingReader {
@@ -65,5 +68,13 @@ mod tests {
     fn stdin_read_failure_returns_exit_two_with_error_message() {
         let outcome = run_api_from("review-coding", FailingReader);
         assert_eq!(outcome, (2, String::new(), "error: read failed\n".into()));
+    }
+
+    #[test]
+    fn stream_write_failure_returns_exit_one() {
+        let fail = || Err(io::Error::from(ErrorKind::BrokenPipe));
+        assert_eq!(exit_code(0, fail(), Ok(())), 1);
+        assert_eq!(exit_code(2, Ok(()), fail()), 1);
+        assert_eq!(exit_code(2, Ok(()), Ok(())), 2);
     }
 }
