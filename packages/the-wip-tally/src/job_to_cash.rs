@@ -57,12 +57,15 @@ fn dumps(pairs: &[(&str, String)]) -> String {
 }
 
 /// Text-mode output: native line endings.
+#[cfg(windows)]
 pub fn text_mode(text: &str) -> String {
-    if cfg!(windows) {
-        text.replace('\n', "\r\n")
-    } else {
-        text.to_string()
-    }
+    text.replace('\n', "\r\n")
+}
+
+/// Text-mode output: native line endings.
+#[cfg(not(windows))]
+pub fn text_mode(text: &str) -> String {
+    text.to_string()
 }
 
 fn write_new(path: &Path, bytes: &[u8]) -> Result<(), Failure> {
@@ -291,11 +294,13 @@ mod tests {
         decimal("0")
     }
 
-    fn message<T: std::fmt::Debug>(result: Result<T, Failure>) -> String {
-        match result {
-            Err(Failure::Message(m)) => m,
-            other => panic!("not a message: {other:?}"),
-        }
+    /// `result` with any success reduced to `()`, so a refusal compares whole.
+    fn message<T>(result: Result<T, Failure>) -> Result<(), Failure> {
+        result.map(drop)
+    }
+
+    fn refused(text: impl Into<String>) -> Result<(), Failure> {
+        Err(Failure::Message(text.into()))
     }
 
     /// An examples folder holding the shipped scenario with `csv` and `assumptions` edited.
@@ -330,20 +335,23 @@ mod tests {
         for extra in ["-1", "Infinity"] {
             assert_eq!(
                 message(run(&out, &decimal(extra))),
-                "Cost increase must be finite and non-negative"
+                refused("Cost increase must be finite and non-negative")
             );
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_missing_scenario_source_is_reported_as_python_raised_it() {
         let dir = scratch("missing");
         let out = PyPath::new(&dir.join("out").to_string_lossy());
         let source = dir.join("job-to-cash.csv");
-        let got = message(run_from(&dir, &out, &zero()));
-        assert!(
-            got.starts_with("[Errno 2] ") && got.ends_with(&format!("{}'", source.display())),
-            "{got}"
+        assert_eq!(
+            message(run_from(&dir, &out, &zero())),
+            refused(format!(
+                "[Errno 2] No such file or directory: '{}'",
+                source.display()
+            ))
         );
     }
 
@@ -364,7 +372,7 @@ mod tests {
         let out = PyPath::new(&dir.join("out").to_string_lossy());
         assert_eq!(
             message(run_from(&dir, &out, &zero())),
-            "The example requires one contract"
+            refused("The example requires one contract")
         );
     }
 
@@ -378,7 +386,7 @@ mod tests {
         let out = PyPath::new(&dir.join("out").to_string_lossy());
         assert_eq!(
             message(run_from(&dir, &out, &zero())),
-            "Cash or commitment assumptions do not reconcile"
+            refused("Cash or commitment assumptions do not reconcile")
         );
         assert!(!dir.join("out").exists(), "nothing is written");
     }
@@ -408,7 +416,7 @@ mod tests {
         std::fs::write(&path, "kept").unwrap();
         assert_eq!(
             message(write_new(&path, b"new")),
-            format!("[Errno 17] File exists: '{}'", path.display())
+            refused(format!("[Errno 17] File exists: '{}'", path.display()))
         );
         assert_eq!(std::fs::read_to_string(&path).unwrap(), "kept");
     }

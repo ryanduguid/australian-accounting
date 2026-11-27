@@ -79,11 +79,6 @@ pub fn prefix_chars(s: &str, n: usize) -> &str {
     }
 }
 
-/// `len(s)`: a count of code points.
-pub fn char_len(s: &str) -> usize {
-    s.chars().count()
-}
-
 /// `repr(s)` for a `str`.
 pub fn repr_str(s: &str) -> String {
     let quote = if s.contains('\'') && !s.contains('"') {
@@ -589,9 +584,9 @@ impl Date {
         while days_before_year(year + 1) < ordinal {
             year += 1;
         }
-        while days_before_year(year) >= ordinal {
-            year -= 1;
-        }
+        // The estimate never overshoots: (year - 1) * 365.2425 <= ordinal - 1, and
+        // the leap days before a year exceed 0.2425 a year by less than one, so
+        // days_before_year(year) < ordinal already.
         let mut rest = ordinal - days_before_year(year);
         let mut month = 1;
         while rest > i64::from(days_in_month(year, month)) {

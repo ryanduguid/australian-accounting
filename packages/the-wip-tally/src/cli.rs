@@ -38,18 +38,16 @@ struct Command {
     options: &'static [Opt],
 }
 
-const fn opt(
-    flags: &'static [&'static str],
-    dest: &'static str,
-    required: bool,
-    help: Option<&'static str>,
-) -> Opt {
-    Opt {
-        flags,
-        dest,
-        required,
-        help,
-    }
+/// An `Opt` literal; a macro, as a `const fn` here would run only at compile time.
+macro_rules! opt {
+    ($flags:expr, $dest:expr, $required:expr, $help:expr) => {
+        Opt {
+            flags: $flags,
+            dest: $dest,
+            required: $required,
+            help: $help,
+        }
+    };
 }
 
 const AS_AT_HELP: &str = "reporting date YYYY-MM-DD (default: today)";
@@ -61,9 +59,9 @@ static COMMANDS: [Command; 2] = [
         help: "compute the WIP schedule",
         positional: ("contracts", "contract CSV"),
         options: &[
-            opt(&["-o", "--output"], "OUTPUT", false, None),
-            opt(&["--as-at"], "AS_AT", false, Some(AS_AT_HELP)),
-            opt(
+            opt!(&["-o", "--output"], "OUTPUT", false, None),
+            opt!(&["--as-at"], "AS_AT", false, Some(AS_AT_HELP)),
+            opt!(
                 &["--mapping-file"],
                 "MAPPING_FILE",
                 false,
@@ -76,20 +74,20 @@ static COMMANDS: [Command; 2] = [
         help: "write a practitioner sign-off pack",
         positional: ("schedule", "schedule CSV produced by `wip-tally schedule`"),
         options: &[
-            opt(
+            opt!(
                 &["--source"],
                 "SOURCE",
                 true,
                 Some("the contract CSV that produced it"),
             ),
-            opt(&["-o", "--output"], "OUTPUT", false, None),
-            opt(
+            opt!(&["-o", "--output"], "OUTPUT", false, None),
+            opt!(
                 &["--as-at"],
                 "AS_AT",
                 false,
                 Some("reporting date YYYY-MM-DD (default: schedule date, or today if unavailable)"),
             ),
-            opt(
+            opt!(
                 &["--mapping-file"],
                 "MAPPING_FILE",
                 false,

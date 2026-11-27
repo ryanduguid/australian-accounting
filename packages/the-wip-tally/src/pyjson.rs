@@ -493,14 +493,17 @@ mod tests {
 
     #[test]
     fn string_escapes_decode_as_python_does() {
-        let text = |json: &str| match loads(json).unwrap() {
-            Json::Str(s) => s,
-            other => panic!("not a string: {other:?}"),
-        };
-        assert_eq!(text(r#""\"\\\/\b\f\n\r\t""#), "\"\\/\u{8}\u{c}\n\r\t");
-        assert_eq!(text(r#""é€""#), "\u{e9}\u{20ac}");
+        let text =
+            |json: &str, want: &str| assert_eq!(loads(json), Ok(Json::Str(want.into())), "{json}");
+        text(r#""\"\\\/\b\f\n\r\t""#, "\"\\/\u{8}\u{c}\n\r\t");
+        text("\"\\u00e9\\u20ac\"", "\u{e9}\u{20ac}");
         // A surrogate pair joins into one code point.
-        assert_eq!(text(r#""😀""#), "\u{1f600}");
+        text("\"\\ud83d\\ude00\"", "\u{1f600}");
+        // A high surrogate followed by an escape that is not a low one stays unpaired.
+        assert_eq!(
+            err("\"\\ud83d\\u0041\""),
+            "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)"
+        );
         assert_eq!(
             err(r#""\u12g4""#),
             "Invalid \\uXXXX escape: line 1 column 3 (char 2)"
@@ -508,6 +511,23 @@ mod tests {
         assert_eq!(
             err(r#""\ud800\u12g4""#),
             "Invalid \\uXXXX escape: line 1 column 9 (char 8)"
+        );
+    }
+
+    #[test]
+    fn empty_arrays_nan_and_multi_digit_exponents_read_as_python_does() {
+        assert_eq!(
+            loads("[[], 1e10, 2E-12]"),
+            Ok(Json::Array(vec![
+                Json::Array(vec![]),
+                Json::Float(1e10),
+                Json::Float(2e-12)
+            ]))
+        );
+        let nan = loads("[NaN]");
+        assert!(
+            matches!(&nan, Ok(Json::Array(items)) if matches!(items[..], [Json::Float(f)] if f.is_nan())),
+            "{nan:?}"
         );
     }
 
