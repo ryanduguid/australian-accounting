@@ -704,3 +704,46 @@ fn an_excess_charge_refuses_a_due_date_that_is_not_iso() {
         "excess_contributions.fact_invalid"
     );
 }
+
+/// An account whose highest end-of-day balance is below nil, here a
+/// commutation on the day the stream started, has used none of its cap,
+/// so indexation raises its personal cap in full (ITAA 1997 s 294-40(3)).
+#[test]
+fn a_balance_never_above_nil_is_indexed_in_full() {
+    let out = run(
+        &[
+            ("2018-10-01", "new_income_stream", "100000.00"),
+            ("2018-10-01", "commutation", "150000.00"),
+        ],
+        "2024-07-01",
+        "2024-25",
+    );
+    assert_eq!(cap_in(&out, "2023-24"), "1900000.00");
+}
+
+/// Events that are not a list of objects, an event that is not an object, an
+/// event date and a `to` date that are not calendar dates are refused.
+#[test]
+fn malformed_events_and_dates_are_refused() {
+    let one = [("2018-10-01", "new_income_stream", "1200000.00")];
+    let bad_to = tba(&one, "2026-02-30", "2025-26", false);
+    let mut empty = bad_to.clone();
+    empty["events"] = json!([]);
+    let mut not_object = bad_to.clone();
+    not_object["events"] = json!(["2018-10-01"]);
+    let mut bad_day = bad_to.clone();
+    bad_day["events"][0]["date"] = json!("2018-02-30");
+    for input in [&mut empty, &mut not_object, &mut bad_day] {
+        input["to"] = json!("2026-06-30");
+    }
+    for (input, message) in [
+        (empty, "events must be a list of 1 to 1000 objects."),
+        (not_object, "must be an object."),
+        (bad_day, "date must be a date YYYY-MM-DD."),
+        (bad_to, "to must be a date YYYY-MM-DD."),
+    ] {
+        let error = api::evaluate_coded("transfer-balance", &input).unwrap_err();
+        assert_eq!(error.code, "transfer_balance.fact_invalid");
+        assert!(error.message.ends_with(message));
+    }
+}

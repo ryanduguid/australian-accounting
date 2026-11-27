@@ -466,3 +466,13 @@ fn acquisitions_before_the_first_covered_departure_count() {
     ));
     assert_eq!(r["eligible"], true);
 }
+
+/// An item flag that is not a boolean is refused, naming the item and flag.
+#[test]
+fn an_item_flag_must_be_a_boolean() {
+    let mut given = item("2026-03-10", "330.00", "30.00", "general");
+    given["tax_invoice"] = json!("yes");
+    let error = api::evaluate_coded(TR, &claim(json!([given]), json!({}))).unwrap_err();
+    assert_eq!(error.code, "input.flag_invalid");
+    assert!(error.message.ends_with("tax_invoice must be a boolean."));
+}
