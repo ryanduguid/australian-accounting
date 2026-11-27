@@ -303,10 +303,7 @@ pub enum OsStyle {
 }
 
 fn strip_os_suffix(message: &str) -> &str {
-    match message.rfind(" (os error ") {
-        Some(i) => &message[..i],
-        None => message,
-    }
+    message.rfind(" (os error ").map_or(message, |i| &message[..i])
 }
 
 #[cfg(windows)]
@@ -488,12 +485,14 @@ impl PyPath {
         out
     }
 
+    #[cfg(windows)]
     pub fn is_absolute(&self) -> bool {
-        if cfg!(windows) {
-            self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
-        } else {
-            !self.anchor.is_empty()
-        }
+        self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
+    }
+
+    #[cfg(not(windows))]
+    pub fn is_absolute(&self) -> bool {
+        !self.anchor.is_empty()
     }
 }
 
@@ -524,7 +523,6 @@ pub fn resolve_text(path: &Path) -> String {
                 std::path::Component::ParentDir => {
                     resolved.pop();
                 }
-                std::path::Component::CurDir => {}
                 other => resolved.push(other.as_os_str()),
             }
         }
@@ -538,12 +536,15 @@ pub fn resolve_text(path: &Path) -> String {
 }
 
 /// `Path.__eq__` between resolved paths: case-insensitive on Windows.
+#[cfg(windows)]
 pub fn same_resolved(a: &str, b: &str) -> bool {
-    if cfg!(windows) {
-        a.to_lowercase() == b.to_lowercase()
-    } else {
-        a == b
-    }
+    a.to_lowercase() == b.to_lowercase()
+}
+
+/// `Path.__eq__` between resolved paths.
+#[cfg(not(windows))]
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    a == b
 }
 
 /// A `datetime.date`.
@@ -889,8 +890,19 @@ mod tests {
             PyPath::new("a").join("/b").display(),
             PyPath::new("/b").display()
         );
-        if !cfg!(windows) {
-            assert_eq!(PyPath::new("//srv/x").display(), "//srv/x");
-        }
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn a_double_slash_anchor_is_kept_on_posix() {
+        assert_eq!(PyPath::new("//srv/x").display(), "//srv/x");
+        assert!(same_resolved("/a", "/a"));
+        assert!(!same_resolved("/a", "/A"));
+    }
+
+    #[test]
+    fn prefix_chars_takes_at_most_n_characters() {
+        assert_eq!(prefix_chars("a\u{e9} b", 2), "a\u{e9}");
+        assert_eq!(prefix_chars("ab", 5), "ab");
     }
 }

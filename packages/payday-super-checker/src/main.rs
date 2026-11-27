@@ -77,9 +77,12 @@ mod tests {
         assert!(line(ErrorKind::WouldBlock).contains("\nBlockingIOError: [Errno 0] "));
         let other = unflushed("stdout", &Error::other("disk gone"));
         assert!(other.ends_with("\nOSError: [Errno 0] disk gone\n"), "{other}");
-        if cfg!(unix) {
-            let raw = unflushed("stdout", &Error::from_raw_os_error(32));
-            assert!(raw.ends_with("BrokenPipeError: [Errno 32] Broken pipe\n"), "{raw}");
-        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_os_error_keeps_its_errno() {
+        let raw = unflushed("stdout", &Error::from_raw_os_error(32));
+        assert!(raw.ends_with("BrokenPipeError: [Errno 32] Broken pipe\n"), "{raw}");
     }
 }
