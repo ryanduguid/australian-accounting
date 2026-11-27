@@ -1139,3 +1139,30 @@ pub fn output_bytes(text: &str) -> Vec<u8> {
     }
     out
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn points(s: &str) -> Vec<u32> {
+        s.chars().map(u32::from).collect()
+    }
+
+    #[test]
+    fn sequence_ratio_matches_cpython_difflib() {
+        // Expected values are CPython's SequenceMatcher(None, a, b).ratio().
+        let many_a = format!("{}bc", "a".repeat(200));
+        let trailing_a = format!("bc{}", "a".repeat(200));
+        for (a, b, want) in [
+            ("", "", 1.0),
+            // The right-hand recursion skips b's earlier "a" and "b".
+            ("abxab", "abyab", 0.8),
+            // autojunk drops the 200 popular "a"s; the match extends over them.
+            ("aabc", many_a.as_str(), 0.038834951456310676),
+            ("bcaa", trailing_a.as_str(), 0.038834951456310676),
+            ("help", "hepl", 0.75),
+        ] {
+            assert_eq!(sequence_ratio(&points(a), &points(b)), want, "{a} {b}");
+        }
+    }
+}
