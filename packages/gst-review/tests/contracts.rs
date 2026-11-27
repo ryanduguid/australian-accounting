@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
-use gst_review::{api, bas::Period, coding::Registration, decimal};
+use gst_review::{api, bas::Period, cli, coding::Registration, decimal, provenance};
 use serde_json::{Value, json};
 
 #[test]
@@ -444,4 +444,71 @@ fn bas_periods_split_at_the_financial_year_end_and_hold_a_leap_day() {
         refused(leap, "2027-02-28"),
         "Period 'Q3' needs a start on or before its end."
     );
+}
+
+#[test]
+fn provenance_and_cli_output_bytes_match_contract() {
+    let prov = provenance();
+    assert_eq!(prov["source_checked"], "2026-10-19");
+    assert_eq!(prov["sources"].as_array().unwrap().len(), 3);
+    assert_eq!(cli::output_bytes("{\"ok\":true}\n"), b"{\"ok\":true}\n");
+}
+
+#[test]
+fn coding_validation_covers_id_repr_amount_bounds_and_code_tables() {
+    let long_amount = "0".repeat(8193);
+    for (bad_input, expected) in [
+        (
+            json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":true,"entity":"A","date":"2026-08-04","amount":"10.00"}]}),
+            "Line ids must be unique non-empty strings: True.",
+        ),
+        (
+            json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":[1,null],"entity":"A","date":"2026-08-04","amount":"10.00"}]}),
+            "Line ids must be unique non-empty strings: [1, None].",
+        ),
+        (
+            json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":{"k":false},"entity":"A","date":"2026-08-04","amount":"10.00"}]}),
+            "Line ids must be unique non-empty strings: {'k': False}.",
+        ),
+        (
+            json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":"1","entity":"A","date":"2026-08-04","amount":long_amount}]}),
+            "Line '1' amount must be a finite Decimal, at most 2 decimal places and 1e12.",
+        ),
+        (
+            json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":"1","entity":"A","date":"2026-08-04","amount":"1E+1000000"}]}),
+            "Line '1' amount must be a finite Decimal, at most 2 decimal places and 1e12.",
+        ),
+        (
+            json!({"gst_codes":{"X":1},"registrations":{},"lines":[]}),
+            "code table categories must be strings",
+        ),
+        (
+            json!({"gst_codes":123,"registrations":{},"lines":[]}),
+            "gst_codes must be an object or null",
+        ),
+    ] {
+        assert_eq!(
+            api::evaluate("review-coding", &bad_input),
+            Err(expected.into())
+        );
+    }
+}
+
+#[test]
+fn coding_truth_check_covers_all_json_value_types() {
+    let result = api::evaluate(
+        "review-coding",
+        &json!({"registrations":{"A":{"registered_from":null}},"lines":[
+            {"id":"f_bool","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":false},
+            {"id":"t_bool","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":true},
+            {"id":"f_arr","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":[]},
+            {"id":"t_arr","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":[1]},
+            {"id":"f_obj","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":{}},
+            {"id":"t_obj","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":{"a":1}},
+            {"id":"f_num","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":0},
+            {"id":"t_num","entity":"A","date":"2026-08-04","amount":"10.00","suggested_account":2.5}]}),
+    )
+    .unwrap();
+    assert_eq!(result["counts"]["nothing_suggested"], 4);
+    assert_eq!(result["counts"]["suggested"], 4);
 }

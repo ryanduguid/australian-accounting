@@ -6,8 +6,11 @@ use gst_review::{api, cli};
 use std::io::{Read, Write};
 
 fn run_api(command: &str) -> cli::Outcome {
+    run_api_from(command, std::io::stdin())
+}
+fn run_api_from(command: &str, reader: impl Read) -> cli::Outcome {
     let mut bytes = Vec::new();
-    if let Err(e) = std::io::stdin().take((8 << 20) + 1).read_to_end(&mut bytes) {
+    if let Err(e) = reader.take((8 << 20) + 1).read_to_end(&mut bytes) {
         return (2, String::new(), format!("error: {e}\n"));
     }
     let result = if bytes.len() > 8 << 20 {
@@ -44,4 +47,23 @@ fn main() {
     } else {
         code
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::run_api_from;
+    use std::io::{self, Read};
+
+    struct FailingReader;
+    impl Read for FailingReader {
+        fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+            Err(io::Error::other("read failed"))
+        }
+    }
+
+    #[test]
+    fn stdin_read_failure_returns_exit_two_with_error_message() {
+        let outcome = run_api_from("review-coding", FailingReader);
+        assert_eq!(outcome, (2, String::new(), "error: read failed\n".into()));
+    }
 }

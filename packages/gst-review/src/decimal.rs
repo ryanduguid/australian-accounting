@@ -129,6 +129,22 @@ fn infinity(negative: bool) -> Decimal {
     }
 }
 
+/// `_fix_nan`: keep at most `prec` payload digits, dropping the leading ones.
+fn fix_nan(negative: bool, payload: &str, signalling: bool) -> Decimal {
+    let mut trimmed = payload.to_string();
+    if trimmed.len() as i128 > prec() {
+        trimmed = trimmed[trimmed.len() - prec() as usize..]
+            .trim_start_matches('0')
+            .to_string();
+    }
+    Decimal {
+        negative,
+        digits: "0".into(),
+        exp: 0,
+        kind: Kind::NaN(trimmed, signalling),
+    }
+}
+
 impl Decimal {
     /// `Decimal(text)` with CPython's exact string conversion.
     pub fn parse(text: &str) -> Calc<Decimal> {
@@ -154,6 +170,13 @@ impl Decimal {
 
     pub fn is_finite(&self) -> bool {
         self.kind == Kind::Finite
+    }
+
+    fn as_nan(&self) -> Option<(&str, bool)> {
+        match &self.kind {
+            Kind::NaN(payload, signalling) => Some((payload, *signalling)),
+            _ => None,
+        }
     }
 
     fn is_nan(&self) -> bool {
@@ -190,27 +213,10 @@ impl Decimal {
         if self.is_snan() || other.is_some_and(Decimal::is_snan) {
             return Err(Signal::InvalidOperation);
         }
-        if self.is_nan() {
-            return Ok(Some(self.fix_nan()));
+        if let Some((payload, signalling)) = self.as_nan() {
+            return Ok(Some(fix_nan(self.negative, payload, signalling)));
         }
-        Ok(other.filter(|o| o.is_nan()).map(Decimal::fix_nan))
-    }
-
-    /// `_fix_nan`: keep at most `prec` payload digits, dropping the leading ones.
-    fn fix_nan(&self) -> Decimal {
-        let Kind::NaN(payload, signalling) = &self.kind else {
-            return self.clone();
-        };
-        let mut payload = payload.clone();
-        if payload.len() as i128 > prec() {
-            payload = payload[payload.len() - prec() as usize..]
-                .trim_start_matches('0')
-                .to_string();
-        }
-        Decimal {
-            kind: Kind::NaN(payload, *signalling),
-            ..self.clone()
-        }
+        Ok(other.and_then(|o| o.as_nan().map(|(p, s)| fix_nan(o.negative, p, s))))
     }
 
     /// `-self`: a zero becomes positive under ROUND_HALF_EVEN.

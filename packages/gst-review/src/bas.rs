@@ -5,8 +5,8 @@
 //! BAS label attribution and whole-dollar comparison of supplied ledger facts.
 use crate::decimal::{Decimal, Rounding};
 use crate::{
-    Result, VERSION, array, categories, codes, constants, date, field, money, optional_date,
-    pytext, repr,
+    Result, VERSION, arithmetic, array, categories, codes, constants, date, field, money,
+    optional_date, pytext, repr,
 };
 use jiff::civil::Date;
 use serde_json::{Map, Value, json};
@@ -50,9 +50,6 @@ impl Tally {
             timing: Vec::new(),
         }
     }
-}
-fn arithmetic<T>(result: std::result::Result<T, crate::decimal::Signal>) -> Result<T> {
-    result.map_err(|e| e.name().to_string())
 }
 
 pub fn reconcile(input: &Value) -> Result<Value> {

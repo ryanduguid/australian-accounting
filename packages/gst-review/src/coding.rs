@@ -205,11 +205,7 @@ fn matching(lines: &[BankLine<'_>], window: i64) -> Result<BTreeMap<String, Stri
         if matched.contains_key(line.id) || line.amount.is_zero() {
             continue;
         }
-        let key = line
-            .amount
-            .neg()
-            .map_err(|e| e.name().to_string())?
-            .fixed(2, false);
+        let key = crate::arithmetic(line.amount.neg())?.fixed(2, false);
         let mut nearest = None;
         for &i in by_amount.get(&key).into_iter().flatten() {
             let other = &lines[i];
@@ -264,10 +260,7 @@ fn state(
                 vec!["GST Act s 9-5(d)", "GST Act s 11-5(d)"],
             ));
         }
-        if line
-            .amount
-            .lt(&Decimal::from_int(0))
-            .map_err(|e| e.name().to_string())?
+        if crate::arithmetic(line.amount.lt(&Decimal::from_int(0)))?
             && field(line.raw, "supplier_registered") == &Value::Bool(false)
         {
             return Ok((
