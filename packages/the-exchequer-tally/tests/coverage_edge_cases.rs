@@ -422,7 +422,7 @@ fn cli_option_validation_errors() {
 }
 
 #[test]
-fn cli_dispatch_errors_and_decimal_overflow_exit_1() {
+fn cli_dispatch_errors_exit_2() {
     let bad_fy = run_cli(
         &[
             "bre-test",
@@ -459,7 +459,10 @@ fn cli_dispatch_errors_and_decimal_overflow_exit_1() {
         &[("PYTHON_COLORS", Some("0"))],
     );
     assert_eq!(bad_stmt.status.code(), Some(2));
+}
 
+#[test]
+fn cli_decimal_overflow_exits_1() {
     let dec_err = run_cli(
         &[
             "dist-statement",

@@ -151,6 +151,10 @@ mod tests {
             wrap("a-b-c-d well-known re-enter", 7),
             ["a-b-c-d", "well-", "known", "re-", "enter"]
         );
+    }
+
+    #[test]
+    fn wraps_long_words_and_narrow_widths() {
         assert_eq!(wrap("ab12-cd", 6), ["ab12-", "cd"]);
         assert_eq!(wrap("a b", 0), ["a", "b"]);
         assert_eq!(wrap("abcdef gh", 4), ["abcd", "ef", "gh"]);
