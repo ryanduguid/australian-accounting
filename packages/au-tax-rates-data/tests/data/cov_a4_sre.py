@@ -159,6 +159,27 @@ CASES = [
     ["a{1,2}?b", 0, "ab"],
     ["a{2,}?", 0, "a"],
     ["(?:a*)*?b", 0, "aab"],
+    # Conditional group numbers at and over the group limit.
+    ["(?(1073741823)a)", 0, None],
+    ["(?(001073741824)a)", 0, None],
+    # Inline flags: an unknown letter, a missing flag, a bad end.
+    ["(?iz)", 0, None],
+    ["(?i-", 0, None],
+    ["(?-", 0, None],
+    ["(?-iz:a)", 0, None],
+    ["(?-i1:a)", 0, None],
+    # Negated categories in a negated set under ASCII.
+    ["[^\\D]", A, "a1"],
+    ["[^\\S]", A, "a b"],
+    ["[^\\W]", A, "-a"],
+    ["[^\\d]", A, "1a"],
+    # Braces taken as literals.
+    ["x{}", 0, "x{}"],
+    ["x{,", 0, "x{,"],
+    # Empty group names and a reference to an open group in a lookbehind.
+    ["(?P<>a)", 0, None],
+    ["(?P=)", 0, None],
+    ["(a(?<=\\1))", 0, None],
 ]
 
 out = []

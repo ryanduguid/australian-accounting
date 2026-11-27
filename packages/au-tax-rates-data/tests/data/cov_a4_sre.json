@@ -122,5 +122,21 @@
 ["(?:a{0,2}?){3}b", 0, "aab", "0-3"],
 ["a{1,2}?b", 0, "ab", "0-2"],
 ["a{2,}?", 0, "a", "no match"],
-["(?:a*)*?b", 0, "aab", "0-3"]
+["(?:a*)*?b", 0, "aab", "0-3"],
+["(?(1073741823)a)", 0, null, "invalid group reference 1073741823 at position 3"],
+["(?(001073741824)a)", 0, null, "invalid group reference 1073741824 at position 3"],
+["(?iz)", 0, null, "unknown flag at position 3"],
+["(?i-", 0, null, "missing flag at position 4"],
+["(?-", 0, null, "missing flag at position 3"],
+["(?-iz:a)", 0, null, "unknown flag at position 4"],
+["(?-i1:a)", 0, null, "missing : at position 4"],
+["[^\\D]", 256, "a1", "1-2"],
+["[^\\S]", 256, "a b", "1-2"],
+["[^\\W]", 256, "-a", "1-2"],
+["[^\\d]", 256, "1a", "1-2"],
+["x{}", 0, "x{}", "0-3"],
+["x{,", 0, "x{,", "0-3"],
+["(?P<>a)", 0, null, "missing group name at position 4"],
+["(?P=)", 0, null, "missing group name at position 4"],
+["(a(?<=\\1))", 0, null, "cannot refer to an open group at position 6"]
 ]}
