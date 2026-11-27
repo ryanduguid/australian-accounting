@@ -23,15 +23,15 @@ fn main() {
 /// it could not flush at shutdown, on stderr, and exited 120; on Windows the
 /// binary exits 1 without that message.
 fn finish(code: i32, out: std::io::Result<()>, err: std::io::Result<()>) -> i32 {
+    let shutdown = if cfg!(unix) { 120 } else { 1 };
     if let Err(e) = &out {
         if cfg!(unix) {
             let _ = std::io::stderr().write_all(unflushed("stdout", e).as_bytes());
-            return 120;
         }
-        return 1;
+        return shutdown;
     }
     if err.is_err() {
-        return if cfg!(unix) { 120 } else { 1 };
+        return shutdown;
     }
     code
 }

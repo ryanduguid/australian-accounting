@@ -1083,3 +1083,16 @@ fn novated_lease_has_no_contribution_case_when_costs_are_below_the_value() {
     assert_eq!(r["contribution_case"], Value::Null);
     assert!(!r["exempt_case"].is_null());
 }
+
+/// A one-cent profit in 2026-27 pays at most a one-cent salary: its 0.12 cent
+/// of super guarantee rounds to nil. Ranking that salary works a taxable income
+/// just below nil (the standard deduction takes the whole cent) without error.
+#[test]
+fn a_one_cent_profit_pays_at_most_a_one_cent_salary() {
+    let input = json!({
+        "year": "2026-27", "profit": "0.01", "base_rate_entity": true, "salary": "0.01",
+        "other_taxable_income": "0.00", "scope_confirmed": true,
+    });
+    let r = api::evaluate("salary-dividend", &input).unwrap();
+    assert_eq!(r["amounts"]["largest_salary"], "0.01");
+}
