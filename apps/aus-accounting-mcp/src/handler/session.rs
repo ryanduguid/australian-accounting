@@ -221,15 +221,12 @@ impl<T: rmcp::transport::Transport<RoleServer>> rmcp::transport::Transport<RoleS
                 .as_ref()
                 .is_some_and(|p| Some(&p.id) == error.id.as_ref())
         {
-            let pending = self.pending.take().unwrap();
-            if self.bootstrap.load(Ordering::Relaxed)
-                && error.error.code == ErrorCode::INVALID_PARAMS
-            {
-                error.error = match pending.custom {
-                    Some(method) => method_not_found(&method),
-                    None => invalid_request_parameters(),
-                };
-            }
+            // rmcp answers a pending request in its bootstrap loop, before any
+            // dispatch, always with its -32602 missing-metadata error.
+            error.error = match self.pending.take().unwrap().custom {
+                Some(method) => method_not_found(&method),
+                None => invalid_request_parameters(),
+            };
         }
         self.inner.send(message)
     }
