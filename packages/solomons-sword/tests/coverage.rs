@@ -108,6 +108,7 @@ fn date_handles_leap_years_and_year_bounds() {
     assert_eq!(Date::parse("2025-02-29"), None);
     assert_eq!(Date::parse("2025-04-31"), None);
     assert_eq!(Date::parse("2025-00-10"), None);
+    assert_eq!(Date::parse("not-a-date"), None);
 }
 
 #[test]
@@ -128,6 +129,17 @@ fn decimal_parse_rejects_internal_unicode_spaces_and_extreme_exponents() {
         Decimal::parse("1e-9999999999999999999").err(),
         Some(Signal::InvalidOperation)
     );
+    assert_eq!(Decimal::parse("").err(), Some(Signal::InvalidOperation));
+    assert_eq!(Decimal::parse("1e+").err(), Some(Signal::InvalidOperation));
+    assert_eq!(
+        Decimal::parse("1e10000000000000000000000000").err(),
+        Some(Signal::InvalidOperation)
+    );
+    assert_eq!(
+        Decimal::parse("nanabc").err(),
+        Some(Signal::InvalidOperation)
+    );
+    assert_eq!(Signal::DivisionByZero.name(), "DivisionByZero");
     assert_eq!(d("1.23").exponent(), -2);
     assert_eq!(d("NaN").adjusted(), 0);
 }
@@ -150,6 +162,16 @@ fn decimal_special_and_extreme_arithmetic() {
     assert_eq!(d("1").sub(&d("NaN")).unwrap().to_sci_string(), "NaN");
     assert_eq!(d("sNaN").sub(&d("1")).err(), Some(Signal::InvalidOperation));
     assert_eq!(d("NaN").mul(&d("2")).unwrap().to_sci_string(), "NaN");
+    assert_eq!(d("1").add(&d("sNaN")).err(), Some(Signal::InvalidOperation));
+    assert_eq!(
+        d("0").mul(&d("Infinity")).err(),
+        Some(Signal::InvalidOperation)
+    );
+    assert_eq!(
+        d("0").div(&d("Infinity")).unwrap().to_sci_string(),
+        "0E-1000026"
+    );
+    assert_eq!(d("5").mul(&d("0")).unwrap().to_sci_string(), "0");
     assert_eq!(
         d("Infinity").mul(&d("-2")).unwrap().to_sci_string(),
         "-Infinity"
@@ -195,6 +217,15 @@ fn decimal_division_quantize_rounding_and_ordering() {
         Some(Signal::InvalidOperation)
     );
     assert_eq!(d("1E-10").fixed(2, false), "0.00");
+    assert_eq!(d("0.005").to_sci_string(), "0.005");
+    assert_eq!(d("0.005").fixed(2, false), "0.00");
+    assert_eq!(
+        d("1.5")
+            .quantize(0, Rounding::HalfEven)
+            .unwrap()
+            .to_sci_string(),
+        "2"
+    );
     assert_eq!(d("1E+1000000").add(&d("0")).err(), Some(Signal::Overflow));
     assert_eq!(
         d("9.9999999999999999999999999995E+999999")
@@ -231,6 +262,9 @@ fn decimal_comparisons_and_signs() {
     assert_eq!(d("-5").lt(&d("-3")), Ok(true));
     assert_eq!(d("1").le(&d("1")), Ok(true));
     assert_eq!(d("1").gt(&d("2")), Ok(false));
+    assert_eq!(d("Infinity").lt(&d("1")), Ok(false));
+    assert_eq!(d("-Infinity").lt(&d("-Infinity")), Ok(false));
+    assert_eq!(d("5").lt(&d("0")), Ok(false));
 }
 
 #[test]
@@ -446,6 +480,27 @@ fn cli_unix_non_utf8_arg_is_backslash_escaped() {
         .unwrap();
     assert_eq!(out.status.code(), Some(2));
     assert!(String::from_utf8_lossy(&out.stderr).contains("\\udcff"));
+
+    let ben_out = Command::new(env!("CARGO_BIN_EXE_solomons-sword"))
+        .args(["s100a-check", "--beneficiary"])
+        .arg(OsStr::from_bytes(b"A\xff"))
+        .args(["--amount", "10"])
+        .env("PYTHON_COLORS", "0")
+        .env("COLUMNS", "80")
+        .output()
+        .unwrap();
+    assert_eq!(ben_out.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&ben_out.stdout).contains("A\\udcff"));
+
+    let dir_stdin = Command::new(env!("CARGO_BIN_EXE_solomons-sword"))
+        .arg("validate-amount")
+        .stdin(Stdio::from(std::fs::File::open(".").unwrap()))
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .unwrap();
+    assert_eq!(dir_stdin.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&dir_stdin.stderr).starts_with("error: "));
 }
 
 #[cfg(windows)]
@@ -462,4 +517,67 @@ fn cli_windows_unpaired_surrogate_arg_is_backslash_escaped() {
         .unwrap();
     assert_eq!(out.status.code(), Some(2));
     assert!(String::from_utf8_lossy(&out.stderr).contains("\\ud800"));
+
+    let ben = OsString::from_wide(&[b'A' as u16, 0xD800]);
+    let ben_out = Command::new(env!("CARGO_BIN_EXE_solomons-sword"))
+        .args(["s100a-check", "--beneficiary"])
+        .arg(ben)
+        .args(["--amount", "10"])
+        .env("PYTHON_COLORS", "0")
+        .env("COLUMNS", "80")
+        .output()
+        .unwrap();
+    assert_eq!(ben_out.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&ben_out.stdout).contains("A\\ud800"));
+}
+
+#[test]
+fn cli_difflib_escapes_and_trust_loss_income_now_validation() {
+    let esc = run_cli(&["\\\t\n\r"], &[]);
+    assert_eq!(esc.status.code(), Some(2));
+    assert!(
+        String::from_utf8(esc.stderr)
+            .unwrap()
+            .contains("\\\\\\t\\n\\r")
+    );
+
+    let pua = run_cli(&["\u{10f7ff}"], &[]);
+    assert_eq!(pua.status.code(), Some(2));
+    assert!(
+        String::from_utf8(pua.stderr)
+            .unwrap()
+            .contains("\\U0010f7ff")
+    );
+
+    for bad_cmd in [
+        "-",
+        "zcheck-s100a",
+        &format!("{}he", "c".repeat(200)),
+        &format!("s100a-c{}", "c".repeat(200)),
+    ] {
+        let r = run_cli(&[bad_cmd], &[]);
+        assert_eq!(r.status.code(), Some(2));
+    }
+
+    let dot_neg = run_cli(
+        &["s100a-check", "--beneficiary", "A", "--amount", "-.5"],
+        &[],
+    );
+    assert_eq!(dot_neg.status.code(), Some(2));
+
+    let err = api::evaluate(
+        "trust-loss-tests",
+        &json!({
+            "financial_year": 2027,
+            "loss_year": 2025,
+            "trust_kind": "non_fixed",
+            "deduction": "prior_year_tax_loss",
+            "income_distributed_in_income_year_or_2_months_after": "yes"
+        }),
+    )
+    .unwrap_err();
+    assert_eq!(
+        err,
+        "income_distributed_in_income_year_or_2_months_after must be true, false or null"
+    );
 }

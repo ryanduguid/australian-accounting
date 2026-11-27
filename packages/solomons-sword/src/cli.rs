@@ -240,21 +240,16 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
     let get_lines = |parts: &[Part], indent: &str, with_prefix: bool| {
         usage_lines(parts, indent, with_prefix.then_some(prefix_len), text_width)
     };
+    // Callers always include [-h] in opt_parts.
     if (prefix_len + pytext::py_len(prog)) as f64 <= 0.75 * text_width as f64 {
         let indent = " ".repeat(prefix_len + pytext::py_len(prog) + 1);
         let mut head = vec![Part {
             plain: prog.to_string(),
             coloured: prog.to_string(),
         }];
-        let lines = if !opt_parts.is_empty() {
-            head.extend(opt_parts.iter().cloned());
-            let mut lines = get_lines(&head, &indent, true);
-            lines.extend(get_lines(pos_parts, &indent, false));
-            lines
-        } else {
-            head.extend(pos_parts.iter().cloned());
-            get_lines(&head, &indent, true)
-        };
+        head.extend(opt_parts.iter().cloned());
+        let mut lines = get_lines(&head, &indent, true);
+        lines.extend(get_lines(pos_parts, &indent, false));
         return lines.join("\n")[prog.len()..].to_string();
     }
     let indent = " ".repeat(prefix_len);
@@ -298,7 +293,7 @@ fn usage_lines(
     lines
 }
 
-type Row<'a> = (usize, Part, Option<&'a str>);
+type Row<'a> = (usize, Part, &'a str);
 
 /// The rows of one help section; argparse aligns help text across every section of a parser.
 fn action_rows(rows: &[Row], all: &[Row]) -> String {
@@ -315,10 +310,6 @@ fn action_rows(rows: &[Row], all: &[Row]) -> String {
     for (indent, header, help) in rows {
         let action_width = help_position.saturating_sub(indent + 2);
         let pad = " ".repeat(*indent);
-        let Some(help) = help else {
-            out.push_str(&format!("{pad}{}\n", header.coloured));
-            continue;
-        };
         let lines = wrap(help, help_width);
         if pytext::py_len(&header.plain) <= action_width {
             // argparse pads the plain header, then swaps the coloured one in.
@@ -391,14 +382,14 @@ fn main_help(prog: &str, t: &Theme) -> String {
     let mut positional: Vec<Row> = vec![(
         2,
         coloured(&choices(), t.action, t),
-        Some("Available subcommands"),
+        "Available subcommands",
     )];
     positional.extend(
         COMMANDS
             .iter()
-            .map(|c| (4, coloured(c.name, t.action, t), Some(c.help))),
+            .map(|c| (4, coloured(c.name, t.action, t), c.help)),
     );
-    let options: Vec<Row> = vec![(2, help_header(t), Some(HELP_HELP))];
+    let options: Vec<Row> = vec![(2, help_header(t), HELP_HELP)];
     let all: Vec<Row> = positional.iter().chain(&options).cloned().collect();
     let (positional, options) = (action_rows(&positional, &all), action_rows(&options, &all));
     let description = wrap(DESCRIPTION, width().max(11)).join("\n");
@@ -436,12 +427,8 @@ fn sequence_ratio(a: &[u32], b: &[u32]) -> f64 {
             }
         }
     }
-    let total = a.len() + b.len();
-    if total == 0 {
-        1.0
-    } else {
-        2.0 * matches as f64 / total as f64
-    }
+    // Command names in possibilities are non-empty, so total > 0.
+    2.0 * matches as f64 / (a.len() + b.len()) as f64
 }
 
 /// `SequenceMatcher.find_longest_match(alo, ahi, blo, bhi)`.
@@ -598,8 +585,7 @@ fn looks_like_negative_number(body: &str) -> bool {
     let mut chars = body.chars();
     match chars.next() {
         Some('.') => chars.next().is_some_and(digit),
-        Some(c) => digit(c),
-        None => false,
+        other => other.is_some_and(digit),
     }
 }
 fn main_exit(prog: &str, message: String) -> Exit {
@@ -766,7 +752,7 @@ fn command_help(prog: &str, command: &Command, t: &Theme) -> String {
     }
     let rows: Vec<Row> = rows
         .iter()
-        .map(|(indent, part, help)| (*indent, part.clone(), Some(help.as_str())))
+        .map(|(indent, part, help)| (*indent, part.clone(), help.as_str()))
         .collect();
     format!(
         "{}\n\n{}options:{}\n{}",
@@ -977,12 +963,8 @@ fn dispatch(parsed: &Parsed) -> Result<String, Error> {
             "Risk Zone:               {}",
             res.risk_zone.value()
         ));
-        let ofd = match res.is_ordinary_family_dealing {
-            None => "Not determined",
-            Some(true) => "True",
-            Some(false) => "False",
-        };
-        line(&format!("Ordinary Family Dealing: {ofd}"));
+        debug_assert!(res.is_ordinary_family_dealing.is_none());
+        line("Ordinary Family Dealing: Not determined");
         if !res.unestablished_facts.is_empty() {
             line(&format!(
                 "Facts Not Established:   {}",
@@ -1126,4 +1108,33 @@ pub fn output_bytes(text: &str) -> Vec<u8> {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn arg_constructors_preserve_fields() {
+        let v = value("--amount", "AMOUNT", true, "Distribution amount");
+        assert!(matches!(
+            v,
+            Arg::Value {
+                flag: "--amount",
+                metavar: "AMOUNT",
+                required: true,
+                help: "Distribution amount"
+            }
+        ));
+        let p = pair("adult", "--yes", "--no", "Adult child");
+        assert!(matches!(
+            p,
+            Arg::Pair {
+                dest: "adult",
+                yes: "--yes",
+                no: "--no",
+                fact: "Adult child"
+            }
+        ));
+    }
 }
