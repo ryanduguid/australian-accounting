@@ -8,7 +8,6 @@
 
 use std::fmt::Write as _;
 use std::io;
-use std::path::Path;
 
 use num_bigint::BigInt;
 
@@ -64,133 +63,12 @@ pub fn is_word(c: char) -> bool {
     in_table(c as u32, tables::WORD)
 }
 
-/// Whether Python's `\w` and the regex crate's `\w` disagree about one character.
-pub fn word_diff(c: char) -> bool {
-    (c as u32) >= 0x80 && in_table(c as u32, tables::WORD_DIFF)
-}
-
-/// The ranges of a character class, without its brackets, for a `regex` pattern.
-pub fn class_body(table: &[(u32, u32)]) -> String {
-    let mut out = String::new();
-    for &(lo, hi) in table {
-        if lo == hi {
-            let _ = write!(out, "\\x{{{lo:X}}}");
-        } else {
-            let _ = write!(out, "\\x{{{lo:X}}}-\\x{{{hi:X}}}");
-        }
-    }
-    out
-}
-
-fn class(table: &[(u32, u32)]) -> String {
-    format!("[{}]", class_body(table))
-}
-
-/// Python's `\d` for a `str` pattern.
-pub static D: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| class(tables::DECIMAL));
-/// Python's `\s` for a `str` pattern.
-pub static S: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| class(tables::SPACE));
-/// Python's `\w` for a `str` pattern.
-pub static W: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| class(tables::WORD));
-
-/// Python's `\b`, for a `fancy_regex` pattern.
-pub fn word_boundary() -> String {
-    let w = &*W;
-    format!("(?:(?<={w})(?!{w})|(?<!{w})(?={w}))")
-}
-
-/// What one ASCII letter matches in a Python pattern compiled with `re.IGNORECASE`.
-pub fn ignorecase_letter(letter: char) -> String {
-    let mut out = format!(
-        "[{}{}",
-        letter.to_ascii_lowercase(),
-        letter.to_ascii_uppercase()
-    );
-    for (base, extra) in tables::IGNORECASE_EXTRA {
-        if *base == letter.to_ascii_lowercase() {
-            for cp in *extra {
-                let _ = write!(out, "\\x{{{cp:X}}}");
-            }
-        }
-    }
-    out.push(']');
-    out
-}
-
-/// `str.casefold()`.
-pub fn casefold(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    for c in s.chars() {
-        match tables::CASEFOLD.binary_search_by_key(&(c as u32), |&(k, _)| k) {
-            Ok(i) => out.push_str(tables::CASEFOLD[i].1),
-            Err(_) => out.push(c),
-        }
-    }
-    out
-}
-
-/// `str.strip()`.
-pub fn strip(s: &str) -> &str {
-    s.trim_matches(is_space)
-}
-
-/// `str.split()` with no separator.
-pub fn split_whitespace(s: &str) -> Vec<&str> {
-    s.split(is_space).filter(|part| !part.is_empty()).collect()
-}
-
-/// `len(str.split())`, without building the list.
-pub fn word_count(s: &str) -> usize {
-    s.split(is_space).filter(|part| !part.is_empty()).count()
-}
-
-/// `str.splitlines()`.
-pub fn splitlines(s: &str) -> Vec<&str> {
-    let mut out = Vec::new();
-    let mut start = 0;
-    let mut chars = s.char_indices().peekable();
-    while let Some((i, c)) = chars.next() {
-        let boundary = matches!(
-            c,
-            '\n' | '\r'
-                | '\x0b'
-                | '\x0c'
-                | '\x1c'
-                | '\x1d'
-                | '\x1e'
-                | '\u{85}'
-                | '\u{2028}'
-                | '\u{2029}'
-        );
-        if boundary {
-            out.push(&s[start..i]);
-            let mut next = i + c.len_utf8();
-            if c == '\r'
-                && let Some(&(j, '\n')) = chars.peek()
-            {
-                chars.next();
-                next = j + 1;
-            }
-            start = next;
-        }
-    }
-    if start < s.len() {
-        out.push(&s[start..]);
-    }
-    out
-}
-
 /// The first `n` characters, as `s[:n]` takes them.
 pub fn prefix_chars(s: &str, n: usize) -> &str {
     match s.char_indices().nth(n) {
         Some((i, _)) => &s[..i],
         None => s,
     }
-}
-
-/// `len(s)`: a count of code points.
-pub fn char_len(s: &str) -> usize {
-    s.chars().count()
 }
 
 /// `repr(s)` for a `str`.
@@ -228,34 +106,6 @@ pub fn repr_str(s: &str) -> String {
         }
     }
     out.push(quote);
-    out
-}
-
-/// `repr(b)` for `bytes`.
-pub fn repr_bytes(b: &[u8]) -> String {
-    let quote = if b.contains(&b'\'') && !b.contains(&b'"') {
-        b'"'
-    } else {
-        b'\''
-    };
-    let mut out = String::from("b");
-    out.push(quote as char);
-    for &byte in b {
-        match byte {
-            _ if byte == quote || byte == b'\\' => {
-                out.push('\\');
-                out.push(byte as char);
-            }
-            b'\t' => out.push_str("\\t"),
-            b'\n' => out.push_str("\\n"),
-            b'\r' => out.push_str("\\r"),
-            0x20..=0x7e => out.push(byte as char),
-            _ => {
-                let _ = write!(out, "\\x{byte:02x}");
-            }
-        }
-    }
-    out.push(quote as char);
     out
 }
 
@@ -428,80 +278,6 @@ pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
     Ok(if negative { -value } else { value })
 }
 
-/// `float(s)`; the error is the `ValueError` message.
-pub fn parse_float(s: &str) -> Result<f64, String> {
-    let invalid = || format!("could not convert string to float: {}", repr_str(s));
-    let text = number_text(s).ok_or_else(invalid)?;
-    let text = text.trim_matches(py_isspace);
-    let (sign, body) = match text.as_bytes().first() {
-        Some(b'-') => ("-", &text[1..]),
-        Some(b'+') => ("", &text[1..]),
-        _ => ("", text),
-    };
-    let lower = body.to_ascii_lowercase();
-    if matches!(lower.as_str(), "inf" | "infinity" | "nan") {
-        return format!("{sign}{lower}")
-            .parse::<f64>()
-            .map_err(|_| invalid());
-    }
-    // Digits with single underscores between them, an optional fraction and
-    // an optional exponent: the grammar float() accepts.
-    let bytes = body.as_bytes();
-    let mut i = 0;
-    let mut clean = String::from(sign);
-    let digit_run = |i: &mut usize, clean: &mut String| -> bool {
-        let start = *i;
-        while *i < bytes.len() {
-            let b = bytes[*i];
-            if b.is_ascii_digit() {
-                clean.push(b as char);
-                *i += 1;
-            } else if b == b'_'
-                && *i > start
-                && bytes[*i - 1].is_ascii_digit()
-                && *i + 1 < bytes.len()
-                && bytes[*i + 1].is_ascii_digit()
-            {
-                *i += 1;
-            } else {
-                break;
-            }
-        }
-        *i > start
-    };
-    let whole = digit_run(&mut i, &mut clean);
-    let mut fraction = false;
-    if i < bytes.len() && bytes[i] == b'.' {
-        i += 1;
-        clean.push('.');
-        fraction = digit_run(&mut i, &mut clean);
-        if !fraction {
-            clean.push('0');
-        }
-    }
-    if !whole && !fraction {
-        return Err(invalid());
-    }
-    if !whole {
-        clean.insert(sign.len(), '0');
-    }
-    if i < bytes.len() && (bytes[i] == b'e' || bytes[i] == b'E') {
-        i += 1;
-        clean.push('e');
-        if i < bytes.len() && (bytes[i] == b'+' || bytes[i] == b'-') {
-            clean.push(bytes[i] as char);
-            i += 1;
-        }
-        if !digit_run(&mut i, &mut clean) {
-            return Err(invalid());
-        }
-    }
-    if i != bytes.len() {
-        return Err(invalid());
-    }
-    clean.parse::<f64>().map_err(|_| invalid())
-}
-
 /// A UTF-8 decoding failure, rendered as Python's `UnicodeDecodeError`.
 #[derive(Debug, Clone)]
 pub struct DecodeError {
@@ -562,20 +338,6 @@ pub fn universal_newlines(text: &str) -> String {
     } else {
         text.to_string()
     }
-}
-
-/// Why a text read failed.
-#[derive(Debug)]
-pub enum ReadError {
-    Os(io::Error),
-    Decode(DecodeError),
-}
-
-/// `Path.read_text(encoding="utf-8")`.
-pub fn read_text(path: &Path) -> Result<String, ReadError> {
-    let bytes = std::fs::read(path).map_err(ReadError::Os)?;
-    let text = decode_utf8(&bytes).map_err(ReadError::Decode)?;
-    Ok(universal_newlines(&text))
 }
 
 /// How the platform reported an `OSError`, which decides how Python renders it.
@@ -739,87 +501,6 @@ impl Date {
     pub fn isoformat(&self) -> String {
         format!("{:04}-{:02}-{:02}", self.year, self.month, self.day)
     }
-
-    /// `date.fromisoformat(s)`, following CPython's C implementation.
-    pub fn fromisoformat(s: &str) -> Option<Date> {
-        let b = s.as_bytes();
-        if !matches!(b.len(), 7 | 8 | 10) {
-            return None;
-        }
-        // The C parser reads a NUL-terminated buffer.
-        let at = |i: usize| b.get(i).copied().unwrap_or(0);
-        let digits = |p: &mut usize, n: usize| -> Option<i64> {
-            let mut value = 0i64;
-            for _ in 0..n {
-                let c = at(*p);
-                if !c.is_ascii_digit() {
-                    return None;
-                }
-                value = value * 10 + i64::from(c - b'0');
-                *p += 1;
-            }
-            Some(value)
-        };
-        let mut p = 0;
-        let year = digits(&mut p, 4)?;
-        let separator = at(p) == b'-';
-        if separator {
-            p += 1;
-        }
-        if at(p) == b'W' {
-            p += 1;
-            let week = digits(&mut p, 2)?;
-            let weekday = if p < b.len() {
-                if separator {
-                    if at(p) != b'-' {
-                        return None;
-                    }
-                    p += 1;
-                }
-                digits(&mut p, 1)?
-            } else {
-                1
-            };
-            return Date::from_iso_week(year, week, weekday);
-        }
-        let month = digits(&mut p, 2)?;
-        if separator {
-            if at(p) != b'-' {
-                return None;
-            }
-            p += 1;
-        }
-        let day = digits(&mut p, 2)?;
-        Date::new(year, month, day).ok()
-    }
-
-    fn from_iso_week(year: i64, week: i64, weekday: i64) -> Option<Date> {
-        if !(1..=9999).contains(&year) {
-            return None;
-        }
-        let year = year as i32;
-        let first = Date {
-            year,
-            month: 1,
-            day: 1,
-        }
-        .ordinal();
-        let first_weekday = (first + 6) % 7;
-        if week <= 0 || week >= 53 {
-            let long_year = first_weekday == 3 || first_weekday == 2 && is_leap(year);
-            if !(week == 53 && long_year) {
-                return None;
-            }
-        }
-        if !(1..=7).contains(&weekday) {
-            return None;
-        }
-        let mut monday = first - first_weekday;
-        if first_weekday > 3 {
-            monday += 7;
-        }
-        Date::from_ordinal(monday + (week - 1) * 7 + weekday - 1)
-    }
 }
 
 /// Stand-ins for the lone surrogates in `points`, so code that takes `str`
@@ -863,20 +544,6 @@ mod tests {
     }
 
     #[test]
-    fn word_count_is_the_length_of_split() {
-        for s in [
-            "",
-            "  ",
-            "a",
-            " a  b\tc\n",
-            "a\u{a0}b\u{2028}c\u{1c}d",
-            "\u{200b}x",
-        ] {
-            assert_eq!(word_count(s), split_whitespace(s).len(), "{s:?}");
-        }
-    }
-
-    #[test]
     fn repr_matches_python() {
         assert_eq!(repr_str("a'b"), "\"a'b\"");
         assert_eq!(repr_str("a'\"b"), "'a\\'\"b'");
@@ -884,7 +551,6 @@ mod tests {
             repr_str("\t\u{0}\u{7f}é\u{a0}\u{2028}\u{1F600}"),
             "'\\t\\x00\\x7fé\\xa0\\u2028\u{1F600}'"
         );
-        assert_eq!(repr_bytes(b"a'\x00\xff"), "b\"a'\\x00\\xff\"");
     }
 
     #[test]
@@ -926,31 +592,6 @@ mod tests {
     }
 
     #[test]
-    fn fromisoformat_follows_cpython() {
-        let ok = |s: &str| Date::fromisoformat(s).map(|d| d.isoformat());
-        assert_eq!(ok("20261017ab").as_deref(), Some("2026-10-17"));
-        assert_eq!(ok("2026W011xx").as_deref(), Some("2025-12-29"));
-        assert_eq!(ok("2026-W01").as_deref(), Some("2025-12-29"));
-        assert_eq!(ok("20261017\u{e9}").as_deref(), Some("2026-10-17"));
-        assert_eq!(ok("2026-W53").as_deref(), Some("2026-12-28"));
-        assert_eq!(ok("2020-W53-7").as_deref(), Some("2021-01-03"));
-        for bad in [
-            "2026-1017",
-            "202610-17",
-            "2026-10-1x",
-            "0000-01-01",
-            "9999-W52-6",
-            "+202-10-17",
-            " 2026-1-1",
-            "2026-W01-1x",
-            "2026W01-1",
-            "2026-02-30",
-        ] {
-            assert_eq!(ok(bad), None, "{bad}");
-        }
-    }
-
-    #[test]
     fn decode_errors_match_python() {
         let e = decode_utf8(b"ab\xff").unwrap_err();
         assert_eq!(
@@ -971,19 +612,13 @@ mod tests {
 
     #[test]
     fn string_predicates_match_python() {
-        assert_eq!(splitlines("a\r\nb\rc\x1cd\n"), vec!["a", "b", "c", "d"]);
-        assert_eq!(strip("\x1c x \u{3000}"), "x");
         assert_eq!(decimal_value('\u{0663}'), Some(3));
         assert_eq!(parse_int(" 1\u{0661}", 10).unwrap(), BigInt::from(11));
         assert_eq!(parse_int("0b101", 2).unwrap(), BigInt::from(5));
         assert!(parse_int("1__0", 10).is_err());
         // Only ASCII whitespace and non-ASCII spaces are stripped: str.isspace's
         // \x1c-\x1f are not, and \v is.
-        assert!(parse_int("1\x1c", 10).is_err() && parse_float("\x1f1").is_err());
+        assert!(parse_int("1\x1c", 10).is_err());
         assert_eq!(parse_int("\x0b1\u{85}", 10).unwrap(), BigInt::from(1));
-        assert_eq!(parse_float("\u{3000}2\x0c").unwrap(), 2.0);
-        assert_eq!(parse_float("1.e+5").unwrap(), 100000.0);
-        assert_eq!(parse_float("1_0.5").unwrap(), 10.5);
-        assert!(parse_float("1._5").is_err());
     }
 }
