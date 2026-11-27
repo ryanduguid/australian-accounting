@@ -18,11 +18,11 @@ lodgment-calendar = { path = "../../packages/lodgment-calendar" }
 payday-super-checker = { path = "../../packages/payday-super-checker" }
 jiff = { version = "1.0.0", default-features = false, features = ["std"] }
 jsonschema = { version = "=0.61.2", default-features = false, features = ["arbitrary-precision"] }
-regex = "=1.13.1"
+regex = "=1.13.2"
 num-bigint = "0.5"
 indexmap = "2"
 serde = "1"
-rmcp = { version = "=3.10.0", default-features = false, features = ["server", "client", "transport-io"] }
+rmcp = { version = "=3.11.0", default-features = false, features = ["server", "client", "transport-io"] }
 roxmltree = "=0.21.2"
 serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision", "unbounded_depth", "raw_value"] }
 stacker = "=0.1.25"
