@@ -81,7 +81,7 @@ fn check(ctx: &Ctx, records: &[Json], case: &Json) -> Option<String> {
     let record = variant(base, case);
     let got = answer(validate_record(&record, page.as_deref()));
     let shown = repr(&Json::Array(got.iter().cloned().map(json_str).collect()));
-    (got != want).then(|| format!("{} got {shown}", repr(case.at("why"))))
+    (got != want).then_some(format!("{} got {shown}", repr(case.at("why"))))
 }
 
 const ATO_CASES: &str = include_str!("../tests/data/cov_a2_ato_table_report.json");
@@ -151,7 +151,7 @@ fn ato_table_report_answers_as_rates_py_does() {
         let want = iterate(case.at("want")).expect("a list of lines");
         let want: Vec<S> = want.iter().map(pyvalue::str_points).collect();
         let shown = repr(&Json::Array(got.iter().cloned().map(json_str).collect()));
-        wrong.extend((got != want).then(|| format!("{} got {shown}", repr(case.at("why")))));
+        wrong.extend((got != want).then_some(format!("{} got {shown}", repr(case.at("why")))));
     }
     let shown = format!("{} of {}:\n{}", wrong.len(), cases.len(), wrong.join("\n"));
     assert!(wrong.is_empty(), "{shown}");
