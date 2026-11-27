@@ -112,9 +112,11 @@ fn makedirs_raises_the_error_of_a_parent_it_cannot_make() {
     let long = root.join("missing").join("n".repeat(300));
     let name = long.display().to_string();
     let error = makedirs(&PyPath::new(&format!("{name}/leaf"))).unwrap_err();
+    // ENAMETOOLONG is 63 on macOS and 36 on Linux; Python prints the OS's number.
+    let errno = if cfg!(target_os = "macos") { 63 } else { 36 };
     assert_eq!(
         error.text,
-        format!("[Errno 36] File name too long: '{name}'")
+        format!("[Errno {errno}] File name too long: '{name}'")
     );
     assert_eq!(error.class(), "OSError");
     assert!(

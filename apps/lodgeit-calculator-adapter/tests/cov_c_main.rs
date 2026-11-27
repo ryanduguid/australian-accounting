@@ -23,9 +23,13 @@ fn a_missing_command_is_a_usage_error() {
     let out = adapter(&["--no-such-option"]);
     assert_eq!(out.status.code(), Some(2));
     let stderr = String::from_utf8_lossy(&out.stderr);
+    // Python's text-mode stderr writes each newline as `\r\n` on Windows.
+    let newline = if cfg!(windows) { "\r\n" } else { "\n" };
     assert!(stderr.starts_with("usage: lodgeit-adapter "), "{stderr}");
     assert!(
-        stderr.ends_with("lodgeit-adapter: error: the following arguments are required: command\n"),
+        stderr.ends_with(&format!(
+            "lodgeit-adapter: error: the following arguments are required: command{newline}"
+        )),
         "{stderr}"
     );
 }
