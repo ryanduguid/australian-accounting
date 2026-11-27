@@ -123,10 +123,8 @@ pub fn csv_rows(text: &str) -> Result<Vec<Vec<String>>, Failure> {
         match reader.next_row() {
             Ok(Some(row)) => rows.push(row),
             Ok(None) => return Ok(rows),
-            Err(csvread::ReadError::Csv(message)) => {
-                return Err(Failure::Uncaught(format!("_csv.Error: {message}")));
-            }
-            Err(csvread::ReadError::Decode { .. }) => unreachable!("decoded text"),
+            // The text is already decoded, so the error is a CSV one.
+            Err(error) => return Err(Failure::Uncaught(format!("_csv.Error: {error}"))),
         }
     }
 }
@@ -249,15 +247,11 @@ fn read_neutral(shown: &str, rows: &[Vec<String>], header: &[String]) -> Result<
     if parsed.is_empty() {
         return fail(format!("{shown}: no account rows found"));
     }
-    let heading = strip(&rows[0][amount_at]);
+    // The heading casefolds to "amount", so it is never blank once stripped.
     Ok(PnlFile {
         rows: parsed,
         layout: "neutral",
-        amount_column: if heading.is_empty() {
-            "amount".into()
-        } else {
-            heading.into()
-        },
+        amount_column: strip(&rows[0][amount_at]).into(),
         skipped,
     })
 }
@@ -569,5 +563,18 @@ mod tests {
         let mut rows: Vec<Vec<String>> = vec![vec!["Sales".into(), "".into(), "850000".into()]; 20];
         rows.push(vec!["Rent".into(), "-".into(), "60000".into()]);
         assert!(only_placeholders(&rows, 1, None));
+    }
+
+    #[test]
+    fn a_digit_that_is_not_decimal_is_refused_as_int_refuses_it() {
+        // '²'.isdigit() is True, but int('²') raises.
+        assert_eq!(
+            column_number("²").map(|r| r.unwrap_err()),
+            Some(Failure::Uncaught(
+                "ValueError: invalid literal for int() with base 10: '²'".into()
+            ))
+        );
+        assert!(matches!(column_number("3"), Some(Ok(3))));
+        assert!(column_number("Amount").is_none());
     }
 }

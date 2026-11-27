@@ -219,13 +219,9 @@ fn check_project_inputs(args: &PortableLslLevyArgs, context: &str) -> Result<Dec
     required_money(args.project_cost, "project_cost", context)
 }
 
+/// The worksheet's supported years, which `scope` holds `year` to, are the
+/// years this levy was verified for: 2023-24 to 2026-27.
 fn calculate_nsw_construction(args: &PortableLslLevyArgs, year: &str) -> Result<Value> {
-    check_year(
-        "nsw",
-        "construction",
-        year,
-        "2023-24, 2024-25, 2025-26, 2026-27",
-    )?;
     let cost = check_project_inputs(args, "NSW building and construction levy")?;
     let (steps, rates) = precise(|| {
         let threshold = d("250000");

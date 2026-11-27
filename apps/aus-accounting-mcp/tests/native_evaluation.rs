@@ -262,6 +262,19 @@ fn score_option_forms_and_nested_inputs_are_bounded() {
         String::from_utf8(output.stderr).unwrap(),
         "invalid recording: recording must be an object keyed by question id\n"
     );
+    // A valid recording then fails on the unavailable custom reference, writing no score.
+    fs::write(&record, "{}").unwrap();
+    let output = run(&[
+        "--reference",
+        temp.0.join("missing.xml").to_str().unwrap(),
+        "score",
+        path,
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.starts_with("invalid recording: "), "{stderr}");
+    assert!(!stderr.contains("recording must be"), "{stderr}");
 }
 
 #[test]

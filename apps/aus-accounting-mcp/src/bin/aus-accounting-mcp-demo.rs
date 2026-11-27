@@ -63,14 +63,12 @@ fn render_transcript(mut payload: Value) -> Result<String, serde_json::Error> {
     ))
 }
 
-fn main() {
-    match demo_payload().and_then(|payload| render_transcript(payload).map_err(|e| e.to_string())) {
-        Ok(transcript) => print!("{transcript}"),
-        Err(error) => {
-            eprintln!("aus-accounting-mcp-demo: {error}");
-            std::process::exit(1);
-        }
-    }
+// The demo reads no input and makes 2 fixed calls, so it fails only when the server
+// itself is broken; the returned error then names the call and exits 1.
+fn main() -> Result<(), String> {
+    let transcript = render_transcript(demo_payload()?).map_err(|e| e.to_string())?;
+    print!("{transcript}");
+    Ok(())
 }
 
 #[cfg(test)]

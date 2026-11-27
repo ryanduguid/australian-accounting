@@ -230,7 +230,6 @@ pub fn read_contracts(
             parse_row(&row, &index, mapping, line_number)
         };
         let contract = match parsed {
-            Ok(contract) => contract,
             Err(Failure::Message(message)) => {
                 errors.push(message);
                 // One past the cap, so the "... and more" suffix can fire.
@@ -239,7 +238,9 @@ pub fn read_contracts(
                 }
                 continue;
             }
-            Err(signal) => return Err(signal),
+            // A decimal signal from a cell needs about a million digits; the
+            // reader caps a field at 131,072 characters, so this is always Ok.
+            other => other?,
         };
         if let Some((_, previous)) = seen.iter().find(|(id, _)| *id == contract.contract_id) {
             errors.push(format!(

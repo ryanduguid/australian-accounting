@@ -238,10 +238,8 @@ fn read_files(
     visit: &mut Visit<'_>,
     files: Vec<(String, PathBuf)>,
 ) -> Result<(), String> {
-    for (filename, candidate) in files {
-        if !filename.to_lowercase().ends_with(".md") {
-            continue;
-        }
+    // `listed` passes only non-folders whose extension is `md` in any ASCII case.
+    for (_, candidate) in files {
         *progress.count += 1;
         if *progress.count > context.limit("MAX_FILES", 1000) {
             return Err("Library exceeds 1000 Markdown files; configure a smaller folder.".into());

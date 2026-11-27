@@ -100,17 +100,20 @@ fn stdout_terminal() -> Option<(i64, i64)> {
 /// positive integer; otherwise the terminal on stdout, else 80. The terminal
 /// is asked whenever either $COLUMNS or $LINES is not a positive integer.
 pub fn columns() -> i64 {
-    let env_int = |name: &str| {
-        std::env::var(name)
-            .ok()
-            .and_then(|value| py_int(&value))
-            .unwrap_or(0)
-    };
+    columns_with(|name| std::env::var(name).ok(), stdout_terminal)
+}
+
+/// `columns` reading the environment through `var` and the terminal through `terminal`.
+fn columns_with(
+    var: impl Fn(&str) -> Option<String>,
+    terminal: impl FnOnce() -> Option<(i64, i64)>,
+) -> i64 {
+    let env_int = |name: &str| var(name).and_then(|value| py_int(&value)).unwrap_or(0);
     let columns = env_int("COLUMNS");
     if columns > 0 && env_int("LINES") > 0 {
         return columns;
     }
-    let terminal = stdout_terminal();
+    let terminal = terminal();
     if columns > 0 {
         return columns;
     }
@@ -133,5 +136,24 @@ mod tests {
         for bad in ["", " ", "4__0", "_40", "40_", "4.0", "0x10", "--1"] {
             assert_eq!(py_int(bad), None, "{bad}");
         }
+    }
+
+    fn width(vars: &[(&str, &str)], terminal: Option<(i64, i64)>) -> i64 {
+        let var = |name: &str| {
+            vars.iter()
+                .find(|(k, _)| *k == name)
+                .map(|(_, v)| v.to_string())
+        };
+        columns_with(var, || terminal)
+    }
+
+    // shutil.get_terminal_size((80, 24)).columns for each case.
+    #[test]
+    fn columns_prefers_a_positive_environment_value_then_the_terminal_then_80() {
+        assert_eq!(width(&[("COLUMNS", "100"), ("LINES", "30")], None), 100);
+        assert_eq!(width(&[("COLUMNS", "100")], Some((120, 40))), 100);
+        assert_eq!(width(&[("COLUMNS", "0")], Some((120, 40))), 120);
+        assert_eq!(width(&[("LINES", "30")], Some((0, 0))), 80);
+        assert_eq!(width(&[("COLUMNS", "-5")], None), 80);
     }
 }

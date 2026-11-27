@@ -165,12 +165,10 @@ fn finish(result: Result<(i32, String, String), String>) -> i32 {
 }
 
 async fn run_context() -> Result<(i32, String, String), String> {
-    match sibling_server() {
-        Ok(path) => context::describe(&path, Duration::from_secs(30))
-            .await
-            .map(|s| (0, s, String::new())),
-        Err(e) => Err(e.to_string()),
-    }
+    let path = sibling_server().map_err(|e| e.to_string())?;
+    context::describe(&path, Duration::from_secs(30))
+        .await
+        .map(|s| (0, s, String::new()))
 }
 
 async fn run_questions(reference: Option<&Path>) -> Result<(i32, String, String), String> {
