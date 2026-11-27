@@ -299,7 +299,7 @@ fn work(
     }
     let [benefit, received, offset, excess] = totals;
     let [t1, t2, t3] = t.thresholds;
-    let mut out = result(
+    let out = result(
         KIND,
         year,
         vec![
@@ -314,7 +314,8 @@ fn work(
             rate("tier_2_threshold", t2),
             rate("tier_3_threshold", t3),
         ],
-    )?;
+    );
+    let mut out = out?;
     out["tier"] = json!(TIERS[t.tier]);
     out["thresholds"] = json!(if t.families { "families" } else { "singles" });
     out["lines"] = Value::Array(worked);

@@ -279,7 +279,7 @@ pub fn prepayments(args: &PrepaymentsArgs) -> Result<Value> {
     consistent(&facts, treatment)?;
     let rows = schedule(&facts.expenditure, first, treatment, period)?;
     let now = rows[0].2.clone();
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -291,7 +291,8 @@ pub fn prepayments(args: &PrepaymentsArgs) -> Result<Value> {
             super::rate("excluded_below", EXCLUDED_BELOW),
             super::rate("longest_period_months", MAX_MONTHS),
         ],
-    )?;
+    );
+    let mut out = out?;
     let shown = if facts.excluded { None } else { period };
     explain(&mut out, treatment, shown, &rows)?;
     Ok(out)

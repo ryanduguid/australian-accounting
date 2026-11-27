@@ -95,13 +95,15 @@ fn amount(id: &str, formula: &str, values: &[(&str, Decimal)]) -> Result<Decimal
             .mul(&v("exempt_proportion"))?
             .quantize(0, Rounding::Down)?
             .add(&v("segregated_pension_income"))?,
-        "non_arms_length_component" => py_min(
-            v("net_non_arms_length_income").add(&v("general_expense_non_arms_length_income"))?,
-            excess(
+        "non_arms_length_component" => {
+            let income = v("net_non_arms_length_income")
+                .add(&v("general_expense_non_arms_length_income"))?;
+            let rest = excess(
                 values,
                 "max(0, taxable_income - assessable_contributions + contribution_deductions)",
-            )?,
-        )?,
+            );
+            py_min(income, rest?)?
+        }
         "tax_on_taxable_income" => v("low_tax_component")
             .mul(&v("low_tax_rate"))?
             .add(&v("non_arms_length_component").mul(&v("non_arms_length_rate"))?)?,

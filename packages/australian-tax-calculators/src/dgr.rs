@@ -411,10 +411,13 @@ fn check_with(register: &Register, v: &Value) -> Result<Value, Refusal> {
         .collect::<Result<_, _>>()?;
     let mut results = Vec::new();
     for (at, (donation, given)) in read.iter().zip(donations).enumerate() {
-        let mut result = match (&donation.abn, &donation.name) {
-            (Some(abn), _) => by_abn(register, abn, donation)?,
-            (None, Some(name)) => by_name(register, name, donation)?,
-            (None, None) => unreachable!("read_donation refuses it"),
+        let mut result = match &donation.abn {
+            Some(abn) => by_abn(register, abn, donation)?,
+            None => {
+                let name = donation.name.as_ref();
+                let name = name.expect("read_donation refuses a donation with neither");
+                by_name(register, name, donation)?
+            }
         };
         result.insert("index".into(), json!(at));
         result.insert("input".into(), given.clone());
