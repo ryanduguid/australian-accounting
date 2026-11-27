@@ -345,14 +345,18 @@ jobs:
           fail_ci_if_error: true
           flags: aus-accounting-mcp
 
-  # The australian-tax-calculators report from its ci-rust.yml coverage run,
-  # uploaded when the crate ran.
+  # Each crate's report from its ci-rust.yml coverage run, uploaded under the
+  # crate's own flag when the crate ran. aus-accounting-mcp and lodgment-calendar
+  # name their Python flags, so their crates upload as <crate>-rust.
   codecov-rust:
-    name: upload australian-tax-calculators coverage to Codecov
+    name: upload ${{ matrix.package }} coverage to Codecov
     needs: [crates, rust]
     if: >-
       (github.event_name == 'push' || github.event_name == 'pull_request')
-      && contains(needs.crates.outputs.ci-matrix, '"package":"australian-tax-calculators"')
+      && needs.crates.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.crates.outputs.ci-matrix) }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -364,14 +368,14 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: coverage-codecov-australian-tax-calculators
+          name: coverage-codecov-${{ matrix.package }}
       - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           use_oidc: true
           files: lcov.info
           disable_search: true
           fail_ci_if_error: true
-          flags: australian-tax-calculators
+          flags: ${{ (matrix.package == 'aus-accounting-mcp' || matrix.package == 'lodgment-calendar') && format('{0}-rust', matrix.package) || matrix.package }}
 
   tests-gates:
     # The one context branch protection requires from this workflow. It fails

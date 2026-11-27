@@ -209,9 +209,12 @@ release callers require that test job; no second pytest run is needed.
 - Each engine's Linux test matrix runs on every pull request. Its gates job requires
   that matrix to pass and allows the other jobs to skip when their paths are unchanged.
   The required `tests-gates` check depends on every engine's workflow call.
-- Codecov requires 100% project coverage and a fresh 100% report from each Python
-  component. The MCP application and lodgment calendar each upload their Linux
-  Python 3.14 report on pull requests and pushes to `main`.
+- Codecov requires a fresh 100% report from each Python component, and holds the
+  whole repository to the project target in `codecov.yml`. The MCP application and
+  lodgment calendar each upload their Linux Python 3.14 report on pull requests and
+  pushes to `main`. Each Rust crate uploads the Linux report of its coverage run under
+  its own flag (`<crate>-rust` for those 2), and a crate that did not run carries its
+  last report forward.
 - Application jobs use `.github/ci/app_ci.py` to select PR changes. An application's own
   files, its engine dependencies, root tests, shared policy and workspace files, and any
   unknown path or comparison run its complete checks. For known unrelated paths, the MCP
