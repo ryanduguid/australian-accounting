@@ -164,9 +164,16 @@ fn validate_reports_the_missing_snapshot_of_a_record_without_a_url() {
     let code = cmd_validate(&ctx, &mut out);
     let printed = String::from_utf8(out.w).expect("UTF-8 output");
     assert_eq!(code.ok(), Some(1));
-    let missing = ["label", "unit", "period", "source_url", "retrieved_at", "quote"]
-        .map(|field| format!("r0: missing or wrong type: {field}\n"))
-        .concat();
+    let missing = [
+        "label",
+        "unit",
+        "period",
+        "source_url",
+        "retrieved_at",
+        "quote",
+    ]
+    .map(|field| format!("r0: missing or wrong type: {field}\n"))
+    .concat();
     let sep = std::path::MAIN_SEPARATOR;
     let expected = format!(
         "{missing}r0: missing: value\nr0: no snapshot at snapshots{sep}.txt\n1 record(s) with problems\n"
