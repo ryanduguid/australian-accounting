@@ -10,7 +10,7 @@
 use std::ffi::OsString;
 use std::io::Write;
 
-use crate::argparse::{Action, Exit, Namespace, Parser, Value};
+use crate::argparse::{Action, Exit, Get, Namespace, Parser, Value};
 use crate::client::{self, Client};
 use crate::config::{self, AdapterConfig};
 use crate::contract::{self, Contract};
@@ -184,11 +184,9 @@ fn eprint(stderr: &mut dyn Write, text: &[u32]) {
     let _ = stderr.write_all(&newlines(line.as_bytes()));
 }
 
+/// A string argument; every key read here has a string default or is required.
 fn text(ns: &Namespace, key: &str) -> String {
-    match ns.get(key) {
-        Some(Value::Str(s)) => s.clone(),
-        _ => String::new(),
-    }
+    ns.str(key).unwrap_or_default()
 }
 
 pub fn main(argv: Vec<OsString>) -> i32 {

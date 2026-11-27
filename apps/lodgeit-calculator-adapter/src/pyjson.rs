@@ -424,11 +424,9 @@ fn decode(text: &str, members: Members, numbers: Numbers) -> Result<Json, Decode
                     idx = skip(idx);
                     if idx < len && s[idx] == b']' {
                         idx += 1;
-                        let Some(Frame::Array(items)) = stack.pop() else {
-                            unreachable!()
-                        };
+                        value = Json::Array(std::mem::take(items));
+                        stack.pop();
                         used -= level_cost(true);
-                        value = Json::Array(items);
                         continue;
                     }
                     if idx >= len || s[idx] != b',' {
@@ -450,9 +448,8 @@ fn decode(text: &str, members: Members, numbers: Numbers) -> Result<Json, Decode
                     idx = skip(idx);
                     if idx < len && s[idx] == b'}' {
                         idx += 1;
-                        let Some(Frame::Object(pairs, _)) = stack.pop() else {
-                            unreachable!()
-                        };
+                        let pairs = std::mem::take(pairs);
+                        stack.pop();
                         used -= level_cost(false);
                         if members == Members::Keep {
                             value = Json::Object(pairs);
@@ -710,15 +707,14 @@ pub fn check_round_trip(data: &[u8]) -> Result<(), String> {
             .collect::<Result<_, _>>()?;
         let again =
             loads_standard(&once).map_err(|e| format!("{once:?} does not decode: {e:?}"))?;
-        let twice: Vec<u32> = crate::pyvalue::dumps_with(&again, None, true, false);
-        if twice
+        let twice: String = crate::pyvalue::dumps_with(&again, None, true, false)
             .into_iter()
             .filter_map(char::from_u32)
-            .collect::<String>()
-            != once
-        {
-            return Err(format!("{once:?} changed in a round trip"));
-        }
+            .collect();
+        // The invariant under test: no input is known to break it.
+        (twice == once)
+            .then_some(())
+            .ok_or_else(|| format!("{once:?} changed in a round trip"))?;
     }
     Ok(())
 }
