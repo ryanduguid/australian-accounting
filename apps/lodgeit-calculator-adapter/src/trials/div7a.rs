@@ -90,13 +90,15 @@ impl Case {
     }
 }
 
-/// `Decimal(value)` for a str, an int or a float.
+/// `Decimal(value)` for a str, an int, a float or a list (CPython's
+/// `(sign, digits, exponent)` form).
 pub(super) fn decimal(value: &Json) -> R<Decimal> {
     match value {
         Json::Int(i) => Ok(Decimal::from_bigint(i)),
         Json::Bool(b) => Ok(Decimal::from_int(i64::from(*b))),
         Json::Float(f) => Ok(Decimal::from_float(*f)),
         Json::Str(s) => Decimal::parse_points(&s.code_points()).map_err(conversion),
+        Json::Array(items) => Decimal::parse_points(&dectuple_as_str(items)?).map_err(conversion),
         other => Err(Exc::msg(
             "TypeError",
             &format!(
@@ -105,6 +107,94 @@ pub(super) fn decimal(value: &Json) -> R<Decimal> {
             ),
         )),
     }
+}
+
+/// `_decimal.c`'s `dectuple_as_str`: the string a `[sign, digits, exponent]`
+/// list stands for, with CPython's checks in CPython's order.
+fn dectuple_as_str(items: &[Json]) -> R<Vec<u32>> {
+    let refuse = |text: &str| Exc::msg("ValueError", text);
+    let [sign, digits, exponent] = items else {
+        return Err(refuse("argument must be a sequence of length 3"));
+    };
+    let bad_sign = || refuse("sign must be an integer with the value 0 or 1");
+    let sign: std::ffi::c_long = c_int(&py_int(sign).ok_or_else(bad_sign)?, "long")?;
+    let mut out = String::from(match sign {
+        0 => "+",
+        1 => "-",
+        _ => return Err(bad_sign()),
+    });
+    let exp = exponent_part(exponent, &mut out)?;
+    let coefficient = coefficient(digits, || refuse("coefficient must be a tuple of digits"))?;
+    match exp {
+        Some(exp) if coefficient.is_empty() => out.push_str(&format!("0E{exp}")),
+        Some(exp) => out.push_str(&format!("{coefficient}E{exp}")),
+        // An infinity accepts but ignores a well-formed coefficient.
+        None if out.ends_with("Inf") => {}
+        None => out.push_str(&coefficient),
+    }
+    Ok(pts(&out))
+}
+
+/// The third position: an exponent, or `F`, `n` or `N` for a special number,
+/// whose name goes onto `out`.
+fn exponent_part(exponent: &Json, out: &mut String) -> R<Option<isize>> {
+    let refuse = |text: &str| Exc::msg("ValueError", text);
+    let Json::Str(s) = exponent else {
+        let bad = || refuse("exponent must be an integer");
+        return Ok(Some(c_int(&py_int(exponent).ok_or_else(bad)?, "ssize_t")?));
+    };
+    out.push_str(match s.code_points().as_slice() {
+        [0x46] => "Inf",
+        [0x6E] => "NaN",
+        [0x4E] => "sNaN",
+        _ => {
+            return Err(refuse(
+                "string argument in the third position must be 'F', 'n' or 'N'",
+            ));
+        }
+    });
+    Ok(None)
+}
+
+/// The digits of a `[sign, digits, exponent]` list's coefficient, each
+/// checked as `dectuple_as_str` checks it.
+fn coefficient(digits: &Json, bad: impl Fn() -> Exc + Copy) -> R<String> {
+    let Json::Array(digits) = digits else {
+        return Err(bad());
+    };
+    digits
+        .iter()
+        .map(|digit| {
+            let digit: std::ffi::c_long = c_int(&py_int(digit).ok_or_else(bad)?, "long")?;
+            u32::try_from(digit)
+                .ok()
+                .and_then(|d| char::from_digit(d, 10))
+                .ok_or_else(bad)
+        })
+        .collect()
+}
+
+/// The int a JSON value is to Python (`bool` is an `int`), or None.
+fn py_int(value: &Json) -> Option<num_bigint::BigInt> {
+    match value {
+        Json::Int(i) => Some(i.clone()),
+        Json::Bool(b) => Some(u8::from(*b).into()),
+        _ => None,
+    }
+}
+
+/// `PyLong_AsLong` and `PyLong_AsSsize_t`: the int as a C `name`, or
+/// CPython's `OverflowError`.
+fn c_int<T: for<'a> TryFrom<&'a num_bigint::BigInt>>(
+    value: &num_bigint::BigInt,
+    name: &str,
+) -> R<T> {
+    T::try_from(value).map_err(|_| {
+        Exc::msg(
+            "OverflowError",
+            &format!("Python int too large to convert to C {name}"),
+        )
+    })
 }
 
 pub(super) fn text(value: &Json) -> R<String> {
@@ -499,6 +589,51 @@ pub fn evaluate_outcome(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_engine_failure_is_raised_as_the_python_engine_raised_it() {
+        let shown = |e: Exc| {
+            (
+                e.class,
+                e.text
+                    .iter()
+                    .filter_map(|&c| char::from_u32(c))
+                    .collect::<String>(),
+            )
+        };
+        assert_eq!(
+            shown(engine_error(Failure::Value("bad year".into()))),
+            ("ValueError", "bad year".into())
+        );
+        // The decimal module's `str()` of each trapped signal.
+        let signals = [
+            (
+                EngineSignal::InvalidOperation,
+                "decimal.InvalidOperation",
+                "[<class 'decimal.InvalidOperation'>]",
+            ),
+            (
+                EngineSignal::DivisionByZero,
+                "decimal.DivisionByZero",
+                "[<class 'decimal.DivisionByZero'>]",
+            ),
+            (
+                EngineSignal::Overflow,
+                "decimal.Overflow",
+                "[<class 'decimal.Overflow'>]",
+            ),
+        ];
+        for (signal, class, text) in signals {
+            assert_eq!(
+                shown(engine_error(Failure::Signal(signal))),
+                (class, text.into())
+            );
+        }
+        assert_eq!(
+            shown(engine_error(Failure::Uncaught("KeyError: 'x'".into()))),
+            ("Exception", "KeyError: 'x'".into())
+        );
+    }
 
     fn case(id: &str) -> Case {
         let cases = load_cases(None).expect("the packaged cases load");

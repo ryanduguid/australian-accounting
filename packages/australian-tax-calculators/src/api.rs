@@ -5330,12 +5330,16 @@ pub fn evaluate_coded(command: &str, v: &Value) -> Result<Value> {
                 optional: given.each_ref().map(Option::as_ref),
             })
         }
-        "luxury-car-tax" => engine::luxury_car_tax(&engine::LctArgs {
-            lines: &a[0],
-            year: &a[1],
-            scope_confirmed: &a[2],
-        }),
-        _ => unreachable!("listed command"),
+        // The COMMAND_ARGS lookup above refuses every unlisted command, so the
+        // last listed one takes the catch-all arm.
+        _ => {
+            assert_eq!(command, "luxury-car-tax", "listed command");
+            engine::luxury_car_tax(&engine::LctArgs {
+                lines: &a[0],
+                year: &a[1],
+                scope_confirmed: &a[2],
+            })
+        }
     };
     let mut result = result.or_else(|e| refusal(e.code(), e.to_string()))?;
     engine::attach_source_quotes(command, v, &mut result);
@@ -5359,12 +5363,8 @@ mod tests {
                 (actual != expected).then(|| format!("{bits}: python {expected}, rust {actual}"))
             })
             .collect();
-        assert!(
-            wrong.is_empty(),
-            "{} wrong: {:?}",
-            wrong.len(),
-            &wrong[..wrong.len().min(10)]
-        );
+        let shown = &wrong[..wrong.len().min(10)];
+        assert!(wrong.is_empty(), "{} wrong: {shown:?}", wrong.len());
     }
 
     /// `takes` reads the catalogue's required inputs so that the FBT benefit
@@ -5396,5 +5396,15 @@ mod tests {
                 "{command} {extra:?}"
             );
         }
+    }
+
+    #[test]
+    fn float_repr_keeps_the_shortest_spelling_when_the_nearest_does_not_read_back() {
+        // 2**-1017: rounded to its shortest spelling's 16 digits, the exact value
+        // reads ...044e-307, which is not the same double.
+        let value = f64::from_bits(0x0060_0000_0000_0000);
+        assert_ne!(format!("{value:.15e}").parse::<f64>(), Ok(value));
+        assert_eq!(float_repr(value), "7.120236347223045e-307");
+        assert_eq!(float_repr(f64::NAN), "nan");
     }
 }

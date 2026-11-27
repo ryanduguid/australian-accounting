@@ -100,17 +100,20 @@ fn stdout_terminal() -> Option<(i64, i64)> {
 /// positive integer; otherwise the terminal on stdout, else 80. The terminal
 /// is asked whenever either $COLUMNS or $LINES is not a positive integer.
 pub fn columns() -> i64 {
-    let env_int = |name: &str| {
-        std::env::var(name)
-            .ok()
-            .and_then(|value| py_int(&value))
-            .unwrap_or(0)
-    };
+    columns_from(|name| std::env::var(name).ok(), stdout_terminal)
+}
+
+/// `columns` with the environment read by `var` and the terminal by `terminal`.
+fn columns_from(
+    var: impl Fn(&'static str) -> Option<String>,
+    terminal: impl FnOnce() -> Option<(i64, i64)>,
+) -> i64 {
+    let env_int = |name: &'static str| var(name).and_then(|value| py_int(&value)).unwrap_or(0);
     let columns = env_int("COLUMNS");
     if columns > 0 && env_int("LINES") > 0 {
         return columns;
     }
-    let terminal = stdout_terminal();
+    let terminal = terminal();
     if columns > 0 {
         return columns;
     }
@@ -133,5 +136,35 @@ mod tests {
         for bad in ["", " ", "4__0", "_40", "40_", "4.0", "0x10", "--1"] {
             assert_eq!(py_int(bad), None, "{bad}");
         }
+    }
+
+    #[test]
+    fn columns_follow_shutil_get_terminal_size() {
+        let env = |pairs: &'static [(&'static str, &'static str)]| {
+            move |name: &str| {
+                pairs
+                    .iter()
+                    .find(|(k, _)| *k == name)
+                    .map(|(_, v)| v.to_string())
+            }
+        };
+        let unasked = || -> Option<(i64, i64)> { panic!("the terminal is not asked") };
+        // Both variables set: $COLUMNS, and the terminal is never asked.
+        assert_eq!(
+            columns_from(env(&[("COLUMNS", "100"), ("LINES", "30")]), unasked),
+            100
+        );
+        // $COLUMNS alone still wins once the terminal has been asked.
+        assert_eq!(
+            columns_from(env(&[("COLUMNS", "100")]), || Some((60, 20))),
+            100
+        );
+        assert_eq!(
+            columns_from(env(&[("COLUMNS", "0"), ("LINES", "30")]), || Some((60, 20))),
+            60
+        );
+        // No usable terminal width: the 80-column fallback.
+        assert_eq!(columns_from(env(&[]), || None), 80);
+        assert_eq!(columns_from(env(&[]), || Some((0, 20))), 80);
     }
 }

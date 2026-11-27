@@ -668,3 +668,13 @@ fn the_catalogue_example() {
     assert_eq!(r["return_lines"][1]["duty"], "78.10");
     assert_eq!(amount(&r, "excise_duty"), "286.19");
 }
+
+#[test]
+fn a_quantity_given_as_a_json_number_is_refused() {
+    let mut l = beer("2025-08-04", "100", "4.5", "50");
+    l["container_litres"] = json!(50);
+    assert_eq!(
+        code(&input("2025-26", json!([l]))),
+        "alcohol_excise.quantity_invalid"
+    );
+}

@@ -233,7 +233,8 @@ fn refund(
         required(fields, n, "refund_eligible_car")?,
         n,
         "refund_eligible_car",
-    )?;
+    );
+    let eligible = eligible?;
     Ok((found, eligible))
 }
 
@@ -305,4 +306,15 @@ pub(super) fn parse_line(value: &Value, n: usize, year: &'static str) -> Result<
             _ => None,
         },
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn only_refuses_a_value_that_is_not_an_object() {
+        let error = only(&Value::from(1), 2, "a line", &[]).unwrap_err();
+        assert_eq!(error.to_string(), "line 2: a line must be an object.");
+    }
 }

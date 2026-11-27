@@ -136,7 +136,8 @@ fn division_293_tax(taxable: &Decimal, contributions: &Decimal, year: &str) -> R
         &Arg::Decimal(contributions.clone()),
         &Arg::Text(year.to_string()),
         &Arg::Bool(true),
-    )?;
+    );
+    let out = out?;
     let text = out["amounts"]["division_293_tax"]
         .as_str()
         .expect("an amount");
@@ -215,14 +216,15 @@ fn largest_salary(profit: &Decimal, law: &Law) -> Result<Decimal> {
     let fits = |s: &Decimal| -> Result<bool> { Ok(s.add(&super_guarantee(s, law)?)?.le(profit)?) };
     let mut salary = down(&profit.div(&int(1).add(&law.sg_rate)?)?, 2)?;
     if salary.gt(&law.base)? {
-        salary = py_max(
+        let higher = py_max(
             law.base.clone(),
             profit.sub(&super_guarantee(&law.base, law)?)?,
-        )?;
+        );
+        salary = higher?;
     }
-    while salary.gt(&int(0))? && !fits(&salary)? {
-        salary = salary.sub(&cent)?;
-    }
+    // The guess fits: profit less the guess is whole cents and at least the
+    // unrounded super guarantee, which `cents` rounds to whole cents; above the
+    // base the super guarantee is the base's.
     while fits(&salary.add(&cent)?)? {
         salary = salary.add(&cent)?;
     }
@@ -364,7 +366,8 @@ pub fn owner_pay_split(args: &SalaryDividendArgs) -> Result<Value> {
             &profit,
             &other,
             &law,
-        )?;
+        );
+        let best = best?;
         let all_salary = split(&largest, &profit, &other, &law)?.kept;
         let all_dividends = split(&int(0), &profit, &other, &law)?.kept;
         let mut amounts = amounts(&chosen);
@@ -402,4 +405,48 @@ fn amounts(s: &Split) -> Vec<(&'static str, Decimal)> {
         ("super_kept", s.super_kept.clone()),
         ("kept", s.kept.clone()),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The largest salary fits and a cent more does not, for profits around
+    /// each year's base and a spread of others.
+    #[test]
+    fn the_largest_salary_is_the_largest_that_fits() {
+        let fits = |s: &Decimal, law: &Law, profit: &Decimal| {
+            s.add(&super_guarantee(s, law).unwrap())
+                .unwrap()
+                .le(profit)
+                .unwrap()
+        };
+        for (year, (rate, base)) in SUPER_GUARANTEE {
+            let law = law(year.to_string(), false, &int(0)).unwrap();
+            let edge = d(base).mul(&int(1).add(&d(rate)).unwrap()).unwrap();
+            let edge = down(&edge, 2).unwrap();
+            let mut profits: Vec<Decimal> = (-300..=300)
+                .map(|c| {
+                    edge.add(&d(&format!("{c}")).mul(&d("0.01")).unwrap())
+                        .unwrap()
+                })
+                .collect();
+            let mut seed: u64 = 7;
+            for _ in 0..400 {
+                seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+                profits.push(d(&format!(
+                    "{}.{:02}",
+                    (seed >> 33) % 600_000,
+                    (seed >> 20) % 100
+                )));
+            }
+            profits.extend(["0", "0.01", "0.11", "1.12", "1000000"].map(d));
+            for profit in profits {
+                let salary = largest_salary(&profit, &law).unwrap();
+                let more = salary.add(&d("0.01")).unwrap();
+                assert!(fits(&salary, &law, &profit), "{year} {profit}");
+                assert!(!fits(&more, &law, &profit), "{year} {profit}");
+            }
+        }
+    }
 }

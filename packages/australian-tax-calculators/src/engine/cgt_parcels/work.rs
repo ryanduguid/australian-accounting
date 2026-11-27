@@ -278,12 +278,13 @@ impl Work {
         for ((i, share), free) in shares.into_iter().zip(free) {
             let before = bases(&self.parcels[i])?;
             let gain = self.reduce(i, [&share, &share.add(&free)?])?;
-            self.row(
+            let recorded = self.row(
                 event,
                 i,
                 change,
                 (Some(share), before, gain, authority.into()),
-            )?;
+            );
+            recorded?;
         }
         Ok(())
     }

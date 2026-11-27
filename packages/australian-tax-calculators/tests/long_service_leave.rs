@@ -558,3 +558,12 @@ fn invalid_inputs_are_refused() {
     let taken = run(&with(base, json!({"leave_taken": "8.6666"})));
     assert_eq!(figures(&taken), ["8.6667", "0.0001", "0.10"]);
 }
+
+#[test]
+fn leave_taken_as_a_json_number_is_refused() {
+    let v = with(
+        input("nsw", "2014-02-01", "2026-07-31", "2026-27"),
+        json!({"leave_taken": 0}),
+    );
+    assert_eq!(code(&v), "long_service_leave.taken_invalid");
+}

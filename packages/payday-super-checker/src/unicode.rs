@@ -114,6 +114,10 @@ mod tests {
         assert_eq!(nfkc("\u{1100}\u{1161}\u{11A8}"), "\u{AC01}");
         assert_eq!(nfkc("\u{FF21}\u{3000}"), "A ");
         assert_eq!(nfkc("a\u{323}\u{302}"), "\u{1EAD}");
+        // CPython 3.14 on the Linux test host: a second acute has nothing to
+        // compose with and stays a combining mark after the composed letter.
+        assert_eq!(nfkc("a\u{301}\u{301}"), "\u{E1}\u{301}");
+        assert_eq!(nfkc("e\u{301}\u{327}"), "\u{229}\u{301}");
     }
 
     #[test]

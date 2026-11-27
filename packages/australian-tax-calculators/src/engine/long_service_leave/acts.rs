@@ -421,3 +421,14 @@ pub(super) fn transition(place: Place, start: i64, taken: i128) -> Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn victoria_pays_for_no_reason_before_its_qualifying_period() {
+        assert!(!qualifies(Place::Vic, Reason::Death));
+        assert!(qualifies(Place::Nsw, Reason::Death));
+    }
+}

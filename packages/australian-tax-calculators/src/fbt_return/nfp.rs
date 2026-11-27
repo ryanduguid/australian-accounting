@@ -212,7 +212,8 @@ pub(super) fn apply(
 ) -> Result<Option<Composed>, Refusal> {
     let rate = calc(Decimal::parse(
         fbt["rates"]["fbt_rate"].as_str().expect("fbt's FBT rate"),
-    ))?;
+    ));
+    let rate = rate?;
     match kind {
         Kind::Taxable => Ok(None),
         Kind::Exempt(cap) => {

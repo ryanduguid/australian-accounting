@@ -172,12 +172,13 @@ pub fn non_commercial_losses(args: &NonCommercialLossesArgs) -> Result<Value> {
     if part_year {
         amounts.push(("assessable_income_measured", measured));
     }
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         amounts,
         RATES.map(|(k, v)| rate(k, v)).to_vec(),
-    )?;
+    );
+    let mut out = out?;
     out["income_requirement"] = json!({"met": requirement_met, "authority": REQUIREMENT_RULE});
     out["tests"] = json!(tests);
     out["profit_years"] = json!(profits);

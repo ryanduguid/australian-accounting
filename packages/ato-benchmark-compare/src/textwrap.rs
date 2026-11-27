@@ -152,4 +152,12 @@ mod tests {
             ["a-b-c-d", "well-", "known", "re-", "enter"]
         );
     }
+
+    #[test]
+    fn a_long_word_breaks_after_its_last_hyphen_only_behind_a_letter() {
+        // Python 3.15 textwrap.wrap on each input.
+        assert_eq!(wrap("a-bcdefghijkl", 5), ["a-", "bcdef", "ghijk", "l"]);
+        assert_eq!(wrap("x --bcdefghij", 6), ["x --bc", "defghi", "j"]);
+        assert_eq!(wrap("-abcdefgh", 4), ["-abc", "defg", "h"]);
+    }
 }

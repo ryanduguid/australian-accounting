@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Additional terms under AGPL-3.0 section 7(b): see NOTICE.
 
-//! Crystallisation of a taxed superannuation interest at 30 June 2007 (ITTPA
+//! Crystallisation of a taxed superannuation interest at 30 June 2007 (ITAA
 //! 1997 s 307-225 and former ITAA 1936 s 27AA(1)(d), read in the February
 //! 2007 compilation) against the day count of the ATO's 'Calculating
 //! components of a super benefit' example 9 and hand-worked cases of the
@@ -137,5 +137,36 @@ fn refusals() {
     ];
     for (input, expected) in cases {
         assert_eq!(code(&input), expected, "{input}");
+    }
+}
+
+/// Section 307-225 is in the ITAA 1997; s 307-125 for pre-July 2007 income
+/// streams is in the ITTPA 1997.
+#[test]
+fn refusals_cite_the_right_act() {
+    let ok = interest("1980-07-01", "1000.00", NIL);
+    let message = |input: Value| {
+        api::evaluate_coded("super-crystallisation", &input)
+            .unwrap_err()
+            .message
+    };
+    let cases = [
+        (
+            with(ok.clone(), "untaxed_source", json!(true)),
+            "ITAA 1997 s 307-225(3)",
+        ),
+        (
+            with(ok.clone(), "eligible_service_start", json!("2007-07-01")),
+            "ITAA 1997 s 307-225(1)",
+        ),
+        (
+            with(ok, "income_stream_before_july_2007", json!(true)),
+            "ITTPA 1997 s 307-125",
+        ),
+    ];
+    for (input, cited) in cases {
+        let text = message(input);
+        assert!(text.contains(cited), "{text}");
+        assert!(!text.contains("ITTPA 1997 s 307-225"), "{text}");
     }
 }

@@ -296,15 +296,10 @@ fn parse_rates(text: &str) -> Result<Raw> {
     }
     match doc.get("financial_years") {
         None => {}
-        Some(years @ Raw::Dict(pairs)) => {
-            // A repeated key keeps its first position and its last value.
-            let mut seen: Vec<&String> = Vec::new();
-            for (label, _) in pairs {
-                if seen.contains(&label) {
-                    continue;
-                }
-                seen.push(label);
-                let entry = years.get(label).expect("a key of this map");
+        // `pyjson::loads` already holds each key once, at its first position
+        // with its last value, as Python's dict does.
+        Some(Raw::Dict(pairs)) => {
+            for (label, entry) in pairs {
                 if !matches!(entry, Raw::Dict(_)) {
                     return Err(rates_error(format!(
                         "{PATH}: financial year {} must hold an object of figures; it holds \
@@ -343,6 +338,20 @@ mod tests {
                 .starts_with("GIC table covers 2026-04-01 to 2026-12-31")
         );
         assert!(load_rates().unwrap().get("financial_years").is_some());
+    }
+
+    /// Python's `GicTable.provenance` (rates.py) leaves out the check date of
+    /// a latest quarter whose `seen` is missing.
+    #[test]
+    fn a_latest_quarter_never_seen_names_no_check_date() {
+        let table = parse_gic(
+            r#"{"quarters": [{"from": "2026-07-01", "to": "2026-09-30", "annual_pct": "11.43"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            table.provenance(),
+            "GIC table covers 2026-07-01 to 2026-09-30 (latest quarter 11.43% p.a.)"
+        );
     }
 
     /// Python 0.2.2's answers for hand-edited tables, its data path shortened to

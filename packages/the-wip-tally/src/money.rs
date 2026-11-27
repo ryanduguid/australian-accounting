@@ -22,6 +22,16 @@ impl From<Signal> for AmountError {
     }
 }
 
+/// The message, or `decimal.<Signal>` as the uncaught exception was named.
+impl std::fmt::Display for AmountError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AmountError::Message(m) => f.write_str(m),
+            AmountError::Decimal(s) => write!(f, "decimal.{}", s.name()),
+        }
+    }
+}
+
 pub type Result<T> = std::result::Result<T, AmountError>;
 
 fn refuse<T>(message: String) -> Result<T> {
