@@ -138,20 +138,15 @@ impl<'a> TextReader<'a> {
     fn readline(&mut self) -> Result<Option<Vec<char>>, ReadError> {
         loop {
             let rest = &self.text[self.cursor..];
-            let end = rest
-                .iter()
-                .position(|c| *c == '\n' || *c == '\r')
-                .and_then(|i| {
-                    if rest[i] == '\n' {
-                        Some(i + 1)
-                    } else if i + 1 < rest.len() {
-                        Some(if rest[i + 1] == '\n' { i + 2 } else { i + 1 })
-                    } else if self.eof {
-                        Some(i + 1)
-                    } else {
-                        None
-                    }
-                });
+            // A \r ends the text only at the end of the data: read_chunk holds
+            // back a trailing \r until the next chunk or the end.
+            let end = rest.iter().position(|c| *c == '\n' || *c == '\r').map(|i| {
+                if rest[i] == '\r' && rest.get(i + 1) == Some(&'\n') {
+                    i + 2
+                } else {
+                    i + 1
+                }
+            });
             if let Some(end) = end {
                 let line = rest[..end].to_vec();
                 self.cursor += end;
@@ -247,7 +242,8 @@ impl<'a> Reader<'a> {
             self.state = State::StartField;
         }
         match self.state {
-            State::StartField => match input {
+            // A StartRecord that reaches here became StartField above.
+            State::StartRecord | State::StartField => match input {
                 Input::Eol | Input::Char('\n' | '\r') => self.end_of_line(input),
                 Input::Char('"') => self.state = State::InQuotedField,
                 Input::Char(',') => self.save_field(),
@@ -295,7 +291,6 @@ impl<'a> Reader<'a> {
                     ));
                 }
             },
-            State::StartRecord => unreachable!("handled above"),
         }
         Ok(())
     }
@@ -395,5 +390,34 @@ mod tests {
                 "field larger than field limit (131072)".into()
             ))
         );
+    }
+
+    // Each expected value below is what CPython's csv.reader gives for the same input.
+    #[test]
+    fn a_carriage_return_at_a_chunk_boundary_joins_its_newline() {
+        let mut data = "x".repeat(CHUNK_SIZE - 1).into_bytes();
+        data.extend(b"\r\ny\n");
+        let got = rows(&data).unwrap();
+        assert_eq!(got.len(), 2);
+        assert_eq!(got[0], vec!["x".repeat(CHUNK_SIZE - 1)]);
+        assert_eq!(got[1], vec!["y".to_string()]);
+        // A \r that ends the data still ends its row.
+        data.truncate(CHUNK_SIZE);
+        assert_eq!(rows(&data).unwrap(), vec![vec!["x".repeat(CHUNK_SIZE - 1)]]);
+        data.extend(b"z");
+        assert_eq!(rows(&data).unwrap()[1], vec!["z".to_string()]);
+        assert_eq!(rows(b"a\r").unwrap(), vec![vec!["a".to_string()]]);
+        // Data shorter than a BOM that does not start one is read as text.
+        assert_eq!(rows(b"ab").unwrap(), vec![vec!["ab".to_string()]]);
+    }
+
+    #[test]
+    fn a_decode_error_reads_as_its_position_and_reason() {
+        let decode = ReadError::Decode {
+            start: 4,
+            byte: 0xff,
+            reason: "invalid start byte",
+        };
+        assert_eq!(decode.to_string(), "byte 4 (invalid start byte)");
     }
 }
