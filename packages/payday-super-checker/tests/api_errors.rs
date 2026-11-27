@@ -110,3 +110,14 @@ fn a_file_that_cannot_be_opened_reports_the_os_error() {
     let message = refused("read-payroll", json!({"path": "no-such-payroll.csv"}));
     assert!(message.contains("no-such-payroll.csv"), "{message}");
 }
+
+#[test]
+fn a_mapping_pair_that_is_not_two_strings_is_refused() {
+    for pair in [json!([1, "Pay Date"]), json!(["payment_date"])] {
+        let input = json!({"mapping": [pair]});
+        assert_eq!(
+            refused("load-mapping", input),
+            "mapping must be a list of [field, column] pairs"
+        );
+    }
+}
