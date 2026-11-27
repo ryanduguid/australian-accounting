@@ -57,7 +57,7 @@ pub fn case(name: &str) -> Case {
     }
 }
 
-/// What the built `rates` printed for the case: (status, stdout, stderr), with CRLF read as LF.
+/// What the built `rates` printed for the case: (status, stdout, stderr), byte for byte.
 pub fn run(case: &Case) -> (i32, String, String) {
     let mut command = Command::new(env!("CARGO_BIN_EXE_rates"));
     command.args(&case.args);
@@ -66,34 +66,41 @@ pub fn run(case: &Case) -> (i32, String, String) {
     }
     command.envs(case.env.iter().map(|(k, v)| (k, v)));
     let done = command.output().expect("run rates");
-    let lf = |bytes: Vec<u8>| {
-        String::from_utf8(bytes)
-            .expect("UTF-8")
-            .replace("\r\n", "\n")
-    };
+    let text = |bytes: Vec<u8>| String::from_utf8(bytes).expect("UTF-8");
     (
         done.status.code().expect("an exit status"),
-        lf(done.stdout),
-        lf(done.stderr),
+        text(done.stdout),
+        text(done.stderr),
     )
 }
 
-/// `rates` prints argparse's help, then its licence notice.
-pub const NOTICE: &str = "\nCopyright 2026 Ryan Duguid. No warranty.\n";
+/// What Python's text-mode stdout and stderr write for `text`: LF on POSIX, CRLF on Windows.
+/// The recorder reads the child's output in text mode, so it holds LF only.
+pub fn native(text: &str) -> String {
+    if cfg!(windows) {
+        text.replace('\n', "\r\n")
+    } else {
+        text.to_string()
+    }
+}
 
-/// Run the case and check the binary answers as Python did: the same status and stderr, and
-/// for help the same text followed by the licence notice.
+/// `rates` prints argparse's help, then this licence notice (`LICENCE_NOTICE` in `src/rates.rs`).
+pub const NOTICE: &str = "\n\
+    Copyright 2026 Ryan Duguid. No warranty.\n\
+    AGPL-3.0-or-later with additional terms (see NOTICE).\n\
+    Licence: https://github.com/ryanduguid/australian-accounting/blob/main/packages/au-tax-rates-data/LICENSE\n";
+
+/// Run the case and check the binary answers byte for byte as Python did: the same status and
+/// stderr, and for help the same text followed by the licence notice and nothing else.
 pub fn same_as_python(name: &str) {
     let case = case(name);
     let (code, stdout, stderr) = run(&case);
     assert_eq!(code, case.code, "{name}: status");
-    assert_eq!(stderr, case.stderr, "{name}: stderr");
-    if case.code == 0 {
-        let rest = stdout
-            .strip_prefix(&case.stdout)
-            .unwrap_or_else(|| panic!("{name}: help\n{stdout}\nexpected\n{}", case.stdout));
-        assert!(rest.starts_with(NOTICE), "{name}: notice {rest:?}");
+    assert_eq!(stderr, native(&case.stderr), "{name}: stderr");
+    let expected = if case.code == 0 {
+        native(&format!("{}{NOTICE}", case.stdout))
     } else {
-        assert_eq!(stdout, "", "{name}: stdout");
-    }
+        String::new()
+    };
+    assert_eq!(stdout, expected, "{name}: stdout");
 }
