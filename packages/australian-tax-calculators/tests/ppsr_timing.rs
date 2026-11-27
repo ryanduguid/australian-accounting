@@ -558,3 +558,44 @@ fn warns_that_omitted_holidays_can_bring_a_deadline_forward() {
         warning.contains("Omitting an excluded date can make the calculated deadline too early.")
     }));
 }
+
+/// For property other than goods the 15 business days run from when the
+/// interest attaches, not from possession.
+#[test]
+fn intangibles_run_from_attachment() {
+    let holidays = json!(["2026-12-25", "2027-01-01"]);
+    let r = run(&pmsi(
+        false,
+        false,
+        "2026-12-21T09:00",
+        &[("excluded_days", holidays)],
+    ));
+    assert_eq!(r["register_by"], "2027-01-19 end of day");
+    assert!(r.to_string().contains("the interest attaches"));
+}
+
+/// 2 am on the first Sunday of a month without a daylight saving change is
+/// an ordinary time.
+#[test]
+fn two_am_on_another_first_sunday_is_ordinary() {
+    let time = "2027-03-07T02:30";
+    assert_eq!(
+        run(&registration(time, "consumer", false, None))["registration_time"],
+        time
+    );
+}
+
+/// Excluded days that are not a list and an end date that is not a date are
+/// refused.
+#[test]
+fn malformed_days_and_dates_are_refused() {
+    let not_list = pmsi(
+        false,
+        true,
+        "2026-12-21T09:00",
+        &[("excluded_days", json!("2026-12-25"))],
+    );
+    assert_eq!(code(&not_list), "ppsr_timing.days_invalid");
+    let bad_end = registration("2026-11-19T10:00", "commercial", false, Some("2030-02-30"));
+    assert_eq!(code(&bad_end), "input.date_invalid");
+}
