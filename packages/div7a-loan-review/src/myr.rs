@@ -194,6 +194,11 @@ pub fn minimum_yearly_repayment_amount(
             "remaining_term must be a whole number of years; use statutory_remaining_term first",
         ));
     }
+    Ok(formula(principal, rate, remaining_term)?)
+}
+
+/// The s 109E(6) formula for a positive rate and a positive whole term.
+fn formula(principal: &Decimal, rate: &Decimal, remaining_term: &Decimal) -> Calc<Decimal> {
     let raw = with_precision(FORMULA_PRECISION, || -> Calc<Decimal> {
         let one = d("1");
         let numerator = principal.mul(rate)?;
@@ -201,7 +206,7 @@ pub fn minimum_yearly_repayment_amount(
         let denominator = one.sub(&base.pow_integral(remaining_term)?)?;
         numerator.div(&denominator)
     })?;
-    Ok(to_cents(&raw)?)
+    to_cents(&raw)
 }
 
 pub(crate) const GENUINE_REPAYMENT_CAVEAT: &str = "s 109R: this engine did not decide whether the \
@@ -546,11 +551,10 @@ pub fn repayment_within(
         term_used.expect("established"),
         rate.rate.clone().expect("known"),
     );
-    let required = match minimum_yearly_repayment_amount(&principal, &benchmark, &term) {
-        Ok(required) => required,
-        Err(FormulaError::Signal(signal)) => return Err(Failure::Signal(signal)),
-        Err(FormulaError::Value(message)) => return Err(Failure::Value(message.into())),
-    };
+    // The refusals above leave a positive rate and a positive whole term
+    // (the term is rounded up to a whole number), so the formula's own
+    // preconditions hold and only a decimal signal can stop it.
+    let required = formula(&principal, &benchmark, &term)?;
     let applied = to_cents(&payments)?;
     let mut shortfall = required.sub(&applied)?;
     if shortfall.lt(&zero)? {

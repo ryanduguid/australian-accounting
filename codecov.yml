@@ -1,7 +1,9 @@
-# Post statuses once both Python reports, which every run uploads, have arrived.
+# A run uploads one report per selected crate, so the count varies by commit and
+# no upload count can say when the last report has arrived. Statuses wait for
+# the codecov-notify job each uploading workflow runs after its uploads.
 codecov:
   notify:
-    after_n_builds: 2
+    manual_trigger: true
 # cargo llvm-cov writes absolute runner paths into each crate's lcov report.
 fixes:
   - "/home/runner/work/australian-accounting/australian-accounting/::"

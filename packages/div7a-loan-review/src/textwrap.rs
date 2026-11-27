@@ -151,5 +151,8 @@ mod tests {
             wrap("a-b-c-d well-known re-enter", 7),
             ["a-b-c-d", "well-", "known", "re-", "enter"]
         );
+        // A long word breaks after a hyphen that fits, unless only hyphens precede it.
+        assert_eq!(wrap("a-bcdefghij", 5), ["a-", "bcdef", "ghij"]);
+        assert_eq!(wrap("--bcdefghij", 5), ["--bcd", "efghi", "j"]);
     }
 }
