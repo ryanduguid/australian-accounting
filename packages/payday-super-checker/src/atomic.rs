@@ -156,7 +156,11 @@ mod tests {
     /// `mkstemp` raises `FileExistsError` once every name it tries exists.
     #[test]
     fn staging_gives_up_when_every_name_is_taken() {
-        let dir = std::env::temp_dir().join(format!("payday-atomic-full-{}", std::process::id()));
+        #[cfg(windows)]
+        let base = std::path::PathBuf::from(std::env::var_os("TEMP").expect("TEMP"));
+        #[cfg(not(windows))]
+        let base = std::path::PathBuf::from("/tmp");
+        let dir = base.join(format!("payday-atomic-full-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         for name in staging_names(7) {
