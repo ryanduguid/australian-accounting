@@ -469,3 +469,67 @@ fn embedded_reference_and_sibling_server_work_outside_checkout() {
     assert_eq!(output.status.code(), Some(1));
     assert!(output.stdout.is_empty());
 }
+#[test]
+fn command_line_forms_and_usage_errors() {
+    let help = "Offline supplementary tool-selection evaluation. Recordings are never executed.\n";
+    for flag in ["--help", "-h"] {
+        let output = run(&[flag]);
+        assert_eq!(output.status.code(), Some(0));
+        assert!(output.stderr.is_empty());
+        let text = String::from_utf8(output.stdout).unwrap();
+        assert!(text.starts_with(help), "{text}");
+        assert!(text.contains("AGPL-3.0-or-later with additional terms (see NOTICE)."));
+    }
+    let output = run(&["--version"]);
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(
+        String::from_utf8(output.stdout).unwrap(),
+        format!(
+            "aus-accounting-mcp-evaluate {}\n",
+            env!("CARGO_PKG_VERSION")
+        )
+    );
+    let output = run(&["--reference"]);
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(
+        String::from_utf8(output.stderr).unwrap(),
+        "--reference requires a path\n"
+    );
+    // No command at all, a reference with no command, an unknown option, two
+    // recordings, an unknown command and extra words after context all print
+    // the usage to stderr and exit 2.
+    for args in [
+        vec![],
+        vec!["--reference", "questions.xml"],
+        vec!["score", "--unknown", "record.json"],
+        vec!["score", "first.json", "second.json"],
+        vec!["score"],
+        vec!["inspect"],
+        vec!["context", "extra"],
+    ] {
+        let output = run(&args);
+        assert_eq!(output.status.code(), Some(2), "{args:?}");
+        assert!(output.stdout.is_empty(), "{args:?}");
+        assert!(
+            String::from_utf8(output.stderr).unwrap().starts_with(help),
+            "{args:?}"
+        );
+    }
+    // After `--` a recording may start with a dash.
+    let fixture = fixture();
+    let temp = Temp::new();
+    let case = &fixture["cases"][0];
+    let record = temp.0.join("-record.json");
+    fs::write(&record, case["recording"].as_str().unwrap()).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_aus-accounting-mcp-evaluate"))
+        .args(["score", "--", "-record.json"])
+        .current_dir(&temp.0)
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{:?}", output.stderr);
+    assert_eq!(
+        String::from_utf8(output.stdout).unwrap(),
+        case["stdout"].as_str().unwrap()
+    );
+}

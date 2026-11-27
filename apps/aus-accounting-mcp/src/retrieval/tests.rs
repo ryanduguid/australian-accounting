@@ -458,4 +458,60 @@ fn frozen_census_contracts() {
     assert_eq!(count, 28);
 }
 
+/// A variable no test sets: the folder is unconfigured and the doctor's census
+/// of the rulings folder says how to set it.
+#[test]
+fn an_unset_folder_variable_is_unconfigured_for_the_census() {
+    let variable = "AUS_ACCOUNTING_COVERAGE_NEVER_SET_ROOT";
+    let context = Context::from_env(variable);
+    assert!(context.root.is_none());
+    assert!(context.limits.is_empty() && !context.denied);
+    assert!(context.principal_acts.is_none() && context.fault.is_none());
+    let error = census(variable).unwrap_err();
+    assert!(
+        error.starts_with("Set AUS_ACCOUNTING_RULINGS_ROOT to an authorised "),
+        "{error}"
+    );
+    assert!(error.ends_with(NOT_CONFIGURED), "{error}");
+}
+
+#[test]
+fn a_tool_outside_retrieval_is_refused_by_name() {
+    assert_eq!(
+        evaluate("get_div7a_benchmark_rate", &json!({})).unwrap_err(),
+        "get_div7a_benchmark_rate: native migration is incomplete; use the existing Python server"
+    );
+}
+
+#[test]
+#[should_panic(expected = "validated corpus tool")]
+fn the_corpus_dispatch_takes_only_corpus_tools() {
+    let _ = corpus::evaluate(
+        &Context::from_env("AUS_ACCOUNTING_COVERAGE_NEVER_SET_ROOT"),
+        "read_ato_ruling",
+        &json!({}),
+    );
+}
+
+/// Ranking compares keys only, so two hits with one score are equal whatever they hold.
+#[test]
+fn ranked_hits_with_one_key_are_equal() {
+    let first = corpus::Ranked {
+        key: 3,
+        value: json!({"row_id": "a"}),
+    };
+    let second = corpus::Ranked {
+        key: 3,
+        value: json!({"row_id": "b"}),
+    };
+    assert!(first == second);
+    assert!(
+        first
+            != corpus::Ranked {
+                key: 4,
+                value: json!({"row_id": "a"})
+            }
+    );
+}
+
 mod edges;

@@ -248,4 +248,96 @@ mod tests {
             assert_eq!(super::lax_bool(&json!(input)), Err(expected), "{input}");
         }
     }
+
+    fn check(
+        rule: serde_json::Value,
+        input: serde_json::Value,
+    ) -> (serde_json::Value, Vec<String>) {
+        let mut errors = vec![];
+        let output = super::validate(&rule, Some(&input), "", &json!(null), &mut errors);
+        let errors = errors
+            .into_iter()
+            .map(|e| format!("{}|{}|{}|{}", e.path, e.code, e.message, e.input))
+            .collect();
+        (output, errors)
+    }
+
+    /// Each expected issue is pydantic 2.13.5's for the same core schema
+    /// (`TypeAdapter(...).validate_python`, recorded 27 November 2026).
+    #[test]
+    fn descriptor_kinds_the_tools_do_not_use_yet_still_match_pydantic() {
+        for (rule, input, expected) in [
+            // TypeAdapter(list[int]).validate_python('x')
+            (
+                json!({"type": "list", "items_schema": {"type": "int"}}),
+                json!("x"),
+                vec![r#"|list_type|Input should be a valid list|"x""#],
+            ),
+            // TypeAdapter(list[int]).validate_python([1, 2]): no length bound.
+            (
+                json!({"type": "list", "items_schema": {"type": "int"}}),
+                json!([1, 2]),
+                vec![],
+            ),
+            // TypeAdapter(dict[str, int]).validate_python([])
+            (
+                json!({"type": "dict", "values_schema": {"type": "int"}}),
+                json!([]),
+                vec!["|dict_type|Input should be a valid dictionary|[]"],
+            ),
+            // TypeAdapter(dict[str, Any]).validate_python({'a': [1]}): values kept as given.
+            (json!({"type": "dict"}), json!({"a": [1]}), vec![]),
+            // A discriminated union of models given {}.
+            (
+                json!({"type": "tagged-union", "discriminator": "kind", "choices": {"a": {"type": "int"}}}),
+                json!({}),
+                vec!["|union_tag_not_found|Unable to extract tag using discriminator 'kind'|{}"],
+            ),
+            // Annotated[int, Field(lt=5)] given 5.
+            (
+                json!({"type": "int", "lt": 5}),
+                json!(5),
+                vec!["|less_than|Input should be less than 5|5"],
+            ),
+            // Annotated[int, Field(ge=-1)]: 1 passes, -2 is refused.
+            (json!({"type": "int", "ge": -1}), json!(1), vec![]),
+            (
+                json!({"type": "int", "ge": -1}),
+                json!(-2),
+                vec!["|greater_than_equal|Input should be greater than or equal to -1|-2"],
+            ),
+            // A lax bool given 'maybe' and 2.
+            (
+                json!({"type": "bool"}),
+                json!("maybe"),
+                vec![
+                    r#"|bool_parsing|Input should be a valid boolean, unable to interpret input|"maybe""#,
+                ],
+            ),
+            (
+                json!({"type": "bool"}),
+                json!(2),
+                vec!["|bool_parsing|Input should be a valid boolean, unable to interpret input|2"],
+            ),
+        ] {
+            let (output, errors) = check(rule.clone(), input.clone());
+            assert_eq!(errors, expected, "{rule} {input}");
+            assert_eq!(output, input, "{rule}: the input is returned as given");
+        }
+    }
+
+    /// The descriptors are embedded, so a kind the validator does not know is a
+    /// build defect: it stops instead of passing the input through unchecked.
+    #[test]
+    #[should_panic(expected = "unsupported embedded input descriptor set")]
+    fn an_unknown_descriptor_kind_stops() {
+        check(json!({"type": "set"}), json!([]));
+    }
+
+    /// Only model fields may be absent; they report it with the whole object.
+    #[test]
+    #[should_panic(expected = "missing fields are handled at their model boundary")]
+    fn an_absent_value_outside_a_model_field_stops() {
+        super::validate(&json!({"type": "int"}), None, "", &json!(null), &mut vec![]);
+    }
 }
