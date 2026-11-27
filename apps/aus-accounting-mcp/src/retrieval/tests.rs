@@ -349,7 +349,7 @@ fn frozen_rulings_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 98);
+    assert_eq!(count, 99);
 }
 
 fn library_call(context: &Context, item: &Value) -> Result<Value, String> {
