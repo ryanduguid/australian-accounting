@@ -488,9 +488,9 @@ fn cli_dispatch_errors_and_decimal_overflow_exit_1() {
 
 #[test]
 fn cli_decode_os_and_output_bytes_handle_surrogates() {
-    let raw_pair = "\u{10F7FF}\u{10F880}";
+    let raw_pair = "\u{10F7FF}\u{10FC80}";
     assert_eq!(cli::output_bytes(raw_pair, false), vec![0x80]);
-    assert_eq!(cli::output_bytes(raw_pair, true), b"\\ud880");
+    assert_eq!(cli::output_bytes(raw_pair, true), b"\\udc80");
 
     #[cfg(unix)]
     {
@@ -506,12 +506,19 @@ fn cli_decode_os_and_output_bytes_handle_surrogates() {
 #[test]
 fn unix_pty_and_broken_pipe_paths() {
     let mut child = Command::new(BIN)
-        .arg("--api-help")
+        .arg("corporate-tax")
+        .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
         .unwrap();
     drop(child.stdout.take());
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(br#"{"financial_year":2027,"aggregated_turnover":"1","assessable_income":"1","passive_income":"0"}"#)
+        .unwrap();
     let status = child.wait().unwrap();
     assert_eq!(status.code(), Some(1));
 
