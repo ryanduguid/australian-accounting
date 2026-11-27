@@ -4,11 +4,12 @@
 
 use super::xml::strip;
 use rmcp::{
-    ServiceExt,
+    RoleClient, ServiceExt,
     model::{ReadResourceRequestParams, ResourceContents, Tool},
+    transport::IntoTransport,
 };
 use std::{path::Path, process::Stdio, time::Duration};
-use tokio::process::{Child, ChildStdin, ChildStdout, Command};
+use tokio::process::{Child, Command};
 
 const SCOPE: &str = "aus-accounting://scope";
 
@@ -49,10 +50,11 @@ fn format_context(instructions: &str, tools: Vec<Tool>, scope: &str) -> Result<S
     ));
     Ok(output)
 }
-async fn load_context(
-    transport: (ChildStdout, ChildStdin),
-    deadline: Duration,
-) -> Result<String, String> {
+async fn load_context<T, E, A>(transport: T, deadline: Duration) -> Result<String, String>
+where
+    T: IntoTransport<RoleClient, E, A>,
+    E: std::error::Error + Send + Sync + 'static,
+{
     tokio::time::timeout(deadline, async {
         let mut service = ().serve(transport).await.map_err(|e| e.to_string())?;
         let result = async {
@@ -111,4 +113,122 @@ pub(super) async fn describe(server: &Path, deadline: Duration) -> Result<String
     let result = load_context(transport, deadline).await;
     reap(&mut child).await?;
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rmcp::{
+        model::{ClientJsonRpcMessage, ServerJsonRpcMessage},
+        transport::Transport,
+    };
+    use serde_json::json;
+    use std::{
+        collections::VecDeque,
+        future::Future,
+        sync::{Arc, Mutex},
+        task::{Context, Poll, Waker},
+    };
+
+    #[derive(Default)]
+    struct Queue {
+        messages: VecDeque<ServerJsonRpcMessage>,
+        closed: bool,
+        waker: Option<Waker>,
+    }
+
+    struct BlobScopeTransport(Arc<Mutex<Queue>>);
+
+    fn reply_for(request: &serde_json::Value) -> Option<ServerJsonRpcMessage> {
+        let id = request.get("id")?.clone();
+        let method = request.get("method")?.as_str()?;
+        let result = if method == "initialize" {
+            json!({
+                "protocolVersion": "2025-03-26",
+                "capabilities": {"resources": {}, "tools": {}},
+                "serverInfo": {"name": "stub", "version": "1"}
+            })
+        } else if method == "tools/list" {
+            json!({"tools": []})
+        } else {
+            assert_eq!(method, "resources/read");
+            json!({"contents": [{"uri": SCOPE, "blob": "AA=="}]})
+        };
+        serde_json::from_value(json!({"jsonrpc": "2.0", "id": id, "result": result})).ok()
+    }
+
+    impl Transport<RoleClient> for BlobScopeTransport {
+        type Error = std::io::Error;
+
+        fn send(
+            &mut self,
+            item: ClientJsonRpcMessage,
+        ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'static {
+            let queue = self.0.clone();
+            let value = serde_json::to_value(&item).ok();
+            async move {
+                if let Some(reply) = value.as_ref().and_then(reply_for) {
+                    let mut state = queue.lock().unwrap();
+                    state.messages.push_back(reply);
+                    let _ = state.waker.take().map(Waker::wake);
+                }
+                Ok(())
+            }
+        }
+
+        fn receive(&mut self) -> impl Future<Output = Option<ServerJsonRpcMessage>> + Send {
+            let queue = self.0.clone();
+            std::future::poll_fn(move |cx: &mut Context<'_>| {
+                let mut state = queue.lock().unwrap();
+                if let Some(msg) = state.messages.pop_front() {
+                    Poll::Ready(Some(msg))
+                } else if state.closed {
+                    Poll::Ready(None)
+                } else {
+                    state.waker = Some(cx.waker().clone());
+                    Poll::Pending
+                }
+            })
+        }
+
+        async fn close(&mut self) -> Result<(), Self::Error> {
+            let mut state = self.0.lock().unwrap();
+            state.closed = true;
+            let _ = state.waker.take().map(Waker::wake);
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn load_context_refuses_non_text_scope_resource() {
+        let transport = BlobScopeTransport(Arc::new(Mutex::new(Queue::default())));
+        let error = load_context(transport, Duration::from_secs(5))
+            .await
+            .unwrap_err();
+        assert_eq!(error, "scope resource has no text");
+    }
+
+    #[tokio::test]
+    async fn reap_kills_and_waits_for_a_lingering_child() {
+        #[cfg(unix)]
+        let mut child = Command::new("sleep")
+            .arg("30")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .kill_on_drop(true)
+            .spawn()
+            .unwrap();
+        #[cfg(windows)]
+        let mut child = Command::new("ping")
+            .args(["-n", "30", "127.0.0.1"])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .kill_on_drop(true)
+            .spawn()
+            .unwrap();
+        assert_eq!(reap(&mut child).await, Ok(()));
+        assert!(child.try_wait().unwrap().is_some());
+    }
 }

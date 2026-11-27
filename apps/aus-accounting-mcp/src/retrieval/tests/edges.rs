@@ -610,3 +610,117 @@ fn cited_by_follows_the_shared_range_case_table() {
         }
     }
 }
+
+#[test]
+fn corpus_search_refuses_row_nested_past_the_limit() {
+    let tree = relation_tree("corpus-rows-depth");
+    let dir = tree.0.join("markdown/C9999A00001");
+    fs::create_dir_all(&dir).unwrap();
+    let deep = format!(
+        r#"{}"synthetic levy"{}"#,
+        "[".repeat(1001),
+        "]".repeat(1001)
+    );
+    fs::write(dir.join("sections.jsonl"), format!("{deep}\n")).unwrap();
+    let err = corpus::evaluate(
+        &edge_context(tree.0.clone()),
+        "search_tax_legislation",
+        &json!({"query":"synthetic levy","limit":5,"offset":0,"act":null,"in_force_only":true}),
+    )
+    .unwrap_err();
+    assert_eq!(
+        err,
+        "Cannot read a UTF-8 JSONL index in the configured corpus."
+    );
+}
+
+#[cfg(unix)]
+struct RestoreMode(PathBuf, u32);
+#[cfg(unix)]
+impl Drop for RestoreMode {
+    fn drop(&mut self) {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = fs::set_permissions(&self.0, fs::Permissions::from_mode(self.1));
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn corpus_provenance_ignores_unreadable_sources_json() {
+    use std::os::unix::fs::PermissionsExt;
+    let tree = relation_tree("corpus-sources-unreadable");
+    let dir = tree.0.join("markdown");
+    write_def_act(&dir, "C9999A00001", "Synthetic Act 2099", "Synthetic levy.");
+    let sources = tree.0.join("sources.json");
+    fs::write(&sources, r#"{"corpus":"Synthetic"}"#).unwrap();
+    fs::set_permissions(&sources, fs::Permissions::from_mode(0o000)).unwrap();
+    let _guard = RestoreMode(sources, 0o644);
+    let res = corpus::evaluate(
+        &edge_context(tree.0.clone()),
+        "search_tax_legislation",
+        &json!({"query":"synthetic levy","limit":5,"offset":0,"act":null,"in_force_only":true}),
+    )
+    .unwrap();
+    assert_eq!(res["corpus"], json!({}));
+}
+
+#[cfg(unix)]
+#[test]
+fn library_search_skips_unreadable_subdirectory() {
+    use std::os::unix::fs::PermissionsExt;
+    let tree = relation_tree("library-unreadable-dir");
+    fs::write(tree.0.join("ok.md"), "GST guidance").unwrap();
+    let locked = tree.0.join("locked");
+    fs::create_dir(&locked).unwrap();
+    fs::write(locked.join("hidden.md"), "GST hidden").unwrap();
+    fs::set_permissions(&locked, fs::Permissions::from_mode(0o000)).unwrap();
+    let _guard = RestoreMode(locked, 0o755);
+    let found = library::search(&edge_context(tree.0.clone()), "GST", 5, 0).unwrap();
+    let matches = found["matches"].as_array().unwrap();
+    assert_eq!(matches.len(), 1);
+    assert_eq!(matches[0]["path"], "ok.md");
+}
+
+#[cfg(unix)]
+#[test]
+fn lines_iterator_surfaces_read_error_on_directory() {
+    let tree = relation_tree("lines-read-dir");
+    let err = Lines::open(&tree.0).unwrap().next().unwrap().unwrap_err();
+    assert!(err.raw_os_error().is_some());
+}
+
+#[test]
+fn rulings_census_refuses_non_object_row_after_cache_hit() {
+    let fixture = fixture();
+    let tree = relation_tree("rulings-census-non-object");
+    let valid = restore(
+        &tree.0,
+        original_case(
+            &fixture,
+            "tests/test_rulings.py::test_a_same_day_tie_goes_to_the_later_folder_name",
+            "search_rulings",
+        ),
+        &fixture["blobs"],
+    );
+    let run = tree.0.join("run-2099-01-01");
+    fs::create_dir(&run).unwrap();
+    copy_ruling_files(valid.root.as_ref().unwrap().join("run-b"), &run);
+    let rows_path = run.join("rulings.jsonl");
+    let fixed = std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_700_000_000);
+    let set_time = || {
+        fs::File::options()
+            .write(true)
+            .open(&rows_path)
+            .unwrap()
+            .set_modified(fixed)
+            .unwrap();
+    };
+    set_time();
+    let ctx = edge_context(run);
+    assert!(rulings::census(&ctx).is_ok());
+    let len = fs::metadata(&rows_path).unwrap().len() as usize;
+    fs::write(&rows_path, format!("[{}]", " ".repeat(len - 2))).unwrap();
+    set_time();
+    let err = rulings::census(&ctx).unwrap_err();
+    assert_eq!(err, "a rulings row is not a JSON object.");
+}
