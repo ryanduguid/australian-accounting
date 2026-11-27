@@ -151,9 +151,7 @@ fn balancing_adjustment_refuses_malformed_rows() {
         r.as_object_mut().unwrap().remove(key);
         r
     };
-    let car_row = |method: Value| {
-        json!({"income_year": "2025-26", "decline_in_value": "100.00", "method": method, "deduction": "50.00", "days_held": 365})
-    };
+    let car_row = |method: Value| json!({"income_year": "2025-26", "decline_in_value": "100.00", "method": method, "deduction": "50.00", "days_held": 365});
     let mut car_limit = balancing("car", json!([car_row(json!("log_book"))]));
     car_limit["car_limit"] = json!({"limit": "69674.00", "second_element_cost": "0.00", "cost_ignoring_car_limit": "1000.00", "colour": "red"});
     let mut car_days = car_row(json!("log_book"));
@@ -203,7 +201,9 @@ fn caps(extra: Value) -> Value {
 fn contribution_caps_by_year_refuses_malformed_years_and_flags() {
     let cases = [
         caps(json!({"earlier_concessional_contributions": [5]})),
-        caps(json!({"earlier_concessional_contributions": [{"year": "2019-20", "concessional_contributions": "eleven"}]})),
+        caps(
+            json!({"earlier_concessional_contributions": [{"year": "2019-20", "concessional_contributions": "eleven"}]}),
+        ),
         caps(json!({"under_75_in_year": "yes"})),
     ];
     assert_eq!(
@@ -270,7 +270,9 @@ fn segment(start: Value, count: i64, amount: Value, frequency: &str) -> Value {
 #[test]
 fn hire_purchase_refuses_malformed_segments_and_payouts() {
     let level = |segments: Value| {
-        hire_purchase(json!({"instalment": null, "instalments": null, "balloon": "0.00", "segments": segments}))
+        hire_purchase(
+            json!({"instalment": null, "instalments": null, "balloon": "0.00", "segments": segments}),
+        )
     };
     let one = |s: Value| level(json!([s]));
     let monthly = segment(json!("2026-07-15"), 1, json!("1100.00"), "monthly");
@@ -278,7 +280,12 @@ fn hire_purchase_refuses_malformed_segments_and_payouts() {
         merged(level(json!([monthly])), json!({"amount_financed": "0.00"})),
         level(json!("monthly")),
         one(json!("segment")),
-        one(segment(json!("15 July 2026"), 1, json!("1100.00"), "monthly")),
+        one(segment(
+            json!("15 July 2026"),
+            1,
+            json!("1100.00"),
+            "monthly",
+        )),
         one(segment(json!("2026-07-15"), 1, json!(1100), "monthly")),
         one(segment(json!("2026-07-15"), 1600, json!("10.00"), "weekly")),
         hire_purchase(json!({"instalments": 3, "payout": "2026-09-15"})),
@@ -327,7 +334,10 @@ fn a_chattel_mortgage_refuses_a_nil_instalment_and_lct_above_the_price() {
     ];
     assert_eq!(
         codes("chattel-mortgage-schedule", &cases),
-        ["hire_purchase.amount_nil", "hire_purchase.gst_fact_conflict"]
+        [
+            "hire_purchase.amount_nil",
+            "hire_purchase.gst_fact_conflict"
+        ]
     );
 }
 
@@ -359,7 +369,9 @@ fn loan(extra: Value) -> Value {
 fn loan_transactions_refuse_malformed_entries() {
     let cases = [
         loan(json!({"transactions": ["drawing"]})),
-        loan(json!({"transactions": [{"date": "1 July 2026", "kind": "drawing", "amount": "1.00"}]})),
+        loan(
+            json!({"transactions": [{"date": "1 July 2026", "kind": "drawing", "amount": "1.00"}]}),
+        ),
         loan(json!({"transactions": [{"date": "2026-07-01", "kind": "drawing", "amount": 1}]})),
         loan(json!({"rate_changes": [{"date": "2026-08-01", "annual_rate": 0.05}]})),
     ];
@@ -427,6 +439,110 @@ fn foreign_income_conversion_refuses_missing_and_malformed_facts() {
             "input.missing_field",
             "input.missing_field",
             "input.missing_field",
+        ]
+    );
+}
+
+#[test]
+fn impairment_and_consolidation_refuse_malformed_items() {
+    let impairment = json!({"cash_flows": ["100.00"], "discount_rate": "0.1", "assets": ["plant"], "revalued": false,
+                            "non_controlling_interest": false, "year": "2025-26", "scope_confirmed": true});
+    assert_eq!(
+        code("impairment-test", &impairment),
+        "impairment_test.asset_invalid"
+    );
+    let consolidation = json!({"parent": "P Ltd", "subsidiaries": [], "intra_group_balances": [],
+        "intra_group_transactions": [], "unrealised_profits": [], "tax_rate": "0.3",
+        "acquired_in_period": false, "fair_value_adjustments": false,
+        "previously_held_interest": false, "ownership_changed": false,
+        "intra_group_dividends": false, "year": "2025-26", "scope_confirmed": true});
+    assert_eq!(
+        code("consolidation-eliminations", &consolidation),
+        "consolidation_eliminations.item_invalid"
+    );
+}
+
+#[test]
+fn the_foreign_income_tax_offset_refuses_malformed_residency_periods() {
+    let worked = json!({
+        "year": "2025-26", "scope_confirmed": true, "foreign_tax_paid": "2000.00",
+        "nane_foreign_tax": "0.00", "limit_method": "worked",
+        "taxable_income": "30000", "disregarded_income": "10000.00",
+        "disregarded_deductions": "0.00", "medicare_levy": "0.00", "medicare_levy_assumed": "0.00",
+    });
+    let cases = [
+        merged(worked.clone(), json!({"residency_periods": "2025-26"})),
+        merged(worked, json!({"residency_periods": ["2025-07-01"]})),
+    ];
+    assert_eq!(
+        codes("foreign-income-tax-offset", &cases),
+        [
+            "foreign_income_tax_offset.residency_periods_invalid",
+            "foreign_income_tax_offset.residency_periods_invalid",
+        ]
+    );
+}
+
+#[test]
+fn fbt_worksheets_refuse_malformed_contributions_attendees_and_entries() {
+    let station = |contribution: Value| {
+        json!({"method": "commercial_parking_station", "first_business_day_fee": "18.00",
+               "benefits": 230, "lowest_fee": "18.00", "employee_contribution": contribution,
+               "year_ended": 2026, "scope_confirmed": true})
+    };
+    assert_eq!(
+        codes(
+            "fbt-car-parking",
+            &[
+                station(json!({"capped_total": "1000.00", "cap": "1"})),
+                station(json!({"capped_total": "1000.0001"})),
+            ]
+        ),
+        [
+            "fbt_car_parking.capped_contribution_invalid",
+            "fbt_car_parking.capped_contribution_invalid",
+        ]
+    );
+    let line = json!({
+        "cost": "1100.00", "gst_status": "includes_gst", "provided": "food_or_drink",
+        "occasion": "social_function", "venue": "elsewhere", "paid_by": "employer",
+        "attendees": {"employees": 10},
+    });
+    let classify = |l: Value| {
+        json!({"lines": [l], "income_tax_exempt": false, "method": "actual",
+               "year_ended": 2027, "scope_confirmed": true})
+    };
+    assert_eq!(
+        codes(
+            "fbt-entertainment-classifier",
+            &[
+                classify(merged(line.clone(), json!({"cost": "eleven"}))),
+                classify(merged(line, json!({"attendees": 10}))),
+            ]
+        ),
+        [
+            "input.amount_invalid",
+            "fbt_entertainment_classifier.fact_invalid",
+        ]
+    );
+    let entry = json!({"date": "2025-05-14", "recipients": {"employees": 3, "associates": 0, "others": 2},
+                       "cost": "500.00", "kind": "client dinner", "location": "restaurant",
+                       "on_premises": true, "fringe_benefits_value": "300.00"});
+    let register = |e: Value| {
+        json!({"register_start": "2025-05-01", "register_end": "2025-07-23",
+               "entries": [e], "year_ended": 2026, "scope_confirmed": true})
+    };
+    assert_eq!(
+        codes(
+            "fbt-meal-entertainment-register",
+            &[
+                register(merged(entry.clone(), json!({"kind": 5}))),
+                register(merged(entry, json!({"in_house_dining_facility": "no"}))),
+            ]
+        ),
+        [
+            "fbt_meal_entertainment_register.entry_invalid",
+            "fbt_meal_entertainment_register.entry_invalid",
         ]
     );
 }
