@@ -18,7 +18,7 @@ coverage:
       # The whole repository, every crate and Python flag together: what main
       # measures, rounded down. Raise it with the tests, never lower it to pass.
       default:
-        target: 93%
+        target: 94%
         threshold: 0%
         if_not_found: failure
       aus-accounting-mcp:
