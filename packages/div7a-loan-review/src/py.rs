@@ -53,6 +53,11 @@ pub fn decimal_value(c: char) -> Option<u32> {
     (cp - zero < 10).then_some(cp - zero)
 }
 
+/// `str.split()` with no separator.
+pub fn split_whitespace(s: &str) -> Vec<&str> {
+    s.split(is_space).filter(|part| !part.is_empty()).collect()
+}
+
 /// `str.casefold()`.
 pub fn casefold(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -554,6 +559,7 @@ mod tests {
 
     #[test]
     fn string_predicates_match_python() {
+        assert_eq!(split_whitespace("\x1c x \u{3000}y "), vec!["x", "y"]);
         assert_eq!(casefold("Straße ΣΑΣ"), "strasse σασ");
         assert_eq!(decimal_value('\u{0663}'), Some(3));
         assert_eq!(parse_int(" 1\u{0661}", 10).unwrap(), BigInt::from(11));
