@@ -145,7 +145,7 @@ fn an_excess_order_must_be_a_list() {
 #[test]
 fn another_groups_designated_employer_is_passed_over() {
     let persons = json!([
-        {"id": "A", "taxable_wages": "500000.00"},
+        {"id": "A", "taxable_wages": "2000000.00"},
         {"id": "B", "taxable_wages": "400000.00"},
         {"id": "C", "taxable_wages": "300000.00"},
         {"id": "D", "taxable_wages": "200000.00"},
