@@ -74,6 +74,7 @@ fn finish(code: i32, out: std::io::Result<()>, err: std::io::Result<()>) -> i32 
 }
 
 /// "Exception ignored while flushing sys.stdout:" and the OSError, as Python printed them.
+#[cfg(unix)]
 fn unflushed(stream: &str, e: &std::io::Error) -> String {
     let code = e.raw_os_error().unwrap_or(0);
     let class = match e.kind() {

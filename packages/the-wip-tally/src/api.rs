@@ -6,7 +6,7 @@
 //! Amounts are decimal strings; README.md documents both schemas.
 use crate::decimal::Decimal;
 use crate::engine::{self, ContractInput, ScheduleError};
-use crate::money::{self, AmountError};
+use crate::money;
 use serde_json::{Value, json};
 
 pub const COMMANDS: &[&str] = &["measure", "parse-money"];
@@ -74,7 +74,8 @@ fn py_repr(value: &Value) -> Result<String> {
                 }
             } else {
                 // float(text): an overflowing literal such as 1e400 is infinity.
-                float_repr(text.parse().unwrap_or(f64::NAN))
+                // Every JSON number is a Rust float literal, so this never fails.
+                float_repr(text.parse().expect("a JSON number reads as a float"))
             }
         }
         Value::String(s) => crate::pytext::repr(s),
@@ -109,9 +110,6 @@ fn shortest_exp(value: f64) -> String {
 
 /// `repr(float)`: the shortest text that reads back as the same double.
 fn float_repr(value: f64) -> String {
-    if value.is_nan() {
-        return "nan".into();
-    }
     if value.is_infinite() {
         return if value > 0.0 { "inf" } else { "-inf" }.into();
     }
@@ -274,11 +272,9 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             if matches!(v.get("raw"), Some(Value::Null)) {
                 return Err(format!("{where_}: no amount given"));
             }
-            match money::parse_money(&text(v, "raw")?, &where_) {
-                Ok(value) => Ok(json!(value.to_string())),
-                Err(AmountError::Message(m)) => Err(m),
-                Err(AmountError::Decimal(s)) => Err(format!("decimal.{}", s.name())),
-            }
+            money::parse_money(&text(v, "raw")?, &where_)
+                .map(|value| json!(value.to_string()))
+                .map_err(|e| e.to_string())
         }
         _ => Err(format!("unknown command {command}")),
     }
