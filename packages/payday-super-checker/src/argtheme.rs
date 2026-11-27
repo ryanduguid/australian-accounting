@@ -61,16 +61,20 @@ pub enum Stream {
 
 /// The theme argparse uses when it writes to `stream`.
 pub fn theme(stream: Stream) -> &'static Theme {
-    if can_colorize(stream) {
+    let tty = || console::supports_virtual_terminal() && console::isatty(stream);
+    if can_colorize(|name| std::env::var_os(name), tty) {
         &COLOURED
     } else {
         &PLAIN
     }
 }
 
-/// `_colorize.can_colorize(file=stream)` for a command started without `-I`.
-fn can_colorize(stream: Stream) -> bool {
-    let var = |name: &str| std::env::var_os(name);
+/// `_colorize.can_colorize(file=stream)` for a command started without `-I`,
+/// given the environment and whether the stream is a colour terminal.
+fn can_colorize(
+    var: impl Fn(&str) -> Option<std::ffi::OsString>,
+    tty: impl FnOnce() -> bool,
+) -> bool {
     match var("PYTHON_COLORS").as_deref().and_then(|v| v.to_str()) {
         Some("0") => return false,
         Some("1") => return true,
@@ -85,7 +89,7 @@ fn can_colorize(stream: Stream) -> bool {
     if var("TERM").is_some_and(|v| v == "dumb") {
         return false;
     }
-    console::supports_virtual_terminal() && console::isatty(stream)
+    tty()
 }
 
 #[cfg(unix)]
@@ -153,5 +157,38 @@ mod console {
 
     pub fn isatty(_stream: Stream) -> bool {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::OsString;
+
+    fn env(pairs: &[(&str, &str)]) -> impl Fn(&str) -> Option<OsString> {
+        let pairs: Vec<(String, OsString)> =
+            pairs.iter().map(|(k, v)| (k.to_string(), v.into())).collect();
+        move |name| pairs.iter().find(|(k, _)| k == name).map(|(_, v)| v.clone())
+    }
+
+    #[test]
+    fn colour_follows_python_colorize_precedence() {
+        let tty = || true;
+        assert!(!can_colorize(env(&[("PYTHON_COLORS", "0"), ("FORCE_COLOR", "1")]), tty));
+        assert!(can_colorize(env(&[("PYTHON_COLORS", "1"), ("NO_COLOR", "1")]), || false));
+        assert!(!can_colorize(env(&[("NO_COLOR", "1"), ("FORCE_COLOR", "1")]), tty));
+        assert!(can_colorize(env(&[("NO_COLOR", ""), ("FORCE_COLOR", "1")]), || false));
+        assert!(!can_colorize(env(&[("TERM", "dumb")]), tty));
+        assert!(can_colorize(env(&[("PYTHON_COLORS", "2")]), tty));
+        assert!(!can_colorize(env(&[]), || false));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn the_unix_console_check_agrees_with_std() {
+        use std::io::IsTerminal;
+        assert!(console::supports_virtual_terminal());
+        assert_eq!(console::isatty(Stream::Stdout), std::io::stdout().is_terminal());
+        assert_eq!(console::isatty(Stream::Stderr), std::io::stderr().is_terminal());
     }
 }

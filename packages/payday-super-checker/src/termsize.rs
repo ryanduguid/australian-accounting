@@ -100,12 +100,15 @@ fn stdout_terminal() -> Option<(i64, i64)> {
 /// positive integer; otherwise the terminal on stdout, else 80. The terminal
 /// is asked whenever either $COLUMNS or $LINES is not a positive integer.
 pub fn columns() -> i64 {
-    let env_int = |name: &str| {
-        std::env::var(name)
-            .ok()
-            .and_then(|value| py_int(&value))
-            .unwrap_or(0)
-    };
+    columns_from(|name| std::env::var(name).ok(), stdout_terminal)
+}
+
+/// `columns` with the environment and the terminal query passed in.
+fn columns_from(
+    var: impl Fn(&str) -> Option<String>,
+    stdout_terminal: impl FnOnce() -> Option<(i64, i64)>,
+) -> i64 {
+    let env_int = |name: &str| var(name).and_then(|value| py_int(&value)).unwrap_or(0);
     let columns = env_int("COLUMNS");
     if columns > 0 && env_int("LINES") > 0 {
         return columns;
@@ -133,5 +136,22 @@ mod tests {
         for bad in ["", " ", "4__0", "_40", "40_", "4.0", "0x10", "--1"] {
             assert_eq!(py_int(bad), None, "{bad}");
         }
+    }
+
+    #[test]
+    fn columns_prefer_the_environment_then_the_terminal_then_80() {
+        let env = |pairs: &'static [(&'static str, &'static str)]| {
+            move |name: &str| {
+                pairs
+                    .iter()
+                    .find(|(k, _)| *k == name)
+                    .map(|(_, v)| v.to_string())
+            }
+        };
+        assert_eq!(columns_from(env(&[("COLUMNS", "100"), ("LINES", "5")]), || Some((60, 20))), 100);
+        assert_eq!(columns_from(env(&[("COLUMNS", "100")]), || Some((60, 20))), 100);
+        assert_eq!(columns_from(env(&[("COLUMNS", "x")]), || Some((60, 20))), 60);
+        assert_eq!(columns_from(env(&[]), || Some((0, 0))), 80);
+        assert_eq!(columns_from(env(&[]), || None), 80);
     }
 }

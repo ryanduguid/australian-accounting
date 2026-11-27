@@ -613,13 +613,12 @@ impl Date {
         if !(1..=MAX_DATE.ordinal()).contains(&ordinal) {
             return None;
         }
-        // Estimate the year, then correct it.
+        // Estimate the year, then correct it upwards: the estimate never
+        // overshoots, as a year holds fewer than 365.2425 days plus one more
+        // than its leap days (`every_ordinal_round_trips` checks every date).
         let mut year = ((ordinal - 1) * 400 / 146_097 + 1) as i32;
         while days_before_year(year + 1) < ordinal {
             year += 1;
-        }
-        while days_before_year(year) >= ordinal {
-            year -= 1;
         }
         let mut rest = ordinal - days_before_year(year);
         let mut month = 1;
@@ -807,5 +806,91 @@ mod tests {
         );
         assert_eq!(PyPath::new("./a//b/.").display(), format!("a{SEP}b"));
         assert_eq!(PyPath::new("").display(), ".");
+    }
+
+    #[test]
+    fn every_ordinal_round_trips() {
+        let mut expected = Date::new(1, 1, 1).unwrap();
+        for ordinal in 1..=MAX_DATE.ordinal() {
+            let date = Date::from_ordinal(ordinal).unwrap();
+            assert_eq!(date.ordinal(), ordinal);
+            assert!(date.isoformat() >= expected.isoformat(), "{ordinal}");
+            expected = date;
+        }
+        assert!(Date::from_ordinal(MAX_DATE.ordinal() + 1).is_none());
+    }
+
+    #[test]
+    fn iso_week_dates_refuse_what_cpython_refuses() {
+        let ok = |s: &str| Date::fromisoformat(s).map(|d| d.isoformat());
+        assert_eq!(ok("2026-W01-1").as_deref(), Some("2025-12-29"));
+        for bad in ["2026-W01x1", "2026-01x01", "0000-W01", "2025-W53", "2026-W01-8"] {
+            assert_eq!(ok(bad), None, "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn parse_int_matches_python_int() {
+        assert_eq!(parse_int("-12", 10), Ok(BigInt::from(-12)));
+        assert_eq!(parse_int("+7", 10), Ok(BigInt::from(7)));
+        assert_eq!(parse_int("0x1f", 16), Ok(BigInt::from(31)));
+        assert_eq!(parse_int("1f", 16), Ok(BigInt::from(31)));
+        assert_eq!(parse_int("0o17", 8), Ok(BigInt::from(15)));
+        assert_eq!(parse_int("0b_1", 2), Ok(BigInt::from(1)));
+        for bad in ["1_", "12a", "1\u{e9}"] {
+            assert_eq!(
+                parse_int(bad, 10),
+                Err(format!("invalid literal for int() with base 10: {}", repr_str(bad)))
+            );
+        }
+        let long = "x".repeat(201);
+        assert_eq!(
+            parse_int(&long, 10),
+            Err(format!(
+                "invalid literal for int() with base 10: '{}'",
+                "x".repeat(200)
+            ))
+        );
+        assert_eq!(parse_int(&"1".repeat(4301), 10), Err(int_digits_error(4301)));
+        assert_eq!(parse_int(&"1".repeat(4300), 10).map(|_| ()), Ok(()));
+    }
+
+    #[test]
+    fn repr_escapes_newlines_and_unprintable_astral_characters() {
+        assert_eq!(repr_str("\n\r\u{e0001}"), "'\\n\\r\\U000e0001'");
+    }
+
+    #[test]
+    fn read_text_reads_utf8_with_universal_newlines() {
+        let dir = std::env::temp_dir().join(format!("payday-py-read-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("in.txt");
+        std::fs::write(&path, b"a\r\nb\rc").unwrap();
+        assert_eq!(read_text(&path).unwrap(), "a\nb\nc");
+        std::fs::write(&path, b"\xff").unwrap();
+        assert!(matches!(read_text(&path), Err(ReadError::Decode(_))));
+        assert!(matches!(read_text(&dir.join("missing")), Err(ReadError::Os(_))));
+        let resolved = resolve_text(&dir.join("gone").join("..").join("in.txt"));
+        assert_eq!(resolved, resolve_text(&path));
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn an_error_without_an_os_code_prints_its_message() {
+        let error = io::Error::other("boom");
+        assert_eq!(oserror_str(&error, "f.csv", OsStyle::Errno), "boom");
+    }
+
+    #[test]
+    fn paths_join_and_anchor_like_pathlib() {
+        assert!(!PyPath::new("a").is_absolute());
+        assert_eq!(PyPath::new("/a").is_absolute(), !cfg!(windows));
+        assert_eq!(
+            PyPath::new("a").join("/b").display(),
+            PyPath::new("/b").display()
+        );
+        if !cfg!(windows) {
+            assert_eq!(PyPath::new("//srv/x").display(), "//srv/x");
+        }
     }
 }
