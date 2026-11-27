@@ -372,3 +372,21 @@ impl rmcp::service::Service<RoleServer> for AccountingService {
         ServerHandler::supported_protocol_versions(&self.server)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_session_wrapper_advertises_the_server_identity() {
+        let service = AccountingService {
+            server: AccountingServer,
+            bootstrap: Arc::new(AtomicBool::new(true)),
+            subscriptions: AtomicUsize::new(0),
+        };
+        let info = serde_json::to_value(rmcp::service::Service::get_info(&service)).unwrap();
+        assert_eq!(info["serverInfo"]["name"], "aus-accounting-mcp");
+        assert_eq!(info["serverInfo"]["version"], crate::VERSION);
+        assert_eq!(info["capabilities"]["resources"]["subscribe"], true);
+    }
+}
