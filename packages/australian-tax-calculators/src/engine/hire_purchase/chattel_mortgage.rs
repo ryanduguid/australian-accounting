@@ -379,3 +379,17 @@ pub fn chattel_mortgage_schedule(args: &ChattelMortgageArgs) -> Result<Value> {
     out["gst"] = gst::purchase_summary(&gst_facts, &dates::format(start));
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_printable_table_leaves_a_null_cell_blank_and_writes_a_number_as_text() {
+        let given = printable(&[json!({"instalment": 1, "balloon": null})]);
+        assert_eq!(
+            given,
+            printable(&[json!({"instalment": "1", "balloon": ""})])
+        );
+    }
+}

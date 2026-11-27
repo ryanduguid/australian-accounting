@@ -437,3 +437,10 @@ fn name_words_read_abbreviations_and_ampersands_as_words() {
     );
     assert_eq!(long_date("2024-07-01"), "1 July 2024");
 }
+
+#[test]
+fn a_decimal_signal_is_refused_with_its_code_and_name() {
+    let refusal = signal(crate::decimal::Signal::Overflow);
+    assert_eq!(refusal.code, "decimal.overflow");
+    assert_eq!(refusal.message, "decimal.Overflow");
+}

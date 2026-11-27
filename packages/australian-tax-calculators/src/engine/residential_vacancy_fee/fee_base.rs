@@ -450,4 +450,12 @@ mod tests {
     fn an_exemption_certificate_has_no_waived_fee() {
         waived_fee_authority(AcquisitionBasis::OtherExemptionCertificate);
     }
+
+    #[test]
+    fn a_no_notice_order_takes_the_s_46_fees() {
+        let stated = stated_fee_authority(AcquisitionBasis::NoNoticeOrder);
+        assert!(stated.starts_with("Fees Regulations 2020 s 46(a): "));
+        let waived = waived_fee_authority(AcquisitionBasis::NoNoticeOrder);
+        assert!(waived.starts_with("Fees Regulations 2020 s 46(b) "));
+    }
 }

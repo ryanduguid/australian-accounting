@@ -493,3 +493,17 @@ fn unapplied(steps: &[Step]) -> Calc<Step> {
         left,
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sum_step_of_no_terms_is_nil() {
+        let total = sum_step("total", "s 1", &[]).unwrap();
+        assert_eq!(
+            (total.formula.as_str(), total.value.to_sci_string()),
+            ("0", "0".into())
+        );
+    }
+}
