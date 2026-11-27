@@ -455,9 +455,20 @@ fn provenance_and_cli_output_bytes_match_contract() {
 }
 
 #[test]
-fn coding_validation_covers_id_repr_amount_bounds_and_code_tables() {
-    let long_amount = "0".repeat(8193);
+fn coding_validation_covers_registrations_and_id_repr() {
     for (bad_input, expected) in [
+        (
+            json!({"registrations":{"A":null},"lines":[]}),
+            "Registration 'A' must be an object with registered_from.",
+        ),
+        (
+            json!({"registrations":{"A":{}},"lines":[]}),
+            "Registration 'A' must be an object with registered_from.",
+        ),
+        (
+            json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":123,"entity":"A","date":"2026-08-04","amount":"10.00"}]}),
+            "Line ids must be unique non-empty strings: 123.",
+        ),
         (
             json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":true,"entity":"A","date":"2026-08-04","amount":"10.00"}]}),
             "Line ids must be unique non-empty strings: True.",
@@ -470,6 +481,18 @@ fn coding_validation_covers_id_repr_amount_bounds_and_code_tables() {
             json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":{"k":false},"entity":"A","date":"2026-08-04","amount":"10.00"}]}),
             "Line ids must be unique non-empty strings: {'k': False}.",
         ),
+    ] {
+        assert_eq!(
+            api::evaluate("review-coding", &bad_input),
+            Err(expected.into())
+        );
+    }
+}
+
+#[test]
+fn coding_validation_covers_amount_bounds_and_code_tables() {
+    let long_amount = "0".repeat(8193);
+    for (bad_input, expected) in [
         (
             json!({"registrations":{"A":{"registered_from":null}},"lines":[{"id":"1","entity":"A","date":"2026-08-04","amount":long_amount}]}),
             "Line '1' amount must be a finite Decimal, at most 2 decimal places and 1e12.",

@@ -34,6 +34,7 @@ fn signal_names_display_and_parsing_edge_cases_match_cpython() {
         "1e+x",
         "0e-99999999999999999999",
         "1e-99999999999999999999",
+        "1e10000000000000000000000000",
     ] {
         assert_eq!(Decimal::parse(bad).err(), Some(Signal::InvalidOperation));
     }
