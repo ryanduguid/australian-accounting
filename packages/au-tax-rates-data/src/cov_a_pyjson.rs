@@ -139,10 +139,10 @@ fn truthiness_is_python_s() {
     );
     assert!(!loads_standard("[]").unwrap().truthy(), "[]");
     assert!(loads_standard("[0]").unwrap().truthy(), "[0]");
-    assert!(!loads_standard("{}").unwrap().truthy(), "{}");
+    assert!(!loads_standard("{}").unwrap().truthy(), "{{}}");
     assert!(
         loads_standard("{\u{22}a\u{22}: 1}").unwrap().truthy(),
-        "{\u{22}a\u{22}: 1}"
+        "{{\u{22}a\u{22}: 1}}"
     );
 }
 
