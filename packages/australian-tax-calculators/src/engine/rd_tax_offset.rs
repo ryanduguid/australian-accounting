@@ -387,7 +387,8 @@ pub fn rd_tax_offset(args: &RdTaxOffsetArgs) -> Result<Value> {
         money(args.recoupment_clawback)?,
         money(args.feedstock_revenue)?,
         money(args.feedstock_expenditure)?,
-    )?;
+    );
+    let claw = claw?;
     let present_year = args.present_year_base_rate_entity;
     let present_rate = corporate_rate(flag(present_year, "present_year_base_rate_entity")?);
     check(&e, &claw)?;

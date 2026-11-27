@@ -245,7 +245,7 @@ impl Account {
         let cap: BigInt = BigInt::from(self.cap * 100) * &self.den;
         let excess: BigInt = (&self.num - &cap).max(BigInt::ZERO);
         let space: BigInt = (&cap - &self.num).max(BigInt::ZERO);
-        let mut out = result(
+        let out = result(
             KIND,
             period,
             vec![
@@ -263,7 +263,8 @@ impl Account {
                 "general_transfer_balance_cap",
                 general_cap(year_of(to)),
             )],
-        )?;
+        );
+        let mut out = out?;
         out["to"] = json!(dates::format(to));
         out["caps"] = Value::Array(std::mem::take(&mut self.caps));
         out["ledger"] = Value::Array(std::mem::take(&mut self.ledger));

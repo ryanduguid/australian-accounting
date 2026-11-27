@@ -90,7 +90,7 @@ pub fn rebatable_benefit_offset(benefit: &Arg, year: &Arg, scope_confirmed: &Arg
             offset = offset.add(&rate_15.mul(&amount.sub(&threshold)?)?)?;
         }
         let offset = up(&offset)?;
-        let mut out = result(
+        let out = result(
             BENEFICIARY,
             &year,
             vec![
@@ -102,7 +102,8 @@ pub fn rebatable_benefit_offset(benefit: &Arg, year: &Arg, scope_confirmed: &Arg
                 rate("lower_threshold", meta::BENEFICIARY_LOWER_THRESHOLD),
                 rate("upper_threshold", meta::BENEFICIARY_UPPER_THRESHOLD),
             ],
-        )?;
+        );
+        let mut out = out?;
         out["authorities"] = json!({
             "rebatable_benefit_amount": BENEFIT_AMOUNT,
             "beneficiary_tax_offset": BENEFIT_OFFSET,
@@ -327,7 +328,7 @@ pub fn disability_expenses_offset(a: &MedicalArgs) -> Result<Value> {
         };
         let excess = at_least_nil(net.sub(&limit)?)?;
         let offset = pct.mul(&excess)?;
-        let mut out = result(
+        let out = result(
             MEDICAL,
             &year,
             vec![
@@ -342,7 +343,8 @@ pub fn disability_expenses_offset(a: &MedicalArgs) -> Result<Value> {
                 rate("threshold", &threshold),
                 rate("percentage", if higher_applies { "0.10" } else { "0.20" }),
             ],
-        )?;
+        );
+        let mut out = out?;
         out["thresholds"] = json!(if family { "family" } else { "singles" });
         out["higher_limit_applies"] = json!(higher_applies);
         out["authorities"] = json!({

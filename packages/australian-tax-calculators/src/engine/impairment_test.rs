@@ -402,7 +402,8 @@ fn amounts(
             .zip(&m.losses)
             .filter(|(x, _)| x.goodwill)
             .map(|(_, l)| l),
-    )?;
+    );
+    let goodwill = goodwill?;
     let others = m.loss.sub(&goodwill)?.sub(&m.unallocated)?;
     let mut out = vec![("value_in_use", m.viu.clone())];
     if let Some(f) = fair {

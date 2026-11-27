@@ -289,13 +289,14 @@ fn schedule(
     let mut rows = Vec::with_capacity(ends.len());
     for &day in ends {
         let revenue = to_date(p, amount, span.0, span.1, day)?.quantize(-2, Rounding::HalfUp)?;
-        rows.push(row(
+        let pushed = row(
             day,
             &revenue,
             &before,
             total(billed, day)?,
             total(received, day)?,
-        )?);
+        );
+        rows.push(pushed?);
         before = revenue;
     }
     Ok(rows)
