@@ -40,7 +40,7 @@ struct Command {
 
 /// An `Opt` literal; a macro, as a `const fn` here would run only at compile time.
 macro_rules! opt {
-    ($flags:expr, $dest:expr, $required:expr, $help:expr) => {
+    ($flags:expr, $dest:expr, $required:expr, $help:expr $(,)?) => {
         Opt {
             flags: $flags,
             dest: $dest,
