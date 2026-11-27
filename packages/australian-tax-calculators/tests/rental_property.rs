@@ -686,3 +686,78 @@ fn asset_rental_use_starts_at_the_later_of_first_use_and_acquisition() {
     let nil = with(json!({"days_available": 181, "depreciating_assets": [pooled]}));
     assert_eq!(amount(&nil, "decline_in_value"), "0.00");
 }
+
+/// A loan with every fact given, `changes` replacing or adding facts.
+fn loan_with(changes: Value) -> Value {
+    let mut loan = json!({
+        "interest": "1000.00", "principal_for_rental": "20000.00",
+        "principal_total": "20000.00", "redrawn_in_year": false,
+    });
+    for (key, value) in changes.as_object().unwrap() {
+        loan[key] = value.clone();
+    }
+    loan
+}
+
+/// A list item that is not an object, a fact the list does not take, a
+/// missing required fact and a flag that is not a boolean are each refused,
+/// naming the list.
+#[test]
+fn malformed_list_items_are_refused() {
+    let refused =
+        |changes: Value| api::evaluate_coded("rental-property", &with(changes)).unwrap_err();
+    let not_object = refused(json!({"loans": ["interest"]}));
+    assert_eq!(not_object.code, "rental_property.fact_invalid");
+    assert_eq!(
+        not_object.message,
+        "loan 1: each of a loan must be an object."
+    );
+    let unknown = refused(json!({"loans": [loan_with(json!({"offset": "0"}))]}));
+    assert_eq!(unknown.code, "input.field_unknown");
+    assert!(
+        unknown
+            .message
+            .ends_with("offset is not a fact a loan takes")
+    );
+    let missing = refused(json!({"loans": [{"interest": "1000.00"}]}));
+    assert_eq!(missing.code, "input.missing_field");
+    assert!(
+        missing
+            .message
+            .ends_with("a loan: principal_for_rental is required")
+    );
+    let flag = refused(json!({"loans": [loan_with(json!({"redrawn_in_year": "no"}))]}));
+    assert_eq!(flag.code, "input.flag_invalid");
+    assert!(flag.message.ends_with("redrawn_in_year must be a boolean."));
+}
+
+/// An asset date that is not a calendar date, a disposal that is neither a
+/// date nor null, days that are not a whole number and income that is not an
+/// object of lines are refused as invalid facts.
+#[test]
+fn malformed_dates_days_and_lines_are_refused() {
+    let mut bad_date = asset("2020-07-01", true, false);
+    bad_date["acquired"] = json!("2020-13-01");
+    for (changes, message) in [
+        (
+            json!({"depreciating_assets": [bad_date]}),
+            "acquired must be a YYYY-MM-DD date.",
+        ),
+        (
+            json!({"disposed": 2026}),
+            "disposed must be a YYYY-MM-DD date or null.",
+        ),
+        (
+            json!({"days_available": "365"}),
+            "days_available must be a whole number of days.",
+        ),
+        (
+            json!({"income": ["rent"]}),
+            "income must be an object of amounts by line.",
+        ),
+    ] {
+        let error = api::evaluate_coded("rental-property", &with(changes)).unwrap_err();
+        assert_eq!(error.code, "rental_property.fact_invalid");
+        assert!(error.message.ends_with(message));
+    }
+}
