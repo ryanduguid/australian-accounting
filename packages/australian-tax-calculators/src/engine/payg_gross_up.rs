@@ -222,3 +222,15 @@ fn not_unique(net: &Decimal, withheld: &[Decimal], period: &str, answer: &Value)
         ),
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn listed_gives_none_or_one_item_as_it_is() {
+        assert_eq!(listed(&[]), "");
+        assert_eq!(listed(&["a".to_string()]), "a");
+        assert_eq!(listed(&["a".into(), "b".into(), "c".into()]), "a, b and c");
+    }
+}

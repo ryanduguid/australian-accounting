@@ -7003,10 +7003,9 @@ pub fn worksheet_catalogue() -> Value {
         let mut facts = Map::new();
         facts.insert("kind".into(), json!(kind));
         facts.insert("scope_confirmed".into(), json!(true));
-        if let Some(Value::Object(arguments)) = supported[0].get("arguments") {
-            for (k, v) in arguments {
-                facts.insert(k.clone(), v.clone());
-            }
+        let arguments = supported[0].get("arguments").and_then(Value::as_object);
+        for (k, v) in arguments.into_iter().flatten() {
+            facts.insert(k.clone(), v.clone());
         }
         for (k, v) in meta::examples(kind) {
             facts.insert(k.into(), example_value(v));

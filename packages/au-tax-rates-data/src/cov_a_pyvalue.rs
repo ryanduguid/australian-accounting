@@ -8,10 +8,17 @@
 use super::*;
 use crate::pyjson::loads_standard;
 
-fn text(points: Vec<u32>) -> String {
-    points
-        .into_iter()
-        .map(|cp| char::from_u32(cp).unwrap_or('?'))
+/// The code points of an expected answer; U+FFFE stands for the lone surrogate
+/// U+D800, which a Rust string cannot hold.
+fn points(want: &str) -> Vec<u32> {
+    want.chars()
+        .map(|c| {
+            if c == '\u{fffe}' {
+                0xd800
+            } else {
+                u32::from(c)
+            }
+        })
         .collect()
 }
 
@@ -37,9 +44,9 @@ const DUMPS_CASES: &[(&str, [&str; 4])] = &[
     (
         "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
         [
-            "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{e9}\u{4e2d}\u{22}, \u{22}\u{1f600}\u{22}, \u{22}?\u{22}]",
+            "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{e9}\u{4e2d}\u{22}, \u{22}\u{1f600}\u{22}, \u{22}\u{fffe}\u{22}]",
             "[\u{a}  \u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22},\u{a}  \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22},\u{a}  \u{22}\u{5c}ud83d\u{5c}ude00\u{22},\u{a}  \u{22}\u{5c}ud800\u{22}\u{a}]",
-            "[\u{a} \u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22},\u{a} \u{22}\u{e9}\u{4e2d}\u{22},\u{a} \u{22}\u{1f600}\u{22},\u{a} \u{22}?\u{22}\u{a}]",
+            "[\u{a} \u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22},\u{a} \u{22}\u{e9}\u{4e2d}\u{22},\u{a} \u{22}\u{1f600}\u{22},\u{a} \u{22}\u{fffe}\u{22}\u{a}]",
             "[\u{22}q\u{5c}\u{22}b\u{5c}\u{5c}n\u{5c}nr\u{5c}rb\u{5c}bf\u{5c}ft\u{5c}tc\u{5c}u0001\u{22}, \u{22}\u{5c}u00e9\u{5c}u4e2d\u{22}, \u{22}\u{5c}ud83d\u{5c}ude00\u{22}, \u{22}\u{5c}ud800\u{22}]",
         ],
     ),
@@ -72,8 +79,8 @@ fn dumps_with_writes_what_json_dumps_writes() {
         let value = loads_standard(doc).unwrap();
         for ((indent, ascii, sort), want) in DUMPS_OPTIONS.iter().zip(wants) {
             assert_eq!(
-                text(dumps_with(&value, *indent, *ascii, *sort)),
-                *want,
+                dumps_with(&value, *indent, *ascii, *sort),
+                points(want),
                 "{doc} {indent:?} {ascii} {sort}"
             );
         }

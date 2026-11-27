@@ -252,3 +252,15 @@ pub(super) fn subsidiaries(given: &Arg) -> Result<Vec<Entity>> {
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_parent_that_is_not_json_is_refused() {
+        let error = parent(&Arg::Text("Head Co".into())).err().unwrap();
+        assert_eq!(error.code(), "consolidation_eliminations.item_invalid");
+        assert_eq!(error.to_string(), "parent must be an object {name, lines}.");
+    }
+}
