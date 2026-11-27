@@ -427,7 +427,7 @@ fn interstate_wages_must_be_stated() {
             .remove("interstate_wages");
         let err = api::evaluate_coded("payroll-tax-group", &v).unwrap_err();
         assert_eq!(err.code, "payroll_tax_group.fact_invalid");
-        assert!(err.message.contains("Sch 1 cl 7"), "{}", err.message);
+        assert!(err.message.contains("Sch 1 cl 7"));
     }
 }
 
@@ -469,7 +469,7 @@ fn a_part_year_names_the_clause_for_c() {
         let v = with(v, "employed_all_year", json!(false));
         let err = api::evaluate_coded("payroll-tax-group", &v).unwrap_err();
         assert_eq!(err.code, "payroll_tax_group.part_year");
-        assert!(err.message.contains(act), "{}", err.message);
+        assert!(err.message.contains(act));
     }
 }
 
