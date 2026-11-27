@@ -133,6 +133,10 @@ fn a_utf8_encoded_surrogate_decodes_as_surrogatepass_allows() {
         let data = hex(input.as_str().expect("hex text"));
         assert!(pyjson::loads_bytes(&data).is_ok(), "{input:?}");
     }
+    // CPython 3.15.0: `json.loads(bytes.fromhex("22eda08022"))` is '\ud800'.
+    let lone = pyjson::loads_bytes(&hex("22eda08022")).ok();
+    assert_eq!(lone, loads_standard(r#""\ud800""#).ok());
+    assert!(lone.is_some());
 }
 
 const WIDE: &str = "'utf-16' or 'utf-32' codec can't decode bytes";

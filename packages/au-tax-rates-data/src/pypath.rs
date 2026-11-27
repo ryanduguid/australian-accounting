@@ -482,14 +482,13 @@ fn realpath_from(
         } else {
             format!("{path}/{name}")
         };
-        let Some(target) = link_target(&newpath) else {
-            path = newpath;
-            continue;
+        let target = match link_step(&newpath, &seen) {
+            Ok(target) => target,
+            Err(next) => {
+                path = next;
+                continue;
+            }
         };
-        if let Some(cached) = seen.get(&newpath) {
-            path = cached.clone().unwrap_or(newpath);
-            continue;
-        }
         if target.starts_with('/') {
             path = "/".into();
         }
@@ -524,18 +523,27 @@ fn realpath_start(
     Ok(cwd.to_string_lossy().into_owned())
 }
 
-/// The target of the link at `path`, or `None`. Python's lstat and readlink
-/// share one `except OSError`: a missing name, a name that is not a link and
-/// an unreadable link all give `None`.
+/// What `posixpath.realpath` does at `newpath`, in its order: lstat, the
+/// cache of links already met, then readlink. `Ok` is the link's target to
+/// follow; `Err` is the path to go on from: `newpath` itself where lstat or
+/// readlink fails (one `except OSError`) or the name is not a link, else the
+/// cached resolution (`newpath` for a link still being resolved, a loop).
 #[cfg(not(windows))]
-fn link_target(path: &str) -> Option<String> {
-    let link = std::fs::symlink_metadata(path).is_ok_and(|meta| meta.file_type().is_symlink());
-    let target = if link {
-        std::fs::read_link(path).ok()
-    } else {
-        None
-    };
-    target.map(|target| target.to_string_lossy().into_owned())
+fn link_step(
+    newpath: &str,
+    seen: &std::collections::HashMap<String, Option<String>>,
+) -> Result<String, String> {
+    let stay = newpath.to_string();
+    if !std::fs::symlink_metadata(newpath).is_ok_and(|meta| meta.file_type().is_symlink()) {
+        return Err(stay);
+    }
+    if let Some(cached) = seen.get(newpath) {
+        return Err(cached.clone().unwrap_or(stay));
+    }
+    let target = std::fs::read_link(newpath).ok();
+    target
+        .map(|target| target.to_string_lossy().into_owned())
+        .ok_or(stay)
 }
 
 #[cfg(test)]
