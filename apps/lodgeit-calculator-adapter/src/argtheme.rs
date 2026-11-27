@@ -1,6 +1,8 @@
 //! argparse's colour theme (Python 3.14+) and `_colorize.can_colorize`, which
 //! decides per stream whether help, usage and errors are coloured.
 
+use std::ffi::OsString;
+
 /// `_colorize.Argparse`: the escape codes argparse writes, or all empty.
 pub struct Theme {
     pub usage: &'static str,
@@ -61,7 +63,12 @@ pub enum Stream {
 
 /// The theme argparse uses when it writes to `stream`.
 pub fn theme(stream: Stream) -> &'static Theme {
-    if can_colorize(stream) {
+    theme_in(&|name| std::env::var_os(name), stream)
+}
+
+/// `theme(stream)` with the environment read through `var`.
+fn theme_in(var: &dyn Fn(&str) -> Option<OsString>, stream: Stream) -> &'static Theme {
+    if can_colorize(var, stream) {
         &COLOURED
     } else {
         &PLAIN
@@ -69,8 +76,7 @@ pub fn theme(stream: Stream) -> &'static Theme {
 }
 
 /// `_colorize.can_colorize(file=stream)` for a command started without `-I`.
-fn can_colorize(stream: Stream) -> bool {
-    let var = |name: &str| std::env::var_os(name);
+fn can_colorize(var: &dyn Fn(&str) -> Option<OsString>, stream: Stream) -> bool {
     match var("PYTHON_COLORS").as_deref().and_then(|v| v.to_str()) {
         Some("0") => return false,
         Some("1") => return true,
@@ -153,5 +159,58 @@ mod console {
 
     pub fn isatty(_stream: Stream) -> bool {
         false
+    }
+}
+
+/// `_colorize.can_colorize` under CPython 3.15 on Linux, started without
+/// `-I`, decided each case before it reached the terminal checks.
+#[cfg(test)]
+mod tests {
+    use std::ffi::OsString;
+
+    use super::{COLOURED, PLAIN, Stream, theme_in};
+
+    fn theme_with(vars: &[(&str, &str)]) -> &'static str {
+        let var = |name: &str| {
+            vars.iter()
+                .find(|(k, _)| *k == name)
+                .map(|(_, v)| OsString::from(v))
+        };
+        theme_in(&var, Stream::Stderr).usage
+    }
+
+    #[test]
+    fn python_colors_decides_before_every_other_variable() {
+        assert_eq!(
+            theme_with(&[("PYTHON_COLORS", "0"), ("FORCE_COLOR", "1")]),
+            PLAIN.usage
+        );
+        assert_eq!(
+            theme_with(&[("PYTHON_COLORS", "1"), ("NO_COLOR", "1")]),
+            COLOURED.usage
+        );
+    }
+
+    #[test]
+    fn no_color_beats_force_color_which_beats_a_dumb_terminal() {
+        assert_eq!(
+            theme_with(&[("NO_COLOR", "1"), ("FORCE_COLOR", "1")]),
+            PLAIN.usage
+        );
+        assert_eq!(
+            theme_with(&[("FORCE_COLOR", "1"), ("TERM", "dumb")]),
+            COLOURED.usage
+        );
+        assert_eq!(theme_with(&[("TERM", "dumb")]), PLAIN.usage);
+    }
+
+    #[test]
+    fn empty_flags_and_an_unknown_python_colors_fall_through() {
+        let vars = [("NO_COLOR", ""), ("FORCE_COLOR", ""), ("TERM", "dumb")];
+        assert_eq!(theme_with(&vars), PLAIN.usage);
+        assert_eq!(
+            theme_with(&[("PYTHON_COLORS", "2"), ("TERM", "dumb")]),
+            PLAIN.usage
+        );
     }
 }
