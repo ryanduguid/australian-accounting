@@ -160,6 +160,23 @@ pub fn parse(text: &str) -> Result<Json, String> {
 mod tests {
     use super::*;
     #[test]
+    fn members_accept_only_an_object() {
+        for raw in ["[1]", "1", "\"a\"", "null"] {
+            let error = serde_json::from_str::<Members>(raw)
+                .err()
+                .unwrap()
+                .to_string();
+            assert!(error.contains("expected a JSON object"), "{raw}: {error}");
+        }
+        assert_eq!(
+            serde_json::from_str::<Members>(r#"{"a":1}"#)
+                .unwrap()
+                .0
+                .len(),
+            1
+        );
+    }
+    #[test]
     fn preserves_types_precision_and_real_private_number_objects() {
         for (a, b, equal) in [
             ("true", "1", false),

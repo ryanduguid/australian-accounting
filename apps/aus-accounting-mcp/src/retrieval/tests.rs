@@ -30,21 +30,25 @@ fn fixture() -> Value {
         "../../tests/fixtures/native/retrieval-contracts.json"
     ))
     .unwrap();
-    let edges: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/native/retrieval-edges.json"
-    ))
-    .unwrap();
-    fixture["cases"]
-        .as_array_mut()
-        .unwrap()
-        .extend(edges["cases"].as_array().unwrap().iter().cloned());
-    fixture["blobs"].as_object_mut().unwrap().extend(
-        edges["blobs"]
-            .as_object()
+    // The coverage edges replay in their recorded order: a later case can rely on the
+    // validation an earlier one cached for the same run.
+    for edges in [
+        include_str!("../../tests/fixtures/native/retrieval-edges.json"),
+        include_str!("../../tests/fixtures/native/retrieval-coverage-edges.json"),
+    ] {
+        let edges: Value = serde_json::from_str(edges).unwrap();
+        fixture["cases"]
+            .as_array_mut()
             .unwrap()
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone())),
-    );
+            .extend(edges["cases"].as_array().unwrap().iter().cloned());
+        fixture["blobs"].as_object_mut().unwrap().extend(
+            edges["blobs"]
+                .as_object()
+                .unwrap()
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone())),
+        );
+    }
     fixture
 }
 
@@ -308,7 +312,7 @@ fn frozen_corpus_contracts() {
         replay_corpus(&tree.0, item, &fixture["blobs"]);
         count += 1;
     }
-    assert_eq!(count, 688);
+    assert_eq!(count, 690);
 }
 
 #[test]
@@ -345,7 +349,7 @@ fn frozen_rulings_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 90);
+    assert_eq!(count, 98);
 }
 
 fn library_call(context: &Context, item: &Value) -> Result<Value, String> {
