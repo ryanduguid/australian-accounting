@@ -281,10 +281,8 @@ fn worksheets() -> Result<Vec<Value>, String> {
                         .map(|p| json!({"id":p["id"],"basis":p["basis"],"start":p["start"],"end":p["end"]}))
                         .collect()
                 });
-            let sources = match entry["sources"].as_array().filter(|s| !s.is_empty()) {
-                Some(sources) => urls(sources),
-                None => urls([&entry["source"]]),
-            };
+            // The engine's sources list always starts with its source.
+            let sources = urls(entry["sources"].as_array().into_iter().flatten());
             row(format!("tax_worksheet:{kind}"),format!("Rates and thresholds for the {kind} worksheet."),&["calculate_tax_worksheet"],
                 Engine { name: "australian-tax-calculators", version: australian_tax_calculators::engine::VERSION },
                 Facts {

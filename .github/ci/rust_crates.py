@@ -23,7 +23,9 @@ src/main.rs. A crate with more commands names the one CI smokes in
 the listing. Its smoke arguments are [package.metadata.ci] smoke, or --api-help;
 [package.metadata.ci] candidate-test names an ignored test run on its archive.
 The optional extra-binaries, extra-examples and candidate-files lists name what
-the archive includes alongside the primary command.
+the archive includes alongside the primary command. [package.metadata.ci]
+windows-coverage = true also measures and uploads the crate's Windows run, for
+a crate with cfg(windows) lines.
 """
 
 from __future__ import annotations
@@ -74,6 +76,7 @@ def crates(root: Path = ROOT, ci_yml: bool = False) -> list[dict[str, str]]:
             "extra-binaries": " ".join(ci.get("extra-binaries", [])),
             "extra-examples": " ".join(ci.get("extra-examples", [])),
             "candidate-files": " ".join(ci.get("candidate-files", [])),
+            "windows-coverage": "true" if ci.get("windows-coverage", False) else "false",
         })
     if not found:
         sys.exit("No Rust crates found; run from a checkout with packages/ and apps/")

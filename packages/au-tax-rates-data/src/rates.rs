@@ -153,13 +153,11 @@ const ATO_TABLE_FIGURES: [(&str, &str, (&str, &str), Reader); 7] = [
 static INCOME_YEAR: LazyLock<Pattern> = LazyLock::new(|| sre::compile_str(r"^\d{4}-\d{2}$", 0));
 static QC_LINE: LazyLock<Pattern> = LazyLock::new(|| sre::compile_str(r"QC\s?\d+", 0));
 /// `glob.translate("*.json", include_hidden=True)`, case-insensitive on Windows.
-static JSON_NAME: LazyLock<Pattern> = LazyLock::new(|| {
-    if cfg!(windows) {
-        sre::compile_str(r"(?s:[^\\]*\.json)\z", sre::IGNORECASE)
-    } else {
-        sre::compile_str(r"(?s:[^/]*\.json)\z", 0)
-    }
-});
+#[cfg(windows)]
+const JSON_GLOB: (&str, u32) = (r"(?s:[^\\]*\.json)\z", sre::IGNORECASE);
+#[cfg(not(windows))]
+const JSON_GLOB: (&str, u32) = (r"(?s:[^/]*\.json)\z", 0);
+static JSON_NAME: LazyLock<Pattern> = LazyLock::new(|| sre::compile_str(JSON_GLOB.0, JSON_GLOB.1));
 static NUMBER: LazyLock<[(&str, Pattern); 4]> = LazyLock::new(|| {
     [
         ("AUD", r"^\$?([\d,]+(?:\.\d+)?)( million)?$"),
@@ -563,26 +561,23 @@ fn sorted_set(values: Vec<Json>) -> R<Vec<Json>> {
     if unique.len() < 2 {
         return Ok(unique);
     }
+    // A hashable value is None, a number or a str, and None orders with
+    // nothing; so once each neighbour pair compares, every value is a number
+    // or every value is a str, and no comparison in the sort can fail.
     for pair in unique.windows(2) {
         py_compare(&pair[1], &pair[0], "<")?;
     }
-    let mut error = None;
+    let less = |a: &Json, b: &Json| py_compare(a, b, "<").unwrap_or(false);
     unique.sort_by(|a, b| {
-        if py_compare(a, b, "<").unwrap_or_else(|e| {
-            error.get_or_insert(e);
-            false
-        }) {
+        if less(a, b) {
             Ordering::Less
-        } else if py_compare(b, a, "<").unwrap_or(false) {
+        } else if less(b, a) {
             Ordering::Greater
         } else {
             Ordering::Equal
         }
     });
-    match error {
-        Some(e) => Err(e),
-        None => Ok(unique),
-    }
+    Ok(unique)
 }
 
 /// `Decimal(value)` for a decoded JSON value.
@@ -1036,10 +1031,11 @@ impl<W: Write> Out<W> {
 
 /// Text-mode output on Windows writes each `\n` as `\r\n`, translated before
 /// the encoding, so an encoding error counts the added `\r`s.
+#[cfg(windows)]
 fn line_ends(text: &[u32]) -> S {
     let mut out = Vec::with_capacity(text.len());
     for &cp in text {
-        if cfg!(windows) && cp == 10 {
+        if cp == 10 {
             out.push(13);
         }
         out.push(cp);
@@ -1047,11 +1043,14 @@ fn line_ends(text: &[u32]) -> S {
     out
 }
 
+#[cfg(not(windows))]
+fn line_ends(text: &[u32]) -> S {
+    text.to_vec()
+}
+
 /// [`line_ends`] for bytes already encoded.
+#[cfg(windows)]
 fn newlines(bytes: &[u8]) -> Vec<u8> {
-    if !cfg!(windows) {
-        return bytes.to_vec();
-    }
     let mut out = Vec::with_capacity(bytes.len());
     for &b in bytes {
         if b == b'\n' {
@@ -1062,7 +1061,30 @@ fn newlines(bytes: &[u8]) -> Vec<u8> {
     out
 }
 
+#[cfg(not(windows))]
+fn newlines(bytes: &[u8]) -> Vec<u8> {
+    bytes.to_vec()
+}
+
 // ---------------------------------------------------------------- checks
+
+/// `subprocess`'s `ValueError` for an argument holding U+0000.
+#[cfg(windows)]
+const EMBEDDED_NULL: &str = "embedded null character";
+#[cfg(not(windows))]
+const EMBEDDED_NULL: &str = "embedded null byte";
+
+/// The `OSError` `subprocess.run` raises when the program cannot start: the
+/// Windows message names no file, the POSIX one names the program.
+#[cfg(windows)]
+fn spawn_error(e: &std::io::Error, _program: &str) -> OsError {
+    OsError::new(e, None, pyos::Style::Native)
+}
+
+#[cfg(not(windows))]
+fn spawn_error(e: &std::io::Error, program: &str) -> OsError {
+    OsError::new(e, Some(program), pyos::Style::Errno)
+}
 
 /// `check_value(unit, value)`.
 fn check_value(unit: &str, value: &Json) -> R<Vec<S>> {
@@ -1583,11 +1605,7 @@ fn run_with_limit(command: &[Json], limit: Duration) -> R<(i64, Option<String>, 
         let points = points_of(s);
         let os = pyos::os_string(&points).map_err(|m| Exc::msg("UnicodeEncodeError", &m))?;
         if points.contains(&0) {
-            return Err(value_error(pts(if cfg!(windows) {
-                "embedded null character"
-            } else {
-                "embedded null byte"
-            })));
+            return Err(value_error(pts(EMBEDDED_NULL)));
         }
         args.push(os);
     }
@@ -1597,13 +1615,7 @@ fn run_with_limit(command: &[Json], limit: Duration) -> R<(i64, Option<String>, 
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| {
-            os_exc(&if cfg!(windows) {
-                OsError::new(&e, None, pyos::Style::Native)
-            } else {
-                OsError::new(&e, Some(&program), pyos::Style::Errno)
-            })
-        })?;
+        .map_err(|e| os_exc(&spawn_error(&e, &program)))?;
     // Each pipe drains on its own thread, which reports on the channel.
     let (sender, drained) = std::sync::mpsc::channel();
     let pipes: [Option<Box<dyn Read + Send>>; 2] = [
@@ -2653,24 +2665,40 @@ fn report(result: R<i32>) -> i32 {
     match result {
         Ok(code) => code,
         Err(e) => {
-            // stderr's backslashreplace shows a lone surrogate as an escape.
-            let message: String = e
-                .text
-                .iter()
-                .map(|&cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
-                .collect();
-            let last = if message.is_empty() {
-                e.class.to_string()
-            } else {
-                format!("{}: {message}", e.class)
-            };
-            let report = format!("Traceback (most recent call last):\n{last}\n");
-            let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
+            let _ = std::io::stderr().write_all(&newlines(traceback(&e).as_bytes()));
             1
         }
     }
 }
 
+/// The first and last lines of the traceback CPython prints for `e`.
+fn traceback(e: &Exc) -> String {
+    // stderr's backslashreplace shows a lone surrogate as an escape.
+    let message: String = e
+        .text
+        .iter()
+        .map(|&cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
+        .collect();
+    let last = if message.is_empty() {
+        e.class.to_string()
+    } else {
+        format!("{}: {message}", e.class)
+    };
+    format!("Traceback (most recent call last):\n{last}\n")
+}
+
 #[cfg(test)]
 #[path = "rates_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "cov_a2_rates.rs"]
+mod cov_a2_tests;
+
+#[cfg(test)]
+#[path = "cov_a4_rates.rs"]
+mod cov_a4_tests;
+
+#[cfg(test)]
+#[path = "cov_a6_rates.rs"]
+mod cov_a6_tests;

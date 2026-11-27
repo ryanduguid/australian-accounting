@@ -64,6 +64,71 @@ fn the_tax_engine_names_its_version_and_gives_usage_for_an_unknown_command() {
 }
 
 #[test]
+fn the_tax_engine_reads_a_contracts_register_on_stdin() {
+    const EXAMPLE: &[u8] = include_bytes!(
+        "../../../packages/australian-tax-calculators/examples/contract-register.csv"
+    );
+    let args = [
+        "tax",
+        "contract-register",
+        "--balance-date",
+        "2026-06-30",
+        "--scope-confirmed",
+    ];
+    let out = run(&args, EXAMPLE);
+    assert_eq!(out.status.code(), Some(0), "{}", text(&out.stderr));
+    assert!(out.stderr.is_empty());
+    let register: Value = serde_json::from_slice(&out.stdout).unwrap();
+    let contracts = register["contracts"].as_array().unwrap();
+    let c = contracts
+        .iter()
+        .find(|c| c["contract"] == "HP-1007")
+        .unwrap();
+    // HP-1007 by hand: $10,000 at 1% a month, $100 a month in arrears from
+    // 1 March 2026 and the $10,000 back on 1 March 2027. By 30 June 4 periods
+    // have charged $400 and 3 instalments have paid $300, and all of the
+    // $10,100 left falls due within the year.
+    for (key, want) in [
+        ("total_interest", "1200.00"),
+        ("outstanding", "10100.00"),
+        ("current", "10100.00"),
+        ("non_current", "0.00"),
+    ] {
+        assert_eq!(c[key], want, "{key}");
+    }
+    let header = "contract,client,financier,kind,start_date,amount_financed,instalment,instalments,frequency,timing,balloon";
+    let loan =
+        "HP-1,Client,Financier,hire_purchase,2025-07-01,1200.00,100.00,12,monthly,in_arrears,0.00";
+    let gap = run(&args, format!("{header}\n{loan}\n\n{loan}\n").as_bytes());
+    assert_eq!(gap.status.code(), Some(2));
+    assert!(gap.stdout.is_empty());
+    assert_eq!(
+        text(&gap.stderr),
+        "error: line 3: an empty line may only end the file\n"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn a_stdout_pipe_with_no_reader_exits_120_with_pythons_report() {
+    // CPython 3.14's report for the same pipe, recorded on Linux.
+    let (reader, writer) = std::io::pipe().unwrap();
+    drop(reader);
+    let out = Command::new(env!("CARGO_BIN_EXE_au-accounting"))
+        .args(["benchmarks", "--api-help"])
+        .stdin(Stdio::null())
+        .stdout(writer)
+        .stderr(Stdio::piped())
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(120));
+    assert_eq!(
+        text(&out.stderr),
+        "Exception ignored while flushing sys.stdout:\nBrokenPipeError: [Errno 32] Broken pipe\n"
+    );
+}
+
+#[test]
 fn refusal_json_prints_a_result_and_codes_an_oversized_input() {
     let ok = run(
         &["tax", "gst", "--refusal-json"],

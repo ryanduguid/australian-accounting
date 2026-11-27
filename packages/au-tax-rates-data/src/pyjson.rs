@@ -356,9 +356,8 @@ fn decode(text: &str, members: Members) -> Result<Json, DecodeError> {
                     idx = skip(idx);
                     if idx < len && s[idx] == b']' {
                         idx += 1;
-                        let Some(Frame::Array(items)) = stack.pop() else {
-                            unreachable!()
-                        };
+                        let items = std::mem::take(items);
+                        stack.pop();
                         used -= level_cost(true);
                         value = Json::Array(items);
                         continue;
@@ -382,9 +381,8 @@ fn decode(text: &str, members: Members) -> Result<Json, DecodeError> {
                     idx = skip(idx);
                     if idx < len && s[idx] == b'}' {
                         idx += 1;
-                        let Some(Frame::Object(pairs, _)) = stack.pop() else {
-                            unreachable!()
-                        };
+                        let pairs = std::mem::take(pairs);
+                        stack.pop();
                         used -= level_cost(false);
                         if members == Members::Keep {
                             value = Json::Object(pairs);

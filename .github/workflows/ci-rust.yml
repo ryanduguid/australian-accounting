@@ -31,6 +31,10 @@ on:
         description: Optional ignored Rust integration test to run against the extracted archive.
         type: string
         default: ""
+      windows-coverage:
+        description: true to measure the Windows run too, for a crate with cfg(windows) lines, and keep its report.
+        type: string
+        default: "false"
       smoke:
         description: Arguments that must exit 0 from the built command.
         type: string
@@ -79,8 +83,38 @@ jobs:
       # compares against Python is kept outside the repository.
       - run: cargo clippy --locked --all-targets --all-features -- -D warnings
       - name: Run the tests
-        if: runner.os != 'Linux'
+        if: runner.os != 'Linux' && (runner.os != 'Windows' || inputs.windows-coverage != 'true')
         run: cargo test --locked
+      # A crate with [package.metadata.ci] windows-coverage also keeps a report
+      # of its Windows run, which the caller's codecov-rust job uploads under the
+      # crate's flag for Codecov to merge with the Linux report.
+      - name: Install llvm-tools
+        if: runner.os == 'Windows' && inputs.windows-coverage == 'true'
+        run: rustup component add llvm-tools
+      - name: Install cargo-llvm-cov
+        if: runner.os == 'Windows' && inputs.windows-coverage == 'true'
+        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-llvm-cov@0.9.1
+          fallback: none
+      - name: Run the tests with coverage
+        if: runner.os == 'Windows' && inputs.windows-coverage == 'true'
+        run: cargo llvm-cov --locked
+      - name: Write the Windows coverage report for the Codecov upload
+        if: runner.os == 'Windows' && inputs.windows-coverage == 'true'
+        run: cargo llvm-cov report --lcov --output-path lcov.info
+      # Codecov matches report paths to repository files with forward slashes.
+      - name: Give the Windows report's paths forward slashes
+        if: runner.os == 'Windows' && inputs.windows-coverage == 'true'
+        run: sed -i '/^SF:/ s|\\|/|g' lcov.info
+      - name: Keep the Windows coverage report for the Codecov upload
+        if: runner.os == 'Windows' && inputs.windows-coverage == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-codecov-rust-windows-${{ inputs.package }}
+          path: ${{ inputs.root }}/${{ inputs.package }}/lcov.info
+          if-no-files-found: error
+          retention-days: 1
       # strace lets tests/no_network.rs watch a real calculation. Coverage needs
       # llvm-tools and a prebuilt cargo-llvm-cov, with no fallback to compiling it.
       - name: Install strace and llvm-tools
@@ -91,7 +125,7 @@ jobs:
           rustup component add llvm-tools
       - name: Install cargo-llvm-cov
         if: runner.os == 'Linux'
-        uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        uses: taiki-e/install-action@75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f # v2.90.6
         with:
           tool: cargo-llvm-cov@0.9.1
           fallback: none
@@ -276,7 +310,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+      - uses: taiki-e/install-action@75a7c0f87bd666af3cdb75c5b9e9d03ab6044e6f # v2.90.6
         with:
           tool: cargo-audit@0.22.2
           fallback: none

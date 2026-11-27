@@ -217,6 +217,17 @@ fn original_legacy_openers_over_stdio() {
     assert_eq!(sessions.len(), 9);
     assert_eq!(replay(sessions), 18);
 }
+/// Recorded from the Python server under pydantic 2.13.5: capabilities that are
+/// present but not an object, and a legacy discover whatever its _meta holds.
+#[test]
+fn original_malformed_envelopes_over_stdio() {
+    let sessions: Vec<Value> = serde_json::from_str(include_str!(
+        "fixtures/native/lifecycle-malformed-envelopes.json"
+    ))
+    .unwrap();
+    assert_eq!(sessions.len(), 4);
+    assert_eq!(replay(sessions), 35);
+}
 #[test]
 fn original_large_pack_pagination_and_scope_over_stdio() {
     let sessions: Vec<Value> =

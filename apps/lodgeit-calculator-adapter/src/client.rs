@@ -99,9 +99,11 @@ impl Outcome {
 /// `_now()`: UTC, ISO format to the second. The differential build fixes
 /// it, as the harness fixes Python's.
 pub fn now() -> String {
-    if cfg!(feature = "differential") {
-        return "2026-01-01T00:00:00+00:00".into();
-    }
+    // 2026-01-01T00:00:00+00:00, compiled only with the feature so the
+    // default build measures no line it cannot run.
+    #[cfg(feature = "differential")]
+    let seconds: u64 = 1_767_225_600;
+    #[cfg(not(feature = "differential"))]
     let seconds = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_secs());

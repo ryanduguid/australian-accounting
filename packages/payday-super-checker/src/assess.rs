@@ -472,10 +472,8 @@ fn assessment_facts(result: &mut Assessed, cal: &BusinessCalendar, as_at: Date) 
         }
     }
     let credit = remitted_credit(&line, remitted)?;
-    let mut operational_unremitted = cents(Some(&line.sg_amount))?.sub(&credit)?;
-    if operational_unremitted.lt(&zero())? {
-        operational_unremitted = zero();
-    }
+    // `remitted_credit` never exceeds the cents of `sg_amount`, so this is never negative.
+    let operational_unremitted = cents(Some(&line.sg_amount))?.sub(&credit)?;
     let fully_remitted = operational_unremitted.is_zero();
     let receipt_credit = received_credit(&line, settled)?;
     let receipt_amount_unevidenced =

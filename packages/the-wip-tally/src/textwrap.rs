@@ -152,4 +152,13 @@ mod tests {
             ["a-b-c-d", "well-", "known", "re-", "enter"]
         );
     }
+
+    #[test]
+    fn a_long_word_breaks_after_its_last_hyphen_that_fits() {
+        // textwrap.wrap("1234-5678-9012", 7): digits are not split as words,
+        // so the long-word handler breaks at the hyphen.
+        assert_eq!(wrap("1234-5678-9012", 7), ["1234-", "5678-", "9012"]);
+        // A leading run of hyphens alone is not a break point.
+        assert_eq!(wrap("x ---a-bcdefgh", 5), ["x ---", "a-", "bcdef", "gh"]);
+    }
 }
