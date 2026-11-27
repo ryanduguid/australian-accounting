@@ -79,11 +79,6 @@ pub fn prefix_chars(s: &str, n: usize) -> &str {
     }
 }
 
-/// `len(s)`: a count of code points.
-pub fn char_len(s: &str) -> usize {
-    s.chars().count()
-}
-
 /// `repr(s)` for a `str`.
 pub fn repr_str(s: &str) -> String {
     let quote = if s.contains('\'') && !s.contains('"') {
@@ -152,15 +147,12 @@ fn number_text(s: &str) -> Option<String> {
 
 /// `int(s, base)`; the error is the `ValueError` message.
 pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
+    // CPython takes the first 200 characters, then `%.200R` cuts their repr
+    // to 200 characters, closing quote included.
     let invalid = || {
-        let shown: String = if char_len(s) > 200 {
-            prefix_chars(s, 200).to_string()
-        } else {
-            s.to_string()
-        };
         format!(
             "invalid literal for int() with base {base}: {}",
-            repr_str(&shown)
+            prefix_chars(&repr_str(prefix_chars(s, 200)), 200)
         )
     };
     let text = number_text(s).ok_or_else(invalid)?;
@@ -462,14 +454,6 @@ impl PyPath {
         out.parts.pop();
         out
     }
-
-    pub fn is_absolute(&self) -> bool {
-        if cfg!(windows) {
-            self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
-        } else {
-            !self.anchor.is_empty()
-        }
-    }
 }
 
 impl std::fmt::Display for PyPath {
@@ -497,22 +481,35 @@ pub fn resolve_text(path: &Path) -> String {
                 other => resolved.push(other.as_os_str()),
             }
         }
-        let text = resolved.to_string_lossy().into_owned();
-        return match text.strip_prefix(r"\\?\UNC\") {
-            Some(rest) => format!(r"\\{rest}"),
-            None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
-        };
+        return without_verbatim(resolved.to_string_lossy().into_owned());
     }
     absolute.to_string_lossy().into_owned()
 }
 
-/// `Path.__eq__` between resolved paths: case-insensitive on Windows.
-pub fn same_resolved(a: &str, b: &str) -> bool {
-    if cfg!(windows) {
-        a.to_lowercase() == b.to_lowercase()
-    } else {
-        a == b
+/// `canonicalize` gives Windows verbatim paths; `realpath` does not.
+#[cfg(windows)]
+fn without_verbatim(text: String) -> String {
+    match text.strip_prefix("\\\\?\\UNC\\") {
+        Some(rest) => format!("\\\\{rest}"),
+        None => text.strip_prefix("\\\\?\\").unwrap_or(&text).to_string(),
     }
+}
+
+#[cfg(not(windows))]
+fn without_verbatim(text: String) -> String {
+    text
+}
+
+/// `Path.__eq__` between resolved paths: case-insensitive on Windows.
+#[cfg(windows)]
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    a.to_lowercase() == b.to_lowercase()
+}
+
+/// `Path.__eq__` between resolved paths.
+#[cfg(not(windows))]
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    a == b
 }
 
 /// A `datetime.date`.
@@ -587,9 +584,9 @@ impl Date {
         while days_before_year(year + 1) < ordinal {
             year += 1;
         }
-        while days_before_year(year) >= ordinal {
-            year -= 1;
-        }
+        // The estimate never overshoots: (year - 1) * 365.2425 <= ordinal - 1, and
+        // the leap days before a year exceed 0.2425 a year by less than one, so
+        // days_before_year(year) < ordinal already.
         let mut rest = ordinal - days_before_year(year);
         let mut month = 1;
         while rest > i64::from(days_in_month(year, month)) {
@@ -776,5 +773,139 @@ mod tests {
         );
         assert_eq!(PyPath::new("./a//b/.").display(), format!("a{SEP}b"));
         assert_eq!(PyPath::new("").display(), ".");
+        // Joining an anchored path replaces the base, as `PurePath / "/x"` does.
+        assert_eq!(
+            PyPath::new("a").join("/etc/x").to_string(),
+            format!("{SEP}etc{SEP}x")
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn two_leading_slashes_stay_an_anchor_on_posix() {
+        assert_eq!(PyPath::new("//srv/x").display(), "//srv/x");
+        assert_eq!(PyPath::new("///srv/x").display(), "/srv/x");
+    }
+
+    // Each value and message below is what CPython's repr() and int() give.
+    #[test]
+    fn repr_escapes_newlines_and_unprintable_astral_characters() {
+        assert_eq!(repr_str("a\nb\rc"), "'a\\nb\\rc'");
+        assert_eq!(repr_str("\u{e0001}"), "'\\U000e0001'");
+    }
+
+    #[test]
+    fn int_reads_signs_prefixes_and_unicode_digits() {
+        for (text, base, want) in [
+            ("-12", 10, -12),
+            ("+7", 10, 7),
+            ("0xff", 16, 255),
+            ("0o17", 8, 15),
+            ("0X_1f", 16, 31),
+            ("ff", 16, 255),
+            ("1_000", 10, 1000),
+            ("\u{661}\u{662}", 10, 12),
+        ] {
+            assert_eq!(parse_int(text, base), Ok(BigInt::from(want)), "{text}");
+        }
+    }
+
+    #[test]
+    fn int_refusals_read_as_python_words_them() {
+        for (text, shown) in [
+            ("1__0", "'1__0'"),
+            ("1_", "'1_'"),
+            ("_1", "'_1'"),
+            ("12a", "'12a'"),
+            ("", "''"),
+            ("1\u{20ac}", "'1\u{20ac}'"),
+        ] {
+            assert_eq!(
+                parse_int(text, 10).unwrap_err(),
+                format!("invalid literal for int() with base 10: {shown}"),
+                "{text}"
+            );
+        }
+        // `%.200R` cuts the representation, so the closing quote goes.
+        assert_eq!(
+            parse_int(&"x".repeat(250), 10).unwrap_err(),
+            format!(
+                "invalid literal for int() with base 10: '{}",
+                "x".repeat(199)
+            )
+        );
+        assert_eq!(
+            parse_int(&"1".repeat(4301), 10).unwrap_err(),
+            "Exceeds the limit (4300 digits) for integer string conversion: value has 4301 \
+             digits; use sys.set_int_max_str_digits() to increase the limit"
+        );
+    }
+
+    #[test]
+    fn an_error_without_an_os_code_prints_its_own_message() {
+        let error = io::Error::other("no code here");
+        assert_eq!(oserror_str(&error, "f.csv", OsStyle::Errno), "no code here");
+        assert_eq!(strip_os_suffix("plain message"), "plain message");
+    }
+
+    #[test]
+    fn a_missing_tail_is_normalised_lexically_after_the_existing_prefix() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("wip-resolve-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let real = resolve_text(&root);
+        // os.path.realpath drops `missing/..` once no prefix beyond `root` exists.
+        assert_eq!(
+            resolve_text(&root.join("missing").join("..").join("x.csv")),
+            resolve_text(&root.join("x.csv"))
+        );
+        assert_eq!(
+            resolve_text(&root.join("x.csv")),
+            format!("{real}{SEP}x.csv")
+        );
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn malformed_iso_dates_and_weeks_are_refused_as_cpython_does() {
+        for bad in [
+            "2026-W01x1",
+            "2026-10x17",
+            "0000-W01-1",
+            "2025-W53",
+            "2026-W00",
+            "2026-W01-0",
+            "2026-W01-8",
+        ] {
+            assert_eq!(Date::fromisoformat(bad), None, "{bad}");
+        }
+    }
+
+    #[test]
+    fn ordinals_convert_as_date_fromordinal_does() {
+        for (ordinal, want) in [
+            (365, "0001-12-31"),
+            (366, "0002-01-01"),
+            (730, "0002-12-31"),
+            (1461, "0004-12-31"),
+            (36524, "0100-12-31"),
+            (36525, "0101-01-01"),
+            (146_096, "0400-12-30"),
+            (146_097, "0400-12-31"),
+            (146_098, "0401-01-01"),
+            (3_652_059, "9999-12-31"),
+        ] {
+            let date = Date::from_ordinal(ordinal).unwrap();
+            assert_eq!(date.isoformat(), want, "{ordinal}");
+            assert_eq!(date.ordinal(), ordinal);
+        }
+        // The year estimate is corrected both ways: every year's first and last day round-trips.
+        for year in 1..=9999 {
+            for (month, day) in [(1, 1), (12, 31)] {
+                let date = Date::new(year, month, day).unwrap();
+                assert_eq!(Date::from_ordinal(date.ordinal()), Some(date), "{year}");
+            }
+        }
     }
 }
