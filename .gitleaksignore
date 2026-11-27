@@ -77,3 +77,8 @@ a3cce5b95adfc4ca26c00ac78a5a10d514861511:apps/aus-accounting-mcp/evaluation/ques
 a3cce5b95adfc4ca26c00ac78a5a10d514861511:apps/aus-accounting-mcp/tests/test_identifiers.py:au-bank-account:318
 b10874b523130a2869c0b333995bc91ff51f7c98:apps/aus-accounting-mcp/tests/test_identifiers.py:au-bank-account:192
 b10874b523130a2869c0b333995bc91ff51f7c98:apps/aus-accounting-mcp/tests/test_identifiers.py:au-bank-account:229
+# - generic-credential-uri, 3164df4 (ryan/cov-au-tax-rates-data-b-2-2026-11-27): the
+#   urlsplit test input http://[::1]@host]/x, whose userinfo is an IPv6 literal;
+#   cc625e5 replaced it with http://[v1.x]@host]/x. Checked 27 November 2026.
+3164df4fbef39cffa6bff0e0261ae5689f79ee47:packages/au-tax-rates-data/tests/data/cov_b_pyurl.py:generic-credential-uri:16
+3164df4fbef39cffa6bff0e0261ae5689f79ee47:packages/au-tax-rates-data/tests/cov_b_pyurl.rs:generic-credential-uri:40
