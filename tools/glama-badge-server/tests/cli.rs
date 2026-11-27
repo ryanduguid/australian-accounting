@@ -4,6 +4,11 @@
 
 use std::net::TcpListener;
 use std::process::{Command, Output};
+use std::sync::Mutex;
+
+// Tests that bind a fresh loopback port hold this, so one test's port, freed for
+// the server to take, is never handed to another test's listener in between.
+static PORTS: Mutex<()> = Mutex::new(());
 
 fn run(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_glama-badge-server"))
@@ -17,6 +22,12 @@ fn refused(args: &[&str]) -> String {
     assert_eq!(output.status.code(), Some(1), "{args:?}");
     assert!(output.stdout.is_empty());
     String::from_utf8(output.stderr).unwrap()
+}
+
+fn ports() -> std::sync::MutexGuard<'static, ()> {
+    PORTS
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 #[test]
@@ -39,6 +50,7 @@ fn an_address_that_is_not_a_socket_address_is_refused() {
 
 #[test]
 fn a_taken_address_is_refused_before_serving() {
+    let _ports = ports();
     let taken = TcpListener::bind("127.0.0.1:0").unwrap();
     let address = taken.local_addr().unwrap().to_string();
     assert!(refused(&["--listen", &address]).starts_with("Error: Os {"));
@@ -93,6 +105,7 @@ mod interrupt {
 
     #[test]
     fn an_explicit_address_serves_and_stops_cleanly() {
+        let _ports = super::ports();
         let free = TcpListener::bind("127.0.0.1:0").unwrap();
         let address = free.local_addr().unwrap().to_string();
         drop(free);
