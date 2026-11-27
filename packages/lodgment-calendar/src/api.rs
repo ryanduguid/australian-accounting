@@ -115,7 +115,7 @@ fn choice<'a>(request: &'a Value, name: &str, allowed: &[&str]) -> Result<&'a st
 fn due_dates(v: &Value) -> Result<Value, String> {
     let request = parse_request(v)?;
     let cal = holidays::calendar(&v["extra_holidays"], &v["holidays_complete_until"])?;
-    let rows = obligation_rows(&request, &cal)?;
+    let rows = obligation_rows(&request, &cal);
     Ok(due_document(v, &request, &rows, &cal))
 }
 
@@ -262,7 +262,7 @@ fn family_name(obligation: &str, entity: &str, channel: &str) -> String {
     )
 }
 
-fn obligation_rows(request: &Request<'_>, cal: &holidays::Calendar) -> Result<Vec<Value>, String> {
+fn obligation_rows(request: &Request<'_>, cal: &holidays::Calendar) -> Vec<Value> {
     let family = family_name(request.obligation, request.entity, request.channel);
     let recorded = if request.obligation == "income_tax_return" {
         "2025-26"
@@ -279,11 +279,7 @@ fn obligation_rows(request: &Request<'_>, cal: &holidays::Calendar) -> Result<Ve
     }
 }
 
-fn unrecorded(
-    request: &Request<'_>,
-    recorded: &str,
-    cal: &holidays::Calendar,
-) -> Result<Vec<Value>, String> {
+fn unrecorded(request: &Request<'_>, recorded: &str, cal: &holidays::Calendar) -> Vec<Value> {
     let year = request.year;
     let mut rule = Rule::new(
         "YEAR-NOT-RECORDED",
@@ -316,11 +312,7 @@ fn unrecorded(
     )
 }
 
-fn fbt_rows(
-    request: &Request<'_>,
-    family: &str,
-    cal: &holidays::Calendar,
-) -> Result<Vec<Value>, String> {
+fn fbt_rows(request: &Request<'_>, family: &str, cal: &holidays::Calendar) -> Vec<Value> {
     let (rule, missing) = fbt::select(request.channel, &request.facts);
     rows::make_rows(
         &format!("FBT return, FBT year {}", request.year),
@@ -336,11 +328,7 @@ fn fbt_rows(
     )
 }
 
-fn income_rows(
-    request: &Request<'_>,
-    family: &str,
-    cal: &holidays::Calendar,
-) -> Result<Vec<Value>, String> {
+fn income_rows(request: &Request<'_>, family: &str, cal: &holidays::Calendar) -> Vec<Value> {
     let label = format!("Income tax return {}", request.year);
     let (rule, missing, concessions) =
         returns::select(request.entity, request.channel, &request.facts);
@@ -359,7 +347,7 @@ fn income_rows(
             source: "about",
         },
         cal,
-    )?;
+    );
     for (rule, missing) in concessions {
         rows.push(rows::row(
             &label,
@@ -369,16 +357,12 @@ fn income_rows(
             &missing,
             None,
             cal,
-        )?);
+        ));
     }
-    Ok(rows)
+    rows
 }
 
-fn statement_rows(
-    request: &Request<'_>,
-    family: &str,
-    cal: &holidays::Calendar,
-) -> Result<Vec<Value>, String> {
+fn statement_rows(request: &Request<'_>, family: &str, cal: &holidays::Calendar) -> Vec<Value> {
     let mut rows = vec![];
     for (period, label, rule, missing) in statements::select(
         request.obligation,
@@ -398,9 +382,9 @@ fn statement_rows(
                 source: "about",
             },
             cal,
-        )?);
+        ));
     }
-    Ok(rows)
+    rows
 }
 
 fn due_document(

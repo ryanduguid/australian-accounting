@@ -138,20 +138,15 @@ impl<'a> TextReader<'a> {
     fn readline(&mut self) -> Result<Option<Vec<char>>, ReadError> {
         loop {
             let rest = &self.text[self.cursor..];
-            let end = rest
-                .iter()
-                .position(|c| *c == '\n' || *c == '\r')
-                .and_then(|i| {
-                    if rest[i] == '\n' {
-                        Some(i + 1)
-                    } else if i + 1 < rest.len() {
-                        Some(if rest[i + 1] == '\n' { i + 2 } else { i + 1 })
-                    } else if self.eof {
-                        Some(i + 1)
-                    } else {
-                        None
-                    }
-                });
+            // A \r ends the text only at the end of the data: read_chunk holds
+            // back a trailing \r until the next chunk or the end.
+            let end = rest.iter().position(|c| *c == '\n' || *c == '\r').map(|i| {
+                if rest[i] == '\r' && rest.get(i + 1) == Some(&'\n') {
+                    i + 2
+                } else {
+                    i + 1
+                }
+            });
             if let Some(end) = end {
                 let line = rest[..end].to_vec();
                 self.cursor += end;
@@ -237,9 +232,6 @@ impl<'a> Reader<'a> {
     fn process(&mut self, input: Input) -> Result<(), ReadError> {
         let newline = matches!(input, Input::Char('\n' | '\r'));
         if self.state == State::StartRecord {
-            if input == Input::Eol {
-                return Ok(());
-            }
             if newline {
                 self.state = State::EatCrnl;
                 return Ok(());
@@ -247,7 +239,8 @@ impl<'a> Reader<'a> {
             self.state = State::StartField;
         }
         match self.state {
-            State::StartField => match input {
+            // A StartRecord that reaches here became StartField above.
+            State::StartRecord | State::StartField => match input {
                 Input::Eol | Input::Char('\n' | '\r') => self.end_of_line(input),
                 Input::Char('"') => self.state = State::InQuotedField,
                 Input::Char(',') => self.save_field(),
@@ -284,18 +277,13 @@ impl<'a> Reader<'a> {
                     self.state = State::InField;
                 }
             },
-            State::EatCrnl => match input {
-                Input::Char('\n' | '\r') => {}
-                Input::Eol => self.state = State::StartRecord,
-                Input::Char(_) => {
-                    return Err(ReadError::Csv(
-                        "new-line character seen in unquoted field - \
-                         do you need to open the file with newline=''?"
-                            .into(),
-                    ));
+            // A line's only \r or \n end it (or \r\n does), so after one comes
+            // only the \n of a \r\n, then the end of the line.
+            State::EatCrnl => {
+                if input == Input::Eol {
+                    self.state = State::StartRecord;
                 }
-            },
-            State::StartRecord => unreachable!("handled above"),
+            }
         }
         Ok(())
     }
@@ -384,6 +372,15 @@ mod tests {
             })
         );
         assert_eq!(rows(b"\xef\xbb").unwrap(), Vec::<Vec<String>>::new());
+        // CPython: b"a\xe2(".decode() fails at byte 1, an invalid continuation byte.
+        assert_eq!(
+            rows(b"a\xe2("),
+            Err(ReadError::Decode {
+                start: 1,
+                byte: 0xe2,
+                reason: "invalid continuation byte"
+            })
+        );
     }
 
     #[test]
@@ -395,5 +392,38 @@ mod tests {
                 "field larger than field limit (131072)".into()
             ))
         );
+        assert_eq!(
+            rows(&data).unwrap_err().to_string(),
+            "field larger than field limit (131072)"
+        );
+    }
+
+    // Each expected value below is what CPython's csv.reader gives for the same input.
+    #[test]
+    fn a_carriage_return_at_a_chunk_boundary_joins_its_newline() {
+        let mut data = "x".repeat(CHUNK_SIZE - 1).into_bytes();
+        data.extend(b"\r\ny\n");
+        let got = rows(&data).unwrap();
+        assert_eq!(got.len(), 2);
+        assert_eq!(got[0], vec!["x".repeat(CHUNK_SIZE - 1)]);
+        assert_eq!(got[1], vec!["y".to_string()]);
+        // A \r that ends the data still ends its row.
+        data.truncate(CHUNK_SIZE);
+        assert_eq!(rows(&data).unwrap(), vec![vec!["x".repeat(CHUNK_SIZE - 1)]]);
+        data.extend(b"z");
+        assert_eq!(rows(&data).unwrap()[1], vec!["z".to_string()]);
+        assert_eq!(rows(b"a\r").unwrap(), vec![vec!["a".to_string()]]);
+        // Data shorter than a BOM that does not start one is read as text.
+        assert_eq!(rows(b"ab").unwrap(), vec![vec!["ab".to_string()]]);
+    }
+
+    #[test]
+    fn a_decode_error_reads_as_its_position_and_reason() {
+        let decode = ReadError::Decode {
+            start: 4,
+            byte: 0xff,
+            reason: "invalid start byte",
+        };
+        assert_eq!(decode.to_string(), "byte 4 (invalid start byte)");
     }
 }

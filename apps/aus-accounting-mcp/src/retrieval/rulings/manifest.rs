@@ -52,9 +52,6 @@ impl<'de> Deserialize<'de> for Unique {
             fn visit_u64<E: de::Error>(self, _: u64) -> Result<Unique, E> {
                 Ok(Unique)
             }
-            fn visit_f64<E: de::Error>(self, _: f64) -> Result<Unique, E> {
-                Ok(Unique)
-            }
             fn visit_str<E: de::Error>(self, _: &str) -> Result<Unique, E> {
                 Ok(Unique)
             }
@@ -360,4 +357,31 @@ pub(super) fn validate(path: &Path, name: &str, manifest: &Manifest) -> Result<(
         *counts.get_mut(&key).unwrap() += 1;
     }
     counted_rows(name, manifest, &counts)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Unique;
+    use serde::Deserialize;
+
+    /// With serde_json's `arbitrary_precision` (this crate's build) a float reaches the
+    /// check as a number token inside a map, so it needs no float arm.
+    #[test]
+    fn floats_pass_and_duplicate_keys_are_refused() {
+        assert!(serde_json::from_str::<Unique>(r#"[1.5, {"a": 2.5e3, "b": -0.0}]"#).is_ok());
+        let error = serde_json::from_str::<Unique>(r#"{"a": 1, "a": 2}"#)
+            .err()
+            .unwrap();
+        assert!(error.to_string().starts_with("duplicate key"), "{error}");
+    }
+
+    #[test]
+    fn a_value_json_cannot_hold_is_described_as_the_check_expects() {
+        let bytes = serde::de::value::BytesDeserializer::<serde::de::value::Error>::new(b"x");
+        let error = Unique::deserialize(bytes).err().unwrap();
+        assert_eq!(
+            error.to_string(),
+            "invalid type: byte array, expected JSON without duplicate object keys"
+        );
+    }
 }

@@ -803,3 +803,20 @@ fn a_restaurant_that_starts_trading_then_the_method_in_the_period_samples_from_t
         "gst_food_retailer_sam.tax_period_spans_halves"
     );
 }
+
+#[test]
+fn refuses_an_unknown_input_of_a_product_line() {
+    let line = json!({"gst_free_purchases": "500.00", "markup_percent": "40", "extra": "1"});
+    let i = input(
+        "stock_purchases_five_percent",
+        "40000.00",
+        "24000.00",
+        json!({"stock_role": "reseller", "gst_free_purchases": "750.00", "product_lines": [line]}),
+    );
+    let refusal = api::evaluate_coded(C, &i).unwrap_err();
+    assert_eq!(refusal.code, "input.field_unknown");
+    assert_eq!(
+        refusal.message,
+        "product line 1: extra is not an input of a product line"
+    );
+}

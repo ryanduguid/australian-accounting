@@ -773,4 +773,84 @@ mod tests {
         assert!(text.contains("21 line(s) remitted by the deadline"));
         assert!(text.contains("... and 1 more at-risk line(s) with notes"));
     }
+
+    fn cap(json: &str) -> Result<String> {
+        let entry = Raw::from_json(&crate::pyjson::loads(json).unwrap());
+        cap_text(Some(&entry), "2026-27")
+    }
+
+    #[test]
+    fn the_cap_reads_as_python_int_reads_it() {
+        // CPython: int(270830) and int("270830") group as 270,830; int(True) is 1;
+        // int(270830.9) truncates; int("x"), int([1]) and int(nan) fail, so the
+        // value is shown as unreadable; int(inf) is OverflowError.
+        let dollars = |n: &str| format!("${n} for 2026-27, annual per employer");
+        assert_eq!(
+            cap(r#"{"max_contributions_base": 270830}"#).unwrap(),
+            dollars("270,830")
+        );
+        assert_eq!(
+            cap(r#"{"max_contributions_base": "270830"}"#).unwrap(),
+            dollars("270,830")
+        );
+        assert_eq!(
+            cap(r#"{"max_contributions_base": true}"#).unwrap(),
+            dollars("1")
+        );
+        assert_eq!(
+            cap(r#"{"max_contributions_base": 270830.9}"#).unwrap(),
+            dollars("270,830")
+        );
+        assert_eq!(
+            cap(r#"{"max_contributions_base": -1234567}"#).unwrap(),
+            dollars("-1,234,567")
+        );
+        for (json, shown) in [("\"x\"", "'x'"), ("[1]", "[1]"), ("NaN", "nan")] {
+            assert_eq!(
+                cap(&format!(r#"{{"max_contributions_base": {json}}}"#)).unwrap(),
+                format!(
+                    "unreadable for 2026-27: data/rates.json holds max_contributions_base {shown}, which is not a whole number of dollars"
+                )
+            );
+        }
+        let err = cap(r#"{"max_contributions_base": Infinity}"#).unwrap_err();
+        assert_eq!(
+            err.traceback_line(),
+            "OverflowError: cannot convert float infinity to integer"
+        );
+        assert_eq!(
+            cap(r#"{"max_contributions_base": null}"#).unwrap(),
+            "not on record for 2026-27: add max_contributions_base for that year to data/rates.json"
+        );
+    }
+
+    #[test]
+    fn exposed_lines_with_a_nan_high_estimate_cannot_be_ordered() {
+        // CPython: sorted([Decimal("NaN"), Decimal("1")]) raises InvalidOperation.
+        let mut nan = complete();
+        nan.sgc_high = Some(dec("NaN"));
+        let err = summary(&[nan, complete()], "2026-08-02").unwrap_err();
+        assert_eq!(err.message(), "[<class 'decimal.InvalidOperation'>]");
+    }
+
+    #[test]
+    fn an_unpinned_lateness_bounds_the_notional_earnings() {
+        let mut r = complete();
+        r.days_late = None;
+        let text = summary(&[r], "2026-08-02").unwrap();
+        assert!(
+            text.contains("days late not pinned down, measured to"),
+            "{text}"
+        );
+        assert!(text.contains("notional earnings at most $1.00"), "{text}");
+    }
+
+    #[test]
+    fn a_summary_of_no_lines_names_the_as_at_year_cap() {
+        let text = summary(&[], "2026-08-02").unwrap();
+        assert!(
+            text.contains("$270,830 for 2026-27, annual per employer"),
+            "{text}"
+        );
+    }
 }

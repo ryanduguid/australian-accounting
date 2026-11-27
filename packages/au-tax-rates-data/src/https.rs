@@ -9,7 +9,7 @@
 //! reports as `getaddrinfo`'s errors. The connect, each socket read and each
 //! write may take 60 seconds, as Python's socket timeout allows.
 use std::io::{self, BufRead, BufReader, Read, Write};
-use std::net::{TcpStream, ToSocketAddrs};
+use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
@@ -32,7 +32,10 @@ pub type Failure = String;
 /// GET `path` from `host` over HTTPS. The body is read only for a 200, as
 /// the caller raises before reading any other.
 pub fn get(host: &str, path: &str) -> Result<Response, Failure> {
-    exchange(connect(host)?, host, path)
+    let addresses = (host, 443)
+        .to_socket_addrs()
+        .map_err(|e| format!("getaddrinfo failed: {e}"))?;
+    exchange(connect(host, addresses, tls_config)?, host, path)
 }
 
 /// One GET over a connected stream, which is dropped, closing the
@@ -67,12 +70,13 @@ fn exchange<S: Read + Write>(mut stream: S, host: &str, path: &str) -> Result<Re
     })
 }
 
-/// `socket.create_connection((host, 443), 60)`, then `wrap_socket` with the
-/// host as the server name.
-fn connect(host: &str) -> Result<Stream, Failure> {
-    let addresses = (host, 443)
-        .to_socket_addrs()
-        .map_err(|e| format!("getaddrinfo failed: {e}"))?;
+/// `socket.create_connection((host, 443), 60)` over the resolved addresses,
+/// then `wrap_socket` with the host as the server name.
+fn connect(
+    host: &str,
+    addresses: impl IntoIterator<Item = SocketAddr>,
+    config: fn() -> Result<Arc<rustls::ClientConfig>, Failure>,
+) -> Result<Stream, Failure> {
     let mut last = None;
     let mut socket = None;
     for address in addresses {
@@ -91,34 +95,45 @@ fn connect(host: &str) -> Result<Stream, Failure> {
     };
     let _ = socket.set_nodelay(true);
     set_timeouts(&socket, TIMEOUT).map_err(|e| os_error(&e))?;
-    let config = tls_config()?;
+    let config = config()?;
     let name = rustls::pki_types::ServerName::try_from(host)
         .map_err(|e| format!("SSL: {e}"))?
         .to_owned();
     let mut session =
         rustls::ClientConnection::new(config, name).map_err(|e| format!("SSL: {e}"))?;
-    let deadline = Instant::now() + TIMEOUT;
+    handshake(&mut session, &mut socket, Instant::now() + TIMEOUT)?;
+    set_timeouts(&socket, TIMEOUT).map_err(|e| os_error(&e))?;
+    Ok(Stream(Box::new(rustls::StreamOwned::new(session, socket))))
+}
+
+/// `do_handshake()` under one deadline for the whole handshake, as CPython's
+/// `_ssl` runs it with a socket timeout.
+///
+/// Whilst rustls is handshaking it can receive no application data and
+/// ignores no close_notify, so with nothing to write it always wants to read.
+fn handshake(
+    session: &mut rustls::ClientConnection,
+    socket: &mut TcpStream,
+    deadline: Instant,
+) -> Result<(), Failure> {
     while session.is_handshaking() || session.wants_write() {
         let left = deadline.saturating_duration_since(Instant::now());
         if left.is_zero() {
             return Err("_ssl.c: The handshake operation timed out".into());
         }
-        set_timeouts(&socket, left).map_err(|e| os_error(&e))?;
+        set_timeouts(socket, left).map_err(|e| os_error(&e))?;
         if session.wants_write() {
-            session.write_tls(&mut socket).map_err(|e| os_error(&e))?;
-        } else if !session.wants_read() {
-            return Err("SSL: the handshake stalled".into());
-        } else if session.read_tls(&mut socket).map_err(|e| os_error(&e))? == 0 {
+            session.write_tls(socket).map_err(|e| os_error(&e))?;
+        } else if session.read_tls(socket).map_err(|e| os_error(&e))? == 0 {
             return Err(
                 "[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol".into(),
             );
         } else if let Err(e) = session.process_new_packets() {
-            let _ = session.write_tls(&mut socket);
+            let _ = session.write_tls(socket);
             return Err(format!("SSL: {e}"));
         }
     }
-    set_timeouts(&socket, TIMEOUT).map_err(|e| os_error(&e))?;
-    Ok(Stream(Box::new(rustls::StreamOwned::new(session, socket))))
+    Ok(())
 }
 
 fn tls_config() -> Result<Arc<rustls::ClientConfig>, Failure> {
@@ -268,15 +283,17 @@ fn read_status<R: BufRead>(reader: &mut R) -> Result<(String, u16), Failure> {
             _ => (String::new(), String::new()),
         },
     };
-    let bad = || crate::py::repr_str(&line);
+    // BadStatusLine(line), whose str() is the line itself.
     if !version.starts_with("HTTP/") {
-        return Err(bad());
+        return Err(line);
     }
-    let status = py_int(&status)
+    match py_int(&status)
         .and_then(|n| u16::try_from(&n).ok())
         .filter(|n| (100..=999).contains(n))
-        .ok_or_else(bad)?;
-    Ok((version, status))
+    {
+        Some(status) => Ok((version, status)),
+        None => Err(line),
+    }
 }
 
 /// `_read_headers(fp)`: the raw lines up to the blank line or the end.
@@ -317,7 +334,8 @@ fn begin<R: BufRead>(reader: &mut R) -> Result<Head, Failure> {
     }
     let (version, status) = found.ok_or("got more than 100 interim responses")?;
     if !(version == "HTTP/1.0" || version == "HTTP/0.9" || version.starts_with("HTTP/1.")) {
-        return Err(crate::py::repr_str(&version));
+        // UnknownProtocol(version), whose str() is the version.
+        return Err(version);
     }
     let headers = parse_header_lines(&read_headers(reader)?);
     let header = |name: &str| {
@@ -407,32 +425,39 @@ fn read_chunked<R: BufRead>(reader: &mut R) -> Result<Vec<u8>, Failure> {
     loop {
         let line = read_line(reader)?;
         if line.len() > MAXLINE {
-            return Err("chunk size".into());
+            return Err("got more than 65536 bytes when reading chunk size".into());
         }
         let Some(size) = chunk_size(&line) else {
             return Err(incomplete(&value));
         };
+        if size.sign() == num_bigint::Sign::Minus {
+            // _safe_read(negative) reads to the end, so the chunk's CRLF is missing.
+            value.extend(read_upto(reader, u64::MAX)?);
+            return Err(incomplete(&value));
+        }
+        let size = u64::try_from(&size).unwrap_or(u64::MAX);
         if size == 0 {
             let mut count = 0;
             loop {
                 let line = read_line(reader)?;
                 if line.len() > MAXLINE {
-                    return Err("trailer line".into());
+                    return Err("got more than 65536 bytes when reading trailer line".into());
                 }
                 if matches!(line.as_slice(), b"" | b"\r\n" | b"\n") {
                     return Ok(value);
                 }
                 count += 1;
                 if count > MAXHEADERS {
-                    return Err("got more than 100 headers".into());
+                    return Err("got more than 100 trailers".into());
                 }
             }
         }
         let chunk = read_upto(reader, size)?;
-        value.extend_from_slice(&chunk);
+        // A short chunk is not kept: _safe_read raises before it is appended.
         if (chunk.len() as u64) < size {
             return Err(incomplete(&value));
         }
+        value.extend_from_slice(&chunk);
         // The CRLF that ends a chunk.
         if read_upto(reader, 2)?.len() < 2 {
             return Err(incomplete(&value));
@@ -440,19 +465,14 @@ fn read_chunked<R: BufRead>(reader: &mut R) -> Result<Vec<u8>, Failure> {
     }
 }
 
-/// `int(line, 16)` of a chunk-size line without its extensions; a negative
-/// size is refused.
-fn chunk_size(line: &[u8]) -> Option<u64> {
+/// `int(line, 16)` of a chunk-size line without its extensions.
+fn chunk_size(line: &[u8]) -> Option<num_bigint::BigInt> {
     let digits = line.split(|&b| b == b';').next().unwrap_or_default();
     let text = std::str::from_utf8(digits).ok()?;
     if !text.is_ascii() || text.contains(['\x1c', '\x1d', '\x1e', '\x1f']) {
         return None;
     }
-    let n = crate::py::parse_int(text, 16).ok()?;
-    if n.sign() == num_bigint::Sign::Minus {
-        return None;
-    }
-    Some(u64::try_from(&n).unwrap_or(u64::MAX))
+    crate::py::parse_int(text, 16).ok()
 }
 
 #[cfg(test)]
@@ -572,5 +592,307 @@ mod tests {
             let (result, _, _) = run(&reply, false);
             assert_eq!(result.expect("a 200").body, b"{}");
         }
+    }
+
+    /// The exchange's answer in the form `tests/data/cov_b_https.py` prints.
+    fn answer(reply: &[u8]) -> String {
+        match run(reply, false).0 {
+            Ok(r) if r.status == 200 => format!("body {}", latin1(&r.body)),
+            Ok(r) => format!("status {}", r.status),
+            Err(e) => format!("error {e}"),
+        }
+    }
+
+    const OK: &[u8] = b"HTTP/1.1 200 OK\r\n";
+    const CHUNKED: &[u8] = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n";
+    const LONG: usize = 65537;
+
+    /// Bytes and how many times they repeat.
+    type Piece = (&'static [u8], usize);
+
+    /// Each reply as pieces, each repeated a number of times, and the answer
+    /// tests/data/cov_b_https.py printed for it under CPython 3.15.0.
+    #[rustfmt::skip]
+    const CASES: &[(&str, &[Piece], &str)] = &[
+        ("short_body", &[(OK, 1), (b"Content-Length: 5\r\n\r\nab", 1)], "error IncompleteRead(2 bytes read, 3 more expected)"),
+        ("blank_status", &[(b"\r\n", 1)], "error \r\n"),
+        ("version_only", &[(b"HTTP/1.1\r\n\r\n", 1)], "error HTTP/1.1\r\n"),
+        ("no_reason", &[(b"HTTP/1.1 200\r\nContent-Length: 2\r\n\r\n{}", 1)], "body {}"),
+        ("long_status", &[(b"HTTP/1.1 200 ", 1), (b"x", LONG)], "error got more than 65536 bytes when reading status line"),
+        ("not_http", &[(b"ICY 200 OK\r\n\r\n", 1)], "error ICY 200 OK\r\n"),
+        ("word_status", &[(b"HTTP/1.1 OK 200\r\n\r\n", 1)], "error HTTP/1.1 OK 200\r\n"),
+        ("low_status", &[(b"HTTP/1.1 99 Low\r\n\r\n", 1)], "error HTTP/1.1 99 Low\r\n"),
+        ("long_header", &[(OK, 1), (b"X: ", 1), (b"y", LONG)], "error got more than 65536 bytes when reading header line"),
+        ("many_headers", &[(OK, 1), (b"X: y\r\n", 101), (b"\r\n{}", 1)], "error got more than 100 headers"),
+        ("continue", &[(b"HTTP/1.1 100 Continue\r\nX: y\r\n\r\n", 1), (OK, 1), (b"Content-Length: 2\r\n\r\n{}", 1)], "body {}"),
+        ("endless_continue", &[(b"HTTP/1.1 100 Continue\r\n\r\n", 101)], "error got more than 100 interim responses"),
+        ("http2", &[(b"HTTP/2.0 200 OK\r\n\r\n", 1)], "error HTTP/2.0"),
+        ("no_content", &[(b"HTTP/1.1 204 No Content\r\nContent-Length: 9\r\n\r\n", 1)], "status 204"),
+        ("bare_lf", &[(b"HTTP/1.1 200 OK\nContent-Length: 2\n\n{}JUNK", 1)], "body {}"),
+        ("lone_cr", &[(OK, 1), (b"Content-Length: 2\rX: y\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("header_at_eof", &[(OK, 1), (b"Content-Length: 2", 1)], "error IncompleteRead(0 bytes read, 2 more expected)"),
+        ("folded", &[(OK, 1), (b"Content-Length:\r\n 2\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("leading_fold", &[(OK, 1), (b" X: y\r\nContent-Length: 2\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("from_line", &[(OK, 1), (b"From nobody\r\n:x\r\nContent-Length: 2\r\n\r\n{}JUNK", 1)], "body {}"),
+        ("chunks", &[(CHUNKED, 1), (b"2\r\n{}\r\n1;ext=1\r\n \r\n0\r\nX: y\r\n\r\n", 1)], "body {} "),
+        ("long_chunk_size", &[(CHUNKED, 1), (b"1", LONG)], "error got more than 65536 bytes when reading chunk size"),
+        ("bad_chunk_size", &[(CHUNKED, 1), (b"2\r\n{}\r\nzz\r\n", 1)], "error IncompleteRead(2 bytes read)"),
+        ("non_ascii_chunk_size", &[(CHUNKED, 1), (b"\xe9\r\n", 1)], "error IncompleteRead(0 bytes read)"),
+        ("separator_chunk_size", &[(CHUNKED, 1), (b"2\x1c\r\n{}\r\n0\r\n\r\n", 1)], "error IncompleteRead(0 bytes read)"),
+        ("negative_chunk_size", &[(CHUNKED, 1), (b"-2\r\n{}\r\n0\r\n\r\n", 1)], "error IncompleteRead(9 bytes read)"),
+        ("empty_chunk_size", &[(CHUNKED, 1), (b"\r\n", 1)], "error IncompleteRead(0 bytes read)"),
+        ("minus_zero_chunk_size", &[(CHUNKED, 1), (b"-0\r\n\r\n", 1)], "body "),
+        ("short_chunk_end",&[(CHUNKED, 1), (b"2\r\n{}\r", 1)], "error IncompleteRead(2 bytes read)"),
+        ("short_chunk", &[(CHUNKED, 1), (b"2\r\n{}\r\n5\r\nab", 1)], "error IncompleteRead(2 bytes read)"),
+        ("huge_chunk", &[(CHUNKED, 1), (b"f", 20), (b"\r\nab", 1)], "error IncompleteRead(0 bytes read)"),
+        ("long_trailer", &[(CHUNKED, 1), (b"0\r\nX: ", 1), (b"y", LONG)], "error got more than 65536 bytes when reading trailer line"),
+        ("many_trailers", &[(CHUNKED, 1), (b"0\r\n", 1), (b"X: y\r\n", 101), (b"\r\n", 1)], "error got more than 100 trailers"),
+    ];
+
+    #[test]
+    fn replies_are_read_or_refused_as_cpython_does() {
+        for &(name, pieces, expected) in CASES {
+            let reply: Vec<u8> = pieces
+                .iter()
+                .flat_map(|&(bytes, n)| bytes.repeat(n))
+                .collect();
+            assert_eq!(answer(&reply), expected, "{name}");
+        }
+    }
+
+    #[test]
+    fn socket_errors_read_as_python_words_them() {
+        let text = |kind: io::ErrorKind| os_error(&io::Error::new(kind, "x"));
+        assert_eq!(text(io::ErrorKind::TimedOut), "timed out");
+        assert_eq!(text(io::ErrorKind::WouldBlock), "timed out");
+        assert_eq!(
+            text(io::ErrorKind::UnexpectedEof),
+            "[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1144)"
+        );
+        assert_eq!(text(io::ErrorKind::InvalidData), "SSL: x");
+    }
+
+    #[test]
+    fn the_tls_config_verifies_with_the_platform_and_offers_http_1_1() {
+        let config = tls_config().expect("the platform verifier");
+        assert_eq!(config.alpn_protocols, [b"http/1.1".to_vec()]);
+    }
+
+    use rustls::crypto::CryptoProvider;
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
+    use std::net::TcpListener;
+    use std::sync::mpsc;
+    use std::thread;
+
+    fn provider() -> Arc<CryptoProvider> {
+        Arc::new(rustls::crypto::ring::default_provider())
+    }
+
+    /// The loopback server's Ed25519 key: PKCS#8 v1 around a fixed test seed.
+    fn key_der() -> Vec<u8> {
+        let prefix = [
+            0x30, 0x2e, 2, 1, 0, 0x30, 5, 6, 3, 0x2b, 0x65, 0x70, 4, 0x22, 4, 0x20,
+        ];
+        [&prefix[..], &[7; 32]].concat()
+    }
+
+    /// A DER element: tag, length, body.
+    fn der(tag: u8, body: &[u8]) -> Vec<u8> {
+        let length = u8::try_from(body.len()).expect("an element under 256 bytes");
+        let length: &[u8] = if length < 128 {
+            &[length]
+        } else {
+            &[0x81, length]
+        };
+        [&[tag][..], length, body].concat()
+    }
+
+    /// A self-signed X.509 v3 certificate for `localhost`, valid from 2000 to
+    /// 9999, signed with `key_der`'s key.
+    fn certificate() -> Vec<u8> {
+        let key = rustls::crypto::ring::sign::any_eddsa_type(&PrivatePkcs8KeyDer::from(key_der()))
+            .expect("an Ed25519 key");
+        let ed25519 = der(0x30, &der(6, &[0x2b, 0x65, 0x70]));
+        let name = der(
+            0x30,
+            &der(
+                0x31,
+                &der(
+                    0x30,
+                    &[der(6, &[0x55, 4, 3]), der(0x0c, b"localhost")].concat(),
+                ),
+            ),
+        );
+        let validity = der(
+            0x30,
+            &[der(0x17, b"000101000000Z"), der(0x18, b"99991231235959Z")].concat(),
+        );
+        let san = der(
+            0x30,
+            &[
+                der(6, &[0x55, 0x1d, 0x11]),
+                der(4, &der(0x30, &der(0x82, b"localhost"))),
+            ]
+            .concat(),
+        );
+        let tbs = der(
+            0x30,
+            &[
+                der(0xa0, &der(2, &[2])),
+                der(2, &[1]),
+                ed25519.clone(),
+                name.clone(),
+                validity,
+                name,
+                key.public_key().expect("a public key").to_vec(),
+                der(0xa3, &der(0x30, &san)),
+            ]
+            .concat(),
+        );
+        let signer = key
+            .choose_scheme(&[rustls::SignatureScheme::ED25519])
+            .expect("an Ed25519 signer");
+        let signature = [&[0][..], &signer.sign(&tbs).expect("a signature")].concat();
+        der(0x30, &[tbs, ed25519, der(3, &signature)].concat())
+    }
+
+    /// The production configuration with the test certificate as its only root.
+    fn client_config() -> Result<Arc<rustls::ClientConfig>, Failure> {
+        let mut roots = rustls::RootCertStore::empty();
+        roots
+            .add(CertificateDer::from(certificate()))
+            .expect("a root");
+        let config = rustls::ClientConfig::builder_with_provider(provider())
+            .with_safe_default_protocol_versions()
+            .expect("the default versions")
+            .with_root_certificates(roots)
+            .with_no_client_auth();
+        Ok(Arc::new(config))
+    }
+
+    /// A loopback listener whose one connection `serve` handles on its own thread.
+    fn listen(serve: impl FnOnce(TcpStream) + Send + 'static) -> SocketAddr {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("a loopback port");
+        let address = listener.local_addr().expect("its address");
+        thread::spawn(move || serve(listener.accept().expect("a connection").0));
+        address
+    }
+
+    /// Read until the peer closes, so closing this end sends no reset.
+    fn drain(mut socket: TcpStream) {
+        let _ = io::copy(&mut socket, &mut io::sink());
+    }
+
+    #[test]
+    fn a_table_is_fetched_over_tls_from_a_loopback_server() {
+        let (tx, rx) = mpsc::channel();
+        let address = listen(move |socket| {
+            let config = rustls::ServerConfig::builder_with_provider(provider())
+                .with_safe_default_protocol_versions()
+                .expect("the default versions")
+                .with_no_client_auth()
+                .with_single_cert(
+                    vec![CertificateDer::from(certificate())],
+                    PrivateKeyDer::Pkcs8(key_der().into()),
+                )
+                .expect("the certificate and key");
+            let session = rustls::ServerConnection::new(Arc::new(config)).expect("a session");
+            let mut tls = rustls::StreamOwned::new(session, socket);
+            let mut request = Vec::new();
+            while !request.ends_with(b"\r\n\r\n") {
+                let mut byte = [0];
+                tls.read_exact(&mut byte).expect("the request");
+                request.push(byte[0]);
+            }
+            tls.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\n{}")
+                .expect("the reply");
+            tls.conn.send_close_notify();
+            tls.flush().expect("the close");
+            tx.send(request).expect("the request back");
+            drain(tls.sock);
+        });
+        let stream = connect("localhost", [address], client_config).expect("a TLS connection");
+        let response = exchange(stream, "localhost", "/t.json").expect("a response");
+        assert_eq!((response.status, response.body), (200, b"{}".to_vec()));
+        assert_eq!(
+            rx.recv().expect("the request"),
+            b"GET /t.json HTTP/1.1\r\nHost: localhost\r\nAccept-Encoding: identity\r\n\r\n"
+        );
+    }
+
+    /// What str(ConnectionRefusedError) is under CPython 3.15 on each platform.
+    #[cfg(windows)]
+    const REFUSED: &str = "[WinError 10061] No connection could be made because the target machine actively refused it";
+    #[cfg(target_os = "macos")]
+    const REFUSED: &str = "[Errno 61] Connection refused";
+    #[cfg(all(unix, not(target_os = "macos")))]
+    const REFUSED: &str = "[Errno 111] Connection refused";
+
+    #[test]
+    fn a_refused_connection_reads_as_python_words_it() {
+        let address = TcpListener::bind("127.0.0.1:0")
+            .and_then(|l| l.local_addr())
+            .expect("a free port");
+        assert_eq!(
+            connect("localhost", [address], client_config)
+                .err()
+                .as_deref(),
+            Some(REFUSED)
+        );
+        // get() connects to port 443, on which nothing listens on loopback here.
+        assert_eq!(get("127.0.0.1", "/").err().as_deref(), Some(REFUSED));
+    }
+
+    #[test]
+    fn no_address_is_refused_as_create_connection_refuses_it() {
+        assert_eq!(
+            connect("localhost", [], client_config).err().as_deref(),
+            Some("getaddrinfo returns an empty list")
+        );
+    }
+
+    #[test]
+    fn a_server_that_closes_during_the_handshake_is_an_eof_error() {
+        let address = listen(|mut socket| {
+            let mut hello = [0; 1 << 16];
+            let _ = socket.read(&mut hello);
+            let _ = socket.shutdown(std::net::Shutdown::Write);
+            drain(socket);
+        });
+        assert_eq!(
+            connect("localhost", [address], client_config)
+                .err()
+                .as_deref(),
+            Some("[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol")
+        );
+    }
+
+    #[test]
+    fn a_server_that_answers_in_plain_http_is_a_tls_error() {
+        let address = listen(|mut socket| {
+            let mut hello = [0; 1 << 16];
+            let _ = socket.read(&mut hello);
+            let _ = socket.write_all(b"HTTP/1.1 400 Bad Request\r\n\r\n");
+            drain(socket);
+        });
+        assert_eq!(
+            connect("localhost", [address], client_config)
+                .err()
+                .as_deref(),
+            Some("SSL: received corrupt message of type InvalidContentType")
+        );
+    }
+
+    #[test]
+    fn a_handshake_past_its_deadline_times_out() {
+        let address = listen(drain);
+        let mut socket = TcpStream::connect(address).expect("a connection");
+        let name = ServerName::try_from("localhost").expect("a name");
+        let mut session = rustls::ClientConnection::new(client_config().expect("a config"), name)
+            .expect("a session");
+        assert_eq!(
+            handshake(&mut session, &mut socket, Instant::now()),
+            Err("_ssl.c: The handshake operation timed out".to_string())
+        );
     }
 }
