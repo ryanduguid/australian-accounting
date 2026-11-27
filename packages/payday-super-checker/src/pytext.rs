@@ -164,5 +164,26 @@ mod tests {
         assert_eq!(repr("caf\u{e9}"), "'caf\u{e9}'");
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
+        // CPython: repr("a\\b\n\r") == "'a\\\\b\\n\\r'".
+        assert_eq!(repr("a\\b\n\r"), r"'a\\b\n\r'");
+    }
+
+    #[test]
+    fn os_text_round_trips_escapes_and_lone_surrogates() {
+        let mut text = String::new();
+        for cp in [0x61, ESCAPE as u32, 0xDC80, 0x62] {
+            push_code_point(&mut text, cp);
+        }
+        assert_eq!(text, "a\u{10F7FF}\u{10F7FF}\u{10F7FF}\u{10FC80}b");
+        assert_eq!(
+            code_points(&text).collect::<Vec<_>>(),
+            [0x61, ESCAPE as u32, 0xDC80, 0x62]
+        );
+        assert_eq!(py_len(&text), 4);
+        // An ESCAPE not followed by its pair reads as itself.
+        assert_eq!(
+            code_points("\u{10F7FF}a\u{10F7FF}").collect::<Vec<_>>(),
+            [ESCAPE as u32, 0x61, ESCAPE as u32]
+        );
     }
 }
