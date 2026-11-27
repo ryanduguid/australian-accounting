@@ -610,7 +610,7 @@ mod tests {
         let long = |head: &[u8]| [head, &[b'y'; 65537][..]].concat();
         let with = |head: &[u8], tail: &[u8]| [head, tail].concat();
         // Each answer is what tests/data/cov_b_https.py printed under CPython 3.15.0.
-        let cases: [(&str, Vec<u8>, &str); 29] = [
+        let cases: [(&str, Vec<u8>, &str); 31] = [
             (
                 "short_body",
                 with(&ok, b"Content-Length: 5\r\n\r\nab"),
@@ -636,6 +636,16 @@ mod tests {
                 "not_http",
                 b"ICY 200 OK\r\n\r\n".to_vec(),
                 "error ICY 200 OK\r\n",
+            ),
+            (
+                "word_status",
+                b"HTTP/1.1 OK 200\r\n\r\n".to_vec(),
+                "error HTTP/1.1 OK 200\r\n",
+            ),
+            (
+                "low_status",
+                b"HTTP/1.1 99 Low\r\n\r\n".to_vec(),
+                "error HTTP/1.1 99 Low\r\n",
             ),
             (
                 "long_header",
@@ -779,12 +789,8 @@ mod tests {
         assert_eq!(config.alpn_protocols, [b"http/1.1".to_vec()]);
     }
 
-    use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
-    use rustls::crypto::{CryptoProvider, verify_tls13_signature_with_raw_key};
-    use rustls::pki_types::{
-        CertificateDer, PrivatePkcs8KeyDer, ServerName, SubjectPublicKeyInfoDer, UnixTime,
-    };
-    use rustls::{DigitallySignedStruct, SignatureScheme};
+    use rustls::crypto::CryptoProvider;
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName};
     use std::net::TcpListener;
     use std::sync::mpsc;
     use std::thread;
@@ -793,78 +799,84 @@ mod tests {
         Arc::new(rustls::crypto::ring::default_provider())
     }
 
-    /// The loopback server's Ed25519 key (PKCS#8 v1 around a fixed test seed).
-    fn server_key() -> Arc<dyn rustls::sign::SigningKey> {
-        let mut der = vec![
-            0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22,
-            0x04, 0x20,
+    /// The loopback server's Ed25519 key: PKCS#8 v1 around a fixed test seed.
+    fn key_der() -> Vec<u8> {
+        let prefix = [
+            0x30, 0x2e, 2, 1, 0, 0x30, 5, 6, 3, 0x2b, 0x65, 0x70, 4, 0x22, 4, 0x20,
         ];
-        der.extend([7u8; 32]);
-        rustls::crypto::ring::sign::any_eddsa_type(&PrivatePkcs8KeyDer::from(der))
-            .expect("an Ed25519 key")
+        [&prefix[..], &[7; 32]].concat()
     }
 
-    /// Trusts the test server's raw public key (RFC 7250) and checks its
-    /// handshake signature, in place of the platform's certificate store.
-    #[derive(Debug)]
-    struct TestKey(Vec<u8>);
-
-    impl ServerCertVerifier for TestKey {
-        fn verify_server_cert(
-            &self,
-            end_entity: &CertificateDer<'_>,
-            _: &[CertificateDer<'_>],
-            _: &ServerName<'_>,
-            _: &[u8],
-            _: UnixTime,
-        ) -> Result<ServerCertVerified, rustls::Error> {
-            assert_eq!(end_entity.as_ref(), self.0.as_slice());
-            Ok(ServerCertVerified::assertion())
-        }
-        fn verify_tls12_signature(
-            &self,
-            _: &[u8],
-            _: &CertificateDer<'_>,
-            _: &DigitallySignedStruct,
-        ) -> Result<HandshakeSignatureValid, rustls::Error> {
-            Err(rustls::Error::General("TLS 1.3 only".into()))
-        }
-        fn verify_tls13_signature(
-            &self,
-            message: &[u8],
-            key: &CertificateDer<'_>,
-            dss: &DigitallySignedStruct,
-        ) -> Result<HandshakeSignatureValid, rustls::Error> {
-            let spki = SubjectPublicKeyInfoDer::from(key.as_ref());
-            verify_tls13_signature_with_raw_key(
-                message,
-                &spki,
-                dss,
-                &provider().signature_verification_algorithms,
-            )
-        }
-        fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-            vec![SignatureScheme::ED25519]
-        }
-        fn requires_raw_public_keys(&self) -> bool {
-            true
-        }
+    /// A DER element: tag, length, body.
+    fn der(tag: u8, body: &[u8]) -> Vec<u8> {
+        let length = u8::try_from(body.len()).expect("an element under 256 bytes");
+        let length: &[u8] = if length < 128 {
+            &[length]
+        } else {
+            &[0x81, length]
+        };
+        [&[tag][..], length, body].concat()
     }
 
-    fn spki() -> Vec<u8> {
-        server_key()
-            .public_key()
-            .expect("a public key")
-            .as_ref()
-            .to_vec()
+    /// A self-signed X.509 v3 certificate for `localhost`, valid from 2000 to
+    /// 9999, signed with `key_der`'s key.
+    fn certificate() -> Vec<u8> {
+        let key = rustls::crypto::ring::sign::any_eddsa_type(&PrivatePkcs8KeyDer::from(key_der()))
+            .expect("an Ed25519 key");
+        let ed25519 = der(0x30, &der(6, &[0x2b, 0x65, 0x70]));
+        let name = der(
+            0x30,
+            &der(
+                0x31,
+                &der(
+                    0x30,
+                    &[der(6, &[0x55, 4, 3]), der(0x0c, b"localhost")].concat(),
+                ),
+            ),
+        );
+        let validity = der(
+            0x30,
+            &[der(0x17, b"000101000000Z"), der(0x18, b"99991231235959Z")].concat(),
+        );
+        let san = der(
+            0x30,
+            &[
+                der(6, &[0x55, 0x1d, 0x11]),
+                der(4, &der(0x30, &der(0x82, b"localhost"))),
+            ]
+            .concat(),
+        );
+        let tbs = der(
+            0x30,
+            &[
+                der(0xa0, &der(2, &[2])),
+                der(2, &[1]),
+                ed25519.clone(),
+                name.clone(),
+                validity,
+                name,
+                key.public_key().expect("a public key").to_vec(),
+                der(0xa3, &der(0x30, &san)),
+            ]
+            .concat(),
+        );
+        let signer = key
+            .choose_scheme(&[rustls::SignatureScheme::ED25519])
+            .expect("an Ed25519 signer");
+        let signature = [&[0][..], &signer.sign(&tbs).expect("a signature")].concat();
+        der(0x30, &[tbs, ed25519, der(3, &signature)].concat())
     }
 
+    /// The production configuration with the test certificate as its only root.
     fn client_config() -> Result<Arc<rustls::ClientConfig>, Failure> {
+        let mut roots = rustls::RootCertStore::empty();
+        roots
+            .add(CertificateDer::from(certificate()))
+            .expect("a root");
         let config = rustls::ClientConfig::builder_with_provider(provider())
-            .with_protocol_versions(&[&rustls::version::TLS13])
-            .expect("TLS 1.3")
-            .dangerous()
-            .with_custom_certificate_verifier(Arc::new(TestKey(spki())))
+            .with_safe_default_protocol_versions()
+            .expect("the default versions")
+            .with_root_certificates(roots)
             .with_no_client_auth();
         Ok(Arc::new(config))
     }
@@ -886,15 +898,15 @@ mod tests {
     fn a_table_is_fetched_over_tls_from_a_loopback_server() {
         let (tx, rx) = mpsc::channel();
         let address = listen(move |socket| {
-            let key =
-                rustls::sign::CertifiedKey::new(vec![CertificateDer::from(spki())], server_key());
             let config = rustls::ServerConfig::builder_with_provider(provider())
-                .with_protocol_versions(&[&rustls::version::TLS13])
-                .expect("TLS 1.3")
+                .with_safe_default_protocol_versions()
+                .expect("the default versions")
                 .with_no_client_auth()
-                .with_cert_resolver(Arc::new(
-                    rustls::server::AlwaysResolvesServerRawPublicKeys::new(Arc::new(key)),
-                ));
+                .with_single_cert(
+                    vec![CertificateDer::from(certificate())],
+                    PrivateKeyDer::Pkcs8(key_der().into()),
+                )
+                .expect("the certificate and key");
             let session = rustls::ServerConnection::new(Arc::new(config)).expect("a session");
             let mut tls = rustls::StreamOwned::new(session, socket);
             let mut request = Vec::new();
@@ -919,27 +931,27 @@ mod tests {
         );
     }
 
+    /// What str(ConnectionRefusedError) is under CPython 3.15 on each platform.
+    #[cfg(windows)]
+    const REFUSED: &str = "[WinError 10061] No connection could be made because the target machine actively refused it";
+    #[cfg(target_os = "macos")]
+    const REFUSED: &str = "[Errno 61] Connection refused";
+    #[cfg(all(unix, not(target_os = "macos")))]
+    const REFUSED: &str = "[Errno 111] Connection refused";
+
     #[test]
     fn a_refused_connection_reads_as_python_words_it() {
         let address = TcpListener::bind("127.0.0.1:0")
             .and_then(|l| l.local_addr())
             .expect("a free port");
-        // What str(ConnectionRefusedError) is under CPython 3.15 on each platform.
-        let refused = if cfg!(windows) {
-            "[WinError 10061] No connection could be made because the target machine actively refused it"
-        } else if cfg!(target_os = "macos") {
-            "[Errno 61] Connection refused"
-        } else {
-            "[Errno 111] Connection refused"
-        };
         assert_eq!(
             connect("localhost", [address], client_config)
                 .err()
                 .as_deref(),
-            Some(refused)
+            Some(REFUSED)
         );
         // get() connects to port 443, on which nothing listens on loopback here.
-        assert_eq!(get("127.0.0.1", "/").err().as_deref(), Some(refused));
+        assert_eq!(get("127.0.0.1", "/").err().as_deref(), Some(REFUSED));
     }
 
     #[test]

@@ -39,6 +39,8 @@ CASES = {
     "no_reason": b"HTTP/1.1 200\r\nContent-Length: 2\r\n\r\n{}",
     "long_status": b"HTTP/1.1 200 " + b"x" * LONG,
     "not_http": b"ICY 200 OK\r\n\r\n",
+    "word_status": b"HTTP/1.1 OK 200\r\n\r\n",
+    "low_status": b"HTTP/1.1 99 Low\r\n\r\n",
     "long_header": OK + b"X: " + b"y" * LONG,
     "many_headers": OK + b"X: y\r\n" * 101 + b"\r\n{}",
     "continue": b"HTTP/1.1 100 Continue\r\nX: y\r\n\r\n" + OK + b"Content-Length: 2\r\n\r\n{}",
