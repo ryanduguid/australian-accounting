@@ -467,22 +467,29 @@ impl std::fmt::Display for PyPath {
 pub fn resolve_text(path: &Path) -> String {
     let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
     let components: Vec<_> = absolute.components().collect();
-    // The longest prefix that exists, canonicalised. With none (a path on a
-    // drive that is not there, on Windows), every part is kept as it is.
-    let (mut resolved, split) = (0..=components.len())
-        .rev()
-        .find_map(|split| {
-            let prefix: PathBuf = components[..split].iter().collect();
-            std::fs::canonicalize(&prefix)
-                .ok()
-                .map(|real| (real, split))
-        })
-        .unwrap_or_default();
+    // The longest prefix that exists, canonicalised.
+    let found = (0..=components.len()).rev().find_map(|split| {
+        let prefix: PathBuf = components[..split].iter().collect();
+        std::fs::canonicalize(&prefix)
+            .ok()
+            .map(|real| (real, split))
+    });
+    // With none (a drive that is not there), the absolute path as it is.
+    #[cfg(windows)]
+    let Some((mut resolved, split)) = found else {
+        return absolute.to_string_lossy().into_owned();
+    };
+    // Elsewhere `/` always exists; only an empty path finds nothing.
+    #[cfg(not(windows))]
+    let (mut resolved, split) = found.unwrap_or_default();
     for component in &components[split..] {
         match component {
             std::path::Component::ParentDir => {
                 resolved.pop();
             }
+            // Only a verbatim Windows path keeps a `.` after its start.
+            #[cfg(windows)]
+            std::path::Component::CurDir => {}
             other => resolved.push(other.as_os_str()),
         }
     }

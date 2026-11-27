@@ -35,19 +35,38 @@ fn resolve_follows_the_existing_prefix_and_normalises_the_rest() {
     std::fs::remove_dir_all(dir).unwrap();
 }
 
-// CPython 3.15 on a drive letter that is not there: Path(r"Y:\no\such.csv").resolve()
-// is the same text, r"Y:\no\..\x.csv" is r"Y:\x.csv" and r"Y:\no\" is r"Y:\no".
+// A drive letter that is not there: the absolute path as it is (GetFullPathNameW
+// drops `.` and `..` but keeps a trailing separator; a verbatim path is untouched).
 #[cfg(windows)]
 #[test]
-fn a_path_on_a_missing_drive_resolves_lexically_on_windows() {
+fn a_path_on_a_missing_drive_resolves_to_its_absolute_form_on_windows() {
     let drive = ('D'..='Z')
         .rev()
         .find(|d| !std::path::Path::new(&format!(r"{d}:\")).exists())
         .expect("a drive letter with no drive");
-    let resolve = |p: &str| py::resolve_text(std::path::Path::new(&format!("{drive}:{p}")));
-    assert_eq!(resolve(r"\no\such.csv"), format!(r"{drive}:\no\such.csv"));
-    assert_eq!(resolve(r"\no\..\x.csv"), format!(r"{drive}:\x.csv"));
-    assert_eq!(resolve(r"\no\"), format!(r"{drive}:\no"));
+    let resolve = |p: &str| py::resolve_text(std::path::Path::new(p));
+    assert_eq!(
+        resolve(&format!(r"{drive}:\no\such.csv")),
+        format!(r"{drive}:\no\such.csv")
+    );
+    assert_eq!(
+        resolve(&format!(r"{drive}:\no\..\x.csv")),
+        format!(r"{drive}:\x.csv")
+    );
+    assert_eq!(resolve(&format!(r"{drive}:\no\")), format!(r"{drive}:\no\"));
+    let verbatim = format!(r"\\?\{drive}:\no\..\x.csv");
+    assert_eq!(resolve(&verbatim), verbatim);
+}
+
+// A verbatim path keeps `.` as a part; it is dropped after the existing prefix.
+#[cfg(windows)]
+#[test]
+fn a_dot_in_a_verbatim_path_is_dropped_on_windows() {
+    let dir = scratch("verbatim");
+    let real = py::resolve_text(&dir);
+    let got = py::resolve_text(std::path::Path::new(&format!(r"\\?\{real}\missing\.\x")));
+    assert_eq!(got, format!(r"{real}\missing\x"));
+    std::fs::remove_dir_all(dir).unwrap();
 }
 
 #[cfg(not(windows))]
