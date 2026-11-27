@@ -85,7 +85,7 @@ fn an_explicit_option_value_reads_like_a_separate_one() {
 
 #[test]
 fn a_stray_word_before_an_option_is_unrecognised() {
-    let (code, _, err) = run(&["buckets", "stray", "--year", "2023-24"]);
+    let (code, _, err) = run(&["industries", "stray", "--search", "bak"]);
     assert_eq!(code, 2);
     assert!(
         err.ends_with("error: unrecognized arguments: stray\n"),
