@@ -650,7 +650,7 @@ mod tests {
             let value = super::super::get(&case.expected, &pts(name));
             Json::str(&value.map_or(fallback.to_owned(), Decimal::to_sci_string))
         };
-        let mut result = Json::obj([
+        let mut fields = [
             ("statutory_myr", figure("statutory_myr", "0.00")),
             ("total_repayments", figure("total_repayments", "0.00")),
             ("shortfall", figure("shortfall", "0.00")),
@@ -661,13 +661,12 @@ mod tests {
                 Json::Int(case.remaining_term_years.into()),
             ),
             ("is_complying", Json::Bool(true)),
-        ]);
-        if let Json::Object(pairs) = &mut result {
-            for (name, value) in overrides {
-                let slot = pairs.iter_mut().find(|(k, _)| k.as_str() == Some(name));
-                slot.expect("a field").1 = value.clone();
-            }
+        ];
+        for (name, value) in overrides {
+            let slot = fields.iter_mut().find(|field| field.0 == *name);
+            slot.expect("a field").1 = value.clone();
         }
+        let result = Json::obj(fields);
         Outcome {
             status: Status::Computed,
             calculator: None,

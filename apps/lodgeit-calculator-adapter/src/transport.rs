@@ -335,19 +335,16 @@ fn split_type(url: &str) -> Option<(String, &str)> {
     Some((lower(scheme), rest))
 }
 
-/// `_splithost`: `//([^/#?]*)(.*)`, the path given a leading `/`.
-fn split_host(rest: &str) -> (Option<&str>, String) {
+/// `_splithost`: `//([^/#?]*)(.*)`. Python gives a path that does not start
+/// with `/` a leading one; for a URL `check_url` passed, a `?`, a `#` or the
+/// end straight after the host means a query, a fragment or no route, which
+/// it refuses: behind a host the path always starts with `/`.
+fn split_host(rest: &str) -> (Option<&str>, &str) {
     let Some(after) = rest.strip_prefix("//") else {
-        return (None, rest.to_owned());
+        return (None, rest);
     };
     let end = after.find(['/', '#', '?']).unwrap_or(after.len());
-    let path = &after[end..];
-    let path = if !path.is_empty() && !path.starts_with('/') {
-        format!("/{path}")
-    } else {
-        path.to_owned()
-    };
-    (Some(&after[..end]), path)
+    (Some(&after[..end]), &after[end..])
 }
 
 /// `HTTPConnection._get_hostport(host, None)`.
@@ -425,7 +422,7 @@ fn prepare(call: &Call, headers: &[(String, String)]) -> Option<Prepared> {
     let full = py::strip(call.url);
     let full = full.rsplit_once('#').map_or(full, |(url, _)| url);
     let (scheme, rest) = split_type(full)?;
-    let (host, selector) = split_host(rest);
+    let (host, path) = split_host(rest);
     let host = pyurl::unquote(host.unwrap_or_default());
     // `Request` keeps only a non-empty method; `get_method` supplies the default.
     let method = match call.method {
@@ -488,7 +485,8 @@ fn prepare(call: &Call, headers: &[(String, String)]) -> Option<Prepared> {
     if method.chars().any(|c| c < ' ') {
         return None;
     }
-    let path = if selector.is_empty() { "/" } else { &selector };
+    // `putrequest`'s `url or '/'` is not ported: `path` is never empty here
+    // (see `split_host`).
     if url_char_refused(path) {
         return None;
     }
@@ -503,16 +501,14 @@ fn prepare(call: &Call, headers: &[(String, String)]) -> Option<Prepared> {
     if !named("content-length") {
         if !named("transfer-encoding") {
             encode_chunked = false;
-            let length = match call.body {
-                Some(body) => Some(body.len()),
-                None => matches!(
-                    method.to_ascii_uppercase().as_str(),
-                    "PATCH" | "POST" | "PUT"
-                )
-                .then_some(0),
-            };
-            if let Some(length) = length {
-                lines.push(format!("Content-Length: {length}").into_bytes());
+            // `_get_content_length`: a body always arrives with urllib's
+            // Content-length or the caller's Transfer-encoding (above), so
+            // only a bodiless call gets here.
+            if matches!(
+                method.to_ascii_uppercase().as_str(),
+                "PATCH" | "POST" | "PUT"
+            ) {
+                lines.push(b"Content-Length: 0".to_vec());
             }
         }
     } else {
@@ -833,10 +829,10 @@ impl<'a> Response<'a> {
 
     /// `_get_chunk_left()`: the bytes left in the current chunk, reading the
     /// next chunk-size line when it is spent; None after the last chunk.
+    /// Only `read_chunked` calls it, under `read_inner`'s open-body check;
+    /// the one step that closes the body also ends `read_chunked`'s loop.
     fn chunk_left(&mut self) -> Io<Option<u64>> {
-        let Some(fp) = self.fp.as_mut() else {
-            return Ok(None);
-        };
+        let fp = self.fp.as_mut().expect("an open chunked body");
         if let Some(left) = self.chunk_left
             && left > 0
         {

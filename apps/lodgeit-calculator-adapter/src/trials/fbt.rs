@@ -285,16 +285,16 @@ pub fn evaluate(benefit: &CarBenefit, client: Option<&mut Client<'_>>) -> R<Comp
             ..common
         });
     }
+    // `except ClassificationRequired`: the only error `request` raises.
     let body = match benefit.request() {
         Ok(body) => body,
-        Err(error) if error.class == CLASSIFICATION_REQUIRED => {
+        Err(error) => {
             return Ok(Comparison {
                 evaluation: Evaluation::ScopeMismatch,
                 reasons: vec![error.text],
                 ..common
             });
         }
-        Err(error) => return Err(error),
     };
     let Some(client) = client else {
         return Ok(Comparison {
@@ -381,22 +381,15 @@ pub fn evaluate_outcome(benefit: &CarBenefit, outcome: &Outcome) -> R<Comparison
         ("grossed_up_taxable_value", local_grossed),
         ("fbt_payable", "fbt_estimate"),
     ] {
-        match (
-            get(&upstream, &pts(upstream_name)),
-            get(&local, &pts(local_name)),
-        ) {
-            (Some(theirs), Some(mine)) => {
-                compared.push((upstream_name, mine.clone(), theirs.clone()));
-            }
-            (Some(_), None) => reasons.push(pts(&format!(
-                "{upstream_name}: the provider returned a figure and the local worksheet \
-                 produced no {local_name}"
-            ))),
-            (None, Some(_)) => reasons.push(pts(&format!(
+        // `engine::fbt` returns every FBT_STEPS amount, both grossed-up
+        // values and fbt_estimate among them: only the provider's can be missing.
+        let mine = get(&local, &pts(local_name)).expect("an aggregate worksheet amount");
+        match get(&upstream, &pts(upstream_name)) {
+            Some(theirs) => compared.push((upstream_name, mine.clone(), theirs.clone())),
+            None => reasons.push(pts(&format!(
                 "{local_name}: the local worksheet produced a figure and the provider returned \
                  no {upstream_name}"
             ))),
-            (None, None) => {}
         }
     }
     compared.sort_by(|a, b| a.0.cmp(b.0));
