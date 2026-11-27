@@ -207,7 +207,7 @@ fn report_missing_url_and_duplicate_column_edges() {
             {"name":"DT_EFFECT"},{"name":"DT_END"},{"name":"TX_DESC"},
             {"name":"AM_INC_MIN"},{"name":"AM_INC_MAX"},{"name":"AM_OFFSET"},
             {"name":"PC_TAX_RATE"},{"name":"PC_TAX_RATE"}
-        ],"rows":[["2025-07-01","9999-12-31","Resident Full Year",0,18200,0,0.10,0.30]]}"#,
+        ],"rows":[["2025-07-01","9999-12-31","Resident Full Year",0,18200,0,"0.10","0.30"]]}"#,
     )
     .unwrap();
     let brackets = ato_brackets(
@@ -217,7 +217,7 @@ fn report_missing_url_and_duplicate_column_edges() {
         &Json::str("2026-07-01"),
     )
     .unwrap();
-    assert_eq!(brackets[0].3.fixed_format(), "30");
+    assert_eq!(brackets[0].3.fixed_format(), "30.00");
     assert_eq!(
         exc_pair(read_figure(Reader::SecondTop, brackets).err().unwrap()),
         ("IndexError", "list index out of range".to_string())
