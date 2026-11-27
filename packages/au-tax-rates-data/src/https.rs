@@ -607,10 +607,13 @@ mod tests {
     const CHUNKED: &[u8] = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n";
     const LONG: usize = 65537;
 
+    /// Bytes and how many times they repeat.
+    type Piece = (&'static [u8], usize);
+
     /// Each reply as pieces, each repeated a number of times, and the answer
     /// tests/data/cov_b_https.py printed for it under CPython 3.15.0.
     #[rustfmt::skip]
-    const CASES: &[(&str, &[(&[u8], usize)], &str)] = &[
+    const CASES: &[(&str, &[Piece], &str)] = &[
         ("short_body", &[(OK, 1), (b"Content-Length: 5\r\n\r\nab", 1)], "error IncompleteRead(2 bytes read, 3 more expected)"),
         ("blank_status", &[(b"\r\n", 1)], "error \r\n"),
         ("version_only", &[(b"HTTP/1.1\r\n\r\n", 1)], "error HTTP/1.1\r\n"),
