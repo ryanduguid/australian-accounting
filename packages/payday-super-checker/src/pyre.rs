@@ -840,6 +840,14 @@ mod tests {
         assert!(!Regex::python(r"(?:a|b)+c").fullmatch("c"));
     }
 
+    /// CPython 3.15: `re.match(r"(?:(?=(a))x|a)", "a")` ends at 1 with group 1
+    /// None, as the lookahead's capture goes when what follows it fails.
+    #[test]
+    fn a_lookahead_whose_continuation_fails_keeps_no_capture() {
+        let m = Regex::python(r"(?:(?=(a))x|a)").captures("a").unwrap();
+        assert_eq!((m.group(1), m.end), (None, 1));
+    }
+
     #[test]
     fn an_empty_match_advances_past_itself_as_python_sub_does() {
         assert_eq!(Regex::python("x*").sub("-", "abc"), "-a-b-c-");

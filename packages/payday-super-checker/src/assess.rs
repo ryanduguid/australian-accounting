@@ -1339,15 +1339,11 @@ fn tally_receipts(
         if needs_allocation {
             weigh_allocation(result, terms, &mut tally, &r, &credit, window)?;
         }
-        place_receipt(
-            result,
-            terms,
-            &mut tally,
-            &r,
-            &credit,
-            window,
-            needs_allocation,
-        )?;
+        match place_receipt(result, terms, &mut tally, &r, window) {
+            Placed::OnTime => tally.on_time = tally.on_time.add(&credit)?,
+            Placed::Undecided => {}
+            Placed::Late => count_late_receipt(terms, &mut tally, &r, &credit, needs_allocation)?,
+        }
     }
     Ok(tally)
 }
@@ -1411,22 +1407,27 @@ fn weigh_allocation(
     Ok(())
 }
 
-/// Count one kept receipt as on time, undecided or late.
+enum Placed {
+    OnTime,
+    Undecided,
+    Late,
+}
+
+/// Whether one kept receipt is on time, undecided (saying why) or late.
 fn place_receipt(
     result: &mut Assessed,
     terms: &EventTerms,
     tally: &mut ReceiptTally,
     r: &returned::Receipt,
-    credit: &Decimal,
     window: Date,
-    needs_allocation: bool,
-) -> Result<()> {
+) -> Placed {
     let due = terms.due;
     let possible = terms.possible;
     let past_horizon = terms.past_horizon;
     if r.date <= window {
-        tally.on_time = tally.on_time.add(credit)?;
-    } else if r.date <= due {
+        return Placed::OnTime;
+    }
+    if r.date <= due {
         tally.undecided = true;
         result.caveats.push(format!(
             "the receipt dated {} is not the first eligible contribution, because the \
@@ -1447,9 +1448,9 @@ fn place_receipt(
             result.caveats.push(item4_unknown_text(p));
         }
     } else {
-        count_late_receipt(terms, tally, r, credit, needs_allocation)?;
+        return Placed::Late;
     }
-    Ok(())
+    Placed::Undecided
 }
 
 /// Count a late receipt towards the shortfall if it came before any assessment.
