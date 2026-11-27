@@ -391,7 +391,8 @@ jobs:
   tool-coverage:
     name: measure the tool crates' coverage
     runs-on: ubuntu-latest
-    # fixture-screen scans every tracked file, slower without a release build.
+    # fixture-screen scans every tracked file: a release build, as in
+    # boundaries.yml, keeps its instrumented run within the limit.
     timeout-minutes: 40
     permissions:
       contents: read
@@ -413,9 +414,9 @@ jobs:
           CRATE: fixture-screen
         run: |
           floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
-          cargo llvm-cov --locked --fail-under-lines "$floor"
+          cargo llvm-cov --locked --release --fail-under-lines "$floor"
       - working-directory: tools/fixture-screen
-        run: cargo llvm-cov report --lcov --output-path lcov.info
+        run: cargo llvm-cov report --release --lcov --output-path lcov.info
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage-codecov-tool-fixture-screen
