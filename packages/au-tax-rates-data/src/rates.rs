@@ -2674,3 +2674,7 @@ fn report(result: R<i32>) -> i32 {
 #[cfg(test)]
 #[path = "rates_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "cov_a2_rates.rs"]
+mod cov_a2_tests;
