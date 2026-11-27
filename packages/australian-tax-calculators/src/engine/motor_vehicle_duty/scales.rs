@@ -198,3 +198,22 @@ pub(super) const ACT_DI2026_154: ActPeriod = ActPeriod {
         row("4.83", "2173.50", "8.00", "4973.50"),
     ],
 };
+
+#[cfg(test)]
+mod tests {
+    use super::row;
+
+    #[test]
+    fn row_keeps_each_table() {
+        let built = row("3", "1350", "5", "3100");
+        assert_eq!(
+            (
+                built.table_1,
+                built.table_2_base,
+                built.table_2_rate,
+                built.table_3_base
+            ),
+            ("3", "1350", "5", "3100")
+        );
+    }
+}

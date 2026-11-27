@@ -69,7 +69,7 @@ pub(super) fn failure_to_lodge(f: &Facts, period: &str) -> Result<Value> {
     let late = given - due;
     let units = unit_periods(due, late);
     let base: u128 = units.iter().map(|(_, v)| u128::from(*v) * 100).sum();
-    let mut out = result(
+    let out = result(
         KIND,
         period,
         vec![
@@ -77,7 +77,8 @@ pub(super) fn failure_to_lodge(f: &Facts, period: &str) -> Result<Value> {
             ("penalty", dollars(base * multiplier)),
         ],
         vec![rate("size_multiplier", multiplier)],
-    )?;
+    );
+    let mut out = out?;
     out["question"] = json!("failure_to_lodge");
     out["days_late"] = json!(late);
     out["penalty_units"] = json!(units.len());
@@ -165,7 +166,8 @@ fn part(item: &Value, name: &str) -> Result<Part> {
         name,
         "behaviour",
         &BEHAVIOURS.map(|(b, _, _)| b),
-    )?;
+    );
+    let behaviour = behaviour?;
     let not_arguable = optional_flag(fields, name, "not_reasonably_arguable")?;
     let increase = optional_flag(fields, name, "increase")?;
     let disclosure = match fields.get("disclosure") {
@@ -374,7 +376,7 @@ pub(super) fn statement_penalty(f: &Facts, period: &str) -> Result<Value> {
         total += penalty;
         worked.push(out);
     }
-    let mut out = result(
+    let out = result(
         KIND,
         period,
         vec![
@@ -382,7 +384,8 @@ pub(super) fn statement_penalty(f: &Facts, period: &str) -> Result<Value> {
             ("penalty", dollars(scaled_cents(total))),
         ],
         rates_used(&c),
-    )?;
+    );
+    let mut out = out?;
     out["question"] = json!("statement_penalty");
     out["parts"] = Value::Array(worked);
     out["penalty_authority"] = json!(STATEMENT);
