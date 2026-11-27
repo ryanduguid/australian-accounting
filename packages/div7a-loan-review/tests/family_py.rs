@@ -24,21 +24,6 @@ fn a_parent_drops_the_last_part_and_keeps_the_anchor() {
     );
 }
 
-#[cfg(not(windows))]
-#[test]
-fn any_anchor_is_absolute_on_posix() {
-    assert!(PyPath::new("/a").is_absolute());
-    assert!(!PyPath::new("a/b").is_absolute());
-}
-
-#[cfg(windows)]
-#[test]
-fn a_drive_needs_its_root_to_be_absolute_on_windows() {
-    assert!(PyPath::new("C:\\a").is_absolute());
-    assert!(!PyPath::new("C:a").is_absolute());
-    assert!(PyPath::new("\\\\srv\\share\\x").is_absolute());
-}
-
 #[test]
 fn resolve_follows_the_existing_prefix_and_normalises_the_rest() {
     let dir = scratch("resolve");

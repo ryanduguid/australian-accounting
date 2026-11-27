@@ -454,18 +454,6 @@ impl PyPath {
         out.parts.pop();
         out
     }
-
-    /// `path.is_absolute()`: a drive with a root, or a UNC share.
-    #[cfg(windows)]
-    pub fn is_absolute(&self) -> bool {
-        self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
-    }
-
-    /// `path.is_absolute()`: any anchor.
-    #[cfg(not(windows))]
-    pub fn is_absolute(&self) -> bool {
-        !self.anchor.is_empty()
-    }
 }
 
 impl std::fmt::Display for PyPath {
