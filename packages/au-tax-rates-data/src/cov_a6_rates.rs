@@ -33,20 +33,21 @@ fn package(folder: &Path, urls: &[&str]) -> Ctx {
     }
 }
 
+/// The line end Python's text mode writes.
+const NL: &str = if cfg!(windows) { "\r\n" } else { "\n" };
+
 fn newlines_of(text: &str) -> String {
-    if cfg!(windows) {
-        text.replace('\n', "\r\n")
-    } else {
-        text.to_string()
-    }
+    text.replace('\n', NL)
 }
 
+/// `cmd_snapshot` with the browser replaced; `snapshot` reads no ATO table,
+/// so the table reader is the real one.
 fn snapshot(ctx: &Ctx, fetch: &mut dyn FnMut(&Json) -> R<S>, pause: bool) -> (R<i32>, String) {
     let mut out = Out::new(Vec::new());
     let mut world = World {
         fetch,
         pause,
-        get: &mut |_, _| panic!("a table read"),
+        get: &mut get_table,
     };
     let code = cmd_snapshot(ctx, &mut out, &mut world);
     (code, String::from_utf8(out.w).expect("UTF-8 output"))
@@ -128,10 +129,8 @@ fn division_by_zero_is_worded_as_decimal_words_it() {
 #[test]
 fn int_of_a_nan_decimal_is_a_value_error() {
     for nan in ["NaN", "-sNaN"] {
-        let value = Decimal::parse_exact(nan).ok().expect("a NaN");
-        let Err(e) = decimal_int(&value) else {
-            panic!("int({nan}) succeeded")
-        };
+        let value = Decimal::parse_exact(nan).map_err(|_| ()).expect("a NaN");
+        let e = decimal_int(&value).map(|_| ()).expect_err("int(NaN) fails");
         assert_eq!(e.class, "ValueError");
         assert_eq!(text_of(&e.text), "cannot convert NaN to integer");
     }
