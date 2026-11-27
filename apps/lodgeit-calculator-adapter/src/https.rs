@@ -229,14 +229,14 @@ mod tests {
         );
         assert_eq!(status_line(b"HTTP/1.1\r\n"), Err("'HTTP/1.1\\r\\n'".into()));
         assert_eq!(
-            status_line(&vec![b'x'; 65537]),
+            status_line("x".repeat(65537).as_bytes()),
             Err("got more than 65536 bytes when reading status line".into())
         );
     }
 
     #[test]
     fn a_header_line_past_the_limit_is_refused() {
-        let mut given = vec![b"A: 1\r\n".to_vec(), vec![b'a'; 65537]].into_iter();
+        let mut given = vec![b"A: 1\r\n".to_vec(), "a".repeat(65537).into_bytes()].into_iter();
         assert_eq!(
             header_lines(|| Ok(given.next().unwrap_or_default())),
             Err("got more than 65536 bytes when reading header line".into())

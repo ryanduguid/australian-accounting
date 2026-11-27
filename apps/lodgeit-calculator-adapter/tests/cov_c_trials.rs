@@ -177,9 +177,9 @@ fn a_list_amount_past_a_32_bit_c_long_overflows_only_on_windows() {
         ("[0, [-2147483649], 0]", past(digit)),
     ];
     for (given, expected) in cases {
-        let error = with_field("amalgamated_base", json(given))
-            .err()
-            .expect("refused");
+        let Err(error) = with_field("amalgamated_base", json(given)) else {
+            panic!("Decimal({given}) is refused");
+        };
         assert_eq!(
             format!("{}: {}", error.class, text(&error.text)),
             expected,
