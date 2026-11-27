@@ -365,4 +365,24 @@ mod tests {
             }
         }
     }
+
+    /// The file note's tables print each value as the Python server's f-string does:
+    /// a JSON null is Python's `None`, a string is bare and anything else is its JSON.
+    #[test]
+    fn a_null_fact_reads_as_python_none_in_the_file_note_table() {
+        assert_eq!(
+            super::table(
+                "Fact",
+                &json!({"carry_forward": null, "label": "Lot 4", "units": 2})
+            ),
+            [
+                "| Fact | Value |",
+                "| --- | --- |",
+                "| `carry_forward` | None |",
+                "| `label` | Lot 4 |",
+                "| `units` | 2 |",
+                "",
+            ]
+        );
+    }
 }
