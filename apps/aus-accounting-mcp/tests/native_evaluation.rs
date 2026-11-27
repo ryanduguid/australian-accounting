@@ -515,9 +515,26 @@ fn command_line_forms_and_usage_errors() {
             "{args:?}"
         );
     }
+    let temp = Temp::new();
+    // CPython's json.loads refuses an integer over 4,300 digits
+    // (sys.int_info.default_max_str_digits); 4,300 digits still read.
+    let record = temp.0.join("long.json");
+    for (digits, refused) in [(4_300, false), (4_301, true)] {
+        fs::write(&record, format!(r#"{{"x": {}}}"#, "1".repeat(digits))).unwrap();
+        let output = run(&["score", record.to_str().unwrap()]);
+        let error = String::from_utf8(output.stderr).unwrap();
+        assert_eq!(
+            error.contains("JSON integer exceeds 4,300 digits"),
+            refused,
+            "{error}"
+        );
+        if refused {
+            assert_eq!(output.status.code(), Some(2), "{error}");
+            assert!(output.stdout.is_empty());
+        }
+    }
     // After `--` a recording may start with a dash.
     let fixture = fixture();
-    let temp = Temp::new();
     let case = &fixture["cases"][0];
     let record = temp.0.join("-record.json");
     fs::write(&record, case["recording"].as_str().unwrap()).unwrap();

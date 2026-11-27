@@ -493,6 +493,46 @@ fn the_corpus_dispatch_takes_only_corpus_tools() {
     );
 }
 
+/// Python's library search reads `*.md` files only: a text file with the same words is not a match.
+#[test]
+fn library_search_skips_files_that_are_not_markdown() {
+    let tree = Tree(scratch("native-mcp-not-markdown"));
+    fs::create_dir(&tree.0).unwrap();
+    fs::write(tree.0.join("gst.md"), "GST registration").unwrap();
+    fs::write(tree.0.join("gst.txt"), "GST registration").unwrap();
+    let context = Context {
+        root: Some(tree.0.clone()),
+        limits: Default::default(),
+        denied: false,
+        principal_acts: None,
+        fault: None,
+    };
+    let found = library::search(&context, "GST", 5, 0).unwrap();
+    let matches = found["matches"].as_array().unwrap();
+    assert_eq!(matches.len(), 1, "{found}");
+    assert!(matches[0].to_string().contains("gst.md"), "{found}");
+}
+
+/// CPython 3.14's `f"{row.get('register_id')!s:.32}"` for each value.
+#[test]
+fn a_register_id_reads_as_python_formats_it() {
+    for (id, expected) in [
+        (json!(null), "None".to_owned()),
+        (json!(12345), "12345".to_owned()),
+        (json!(true), "True".to_owned()),
+        (json!([1, "a"]), "[1, 'a']".to_owned()),
+        (json!({"k": null}), "{'k': None}".to_owned()),
+        (json!("x".repeat(40)), "x".repeat(32)),
+    ] {
+        assert_eq!(
+            as_at::register_id(&json!({"register_id": id})),
+            expected,
+            "{id}"
+        );
+    }
+    assert_eq!(as_at::register_id(&json!({})), "None");
+}
+
 /// Ranking compares keys only, so two hits with one score are equal whatever they hold.
 #[test]
 fn ranked_hits_with_one_key_are_equal() {
