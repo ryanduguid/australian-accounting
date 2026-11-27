@@ -265,7 +265,7 @@ mod tests {
     /// Each expected issue is pydantic 2.13.5's for the same core schema
     /// (`TypeAdapter(...).validate_python`, recorded 27 November 2026).
     #[test]
-    fn descriptor_kinds_the_tools_do_not_use_yet_still_match_pydantic() {
+    fn collection_rules_the_tools_do_not_use_yet_still_match_pydantic() {
         for (rule, input, expected) in [
             // TypeAdapter(list[int]).validate_python('x')
             (
@@ -293,6 +293,15 @@ mod tests {
                 json!({}),
                 vec!["|union_tag_not_found|Unable to extract tag using discriminator 'kind'|{}"],
             ),
+        ] {
+            expect(rule, input, expected);
+        }
+    }
+
+    /// Scalar bounds and lax booleans, as pydantic 2.13.5 reports them.
+    #[test]
+    fn scalar_rules_the_tools_do_not_use_yet_still_match_pydantic() {
+        for (rule, input, expected) in [
             // Annotated[int, Field(lt=5)] given 5.
             (
                 json!({"type": "int", "lt": 5}),
@@ -320,10 +329,14 @@ mod tests {
                 vec!["|bool_parsing|Input should be a valid boolean, unable to interpret input|2"],
             ),
         ] {
-            let (output, errors) = check(rule.clone(), input.clone());
-            assert_eq!(errors, expected, "{rule} {input}");
-            assert_eq!(output, input, "{rule}: the input is returned as given");
+            expect(rule, input, expected);
         }
+    }
+
+    fn expect(rule: serde_json::Value, input: serde_json::Value, expected: Vec<&str>) {
+        let (output, errors) = check(rule.clone(), input.clone());
+        assert_eq!(errors, expected, "{rule} {input}");
+        assert_eq!(output, input, "{rule}: the input is returned as given");
     }
 
     /// The descriptors are embedded, so a kind the validator does not know is a
