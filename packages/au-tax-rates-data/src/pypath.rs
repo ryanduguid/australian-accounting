@@ -177,8 +177,8 @@ impl PyPath {
             };
         }
         #[cfg(windows)]
-        let text = text.replace('/', "\\");
-        let (drv, root, rel) = splitroot(&text);
+        let text = &text.replace('/', "\\");
+        let (drv, root, rel) = splitroot(text);
         let sep = SEP.chars().next().unwrap_or('/');
         // A UNC drive without its root gets one; a POSIX drive is always empty.
         #[cfg(windows)]
@@ -445,6 +445,15 @@ pub fn realpath(path: &str) -> Result<String, crate::pyos::OsError> {
 /// `os.path.realpath(path)`.
 #[cfg(not(windows))]
 pub fn realpath(filename: &str) -> Result<String, crate::pyos::OsError> {
+    realpath_from(filename, std::env::current_dir)
+}
+
+/// `realpath` with `os.getcwd` passed in, so a failing one can be tested.
+#[cfg(not(windows))]
+fn realpath_from(
+    filename: &str,
+    getcwd: fn() -> std::io::Result<PathBuf>,
+) -> Result<String, crate::pyos::OsError> {
     use std::collections::HashMap;
     let mut rest: Vec<Option<String>> = filename
         .trim_end_matches('/')
@@ -456,7 +465,7 @@ pub fn realpath(filename: &str) -> Result<String, crate::pyos::OsError> {
     let mut path = if filename.starts_with('/') {
         "/".to_string()
     } else {
-        std::env::current_dir()
+        getcwd()
             .map_err(|error| crate::pyos::OsError::new(&error, None, crate::pyos::Style::Native))?
             .to_string_lossy()
             .into_owned()
@@ -687,6 +696,12 @@ mod tests {
             );
         }
         assert_eq!(realpath(&format!("{t}/top")).unwrap(), "/");
+        // A deleted working folder: os.getcwd() raises, and so does realpath.
+        let gone = realpath_from("x", || Err(std::io::Error::from_raw_os_error(2))).unwrap_err();
+        assert_eq!(
+            (gone.class(), gone.text.as_str()),
+            ("FileNotFoundError", "[Errno 2] No such file or directory")
+        );
         std::fs::remove_dir_all(&base).unwrap();
     }
 }
