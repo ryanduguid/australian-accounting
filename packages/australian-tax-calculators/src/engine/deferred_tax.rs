@@ -364,3 +364,17 @@ fn finish(out: &mut Value, lines: Vec<Map<String, Value>>) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn finish_adds_no_warning_to_a_result_without_a_warnings_list() {
+        let mut out = json!({"amounts": {"taxable_income_difference": "1.00"}});
+        finish(&mut out, vec![Map::new()]);
+        assert_eq!(out["items"], json!([{}]));
+        assert_eq!(out["applicable_rate_basis"], json!(BASIS));
+        assert_eq!(out["warnings"], Value::Null);
+    }
+}
