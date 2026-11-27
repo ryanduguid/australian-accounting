@@ -222,3 +222,16 @@ impl LogBook {
         ]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_log_book_that_is_not_json_is_refused() {
+        let error = LogBook::read(&Arg::Text("kept".into()), 2025)
+            .err()
+            .unwrap();
+        assert_eq!(error.to_string(), "log_book must be an object.");
+    }
+}

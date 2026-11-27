@@ -1,6 +1,6 @@
-//! `urllib.parse.urlsplit` and `urljoin` of CPython 3.15 for `str` URLs, with `.hostname`.
+//! `urllib.parse.urlsplit` of CPython 3.15 for `str` URLs.
 //!
-//! The checks use the scheme, netloc, path and hostname; the `ValueError`s
+//! The checks use the scheme, netloc and path; the `ValueError`s
 //! urlsplit raises for malformed brackets or NFKC tricks are returned as
 //! errors, which the callers report as Python reported the traceback.
 use unicode_normalization::UnicodeNormalization;
@@ -87,182 +87,6 @@ pub fn urlsplit(url: &str) -> Result<Split, String> {
         query: parts.query.unwrap_or_default(),
         fragment: parts.fragment.unwrap_or_default(),
     })
-}
-
-const USES_RELATIVE: [&str; 20] = [
-    "", "ftp", "http", "gopher", "nntp", "imap", "wais", "file", "https", "shttp", "mms",
-    "prospero", "rtsp", "rtsps", "rtspu", "sftp", "svn", "svn+ssh", "ws", "wss",
-];
-
-const USES_NETLOC: [&str; 27] = [
-    "",
-    "ftp",
-    "http",
-    "gopher",
-    "nntp",
-    "telnet",
-    "imap",
-    "wais",
-    "file",
-    "mms",
-    "https",
-    "shttp",
-    "snews",
-    "prospero",
-    "rtsp",
-    "rtsps",
-    "rtspu",
-    "rsync",
-    "svn",
-    "svn+ssh",
-    "sftp",
-    "nfs",
-    "git",
-    "git+ssh",
-    "ws",
-    "wss",
-    "itms-services",
-];
-
-fn unsplit(
-    scheme: Option<&str>,
-    netloc: Option<&str>,
-    path: &str,
-    query: Option<&str>,
-    fragment: Option<&str>,
-) -> String {
-    let mut url = path.to_owned();
-    if let Some(netloc) = netloc {
-        if !url.is_empty() && !url.starts_with('/') {
-            url.insert(0, '/');
-        }
-        url = format!("//{netloc}{url}");
-    } else if url.starts_with("//") {
-        url = format!("//{url}");
-    }
-    if let Some(scheme) = scheme.filter(|s| !s.is_empty()) {
-        url = format!("{scheme}:{url}");
-    }
-    if let Some(query) = query {
-        url = format!("{url}?{query}");
-    }
-    if let Some(fragment) = fragment {
-        url = format!("{url}#{fragment}");
-    }
-    url
-}
-
-/// `urllib.parse.urlunsplit(parts)` for a `urlsplit` result: empty components are dropped,
-/// except the empty netloc a netloc scheme keeps before an absolute path.
-pub fn urlunsplit(parts: &Split) -> String {
-    let some = |s: &str| (!s.is_empty()).then_some(s.to_owned());
-    let netloc = if parts.netloc.is_empty() {
-        (USES_NETLOC.contains(&parts.scheme.as_str())
-            && !parts.scheme.is_empty()
-            && (parts.path.is_empty() || parts.path.starts_with('/')))
-        .then(String::new)
-    } else {
-        Some(parts.netloc.clone())
-    };
-    unsplit(
-        some(&parts.scheme).as_deref(),
-        netloc.as_deref(),
-        &parts.path,
-        some(&parts.query).as_deref(),
-        some(&parts.fragment).as_deref(),
-    )
-}
-
-/// `urllib.parse.urljoin(base, url)` of CPython 3.15.
-pub fn urljoin(base: &str, url: &str) -> Result<String, String> {
-    if base.is_empty() {
-        return Ok(url.to_owned());
-    }
-    if url.is_empty() {
-        return Ok(base.to_owned());
-    }
-    let b = split_parts(base)?;
-    let Parts {
-        scheme,
-        mut netloc,
-        mut path,
-        mut query,
-        mut fragment,
-    } = split_parts(url)?;
-    let scheme = scheme.or(b.scheme.clone());
-    let named = scheme.as_deref().filter(|s| !s.is_empty());
-    if scheme != b.scheme || named.is_some_and(|s| !USES_RELATIVE.contains(&s)) {
-        return Ok(url.to_owned());
-    }
-    if named.is_none_or(|s| USES_NETLOC.contains(&s)) {
-        if netloc.as_deref().is_some_and(|n| !n.is_empty()) {
-            return Ok(unsplit(
-                scheme.as_deref(),
-                netloc.as_deref(),
-                &path,
-                query.as_deref(),
-                fragment.as_deref(),
-            ));
-        }
-        netloc = b.netloc.clone();
-    }
-    if path.is_empty() {
-        path = b.path.clone();
-        if query.is_none() {
-            query = b.query.clone();
-            if fragment.is_none() {
-                fragment = b.fragment.clone();
-            }
-        }
-        return Ok(unsplit(
-            scheme.as_deref(),
-            netloc.as_deref(),
-            &path,
-            query.as_deref(),
-            fragment.as_deref(),
-        ));
-    }
-    let mut base_parts: Vec<&str> = b.path.split('/').collect();
-    if base_parts.last() != Some(&"") {
-        base_parts.pop();
-    }
-    let segments: Vec<&str> = if path.starts_with('/') {
-        path.split('/').collect()
-    } else {
-        let mut all = base_parts;
-        all.extend(path.split('/'));
-        // segments[1:-1] = filter(None, segments[1:-1])
-        if all.len() > 2 {
-            let last = all.len() - 1;
-            let mut kept = vec![all[0]];
-            kept.extend(all[1..last].iter().filter(|s| !s.is_empty()));
-            kept.push(all[last]);
-            kept
-        } else {
-            all
-        }
-    };
-    let mut resolved: Vec<&str> = Vec::new();
-    for seg in &segments {
-        match *seg {
-            ".." => {
-                resolved.pop();
-            }
-            "." => {}
-            _ => resolved.push(seg),
-        }
-    }
-    if matches!(segments.last(), Some(&".") | Some(&"..")) {
-        resolved.push("");
-    }
-    let joined = resolved.join("/");
-    Ok(unsplit(
-        scheme.as_deref(),
-        netloc.as_deref(),
-        if joined.is_empty() { "/" } else { &joined },
-        query.as_deref(),
-        fragment.as_deref(),
-    ))
 }
 
 fn check_netloc(netloc: &str) -> Result<(), String> {
@@ -408,57 +232,6 @@ fn is_ipv6(text: &str) -> bool {
     parts[..hi].iter().all(hextet) && parts[n - lo..].iter().all(hextet)
 }
 
-/// `.hostname` of a split URL: lower-cased, without user information, port or brackets.
-pub fn hostname(netloc: &str) -> Option<String> {
-    if netloc.is_empty() {
-        return None;
-    }
-    let hostinfo = netloc.rsplit_once('@').map_or(netloc, |(_, h)| h);
-    let host = match hostinfo.split_once('[') {
-        Some((_, bracketed)) => bracketed.split_once(']').map_or(bracketed, |(h, _)| h),
-        None => hostinfo.split_once(':').map_or(hostinfo, |(h, _)| h),
-    };
-    if host.is_empty() {
-        return None;
-    }
-    let (address, zone) = host
-        .split_once('%')
-        .map_or((host, None), |(a, z)| (a, Some(z)));
-    Some(match zone {
-        Some(zone) => format!("{}%{zone}", address.to_lowercase()),
-        None => address.to_lowercase(),
-    })
-}
-
-/// `.port` of a split URL, or the ValueError's message: the text after the
-/// host's `:`, which must be ASCII digits within 0-65535.
-pub fn port(netloc: &str) -> Result<Option<u32>, String> {
-    let hostinfo = netloc.rsplit_once('@').map_or(netloc, |(_, h)| h);
-    let port = match hostinfo.split_once('[') {
-        Some((_, bracketed)) => bracketed
-            .split_once(']')
-            .and_then(|(_, rest)| rest.split_once(':'))
-            .map_or("", |(_, p)| p),
-        None => hostinfo.split_once(':').map_or("", |(_, p)| p),
-    };
-    if port.is_empty() {
-        return Ok(None);
-    }
-    if !port.bytes().all(|b| b.is_ascii_digit()) {
-        return Err(format!(
-            "Port could not be cast to integer value as {}",
-            crate::py::repr_str(port)
-        ));
-    }
-    match port.trim_start_matches('0') {
-        "" => Ok(Some(0)),
-        digits => match digits.parse::<u32>() {
-            Ok(value) if value <= 65535 => Ok(Some(value)),
-            _ => Err("Port out of range 0-65535".into()),
-        },
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -498,71 +271,6 @@ mod tests {
         assert!(is_ipv4("1.2.3.4") && !is_ipv4("1.2.3.4%x") && !is_ipv4("01.2.3.4"));
     }
 
-    /// Expected values from CPython 3.15's urljoin.
-    #[test]
-    fn joins_like_urllib() {
-        for (base, url, expected) in [
-            (
-                "https://duguid.com.au/rates/example/",
-                "rates.csv",
-                "https://duguid.com.au/rates/example/rates.csv",
-            ),
-            (
-                "https://duguid.com.au/rates/example/",
-                "../",
-                "https://duguid.com.au/rates/",
-            ),
-            (
-                "https://duguid.com.au/rates/example/",
-                "../../../../x",
-                "https://duguid.com.au/x",
-            ),
-            (
-                "https://duguid.com.au/rates/example/",
-                "//cdn.example.test/x",
-                "https://cdn.example.test/x",
-            ),
-            (
-                "https://duguid.com.au/rates/example/",
-                "?q=1",
-                "https://duguid.com.au/rates/example/?q=1",
-            ),
-            (
-                "https://duguid.com.au/rates/example/",
-                "#f",
-                "https://duguid.com.au/rates/example/#f",
-            ),
-            (
-                "https://duguid.com.au/rates/example/",
-                "mailto:x@y",
-                "mailto:x@y",
-            ),
-            (
-                "https://duguid.com.au/rates/example/",
-                "HTTP://Example.TEST/A",
-                "HTTP://Example.TEST/A",
-            ),
-            ("https://a.test/b/c", "./", "https://a.test/b/"),
-            ("https://a.test/b/c", "..", "https://a.test/"),
-            ("https://a.test/b/c?x#y", "", "https://a.test/b/c?x#y"),
-            ("https://a.test/b/c?x#y", "#z", "https://a.test/b/c?x#z"),
-            ("https://a.test/b/c?x#y", "?", "https://a.test/b/c?"),
-            ("https://a.test", "x", "https://a.test/x"),
-            ("https://a.test/b/", "a//b/./c/..", "https://a.test/b/a/b/"),
-            ("http://a/b/c/d;p?q", "g;x?y#s", "http://a/b/c/g;x?y#s"),
-            ("http://a/b/c/d;p?q", "../../../g", "http://a/g"),
-            ("http://a/b/c/d;p?q", "/./g", "http://a/g"),
-            ("", "x", "x"),
-            ("foo:bar", "x", "x"),
-            ("https://a.test/b", "ftp://h/x", "ftp://h/x"),
-            ("https://a.test/b", "https:x", "https://a.test/x"),
-            ("https://a.test/b", "tel:1", "tel:1"),
-        ] {
-            assert_eq!(urljoin(base, url).unwrap(), expected, "{base} + {url}");
-        }
-        assert!(urljoin("https://a.test/", "http://[::1").is_err());
-    }
-
     #[test]
     fn splits_like_urllib() {
         let s = urlsplit(" \tMAILTO:ryan@example.test?subject=x").unwrap();
@@ -571,7 +279,7 @@ mod tests {
             ("mailto", "ryan@example.test", "subject=x")
         );
         let s = urlsplit("https://User@WWW.LinkedIn.com:443/in/x/#f").unwrap();
-        assert_eq!(hostname(&s.netloc).as_deref(), Some("www.linkedin.com"));
+        assert_eq!(s.netloc, "User@WWW.LinkedIn.com:443");
         assert_eq!(s.path, "/in/x/");
         assert!(urlsplit("https://[::1/x").is_err());
         assert!(urlsplit("https://[1.2.3.4]/").is_err());

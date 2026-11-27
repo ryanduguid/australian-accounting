@@ -135,3 +135,43 @@ fn a_substituted_accounting_period_cannot_be_entered() {
         .join(" ");
     assert!(readme.contains("(a substituted accounting period is not modelled, and the ATO calculator does not take one either)"));
 }
+
+#[test]
+fn a_repayment_missing_a_field_or_with_a_number_is_named() {
+    let refused = rollforward(&loan(json!([{"date": "2026-10-01"}]))).unwrap_err();
+    assert_eq!(refused, "repayments[0] amount is required");
+    let refused = rollforward(&loan(json!([{"date": 20261001, "amount": "5.00"}]))).unwrap_err();
+    assert_eq!(refused, "repayments[0] date must be a string");
+}
+
+#[test]
+fn a_balance_repaid_before_a_later_repayment_is_floored_from_that_date() {
+    let result = rollforward(&loan(json!([
+        {"date": "2027-06-01", "amount": "1000.50"},
+        {"date": "2027-06-02", "amount": "0.01"},
+    ])))
+    .unwrap();
+    let caveats: Vec<&str> = result["caveats"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    assert!(
+        caveats.iter().any(|c| c.starts_with(
+            "From 2027-06-01 the repayments exceed the balance, so the balance is taken as nil"
+        )),
+        "{caveats:?}"
+    );
+}
+
+#[test]
+fn a_negative_repayment_is_refused_by_its_place() {
+    let refused =
+        rollforward(&loan(json!([{"date": "2026-10-01", "amount": "-5.00"}]))).unwrap_err();
+    assert_eq!(
+        refused,
+        "repayments[0].amount is '-5.00'; a negative amount here inverts the shortfall and \
+         reports exposure as money owed back to the borrower"
+    );
+}

@@ -1,0 +1,521 @@
+{
+ "check_help_30": {
+  "args": [
+   "check",
+   "--help"
+  ],
+  "env": {
+   "COLUMNS": "30",
+   "LINES": "10",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates check [-h]\n                   [--out OUT]\n\noptions:\n  -h, --help\n        show this help\n        message and exit\n  --out OUT\n        folder for the\n        Markdown report\n",
+  "stderr": ""
+ },
+ "check_help_20": {
+  "args": [
+   "check",
+   "--help"
+  ],
+  "env": {
+   "COLUMNS": "20",
+   "LINES": "10",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates check\n       [-h]\n       [--out OUT]\n\noptions:\n  -h, --help\n    show this help\n    message and\n    exit\n  --out OUT\n    folder for the\n    Markdown\n    report\n",
+  "stderr": ""
+ },
+ "snapshot_help_12": {
+  "args": [
+   "snapshot",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "12",
+   "LINES": "10",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates snapshot\n       [-h]\n\noptions:\n  -h, --help\n    show this\n    help\n    message and\n    exit\n",
+  "stderr": ""
+ },
+ "no_command_24": {
+  "args": [],
+  "env": {
+   "COLUMNS": "24",
+   "LINES": "10",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h]\n             {snapshot,validate,check,ato-tables} ...\nrates: error: the following arguments are required: command\n"
+ },
+ "no_command_16": {
+  "args": [],
+  "env": {
+   "COLUMNS": "16",
+   "LINES": "10",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates\n       [-h]\n       {snapshot,validate,check,ato-tables} ...\nrates: error: the following arguments are required: command\n"
+ },
+ "out_without_value": {
+  "args": [
+   "check",
+   "--out"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates check [-h] [--out OUT]\nrates check: error: argument --out: expected one argument\n"
+ },
+ "bare_equals_is_ambiguous": {
+  "args": [
+   "check",
+   "--=x"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates check [-h] [--out OUT]\nrates check: error: ambiguous option: --=x could match --help, --out\n"
+ },
+ "long_help_with_value": {
+  "args": [
+   "--help=x"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument -h/--help: ignored explicit argument 'x'\n"
+ },
+ "short_help_with_value": {
+  "args": [
+   "-h=x"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument -h/--help: ignored explicit argument 'x'\n"
+ },
+ "short_help_with_dash": {
+  "args": [
+   "-h-x"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument -h/--help: ignored explicit argument '-x'\n"
+ },
+ "clustered_help_with_value": {
+  "args": [
+   "-hh=x"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument -h/--help: ignored explicit argument 'x'\n"
+ },
+ "lone_dash": {
+  "args": [
+   "-"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument command: invalid choice: '-' (choose from 'snapshot', 'validate', 'check', 'ato-tables')\n"
+ },
+ "negative_integer": {
+  "args": [
+   "-5"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument command: invalid choice: '-5' (choose from 'snapshot', 'validate', 'check', 'ato-tables')\n"
+ },
+ "negative_decimal": {
+  "args": [
+   "-1.5"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument command: invalid choice: '-1.5' (choose from 'snapshot', 'validate', 'check', 'ato-tables')\n"
+ },
+ "dash_with_space": {
+  "args": [
+   "-x y"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument command: invalid choice: '-x y' (choose from 'snapshot', 'validate', 'check', 'ato-tables')\n"
+ },
+ "unknown_option": {
+  "args": [
+   "--zzz"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: the following arguments are required: command\n"
+ },
+ "stray_after_command": {
+  "args": [
+   "snapshot",
+   "extra"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: unrecognized arguments: extra\n"
+ },
+ "stray_before_option": {
+  "args": [
+   "check",
+   "x",
+   "--out",
+   "y"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: unrecognized arguments: x\n"
+ },
+ "far_word": {
+  "args": [
+   "zzz"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument command: invalid choice: 'zzz' (choose from 'snapshot', 'validate', 'check', 'ato-tables')\n"
+ },
+ "near_word": {
+  "args": [
+   "validat"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument command: invalid choice: 'validat', maybe you meant 'validate'? (choose from 'snapshot', 'validate', 'check', 'ato-tables')\n"
+ },
+ "very_long_word": {
+  "args": [
+   "validateaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\nrates: error: argument command: invalid choice: 'validateaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' (choose from 'snapshot', 'validate', 'check', 'ato-tables')\n"
+ },
+ "clustered_help": {
+  "args": [
+   "-hh"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\n\nSnapshot, validate and re-check the AU tax rates dataset.\n\nrates snapshot     fetch every source page into snapshots/\nrates validate     check data/*.json against the schema and snapshots\nrates check        re-fetch the pages and write a Markdown change report\nrates ato-tables   compare figures with the tables the ATO's calculators read\n\npositional arguments:\n  {snapshot,validate,check,ato-tables}\n\noptions:\n  -h, --help            show this help message and exit\n",
+  "stderr": ""
+ },
+ "help_then_unknown": {
+  "args": [
+   "-hx"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\n\nSnapshot, validate and re-check the AU tax rates dataset.\n\nrates snapshot     fetch every source page into snapshots/\nrates validate     check data/*.json against the schema and snapshots\nrates check        re-fetch the pages and write a Markdown change report\nrates ato-tables   compare figures with the tables the ATO's calculators read\n\npositional arguments:\n  {snapshot,validate,check,ato-tables}\n\noptions:\n  -h, --help            show this help message and exit\n",
+  "stderr": ""
+ },
+ "clustered_help_then_unknown": {
+  "args": [
+   "-hhx"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates [-h] {snapshot,validate,check,ato-tables} ...\n\nSnapshot, validate and re-check the AU tax rates dataset.\n\nrates snapshot     fetch every source page into snapshots/\nrates validate     check data/*.json against the schema and snapshots\nrates check        re-fetch the pages and write a Markdown change report\nrates ato-tables   compare figures with the tables the ATO's calculators read\n\npositional arguments:\n  {snapshot,validate,check,ato-tables}\n\noptions:\n  -h, --help            show this help message and exit\n",
+  "stderr": ""
+ },
+ "help_after_dashes": {
+  "args": [
+   "--",
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates check [-h] [--out OUT]\n\noptions:\n  -h, --help  show this help message and exit\n  --out OUT   folder for the Markdown report\n",
+  "stderr": ""
+ },
+ "out_after_equals": {
+  "args": [
+   "check",
+   "--out=x"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "{\"command\": \"check\", \"out\": \"x\"}\n",
+  "stderr": ""
+ },
+ "abbreviated_out": {
+  "args": [
+   "check",
+   "--o",
+   "x"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "{\"command\": \"check\", \"out\": \"x\"}\n",
+  "stderr": ""
+ },
+ "abbreviated_out_equals": {
+  "args": [
+   "check",
+   "--o=y"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "{\"command\": \"check\", \"out\": \"y\"}\n",
+  "stderr": ""
+ },
+ "command_after_dashes": {
+  "args": [
+   "--",
+   "snapshot"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "{\"command\": \"snapshot\"}\n",
+  "stderr": ""
+ },
+ "last_out_wins": {
+  "args": [
+   "check",
+   "--out",
+   "a",
+   "--out",
+   "b"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "{\"command\": \"check\", \"out\": \"b\"}\n",
+  "stderr": ""
+ },
+ "python_colors_1": {
+  "args": [
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "1"
+  },
+  "code": 0,
+  "stdout": "\u001b[1;34musage: \u001b[0m\u001b[1;35mrates check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[36m--out \u001b[33mOUT\u001b[0m]\n\n\u001b[1;34moptions:\u001b[0m\n  \u001b[1;32m-h\u001b[0m, \u001b[1;36m--help\u001b[0m  show this help message and exit\n  \u001b[1;36m--out\u001b[0m \u001b[1;33mOUT\u001b[0m   folder for the Markdown report\n",
+  "stderr": ""
+ },
+ "force_color": {
+  "args": [
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "FORCE_COLOR": "1"
+  },
+  "code": 0,
+  "stdout": "\u001b[1;34musage: \u001b[0m\u001b[1;35mrates check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[36m--out \u001b[33mOUT\u001b[0m]\n\n\u001b[1;34moptions:\u001b[0m\n  \u001b[1;32m-h\u001b[0m, \u001b[1;36m--help\u001b[0m  show this help message and exit\n  \u001b[1;36m--out\u001b[0m \u001b[1;33mOUT\u001b[0m   folder for the Markdown report\n",
+  "stderr": ""
+ },
+ "no_color_beats_force": {
+  "args": [
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "NO_COLOR": "1",
+   "FORCE_COLOR": "1"
+  },
+  "code": 0,
+  "stdout": "usage: rates check [-h] [--out OUT]\n\noptions:\n  -h, --help  show this help message and exit\n  --out OUT   folder for the Markdown report\n",
+  "stderr": ""
+ },
+ "python_colors_0_beats_force": {
+  "args": [
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "0",
+   "FORCE_COLOR": "1"
+  },
+  "code": 0,
+  "stdout": "usage: rates check [-h] [--out OUT]\n\noptions:\n  -h, --help  show this help message and exit\n  --out OUT   folder for the Markdown report\n",
+  "stderr": ""
+ },
+ "dumb_terminal_beats_nothing": {
+  "args": [
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "TERM": "dumb"
+  },
+  "code": 0,
+  "stdout": "usage: rates check [-h] [--out OUT]\n\noptions:\n  -h, --help  show this help message and exit\n  --out OUT   folder for the Markdown report\n",
+  "stderr": ""
+ },
+ "coloured_error": {
+  "args": [
+   "check",
+   "--out"
+  ],
+  "env": {
+   "COLUMNS": "80",
+   "LINES": "24",
+   "PYTHON_COLORS": "1"
+  },
+  "code": 2,
+  "stdout": "",
+  "stderr": "\u001b[1;34musage: \u001b[0m\u001b[1;35mrates check\u001b[0m [\u001b[32m-h\u001b[0m] [\u001b[36m--out \u001b[33mOUT\u001b[0m]\nrates check: \u001b[1;35merror:\u001b[0m \u001b[35margument --out: expected one argument\u001b[0m\n"
+ },
+ "columns_without_lines": {
+  "args": [
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "40",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates check [-h] [--out OUT]\n\noptions:\n  -h, --help  show this help message\n              and exit\n  --out OUT   folder for the Markdown\n              report\n",
+  "stderr": ""
+ },
+ "columns_with_lines": {
+  "args": [
+   "check",
+   "-h"
+  ],
+  "env": {
+   "COLUMNS": "40",
+   "LINES": "10",
+   "PYTHON_COLORS": "0"
+  },
+  "code": 0,
+  "stdout": "usage: rates check [-h] [--out OUT]\n\noptions:\n  -h, --help  show this help message\n              and exit\n  --out OUT   folder for the Markdown\n              report\n",
+  "stderr": ""
+ }
+}
