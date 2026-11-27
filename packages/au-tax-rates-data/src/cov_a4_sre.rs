@@ -42,27 +42,25 @@ fn answer(pattern: &str, flags: u32, subject: Option<&str>) -> String {
     spans.join(" ")
 }
 
-/// The oracle's cases as `(pattern, flags, subject, answer)`.
+/// The oracle's cases as `(pattern, flags, subject, answer)`; a row of
+/// another shape is left out, which the count in the test catches.
 fn cases() -> Vec<(String, u32, Option<String>, String)> {
     let doc = loads_standard(CASES).expect("case file");
     assert_eq!(doc.at("python").as_str(), Some("3.15.0"));
-    let Json::Array(rows) = doc.at("cases") else {
-        panic!("a list of cases");
-    };
     let text = |value: &Json| value.as_str().map(str::to_string);
-    let row = |case: &Json| match case {
-        Json::Array(row) => match &row[..] {
-            [pattern, Json::Int(flags), subject, answer] => (
-                text(pattern).expect("a pattern"),
-                u32::try_from(flags).expect("flags"),
-                text(subject),
-                text(answer).expect("an answer"),
-            ),
-            _ => panic!("a case of 4 items: {case:?}"),
-        },
-        _ => panic!("a case: {case:?}"),
-    };
-    rows.iter().map(row).collect()
+    let mut cases = Vec::new();
+    if let Json::Array(rows) = doc.at("cases") {
+        for case in rows {
+            if let Json::Array(row) = case
+                && let [pattern, Json::Int(flags), subject, answer] = &row[..]
+                && let (Some(pattern), Ok(flags), Some(answer)) =
+                    (text(pattern), u32::try_from(flags), text(answer))
+            {
+                cases.push((pattern, flags, text(subject), answer));
+            }
+        }
+    }
+    cases
 }
 
 #[test]

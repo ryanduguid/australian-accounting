@@ -204,3 +204,56 @@ fn an_uncaught_exception_reports_as_cpython_does() {
     }
     assert_eq!(report(Ok(3)), 3);
 }
+
+/// pathlib joins a snapshot name holding a lone surrogate as it joins any
+/// other name (CPython 3.15.0: `str(Path('/r/snapshots') / 'a\ud800.txt')`,
+/// its `.name` and `.relative_to('/r')`); no OS path can hold it.
+#[test]
+fn a_snapshot_name_with_a_lone_surrogate_joins_like_any_name() {
+    let ctx = Ctx::new();
+    let url = |last: u32| p!("https://example.gov.au/rates/a", vec![last], "/");
+    let plain = snapshot_path(&ctx, &url(0x2603)).expect("plain name");
+    let lone = snapshot_path(&ctx, &url(0xD800)).expect("lone surrogate");
+    let swap = |text: &S| -> S {
+        let swap = |&c: &u32| if c == 0x2603 { 0xD800 } else { c };
+        text.iter().map(swap).collect()
+    };
+    assert_eq!(lone.display, swap(&plain.display));
+    assert_eq!(lone.relative, plain.relative.clone().map(|t| swap(&t)));
+    assert_eq!(lone.name, p!("a", vec![0xD800], ".txt"));
+    assert!(plain.fs.is_some());
+    assert_eq!(lone.fs, None);
+}
+
+/// A URL already using every stand-in code point leaves none for its lone
+/// surrogate: a refusal, not a wrong path.
+#[test]
+fn a_url_with_no_free_stand_in_is_refused() {
+    let mut url = pts("https://example.gov.au/");
+    url.extend((0x4_0000..0xE_0000).chain(0xF_0000..=0x10_FFFF));
+    url.push(0xD800);
+    let e = url_path(&url).expect_err("refused");
+    let text: String = e.text.iter().filter_map(|&c| char::from_u32(c)).collect();
+    assert_eq!(
+        (e.name(), text.as_str()),
+        (
+            "ValueError",
+            "no code point is free to stand in for a lone surrogate"
+        )
+    );
+}
+
+/// `show` of a bracket from 10**5000 fails as CPython's `str(from - 1)` does.
+#[test]
+fn a_bracket_too_long_to_print_raises_the_digit_limit() {
+    let Ok(from) = calc(Decimal::parse("1E+5000")) else {
+        panic!("a decimal");
+    };
+    let zero = decimal(0);
+    let figure = Figure::Scale(vec![(from, None, zero.clone(), decimal(1))]);
+    let e = show(&figure).expect_err("refused");
+    let text: String = e.text.iter().filter_map(|&c| char::from_u32(c)).collect();
+    let limit = "Exceeds the limit (4300 digits) for integer string conversion; \
+                 use sys.set_int_max_str_digits() to increase the limit";
+    assert_eq!((e.name(), text.as_str()), ("ValueError", limit));
+}

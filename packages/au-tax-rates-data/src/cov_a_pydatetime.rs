@@ -32,6 +32,11 @@ const FROMISOFORMAT_CASES: &[(&str, Result<&str, &str>)] = &[
     ),
     ("2020-12-31T24:00", Ok("2021-01-01 00:00:00.000000 None")),
     (
+        "2021-02-30T24:00",
+        Err("day 30 must be in range 1..28 for month 2 in year 2021"),
+    ),
+    ("2021-13-01T24:00", Err("month must be in 1..12, not 13")),
+    (
         "1999-12-31T24:00:00+01:00",
         Ok("2000-01-01 00:00:00.000000 Some(3600000000)"),
     ),
@@ -218,4 +223,14 @@ fn fromisoformat_answers_as_cpython_does() {
         let got = got.as_ref().map(String::as_str).map_err(|e| *e);
         assert_eq!(got, *expected, "input {input:x?}");
     }
+}
+
+/// `date.fromisoformat` of a week date whose weekday follows another
+/// character than `-` (CPython 3.15.0: `Invalid isoformat string`).
+#[test]
+fn a_week_date_needs_its_hyphen_before_the_weekday() {
+    assert_eq!(
+        date_fromisoformat("2021-W01x1").map(|d| d.isoformat()),
+        Err(String::from("Invalid isoformat string: '2021-W01x1'"))
+    );
 }
