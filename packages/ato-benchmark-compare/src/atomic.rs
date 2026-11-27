@@ -160,9 +160,11 @@ mod tests {
     fn a_missing_folder_is_reported_with_its_errno() {
         let dir = scratch("missing").join("absent");
         let parent = PyPath::new(&dir.to_string_lossy());
-        let Err(Failure::Value(message)) = create_temporary_from(&parent, "out", 7) else {
-            panic!("a missing folder cannot hold a staged file");
-        };
+        let failure = create_temporary_from(&parent, "out", 7)
+            .map(|_| ())
+            .unwrap_err();
+        assert!(matches!(failure, Failure::Value(_)));
+        let message = failure.to_string();
         assert!(
             message.starts_with("[Errno 2] No such file or directory: "),
             "{message}"

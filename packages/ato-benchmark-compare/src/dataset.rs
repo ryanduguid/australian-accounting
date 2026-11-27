@@ -575,8 +575,7 @@ pub fn merge_page_ranges(
             ));
         }
         // One object per dataset band, in order, each naming that band.
-        let bands_raw: Option<Vec<(&Raw, &Vec<(String, Raw)>)>> = match entry.get("turnover_bands")
-        {
+        let bands_raw = match entry.get("turnover_bands") {
             Some(Raw::List(items)) if items.len() == business_type.bands.len() => items
                 .iter()
                 .zip(&business_type.bands)
@@ -586,7 +585,7 @@ pub fn merge_page_ranges(
                     }
                     _ => None,
                 })
-                .collect(),
+                .collect::<Option<Vec<_>>>(),
             _ => None,
         };
         let Some(bands_raw) = bands_raw else {

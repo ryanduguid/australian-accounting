@@ -564,21 +564,15 @@ mod tests {
         rows.push(vec!["Rent".into(), "-".into(), "60000".into()]);
         assert!(only_placeholders(&rows, 1, None));
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 
     #[test]
     fn a_digit_that_is_not_decimal_is_refused_as_int_refuses_it() {
         // '²'.isdigit() is True, but int('²') raises.
-        let Some(Err(failure)) = column_number("²") else {
-            panic!("a superscript digit is a column number int() refuses");
-        };
         assert_eq!(
-            failure,
-            Failure::Uncaught("ValueError: invalid literal for int() with base 10: '²'".into())
+            column_number("²").map(|r| r.unwrap_err()),
+            Some(Failure::Uncaught(
+                "ValueError: invalid literal for int() with base 10: '²'".into()
+            ))
         );
         assert!(matches!(column_number("3"), Some(Ok(3))));
         assert!(column_number("Amount").is_none());
