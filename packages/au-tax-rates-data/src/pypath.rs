@@ -454,23 +454,10 @@ fn realpath_from(
     filename: &str,
     getcwd: fn() -> std::io::Result<PathBuf>,
 ) -> Result<String, crate::pyos::OsError> {
-    use std::collections::HashMap;
-    let mut rest: Vec<Option<String>> = filename
-        .trim_end_matches('/')
-        .split('/')
-        .rev()
-        .map(|s| Some(s.to_string()))
-        .collect();
-    let mut part_count = rest.len();
-    let mut path = if filename.starts_with('/') {
-        "/".to_string()
-    } else {
-        getcwd()
-            .map_err(|error| crate::pyos::OsError::new(&error, None, crate::pyos::Style::Native))?
-            .to_string_lossy()
-            .into_owned()
-    };
-    let mut seen: HashMap<String, Option<String>> = HashMap::new();
+    let mut rest: Vec<Option<String>> = Vec::new();
+    let mut part_count = push_parts(&mut rest, filename.trim_end_matches('/'));
+    let mut path = realpath_start(filename, getcwd)?;
+    let mut seen: std::collections::HashMap<String, Option<String>> = Default::default();
     while part_count > 0 {
         let Some(entry) = rest.pop() else { break };
         let Some(name) = entry else {
@@ -495,38 +482,60 @@ fn realpath_from(
         } else {
             format!("{path}/{name}")
         };
-        // Python's lstat and readlink share one `except OSError`: a missing
-        // name, a name that is not a link and an unreadable link all keep it.
-        let link =
-            std::fs::symlink_metadata(&newpath).is_ok_and(|meta| meta.file_type().is_symlink());
-        let target = if link {
-            std::fs::read_link(&newpath).ok()
-        } else {
-            None
-        };
-        let Some(target) = target else {
+        let Some(target) = link_target(&newpath) else {
             path = newpath;
             continue;
         };
         if let Some(cached) = seen.get(&newpath) {
-            match cached {
-                Some(resolved) => path = resolved.clone(),
-                None => path = newpath,
-            }
+            path = cached.clone().unwrap_or(newpath);
             continue;
         }
-        let target = target.to_string_lossy().into_owned();
         if target.starts_with('/') {
             path = "/".into();
         }
         seen.insert(newpath.clone(), None);
         rest.push(Some(newpath));
         rest.push(None);
-        let parts: Vec<&str> = target.split('/').collect();
-        part_count += parts.len();
-        rest.extend(parts.into_iter().rev().map(|s| Some(s.to_string())));
+        part_count += push_parts(&mut rest, &target);
     }
     Ok(path)
+}
+
+/// Pushes `path`'s `/`-separated names so the first pops first; returns
+/// how many.
+#[cfg(not(windows))]
+fn push_parts(rest: &mut Vec<Option<String>>, path: &str) -> usize {
+    let before = rest.len();
+    rest.extend(path.split('/').rev().map(|s| Some(s.to_string())));
+    rest.len() - before
+}
+
+/// Where `realpath` starts: `/` for an absolute name, else `os.getcwd()`.
+#[cfg(not(windows))]
+fn realpath_start(
+    filename: &str,
+    getcwd: fn() -> std::io::Result<PathBuf>,
+) -> Result<String, crate::pyos::OsError> {
+    if filename.starts_with('/') {
+        return Ok("/".to_string());
+    }
+    let cwd = getcwd()
+        .map_err(|error| crate::pyos::OsError::new(&error, None, crate::pyos::Style::Native))?;
+    Ok(cwd.to_string_lossy().into_owned())
+}
+
+/// The target of the link at `path`, or `None`. Python's lstat and readlink
+/// share one `except OSError`: a missing name, a name that is not a link and
+/// an unreadable link all give `None`.
+#[cfg(not(windows))]
+fn link_target(path: &str) -> Option<String> {
+    let link = std::fs::symlink_metadata(path).is_ok_and(|meta| meta.file_type().is_symlink());
+    let target = if link {
+        std::fs::read_link(path).ok()
+    } else {
+        None
+    };
+    target.map(|target| target.to_string_lossy().into_owned())
 }
 
 #[cfg(test)]
@@ -656,7 +665,9 @@ mod tests {
     #[test]
     fn realpath_follows_links_as_posixpath_does() {
         use std::os::unix::fs::symlink;
-        let base = std::env::temp_dir().join(format!("pypath-realpath-{}", std::process::id()));
+        let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("pypath-realpath-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&base);
         std::fs::create_dir_all(base.join("d")).unwrap();
         let t = std::fs::canonicalize(&base)

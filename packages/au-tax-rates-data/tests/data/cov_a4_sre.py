@@ -1,12 +1,14 @@
-"""CPython oracle for sre.rs: prints the `CASES` table of `src/cov_a4_sre.rs`
-(run with CPython 3.15.0, `python3.15 -I cov_a4_sre.py`). Patterns of 200
-characters or more are printed as comments; the test builds them.
+"""CPython oracle for sre.rs: prints the cases `src/cov_a4_sre.rs` checks
+(run with CPython 3.15.0, `python3.15 -I cov_a4_sre.py`). It writes
+`cov_a4_sre.json`; patterns of 200 characters or more go to stderr, and the
+test builds them.
 
 Each case is `(pattern, flags, subject)`. The answer is `str(re.error)`, or
 `Class: message` for another exception from `re.compile`; then, with no
 subject, `groups N`; otherwise `re.search`'s span of every group (`a-b`, `-`
 for a group that took no part) or `no match`."""
 
+import json
 import re
 import sys
 
@@ -182,27 +184,11 @@ for pattern, flags, subject in CASES:
     out.append([pattern, flags, subject, answer])
 
 
-def rust(text):
-    """A Rust string literal."""
-    named = {
-        '"': '\\"',
-        "\\": "\\\\",
-        "\n": "\\n",
-        "\t": "\\t",
-        "\r": "\\r",
-        "\0": "\\0",
-    }
-    body = "".join(named.get(c) or (c if " " <= c <= "~" else f"\\u{{{ord(c):x}}}") for c in text)
-    return f'"{body}"'
-
-
 LONG = 200
-print("const CASES: &[(&str, u32, Option<&str>, &str)] = &[")
-for pattern, flags, subject, answer in out:
-    if len(pattern) < LONG:
-        found = "None" if subject is None else f"Some({rust(subject)})"
-        print(f"    ({rust(pattern)}, {flags}, {found}, {rust(answer)}),")
-print("];")
+table = [[p, int(f), s, a] for p, f, s, a in out if len(p) < LONG]
+rows = ",\n".join(json.dumps(row) for row in table)
+version = json.dumps(sys.version.split()[0])
+print(f'{{"python": {version}, "cases": [\n{rows}\n]}}')
 for pattern, flags, subject, answer in out:
     if len(pattern) >= LONG:
-        print(f"// long: {pattern[:12]!r}... {len(pattern)} chars, {subject!r}: {answer}")
+        print(f"long: {pattern[:12]!r}... {len(pattern)} chars, {subject!r}: {answer}", file=sys.stderr)
