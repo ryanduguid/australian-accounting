@@ -283,12 +283,13 @@ fn metavar(action: &Action, default: &str) -> String {
 
 fn format_args(action: &Action, default: &str) -> String {
     let m = metavar(action, default);
+    // A zero-argument action is always an option, whose usage and help never
+    // format arguments.
     match action.nargs {
-        Nargs::One => m,
         Nargs::Optional => format!("[{m}]"),
         Nargs::Parser => format!("{m} ..."),
         Nargs::OneOrMore => format!("{m} [{m} ...]"),
-        Nargs::Zero => String::new(),
+        Nargs::One | Nargs::Zero => m,
     }
 }
 
@@ -371,6 +372,8 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
     let prog_part = part(prog.to_string(), prog.to_string());
     if (prefix_len + pytext::py_len(prog)) as f64 <= 0.75 * text_width as f64 {
         let indent = " ".repeat(prefix_len + pytext::py_len(prog) + 1);
+        // With no options the positionals follow the name; with neither, the
+        // name alone is one line.
         let lines = if !opt_parts.is_empty() {
             let head: Vec<Part> = std::iter::once(prog_part)
                 .chain(opt_parts.iter().cloned())
@@ -378,13 +381,11 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
             let mut lines = get_lines(&head, &indent, true);
             lines.extend(get_lines(pos_parts, &indent, false));
             lines
-        } else if !pos_parts.is_empty() {
+        } else {
             let head: Vec<Part> = std::iter::once(prog_part)
                 .chain(pos_parts.iter().cloned())
                 .collect();
             get_lines(&head, &indent, true)
-        } else {
-            vec![prog.to_string()]
         };
         return lines.join("\n")[prog.len()..].to_string();
     }
@@ -630,14 +631,13 @@ impl From<ArgError> for Fail {
 type OptionTuple = (Option<usize>, String, Option<String>, Option<String>);
 
 fn looks_like_negative_number(arg: &str) -> bool {
-    let Some(body) = arg.strip_prefix('-') else {
-        return false;
-    };
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
-    (!body.is_empty() && body.chars().all(digit))
-        || body.split_once('.').is_some_and(|(int, frac)| {
-            int.chars().all(digit) && !frac.is_empty() && frac.chars().all(digit)
-        })
+    arg.strip_prefix('-').is_some_and(|body| {
+        (!body.is_empty() && body.chars().all(digit))
+            || body.split_once('.').is_some_and(|(int, frac)| {
+                int.chars().all(digit) && !frac.is_empty() && frac.chars().all(digit)
+            })
+    })
 }
 
 impl Parser {
@@ -717,6 +717,8 @@ impl Parser {
         result
     }
 
+    /// The sub-command action is always positional and a zero-argument action
+    /// always an option, so each of those has one pattern.
     fn nargs_pattern(action: &Action) -> &'static str {
         let option = !action.option_strings.is_empty();
         match (action.nargs, option) {
@@ -724,12 +726,10 @@ impl Parser {
             (Nargs::One, false) => "(-*A-*)",
             (Nargs::Optional, true) => "(A?)",
             (Nargs::Optional, false) => "(-*A?-*)",
-            (Nargs::Parser, true) => "(A[AO]*)",
-            (Nargs::Parser, false) => "(-*A[-AO]*)",
+            (Nargs::Parser, _) => "(-*A[-AO]*)",
             (Nargs::OneOrMore, true) => "(A[A]*)",
             (Nargs::OneOrMore, false) => "(-*A[A-]*)",
-            (Nargs::Zero, true) => "()",
-            (Nargs::Zero, false) => "(-*)",
+            (Nargs::Zero, _) => "()",
         }
     }
 
@@ -739,8 +739,9 @@ impl Parser {
             Some(c) => Ok(span_len(&c, 1)),
             None => Err(ArgError(
                 Some(action_name(action)),
+                // An optional value's pattern matches the empty string, so
+                // only these 2 can fail.
                 match action.nargs {
-                    Nargs::Optional => "expected at most one argument".into(),
                     Nargs::OneOrMore => "expected at least one argument".into(),
                     _ => "expected one argument".into(),
                 },
@@ -884,16 +885,14 @@ impl Parser {
                 ns.insert(action.dest.clone(), Value::List(items));
             }
             Kind::Parsers => {
-                let Value::List(values) = value else {
-                    unreachable!()
-                };
-                ns.insert(action.dest.clone(), Value::Str(values[0].clone()));
+                // `values` checked args[0] against the sub-command names.
+                ns.insert(action.dest.clone(), Value::Str(args[0].clone()));
                 let (_, _, sub) = self
                     .subparsers
                     .iter()
-                    .find(|(name, _, _)| *name == values[0])
+                    .find(|(name, _, _)| *name == args[0])
                     .expect("checked choice");
-                let (sub_ns, sub_extras) = sub.parse_known(&values[1..]).map_err(Fail::Exit)?;
+                let (sub_ns, sub_extras) = sub.parse_known(&args[1..]).map_err(Fail::Exit)?;
                 ns.extend(sub_ns);
                 extras.extend(sub_extras);
             }
@@ -1159,12 +1158,8 @@ fn sequence_ratio(a: &[u32], b: &[u32]) -> f64 {
             }
         }
     }
-    let total = a.len() + b.len();
-    if total == 0 {
-        1.0
-    } else {
-        2.0 * matches as f64 / total as f64
-    }
+    // Never 0 letters in all: an empty word equal to an empty choice is valid.
+    2.0 * matches as f64 / (a.len() + b.len()) as f64
 }
 
 fn longest_match(
