@@ -199,8 +199,14 @@ fn a_caller_holiday_mapping_replaces_the_built_in_holidays() {
 #[test]
 fn malformed_roll_requests_are_refused() {
     for (request, error) in [
-        (json!({"day": "2026-12-25", "when": 1}), "unknown roll field: \"when\""),
-        (json!({"day": "2026-12-25", "holidays": []}), "holidays must be an object"),
+        (
+            json!({"day": "2026-12-25", "when": 1}),
+            "unknown roll field: \"when\"",
+        ),
+        (
+            json!({"day": "2026-12-25", "holidays": []}),
+            "holidays must be an object",
+        ),
         (
             json!({"day": "2026-12-25", "holidays": {"2026-12-25": 1}}),
             "holiday name must be text",

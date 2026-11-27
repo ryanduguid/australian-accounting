@@ -27,7 +27,9 @@ fn run(args: &[&str], stdin: &[u8]) -> Output {
 }
 
 fn text(bytes: &[u8]) -> String {
-    String::from_utf8(bytes.to_vec()).unwrap().replace("\r\n", "\n")
+    String::from_utf8(bytes.to_vec())
+        .unwrap()
+        .replace("\r\n", "\n")
 }
 
 #[test]
@@ -57,8 +59,7 @@ fn the_tax_engine_names_its_version_and_gives_usage_for_an_unknown_command() {
     assert_eq!(usage.status.code(), Some(2));
     assert!(usage.stdout.is_empty());
     assert!(
-        text(&usage.stderr)
-            .starts_with("usage: australian-tax-calculators COMMAND < input.json\n")
+        text(&usage.stderr).starts_with("usage: australian-tax-calculators COMMAND < input.json\n")
     );
 }
 
@@ -73,7 +74,20 @@ fn refusal_json_prints_a_result_and_codes_an_oversized_input() {
     let result: Value = serde_json::from_slice(&ok.stdout).unwrap();
     assert!(result.is_object());
     assert_ne!(result.get("ok"), Some(&Value::Bool(false)));
-    let large = run(&["tax", "gst", "--refusal-json"], &vec![b' '; (8 << 20) + 1]);
+    for numbers in [
+        br#"{"amount": 1.5, "gst_inclusive": true, "scope_confirmed": true, "year": "2025-26"}"#
+            .as_slice(),
+        br#"{"amount": "1100", "gst_inclusive": true, "scope_confirmed": true, "year": 2025}"#,
+    ] {
+        let refused = run(&["tax", "gst", "--refusal-json"], numbers);
+        assert_eq!(refused.status.code(), Some(2));
+        let refusal: Value = serde_json::from_slice(&refused.stdout).unwrap();
+        assert_eq!(refusal["ok"], false);
+    }
+    let large = run(
+        &["tax", "gst", "--refusal-json"],
+        &vec![b' '; (8 << 20) + 1],
+    );
     assert_eq!(large.status.code(), Some(2));
     let refusal: Value = serde_json::from_slice(&large.stdout).unwrap();
     assert_eq!(refusal["code"], "input.too_large");
@@ -122,7 +136,9 @@ fn a_failed_write_exits_120_with_pythons_message_or_1_elsewhere() {
     );
     assert_eq!(to_full(&["tax", "--api-help"], true).status.code(), Some(1));
     assert_eq!(
-        to_full(&["benchmarks", "no-such-command"], false).status.code(),
+        to_full(&["benchmarks", "no-such-command"], false)
+            .status
+            .code(),
         Some(120)
     );
     assert_eq!(

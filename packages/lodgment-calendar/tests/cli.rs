@@ -111,7 +111,7 @@ fn duplicate_fields_are_found_past_negative_fractional_and_null_values() {
     assert!(output.stdout.is_empty());
     assert_eq!(
         String::from_utf8(output.stderr).unwrap(),
-        "error: duplicate JSON field: \"a\" at line 1 column 52\n"
+        "error: invalid JSON: duplicate JSON field: \"a\" at line 1 column 47\n"
     );
 }
 
@@ -135,7 +135,10 @@ fn an_unreadable_input_stream_is_reported_and_refused() {
     assert_eq!(output.status.code(), Some(2));
     assert!(output.stdout.is_empty());
     let err = String::from_utf8(output.stderr).unwrap();
-    assert!(err.starts_with("error: ") && err.contains("directory"), "{err}");
+    assert!(
+        err.starts_with("error: ") && err.contains("directory"),
+        "{err}"
+    );
 }
 
 #[cfg(target_os = "linux")]
