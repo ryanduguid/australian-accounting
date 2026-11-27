@@ -324,25 +324,15 @@ struct Prepared {
     sends: Vec<Vec<u8>>,
 }
 
-/// `urllib.request.unwrap(url)`.
-fn unwrap(url: &str) -> &str {
-    let mut url = py::strip(url);
-    if url.starts_with('<') && url.ends_with('>') && url.len() >= 2 {
-        url = py::strip(&url[1..url.len() - 1]);
-    }
-    if let Some(rest) = url.strip_prefix("URL:") {
-        url = py::strip(rest);
-    }
-    url
-}
-
-/// `_splittype`: `([^/:]+):(.*)`.
+/// `_splittype`: `([^/:]+):(.*)` after `urllib.request.unwrap(url)`, for a URL
+/// `check_url` passed. `unwrap` strips the URL and then an enclosing `<...>`
+/// and a `URL:` prefix, but `urlsplit` finds no host behind `<` and reads
+/// `URL:` as the refused scheme `url`. A passed URL has an `http` or `https`
+/// scheme, so its first `:` or `/` is the `:` after the scheme, with any
+/// leading C0 character, tab or newline urlsplit dropped still before it.
 fn split_type(url: &str) -> Option<(String, &str)> {
-    let colon = url.find([':', '/'])?;
-    if colon == 0 || !url[colon..].starts_with(':') {
-        return None;
-    }
-    Some((lower(&url[..colon]), &url[colon + 1..]))
+    let (scheme, rest) = url.split_once(':')?;
+    Some((lower(scheme), rest))
 }
 
 /// `_splithost`: `//([^/#?]*)(.*)`, the path given a leading `/`.
@@ -432,7 +422,7 @@ fn header_line(name: &str, value: &str) -> Option<Vec<u8>> {
 /// `http.client`'s `putrequest`, `putheader` and `endheaders`: where to
 /// connect and what to send, or None where Python raised before connecting.
 fn prepare(call: &Call, headers: &[(String, String)]) -> Option<Prepared> {
-    let full = unwrap(call.url);
+    let full = py::strip(call.url);
     let full = full.rsplit_once('#').map_or(full, |(url, _)| url);
     let (scheme, rest) = split_type(full)?;
     let (host, selector) = split_host(rest);

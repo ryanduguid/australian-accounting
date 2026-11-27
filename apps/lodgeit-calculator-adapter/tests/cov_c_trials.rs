@@ -160,6 +160,34 @@ fn an_amount_given_as_a_list_reads_as_python_decimal_reads_a_tuple() {
     }
 }
 
+/// CPython 3.15.0 on win32 and on Linux: a sign or digit past 2**31 overflows
+/// Windows' 32-bit C long, but on a 64-bit long it is only out of range.
+#[test]
+fn a_list_amount_past_a_32_bit_c_long_overflows_only_on_windows() {
+    let sign = "ValueError: sign must be an integer with the value 0 or 1";
+    let digit = "ValueError: coefficient must be a tuple of digits";
+    let overflow = "OverflowError: Python int too large to convert to C long";
+    let past = |in_range: &'static str| if cfg!(windows) { overflow } else { in_range };
+    let cases = [
+        ("[2147483647, [1], 0]", sign),
+        ("[2147483648, [1], 0]", past(sign)),
+        ("[-2147483649, [1], 0]", past(sign)),
+        ("[0, [2147483647], 0]", digit),
+        ("[0, [2147483648], 0]", past(digit)),
+        ("[0, [-2147483649], 0]", past(digit)),
+    ];
+    for (given, expected) in cases {
+        let error = with_field("amalgamated_base", json(given))
+            .err()
+            .expect("refused");
+        assert_eq!(
+            format!("{}: {}", error.class, text(&error.text)),
+            expected,
+            "Decimal({given})"
+        );
+    }
+}
+
 #[test]
 fn a_field_of_the_wrong_type_names_what_it_should_be() {
     let cases = [
