@@ -244,11 +244,7 @@ fn free_area(r: &Rates) -> Result<Decimal> {
     let rate = r.partner_mbr.add(&r.partner_energy.div(&int(26))?)?;
     let cut_out = int(256).add(&rate.sub(&int(53))?.div(&super::d("0.6"))?)?;
     let down = cut_out.quantize(0, Rounding::Down)?;
-    Ok(if down.lt(&cut_out)? {
-        down.add(&int(1))?
-    } else {
-        down
-    })
+    Ok(down.add(&int(i64::from(down.lt(&cut_out)?)))?)
 }
 
 fn working(
@@ -287,12 +283,8 @@ fn working(
         }
     }
     let reduction = income_reduction(&mut steps, carer, &income)?;
-    steps.push(rate_step(
-        status,
-        &max_rate,
-        &partner_reduction,
-        &reduction,
-    )?);
+    let pushed = rate_step(status, &max_rate, &partner_reduction, &reduction);
+    steps.push(pushed?);
     Ok(steps)
 }
 

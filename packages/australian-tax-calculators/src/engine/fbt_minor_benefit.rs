@@ -258,12 +258,13 @@ pub fn fbt_minor_benefit_check(args: &MinorBenefitArgs) -> Result<Value> {
         .collect();
     let (exempt, reason) = screen(!failing.is_empty(), &criteria);
     let rates = vec![rate("minor_benefit_threshold", "300")];
-    let mut out = result(
+    let out = result(
         KIND,
         &period,
         vec![("notional_taxable_value", value)],
         rates,
-    )?;
+    );
+    let mut out = out?;
     out["exempt"] = exempt.clone();
     out["screen"] = json!(reason.split(':').next().expect("a verdict"));
     out["reason"] = json!(reason);

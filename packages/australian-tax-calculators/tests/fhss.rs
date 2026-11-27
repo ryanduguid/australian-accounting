@@ -432,3 +432,86 @@ fn refusals() {
     short["determination"] = json!({"concessional": "1"});
     assert_eq!(code(&short), "input.amount_invalid");
 }
+
+/// A deduction that reaches part of a personal contribution splits it: the
+/// undeducted part stays non-concessional and the rest is concessional.
+#[test]
+fn a_deduction_reaching_part_of_a_contribution_splits_it() {
+    let list: Vec<Value> = (0..25)
+        .map(|i| json!({"date": ymd(2018, 186 + 14 * i), "amount": "1000", "kind": "personal"}))
+        .collect();
+    let mut input = estimate(list, "2019-07-15", "2019-07-15");
+    input["personal_deductions"] = json!([{"financial_year": "2018-19", "amount": "14500"}]);
+    let r = run(&input);
+    assert_eq!(years(&r), vec![year("2018-19", "4500", "10500")]);
+    assert_eq!(r["amounts"]["concessional_component"], "3825.00");
+    let rows = r["contributions"].as_array().unwrap();
+    assert_eq!(rows.len(), 26);
+    assert_eq!(rows[10]["date"], rows[11]["date"]);
+    assert_eq!(rows[10]["treated_as"], "non_concessional");
+    assert_eq!(rows[11]["treated_as"], "concessional");
+}
+
+/// A 2017-18 contribution earns from 1 July 2017 (s 138-40(3)(a)); later
+/// ones from the first day of the month they were made.
+#[test]
+fn a_2017_18_contribution_earns_from_1_july_2017() {
+    let list = vec![
+        json!({"date": "2017-08-15", "amount": "1000", "kind": "personal"}),
+        json!({"date": "2018-08-15", "amount": "1000", "kind": "personal"}),
+    ];
+    let r = run(&estimate(list, "2019-07-15", "2019-07-15"));
+    let rows = r["contributions"].as_array().unwrap();
+    assert_eq!(rows[0]["earnings_from"], "2017-07-01");
+    assert_eq!(rows[1]["earnings_from"], "2018-08-01");
+}
+
+#[test]
+fn malformed_contributions_deductions_and_determinations_are_refused() {
+    let ok = || {
+        estimate(
+            monthly((2023, 7), 3, "1000", "employer_voluntary"),
+            "2024-08-01",
+            "2024-08-01",
+        )
+    };
+    let with = |key: &str, value: Value| {
+        let mut input = ok();
+        input[key] = value;
+        input
+    };
+    let mut not_object = stated("1", "1", "1");
+    not_object["determination"] = json!("42500");
+    let twice = json!([{"financial_year": "2023-24", "amount": "0"},
+                       {"financial_year": "2023-24", "amount": "0"}]);
+    let cases = [
+        with("contributions", json!("monthly")),
+        with("contributions", json!([1])),
+        with(
+            "contributions",
+            json!([{"date": "15/01/2024", "amount": "1", "kind": "personal"}]),
+        ),
+        with(
+            "contributions",
+            json!([{"amount": "1", "kind": "personal"}]),
+        ),
+        with("personal_deductions", json!("none")),
+        with("personal_deductions", json!([1])),
+        with("personal_deductions", twice),
+        not_object,
+    ];
+    let got: Vec<&str> = cases.iter().map(code).collect();
+    assert_eq!(
+        got,
+        [
+            "fhss.contributions_invalid",
+            "fhss.contributions_invalid",
+            "input.date_invalid",
+            "input.date_invalid",
+            "fhss.deductions_invalid",
+            "fhss.deductions_invalid",
+            "fhss.deductions_invalid",
+            "fhss.determination_invalid",
+        ]
+    );
+}

@@ -414,6 +414,23 @@ fn new_south_wales_cites_its_sources_and_their_dates() {
     assert_eq!(r["rates"]["days_in_year"], "365");
 }
 
+/// New South Wales is taken on the actual-wages method only: the input
+/// description names it, and no longer says nsw is refused.
+#[test]
+fn new_south_wales_is_described_as_the_actual_wages_method_only() {
+    let units = australian_tax_calculators::metadata::input_units("payroll_tax_monthly");
+    let (_, jurisdiction) = units
+        .iter()
+        .find(|(name, _)| *name == "jurisdiction")
+        .unwrap();
+    assert!(jurisdiction.starts_with("nsw, vic,"), "{jurisdiction}");
+    assert!(
+        jurisdiction.contains("actual-wages method of Sch 2 cll 2 and 3 only"),
+        "{jurisdiction}"
+    );
+    assert!(!jurisdiction.contains("nsw is refused"), "{jurisdiction}");
+}
+
 /// What the Act's monthly provisions do not settle stays refused.
 #[test]
 fn new_south_wales_refuses_interstate_wages_and_june() {

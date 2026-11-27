@@ -421,12 +421,13 @@ fn worked(
     buyer: Buyer,
     residential: bool,
 ) -> Result<(Vec<Step>, Rates)> {
-    let (general, mut rates) = general_step(
+    let stepped = general_step(
         place,
         ("general_duty", ""),
         ("dutiable_value", value),
         residential,
-    )?;
+    );
+    let (general, mut rates) = stepped?;
     let scheme = match buyer {
         Buyer::General => {
             let duty = step(

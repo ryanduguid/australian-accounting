@@ -4,13 +4,12 @@
 use std::cmp::Ordering;
 
 use num_bigint::BigInt;
-use num_traits::Zero;
 
 use crate::decimal::{Conversion, Signal};
 use crate::py;
 use crate::pyjson::{Json, PyStr};
 use crate::pyos::OsError;
-use crate::pyvalue::{self, Key, item_eq, repr, type_name};
+use crate::pyvalue::{self, Key, item_eq, type_name};
 
 /// Text as Python's `str` holds it.
 pub(crate) type S = Vec<u32>;
@@ -84,85 +83,9 @@ pub(crate) fn strip(text: &[u32]) -> &[u32] {
     &text[start..end]
 }
 
-/// `re.sub(r"\s+", " ", text).strip()`.
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn norm(text: &[u32]) -> S {
-    let mut out = Vec::with_capacity(text.len());
-    let mut in_space = false;
-    for &cp in text {
-        if is_space(cp) {
-            if !in_space {
-                out.push(u32::from(' '));
-            }
-            in_space = true;
-        } else {
-            out.push(cp);
-            in_space = false;
-        }
-    }
-    strip(&out).to_vec()
-}
-
-/// `re.sub(r"[^\S\n\t]", " ", text)`.
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn plain_spaces(text: &[u32]) -> S {
-    text.iter()
-        .map(|&cp| {
-            if is_space(cp) && cp != 10 && cp != 9 {
-                32
-            } else {
-                cp
-            }
-        })
-        .collect()
-}
-
 /// `needle in haystack` for strs.
 pub(crate) fn contains(haystack: &[u32], needle: &[u32]) -> bool {
     needle.is_empty() || haystack.windows(needle.len()).any(|w| w == needle)
-}
-
-/// `str.splitlines()`.
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn splitlines(text: &[u32]) -> Vec<&[u32]> {
-    let mut lines = Vec::new();
-    let mut start = 0;
-    let mut i = 0;
-    while i < text.len() {
-        let cp = text[i];
-        if matches!(
-            cp,
-            10 | 11 | 12 | 13 | 0x1c | 0x1d | 0x1e | 0x85 | 0x2028 | 0x2029
-        ) {
-            lines.push(&text[start..i]);
-            i += if cp == 13 && text.get(i + 1) == Some(&10) {
-                2
-            } else {
-                1
-            };
-            start = i;
-        } else {
-            i += 1;
-        }
-    }
-    if start < text.len() {
-        lines.push(&text[start..]);
-    }
-    lines
-}
-
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn points_of(value: &PyStr) -> S {
-    value.code_points()
-}
-
-/// `int(digits)` for a run of Unicode decimal digits.
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn int_of(digits: &[u32]) -> BigInt {
-    digits
-        .iter()
-        .filter_map(|&cp| char::from_u32(cp).and_then(py::decimal_value))
-        .fold(BigInt::zero(), |n, d| n * 10 + d)
 }
 
 /// A Python exception: its class, qualified as a traceback names it, its
@@ -248,21 +171,40 @@ impl Exc {
     pub(crate) fn is_any(&self, bases: &[&str]) -> bool {
         bases.iter().any(|base| self.is(base))
     }
-
-    /// `type(self).__name__`.
-    #[expect(dead_code, reason = "used once later gates port its callers")]
-    pub(crate) fn name(&self) -> &'static str {
-        self.class.rsplit('.').next().unwrap_or(self.class)
-    }
 }
 
 pub(crate) fn type_error(text: &str) -> Exc {
     Exc::msg("TypeError", text)
 }
 
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn value_error(text: S) -> Exc {
-    Exc::new("ValueError", text)
+/// How a `json.loads` call with no hooks failed, as an `except
+/// json.JSONDecodeError` clause sees it.
+pub(crate) enum LoadsError {
+    /// `json.JSONDecodeError`, which the clause catches: its message.
+    Decode(String),
+    /// Any other exception, which escapes the clause.
+    Other(Exc),
+}
+
+/// `pyjson`'s error for a `json.loads` with no hooks: the digit limit's plain
+/// `ValueError` and a `RecursionError` escape. `Hook` and `Duplicate` come
+/// only from a parse hook, which such a call has none of; either would be
+/// the `ValueError` a hook raises.
+pub(crate) fn loads_error(error: crate::pyjson::DecodeError) -> LoadsError {
+    use crate::pyjson::{DecodeError, recursion_message};
+    match error {
+        DecodeError::Invalid(m) if m.starts_with("Exceeds the limit") => {
+            LoadsError::Other(Exc::msg("ValueError", &m))
+        }
+        DecodeError::Invalid(m) => LoadsError::Decode(m),
+        DecodeError::Recursion(kind) => {
+            LoadsError::Other(Exc::msg("RecursionError", &recursion_message(kind)))
+        }
+        DecodeError::Hook(m) => LoadsError::Other(Exc::msg("ValueError", &m)),
+        DecodeError::Duplicate => {
+            LoadsError::Other(Exc::msg("ValueError", "duplicate JSON object member"))
+        }
+    }
 }
 
 pub(crate) fn key_error(key: &str) -> Exc {
@@ -306,12 +248,6 @@ pub(crate) fn getitem<'a>(value: &'a Json, key: &str) -> R<&'a Json> {
     }
 }
 
-/// `key in value` for a dict.
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn has(value: &Json, key: &str) -> bool {
-    value.get(key).is_some()
-}
-
 /// `value.get(key)`, which only a dict has.
 pub(crate) fn get_attr<'a>(value: &'a Json, key: &str) -> R<Option<&'a Json>> {
     match value {
@@ -344,26 +280,6 @@ pub(crate) fn hash_key(value: &Json, container: &str) -> R<Key> {
             "cannot use '{t}' as a {container} (unhashable type: '{t}')"
         ))
     })
-}
-
-/// `hash((a, b))` as a set element.
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn tuple_key(items: &[&Json]) -> R<Key> {
-    let mut keys = Vec::new();
-    for item in items {
-        keys.push(pyvalue::key(item).map_err(|_| {
-            type_error(&format!(
-                "cannot use 'tuple' as a set element (unhashable type: '{}')",
-                type_name(item)
-            ))
-        })?);
-    }
-    Ok(Key::Tuple(keys))
-}
-
-#[expect(dead_code, reason = "used once later gates port its callers")]
-pub(crate) fn repr_s(value: &Json) -> S {
-    pts(&repr(value))
 }
 
 pub(crate) enum Num {
@@ -448,15 +364,15 @@ pub(crate) fn sorted_set(values: Vec<Json>) -> R<Vec<Json>> {
     if unique.len() < 2 {
         return Ok(unique);
     }
+    // A set holds only hashable values (None, numbers, decimals and strs),
+    // and two of them compare only when both are int, bool or float or both
+    // are str. Once every neighbour compares, all of them do, so the sort
+    // below cannot fail.
     for pair in unique.windows(2) {
         py_compare(&pair[1], &pair[0], "<")?;
     }
-    let mut error = None;
     unique.sort_by(|a, b| {
-        if py_compare(a, b, "<").unwrap_or_else(|e| {
-            error.get_or_insert(e);
-            false
-        }) {
+        if py_compare(a, b, "<").unwrap_or(false) {
             Ordering::Less
         } else if py_compare(b, a, "<").unwrap_or(false) {
             Ordering::Greater
@@ -464,10 +380,7 @@ pub(crate) fn sorted_set(values: Vec<Json>) -> R<Vec<Json>> {
             Ordering::Equal
         }
     });
-    match error {
-        Some(e) => Err(e),
-        None => Ok(unique),
-    }
+    Ok(unique)
 }
 
 /// `sorted(values)`: stable, failing with the `TypeError` of the first
@@ -532,4 +445,294 @@ pub(crate) fn py_sorted(mut a: Vec<Json>) -> R<Vec<Json>> {
         a.insert(low, item);
     }
     Ok(a)
+}
+
+#[cfg(test)]
+mod tests {
+    //! Expected values are CPython 3.15's for the same JSON decoded by
+    //! `json.loads`: `sorted(...)`, `sorted(set(...))`, the comparison
+    //! operators, `value["k"]`, `value.get("k")`, `{value: 1}`, `issubclass`
+    //! and the `decimal` signals' `str()`.
+    use super::*;
+    use crate::pyvalue::repr;
+
+    fn json(text: &str) -> Json {
+        crate::pyjson::loads(text).expect("a test value")
+    }
+
+    fn items(text: &str) -> Vec<Json> {
+        iterate(&json(text)).expect("a test list")
+    }
+
+    fn text(points: &[u32]) -> String {
+        points.iter().filter_map(|&cp| char::from_u32(cp)).collect()
+    }
+
+    fn shown(result: R<Vec<Json>>) -> String {
+        match result {
+            Ok(values) => {
+                let parts: Vec<String> = values.iter().map(repr).collect();
+                format!("[{}]", parts.join(", "))
+            }
+            Err(e) => format!("{}: {}", e.class, text(&e.text)),
+        }
+    }
+
+    fn error<T: std::fmt::Debug>(result: R<T>) -> String {
+        let e = result.unwrap_err();
+        format!("{}: {}", e.class, text(&e.text))
+    }
+
+    #[test]
+    fn sorted_follows_cpythons_runs_and_insertions() {
+        let cases = [
+            ("[]", "[]"),
+            ("[1]", "[1]"),
+            ("[1, 2, 3]", "[1, 2, 3]"),
+            ("[3, 2, 1]", "[1, 2, 3]"),
+            ("[3, 2, 2.0, 1]", "[1, 2, 2.0, 3]"),
+            ("[3, 2, 1, 4, 5]", "[1, 2, 3, 4, 5]"),
+            ("[3, 1, 1.0, 2]", "[1, 1.0, 2, 3]"),
+            ("[2, 1, 1.0, 0, 5, 4]", "[0, 1, 1.0, 2, 4, 5]"),
+            ("[[1, 2], [1], [0, 5]]", "[[0, 5], [1], [1, 2]]"),
+            ("[1.5, 1, 2, true]", "[1, True, 1.5, 2]"),
+            ("[1, NaN, 0]", "[1, nan, 0]"),
+            ("[1, 1.0, 0]", "[0, 1, 1.0]"),
+        ];
+        for (given, expected) in cases {
+            assert_eq!(shown(py_sorted(items(given))), expected, "sorted({given})");
+        }
+    }
+
+    #[test]
+    fn sorted_raises_the_first_comparison_it_cannot_make() {
+        let cases = [
+            ("[3, \"a\"]", "'str' and 'int'"),
+            ("[1, \"a\"]", "'str' and 'int'"),
+            ("[\"b\", \"a\", 1]", "'int' and 'str'"),
+        ];
+        for (given, pair) in cases {
+            assert_eq!(
+                shown(py_sorted(items(given))),
+                format!("TypeError: '<' not supported between instances of {pair}"),
+                "sorted({given})"
+            );
+        }
+    }
+
+    #[test]
+    fn sorted_set_drops_equal_values_and_refuses_what_a_set_cannot_hold() {
+        assert_eq!(shown(sorted_set(items("[2, 1, 2, 1.0]"))), "[1, 2]");
+        assert_eq!(shown(sorted_set(items("[3]"))), "[3]");
+        assert_eq!(
+            shown(sorted_set(items("[1, \"a\"]"))),
+            "TypeError: '<' not supported between instances of 'str' and 'int'"
+        );
+        assert_eq!(
+            shown(sorted_set(items("[[1]]"))),
+            "TypeError: cannot use 'list' as a set element (unhashable type: 'list')"
+        );
+        // A NaN orders against nothing; Python's set order then decides, and
+        // the port keeps the order the values came in.
+        assert_eq!(shown(sorted_set(items("[NaN, 1]"))), "[nan, 1]");
+        assert_eq!(shown(sorted_set(items("[1, NaN]"))), "[1, nan]");
+    }
+
+    #[test]
+    fn comparisons_are_pythons_across_ints_floats_strs_and_lists() {
+        let cases = [
+            ("1", "1.5", "<", true),
+            ("2", "1.5", "<", false),
+            ("1", "Infinity", "<", true),
+            ("1", "-Infinity", "<", false),
+            ("1", "NaN", "<=", false),
+            ("1.5", "1", "<", false),
+            ("1.5", "2.5", "<", true),
+            ("1", "1.0", "<=", true),
+            ("1", "1.0", "<", false),
+            ("[1, 2]", "[1, 3]", "<", true),
+            ("[1]", "[1, 2]", "<=", true),
+            ("[2]", "[1, 2]", "<", false),
+            ("\"a\"", "\"b\"", "<", true),
+        ];
+        for (a, b, op, expected) in cases {
+            assert_eq!(
+                py_compare(&json(a), &json(b), op).unwrap(),
+                expected,
+                "{a} {op} {b}"
+            );
+        }
+    }
+
+    #[test]
+    fn comparisons_python_cannot_make_raise_its_type_error() {
+        let refused = [
+            (
+                "1",
+                "\"a\"",
+                "<=",
+                "'<=' not supported between instances of 'int' and 'str'",
+            ),
+            (
+                "null",
+                "1",
+                "<",
+                "'<' not supported between instances of 'NoneType' and 'int'",
+            ),
+            (
+                "{}",
+                "{}",
+                "<",
+                "'<' not supported between instances of 'dict' and 'dict'",
+            ),
+        ];
+        for (a, b, op, expected) in refused {
+            assert_eq!(
+                error(py_compare(&json(a), &json(b), op)),
+                format!("TypeError: {expected}"),
+                "{a} {op} {b}"
+            );
+        }
+    }
+
+    #[test]
+    fn indexing_and_get_refuse_what_python_refuses() {
+        for (value, name) in [
+            ("1", "int"),
+            ("null", "NoneType"),
+            ("1.5", "float"),
+            ("true", "bool"),
+        ] {
+            assert_eq!(
+                error(getitem(&json(value), "k")),
+                format!("TypeError: '{name}' object is not subscriptable")
+            );
+        }
+        assert_eq!(error(getitem(&json("{}"), "k")), "KeyError: 'k'");
+        for (value, name) in [
+            ("[]", "list"),
+            ("1", "int"),
+            ("\"s\"", "str"),
+            ("null", "NoneType"),
+        ] {
+            assert_eq!(
+                error(get_attr(&json(value), "k")),
+                format!("AttributeError: '{name}' object has no attribute 'get'")
+            );
+        }
+    }
+
+    #[test]
+    fn an_unhashable_key_names_its_container() {
+        for (value, name) in [("{}", "dict"), ("[1]", "list")] {
+            assert_eq!(
+                error(hash_key(&json(value), "dict key")),
+                format!("TypeError: cannot use '{name}' as a dict key (unhashable type: '{name}')")
+            );
+        }
+    }
+
+    #[test]
+    fn os_errors_and_their_subclasses_are_oserrors() {
+        for class in [
+            "FileNotFoundError",
+            "PermissionError",
+            "IsADirectoryError",
+            "NotADirectoryError",
+            "FileExistsError",
+            "BrokenPipeError",
+            "TimeoutError",
+        ] {
+            assert!(Exc::msg(class, "").is("OSError"), "{class}");
+        }
+        assert!(!Exc::msg("ValueError", "").is("OSError"));
+        let os = OsError {
+            kind: std::io::ErrorKind::NotFound,
+            text: "[Errno 2] No such file or directory: 'x'".into(),
+        };
+        assert_eq!(
+            error::<()>(Err(os_exc(&os))),
+            "FileNotFoundError: [Errno 2] No such file or directory: 'x'"
+        );
+    }
+
+    #[test]
+    fn decimal_signals_read_as_the_c_decimal_module_words_them() {
+        let cases = [
+            (
+                Signal::InvalidOperation,
+                "decimal.InvalidOperation: [<class 'decimal.InvalidOperation'>]",
+            ),
+            (
+                Signal::DivisionByZero,
+                "decimal.DivisionByZero: [<class 'decimal.DivisionByZero'>]",
+            ),
+            (
+                Signal::Overflow,
+                "decimal.Overflow: [<class 'decimal.Overflow'>]",
+            ),
+        ];
+        for (signal, expected) in cases {
+            assert_eq!(error::<()>(Err(decimal_signal(signal))), expected);
+        }
+        assert_eq!(
+            error::<()>(Err(conversion(Conversion::Syntax))),
+            "decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]"
+        );
+    }
+
+    #[test]
+    fn a_traceback_prints_each_note_on_its_own_line() {
+        let e = Exc::msg("ValueError", "x")
+            .note(pts("first"))
+            .note(pts("second"));
+        assert_eq!(
+            e.traceback(),
+            "Traceback (most recent call last):\nValueError: x\nfirst\nsecond\n"
+        );
+    }
+}
+
+#[cfg(test)]
+mod loads_error_tests {
+    use super::{LoadsError, loads_error, pts};
+    use crate::pyjson::{DecodeError, recursion_message};
+
+    /// `Ok(message)` when the clause catches the error, else the class and
+    /// message that escape.
+    fn caught(error: DecodeError) -> Result<String, (&'static str, Vec<u32>)> {
+        match loads_error(error) {
+            LoadsError::Decode(m) => Ok(m),
+            LoadsError::Other(exc) => Err((exc.class, exc.text)),
+        }
+    }
+
+    #[test]
+    fn only_a_decode_error_is_caught() {
+        assert_eq!(
+            caught(DecodeError::Invalid("Expecting value".into())),
+            Ok("Expecting value".to_owned())
+        );
+        let limit = "Exceeds the limit (4300 digits) for integer string conversion";
+        assert_eq!(
+            caught(DecodeError::Invalid(limit.into())),
+            Err(("ValueError", pts(limit)))
+        );
+        assert_eq!(
+            caught(DecodeError::Recursion("array")),
+            Err(("RecursionError", pts(&recursion_message("array"))))
+        );
+    }
+
+    #[test]
+    fn a_hook_error_escapes_as_a_value_error() {
+        assert_eq!(
+            caught(DecodeError::Hook("bad float".into())),
+            Err(("ValueError", pts("bad float")))
+        );
+        assert_eq!(
+            caught(DecodeError::Duplicate),
+            Err(("ValueError", pts("duplicate JSON object member")))
+        );
+    }
 }

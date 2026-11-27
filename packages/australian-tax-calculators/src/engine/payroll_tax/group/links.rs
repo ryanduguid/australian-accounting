@@ -18,6 +18,8 @@ pub(super) struct Person {
     pub(super) id: String,
     pub(super) taxable: Decimal,
     pub(super) interstate: Decimal,
+    /// Whether `interstate_wages` is given, even as "0.00" (Sch 1 cl 7).
+    pub(super) interstate_stated: bool,
     /// Whether the person carries on a business, where stated (s 67).
     pub(super) business: Option<bool>,
 }
@@ -95,6 +97,7 @@ fn person(item: &Value) -> Result<Person> {
         id: id.to_string(),
         taxable,
         interstate,
+        interstate_stated: item.get("interstate_wages").is_some(),
         business,
     })
 }

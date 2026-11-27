@@ -1,8 +1,7 @@
-//! The subset of Python 3.15's argparse that the builder-operator-loop port needed: positionals (one or
-//! optional), store, store_true and append options, int conversion, choices with close-match
-//! suggestions, required subparsers, abbreviations, help and usage text with argparse's colour
-//! theme and terminal width, and its error messages and exit codes. Formatting follows
-//! `HelpFormatter`; parsing follows `ArgumentParser._parse_known_args`.
+//! The subset of Python 3.15's argparse that `rates` needs: a raw description, required
+//! subcommands with close-match suggestions, store options, abbreviations, help and usage text
+//! with argparse's colour theme and terminal width, and its error messages and exit codes.
+//! Formatting follows `HelpFormatter`; parsing follows `ArgumentParser._parse_known_args`.
 use crate::argtheme::{self, Stream, Theme};
 use crate::pytext;
 use crate::textwrap::wrap;
@@ -12,28 +11,23 @@ use std::collections::BTreeMap;
 pub enum Value {
     None,
     Str(String),
-    Int(i64),
-    Bool(bool),
     List(Vec<String>),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Kind {
     Store,
-    StoreTrue,
-    Append,
     Help,
     Parsers,
 }
 
+/// Options take one argument (`Store`) or none (`Help`); the subcommand positional takes the
+/// rest (`nargs=PARSER`).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Nargs {
     One,
-    Optional,
     Zero,
     Parser,
-    /// `nargs="+"`.
-    OneOrMore,
 }
 
 #[derive(Clone, Debug)]
@@ -42,19 +36,15 @@ pub struct Action {
     pub dest: String,
     pub kind: Kind,
     pub nargs: Nargs,
-    pub required: bool,
     pub default: Value,
     pub choices: Option<Vec<String>>,
-    pub int: bool,
     pub help: Option<String>,
-    pub metavar: Option<String>,
 }
 
 pub struct Parser {
     pub prog: String,
+    /// `description=text, formatter_class=RawDescriptionHelpFormatter`: printed as written.
     pub description: Option<String>,
-    /// `formatter_class=RawDescriptionHelpFormatter`: the description as written.
-    pub raw_description: bool,
     pub actions: Vec<Action>,
     /// (name, help, parser) for the subparsers action, in add order.
     pub subparsers: Vec<(String, Option<String>, Parser)>,
@@ -62,29 +52,6 @@ pub struct Parser {
 
 /// Builder-style helpers mirroring `add_argument`.
 impl Action {
-    pub fn positional(dest: &str) -> Self {
-        Self {
-            option_strings: vec![],
-            dest: dest.into(),
-            kind: Kind::Store,
-            nargs: Nargs::One,
-            required: true,
-            default: Value::None,
-            choices: None,
-            int: false,
-            help: None,
-            metavar: None,
-        }
-    }
-    /// `nargs="?"` with a default.
-    pub fn optional_positional(dest: &str, default: Value) -> Self {
-        Self {
-            nargs: Nargs::Optional,
-            required: false,
-            default,
-            ..Self::positional(dest)
-        }
-    }
     pub fn option(flag: &str) -> Self {
         let dest = flag.trim_start_matches('-').replace('-', "_");
         Self {
@@ -92,56 +59,17 @@ impl Action {
             dest,
             kind: Kind::Store,
             nargs: Nargs::One,
-            required: false,
             default: Value::None,
             choices: None,
-            int: false,
             help: None,
-            metavar: None,
-        }
-    }
-    pub fn flag(flag: &str) -> Self {
-        Self {
-            kind: Kind::StoreTrue,
-            nargs: Nargs::Zero,
-            default: Value::Bool(false),
-            ..Self::option(flag)
-        }
-    }
-    pub fn append(flag: &str, default: Value) -> Self {
-        Self {
-            kind: Kind::Append,
-            default,
-            ..Self::option(flag)
         }
     }
     pub fn default(mut self, value: Value) -> Self {
         self.default = value;
         self
     }
-    pub fn required(mut self) -> Self {
-        self.required = true;
-        self
-    }
-    pub fn int(mut self) -> Self {
-        self.int = true;
-        self
-    }
     pub fn help(mut self, text: &str) -> Self {
         self.help = Some(text.into());
-        self
-    }
-    /// `nargs="+"`.
-    pub fn one_or_more(mut self) -> Self {
-        self.nargs = Nargs::OneOrMore;
-        self
-    }
-    pub fn metavar(mut self, text: &str) -> Self {
-        self.metavar = Some(text.into());
-        self
-    }
-    pub fn choices(mut self, choices: &[&str]) -> Self {
-        self.choices = Some(choices.iter().map(|s| s.to_string()).collect());
         self
     }
     fn help_action() -> Self {
@@ -150,12 +78,9 @@ impl Action {
             dest: "help".into(),
             kind: Kind::Help,
             nargs: Nargs::Zero,
-            required: false,
             default: Value::None,
             choices: None,
-            int: false,
             help: Some("show this help message and exit".into()),
-            metavar: None,
         }
     }
 }
@@ -165,19 +90,13 @@ impl Parser {
         Self {
             prog: prog.into(),
             description: None,
-            raw_description: false,
             actions: vec![Action::help_action()],
             subparsers: vec![],
         }
     }
-    pub fn description(mut self, text: &str) -> Self {
-        self.description = Some(text.into());
-        self
-    }
     /// `description=text, formatter_class=RawDescriptionHelpFormatter`.
     pub fn raw_description(mut self, text: &str) -> Self {
         self.description = Some(text.into());
-        self.raw_description = true;
         self
     }
     pub fn arg(mut self, action: Action) -> Self {
@@ -191,12 +110,9 @@ impl Parser {
             dest: dest.into(),
             kind: Kind::Parsers,
             nargs: Nargs::Parser,
-            required: true,
             default: Value::None,
             choices: Some(vec![]),
-            int: false,
             help: None,
-            metavar: None,
         });
         self
     }
@@ -230,23 +146,6 @@ pub enum Exit {
     Error(String),
 }
 
-impl Exit {
-    /// Write the output and return the exit status.
-    pub fn report(self) -> i32 {
-        use std::io::Write;
-        match self {
-            Exit::Help(text) => {
-                let _ = std::io::stdout().write_all(text.as_bytes());
-                0
-            }
-            Exit::Error(text) => {
-                let _ = std::io::stderr().write_all(text.as_bytes());
-                2
-            }
-        }
-    }
-}
-
 // ---------------------------------------------------------------- formatting
 
 /// argparse's formatter width: `shutil.get_terminal_size().columns` minus 2.
@@ -270,26 +169,23 @@ fn is_long(option: &str) -> bool {
 }
 
 fn metavar(action: &Action, default: &str) -> String {
-    if let Some(metavar) = &action.metavar {
-        return metavar.clone();
-    }
     match &action.choices {
         Some(choices) => format!("{{{}}}", choices.join(",")),
         None => default.to_string(),
     }
 }
 
+/// The argument text after an option or for a positional; empty for an option that takes none.
 fn format_args(action: &Action, default: &str) -> String {
     let m = metavar(action, default);
     match action.nargs {
         Nargs::One => m,
-        Nargs::Optional => format!("[{m}]"),
         Nargs::Parser => format!("{m} ..."),
-        Nargs::OneOrMore => format!("{m} [{m} ...]"),
         Nargs::Zero => String::new(),
     }
 }
 
+/// The usage parts; every option is optional, so each is bracketed.
 fn usage_parts(p: &Parser, t: &Theme) -> (Vec<Part>, Vec<Part>) {
     let mut optionals = vec![];
     let mut positionals = vec![];
@@ -308,25 +204,22 @@ fn usage_parts(p: &Parser, t: &Theme) -> (Vec<Part>, Vec<Part>) {
         } else {
             t.summary_short_option
         };
-        let (plain, coloured) = if action.nargs == Nargs::Zero {
+        let args = format_args(action, &action.dest.to_uppercase());
+        let (plain, coloured) = if args.is_empty() {
             (option.clone(), format!("{colour}{option}{}", t.reset))
         } else {
-            let args = format_args(action, &action.dest.to_uppercase());
             (
                 format!("{option} {args}"),
                 format!("{colour}{option} {}{args}{}", t.summary_label, t.reset),
             )
         };
-        optionals.push(if action.required {
-            part(plain, coloured)
-        } else {
-            part(format!("[{plain}]"), format!("[{coloured}]"))
-        });
+        optionals.push(part(format!("[{plain}]"), format!("[{coloured}]")));
     }
     (optionals, positionals)
 }
 
-/// `HelpFormatter._format_usage` without the trailing blank line.
+/// `HelpFormatter._format_usage` without the trailing blank line. Every parser has its help
+/// option, so the usage always has at least one part.
 fn format_usage(p: &Parser, t: &Theme) -> String {
     let prefix = "usage: ";
     let (opt_parts, pos_parts) = usage_parts(p, t);
@@ -346,11 +239,7 @@ fn format_usage(p: &Parser, t: &Theme) -> String {
             .chain(&pos_parts)
             .map(|x| x.coloured.as_str())
             .collect();
-        if coloured.is_empty() {
-            String::new()
-        } else {
-            format!(" {}", coloured.join(" "))
-        }
+        format!(" {}", coloured.join(" "))
     } else {
         wrapped_usage(&p.prog, &opt_parts, &pos_parts, text_width)
     };
@@ -360,30 +249,20 @@ fn format_usage(p: &Parser, t: &Theme) -> String {
     )
 }
 
-/// The wrapped usage after the program name, as `_format_usage` lays it out.
+/// The wrapped usage after the program name, as `_format_usage` lays it out; `opt_parts`
+/// always holds the help option.
 fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width: usize) -> String {
     let prefix_len = "usage: ".len();
     let get_lines = |parts: &[Part], indent: &str, with_prefix: bool| {
         usage_lines(parts, indent, with_prefix.then_some(prefix_len), text_width)
     };
-    let prog_part = part(prog.to_string(), prog.to_string());
     if (prefix_len + pytext::py_len(prog)) as f64 <= 0.75 * text_width as f64 {
         let indent = " ".repeat(prefix_len + pytext::py_len(prog) + 1);
-        let lines = if !opt_parts.is_empty() {
-            let head: Vec<Part> = std::iter::once(prog_part)
-                .chain(opt_parts.iter().cloned())
-                .collect();
-            let mut lines = get_lines(&head, &indent, true);
-            lines.extend(get_lines(pos_parts, &indent, false));
-            lines
-        } else if !pos_parts.is_empty() {
-            let head: Vec<Part> = std::iter::once(prog_part)
-                .chain(pos_parts.iter().cloned())
-                .collect();
-            get_lines(&head, &indent, true)
-        } else {
-            vec![prog.to_string()]
-        };
+        let head: Vec<Part> = std::iter::once(part(prog.to_string(), prog.to_string()))
+            .chain(opt_parts.iter().cloned())
+            .collect();
+        let mut lines = get_lines(&head, &indent, true);
+        lines.extend(get_lines(pos_parts, &indent, false));
         return lines.join("\n")[prog.len()..].to_string();
     }
     let indent = " ".repeat(prefix_len);
@@ -444,10 +323,10 @@ fn invocation(action: &Action, t: &Theme) -> Part {
         .map(colour)
         .collect::<Vec<_>>()
         .join(", ");
-    if action.nargs == Nargs::Zero {
+    let args = format_args(action, &action.dest.to_uppercase());
+    if args.is_empty() {
         return part(plain_options, coloured_options);
     }
-    let args = format_args(action, &action.dest.to_uppercase());
     part(
         format!("{plain_options} {args}"),
         format!("{coloured_options} {}{args}{}", t.label, t.reset),
@@ -487,6 +366,8 @@ fn normalise(text: &str) -> String {
         .join(" ")
 }
 
+/// The help rows. A help text that is empty or only whitespace shows the header alone
+/// (argparse prints a blank line after a whitespace-only one; no help text here is either).
 fn format_rows(rows: &[Row], action_max: usize) -> String {
     let width = width();
     let max_help_position = 24.min(width.saturating_sub(20).max(4));
@@ -496,13 +377,8 @@ fn format_rows(rows: &[Row], action_max: usize) -> String {
     for (indent, header, help) in rows {
         let action_width = help_position.saturating_sub(indent + 2);
         let pad = " ".repeat(*indent);
-        let help = help.as_deref().filter(|h| !h.is_empty());
-        let Some(text) = help else {
-            out.push_str(&format!(
-                "{pad}{}
-",
-                header.coloured
-            ));
+        let Some(text) = help.as_deref().filter(|h| !pytext::strip(h).is_empty()) else {
+            out.push_str(&format!("{pad}{}\n", header.coloured));
             continue;
         };
         let indent_first = if pytext::py_len(&header.plain) <= action_width {
@@ -510,17 +386,9 @@ fn format_rows(rows: &[Row], action_max: usize) -> String {
             out.push_str(&padded.replacen(&header.plain, &header.coloured, 1));
             0
         } else {
-            out.push_str(&format!(
-                "{pad}{}
-",
-                header.coloured
-            ));
+            out.push_str(&format!("{pad}{}\n", header.coloured));
             help_position
         };
-        if pytext::strip(text).is_empty() {
-            out.push('\n');
-            continue;
-        }
         let lines = wrap(&normalise(text), help_width);
         out.push_str(&format!("{}{}\n", " ".repeat(indent_first), lines[0]));
         for line in &lines[1..] {
@@ -532,17 +400,8 @@ fn format_rows(rows: &[Row], action_max: usize) -> String {
 
 pub fn format_help(p: &Parser, t: &Theme) -> String {
     let mut text = format!("{}\n\n", format_usage(p, t));
-    if let Some(description) = &p.description
-        && p.raw_description
-    {
-        text.push_str(&format!(
-            "{description}
-
-"
-        ));
-    } else if let Some(description) = &p.description {
-        let lines = wrap(&normalise(description), width().max(11));
-        text.push_str(&format!("{}\n\n", lines.join("\n")));
+    if let Some(description) = &p.description {
+        text.push_str(&format!("{description}\n\n"));
     }
     let positional = rows_for(p, true, t);
     let optional = rows_for(p, false, t);
@@ -570,13 +429,6 @@ pub fn format_help(p: &Parser, t: &Theme) -> String {
         text = text.replace("\n\n\n", "\n\n");
     }
     format!("{}\n", text.trim_matches('\n'))
-}
-
-impl Parser {
-    /// `parser.error(message)`: the usage and message for stderr, exit status 2.
-    pub fn error(&self, message: &str) -> Exit {
-        Exit::Error(error_text(self, message))
-    }
 }
 
 fn error_text(p: &Parser, message: &str) -> String {
@@ -627,10 +479,9 @@ impl From<ArgError> for Fail {
 /// option string, the separator and any explicit argument.
 type OptionTuple = (Option<usize>, String, Option<String>, Option<String>);
 
+/// `_negative_number_matcher` for an argument `parse_optional` has seen start with '-'.
 fn looks_like_negative_number(arg: &str) -> bool {
-    let Some(body) = arg.strip_prefix('-') else {
-        return false;
-    };
+    let body = &arg[1..];
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
     (!body.is_empty() && body.chars().all(digit))
         || body.split_once('.').is_some_and(|(int, frac)| {
@@ -700,6 +551,8 @@ impl Parser {
             let short: String = arg.chars().take(2).collect();
             let short_explicit: String = arg.chars().skip(2).collect();
             for (s, i) in map {
+                // argparse also matches a single-dash option longer than 2 characters by
+                // prefix; every single-dash option here is 2 characters long.
                 if *s == short {
                     result.push((
                         Some(*i),
@@ -707,45 +560,36 @@ impl Parser {
                         Some(String::new()),
                         Some(short_explicit.clone()),
                     ));
-                } else if s.starts_with(prefix) {
-                    result.push((Some(*i), s.clone(), sep.clone(), explicit.clone()));
                 }
             }
         }
         result
     }
 
+    /// `_get_nargs_pattern`: options take one argument or none, and the only positional is
+    /// the subcommand.
     fn nargs_pattern(action: &Action) -> &'static str {
-        let option = !action.option_strings.is_empty();
-        match (action.nargs, option) {
-            (Nargs::One, true) => "([A])",
-            (Nargs::One, false) => "(-*A-*)",
-            (Nargs::Optional, true) => "(A?)",
-            (Nargs::Optional, false) => "(-*A?-*)",
-            (Nargs::Parser, true) => "(A[AO]*)",
-            (Nargs::Parser, false) => "(-*A[-AO]*)",
-            (Nargs::OneOrMore, true) => "(A[A]*)",
-            (Nargs::OneOrMore, false) => "(-*A[A-]*)",
-            (Nargs::Zero, true) => "()",
-            (Nargs::Zero, false) => "(-*)",
+        match action.nargs {
+            Nargs::One => "([A])",
+            Nargs::Zero => "()",
+            Nargs::Parser => "(-*A[-AO]*)",
         }
     }
 
+    /// The arguments an option consumes; only a store option can find none.
     fn match_argument(action: &Action, pattern: &str) -> Result<usize, ArgError> {
         let re = crate::sre::compile_str(Self::nargs_pattern(action), 0);
         match re.match_start(&points(pattern)) {
             Some(c) => Ok(span_len(&c, 1)),
             None => Err(ArgError(
                 Some(action_name(action)),
-                match action.nargs {
-                    Nargs::Optional => "expected at most one argument".into(),
-                    Nargs::OneOrMore => "expected at least one argument".into(),
-                    _ => "expected one argument".into(),
-                },
+                "expected one argument".into(),
             )),
         }
     }
 
+    /// The arguments each leading positional consumes. The subcommand's pattern needs an
+    /// argument, so no count is ever 0.
     fn match_partial(actions: &[&Action], pattern: &str) -> Vec<usize> {
         for i in (1..=actions.len()).rev() {
             let joined: String = actions[..i]
@@ -754,50 +598,17 @@ impl Parser {
                 .collect();
             let re = crate::sre::compile_str(&joined, 0);
             if let Some(c) = re.match_start(&points(pattern)) {
-                let mut result: Vec<usize> = (1..=re.groups).map(|g| span_len(&c, g)).collect();
-                let end = c.end();
-                if end < pattern.len() && pattern.as_bytes()[end] == b'O' {
-                    while result.last() == Some(&0) {
-                        result.pop();
-                    }
-                }
-                return result;
+                return (1..=re.groups).map(|g| span_len(&c, g)).collect();
             }
         }
         vec![]
     }
 
-    fn convert(action: &Action, arg: &str) -> Result<Value, ArgError> {
-        if action.int {
-            return match crate::termsize::py_int(arg) {
-                Some(n) => Ok(Value::Int(n)),
-                None => Err(ArgError(
-                    Some(action_name(action)),
-                    format!("invalid int value: {}", pytext::repr_os(arg)),
-                )),
-            };
-        }
-        Ok(Value::Str(arg.to_string()))
-    }
-
+    /// The subcommand name must be one of the choices.
     fn check(action: &Action, value: &str) -> Result<(), ArgError> {
-        let Some(choices) = &action.choices else {
-            return Ok(());
-        };
+        let choices = action.choices.as_deref().unwrap_or_default();
         if choices.iter().any(|c| c == value) {
             return Ok(());
-        }
-        // Integer choices compare the converted value, with no suggestion.
-        if action.int {
-            let quoted: Vec<String> = choices.iter().map(|c| pytext::repr(c)).collect();
-            return Err(ArgError(
-                Some(action_name(action)),
-                format!(
-                    "invalid choice: {} (choose from {})",
-                    pytext::repr(value),
-                    quoted.join(", ")
-                ),
-            ));
         }
         let quoted: Vec<String> = choices.iter().map(|c| pytext::repr(c)).collect();
         let names: Vec<&str> = choices.iter().map(String::as_str).collect();
@@ -814,39 +625,6 @@ impl Parser {
         ))
     }
 
-    fn values(action: &Action, args: &[String]) -> Result<Value, ArgError> {
-        if args.is_empty() && action.nargs == Nargs::Optional {
-            return match &action.default {
-                Value::Str(s) => Self::convert(action, s),
-                other => Ok(other.clone()),
-            };
-        }
-        if args.len() == 1 && matches!(action.nargs, Nargs::One | Nargs::Optional) {
-            let value = Self::convert(action, &args[0])?;
-            match &value {
-                Value::Int(n) => Self::check(action, &n.to_string())?,
-                _ => Self::check(action, &args[0])?,
-            }
-            return Ok(value);
-        }
-        if action.nargs == Nargs::OneOrMore {
-            let values = args
-                .iter()
-                .map(|a| Self::convert(action, a))
-                .collect::<Result<Vec<_>, _>>()?;
-            for arg in args {
-                Self::check(action, arg)?;
-            }
-            drop(values);
-            return Ok(Value::List(args.to_vec()));
-        }
-        if action.nargs == Nargs::Parser {
-            Self::check(action, &args[0])?;
-            return Ok(Value::List(args.to_vec()));
-        }
-        Ok(Value::List(args.to_vec()))
-    }
-
     fn take(
         &self,
         index: usize,
@@ -857,7 +635,6 @@ impl Parser {
     ) -> Result<(), Fail> {
         seen.push(index);
         let action = &self.actions[index];
-        let value = Self::values(action, args)?;
         match action.kind {
             Kind::Help => {
                 return Err(Fail::Exit(Exit::Help(format_help(
@@ -865,33 +642,19 @@ impl Parser {
                     argtheme::theme(Stream::Stdout),
                 ))));
             }
+            // match_argument gave a store option exactly one argument.
             Kind::Store => {
-                ns.insert(action.dest.clone(), value);
-            }
-            Kind::StoreTrue => {
-                ns.insert(action.dest.clone(), Value::Bool(true));
-            }
-            Kind::Append => {
-                let mut items = match ns.get(&action.dest) {
-                    Some(Value::List(items)) => items.clone(),
-                    _ => vec![],
-                };
-                if let Value::Str(s) = value {
-                    items.push(s);
-                }
-                ns.insert(action.dest.clone(), Value::List(items));
+                ns.insert(action.dest.clone(), Value::Str(args[0].clone()));
             }
             Kind::Parsers => {
-                let Value::List(values) = value else {
-                    unreachable!()
-                };
-                ns.insert(action.dest.clone(), Value::Str(values[0].clone()));
+                Self::check(action, &args[0])?;
+                ns.insert(action.dest.clone(), Value::Str(args[0].clone()));
                 let (_, _, sub) = self
                     .subparsers
                     .iter()
-                    .find(|(name, _, _)| *name == values[0])
+                    .find(|(name, _, _)| *name == args[0])
                     .expect("checked choice");
-                let (sub_ns, sub_extras) = sub.parse_known(&values[1..]).map_err(Fail::Exit)?;
+                let (sub_ns, sub_extras) = sub.parse_known(&args[1..]).map_err(Fail::Exit)?;
                 ns.extend(sub_ns);
                 extras.extend(sub_extras);
             }
@@ -943,6 +706,7 @@ impl Parser {
             .map(|(i, _)| i)
             .collect();
 
+        // The only positional is the subcommand, which drops a leading "--".
         let consume_positionals = |start: usize,
                                    ns: &mut Namespace,
                                    extras: &mut Vec<String>,
@@ -954,16 +718,9 @@ impl Parser {
             let mut index = start;
             for (k, &count) in counts.iter().enumerate() {
                 let action_index = positionals[k];
-                let action = &self.actions[action_index];
                 let mut args: Vec<String> = arg_strings[index..index + count].to_vec();
-                if action.nargs == Nargs::Parser {
-                    if pattern.as_bytes().get(index) == Some(&b'-') {
-                        args.remove(0);
-                    }
-                } else if pattern[index..index + count].contains('-')
-                    && let Some(pos) = args.iter().position(|a| a == "--")
-                {
-                    args.remove(pos);
+                if pattern.as_bytes().get(index) == Some(&b'-') {
+                    args.remove(0);
                 }
                 index += count;
                 self.take(action_index, &args, ns, extras, seen)?;
@@ -1004,11 +761,12 @@ impl Parser {
         }
         let stop = consume_positionals(start, &mut ns, &mut extras, &mut seen, &mut positionals)?;
         extras.extend(arg_strings[stop..].iter().cloned());
+        // The subcommand is the only required argument.
         let missing: Vec<String> = self
             .actions
             .iter()
             .enumerate()
-            .filter(|(i, a)| a.required && !seen.contains(i))
+            .filter(|(i, a)| a.kind == Kind::Parsers && !seen.contains(i))
             .map(|(_, a)| action_name(a))
             .collect();
         if !missing.is_empty() {
@@ -1132,21 +890,21 @@ impl Parser {
 
 // ---------------------------------------------------------------- difflib
 
-/// The ratio difflib.SequenceMatcher(None, a, b).ratio() computes.
+/// The ratio difflib.SequenceMatcher(None, a, b).ratio() computes for a choice `a`, which is
+/// never empty. difflib's autojunk prunes popular characters only from a `b` of 200 or more
+/// characters, and the extension loops after its longest match only grow a match across junk
+/// or pruned characters; neither is kept. A word that long cannot reach `close_match`'s 0.6
+/// cutoff against a choice under 86 characters, and every choice is a subcommand name.
 fn sequence_ratio(a: &[u32], b: &[u32]) -> f64 {
     let mut b2j: BTreeMap<u32, Vec<usize>> = BTreeMap::new();
     for (j, c) in b.iter().enumerate() {
         b2j.entry(*c).or_default().push(j);
     }
-    if b.len() >= 200 {
-        let ntest = b.len() / 100 + 1;
-        b2j.retain(|_, indices| indices.len() <= ntest);
-    }
     let mut matches = 0;
     let mut queue = vec![(0, a.len(), 0, b.len())];
     while let Some(range) = queue.pop() {
         let (alo, ahi, blo, bhi) = range;
-        let (i, j, k) = longest_match(a, b, &b2j, range);
+        let (i, j, k) = longest_match(a, &b2j, range);
         if k > 0 {
             matches += k;
             if alo < i && blo < j {
@@ -1157,17 +915,11 @@ fn sequence_ratio(a: &[u32], b: &[u32]) -> f64 {
             }
         }
     }
-    let total = a.len() + b.len();
-    if total == 0 {
-        1.0
-    } else {
-        2.0 * matches as f64 / total as f64
-    }
+    2.0 * matches as f64 / (a.len() + b.len()) as f64
 }
 
 fn longest_match(
     a: &[u32],
-    b: &[u32],
     b2j: &BTreeMap<u32, Vec<usize>>,
     (alo, ahi, blo, bhi): (usize, usize, usize, usize),
 ) -> (usize, usize, usize) {
@@ -1195,15 +947,6 @@ fn longest_match(
         }
         j2len = new;
     }
-    while besti > alo && bestj > blo && a[besti - 1] == b[bestj - 1] {
-        (besti, bestj, bestsize) = (besti - 1, bestj - 1, bestsize + 1);
-    }
-    while besti + bestsize < ahi
-        && bestj + bestsize < bhi
-        && a[besti + bestsize] == b[bestj + bestsize]
-    {
-        bestsize += 1;
-    }
     (besti, bestj, bestsize)
 }
 
@@ -1221,38 +964,6 @@ fn close_match<'a>(word: &str, possibilities: &[&'a str]) -> Option<&'a str> {
         .filter(|(score, _)| *score >= 0.6)
         .max_by(|x, y| x.0.partial_cmp(&y.0).unwrap().then_with(|| x.1.cmp(y.1)))
         .map(|(_, p)| p)
-}
-
-/// Values out of a namespace.
-pub trait Get {
-    fn str(&self, key: &str) -> Option<String>;
-    fn flag(&self, key: &str) -> bool;
-    fn list(&self, key: &str) -> Vec<String>;
-    fn int(&self, key: &str) -> Option<i64>;
-}
-
-impl Get for Namespace {
-    fn str(&self, key: &str) -> Option<String> {
-        match self.get(key) {
-            Some(Value::Str(s)) => Some(s.clone()),
-            _ => None,
-        }
-    }
-    fn flag(&self, key: &str) -> bool {
-        matches!(self.get(key), Some(Value::Bool(true)))
-    }
-    fn list(&self, key: &str) -> Vec<String> {
-        match self.get(key) {
-            Some(Value::List(items)) => items.clone(),
-            _ => vec![],
-        }
-    }
-    fn int(&self, key: &str) -> Option<i64> {
-        match self.get(key) {
-            Some(Value::Int(n)) => Some(*n),
-            _ => None,
-        }
-    }
 }
 
 fn points(text: &str) -> Vec<u32> {

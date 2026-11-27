@@ -215,12 +215,11 @@ fn check_operating_cost(at: &str, valued: &Valued) -> Result<(), Refusal> {
     if valued.given.command != "fbt-car-operating-cost" || valued.exempt {
         return Ok(());
     }
-    let (Some(operating), Some(statutory)) = (
-        amount(&valued.result, "operating_cost_taxable_value")?,
-        amount(&valued.result, "statutory_formula_taxable_value")?,
-    ) else {
-        return Ok(());
-    };
+    // The method takes a required statutory formula value and always works
+    // both values (engine.rs, S10_PAYMENT_STEPS and S10_5_STEPS).
+    let car_amount = |key: &str| amount(&valued.result, key).map(|a| a.expect("the car's amount"));
+    let operating = car_amount("operating_cost_taxable_value")?;
+    let statutory = car_amount("statutory_formula_taxable_value")?;
     if !operating.gt(&statutory).map_err(signal)? {
         return Ok(());
     }
@@ -507,7 +506,8 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     let fbt = gross_up(v, year, &totals[0], &totals[1])?;
     let fbt_rate = calc(Decimal::parse(
         fbt["rates"]["fbt_rate"].as_str().expect("fbt's FBT rate"),
-    ))?;
+    ));
+    let fbt_rate = fbt_rate?;
     let (amounts, reconciliation) = amounts(&valued, &fbt, &totals)?;
     let employees = employees(&valued, &fbt_rate)?;
     let labels = return_labels(&fbt, &valued, kind)?;
@@ -538,4 +538,16 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
     }
     nfp::instalment_labels(&mut out, instalments)?;
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_decimal_signal_is_refused_with_its_code_and_name() {
+        let refusal = signal(Signal::DivisionByZero);
+        assert_eq!(refusal.code, "decimal.division_by_zero");
+        assert_eq!(refusal.message, "decimal.DivisionByZero");
+    }
 }

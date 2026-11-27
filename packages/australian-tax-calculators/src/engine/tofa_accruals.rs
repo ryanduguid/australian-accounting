@@ -338,7 +338,7 @@ pub fn tofa_accruals(a: &TofaAccrualsArgs) -> Result<Value> {
     }
     let straight = method(a)?;
     let s = precise(|| spread(&t, &net, straight))?;
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -349,7 +349,8 @@ pub fn tofa_accruals(a: &TofaAccrualsArgs) -> Result<Value> {
             "rate_of_return_per_interval".to_string(),
             s.rate.quantize(-12, Rounding::HalfUp)?.to_string(),
         )],
-    )?;
+    );
+    let mut out = out?;
     out["division_230_applies"] = json!(true);
     out["method"] = json!(if straight {
         "straight_line"

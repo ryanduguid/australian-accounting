@@ -252,11 +252,75 @@ mod tests {
                 (actual != expected).then(|| format!("{bits}: python {expected}, rust {actual}"))
             })
             .collect();
-        assert!(
-            wrong.is_empty(),
-            "{} wrong: {:?}",
-            wrong.len(),
-            &wrong[..wrong.len().min(10)]
+        assert_eq!(wrong, Vec::<String>::new());
+    }
+
+    #[test]
+    fn float_repr_keeps_the_round_tripping_spelling_at_a_power_of_two() {
+        // 2**-1017: the nearest 16-digit spelling (…044e-307) reads back as a
+        // different double, because the gap below a power of two is half the
+        // gap above it. CPython 3.15's repr keeps …045e-307.
+        assert_eq!(float_repr(2f64.powi(-1017)), "7.120236347223045e-307");
+    }
+
+    #[test]
+    fn float_repr_of_nan_and_infinities_matches_python() {
+        assert_eq!(float_repr(f64::NAN), "nan");
+        assert_eq!(float_repr(f64::INFINITY), "inf");
+        assert_eq!(float_repr(f64::NEG_INFINITY), "-inf");
+    }
+
+    #[test]
+    fn type_names_match_python() {
+        let names: Vec<&str> = [
+            Raw::None,
+            Raw::Bool(true),
+            Raw::Int("1".into()),
+            Raw::Float(1.5),
+            Raw::text("a"),
+            Raw::List(vec![]),
+            Raw::Dict(vec![]),
+        ]
+        .iter()
+        .map(Raw::type_name)
+        .collect();
+        assert_eq!(
+            names,
+            ["NoneType", "bool", "int", "float", "str", "list", "dict"]
         );
+    }
+
+    #[test]
+    fn truthiness_matches_python_bool() {
+        // bool(v) in CPython 3.15 for each value, in order.
+        let cases = [
+            (Raw::None, false),
+            (Raw::Bool(false), false),
+            (Raw::Int("0".into()), false),
+            (Raw::Int("-0".into()), false),
+            (Raw::Int("7".into()), true),
+            (Raw::Float(0.0), false),
+            (Raw::Float(f64::NAN), true),
+            (Raw::text(""), false),
+            (Raw::text("x"), true),
+            (Raw::List(vec![]), false),
+            (Raw::List(vec![Raw::Int("0".into())]), true),
+            (Raw::Dict(vec![]), false),
+            (Raw::Dict(vec![("a".into(), Raw::Int("1".into()))]), true),
+        ];
+        for (value, expected) in cases {
+            assert_eq!(value.truthy(), expected, "bool({})", value.py_repr());
+        }
+    }
+
+    #[test]
+    fn get_reads_the_last_duplicate_key_and_nothing_from_a_non_dict() {
+        let dict = Raw::Dict(vec![
+            ("k".into(), Raw::Int("1".into())),
+            ("k".into(), Raw::Int("2".into())),
+        ]);
+        assert_eq!(dict.get("k"), Some(&Raw::Int("2".into())));
+        assert_eq!(dict.get("missing"), None);
+        assert_eq!(Raw::List(vec![]).get("k"), None);
     }
 }

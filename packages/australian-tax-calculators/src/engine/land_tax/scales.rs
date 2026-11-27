@@ -330,3 +330,21 @@ const ACT: Place = Place {
 };
 
 pub(super) static PLACES: [Place; 7] = [NSW, VIC, QLD, WA, SA, TAS, ACT];
+
+#[cfg(test)]
+mod tests {
+    use super::{NIL, band, scale};
+
+    #[test]
+    fn scale_helpers_keep_each_field_and_charge_per_dollar() {
+        let built = band(1_075_000, "100", "0.016", 1_075_000);
+        assert_eq!(
+            (built.from, built.base, built.rate, built.over),
+            (1_075_000, "100", "0.016", 1_075_000)
+        );
+        let general = scale("authority", &[NIL]);
+        assert_eq!(general.authority, "authority");
+        assert!(!general.per_hundred);
+        assert_eq!(general.bands.len(), 1);
+    }
+}

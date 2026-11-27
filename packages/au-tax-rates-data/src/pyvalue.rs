@@ -95,14 +95,6 @@ pub fn py_str(value: &Json) -> String {
     }
 }
 
-/// `str(value)` as stderr writes it: `backslashreplace` turns a lone surrogate into `\udXXX`.
-pub fn str_for_stderr(value: &Json) -> String {
-    str_points(value)
-        .into_iter()
-        .map(|cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
-        .collect()
-}
-
 pub fn points_lossy(points: &[u32]) -> String {
     points
         .iter()
@@ -212,13 +204,6 @@ pub fn key(value: &Json) -> Result<Key, String> {
     }
 }
 
-/// `json.dumps(value)` on one line with the default separators, as code points.
-pub fn dumps_line(value: &Json, ensure_ascii: bool) -> Vec<u32> {
-    let mut out = Vec::new();
-    dump(value, ensure_ascii, &mut out);
-    out
-}
-
 pub(crate) fn push(out: &mut Vec<u32>, text: &str) {
     out.extend(text.chars().map(u32::from));
 }
@@ -270,34 +255,10 @@ fn dump(value: &Json, ensure_ascii: bool, out: &mut Vec<u32>) {
         }
         Json::Float(f) => push(out, &py::float_repr(*f)),
         Json::Str(s) => dump_str(s.points(), ensure_ascii, out),
-        Json::Array(items) => {
-            out.push(u32::from('['));
-            for (i, item) in items.iter().enumerate() {
-                if i > 0 {
-                    push(out, ", ");
-                }
-                dump(item, ensure_ascii, out);
-            }
-            out.push(u32::from(']'));
-        }
-        Json::Object(pairs) => {
-            out.push(u32::from('{'));
-            for (i, (k, v)) in pairs.iter().enumerate() {
-                if i > 0 {
-                    push(out, ", ");
-                }
-                dump_str(k.points(), ensure_ascii, out);
-                push(out, ": ");
-                dump(v, ensure_ascii, out);
-            }
-            out.push(u32::from('}'));
-        }
+        // dumps_with walks the items of a non-empty container itself.
+        Json::Array(_) => push(out, "[]"),
+        Json::Object(_) => push(out, "{}"),
     }
-}
-
-/// `json.dumps(value, indent=indent, ensure_ascii=False, sort_keys=True)`.
-pub fn dumps_sorted(value: &Json, indent: Option<usize>) -> Vec<u32> {
-    dumps_with(value, indent, false, true)
 }
 
 /// `json.dumps(value, indent=indent, ensure_ascii=ensure_ascii, sort_keys=sort_keys)`.
@@ -307,78 +268,8 @@ pub fn dumps_with(
     ensure_ascii: bool,
     sort_keys: bool,
 ) -> Vec<u32> {
-    dumps_until(value, indent, ensure_ascii, sort_keys, usize::MAX)
-}
-
-/// `dumps_with`'s text up to the first container nested `limit` deep (the
-/// top-level value is depth 0): what `json.dump`'s pure-Python encoder has
-/// written when its recursion check stops it entering that container.
-pub fn dumps_until(
-    value: &Json,
-    indent: Option<usize>,
-    ensure_ascii: bool,
-    sort_keys: bool,
-    limit: usize,
-) -> Vec<u32> {
-    walk_until(value, (indent, ensure_ascii, sort_keys, limit), false).0
-}
-
-/// Why `json.dump` stopped before the end of a value.
-#[derive(Debug, PartialEq)]
-pub enum Stop {
-    /// Its recursion check refused a container nested `limit` deep.
-    Depth,
-    /// A strict UTF-8 text file could not encode this chunk: a string
-    /// holding a lone surrogate, with the separator before it in a list.
-    Unencodable(Vec<u32>),
-}
-
-/// `json.dump(value, f, indent=indent, ensure_ascii=False)` into a strict
-/// UTF-8 text file: the text written before it stops, and why it stopped,
-/// at the first container nested `limit` deep or the first chunk the file
-/// cannot encode, whichever the encoder reaches first.
-pub fn dump_until_stop(
-    value: &Json,
-    indent: Option<usize>,
-    sort_keys: bool,
-    limit: usize,
-) -> (Vec<u32>, Option<Stop>) {
-    walk_until(value, (indent, false, sort_keys, limit), true)
-}
-
-/// The encoder's walk. With `stop_lone`, a string holding a lone surrogate
-/// ends it at the start of the chunk the encoder yields for that string.
-fn walk_until(
-    value: &Json,
-    options: (Option<usize>, bool, bool, usize),
-    stop_lone: bool,
-) -> (Vec<u32>, Option<Stop>) {
-    /// Where the walk stopped: at `limit`, or at a string chunk starting at
-    /// `.0` of the output and ending with the encoded string `.1`.
-    enum At {
-        Depth,
-        Lone(usize, Vec<u32>),
-    }
-    fn walk(
-        value: &Json,
-        options: (Option<usize>, bool, bool, usize),
-        stop_lone: bool,
-        level: usize,
-        chunk: usize,
-        out: &mut Vec<u32>,
-    ) -> Result<(), At> {
-        let (indent, ensure_ascii, sort_keys, limit) = options;
-        if matches!(value, Json::Array(_) | Json::Object(_)) && level >= limit {
-            return Err(At::Depth);
-        }
-        let lone = |s: &PyStr, chunk: usize| {
-            if stop_lone && matches!(s, PyStr::Lone(_)) {
-                let mut text = Vec::new();
-                dump_str(s.points(), ensure_ascii, &mut text);
-                return Err(At::Lone(chunk, text));
-            }
-            Ok(())
-        };
+    fn walk(value: &Json, options: (Option<usize>, bool, bool), level: usize, out: &mut Vec<u32>) {
+        let (indent, ensure_ascii, sort_keys) = options;
         let newline = |out: &mut Vec<u32>, level: usize| {
             if let Some(width) = indent {
                 out.push(u32::from('\n'));
@@ -387,19 +278,14 @@ fn walk_until(
         };
         let separator = if indent.is_some() { "," } else { ", " };
         match value {
-            Json::Str(s) if stop_lone && matches!(s, PyStr::Lone(_)) => lone(s, chunk)?,
             Json::Array(items) if !items.is_empty() => {
-                // A list yields its opening, or the separator, with the item
-                // after it when that item is a string or number.
-                let mut start = out.len();
                 out.push(u32::from('['));
                 for (i, item) in items.iter().enumerate() {
                     if i > 0 {
-                        start = out.len();
                         push(out, separator);
                     }
                     newline(out, level + 1);
-                    walk(item, options, stop_lone, level + 1, start, out)?;
+                    walk(item, options, level + 1, out);
                 }
                 newline(out, level);
                 out.push(u32::from(']'));
@@ -415,30 +301,19 @@ fn walk_until(
                         push(out, separator);
                     }
                     newline(out, level + 1);
-                    // A dict yields each key and each value as its own chunk.
-                    lone(k, out.len())?;
                     dump_str(k.points(), ensure_ascii, out);
                     push(out, ": ");
-                    let start = out.len();
-                    walk(v, options, stop_lone, level + 1, start, out)?;
+                    walk(v, options, level + 1, out);
                 }
                 newline(out, level);
                 out.push(u32::from('}'));
             }
             other => dump(other, ensure_ascii, out),
         }
-        Ok(())
     }
     let mut out = Vec::new();
-    match walk(value, options, stop_lone, 0, 0, &mut out) {
-        Ok(()) => (out, None),
-        Err(At::Depth) => (out, Some(Stop::Depth)),
-        Err(At::Lone(chunk, text)) => {
-            let mut rest = out.split_off(chunk);
-            rest.extend(text);
-            (out, Some(Stop::Unencodable(rest)))
-        }
-    }
+    walk(value, (indent, ensure_ascii, sort_keys), 0, &mut out);
+    out
 }
 
 /// The bytes `print(text)` writes to a UTF-8 `surrogateescape` stream, or the
@@ -544,7 +419,7 @@ mod tests {
         );
         assert_eq!(
             String::from_utf8(
-                dumps_line(&j("{\"a\": [1, \"\\u00e9\"]}"), false)
+                dumps_with(&j("{\"a\": [1, \"\\u00e9\"]}"), None, false, false)
                     .iter()
                     .map(|&c| char::from_u32(c).unwrap())
                     .collect::<String>()
@@ -554,27 +429,8 @@ mod tests {
             "{\"a\": [1, \"\u{e9}\"]}"
         );
     }
-
-    #[test]
-    fn dumps_until_stops_before_the_first_container_at_the_limit() {
-        let value = j(r#"{"k": [1, [2, [3]]], "z": 0}"#);
-        let text = |limit| {
-            String::from_iter(
-                dumps_until(&value, Some(1), true, false, limit)
-                    .into_iter()
-                    .filter_map(char::from_u32),
-            )
-        };
-        // json.dumps(value, indent=1) cut where the encoder would enter [3].
-        assert_eq!(text(3), "{\n \"k\": [\n  1,\n  [\n   2,\n   ");
-        assert_eq!(text(0), "");
-        assert_eq!(
-            text(usize::MAX),
-            String::from_iter(
-                dumps_with(&value, Some(1), true, false)
-                    .into_iter()
-                    .filter_map(char::from_u32)
-            )
-        );
-    }
 }
+
+#[cfg(test)]
+#[path = "cov_a_pyvalue.rs"]
+mod cov_a_tests;

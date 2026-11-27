@@ -123,12 +123,9 @@ fn assess(interest: &Interest<'_>) -> Result<Option<Assessed>> {
 
 /// A share relying on s 83A-105(4): salary sacrificed, no real risk, the
 /// discount equal to its market value, and otherwise deferred.
-fn sacrificed(interest: &Interest<'_>, assessed: &Assessed) -> Result<bool> {
-    let State::Held(held) = &interest.state else {
-        return Ok(false);
-    };
+fn sacrificed(kind: Kind, held: &Held<'_>, assessed: &Assessed) -> Result<bool> {
     let c = &held.conditions;
-    Ok(interest.kind == Kind::Share
+    Ok(kind == Kind::Share
         && c.salary_sacrifice
         && !c.real_risk
         && !assessed.start_up
@@ -167,7 +164,7 @@ fn sacrifice_years(
             unsettled.push(year);
             continue;
         };
-        if sacrificed(interest, assessed)? {
+        if sacrificed(interest.kind, held, assessed)? {
             let total = totals.remove(&year).unwrap_or_else(|| int(0));
             totals.insert(year, total.add(&held.value)?);
         } else if may_count(interest.kind, held, assessed)? {
@@ -196,10 +193,11 @@ fn relies_on_4(
     assessed: Option<&Assessed>,
     years: &BTreeMap<String, bool>,
 ) -> Result<bool> {
-    let Some(a) = assessed else {
+    // assess gives an Assessed only for a held interest.
+    let (State::Held(held), Some(a)) = (&interest.state, assessed) else {
         return Ok(false);
     };
-    Ok(sacrificed(interest, a)?
+    Ok(sacrificed(interest.kind, held, a)?
         && years
             .get(&income_year(interest.acquired))
             .copied()
@@ -218,8 +216,9 @@ pub fn ess_discount(args: &EssDiscountArgs) -> Result<Value> {
     let mut rows = Vec::new();
     for (interest, assessed) in interests.iter_mut().zip(&assessed) {
         let ok = relies_on_4(interest, assessed.as_ref(), &sacrifice)?;
-        let row = match (&mut interest.state, assessed) {
-            (State::Held(held), Some(a)) => {
+        let row = match &mut interest.state {
+            State::Held(held) => {
+                let a = assessed.as_ref().expect("assessed every held interest");
                 let ctx = Context {
                     number: interest.number,
                     kind: interest.kind,
@@ -228,10 +227,7 @@ pub fn ess_discount(args: &EssDiscountArgs) -> Result<Value> {
                 };
                 held_row(&ctx, held, a, ok, &mut totals)?
             }
-            (State::Forfeited(f), _) => {
-                forfeited_row(interest.number, interest.kind, f, &mut totals)?
-            }
-            _ => unreachable!("assessed every held interest"),
+            State::Forfeited(f) => forfeited_row(interest.number, interest.kind, f, &mut totals)?,
         };
         rows.push(row);
     }

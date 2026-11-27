@@ -34,7 +34,8 @@ fn asset(n: usize, fields: &Map<String, Value>, day: i64) -> Result<Asset> {
         &mut f,
         "asset_class",
         &["ordinary", "collectable", "personal_use"],
-    )?;
+    );
+    let class = class?;
     let a = Asset {
         label,
         acquired,
