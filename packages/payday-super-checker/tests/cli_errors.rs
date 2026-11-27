@@ -171,9 +171,6 @@ fn a_lone_dash_and_a_negative_decimal_are_positional_paths() {
             b"",
         );
         assert_eq!(code, 1, "{path}");
-        assert!(
-            err.starts_with(&format!("error: cannot read {path}: ")),
-            "{path}: {err}"
-        );
+        assert_eq!(err, format!("error: file not found: {path}\n"));
     }
 }
