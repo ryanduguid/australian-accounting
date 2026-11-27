@@ -246,9 +246,8 @@ fn a_url_with_no_free_stand_in_is_refused() {
 /// `show` of a bracket from 10**5000 fails as CPython's `str(from - 1)` does.
 #[test]
 fn a_bracket_too_long_to_print_raises_the_digit_limit() {
-    let Ok(from) = calc(Decimal::parse("1E+5000")) else {
-        panic!("a decimal");
-    };
+    let from = calc(Decimal::parse("1E+5000")).map_err(|e| e.name());
+    let from = from.expect("a decimal");
     let zero = decimal(0);
     let figure = Figure::Scale(vec![(from, None, zero.clone(), decimal(1))]);
     let e = show(&figure).expect_err("refused");

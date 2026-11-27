@@ -48,16 +48,16 @@ fn cases() -> Vec<(String, u32, Option<String>, String)> {
     let doc = loads_standard(CASES).expect("case file");
     assert_eq!(doc.at("python").as_str(), Some("3.15.0"));
     let text = |value: &Json| value.as_str().map(str::to_string);
+    let all = doc.at("cases");
+    let Json::Array(rows) = all else { panic!() };
     let mut cases = Vec::new();
-    if let Json::Array(rows) = doc.at("cases") {
-        for case in rows {
-            if let Json::Array(row) = case
-                && let [pattern, Json::Int(flags), subject, answer] = &row[..]
-                && let (Some(pattern), Ok(flags), Some(answer)) =
-                    (text(pattern), u32::try_from(flags), text(answer))
-            {
-                cases.push((pattern, flags, text(subject), answer));
-            }
+    for case in rows {
+        if let Json::Array(row) = case
+            && let [pattern, Json::Int(flags), subject, answer] = &row[..]
+            && let (Some(pattern), Ok(flags), Some(answer)) =
+                (text(pattern), u32::try_from(flags), text(answer))
+        {
+            cases.push((pattern, flags, text(subject), answer));
         }
     }
     cases
