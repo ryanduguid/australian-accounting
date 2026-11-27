@@ -577,3 +577,18 @@ fn invalid_scheme_facts_are_refused() {
     );
     assert_eq!(code(&qld), "input.date_invalid");
 }
+
+/// A refused premium of $1,000 or more is shown with its thousands grouped:
+/// $8,000.005 less $2,000.0002 is $8,000.01 rounded step by step and
+/// $8,000.00 rounded once.
+#[test]
+fn a_refused_premium_groups_its_thousands() {
+    let qld = with(
+        input("qld", "500000.25", "2"),
+        json!({"apprentice_wages": "100000.01"}),
+    );
+    let error = api::evaluate_coded("workers-compensation-premium", &qld).unwrap_err();
+    assert_eq!(error.code, "workers_compensation_premium.rounding_unsettled");
+    assert!(error.message.starts_with("The premium is $8,000.01 with"));
+    assert!(error.message.contains(" and $8,000.00 with neither"));
+}
