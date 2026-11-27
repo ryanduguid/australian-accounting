@@ -212,3 +212,16 @@ fn an_environment_base_url_off_the_allowlist_raises() {
         "{stderr}"
     );
 }
+
+#[test]
+fn a_body_that_is_not_json_is_reported_with_the_decoder_message() {
+    let (code, _, stderr, shown) = invoke_body("not-json", b"{not json");
+    assert_eq!(code, 2);
+    assert_eq!(
+        stderr,
+        format!(
+            "lodgeit-adapter: {shown} could not be read: Expecting property name enclosed in \
+             double quotes: line 1 column 2 (char 1)\n"
+        )
+    );
+}
