@@ -569,3 +569,15 @@ fn likely_turnover_names_both_days_in_s_328_110_2() {
         "{text}"
     );
 }
+
+/// A partnership asset of a partner carrying on the business is tested on
+/// the partnership's turnover (ITAA 1997 s 152-10(1)(c)(iii)).
+#[test]
+fn a_partnership_asset_takes_the_partnerships_entity_row() {
+    let result = run(&with(
+        neil(),
+        json!({"partnership_asset": true, "passively_held": "partnership",
+            "carries_on_own_business": true}),
+    ));
+    assert!(met(&result, "partnership_cgt_small_business_entity"));
+}

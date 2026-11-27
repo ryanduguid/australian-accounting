@@ -1058,3 +1058,17 @@ fn novated_lease_refusals() {
     assert!(code(json!({"days_available": 366})).starts_with("input."));
     assert!(code(json!({"salary": "100000.50"})).starts_with("input."));
 }
+
+/// With no business income there is no share of the tax or the invoice to
+/// set aside: both percentages are nil rather than a division by nil.
+#[test]
+fn sole_trader_without_business_income_sets_aside_nil_shares() {
+    let r = run(
+        "sole-trader-set-aside",
+        &sole(),
+        json!({"business_income": "0", "business_expenses": "0", "invoice": "0"}),
+    )
+    .unwrap();
+    assert_eq!(amount(&r, "tax_share_percent"), "0");
+    assert_eq!(amount(&r, "invoice_share_percent"), "0");
+}
