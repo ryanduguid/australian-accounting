@@ -989,3 +989,24 @@ fn a_chattel_mortgage_is_set_out_by_its_own_schedule() {
         "line 2: a hire_purchase contract does not take annual_rate; leave it empty"
     );
 }
+
+/// The executable passes `contract-register` and its flags to the same
+/// register, reading the CSV from stdin.
+#[test]
+fn the_executable_runs_the_register_from_stdin() {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let mut child = Command::new(env!("CARGO_BIN_EXE_australian-tax-calculators"))
+        .args(["contract-register", "--balance-date", BALANCE, "--scope-confirmed"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child.stdin.take().unwrap().write_all(EXAMPLE.as_bytes()).unwrap();
+    let out = child.wait_with_output().unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    let text = String::from_utf8(out.stdout).unwrap().replace("\r\n", "\n");
+    let given: Value = serde_json::from_str(&text).unwrap();
+    assert_eq!(given, register(EXAMPLE));
+}

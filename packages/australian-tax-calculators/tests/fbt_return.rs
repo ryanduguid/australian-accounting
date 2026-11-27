@@ -751,3 +751,11 @@ fn leaves_the_number_of_cars_loans_and_units_to_the_preparer() {
             .is_some()
     );
 }
+
+/// An empty employer label, like none, is refused as missing.
+#[test]
+fn an_empty_employer_is_missing() {
+    let r = refused(one(json!({"employer": ""})));
+    assert_eq!(r.code, "input.missing_field");
+    assert!(r.message.starts_with("employer is required"));
+}
