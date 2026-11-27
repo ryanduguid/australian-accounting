@@ -147,8 +147,8 @@ fn a_repayment_missing_a_field_or_with_a_number_is_named() {
 #[test]
 fn a_balance_repaid_before_a_later_repayment_is_floored_from_that_date() {
     let result = rollforward(&loan(json!([
-        {"date": "2026-08-01", "amount": "1500.00"},
-        {"date": "2026-09-01", "amount": "10.00"},
+        {"date": "2027-06-01", "amount": "1000.50"},
+        {"date": "2027-06-02", "amount": "0.01"},
     ])))
     .unwrap();
     let caveats: Vec<&str> = result["caveats"]
@@ -159,7 +159,7 @@ fn a_balance_repaid_before_a_later_repayment_is_floored_from_that_date() {
         .collect();
     assert!(
         caveats.iter().any(|c| c.starts_with(
-            "From 2026-08-01 the repayments exceed the balance, so the balance is taken as nil"
+            "From 2027-06-01 the repayments exceed the balance, so the balance is taken as nil"
         )),
         "{caveats:?}"
     );
