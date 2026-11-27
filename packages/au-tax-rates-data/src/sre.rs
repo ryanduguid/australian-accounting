@@ -30,7 +30,6 @@ pub const UNICODE: u32 = 32;
 pub const VERBOSE: u32 = 64;
 pub const ASCII: u32 = 256;
 const LOCALE: u32 = 4;
-const DEBUG: u32 = 128;
 const TYPE_FLAGS: u32 = ASCII | LOCALE | UNICODE;
 
 pub const MAXREPEAT: u64 = 4_294_967_295;
@@ -52,16 +51,6 @@ pub enum CompileError {
     Pattern(Vec<u32>),
     /// Another exception: its class name and message.
     Other(&'static str, String),
-}
-
-impl CompileError {
-    /// The exception's `str()`.
-    pub fn text(&self) -> Vec<u32> {
-        match self {
-            CompileError::Pattern(text) => text.clone(),
-            CompileError::Other(_, message) => pts(message),
-        }
-    }
 }
 
 fn pattern_error(msg: Vec<u32>, pattern: &[u32], pos: Option<usize>) -> CompileError {
@@ -1322,9 +1311,6 @@ fn parse_flags(
         state.flags |= add_flags;
         return Ok(None);
     }
-    if add_flags & DEBUG != 0 {
-        return Err(source.error(pts("bad inline flags: cannot turn on global flag"), 1));
-    }
     if char.is('-') {
         let Some(next) = source.get()? else {
             return Err(source.error(pts("missing flag"), 0));
@@ -1363,9 +1349,6 @@ fn parse_flags(
                 return Err(source.error(pts(msg), char.len()));
             }
         }
-    }
-    if del_flags & DEBUG != 0 {
-        return Err(source.error(pts("bad inline flags: cannot turn off global flag"), 1));
     }
     if add_flags & del_flags != 0 {
         return Err(source.error(pts("bad inline flags: flag turned on and off"), 1));
@@ -1840,10 +1823,6 @@ impl Match {
     /// `match.span(i)`, or None where group `i` did not take part.
     pub fn span(&self, i: usize) -> Option<(usize, usize)> {
         self.spans.get(i).copied().flatten()
-    }
-
-    pub fn start(&self) -> usize {
-        self.span(0).map_or(0, |s| s.0)
     }
 
     pub fn end(&self) -> usize {
@@ -2324,3 +2303,7 @@ mod tests {
         assert_eq!(lower("AUGUST"), "august");
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a4_sre.rs"]
+mod cov_a4_tests;

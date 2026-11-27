@@ -190,13 +190,6 @@ fn glyph_use(node: Node<'_, '_>, grade: bool) -> Result<()> {
             &["href", "x", "y"]
         },
     )?;
-    let reference = node.attribute("href").unwrap_or_default();
-    require(
-        reference
-            .strip_prefix("#g")
-            .is_some_and(|id| !id.is_empty() && id.bytes().all(|b| b.is_ascii_digit())),
-        "Only local glyph references are accepted",
-    )?;
     number(node, "x", 0.0, 109.0)?;
     attribute_is(node, "y", "14")?;
     if grade {

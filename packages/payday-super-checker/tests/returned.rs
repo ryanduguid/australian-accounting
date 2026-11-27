@@ -438,6 +438,12 @@ fn malformed_events_are_refused_and_never_dropped() {
         "E1,2026-08-06,returned,2026-08-12,5.00,,\n",
         "Fill receipt_date",
     );
+    // Events are this crate's own input (the Python engine has no --events):
+    // a return that names no receipt is capped at the amount owed.
+    refuse(
+        "E1,2026-08-06,returned,2026-08-12,150.00,,\n",
+        "a return naming no receipt cannot be more than sg_amount",
+    );
     refuse(
         "E1,2026-08-06,returned,2026-08-12,5.00,2026-08-10,2026-08-09\n",
         "cannot be told",

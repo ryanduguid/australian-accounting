@@ -394,15 +394,40 @@ mod tests {
 
     #[test]
     fn no_bank_holiday_reaches_the_shipped_table() {
-        let table = crate::pyjson::loads(BUNDLED).unwrap();
-        let table = crate::raw::Raw::from_json(&table);
-        let Some(crate::raw::Raw::List(entries)) = table.get("non_business_days") else {
-            panic!("the table lists its non-business days");
-        };
-        for entry in entries {
-            let name = entry.get("name").unwrap().py_str().to_lowercase();
-            assert!(!name.contains("bank holiday"), "{name}");
+        let (holidays, _) = bundled(BUNDLED).unwrap();
+        assert!(!holidays.is_empty());
+        for holiday in holidays {
+            assert!(!holiday.name.to_lowercase().contains("bank holiday"));
         }
+    }
+
+    // Python's `load_calendar` (CPython 3.14 on the Linux test host) refuses a
+    // repeated bundled day with the same message, and its dict assignment
+    // replaces an overridden day where it stood.
+    const ENTRY: &str = r#"{"date": "2026-01-01", "name": "New Year's Day", "jurisdictions": ["ACT"], "provisional": false}"#;
+
+    #[test]
+    fn a_bundled_table_listing_a_day_twice_is_refused() {
+        let table = format!(
+            r#"{{"non_business_days": [{ENTRY}, {ENTRY}], "verified_from": "2026-01-01", "verified_until": "2026-12-31"}}"#
+        );
+        assert_eq!(
+            bundled(&table).err().unwrap().message(),
+            "bundled calendar contains duplicate date 2026-01-01"
+        );
+    }
+
+    #[test]
+    fn an_override_adding_a_listed_day_replaces_it_in_place() {
+        let (mut holidays, _) = bundled(BUNDLED).unwrap();
+        let count = holidays.len();
+        let replaced = ENTRY.replace("New Year's Day", "Replaced");
+        let doc =
+            Raw::from_json(&crate::pyjson::loads(&format!(r#"{{"add": [{replaced}]}}"#)).unwrap());
+        apply_override(&mut holidays, &mut None, &doc, "o.json").unwrap();
+        assert_eq!(holidays.len(), count);
+        assert_eq!(holidays[0].name, "Replaced");
+        assert_eq!(holidays[0].jurisdictions, ["ACT"]);
     }
 
     #[test]

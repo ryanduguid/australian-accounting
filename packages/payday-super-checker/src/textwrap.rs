@@ -104,6 +104,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_long_word_breaks_after_its_last_hyphen_that_fits() {
+        // CPython 3.14 on the Linux test host: textwrap.wrap(text, width).
+        assert_eq!(wrap("ab-12345678", 5), ["ab-", "12345", "678"]);
+        assert_eq!(wrap("--a-12345678", 5), ["--a-", "12345", "678"]);
+        assert_eq!(wrap("-abcdefgh", 4), ["-abc", "defg", "h"]);
+    }
+
+    #[test]
     fn wraps_like_python_textwrap() {
         // textwrap.wrap("validate a human acknowledgement/escalation record", 24)
         assert_eq!(

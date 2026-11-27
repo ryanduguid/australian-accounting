@@ -140,3 +140,88 @@ fn a_data_file_that_cannot_be_opened_is_an_oserror() {
         "{message}"
     );
 }
+
+/// One shipped business type, with its turnover bands replaced or removed.
+fn one_type(bands: Option<&str>) -> String {
+    let bands = bands.map_or(String::new(), |b| format!(r#", "turnover_bands": {b}"#));
+    format!(
+        r#"{{"schema_version": 1, "benchmark_year": "2023-24", "business_types": [{{"name": "Cafes", "key_ratio": "total_expenses_to_turnover"{bands}}}]}}"#
+    )
+}
+
+fn refusal(result: Result<dataset::Dataset, Failure>) -> Failure {
+    match result {
+        Err(failure) => failure,
+        Ok(_) => panic!("the dataset loaded"),
+    }
+}
+
+#[test]
+fn turnover_bands_are_iterated_as_python_iterates_them() {
+    let value = |m: &str| Failure::Value(m.into());
+    // No key: `entry.get("turnover_bands", [])` gives no bands.
+    assert_eq!(
+        refusal(dataset::loads(&one_type(None), "x.json")),
+        value("x.json: Cafes: no turnover bands")
+    );
+    // A dict iterates its keys and a str its characters: neither is a band object.
+    for bands in [r#"{"low": {}}"#, r#""low""#] {
+        assert_eq!(
+            refusal(dataset::loads(&one_type(Some(bands)), "x.json")),
+            value("x.json: Cafes: a turnover band is not an object")
+        );
+    }
+    assert_eq!(
+        refusal(dataset::loads(&one_type(Some("5")), "x.json")),
+        Failure::Uncaught("TypeError: 'int' object is not iterable".into())
+    );
+}
+
+/// The shipped 2023-24 dataset before its page ranges, and the page file edited by `edit`.
+fn merged_with(edit: impl FnOnce(&mut serde_json::Value)) -> Result<dataset::Dataset, Failure> {
+    let data = dataset::loads(include_str!("../data/benchmarks-2023-24.json"), "b.json").unwrap();
+    let mut pages: serde_json::Value =
+        serde_json::from_str(include_str!("../data/other-benchmarks-2023-24.json")).unwrap();
+    edit(&mut pages);
+    dataset::merge_page_ranges(&data, &pages.to_string(), "p.json", None)
+}
+
+#[test]
+fn the_shipped_page_file_merges_unedited() {
+    let merged = merged_with(|_| {}).unwrap();
+    assert!(merged.page_source.is_some());
+}
+
+#[test]
+fn a_malformed_page_file_is_refused() {
+    let value = |m: &str| Failure::Value(m.into());
+    assert_eq!(
+        refusal(merged_with(
+            |p| p["excluded_pages"][0] = serde_json::json!({"reason": "no name"})
+        )),
+        value("p.json: excluded_pages is missing or malformed")
+    );
+    assert_eq!(
+        refusal(merged_with(|p| p["excluded_pages"] = serde_json::json!({}))),
+        value("p.json: excluded_pages is missing or malformed")
+    );
+    assert_eq!(
+        refusal(merged_with(
+            |p| p["business_types"][0]["name"] = serde_json::json!(5)
+        )),
+        value("p.json: 5 is not a business type in 2023-24")
+    );
+    let shown = "p.json: Air conditioning, refrigeration and heating services: turnover bands do not match the dataset";
+    assert_eq!(
+        refusal(merged_with(
+            |p| p["business_types"][0]["turnover_bands"] = serde_json::json!({})
+        )),
+        value(shown)
+    );
+    assert_eq!(
+        refusal(merged_with(
+            |p| p["business_types"][0]["turnover_bands"][1]["band"] = serde_json::json!("low")
+        )),
+        value(shown)
+    );
+}

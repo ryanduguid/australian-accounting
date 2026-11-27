@@ -1240,11 +1240,14 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
         refuse_to_write_over_an_input(&PyPath::new(target), &[Some(pnl_path), Some(mapping_path)])?;
     }
     if let Some(target) = json_target {
+        // Cannot fail here: report::compare has already checked `supplied`, and
+        // compute's 4-place ratios always fit the 2-place percentages.
         let payload = to_evidenced_dict(
             &comparison,
             &supplied,
             serde_json::json!(routing.unreviewed),
-        )?;
+        );
+        let payload = payload?;
         let text = serde_json::to_string_pretty(&serde_json::Value::Object(payload))
             .expect("JSON values serialise")
             + "\n";

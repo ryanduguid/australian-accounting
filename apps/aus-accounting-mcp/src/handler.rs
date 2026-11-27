@@ -309,6 +309,52 @@ mod tests {
             rejection: None,
         }
     }
+    struct ClosedSink(VecDeque<ClientJsonRpcMessage>);
+    impl Transport<RoleServer> for ClosedSink {
+        type Error = std::io::Error;
+        fn send(
+            &mut self,
+            _: ServerJsonRpcMessage,
+        ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'static {
+            std::future::ready(Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe)))
+        }
+        async fn receive(&mut self) -> Option<ClientJsonRpcMessage> {
+            self.0.pop_front()
+        }
+        async fn close(&mut self) -> Result<(), Self::Error> {
+            Ok(())
+        }
+    }
+    #[test]
+    fn a_rejection_that_cannot_be_written_ends_the_session() {
+        let mut pending = pending_transport();
+        let mut input = std::mem::take(&mut pending.inner.input);
+        input.push_back(
+            serde_json::from_value(json!({"jsonrpc":"2.0","id":3,"method":"tools/list"})).unwrap(),
+        );
+        let mut transport = BootstrapTransport {
+            inner: ClosedSink(input),
+            bootstrap: Arc::new(AtomicBool::new(false)),
+            pending: None,
+            era: Some(Era::Modern),
+            rejection: None,
+        };
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(matches!(
+            Box::pin(transport.receive()).as_mut().poll(&mut context),
+            Poll::Ready(None)
+        ));
+        assert_eq!(
+            transport.inner.0.len(),
+            1,
+            "no request is read after the failed write"
+        );
+        assert!(transport.rejection.is_none());
+        assert!(matches!(
+            Box::pin(transport.close()).as_mut().poll(&mut context),
+            Poll::Ready(Ok(()))
+        ));
+    }
     #[test]
     fn close_releases_a_parked_rejection_before_closing_writer() {
         let mut transport = pending_transport();
