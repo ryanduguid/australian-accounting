@@ -8287,3 +8287,16 @@ pub const SMSF_TAX_STEPS: [(&str, &str, &str, &str); 20] = [
         "S",
     ),
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn add_note_adds_no_scope_to_a_result_without_one() {
+        let mut out = json!({"sources": [], "warnings": []});
+        add_note(&mut out, ("s 1", "a warning"), &[("a", "b")]);
+        assert_eq!(out, json!({"sources": ["s 1"], "warnings": ["a warning"]}));
+    }
+}
