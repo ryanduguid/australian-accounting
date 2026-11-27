@@ -371,3 +371,44 @@ fn refuses_what_it_does_not_work_out() {
     stray["method"] = json!("half_retail");
     assert_eq!(code(&stray), "input.field_unknown");
 }
+
+/// Average wholesale price facts that are not an object, a quantity that is
+/// not a decimal string and wholesale sales that are not a list are refused,
+/// naming the dealing.
+#[test]
+fn malformed_average_wholesale_facts_are_refused() {
+    let average = |changes: Value| {
+        let mut facts = json!({
+            "grape_wine": true, "wholesale_share_at_least_10_percent": true,
+            "quantity": "1",
+            "wholesale_sales": [{"quantity": "7", "price_excluding_wet_and_gst": "560.00"}],
+        });
+        for (key, value) in changes.as_object().unwrap() {
+            facts[key] = value.clone();
+        }
+        let mut sale = retail("190.00");
+        sale["average_wholesale"] = facts;
+        input("2024-25", json!([sale]))
+    };
+    let mut not_object = retail("190.00");
+    not_object["average_wholesale"] = json!("560.00");
+    for (input, message) in [
+        (
+            input("2024-25", json!([not_object])),
+            "dealing 1: average_wholesale must be an object.",
+        ),
+        (
+            average(json!({"wholesale_sales": "7 at $560"})),
+            "dealing 1: wholesale_sales must be a list",
+        ),
+    ] {
+        let error = api::evaluate_coded("wine-equalisation-tax", &input).unwrap_err();
+        assert_eq!(error.code, "wine_equalisation_tax.dealing_invalid");
+        assert!(error.message.starts_with(message));
+    }
+    let number = api::evaluate_coded("wine-equalisation-tax", &average(json!({"quantity": 1})));
+    assert_eq!(
+        number.unwrap_err().code,
+        "wine_equalisation_tax.quantity_invalid"
+    );
+}
