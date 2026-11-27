@@ -867,10 +867,14 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             ))
         }
         "parse-report-snapshot" => Ok(snapshot_json(&snapshot_of(v)?)),
-        "render-practitioner-pack" => Ok(json!(
-            practitioner_pack::render_practitioner_pack(&snapshot_of(v)?, flag(v, "decision_log")?)
-                .map_err(failure)?
-        )),
+        "render-practitioner-pack" => {
+            let snapshot = snapshot_of(v)?;
+            // A parsed snapshot's amounts are finite, two-place and inside the
+            // CSV field limit, so totalling them cannot fail.
+            let pack =
+                practitioner_pack::render_practitioner_pack(&snapshot, flag(v, "decision_log")?);
+            Ok(json!(pack.map_err(failure)?))
+        }
         "normalise-header" => Ok(json!(profiles::normalise_header(text(v, "text")?))),
         "normalise-name" => Ok(json!(profiles::normalise_name(text(v, "text")?))),
         "load-profiles" => Ok(Value::Array(
