@@ -362,3 +362,115 @@ fn embedded_logo_geometry_and_viewport_survive_inlining() {
         assert_eq!(inline_path.attribute("fill"), Some("#FFFFF0"));
     }
 }
+
+#[test]
+fn each_layout_drift_is_refused_with_its_own_reason() {
+    let unhealthy = CASES[0].1;
+    let unlisted = CASES[3].1;
+    let listed = CASES[8].1;
+    let extra_glyphs: String = (10..20)
+        .map(|id| format!("<path id=\"g{id}\" d=\"M0 0L1 1\"/>"))
+        .collect();
+    let cases = [
+        (listed.replace("<defs>", "stray<defs>"), "Unexpected text"),
+        (
+            listed.replace("</title>", "<desc/></title>"),
+            "Metadata must be plain text",
+        ),
+        (
+            listed.replace(" fill=\"#37a169\"/>", "/>"),
+            "Unexpected attributes",
+        ),
+        (
+            listed.replace("<defs>", &format!("<defs>{extra_glyphs}")),
+            "Unexpected glyph count",
+        ),
+        (
+            listed.replace("<path id=\"g0\"", "<path id=\"h0\""),
+            "Unexpected glyph ID",
+        ),
+        (
+            listed.replace(" preserveAspectRatio=\"none\"", ""),
+            "Unexpected attributes",
+        ),
+        (
+            listed.replace("fill=\"#0e1618\"", "fill=\"#131d2e\""),
+            "Unknown ownership palette",
+        ),
+        (
+            unlisted.replace("not listed on Glama", "not listed anywhere"),
+            "Unknown unlisted message",
+        ),
+        (
+            listed.replace("x=\"24.49\"", "x=\"13\""),
+            "Overlapping grade slots",
+        ),
+        (
+            unhealthy.replace("fill=\"#fe4a4b\"/>", "fill=\"#f5a623\"/>"),
+            "Unknown health colour",
+        ),
+        (
+            unhealthy.replace("fill=\"#fe4a4b\" fill-rule", "fill=\"#37a169\" fill-rule"),
+            "Inconsistent health state",
+        ),
+        (
+            listed.replace(" fill-opacity=\".051\"", ""),
+            "Unexpected attributes",
+        ),
+        (
+            listed.replace(
+                "width=\"1\" height=\"18\" fill=\"#1b2326\"",
+                "width=\"1\" height=\"18\" fill=\"#21365a\"",
+            ),
+            "Inconsistent ownership divider",
+        ),
+    ];
+    for (index, (changed, reason)) in cases.iter().enumerate() {
+        assert!(
+            changed != unhealthy && changed != unlisted && changed != listed,
+            "mutation {index} must affect its fixture"
+        );
+        assert_eq!(
+            restyle(changed).unwrap_err().to_string(),
+            *reason,
+            "mutation {index}"
+        );
+    }
+}
+
+#[test]
+fn curved_glyphs_are_accepted_within_bounds_and_refused_beyond_them() {
+    let input = CASES[8].1;
+    let document = Document::parse(input).unwrap();
+    let glyph = document
+        .descendants()
+        .find(|n| n.has_tag_name("path") && n.attribute("id") == Some("g0"))
+        .unwrap();
+    let original = format!("d=\"{}\"", glyph.attribute("d").unwrap());
+    let with_path = |d: &str| input.replace(&original, &format!("d=\"{d}\""));
+    let output = restyle(&with_path("M0 0C1 1 2 2 3 3S4 4 5 5Z")).unwrap();
+    assert!(output.contains("d=\"M0 0C1 1 2 2 3 3S4 4 5 5Z\""));
+    for beyond in ["M0 0C1 1 2 2 3 2000Z", "M0 0S4 4 5 2000Z"] {
+        assert_eq!(
+            restyle(&with_path(beyond)).unwrap_err().to_string(),
+            "Path coordinates exceed bounds",
+            "{beyond}"
+        );
+    }
+}
+
+#[test]
+fn carriage_returns_and_tabs_in_text_stay_character_references() {
+    let input = CASES[8]
+        .1
+        .replace("JobGPT MCP Server", "JobGPT&#13;MCP&#9;Server");
+    let output = restyle(&input).unwrap();
+    assert!(output.contains("<title>JobGPT&#13;MCP&#9;Server"));
+    let document = Document::parse(&output).unwrap();
+    assert!(
+        elements_named(&document, "title")[0]
+            .text()
+            .unwrap()
+            .starts_with("JobGPT\rMCP\tServer")
+    );
+}
