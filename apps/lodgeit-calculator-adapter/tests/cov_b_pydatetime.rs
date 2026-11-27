@@ -14,17 +14,15 @@ type Parsed = (
     Option<Result<&'static str, &'static str>>,
 );
 
-fn parse(
-    points: &[u32],
-) -> Result<
-    (
-        String,
-        [i32; 4],
-        Option<i64>,
-        Option<Result<String, String>>,
-    ),
+/// What `parse` reads back: the owned form of `Parsed`.
+type Owned = (
     String,
-> {
+    [i32; 4],
+    Option<i64>,
+    Option<Result<String, String>>,
+);
+
+fn parse(points: &[u32]) -> Result<Owned, String> {
     let dt = datetime_fromisoformat(points)?;
     let utc = dt
         .offset_us
