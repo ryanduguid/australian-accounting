@@ -181,6 +181,32 @@ fn what_it_does_not_work_is_refused() {
     assert_eq!(refused(json!({"remote_area": "yes"})), "input.flag_invalid");
 }
 
+/// A child circumstance is read only under its parent; stated without it, it
+/// is refused, true or false.
+#[test]
+fn a_child_circumstance_without_its_parent_is_refused() {
+    for (stated, key, parent) in [
+        (
+            json!({"rate_before_november_1986": true}),
+            "rate_before_november_1986",
+            "armed_services_payment",
+        ),
+        (
+            json!({"remote_area_child": false}),
+            "remote_area_child",
+            "remote_area",
+        ),
+    ] {
+        let err =
+            api::evaluate_coded("age-pension", &case("single", "0", stated.clone())).unwrap_err();
+        assert_eq!(err.code, "input.field_unknown", "{stated}");
+        assert_eq!(
+            err.message,
+            format!("facts: {key} is an input only where {parent} is true.")
+        );
+    }
+}
+
 /// The inputs whose results before the circumstances are kept in
 /// `tests/data/age_pension_golden.jsonl`.
 fn golden_inputs() -> Vec<Value> {

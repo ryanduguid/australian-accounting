@@ -668,7 +668,7 @@ pub const SCOPES: &[(&str, &str)] = &[
     ),
     (
         "super_crystallisation",
-        "The crystallised segment of one taxed superannuation interest just before 1 July 2007 (ITTPA 1997 s 307-225): the stated concessional, post-June 1994 invalidity and CGT exempt components and undeducted contributions, with the pre-July 83 component worked out under former ITAA 1936 s 27AA(1)(d), and the taxable component left. Interests from an untaxed source and income streams first paid before 1 July 2007 are refused; the components are the fund's records, not worked out.",
+        "The crystallised segment of one taxed superannuation interest just before 1 July 2007 (ITAA 1997 s 307-225): the stated concessional, post-June 1994 invalidity and CGT exempt components and undeducted contributions, with the pre-July 83 component worked out under former ITAA 1936 s 27AA(1)(d), and the taxable component left. Interests from an untaxed source and income streams first paid before 1 July 2007 are refused; the components are the fund's records, not worked out.",
     ),
     (
         "endorsement_review",
@@ -7512,7 +7512,7 @@ pub const REFUSAL_CODES: &[(&str, &str)] = &[
     ),
     (
         "super_crystallisation.untaxed_source",
-        "The interest is from an untaxed source (ITTPA 1997 s 307-225(3)).",
+        "The interest is from an untaxed source (ITAA 1997 s 307-225(3)).",
     ),
     (
         "super_projection.cap_exceeded",
