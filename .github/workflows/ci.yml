@@ -387,13 +387,12 @@ jobs:
 
   # The tool crates outside the crate matrix. Their own workflows gate their
   # tests; this job only measures them, on every run, for the uploads below.
+  # fixture-screen is test-only (an empty src/lib.rs), so it has no lines to measure.
   # One step per crate: the orphan test check reads only literal directories.
   tool-coverage:
     name: measure the tool crates' coverage
     runs-on: ubuntu-latest
-    # fixture-screen scans every tracked file: a release build, as in
-    # boundaries.yml, keeps its instrumented run within the limit.
-    timeout-minutes: 40
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -407,22 +406,6 @@ jobs:
         with:
           tool: cargo-llvm-cov@0.9.1
           fallback: none
-      # Each floor is in .github/ci/rust_coverage_floors.json, as for the crates.
-      - name: Run the fixture-screen tests with a line coverage floor
-        working-directory: tools/fixture-screen
-        env:
-          CRATE: fixture-screen
-        run: |
-          floor="$(jq --exit-status --arg crate "$CRATE" '.[$crate]' "$GITHUB_WORKSPACE/.github/ci/rust_coverage_floors.json")"
-          cargo llvm-cov --locked --release --fail-under-lines "$floor"
-      - working-directory: tools/fixture-screen
-        run: cargo llvm-cov report --release --lcov --output-path lcov.info
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: coverage-codecov-tool-fixture-screen
-          path: tools/fixture-screen/lcov.info
-          if-no-files-found: error
-          retention-days: 1
       # Each floor is in .github/ci/rust_coverage_floors.json, as for the crates.
       - name: Run the glama-badge-server tests with a line coverage floor
         working-directory: tools/glama-badge-server
@@ -465,7 +448,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tool: [fixture-screen, glama-badge-server, glama-badge-worker]
+        tool: [glama-badge-server, glama-badge-worker]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

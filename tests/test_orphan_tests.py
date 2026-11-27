@@ -282,10 +282,6 @@ class OrphanTestsTests(unittest.TestCase):
                 {caller: CALLER.replace(TOOL_TEST, "          cargo llvm-cov --locked --fail-under-lines 80\n")},
                 UNRUN,
             ),
-            "a release coverage run with a floor": (
-                {caller: CALLER.replace(TOOL_TEST, "          cargo llvm-cov --locked --release --fail-under-lines 80\n")},
-                UNRUN,
-            ),
             # A report reads the last run and runs no tests.
             "a coverage report alone": (
                 {caller: CALLER.replace(TOOL_TEST, "          cargo llvm-cov report --lcov --output-path lcov.info\n")},

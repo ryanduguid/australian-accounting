@@ -34,8 +34,8 @@ with $NAME in it; a path or name does not start with -. Each command runs:
 - cargo [+TOOLCHAIN] test with --locked, --release, --features F and
   --manifest-path P: that crate, or P's. With --test T -- --ignored
   --nocapture it runs part of the crate: nothing.
-- cargo [+TOOLCHAIN] llvm-cov with --locked, --release and --fail-under-lines N:
-  that crate.
+- cargo [+TOOLCHAIN] llvm-cov with --locked and --fail-under-lines N: that
+  crate.
 - cargo [+TOOLCHAIN] fuzz run [--target T] TARGET [CORPUS] [-- -flag=N ...]:
   the crate in fuzz/.
 - uv run [--locked] [--extra or --group G] pytest OPTIONS: the files under the
@@ -142,7 +142,7 @@ CARGO_TEST = re.compile(
     rf"| --manifest-path (?P<manifest>{NAME}))*"
     rf"(?P<part> --test {NAME} -- --ignored --nocapture)?"
 )
-LLVM_COV = re.compile(rf'{CARGO} llvm-cov(?: --locked| --release| --fail-under-lines (?:\d+|"\$[a-z_]+"))*')
+LLVM_COV = re.compile(rf'{CARGO} llvm-cov(?: --locked| --fail-under-lines (?:\d+|"\$[a-z_]+"))*')
 FUZZ = re.compile(
     rf"{CARGO} fuzz run(?: --target {NAME})? {NAME}(?: {NAME})?(?: --(?: -\w+=\d+)+)?"
 )
