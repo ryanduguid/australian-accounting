@@ -599,8 +599,7 @@ fn malformed_days_dates_and_missing_anniversaries_are_refused() {
     assert_eq!(code(&not_list), "ppsr_timing.days_invalid");
     let bad_end = registration("2026-11-19T10:00", "commercial", false, Some("2030-02-30"));
     assert_eq!(code(&bad_end), "input.date_invalid");
-    let leap = registration("2028-02-29T10:00", "consumer", false, None);
-    let mut leap = leap;
+    let mut leap = registration("2028-02-29T10:00", "consumer", false, None);
     leap["year"] = json!("2027-28");
     assert_eq!(code(&leap), "ppsr_timing.date_unsettled");
 }

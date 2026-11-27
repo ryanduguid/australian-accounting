@@ -722,7 +722,6 @@ fn malformed_events_and_dates_are_refused() {
     for input in [&mut empty, &mut not_object, &mut bad_day] {
         input["to"] = json!("2026-06-30");
     }
-    bad_to["to"] = json!("2026-02-30");
     for (input, message) in [
         (empty, "events must be a list of 1 to 1000 objects."),
         (not_object, "must be an object."),
