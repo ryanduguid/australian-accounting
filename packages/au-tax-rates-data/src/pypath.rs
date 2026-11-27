@@ -707,12 +707,17 @@ mod tests {
             );
         }
         assert_eq!(realpath(&format!("{t}/top")).unwrap(), "/");
-        // A deleted working folder: os.getcwd() raises, and so does realpath.
+        std::fs::remove_dir_all(&base).unwrap();
+    }
+
+    /// A deleted working folder: `os.getcwd()` raises, and so does realpath.
+    #[cfg(unix)]
+    #[test]
+    fn realpath_raises_when_the_working_folder_is_gone() {
         let gone = realpath_from("x", || Err(std::io::Error::from_raw_os_error(2))).unwrap_err();
         assert_eq!(
             (gone.class(), gone.text.as_str()),
             ("FileNotFoundError", "[Errno 2] No such file or directory")
         );
-        std::fs::remove_dir_all(&base).unwrap();
     }
 }
