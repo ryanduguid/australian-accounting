@@ -338,10 +338,11 @@ pub fn help_to_buy(args: &HelpToBuyArgs) -> Result<Value> {
             contribution: &contribution,
         },
         new_home,
-    )?;
+    );
+    let worked = worked?;
     let limit = threshold(&year, joint);
     let tests = entry_tests(!price.gt(&int(cap))?, &worked, !income.gt(&int(limit))?);
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![
@@ -352,7 +353,8 @@ pub fn help_to_buy(args: &HelpToBuyArgs) -> Result<Value> {
             ("income_threshold", int(limit)),
         ],
         Vec::new(),
-    )?;
+    );
+    let mut out = out?;
     out["area"] = json!(name);
     out["area_code"] = json!(code);
     out["property"] = json!(if new_home { "new" } else { "existing" });
@@ -479,7 +481,7 @@ pub fn help_to_buy_review(args: &HelpToBuyReviewArgs) -> Result<Value> {
     } else {
         int(0)
     };
-    let mut out = result(
+    let out = result(
         REVIEW,
         &year,
         vec![
@@ -490,7 +492,8 @@ pub fn help_to_buy_review(args: &HelpToBuyReviewArgs) -> Result<Value> {
             ("minimum_voluntary_repayment", minimum),
         ],
         Vec::new(),
-    )?;
+    );
+    let mut out = out?;
     out["applicants"] = json!(who);
     out["income_exceeded_both_years"] = json!(exceeded);
     out["outcome"] = json!(outcome(exceeded, capacity && !lmi, over_five, lmi));

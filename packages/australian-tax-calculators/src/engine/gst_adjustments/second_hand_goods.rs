@@ -78,15 +78,12 @@ fn conditions(args: &SecondHandGoodsArgs) -> Result<Vec<Value>> {
             );
         }
     };
+    let for_sale = flag(
+        args.acquired_for_sale_or_exchange,
+        "acquired_for_sale_or_exchange",
+    );
     Ok(vec![
-        condition(
-            "acquired_for_sale_or_exchange",
-            FOR_SALE,
-            flag(
-                args.acquired_for_sale_or_exchange,
-                "acquired_for_sale_or_exchange",
-            )?,
-        ),
+        condition("acquired_for_sale_or_exchange", FOR_SALE, for_sale?),
         condition(
             "second_hand_goods",
             GOODS,

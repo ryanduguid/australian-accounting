@@ -2982,7 +2982,9 @@ worksheet takes, so such a group is not worked. See
 monthly return for a month of 2026-27 in New South Wales, Victoria,
 Queensland, Western Australia, South Australia, Tasmania, the ACT or the
 Northern Territory, as
-each Act's monthly provisions read. It takes:
+each Act's monthly provisions read (in New South Wales the actual-wages method
+of Sch 2 cll 2 and 3 only; the estimated method of cll 3B to 3D is not
+worked). It takes:
 
 - `jurisdiction` and `month` (`2026-07` to `2027-06`);
 - `taxable_wages` and `interstate_wages` paid or payable in the month;
@@ -4508,7 +4510,7 @@ it to the ATO's 6 examples; see
 ## Super crystallisation
 
 `super_crystallisation` works out the crystallised segment of a taxed
-superannuation interest just before 1 July 2007 (ITTPA 1997 s 307-225): the
+superannuation interest just before 1 July 2007 (ITAA 1997 s 307-225): the
 concessional, post-June 1994 invalidity and CGT exempt components and the
 undeducted contributions the fund holds, plus the pre-July 83 component under
 former ITAA 1936 s 27AA(1)(d), the lesser of the base times the eligible

@@ -164,7 +164,7 @@ pub(super) fn gic(f: &Facts, period: &str) -> Result<Value> {
     let balance = half_up(&numerator, &denominator);
     let total_paid: u128 = paid.iter().map(|(_, cents)| u128::from(*cents)).sum();
     let charge = balance + total_paid - u128::from(amount);
-    let mut out = result(
+    let out = result(
         KIND,
         period,
         vec![
@@ -176,7 +176,8 @@ pub(super) fn gic(f: &Facts, period: &str) -> Result<Value> {
             .map(|r| rate("assumed_annual_rate_percent", percent(r)))
             .into_iter()
             .collect(),
-    )?;
+    );
+    let mut out = out?;
     out["question"] = json!("gic");
     out["days"] = json!(to - due + 1);
     out["stretches"] = stretches_json(&stretches);
