@@ -148,11 +148,7 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let target = dir.join("existing-report.txt");
         let err = write(&target.to_string_lossy(), b"new\n", csv_destination).unwrap_err();
-        assert!(
-            err.message().contains("must use a .csv filename"),
-            "{}",
-            err.message()
-        );
+        assert!(err.message().contains("must use a .csv filename"));
         assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 0);
         let _ = std::fs::remove_dir_all(&dir);
     }

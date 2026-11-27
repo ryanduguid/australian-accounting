@@ -522,12 +522,8 @@ pub fn canonical_csv(result: &JoinResult) -> Result<String> {
         {
             credited = Some(row.sg_amount.clone());
         }
-        let mut matched = outcome.matched_amount.clone();
-        if let Some(m) = &matched
-            && cents(Some(m))?.gt(&cents(Some(&row.sg_amount))?)?
-        {
-            matched = Some(row.sg_amount.clone());
-        }
+        // The join caps `matched_amount` at the cents of `sg_amount` already.
+        let matched = outcome.matched_amount.clone();
         let iso = |d: Option<Date>| d.map(|d| d.isoformat()).unwrap_or_default();
         let mut values = vec![
             label,

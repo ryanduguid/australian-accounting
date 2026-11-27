@@ -123,19 +123,6 @@ fn error(message: String) -> Failure {
     Failure::Value(message)
 }
 
-/// A dict's entries as Python's dict holds them: each key once, at its first
-/// position, with its last value.
-fn entries(items: &[(String, Raw)]) -> Vec<(&String, &Raw)> {
-    let mut out: Vec<(&String, &Raw)> = Vec::new();
-    for (k, v) in items {
-        match out.iter_mut().find(|(key, _)| *key == k) {
-            Some(slot) => slot.1 = v,
-            None => out.push((k, v)),
-        }
-    }
-    out
-}
-
 /// `[str(v) for v in value]` for a non-empty list, or the message.
 fn non_empty_list(value: Option<&Raw>, message: impl Fn() -> String) -> Result<Vec<String>> {
     match value {
@@ -201,7 +188,9 @@ fn build(raw: &Raw, file: &str) -> Result<Profile> {
         )));
     }
     let columns_raw = require(raw, "columns", file, "dict", dict_of)?;
-    let columns_raw = entries(columns_raw);
+    // `pyjson::loads` already holds each key once, at its first position with
+    // its last value, as Python's dict does.
+    let columns_raw: Vec<(&String, &Raw)> = columns_raw.iter().map(|(k, v)| (k, v)).collect();
     let unknown = sorted_strings(
         columns_raw
             .iter()
@@ -622,6 +611,26 @@ mod tests {
                 ("amount".to_string(), vec!["B".to_string()]),
                 ("employee_id".into(), vec!["Id".into()])
             ]
+        );
+    }
+
+    /// `refund_unreconciled` is this crate's own key (the Python profiles
+    /// have none): left out, no status reads as an unreconciled refund.
+    #[test]
+    fn remitted_status_without_refunds_lists_none() {
+        let profile = edited(|p| {
+            p.insert(
+                "remitted_status".into(),
+                serde_json::json!({"column": "contribution_type", "sent": ["Paid"], "not_sent": ["Held"]}),
+            );
+        })
+        .unwrap();
+        assert!(
+            profile
+                .remitted_status
+                .unwrap()
+                .refund_unreconciled
+                .is_empty()
         );
     }
 
