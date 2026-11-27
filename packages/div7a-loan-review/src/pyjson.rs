@@ -498,9 +498,16 @@ mod tests {
             other => panic!("not a string: {other:?}"),
         };
         assert_eq!(text(r#""\"\\\/\b\f\n\r\t""#), "\"\\/\u{8}\u{c}\n\r\t");
-        assert_eq!(text(r#""é€""#), "\u{e9}\u{20ac}");
+        // `~` stands for the backslash of a JSON \u escape.
+        let escaped = |json: &str| json.replace('~', "\\");
+        assert_eq!(text(&escaped(r#""~u00e9~u20AC""#)), "\u{e9}\u{20ac}");
         // A surrogate pair joins into one code point.
-        assert_eq!(text(r#""😀""#), "\u{1f600}");
+        assert_eq!(text(&escaped(r#""~ud83d~ude00""#)), "\u{1f600}");
+        // A high surrogate before a non-low escape stays unpaired.
+        assert_eq!(
+            err(&escaped(r#""~ud800~u0041""#)),
+            "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)"
+        );
         assert_eq!(
             err(r#""\u12g4""#),
             "Invalid \\uXXXX escape: line 1 column 3 (char 2)"
@@ -514,7 +521,7 @@ mod tests {
     #[test]
     fn a_lone_surrogate_is_refused_at_its_escape() {
         // Python keeps a lone surrogate; a Rust string cannot hold one.
-        for json in [r#""\ud800A""#, r#""\udc00""#] {
+        for json in [r#""\ud800""#, r#""\udc00""#] {
             assert_eq!(
                 err(json),
                 "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)",

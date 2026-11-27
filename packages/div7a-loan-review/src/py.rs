@@ -79,11 +79,6 @@ pub fn prefix_chars(s: &str, n: usize) -> &str {
     }
 }
 
-/// `len(s)`: a count of code points.
-pub fn char_len(s: &str) -> usize {
-    s.chars().count()
-}
-
 /// `repr(s)` for a `str`.
 pub fn repr_str(s: &str) -> String {
     let quote = if s.contains('\'') && !s.contains('"') {

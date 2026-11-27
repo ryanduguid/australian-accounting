@@ -402,7 +402,7 @@ mod tests {
     // Each expected value below is what CPython's csv.reader gives for the same input.
     #[test]
     fn a_carriage_return_at_a_chunk_boundary_joins_its_newline() {
-        let mut data = vec![b'x'; CHUNK_SIZE - 1];
+        let mut data = "x".repeat(CHUNK_SIZE - 1).into_bytes();
         data.extend(b"\r\ny\n");
         let got = rows(&data).unwrap();
         assert_eq!(got.len(), 2);
@@ -411,7 +411,7 @@ mod tests {
         // A \r that ends the data still ends its row.
         data.truncate(CHUNK_SIZE);
         assert_eq!(rows(&data).unwrap(), vec![vec!["x".repeat(CHUNK_SIZE - 1)]]);
-        data.push(b'z');
+        data.extend(b"z");
         assert_eq!(rows(&data).unwrap()[1], vec!["z".to_string()]);
         assert_eq!(rows(b"a\r").unwrap(), vec![vec!["a".to_string()]]);
         // Data shorter than a BOM that does not start one is read as text.
