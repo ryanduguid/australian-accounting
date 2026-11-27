@@ -729,3 +729,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(all(test, windows))]
+#[path = "cov_a7_pypath.rs"]
+mod cov_a7_tests;
