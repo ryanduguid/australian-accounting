@@ -385,6 +385,29 @@ jobs:
           fail_ci_if_error: true
           flags: ${{ (matrix.package == 'aus-accounting-mcp' || matrix.package == 'lodgment-calendar') && format('{0}-rust', matrix.package) || matrix.package }}
 
+  # codecov.yml sets manual_trigger, so Codecov posts its statuses only when
+  # told, here, once every upload of this run has finished or been skipped.
+  codecov-notify:
+    name: send Codecov statuses after the uploads
+    needs: [packages, codecov, codecov-rust]
+    if: >-
+      !cancelled()
+      && (github.event_name == 'push' || github.event_name == 'pull_request')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write # Authenticate with OIDC; no stored token.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          run_command: send-notifications
+          fail_ci_if_error: true
+
   tests-gates:
     # The one context branch protection requires from this workflow. It fails
     # unless every selected job succeeded and only unselected app and crate jobs skipped,
@@ -414,4 +437,4 @@ jobs:
       - name: Require every job to be listed and kept
         env:
           RESULTS: ${{ toJSON(needs) }}
-        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates --no-results --exempt codecov codecov-rust
+        run: python3 .github/ci/check_gates.py .github/workflows/ci.yml tests-gates --no-results --exempt codecov codecov-rust codecov-notify

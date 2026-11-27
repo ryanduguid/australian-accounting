@@ -6,7 +6,6 @@
 //! refused it. A `\uXXXX` escape may leave a lone surrogate in a string, as
 //! Python's `str` allows; such a string is kept as code points. Output
 //! matches `json.dumps` with the radar's options.
-use std::fmt::Write as _;
 
 use num_bigint::BigInt;
 
@@ -610,38 +609,6 @@ fn scanstring(doc: &str, end: usize) -> Result<(PyStr, usize), DecodeError> {
     }
 }
 
-/// The `json_decode` fuzz target's invariants for one input: no input panics
-/// the decoder, and a decoded value written as `json.dumps` writes it decodes
-/// back to the same JSON. The unit tests replay seeds through this.
-#[doc(hidden)]
-pub fn check_round_trip(data: &[u8]) -> Result<(), String> {
-    let _ = loads_bytes(data);
-    let Ok(text) = std::str::from_utf8(data) else {
-        return Ok(());
-    };
-    for decoded in [loads_standard(text), loads(text)] {
-        let Ok(value) = decoded else {
-            continue;
-        };
-        let once: String = crate::pyvalue::dumps_with(&value, None, true, false)
-            .into_iter()
-            .map(|cp| char::from_u32(cp).ok_or("json.dumps wrote a lone surrogate"))
-            .collect::<Result<_, _>>()?;
-        let again =
-            loads_standard(&once).map_err(|e| format!("{once:?} does not decode: {e:?}"))?;
-        let twice: Vec<u32> = crate::pyvalue::dumps_with(&again, None, true, false);
-        if twice
-            .into_iter()
-            .filter_map(char::from_u32)
-            .collect::<String>()
-            != once
-        {
-            return Err(format!("{once:?} changed in a round trip"));
-        }
-    }
-    Ok(())
-}
-
 /// `json.loads(bytes)`: the encoding `json.detect_encoding` picks, decoded with
 /// `surrogatepass`. The error is None for a `UnicodeDecodeError`, else what
 /// the scanner refused.
@@ -836,107 +803,6 @@ fn utf32(data: &[u8], big: Option<bool>) -> Option<Vec<u32>> {
         .collect()
 }
 
-/// `json.dumps` options the radar uses; `ensure_ascii` is always on.
-#[derive(Clone, Copy)]
-pub enum Layout {
-    /// `indent=2, sort_keys=True`.
-    Indented,
-    /// `sort_keys=True, separators=(",", ":")`.
-    Canonical,
-}
-
-fn dump_str(points: &[u32], out: &mut String) {
-    out.push('"');
-    for &cp in points {
-        match cp {
-            0x22 => out.push_str("\\\""),
-            0x5c => out.push_str("\\\\"),
-            0x0a => out.push_str("\\n"),
-            0x0d => out.push_str("\\r"),
-            0x09 => out.push_str("\\t"),
-            0x08 => out.push_str("\\b"),
-            0x0c => out.push_str("\\f"),
-            0x20..=0x7e => out.push(char::from_u32(cp).unwrap_or('?')),
-            0x10000.. => {
-                let v = cp - 0x10000;
-                let _ = write!(
-                    out,
-                    "\\u{:04x}\\u{:04x}",
-                    0xd800 + (v >> 10),
-                    0xdc00 + (v & 0x3ff)
-                );
-            }
-            _ => {
-                let _ = write!(out, "\\u{cp:04x}");
-            }
-        }
-    }
-    out.push('"');
-}
-
-fn dump_into(value: &Json, level: usize, layout: Layout, out: &mut String) {
-    let newline = |out: &mut String, level: usize| {
-        if let Layout::Indented = layout {
-            out.push('\n');
-            out.push_str(&"  ".repeat(level));
-        }
-    };
-    let (comma, colon) = match layout {
-        Layout::Indented => (",", ": "),
-        Layout::Canonical => (",", ":"),
-    };
-    match value {
-        Json::Null => out.push_str("null"),
-        Json::Bool(true) => out.push_str("true"),
-        Json::Bool(false) => out.push_str("false"),
-        Json::Int(i) => out.push_str(&i.to_string()),
-        Json::Float(f) if f.is_nan() => out.push_str("NaN"),
-        Json::Float(f) if f.is_infinite() => {
-            out.push_str(if *f > 0.0 { "Infinity" } else { "-Infinity" })
-        }
-        Json::Float(f) => out.push_str(&py::float_repr(*f)),
-        Json::Str(s) => dump_str(&s.code_points(), out),
-        Json::Array(items) if items.is_empty() => out.push_str("[]"),
-        Json::Array(items) => {
-            out.push('[');
-            for (i, item) in items.iter().enumerate() {
-                if i > 0 {
-                    out.push_str(comma);
-                }
-                newline(out, level + 1);
-                dump_into(item, level + 1, layout, out);
-            }
-            newline(out, level);
-            out.push(']');
-        }
-        Json::Object(pairs) if pairs.is_empty() => out.push_str("{}"),
-        Json::Object(pairs) => {
-            let mut order: Vec<(Vec<u32>, &Json)> =
-                pairs.iter().map(|(k, v)| (k.code_points(), v)).collect();
-            order.sort_by(|a, b| a.0.cmp(&b.0));
-            out.push('{');
-            for (i, (k, v)) in order.into_iter().enumerate() {
-                if i > 0 {
-                    out.push_str(comma);
-                }
-                newline(out, level + 1);
-                dump_str(&k, out);
-                out.push_str(colon);
-                dump_into(v, level + 1, layout, out);
-            }
-            newline(out, level);
-            out.push('}');
-        }
-    }
-}
-
-/// `json.dumps(value, ...)` with the given layout.
-pub fn dumps(value: &Json, layout: Layout) -> String {
-    let mut out = String::new();
-    dump_into(value, 0, layout, &mut out);
-    out
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1113,22 +979,6 @@ mod tests {
     }
 
     #[test]
-    fn dumps_matches_python() {
-        let value = loads("{\"b\": [1, 2.5, \"\u{e9}\\n\\u0001\u{1f600}\"], \"a\": {}, \"c\": []}")
-            .unwrap();
-        assert_eq!(
-            dumps(&value, Layout::Indented),
-            "{\n  \"a\": {},\n  \"b\": [\n    1,\n    2.5,\n    \"\\u00e9\\n\\u0001\\ud83d\\ude00\"\n  ],\n  \"c\": []\n}"
-        );
-        assert_eq!(
-            dumps(&value, Layout::Canonical),
-            "{\"a\":{},\"b\":[1,2.5,\"\\u00e9\\n\\u0001\\ud83d\\ude00\"],\"c\":[]}"
-        );
-    }
-
-    /// Probed against CPython 3.15's scanner (tools/json_escape_probe.py in the
-    /// port's evidence).
-    #[test]
     fn truncated_escapes_fail_where_cpython_315_fails() {
         let unterminated = "Unterminated string starting at: line 1 column 1 (char 0)";
         let invalid = |at: usize| {
@@ -1159,3 +1009,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a_pyjson.rs"]
+mod cov_a_tests;
