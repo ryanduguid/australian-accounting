@@ -1126,9 +1126,9 @@ struct ReportRun<'a> {
 }
 
 /// Write the CSV report of assessed lines, then print the console summary.
-fn write_report(mut s: Streams, results: &[Assessed], run: &ReportRun) -> (i32, String, String) {
-    let output = run.output;
-    let written = report::render_csv(
+/// Render the report CSV and write it to `run.output`, with a BOM for Excel.
+fn render_and_write(results: &[Assessed], run: &ReportRun) -> crate::Result<()> {
+    report::render_csv(
         results,
         &NoteFacts {
             as_at: run.as_at,
@@ -1141,12 +1141,16 @@ fn write_report(mut s: Streams, results: &[Assessed], run: &ReportRun) -> (i32, 
     )
     .and_then(|text| {
         atomic::write(
-            output,
+            run.output,
             format!("\u{feff}{text}").as_bytes(),
             atomic::csv_destination,
         )
-    });
-    match written {
+    })
+}
+
+fn write_report(mut s: Streams, results: &[Assessed], run: &ReportRun) -> (i32, String, String) {
+    let output = run.output;
+    match render_and_write(results, run) {
         Ok(()) => {}
         Err(Failure::Os(e)) => {
             s.err(&format!("error: cannot write {output}: {}", strerror(&e)));
@@ -1636,7 +1640,9 @@ mod tests {
     use std::path::Path;
 
     fn scratch(name: &str) -> String {
-        let dir = std::env::temp_dir().join(format!("payday-cli-{name}-{}", std::process::id()));
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target/test-scratch")
+            .join(format!("payday-cli-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir.join("report.csv").to_string_lossy().into_owned()
