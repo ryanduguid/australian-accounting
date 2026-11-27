@@ -140,7 +140,10 @@ mod tests {
 
     #[test]
     fn terminal_width_falls_back_when_zero() {
+        assert_eq!(pick_width(50, 10, || None), 50);
+        assert_eq!(pick_width(50, 0, || Some((120, 40))), 50);
         assert_eq!(pick_width(0, 0, || Some((120, 40))), 120);
         assert_eq!(pick_width(0, 0, || Some((0, 24))), 80);
+        assert_eq!(pick_width(0, 0, || None), 80);
     }
 }
