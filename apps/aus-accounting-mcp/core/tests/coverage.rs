@@ -151,13 +151,17 @@ fn div7a_loan_defaults_loan_id_and_refuses_invalid_numeric_fields() {
     let direct = adapters::evaluate("review_div7a_loan", &loan_args).unwrap();
     assert_eq!(direct["gate"]["loan_id"], "mcp-div7a-1");
 
-    for bad in [
-        json!({"year_of_income": "2026-27", "remaining_term_years": "bad"}),
-        json!({"year_of_income": "2026-27", "amalgamated_loan_unpaid_at_end_of_previous_year": "bad"}),
-        json!({"year_of_income": "2026-27", "payments_applied_during_the_year": "bad"}),
+    for field in [
+        "remaining_term_years",
+        "amalgamated_loan_unpaid_at_end_of_previous_year",
+        "payments_applied_during_the_year",
     ] {
+        let mut bad = loan_args.clone();
+        bad[field] = json!("bad");
         let reply = call("review_div7a_loan", &bad);
         assert_eq!(reply["isError"], true);
+        let text = reply["content"][0]["text"].as_str().unwrap();
+        assert!(text.contains(field));
     }
 }
 

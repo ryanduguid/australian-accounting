@@ -401,7 +401,7 @@ mod tests {
     }
 
     #[test]
-    fn model_and_default_descriptors_cover_non_object_dotted_keys_and_unsupported() {
+    fn model_and_default_descriptors_cover_non_object_and_dotted_keys() {
         let model_rule = json!({
             "type": "model", "name": "Demo", "config": {},
             "schema": {"type": "model-fields", "fields": {"a.b": {"type": "model-field", "schema": {"type": "str"}}}}

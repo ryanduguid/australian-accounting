@@ -102,6 +102,10 @@ mod tests {
                     .contains("omit an unknown amount or send null")
             );
         }
+    }
+
+    #[test]
+    fn optional_rejects_non_string_and_amount_rejects_above_limit() {
         assert_eq!(
             optional(Some(&Value::from(123)), "amount").unwrap_err(),
             "amount must be a string or null"
