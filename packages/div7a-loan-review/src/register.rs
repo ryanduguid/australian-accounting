@@ -6,8 +6,6 @@
 //! income. A row is SKIPPED where the operator marks it out of scope or the
 //! loan was made in a year that may straddle 4 December 1997 (s 109D(5)).
 
-use std::cmp::Ordering;
-
 use serde_json::{Value, json};
 
 use crate::Failure;
@@ -174,6 +172,14 @@ pub fn require_columns(fieldnames: &[String], needed: &[&str], where_: &str) -> 
 
 /// `load_rows(path, needed)`: the register as DictReader rows.
 pub fn load_rows(path: &PyPath, needed: &[&str]) -> Result<Vec<Raw>, Failure> {
+    Ok(load_items(path, needed)?
+        .into_iter()
+        .map(Raw::Dict)
+        .collect())
+}
+
+/// `load_rows`, each row as its `(column, value)` pairs in header order.
+pub fn load_items(path: &PyPath, needed: &[&str]) -> Result<Vec<Vec<(String, Raw)>>, Failure> {
     let shown = path.display();
     let bytes = std::fs::read(path.fs()).map_err(|e| {
         Failure::Value(format!(
@@ -351,22 +357,17 @@ pub fn review_register(
             2
         }
     };
-    let mut failure = None;
+    // A shortfall is never NaN, so comparing two cannot signal: it is 0.00
+    // when absent, and `repayment_within` sets it only after `lt` (which
+    // signals on NaN) and `to_cents` (finite in, finite out).
     lines.sort_by(|a, b| {
         band(a).cmp(&band(b)).then_with(|| {
-            match b.shortfall().compare(&a.shortfall()) {
-                Ok(order) => order,
-                Err(signal) => {
-                    failure = Some(signal);
-                    Ordering::Equal
-                }
-            }
-            .then(a.row_number.cmp(&b.row_number))
+            b.shortfall()
+                .compare(&a.shortfall())
+                .expect("shortfalls are never NaN")
+                .then(a.row_number.cmp(&b.row_number))
         })
     });
-    if let Some(signal) = failure {
-        return Err(Failure::Signal(signal));
-    }
     Ok(ReviewReport {
         year_of_income: year.label(),
         lines,

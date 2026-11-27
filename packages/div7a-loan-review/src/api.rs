@@ -25,7 +25,7 @@ use crate::rates::{
     BenchmarkTable, RateOverride, TableSource, benchmark_rate, load_override, load_table,
 };
 use crate::raw::Raw;
-use crate::register::{Mode, load_rows, require_columns, review_register, review_register_file};
+use crate::register::{Mode, load_items, require_columns, review_register, review_register_file};
 use crate::years::{YearOfIncome, parse_year};
 
 type Result<T> = std::result::Result<T, String>;
@@ -281,10 +281,7 @@ fn mode(v: &Value) -> Result<Mode> {
 }
 
 /// A register row as `[[column, value], ...]`, in header order.
-fn row_json(row: &Raw) -> Value {
-    let Raw::Dict(items) = row else {
-        return Value::Null;
-    };
+fn row_json(items: &[(String, Raw)]) -> Value {
     json!(
         items
             .iter()
@@ -480,8 +477,10 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
         "load-rows" => {
             let needed = iterable(v, "needed", false)?;
             let needed: Vec<&str> = needed.iter().map(String::as_str).collect();
-            let rows = load_rows(&PyPath::new(text(v, "path")?), &needed).map_err(failure)?;
-            Ok(json!(rows.iter().map(row_json).collect::<Vec<_>>()))
+            let rows = load_items(&PyPath::new(text(v, "path")?), &needed).map_err(failure)?;
+            Ok(json!(
+                rows.iter().map(|row| row_json(row)).collect::<Vec<_>>()
+            ))
         }
         "require-columns" => {
             // `set(fieldnames or [])`, but `needed` is iterated as given.
