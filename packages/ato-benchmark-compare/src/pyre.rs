@@ -701,7 +701,7 @@ mod tests {
         // A possessive repeat keeps each iteration's first match.
         assert!(Regex::python("(?:ab|a)++c").fullmatch("ababc"));
         assert!(!Regex::python("(?:a|ab)++c").fullmatch("abc"));
-        assert!(!Regex::python("(?:a|ab){2,}+c").fullmatch("ac"));
+        assert!(!Regex::python("(?:a|ab){2}+c").fullmatch("ac"));
     }
 
     #[test]

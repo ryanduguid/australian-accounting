@@ -446,36 +446,4 @@ mod tests {
             ])
         );
     }
-
-    /// Each expected message is what CPython's json.loads raised for the text.
-    #[test]
-    fn numbers_and_positions_match_cpython() {
-        assert_eq!(err("[\n x]"), "Expecting value: line 2 column 2 (char 3)");
-        assert_eq!(err("-x"), "Expecting value: line 1 column 1 (char 0)");
-        // An exponent marker without digits ends the number before it.
-        assert_eq!(err("1ex"), "Extra data: line 1 column 2 (char 1)");
-        assert_eq!(err("1e+"), "Extra data: line 1 column 2 (char 1)");
-        assert_eq!(loads("{}").unwrap(), Json::Object(Vec::new()));
-        assert_eq!(
-            loads("[1.25,1e+5,2E-3]").unwrap(),
-            Json::Array(vec![
-                Json::Float(1.25),
-                Json::Float(100000.0),
-                Json::Float(0.002)
-            ])
-        );
-    }
-
-    #[test]
-    fn a_lone_high_surrogate_escape_is_refused() {
-        // CPython keeps '\ud83dA'; a Rust string cannot hold the surrogate.
-        assert_eq!(
-            err("\"\\ud83d\\u0041\""),
-            "Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)"
-        );
-        assert_eq!(
-            loads("\"\\ud83d\\ude00\"").unwrap(),
-            Json::Str("\u{1f600}".into())
-        );
-    }
 }

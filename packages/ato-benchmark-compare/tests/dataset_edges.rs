@@ -30,6 +30,46 @@ fn the_digest_matches_python_canonical_json() {
     );
 }
 
+/// The JSON reader's refusals, as CPython's json.loads words them.
+#[test]
+fn the_digest_refuses_json_as_cpython_does() {
+    let refusal = |text: &str| match dataset::canonical_digest(text) {
+        Err(Failure::Value(message)) => message,
+        other => panic!("{text:?} gave {other:?}"),
+    };
+    assert_eq!(
+        refusal("[\n x]"),
+        "not valid JSON: Expecting value: line 2 column 2 (char 3)"
+    );
+    assert_eq!(
+        refusal("-x"),
+        "not valid JSON: Expecting value: line 1 column 1 (char 0)"
+    );
+    // An exponent marker without digits ends the number before it.
+    assert_eq!(
+        refusal("1ex"),
+        "not valid JSON: Extra data: line 1 column 2 (char 1)"
+    );
+    assert_eq!(
+        refusal("1e+"),
+        "not valid JSON: Extra data: line 1 column 2 (char 1)"
+    );
+    // CPython keeps '\ud83dA'; a Rust string cannot hold the lone surrogate.
+    assert_eq!(
+        refusal(r#""\ud83dA""#),
+        "not valid JSON: Unpaired surrogate in \\uXXXX escape: line 1 column 2 (char 1)"
+    );
+    // json.dumps({}) and json.dumps([1.25, 100000.0, 0.002]) hashed.
+    assert_eq!(
+        dataset::canonical_digest("{}").unwrap(),
+        "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    );
+    assert_eq!(
+        dataset::canonical_digest("[1.25,1e+5,2E-3]").unwrap(),
+        dataset::canonical_digest("[1.25, 100000.0, 0.002]").unwrap()
+    );
+}
+
 #[test]
 fn an_unknown_ratio_key_is_its_own_label() {
     assert_eq!(dataset::ratio_label("rent_to_turnover"), "Rent to turnover");
