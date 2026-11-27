@@ -174,3 +174,22 @@ fn a_lone_dash_and_a_negative_decimal_are_positional_paths() {
         assert_eq!(err, format!("error: file not found: {path}\n"));
     }
 }
+
+#[test]
+fn a_field_over_the_csv_limit_fails_import() {
+    let dir = folder("import-field-limit");
+    let payroll = oversized(&dir, "payroll.csv", "Employee ID,Pay Date,Super\n");
+    std::fs::write(dir.join("super.csv"), "Employee ID,Date Paid,Amount\n").unwrap();
+    let args = [
+        "import",
+        "--payroll",
+        &payroll,
+        "--super",
+        "super.csv",
+        "-o",
+        "out.csv",
+    ];
+    let (code, _, err) = run(&dir, &args, b"");
+    assert_eq!(code, 1);
+    assert_eq!(err, FIELD_LIMIT_ERROR);
+}
