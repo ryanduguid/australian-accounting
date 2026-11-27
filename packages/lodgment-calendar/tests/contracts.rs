@@ -178,8 +178,8 @@ fn supplied_facts_never_become_missing_and_unknown_rows_never_gain_a_due_date() 
 #[test]
 fn command_names_are_quoted_with_their_control_characters_escaped() {
     assert_eq!(
-        api::evaluate("a\b\nc\rd\te", &json!({})).unwrap_err(),
-        r"unknown JSON command: 'a\b\nc\rd\te'"
+        api::evaluate("a\\b\nc\rd\te", &json!({})).unwrap_err(),
+        r"unknown JSON command: 'a\\b\nc\rd\te'"
     );
 }
 
