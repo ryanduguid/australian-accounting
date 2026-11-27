@@ -78,8 +78,9 @@ fn revenue_rounding_past_the_largest_cents_value_raises_invalid_operation() {
 }
 
 #[test]
-fn a_million_digit_percentage_overflows_the_ratio_parser() {
-    let raw = format!("-{}%", "1".repeat(1_000_001));
+fn a_million_digit_negative_overflows_the_ratio_parser() {
+    // CPython: the negation rounds to 28 digits with an exponent past Emax.
+    let raw = format!("({})", "1".repeat(1_000_001));
     let error = money::parse_ratio(&raw, "ratio").unwrap_err();
     assert_eq!(error, money::AmountError::Decimal(Signal::Overflow));
     assert_eq!(error.to_string(), "decimal.Overflow");
