@@ -5,7 +5,7 @@
 //! `datetime.fromisoformat` against CPython 3.15: each row's expected value
 //! is what CPython 3.15 gave for the same string (the date, clock, UTC offset
 //! and `astimezone(timezone.utc).date()`, or the `ValueError` text).
-use lodgeit_calculator_adapter::pydatetime::datetime_fromisoformat;
+use lodgeit_calculator_adapter::pydatetime::{date_fromisoformat, datetime_fromisoformat};
 
 type Parsed = (
     &'static str,
@@ -351,6 +351,41 @@ fn iso_strings_parse_as_cpython_does() {
                 Some(Ok("2026-10-24")),
             )),
         ),
+        ("0002-W01-2", Ok(("0002-01-01", [0, 0, 0, 0], None, None))),
+        ("0400-W52-7", Ok(("0400-12-31", [0, 0, 0, 0], None, None))),
+        ("0000-W01-1", Err("Invalid isoformat string: '0000-W01-1'")),
+        ("2027-W01-1", Ok(("2027-01-04", [0, 0, 0, 0], None, None))),
+        ("2026-01x01", Err("Invalid isoformat string: '2026-01x01'")),
+        (
+            "2026-10-24T01:02:03:4",
+            Err("Invalid isoformat string: '2026-10-24T01:02:03:4'"),
+        ),
+        (
+            "2026-10-24T01:02x03",
+            Err("Invalid isoformat string: '2026-10-24T01:02x03'"),
+        ),
+        (
+            "2026-10-24T01:02Z1",
+            Err("Invalid isoformat string: '2026-10-24T01:02Z1'"),
+        ),
+        ("2026-W01-", Err("Invalid isoformat string: '2026-W01-'")),
+        ("2026-W01-12", Ok(("2025-12-29", [12, 0, 0, 0], None, None))),
+        ("2026W0110", Err("Invalid isoformat string: '2026W0110'")),
+        ("2026W01123", Ok(("2025-12-29", [23, 0, 0, 0], None, None))),
+        ("2026W01T10", Ok(("2025-12-29", [10, 0, 0, 0], None, None))),
+        (
+            "2026-10-24\u{20ac}01:02",
+            Ok(("2026-10-24", [1, 2, 0, 0], None, None)),
+        ),
+        (
+            "2026-10-24\u{1f600}01:02",
+            Ok(("2026-10-24", [1, 2, 0, 0], None, None)),
+        ),
+        (
+            "2026-02-30T24:00",
+            Err("day 30 must be in range 1..28 for month 2 in year 2026"),
+        ),
+        ("2026-13-01T24:00", Err("month must be in 1..12, not 13")),
         // END CPYTHON ROWS
     ];
     let mut wrong = Vec::new();
@@ -386,4 +421,29 @@ fn a_lone_surrogate_is_an_invalid_string_as_in_cpython() {
         datetime_fromisoformat(&points).unwrap_err(),
         "Invalid isoformat string: '2026-10-24\\udc80'"
     );
+}
+
+#[test]
+fn date_strings_parse_as_cpython_date_fromisoformat_does() {
+    // CPython 3.15's date.fromisoformat(text).isoformat(), or the ValueError text.
+    let rows: &[(&str, Result<&str, &str>)] = &[
+        ("2026-10-24", Ok("2026-10-24")),
+        ("2026W011", Ok("2025-12-29")),
+        ("2026-W01x1", Err("Invalid isoformat string: '2026-W01x1'")),
+        ("2026-01x01", Err("Invalid isoformat string: '2026-01x01'")),
+        ("2026-1-1", Err("Invalid isoformat string: '2026-1-1'")),
+        (
+            "2026-10-24T01",
+            Err("Invalid isoformat string: '2026-10-24T01'"),
+        ),
+        ("0000-01-01", Err("year must be in 1..9999, not 0")),
+    ];
+    for &(text, want) in rows {
+        let got = date_fromisoformat(text).map(|date| date.isoformat());
+        assert_eq!(
+            got,
+            want.map(str::to_string).map_err(str::to_string),
+            "{text:?}"
+        );
+    }
 }
