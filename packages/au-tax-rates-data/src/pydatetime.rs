@@ -386,23 +386,6 @@ pub fn date_fromisoformat(string: &str) -> Result<Date, String> {
     Date::new(year.into(), month.into(), day.into())
 }
 
-impl DateTime {
-    /// `self.astimezone(timezone.utc).date()` for an aware datetime; the
-    /// error is the `OverflowError` message.
-    pub fn utc_date(&self) -> Result<Date, String> {
-        let offset = self.offset_us.unwrap_or(0);
-        let micros =
-            (i64::from(self.hour) * 3600 + i64::from(self.minute) * 60 + i64::from(self.second))
-                * 1_000_000
-                + i64::from(self.microsecond)
-                - offset;
-        let days = micros.div_euclid(86_400 * 1_000_000);
-        self.date
-            .add_days(days)
-            .ok_or_else(|| "date value out of range".to_string())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -415,9 +398,9 @@ mod tests {
     fn download_timestamps_parse_with_their_offset() {
         let dt = parse("2026-10-24T01:02:03.456789+00:00").unwrap();
         assert_eq!(dt.offset_us, Some(0));
-        assert_eq!(dt.utc_date().unwrap().isoformat(), "2026-10-24");
+        assert_eq!(dt.microsecond, 456_789);
         let dt = parse("2026-10-24T01:02:03+10:00").unwrap();
-        assert_eq!(dt.utc_date().unwrap().isoformat(), "2026-10-23");
+        assert_eq!(dt.offset_us, Some(36_000_000_000));
         assert_eq!(parse("2026-10-24").unwrap().offset_us, None);
     }
 
@@ -443,13 +426,6 @@ mod tests {
             parse("9999-12-31T24:00").unwrap_err(),
             "year must be in 1..9999, not 10000"
         );
-        assert_eq!(
-            parse("0001-01-01T00:00+01:00")
-                .unwrap()
-                .utc_date()
-                .unwrap_err(),
-            "date value out of range"
-        );
         assert_eq!(parse("2026-W01-1").unwrap().date.isoformat(), "2025-12-29");
         assert_eq!(
             date_fromisoformat("20261024").unwrap().isoformat(),
@@ -457,3 +433,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a_pydatetime.rs"]
+mod cov_a_tests;
