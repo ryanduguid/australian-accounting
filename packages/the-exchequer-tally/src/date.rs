@@ -39,3 +39,19 @@ impl std::fmt::Display for Date {
         f.write_str(&self.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Date;
+
+    #[test]
+    fn date_display_ordering_and_debug() {
+        let earlier = Date::parse("2024-02-29").unwrap();
+        let later = Date::parse("2024-03-01").unwrap();
+        assert_eq!(earlier.to_string(), "2024-02-29");
+        assert_eq!(format!("{earlier:?}"), "Date(\"2024-02-29\")");
+        assert!(earlier < later);
+        assert_eq!(earlier.cmp(&later), std::cmp::Ordering::Less);
+        assert_eq!(earlier.clone(), earlier);
+    }
+}

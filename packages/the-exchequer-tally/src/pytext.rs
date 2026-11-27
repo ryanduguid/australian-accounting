@@ -166,7 +166,7 @@ mod tests {
         assert_eq!(repr("caf\u{e9}"), "'caf\u{e9}'");
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
-        assert_eq!(repr("a\\b\tc\rd"), r"'a\\b\tc\rd'");
+        assert_eq!(repr("a\\b\tc\nd\re"), r"'a\\b\tc\nd\re'");
         assert_eq!(repr("\x01\x7f"), r"'\x01\x7f'");
     }
 
