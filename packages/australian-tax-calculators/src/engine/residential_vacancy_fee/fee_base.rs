@@ -140,6 +140,20 @@ fn stated_application_fee_base(
     })
 }
 
+/// The notional fee's authority where the post-2024 fee is waived: only a
+/// notice or an order reaches it.
+fn waived_fee_authority(basis: AcquisitionBasis) -> &'static str {
+    match basis {
+        AcquisitionBasis::NotifiableAction => {
+            "Fees Regulations 2020 s 43(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
+        }
+        AcquisitionBasis::NoNoticeOrder => {
+            "Fees Regulations 2020 s 46(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
+        }
+        _ => unreachable!(),
+    }
+}
+
 fn waived_post_2024_base(
     basis: AcquisitionBasis,
     window: VacancyWindow,
@@ -156,15 +170,7 @@ fn waived_post_2024_base(
     let tier_one = int(sched.tier_one);
     let em = int(estab_mult);
     let whole = tier_one.mul(&em)?;
-    let authority = match basis {
-        AcquisitionBasis::NotifiableAction => {
-            "Fees Regulations 2020 s 43(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
-        }
-        AcquisitionBasis::NoNoticeOrder => {
-            "Fees Regulations 2020 s 46(b) (as amended by Act No. 17 of 2024) and s 10(1) item 1, (2): notional tier-1 fee in force when the notice was given"
-        }
-        _ => unreachable!(),
-    };
+    let authority = waived_fee_authority(basis);
     let whole_step = step(
         "whole_property_application_fee",
         authority,
@@ -186,13 +192,12 @@ fn waived_post_2024_base(
     })
 }
 
+/// A vacancy year starting from 1 July 2020 (2020-21, the first supported
+/// year) to 8 April 2024 ends from 30 June 2021 and has its return due by 7 May
+/// 2025, inside the schedule's rows.
 fn pre_2024_waived_tier_one(window: VacancyWindow) -> Result<i64> {
-    let (Some(se), Some(sd)) = (schedule_for(window.end), schedule_for(window.return_due)) else {
-        return refuse(
-            "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
-            "The vacancy year end or 30-day return window lies outside the verified Fees Regulations 2020 schedule dates.",
-        );
-    };
+    let fee = |day| schedule_for(day).expect("a pre-9 April 2024 schedule day");
+    let (se, sd) = (fee(window.end), fee(window.return_due));
     if se.tier_one != sd.tier_one {
         return refuse(
             "residential_vacancy_fee.pre_2024_waiver_boundary_unsettled",
@@ -425,4 +430,56 @@ pub(super) fn resolve_fee_base(
         return waived_fee_base(basis, ownership, window, optional);
     }
     notional_fee_base(basis, ownership, window, optional)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        APRIL_2024_AMENDMENT, AcquisitionBasis, VacancyWindow, parse_day, pre_2024_waived_tier_one,
+        stated_fee_authority, waived_fee_authority,
+    };
+    use crate::dates;
+
+    /// Every vacancy year starting in a supported year before 9 April 2024
+    /// ends, and has its return due, on days the schedule's rows cover: the
+    /// fee is worked or the crossing refused, never a missing row.
+    #[test]
+    fn each_pre_2024_vacancy_year_has_its_schedule_days() {
+        let first = crate::metadata::supported_periods("residential_vacancy_fee")[0];
+        assert_eq!(first, "2020-21");
+        let mut worked = 0;
+        for start in parse_day("2020-07-01")..parse_day(APRIL_2024_AMENDMENT) {
+            let end = dates::months_end(start, 12);
+            let window = VacancyWindow {
+                start,
+                end,
+                return_due: end + super::super::RETURN_DUE_DAYS,
+                lodged_on_time: true,
+            };
+            worked += usize::from(pre_2024_waived_tier_one(window).is_ok());
+        }
+        assert!(worked > 1000, "{worked}");
+    }
+
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code")]
+    fn a_developer_certificate_has_no_stated_fee() {
+        stated_fee_authority(AcquisitionBasis::DeveloperExemptionCertificate);
+    }
+
+    /// Only a notice or an order is waived under the post-2024 rules, so no
+    /// input brings an exemption certificate here.
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code")]
+    fn an_exemption_certificate_has_no_waived_fee() {
+        waived_fee_authority(AcquisitionBasis::OtherExemptionCertificate);
+    }
+
+    #[test]
+    fn a_no_notice_order_takes_the_s_46_fees() {
+        let stated = stated_fee_authority(AcquisitionBasis::NoNoticeOrder);
+        assert!(stated.starts_with("Fees Regulations 2020 s 46(a): "));
+        let waived = waived_fee_authority(AcquisitionBasis::NoNoticeOrder);
+        assert!(waived.starts_with("Fees Regulations 2020 s 46(b) "));
+    }
 }

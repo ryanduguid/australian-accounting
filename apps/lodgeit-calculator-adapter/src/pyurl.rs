@@ -194,18 +194,18 @@ pub fn urljoin(base: &str, url: &str) -> Result<String, String> {
     if scheme != b.scheme || named.is_some_and(|s| !USES_RELATIVE.contains(&s)) {
         return Ok(url.to_owned());
     }
-    if named.is_none_or(|s| USES_NETLOC.contains(&s)) {
-        if netloc.as_deref().is_some_and(|n| !n.is_empty()) {
-            return Ok(unsplit(
-                scheme.as_deref(),
-                netloc.as_deref(),
-                &path,
-                query.as_deref(),
-                fragment.as_deref(),
-            ));
-        }
-        netloc = b.netloc.clone();
+    // Every scheme in USES_RELATIVE is also in USES_NETLOC, so CPython's
+    // `if scheme in uses_netloc` always holds here.
+    if netloc.as_deref().is_some_and(|n| !n.is_empty()) {
+        return Ok(unsplit(
+            scheme.as_deref(),
+            netloc.as_deref(),
+            &path,
+            query.as_deref(),
+            fragment.as_deref(),
+        ));
     }
+    netloc = b.netloc.clone();
     if path.is_empty() {
         path = b.path.clone();
         if query.is_none() {

@@ -6,7 +6,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use crate::py::{Date, MAX_DATE};
+use crate::py::Date;
 use crate::pyre::Regex;
 use crate::pytext;
 use crate::strptime_table::{FULL_MONTHS, MONTHS, PATTERNS};
@@ -35,10 +35,6 @@ impl Date {
     /// `date.replace(year=year)`, or None where that day does not exist.
     pub fn with_year(self, year: i64) -> Option<Date> {
         Date::new(year, i64::from(self.month), i64::from(self.day)).ok()
-    }
-
-    pub fn is_max(self) -> bool {
-        self == MAX_DATE
     }
 }
 

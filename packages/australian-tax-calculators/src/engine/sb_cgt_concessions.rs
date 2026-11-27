@@ -509,12 +509,13 @@ pub fn sb_cgt_concessions(args: &SbCgtConcessionsArgs) -> Result<Value> {
 
     let mut amounts = vec![("net_value_of_cgt_assets", net_value)];
     amounts.extend(limit_left.map(|left| ("retirement_exemption_limit_left", left)));
-    let mut out = result(
+    let out = result(
         KIND,
         &f.year,
         amounts,
         RATES.map(|(k, v)| rate(k, v)).into(),
-    )?;
+    );
+    let mut out = out?;
     out["conditions"] = json!(rows);
     out["concessions"] = json!(concessions);
     out["active_asset_test"] = json!({

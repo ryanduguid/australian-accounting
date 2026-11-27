@@ -30,21 +30,25 @@ fn fixture() -> Value {
         "../../tests/fixtures/native/retrieval-contracts.json"
     ))
     .unwrap();
-    let edges: Value = serde_json::from_str(include_str!(
-        "../../tests/fixtures/native/retrieval-edges.json"
-    ))
-    .unwrap();
-    fixture["cases"]
-        .as_array_mut()
-        .unwrap()
-        .extend(edges["cases"].as_array().unwrap().iter().cloned());
-    fixture["blobs"].as_object_mut().unwrap().extend(
-        edges["blobs"]
-            .as_object()
+    // The coverage edges replay in their recorded order: a later case can rely on the
+    // validation an earlier one cached for the same run.
+    for edges in [
+        include_str!("../../tests/fixtures/native/retrieval-edges.json"),
+        include_str!("../../tests/fixtures/native/retrieval-coverage-edges.json"),
+    ] {
+        let edges: Value = serde_json::from_str(edges).unwrap();
+        fixture["cases"]
+            .as_array_mut()
             .unwrap()
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone())),
-    );
+            .extend(edges["cases"].as_array().unwrap().iter().cloned());
+        fixture["blobs"].as_object_mut().unwrap().extend(
+            edges["blobs"]
+                .as_object()
+                .unwrap()
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone())),
+        );
+    }
     fixture
 }
 
@@ -308,7 +312,7 @@ fn frozen_corpus_contracts() {
         replay_corpus(&tree.0, item, &fixture["blobs"]);
         count += 1;
     }
-    assert_eq!(count, 688);
+    assert_eq!(count, 690);
 }
 
 #[test]
@@ -345,7 +349,7 @@ fn frozen_rulings_contracts() {
         }
         count += 1;
     }
-    assert_eq!(count, 90);
+    assert_eq!(count, 99);
 }
 
 fn library_call(context: &Context, item: &Value) -> Result<Value, String> {
@@ -456,6 +460,102 @@ fn frozen_census_contracts() {
         count += 1;
     }
     assert_eq!(count, 28);
+}
+
+/// A variable no test sets: the folder is unconfigured and the doctor's census
+/// of the rulings folder says how to set it.
+#[test]
+fn an_unset_folder_variable_is_unconfigured_for_the_census() {
+    let variable = "AUS_ACCOUNTING_COVERAGE_NEVER_SET_ROOT";
+    let context = Context::from_env(variable);
+    assert!(context.root.is_none());
+    assert!(context.limits.is_empty() && !context.denied);
+    assert!(context.principal_acts.is_none() && context.fault.is_none());
+    let error = census(variable).unwrap_err();
+    assert!(
+        error.starts_with("Set AUS_ACCOUNTING_RULINGS_ROOT to an authorised "),
+        "{error}"
+    );
+    assert!(error.ends_with(NOT_CONFIGURED), "{error}");
+}
+
+#[test]
+fn a_tool_outside_retrieval_is_refused_by_name() {
+    assert_eq!(
+        evaluate("get_div7a_benchmark_rate", &json!({})).unwrap_err(),
+        "get_div7a_benchmark_rate: native migration is incomplete; use the existing Python server"
+    );
+}
+
+#[test]
+#[should_panic(expected = "validated corpus tool")]
+fn the_corpus_dispatch_takes_only_corpus_tools() {
+    let _ = corpus::evaluate(
+        &Context::from_env("AUS_ACCOUNTING_COVERAGE_NEVER_SET_ROOT"),
+        "read_ato_ruling",
+        &json!({}),
+    );
+}
+
+/// Python's library search reads `*.md` files only: a text file with the same words is not a match.
+#[test]
+fn library_search_skips_files_that_are_not_markdown() {
+    let tree = Tree(scratch("native-mcp-not-markdown"));
+    fs::create_dir(&tree.0).unwrap();
+    fs::write(tree.0.join("gst.md"), "GST registration").unwrap();
+    fs::write(tree.0.join("gst.txt"), "GST registration").unwrap();
+    let context = Context {
+        root: Some(tree.0.clone()),
+        limits: Default::default(),
+        denied: false,
+        principal_acts: None,
+        fault: None,
+    };
+    let found = library::search(&context, "GST", 5, 0).unwrap();
+    let matches = found["matches"].as_array().unwrap();
+    assert_eq!(matches.len(), 1, "{found}");
+    assert!(matches[0].to_string().contains("gst.md"), "{found}");
+}
+
+/// CPython 3.14's `f"{row.get('register_id')!s:.32}"` for each value.
+#[test]
+fn a_register_id_reads_as_python_formats_it() {
+    for (id, expected) in [
+        (json!(null), "None".to_owned()),
+        (json!(12345), "12345".to_owned()),
+        (json!(true), "True".to_owned()),
+        (json!([1, "a"]), "[1, 'a']".to_owned()),
+        (json!({"k": null}), "{'k': None}".to_owned()),
+        (json!("x".repeat(40)), "x".repeat(32)),
+    ] {
+        assert_eq!(
+            as_at::register_id(&json!({"register_id": id})),
+            expected,
+            "{id}"
+        );
+    }
+    assert_eq!(as_at::register_id(&json!({})), "None");
+}
+
+/// Ranking compares keys only, so two hits with one score are equal whatever they hold.
+#[test]
+fn ranked_hits_with_one_key_are_equal() {
+    let first = corpus::Ranked {
+        key: 3,
+        value: json!({"row_id": "a"}),
+    };
+    let second = corpus::Ranked {
+        key: 3,
+        value: json!({"row_id": "b"}),
+    };
+    assert!(first == second);
+    assert!(
+        first
+            != corpus::Ranked {
+                key: 4,
+                value: json!({"row_id": "a"})
+            }
+    );
 }
 
 mod edges;

@@ -1,0 +1,536 @@
+{
+ "python": "3.15.0",
+ "cases": {
+  "lt": [
+   [
+    "[1, 2.5]",
+    "True"
+   ],
+   [
+    "[3, 3.0]",
+    "False"
+   ],
+   [
+    "[3, 2.5]",
+    "False"
+   ],
+   [
+    "[3, 3.5]",
+    "True"
+   ],
+   [
+    "[-3, -3.5]",
+    "False"
+   ],
+   [
+    "[-4, -3.5]",
+    "True"
+   ],
+   [
+    "[2, NaN]",
+    "False"
+   ],
+   [
+    "[NaN, 2]",
+    "False"
+   ],
+   [
+    "[NaN, 1.0]",
+    "False"
+   ],
+   [
+    "[2, Infinity]",
+    "True"
+   ],
+   [
+    "[2, -Infinity]",
+    "False"
+   ],
+   [
+    "[Infinity, 2]",
+    "False"
+   ],
+   [
+    "[-Infinity, 2]",
+    "True"
+   ],
+   [
+    "[1.5, 2.5]",
+    "True"
+   ],
+   [
+    "[2.5, 2.5]",
+    "False"
+   ],
+   [
+    "[100000000000000000000, 1e20]",
+    "False"
+   ],
+   [
+    "[100000000000000000001, 1e20]",
+    "False"
+   ],
+   [
+    "[true, 2]",
+    "True"
+   ],
+   [
+    "[false, 0.0]",
+    "False"
+   ],
+   [
+    "[\"a\", \"b\"]",
+    "True"
+   ],
+   [
+    "[\"b\", \"a\"]",
+    "False"
+   ],
+   [
+    "[\"a\", \"a\"]",
+    "False"
+   ],
+   [
+    "[[1, 2], [1, 3]]",
+    "True"
+   ],
+   [
+    "[[1, 3], [1, 2]]",
+    "False"
+   ],
+   [
+    "[[1], [1, 2]]",
+    "True"
+   ],
+   [
+    "[[1, 2], [1]]",
+    "False"
+   ],
+   [
+    "[[1], [1]]",
+    "False"
+   ],
+   [
+    "[[1, \"a\"], [1, 2]]",
+    "!TypeError: '<' not supported between instances of 'str' and 'int'"
+   ],
+   [
+    "[null, 1]",
+    "!TypeError: '<' not supported between instances of 'NoneType' and 'int'"
+   ],
+   [
+    "[{}, 1]",
+    "!TypeError: '<' not supported between instances of 'dict' and 'int'"
+   ],
+   [
+    "[\"a\", 1]",
+    "!TypeError: '<' not supported between instances of 'str' and 'int'"
+   ],
+   [
+    "[[1], 1]",
+    "!TypeError: '<' not supported between instances of 'list' and 'int'"
+   ]
+  ],
+  "le": [
+   [
+    "[1, 2.5]",
+    "True"
+   ],
+   [
+    "[3, 3.0]",
+    "True"
+   ],
+   [
+    "[3, 2.5]",
+    "False"
+   ],
+   [
+    "[3, 3.5]",
+    "True"
+   ],
+   [
+    "[-3, -3.5]",
+    "False"
+   ],
+   [
+    "[-4, -3.5]",
+    "True"
+   ],
+   [
+    "[2, NaN]",
+    "False"
+   ],
+   [
+    "[NaN, 2]",
+    "False"
+   ],
+   [
+    "[NaN, 1.0]",
+    "False"
+   ],
+   [
+    "[2, Infinity]",
+    "True"
+   ],
+   [
+    "[2, -Infinity]",
+    "False"
+   ],
+   [
+    "[Infinity, 2]",
+    "False"
+   ],
+   [
+    "[-Infinity, 2]",
+    "True"
+   ],
+   [
+    "[1.5, 2.5]",
+    "True"
+   ],
+   [
+    "[2.5, 2.5]",
+    "True"
+   ],
+   [
+    "[100000000000000000000, 1e20]",
+    "True"
+   ],
+   [
+    "[100000000000000000001, 1e20]",
+    "False"
+   ],
+   [
+    "[true, 2]",
+    "True"
+   ],
+   [
+    "[false, 0.0]",
+    "True"
+   ],
+   [
+    "[\"a\", \"b\"]",
+    "True"
+   ],
+   [
+    "[\"b\", \"a\"]",
+    "False"
+   ],
+   [
+    "[\"a\", \"a\"]",
+    "True"
+   ],
+   [
+    "[[1, 2], [1, 3]]",
+    "True"
+   ],
+   [
+    "[[1, 3], [1, 2]]",
+    "False"
+   ],
+   [
+    "[[1], [1, 2]]",
+    "True"
+   ],
+   [
+    "[[1, 2], [1]]",
+    "False"
+   ],
+   [
+    "[[1], [1]]",
+    "True"
+   ],
+   [
+    "[[1, \"a\"], [1, 2]]",
+    "!TypeError: '<=' not supported between instances of 'str' and 'int'"
+   ],
+   [
+    "[null, 1]",
+    "!TypeError: '<=' not supported between instances of 'NoneType' and 'int'"
+   ],
+   [
+    "[{}, 1]",
+    "!TypeError: '<=' not supported between instances of 'dict' and 'int'"
+   ],
+   [
+    "[\"a\", 1]",
+    "!TypeError: '<=' not supported between instances of 'str' and 'int'"
+   ],
+   [
+    "[[1], 1]",
+    "!TypeError: '<=' not supported between instances of 'list' and 'int'"
+   ]
+  ],
+  "sorted_set": [
+   [
+    "[3, 1, 2, 1]",
+    "[1, 2, 3]"
+   ],
+   [
+    "[\"b\", \"a\", \"c\", \"a\"]",
+    "['a', 'b', 'c']"
+   ],
+   [
+    "[1, 1.0, true, 0, false, 2.5]",
+    "[0, 1, 2.5]"
+   ],
+   [
+    "[2.5, -1, 100000000000000000000, 0.5]",
+    "[-1, 0.5, 2.5, 100000000000000000000]"
+   ],
+   [
+    "[[1], 2]",
+    "!TypeError: cannot use 'list' as a set element (unhashable type: 'list')"
+   ],
+   [
+    "[{}]",
+    "!TypeError: cannot use 'dict' as a set element (unhashable type: 'dict')"
+   ]
+  ],
+  "sorted_set_class": [
+   [
+    "[1, \"a\"]",
+    "!TypeError"
+   ],
+   [
+    "[null, 1]",
+    "!TypeError"
+   ],
+   [
+    "[\"a\", null, \"b\"]",
+    "!TypeError"
+   ]
+  ],
+  "tuple_key": [
+   [
+    "[\"x\", \"y\"]",
+    "1"
+   ],
+   [
+    "[\"x\", 1]",
+    "1"
+   ],
+   [
+    "[\"x\", null]",
+    "1"
+   ],
+   [
+    "[\"x\", [1]]",
+    "!TypeError: cannot use 'tuple' as a set element (unhashable type: 'list')"
+   ],
+   [
+    "[\"x\", {}]",
+    "!TypeError: cannot use 'tuple' as a set element (unhashable type: 'dict')"
+   ],
+   [
+    "[[1], \"x\"]",
+    "!TypeError: cannot use 'tuple' as a set element (unhashable type: 'list')"
+   ]
+  ],
+  "decimal": [
+   [
+    "[0, [1, 2], -1]",
+    "1.2"
+   ],
+   [
+    "[1, [1, 2], -1]",
+    "-1.2"
+   ],
+   [
+    "[0, [], 0]",
+    "0"
+   ],
+   [
+    "[1, [], 5]",
+    "-0E+5"
+   ],
+   [
+    "[true, [7], 0]",
+    "-7"
+   ],
+   [
+    "[2, [1], 0]",
+    "!ValueError: sign must be an integer with the value 0 or 1"
+   ],
+   [
+    "[\"0\", [1], 0]",
+    "!ValueError: sign must be an integer with the value 0 or 1"
+   ],
+   [
+    "[-1, [1], 0]",
+    "!ValueError: sign must be an integer with the value 0 or 1"
+   ],
+   [
+    "[99999999999999999999, [1], 0]",
+    "!OverflowError: Python int too large to convert to C long"
+   ],
+   [
+    "[0, [1], \"F\"]",
+    "Infinity"
+   ],
+   [
+    "[1, [], \"F\"]",
+    "-Infinity"
+   ],
+   [
+    "[0, [1, 2], \"n\"]",
+    "NaN12"
+   ],
+   [
+    "[0, [3], \"N\"]",
+    "sNaN3"
+   ],
+   [
+    "[1, [], \"n\"]",
+    "-NaN"
+   ],
+   [
+    "[0, [1], \"x\"]",
+    "!ValueError: string argument in the third position must be 'F', 'n' or 'N'"
+   ],
+   [
+    "[0, [1], 1.5]",
+    "!ValueError: exponent must be an integer"
+   ],
+   [
+    "[0, [1], null]",
+    "!ValueError: exponent must be an integer"
+   ],
+   [
+    "[0, [1], 99999999999999999999]",
+    "!OverflowError: Python int too large to convert to C ssize_t"
+   ],
+   [
+    "[0, [1], 1000000000000000000]",
+    "!InvalidOperation: [<class 'decimal.InvalidOperation'>]"
+   ],
+   [
+    "[0, [10], 0]",
+    "!ValueError: coefficient must be a tuple of digits"
+   ],
+   [
+    "[0, [\"1\"], 0]",
+    "!ValueError: coefficient must be a tuple of digits"
+   ],
+   [
+    "[0, [-1], 0]",
+    "!ValueError: coefficient must be a tuple of digits"
+   ],
+   [
+    "[0, [99999999999999999999], 0]",
+    "!OverflowError: Python int too large to convert to C long"
+   ],
+   [
+    "[0, \"12\", 0]",
+    "!ValueError: coefficient must be a tuple of digits"
+   ],
+   [
+    "[0, [1]]",
+    "!ValueError: argument must be a sequence of length 3"
+   ],
+   [
+    "[]",
+    "!ValueError: argument must be a sequence of length 3"
+   ],
+   [
+    "[0, [1], 0, 0]",
+    "!ValueError: argument must be a sequence of length 3"
+   ],
+   [
+    "null",
+    "!TypeError: conversion from NoneType to Decimal is not supported"
+   ],
+   [
+    "{}",
+    "!TypeError: conversion from dict to Decimal is not supported"
+   ],
+   [
+    "\"abc\"",
+    "!InvalidOperation: [<class 'decimal.ConversionSyntax'>]"
+   ],
+   [
+    "\"1.50\"",
+    "1.50"
+   ],
+   [
+    "true",
+    "1"
+   ],
+   [
+    "false",
+    "0"
+   ],
+   [
+    "1.5",
+    "1.5"
+   ],
+   [
+    "0.1",
+    "0.1000000000000000055511151231257827021181583404541015625"
+   ],
+   [
+    "12345678901234567890",
+    "12345678901234567890"
+   ]
+  ],
+  "bytes": [
+   [
+    "22ff22",
+    "'utf-8' codec can't decode byte 0xff in position 1: invalid start byte"
+   ],
+   [
+    "efbbbf22ff22",
+    "'utf-8' codec can't decode byte 0xff in position 1: invalid start byte"
+   ],
+   [
+    "22eda080ff22",
+    "'utf-8' codec can't decode byte 0xff in position 4: invalid start byte"
+   ],
+   [
+    "22c322",
+    "'utf-8' codec can't decode byte 0xc3 in position 1: invalid continuation byte"
+   ],
+   [
+    "2261e282",
+    "'utf-8' codec can't decode bytes in position 2-3: unexpected end of data"
+   ],
+   [
+    "efbbbf22eda080c022",
+    "'utf-8' codec can't decode byte 0xc0 in position 4: invalid start byte"
+   ],
+   [
+    "22eda0",
+    "'utf-8' codec can't decode byte 0xed in position 1: invalid continuation byte"
+   ],
+   [
+    "22ed9f",
+    "'utf-8' codec can't decode bytes in position 1-2: unexpected end of data"
+   ]
+  ],
+  "decodes": [
+   "22eda08022"
+  ],
+  "wide": [
+   [
+    "2200610022",
+    "'utf-16-le' codec can't decode byte 0x22 in position 4: truncated data"
+   ],
+   [
+    "fffe220061",
+    "'utf-16-le' codec can't decode byte 0x61 in position 4: truncated data"
+   ],
+   [
+    "feff002200",
+    "'utf-16-be' codec can't decode byte 0x00 in position 4: truncated data"
+   ],
+   [
+    "0000feff000000",
+    "'utf-32-be' codec can't decode bytes in position 4-6: truncated data"
+   ],
+   [
+    "00000022000000",
+    "'utf-32-be' codec can't decode bytes in position 4-6: truncated data"
+   ]
+  ]
+ }
+}

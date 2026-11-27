@@ -342,7 +342,8 @@ fn interest(loans: &Arg, held: &Held) -> Result<(Step, Vec<Value>)> {
                 .div(&whole)?
                 .mul(&available)?
                 .div(&days)?,
-        )?;
+        );
+        let deduction = deduction?;
         terms.push(format!(
             "cents({charged} x {rental} / {whole} x {} / {})",
             held.available, held.days
@@ -409,7 +410,8 @@ fn scale_tax(income: &Decimal, year: &str) -> Result<Decimal> {
         &Arg::Decimal(income.clone()),
         &Arg::Text(year.to_string()),
         &Arg::Bool(true),
-    )?;
+    );
+    let out = out?;
     let tax = out["amounts"]["basic_income_tax"]
         .as_str()
         .expect("an amount");
@@ -517,7 +519,8 @@ fn line_steps(args: &RentalPropertyArgs, share: &Decimal, held: &Held) -> Result
         args.rental_only_expenses,
         "rental_only_expenses",
         &CATEGORIES,
-    )?;
+    );
+    let rental_only = rental_only?;
     let given = |key| line(&income, key).cloned().unwrap_or(int(0));
     let (rent, other) = (given("rental_income"), given("other_rental_income"));
     let gross = step(
@@ -582,4 +585,29 @@ pub fn rental_property(args: &RentalPropertyArgs) -> Result<Value> {
     out["depreciating_assets"] = Value::Array(asset_rows);
     out["held"] = json!({"from": dates::format(held.from), "to": dates::format(held.to)});
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::decimal::Signal;
+    use crate::engine::Error;
+
+    #[test]
+    fn sum_step_of_no_parts_is_nil() {
+        let total = sum_step("total", "s 1", &[]).unwrap();
+        assert_eq!(
+            (total.formula.as_str(), total.value.to_sci_string()),
+            ("0", "0".into())
+        );
+    }
+
+    #[test]
+    fn a_decimal_signal_passes_through_unlabelled() {
+        let signal: Result<()> = Err(Error::Decimal(Signal::Overflow));
+        assert!(matches!(
+            at("a label", signal),
+            Err(Error::Decimal(Signal::Overflow))
+        ));
+    }
 }

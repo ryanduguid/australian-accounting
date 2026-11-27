@@ -484,3 +484,10 @@ fn a_changed_estimate_is_refused_rather_than_rewriting_earlier_periods() {
     );
     assert!(scope.contains("AASB 108"), "scope omits AASB 108: {scope}");
 }
+
+#[test]
+fn a_financing_flag_that_is_not_a_boolean_is_refused() {
+    let mut i = d1();
+    i["significant_financing_component"] = json!("no");
+    assert_eq!(code(&i), "input.flag_invalid");
+}

@@ -224,7 +224,8 @@ fn main_scale(place: &'static Place, c: &Choices) -> &'static Scale {
     }
 }
 
-/// The surcharge's steps after `land`, its rate added to `rates`.
+/// The surcharge's steps after `land`, its rate added to `rates`; `choices`
+/// refuses a foreign owner where `place` has no surcharge.
 fn surcharge(
     place: &'static Place,
     value: &Decimal,
@@ -232,9 +233,10 @@ fn surcharge(
     land: &Step,
     rates: &mut Rates,
 ) -> Result<Vec<Step>> {
-    let Some(kind) = &place.surcharge else {
-        return Ok(Vec::new());
-    };
+    let kind = place
+        .surcharge
+        .as_ref()
+        .expect("a foreign owner's surcharge");
     Ok(match kind {
         Surcharge::Separate(applied, authority) => {
             let applied = d(applied);
@@ -268,16 +270,14 @@ fn surcharge(
 /// The foreign or absentee owner surcharge alone on `value`, for an owner who
 /// is not a trustee, as this worksheet works it: the steps, the last being
 /// `surcharge` (Victoria's after the `land_tax` and `absentee_rate_tax` it is
-/// the difference of), and the rates applied; `None` where `code` charges no
-/// surcharge. `foreign-purchaser-surcharge` works its land tax surcharge with
-/// it, so the 2 commands share one set of tables.
-pub(super) fn surcharge_alone(code: &str, value: &Decimal) -> Result<Option<(Vec<Step>, Rates)>> {
-    let Some(place) = PLACES
+/// the difference of), and the rates applied. `foreign-purchaser-surcharge`
+/// works its land tax surcharge with it for each place that charges one, so
+/// the 2 commands share one set of tables.
+pub(super) fn surcharge_alone(code: &str, value: &Decimal) -> Result<(Vec<Step>, Rates)> {
+    let place = PLACES
         .iter()
         .find(|p| p.code == code && p.surcharge.is_some())
-    else {
-        return Ok(None);
-    };
+        .expect("land-tax has each charged surcharge");
     let c = Choices {
         trust: false,
         foreign: true,
@@ -292,7 +292,7 @@ pub(super) fn surcharge_alone(code: &str, value: &Decimal) -> Result<Option<(Vec
         rates.extend(general);
         steps.insert(0, land);
     }
-    Ok(Some((steps, rates)))
+    Ok((steps, rates))
 }
 
 /// Tasmania's FILTS land is residential general land, so for one owner its
@@ -313,12 +313,13 @@ fn tasmanian_surcharge(place: &'static Place, value: &Decimal, c: &Choices) -> R
             "surcharge_value is more than taxable_value: in Tasmania the foreign investor land tax applies to residential general land, part of the owner's taxable land.",
         );
     }
-    let (land, _) = scale_step(
+    let scaled = scale_step(
         ("land_tax", ""),
         main_scale(place, c),
         value,
         (None, Payable::Cents),
-    )?;
+    );
+    let (land, _) = scaled?;
     let surcharge = c.separate.mul(&d(applied))?;
     let apart = tens(&land.value)?.add(&tens(&surcharge)?)?;
     let together = tens(&land.value.add(&surcharge)?)?;

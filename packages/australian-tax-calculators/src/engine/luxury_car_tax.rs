@@ -280,7 +280,7 @@ pub fn luxury_car_tax(args: &LctArgs) -> Result<Value> {
     let (sales, up, down) = (value(&totals.sales), value(&totals.up), value(&totals.down));
     let label_1e = sales.add(&up)?.quantize(0, Rounding::Down)?;
     let (efficient, general) = thresholds::of(year);
-    let mut out = result(
+    let out = result(
         KIND,
         year,
         vec![
@@ -297,7 +297,8 @@ pub fn luxury_car_tax(args: &LctArgs) -> Result<Value> {
             rate("luxury_car_tax_threshold", general),
             rate("fuel_efficient_car_limit", efficient),
         ],
-    )?;
+    );
+    let mut out = out?;
     out["lines"] = Value::Array(worked);
     out["labels_authority"] = json!(LABELS);
     if lines

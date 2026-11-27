@@ -123,19 +123,6 @@ fn error(message: String) -> Failure {
     Failure::Value(message)
 }
 
-/// A dict's entries as Python's dict holds them: each key once, at its first
-/// position, with its last value.
-fn entries(items: &[(String, Raw)]) -> Vec<(&String, &Raw)> {
-    let mut out: Vec<(&String, &Raw)> = Vec::new();
-    for (k, v) in items {
-        match out.iter_mut().find(|(key, _)| *key == k) {
-            Some(slot) => slot.1 = v,
-            None => out.push((k, v)),
-        }
-    }
-    out
-}
-
 /// `[str(v) for v in value]` for a non-empty list, or the message.
 fn non_empty_list(value: Option<&Raw>, message: impl Fn() -> String) -> Result<Vec<String>> {
     match value {
@@ -144,18 +131,45 @@ fn non_empty_list(value: Option<&Raw>, message: impl Fn() -> String) -> Result<V
     }
 }
 
-/// `_require`: the field must be present and of the named Python type.
-fn require<'a>(raw: &'a Raw, field: &str, file: &str, kind: &str) -> Result<&'a Raw> {
+/// `_require`: the field must be present and of the named Python type,
+/// which `pick` takes out.
+fn require<'a, T>(
+    raw: &'a Raw,
+    field: &str,
+    file: &str,
+    kind: &str,
+    pick: fn(&'a Raw) -> Option<T>,
+) -> Result<T> {
     let Some(value) = raw.get(field) else {
         return Err(error(format!("profile {file} has no '{field}'")));
     };
-    if value.type_name() != kind {
-        return Err(error(format!(
+    pick(value).ok_or_else(|| {
+        error(format!(
             "profile {file}: '{field}' must be {kind}, got {}",
             value.type_name()
-        )));
+        ))
+    })
+}
+
+fn str_of(value: &Raw) -> Option<&String> {
+    match value {
+        Raw::Str(s) => Some(s),
+        _ => None,
     }
-    Ok(value)
+}
+
+fn dict_of(value: &Raw) -> Option<&[(String, Raw)]> {
+    match value {
+        Raw::Dict(items) => Some(items),
+        _ => None,
+    }
+}
+
+fn list_of(value: &Raw) -> Option<&[Raw]> {
+    match value {
+        Raw::List(items) => Some(items),
+        _ => None,
+    }
 }
 
 /// `column in columns`: only a string can name a mapped field.
@@ -165,9 +179,7 @@ fn mapped(columns: &[(String, Vec<String>)], column: &Raw) -> bool {
 
 /// Python's `_build`, with its checks in its order.
 fn build(raw: &Raw, file: &str) -> Result<Profile> {
-    let Raw::Str(role) = require(raw, "role", file, "str")? else {
-        unreachable!("checked")
-    };
+    let role = require(raw, "role", file, "str", str_of)?;
     if !ROLES.contains(&role.as_str()) {
         return Err(error(format!(
             "profile {file}: role {} is not one of {}",
@@ -175,10 +187,10 @@ fn build(raw: &Raw, file: &str) -> Result<Profile> {
             repr_list(&ROLES)
         )));
     }
-    let Raw::Dict(columns_raw) = require(raw, "columns", file, "dict")? else {
-        unreachable!("checked")
-    };
-    let columns_raw = entries(columns_raw);
+    let columns_raw = require(raw, "columns", file, "dict", dict_of)?;
+    // `pyjson::loads` already holds each key once, at its first position with
+    // its last value, as Python's dict does.
+    let columns_raw: Vec<(&String, &Raw)> = columns_raw.iter().map(|(k, v)| (k, v)).collect();
     let unknown = sorted_strings(
         columns_raw
             .iter()
@@ -311,11 +323,9 @@ fn build(raw: &Raw, file: &str) -> Result<Profile> {
             )));
         }
     };
-    let key = require(raw, "key", file, "str")?.py_str();
-    let name = require(raw, "name", file, "str")?.py_str();
-    let Raw::List(signature) = require(raw, "signature", file, "list")? else {
-        unreachable!("checked")
-    };
+    let key = require(raw, "key", file, "str", str_of)?.clone();
+    let name = require(raw, "name", file, "str", str_of)?.clone();
+    let signature = require(raw, "signature", file, "list", list_of)?;
     Ok(Profile {
         key,
         name,
@@ -556,5 +566,106 @@ mod tests {
         found.sort();
         let listed: Vec<&str> = BUNDLED.iter().map(|(name, _)| *name).collect();
         assert_eq!(found, listed);
+    }
+
+    /// The fixture's accepted profile, edited by `change`, as `p0.json`.
+    fn edited(
+        change: impl FnOnce(&mut serde_json::Map<String, serde_json::Value>),
+    ) -> Result<Profile> {
+        let cases: serde_json::Value =
+            serde_json::from_str(include_str!("../tests/data/profile-messages.json")).unwrap();
+        let good = cases
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|c| c[0] == "good")
+            .unwrap();
+        let mut profile: serde_json::Value =
+            serde_json::from_str(good[1][0][1].as_str().unwrap()).unwrap();
+        change(profile.as_object_mut().unwrap());
+        let text = serde_json::to_string(&profile).unwrap();
+        parse_all(&[("p0.json", &text)]).map(|mut p| p.remove(0))
+    }
+
+    #[test]
+    fn optional_fields_left_out_take_their_defaults() {
+        let profile = edited(|p| {
+            p.remove("date_formats");
+            p.remove("verified");
+        })
+        .unwrap();
+        assert!(profile.date_formats.is_empty());
+        assert!(!profile.verified);
+    }
+
+    #[test]
+    fn a_repeated_column_field_keeps_its_first_place_and_last_headings() {
+        // Python's dict: {"amount": ["A"], "employee_id": [...], "amount": ["B"]}
+        // holds amount first, with ["B"].
+        let text = r#"{"key": "k", "name": "n", "role": "super", "signature": ["B"],
+            "columns": {"amount": ["A"], "employee_id": ["Id"], "amount": ["B"]}}"#;
+        let profile = parse_all(&[("p0.json", text)]).unwrap().remove(0);
+        assert_eq!(
+            profile.columns,
+            [
+                ("amount".to_string(), vec!["B".to_string()]),
+                ("employee_id".into(), vec!["Id".into()])
+            ]
+        );
+    }
+
+    /// `refund_unreconciled` is this crate's own key (the Python profiles
+    /// have none): left out, no status reads as an unreconciled refund.
+    #[test]
+    fn remitted_status_without_refunds_lists_none() {
+        let profile = edited(|p| {
+            p.insert(
+                "remitted_status".into(),
+                serde_json::json!({"column": "contribution_type", "sent": ["Paid"], "not_sent": ["Held"]}),
+            );
+        })
+        .unwrap();
+        assert!(
+            profile
+                .remitted_status
+                .unwrap()
+                .refund_unreconciled
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn remitted_status_names_a_mapped_column_and_refunds_within_not_sent() {
+        let status = |column: &str, refund: serde_json::Value| {
+            edited(|p| {
+                p.insert(
+                    "remitted_status".into(),
+                    serde_json::json!({"column": column, "sent": ["Paid"], "not_sent": ["Held", "Refunded"], "refund_unreconciled": refund}),
+                );
+            })
+        };
+        let profile = status("contribution_type", serde_json::json!(["refunded "])).unwrap();
+        assert_eq!(
+            profile.remitted_status.unwrap().refund_unreconciled,
+            ["refunded "]
+        );
+        assert_eq!(
+            status("Status", serde_json::json!(["Held"]))
+                .unwrap_err()
+                .message(),
+            "profile p0.json: remitted_status column 'Status' is not one of the mapped columns"
+        );
+        assert_eq!(
+            status("contribution_type", serde_json::json!(["Lost", "Held"]))
+                .unwrap_err()
+                .message(),
+            "profile p0.json: remitted_status 'refund_unreconciled' lists ['lost'] outside 'not_sent'"
+        );
+        assert_eq!(
+            status("contribution_type", serde_json::json!([]))
+                .unwrap_err()
+                .message(),
+            "profile p0.json: remitted_status 'refund_unreconciled' must be a non-empty list of values"
+        );
     }
 }

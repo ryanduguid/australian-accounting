@@ -223,19 +223,15 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
     };
     if (prefix_len + pytext::py_len(prog)) as f64 <= 0.75 * text_width as f64 {
         let indent = " ".repeat(prefix_len + pytext::py_len(prog) + 1);
+        // Both parsers' usages start with [-h], so `_format_usage`'s branch
+        // for a parser with no optionals is never taken.
         let mut head = vec![Part {
             plain: prog.to_string(),
             coloured: prog.to_string(),
         }];
-        let lines = if !opt_parts.is_empty() {
-            head.extend(opt_parts.iter().cloned());
-            let mut lines = get_lines(&head, &indent, true);
-            lines.extend(get_lines(pos_parts, &indent, false));
-            lines
-        } else {
-            head.extend(pos_parts.iter().cloned());
-            get_lines(&head, &indent, true)
-        };
+        head.extend(opt_parts.iter().cloned());
+        let mut lines = get_lines(&head, &indent, true);
+        lines.extend(get_lines(pos_parts, &indent, false));
         return lines.join("\n")[prog.len()..].to_string();
     }
     let indent = " ".repeat(prefix_len);
@@ -363,12 +359,9 @@ fn sequence_ratio(a: &[u32], b: &[u32]) -> f64 {
             }
         }
     }
-    let total = a.len() + b.len();
-    if total == 0 {
-        1.0
-    } else {
-        2.0 * matches as f64 / total as f64
-    }
+    // `a` is a choice argparse offers, never empty, so the total is never 0
+    // and difflib's 1.0 for two empty sequences cannot arise.
+    2.0 * matches as f64 / (a.len() + b.len()) as f64
 }
 
 /// `SequenceMatcher.find_longest_match(alo, ahi, blo, bhi)`.
@@ -526,10 +519,10 @@ fn option_prefix_matches<'a>(
 fn looks_like_negative_number(body: &str) -> bool {
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
     let mut chars = body.chars();
+    // `classify` passes the text after '-' of a token at least 2 long.
     match chars.next() {
         Some('.') => chars.next().is_some_and(digit),
-        Some(c) => digit(c),
-        None => false,
+        first => first.is_some_and(digit),
     }
 }
 
@@ -1302,5 +1295,20 @@ pub fn dispatch(args: &[String]) -> (i32, String, String) {
             String::new(),
         ),
         _ => run(args),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // The command tables call `value` at compile time; this checks what it builds.
+    #[test]
+    fn a_value_option_takes_one_argument_shown_as_its_dest() {
+        let opt = value("--year", "year", true, "year of income");
+        assert!(opt.takes == Takes::Value && opt.required);
+        assert_eq!((opt.flag, opt.help), ("--year", "year of income"));
+        assert!(opt.metavar.is_none() && opt.choices.is_none());
+        assert_eq!(opt.shown_metavar(), "YEAR");
     }
 }

@@ -139,13 +139,14 @@ fn evidence_flags(known: &[String]) -> (bool, bool, bool) {
     )
 }
 
-fn own_buckets(name: &str) -> Vec<&'static str> {
+/// The buckets a ratio's figure sums; None for labour, which has its own flag.
+fn own_buckets(name: &str) -> Option<&'static [&'static str]> {
     match name {
-        "total_expenses_to_turnover" => EXPENSE_BUCKETS.to_vec(),
-        "cost_of_sales_to_turnover" => vec!["cost_of_sales"],
-        "rent_to_turnover" => vec!["rent"],
-        "motor_vehicle_to_turnover" => vec!["motor_vehicle"],
-        _ => vec![],
+        "total_expenses_to_turnover" => Some(&EXPENSE_BUCKETS),
+        "cost_of_sales_to_turnover" => Some(&["cost_of_sales"]),
+        "rent_to_turnover" => Some(&["rent"]),
+        "motor_vehicle_to_turnover" => Some(&["motor_vehicle"]),
+        _ => None,
     }
 }
 
@@ -155,13 +156,11 @@ fn evidenced_ratios(known: &[String]) -> Vec<(&'static str, bool)> {
     RATIO_ORDER
         .iter()
         .map(|name| {
-            let own = if *name == "labour_to_turnover" {
-                labour
-            } else {
-                own_buckets(name)
+            let own = own_buckets(name).map_or(labour, |buckets| {
+                buckets
                     .iter()
                     .all(|b| known.iter().any(|k| k == b && k != "w1"))
-            };
+            });
             (*name, own && income)
         })
         .collect()

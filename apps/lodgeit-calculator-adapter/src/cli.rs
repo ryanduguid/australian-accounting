@@ -10,7 +10,7 @@
 use std::ffi::OsString;
 use std::io::Write;
 
-use crate::argparse::{Action, Exit, Namespace, Parser, Value};
+use crate::argparse::{Action, Exit, Get, Namespace, Parser, Value};
 use crate::client::{self, Client};
 use crate::config::{self, AdapterConfig};
 use crate::contract::{self, Contract};
@@ -21,8 +21,10 @@ use crate::evidence::{self, ReadError};
 use crate::p;
 use crate::py;
 use crate::pyencode::{self, Options};
-use crate::pyjson::{self, DecodeError, Json, Numbers};
-use crate::pyops::{Exc, R, S, get_attr, iterate, json_str, pts, py_sorted, strip};
+use crate::pyjson::{self, Json, Numbers};
+use crate::pyops::{
+    Exc, LoadsError, R, S, get_attr, iterate, json_str, loads_error, pts, py_sorted, strip,
+};
 use crate::pyos::{OsError, Style};
 use crate::pypath::PyPath;
 use crate::pyvalue::{self, repr, str_points, type_name};
@@ -151,7 +153,9 @@ fn flush_failed(stderr: &mut dyn Write, error: &std::io::Error) -> i32 {
 fn line_ends(text: &[u32]) -> S {
     let mut out = Vec::with_capacity(text.len());
     for &cp in text {
-        if cfg!(windows) && cp == 10 {
+        // Compiled for Windows only, where its CI leg tests it.
+        #[cfg(windows)]
+        if cp == 10 {
             out.push(13);
         }
         out.push(cp);
@@ -160,11 +164,10 @@ fn line_ends(text: &[u32]) -> S {
 }
 
 fn newlines(bytes: &[u8]) -> Vec<u8> {
-    if !cfg!(windows) {
-        return bytes.to_vec();
-    }
     let mut out = Vec::with_capacity(bytes.len());
     for &b in bytes {
+        // Compiled for Windows only, where its CI leg tests it.
+        #[cfg(windows)]
         if b == b'\n' {
             out.push(b'\r');
         }
@@ -184,11 +187,9 @@ fn eprint(stderr: &mut dyn Write, text: &[u32]) {
     let _ = stderr.write_all(&newlines(line.as_bytes()));
 }
 
+/// A string argument; every key read here has a string default or is required.
 fn text(ns: &Namespace, key: &str) -> String {
-    match ns.get(key) {
-        Some(Value::Str(s)) => s.clone(),
-        _ => String::new(),
-    }
+    ns.str(key).unwrap_or_default()
 }
 
 pub fn main(argv: Vec<OsString>) -> i32 {
@@ -482,13 +483,13 @@ fn invoke_body(ns: &Namespace, contract: &Contract, path: &PyPath) -> R<Result<J
     };
     let body = match pyjson::loads_numbers(&text, Numbers::DecimalFloats) {
         Ok(body) => body,
-        Err(DecodeError::Invalid(message) | DecodeError::Hook(message)) => {
-            return Ok(Err(pts(&message)));
-        }
-        Err(DecodeError::Recursion(kind)) => {
-            return Err(Exc::msg("RecursionError", &pyjson::recursion_message(kind)));
-        }
-        Err(other) => unreachable!("load_body has no hooks: {other:?}"),
+        // The `except (OSError, JSONDecodeError, ValueError)` around it
+        // reports the digit limit's `ValueError`; a `RecursionError` escapes.
+        Err(error) => match loads_error(error) {
+            LoadsError::Decode(message) => return Ok(Err(pts(&message))),
+            LoadsError::Other(error) if error.is("ValueError") => return Ok(Err(error.text)),
+            LoadsError::Other(error) => return Err(error),
+        },
     };
     let none = Json::Array(Vec::new());
     let fields = get_attr(recorded, "request_number_fields")?.unwrap_or(&none);

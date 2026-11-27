@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use crate::csv_io::{self, Failure};
 use crate::csvread::Reader;
 use crate::decimal::Decimal;
-use crate::engine::{self, Schedule};
+use crate::engine::{self, ContractInput, ContractPosition, Schedule};
 use crate::py::{self, OsStyle, PyPath};
 use crate::report;
 use serde_json::Value;
@@ -57,12 +57,15 @@ fn dumps(pairs: &[(&str, String)]) -> String {
 }
 
 /// Text-mode output: native line endings.
+#[cfg(windows)]
 pub fn text_mode(text: &str) -> String {
-    if cfg!(windows) {
-        text.replace('\n', "\r\n")
-    } else {
-        text.to_string()
-    }
+    text.replace('\n', "\r\n")
+}
+
+/// Text-mode output: native line endings.
+#[cfg(not(windows))]
+pub fn text_mode(text: &str) -> String {
+    text.to_string()
 }
 
 fn write_new(path: &Path, bytes: &[u8]) -> Result<(), Failure> {
@@ -101,10 +104,25 @@ fn decimal(text: &str) -> Decimal {
 
 /// Write the scenario pack under `output` (a new folder); returns the JSON summary.
 pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
+    run_from(&here(), output, extra)
+}
+
+/// The cash bridge figures drawn from the assumptions file.
+struct Bridge {
+    receipts: Decimal,
+    paid: Decimal,
+    retention_gross: Decimal,
+    collectible: Decimal,
+    future_cost: Decimal,
+}
+
+/// The scenario contract in `examples`, with `extra` added to its remaining cost,
+/// and its source bytes.
+fn load(examples: &Path, extra: &Decimal) -> Result<(ContractInput, Vec<u8>), Failure> {
     if !extra.is_finite() || extra.lt(&decimal("0"))? {
         return fail("Cost increase must be finite and non-negative");
     }
-    let source = here().join("job-to-cash.csv");
+    let source = examples.join("job-to-cash.csv");
     let source_bytes = std::fs::read(&source).map_err(|e| {
         Failure::Message(py::oserror_str(
             &e,
@@ -119,12 +137,22 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
     }
     let mut contract = contracts[0].clone();
     contract.estimated_cost_to_complete = contract.estimated_cost_to_complete.add(extra)?;
-    let position = engine::measure(&contract)?;
-    let assumptions_text = std::fs::read_to_string(here().join("job-cash-assumptions.json"))
+    Ok((contract, source_bytes))
+}
+
+/// The assumptions object in `examples`.
+fn assumptions(examples: &Path) -> Result<Value, Failure> {
+    let text = std::fs::read_to_string(examples.join("job-cash-assumptions.json"))
         .map_err(|e| Failure::Message(e.to_string()))?;
-    let assumptions: Value =
-        serde_json::from_str(&assumptions_text).map_err(|e| Failure::Message(e.to_string()))?;
-    let field = |key: &str| assumptions[key].as_str().unwrap_or_default().to_string();
+    serde_json::from_str(&text).map_err(|e| Failure::Message(e.to_string()))
+}
+
+/// The cash figures, refused when they or the commitment do not reconcile.
+fn bridge(
+    contract: &ContractInput,
+    position: &ContractPosition,
+    field: &dyn Fn(&str) -> String,
+) -> Result<Bridge, Failure> {
     let receipts = decimal(&field("receipts_to_date"));
     let paid = decimal(&field("costs_paid_to_date"));
     let certified_gross = contract
@@ -145,10 +173,23 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
     let future_cost = contract
         .estimated_cost_to_complete
         .mul(&decimal(&field("future_cost_cash_multiplier")))?;
-    make_folder(output)?;
+    Ok(Bridge {
+        receipts,
+        paid,
+        retention_gross,
+        collectible,
+        future_cost,
+    })
+}
 
-    // Persist the exact scenario source so the existing pack verifier can rebuild it.
-    let mut reader = Reader::new(&source_bytes);
+/// Persist the exact scenario source, with the new remaining cost, so the existing
+/// pack verifier can rebuild it; returns its path.
+fn write_scenario(
+    output: &PyPath,
+    source_bytes: &[u8],
+    contract: &ContractInput,
+) -> Result<PyPath, Failure> {
+    let mut reader = Reader::new(source_bytes);
     let fields = reader
         .next_row()
         .map_err(|e| Failure::Message(e.to_string()))?
@@ -174,7 +215,15 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
     }
     let scenario = output.join("contracts.csv");
     write_new(&scenario.fs(), scenario_text.as_bytes())?;
+    Ok(scenario)
+}
 
+/// Write the WIP schedule and review pack for `position`; returns the scenario bytes.
+fn write_review(
+    output: &PyPath,
+    position: &ContractPosition,
+    scenario: &PyPath,
+) -> Result<Vec<u8>, Failure> {
     let schedule = Schedule {
         as_at: "2026-09-30".into(),
         positions: vec![position.clone()],
@@ -182,7 +231,7 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
     let schedule_path = output.join("wip-schedule.csv");
     report::atomic_write(&schedule_path, &report::schedule_csv(&schedule))?;
     let schedule_bytes = report::read_bytes(&schedule_path)?;
-    let scenario_bytes = report::read_bytes(&scenario)?;
+    let scenario_bytes = report::read_bytes(scenario)?;
     let pack = report::build_review_pack(
         &schedule_path,
         &schedule_bytes,
@@ -191,7 +240,15 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
         &schedule,
     )?;
     report::atomic_write(&output.join("wip-review.md"), &pack)?;
+    Ok(scenario_bytes)
+}
 
+/// Write `cash-assumptions.csv`; returns its text.
+fn write_cash(
+    output: &PyPath,
+    bridge: &Bridge,
+    field: &dyn Fn(&str) -> String,
+) -> Result<String, Failure> {
     let cash_fields: Vec<String> = ["id", "date", "receipt", "payment", "evidence"]
         .iter()
         .map(|s| s.to_string())
@@ -200,14 +257,14 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
         [
             "CERTIFIED-RECEIVABLE".to_string(),
             field("certified_collection_date"),
-            collectible.to_string(),
+            bridge.collectible.to_string(),
             "0".into(),
             field("certified_collection_evidence"),
         ],
         [
             "RETENTION".into(),
             field("retention_collection_date"),
-            retention_gross.to_string(),
+            bridge.retention_gross.to_string(),
             "0".into(),
             field("retention_release_assumption"),
         ],
@@ -215,7 +272,7 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
             "REMAINING-COST".into(),
             field("remaining_cost_payment_date"),
             "0".into(),
-            future_cost.to_string(),
+            bridge.future_cost.to_string(),
             field("remaining_cost_evidence"),
         ],
     ];
@@ -226,17 +283,24 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
     }
     let cash = output.join("cash-assumptions.csv");
     write_new(&cash.fs(), cash_text.as_bytes())?;
+    Ok(cash_text)
+}
 
+/// The `job-to-cash.json` summary, in the original's key order.
+fn summary(
+    contract: &ContractInput,
+    position: &ContractPosition,
+    bridge: &Bridge,
+    hashes: [String; 3],
+) -> Result<String, Failure> {
+    let [cash_sha256, source_sha256, scenario_sha256] = hashes;
     let result = [
         ("contract_id", contract.contract_id.clone()),
         ("currency", "AUD".into()),
         ("as_at", "2026-09-30".into()),
-        (
-            "cash_assumptions_sha256",
-            report::sha256_hex(cash_text.as_bytes()),
-        ),
-        ("source_sha256", report::sha256_hex(&source_bytes)),
-        ("scenario_source_sha256", report::sha256_hex(&scenario_bytes)),
+        ("cash_assumptions_sha256", cash_sha256),
+        ("source_sha256", source_sha256),
+        ("scenario_source_sha256", scenario_sha256),
         (
             "gross_profit_at_completion",
             position.gross_profit_at_completion.to_string(),
@@ -245,12 +309,12 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
         ("certified_billings", contract.certified_billings.to_string()),
         ("contract_asset", position.contract_asset.to_string()),
         ("uncertified_claims", contract.uncertified_claims.to_string()),
-        ("retention_gross", retention_gross.to_string()),
-        ("receipts_to_date", receipts.to_string()),
-        ("costs_paid_to_date", paid.to_string()),
-        ("cash_to_date", receipts.sub(&paid)?.to_string()),
-        ("collectible_certified_balance", collectible.to_string()),
-        ("future_cost_cash", future_cost.to_string()),
+        ("retention_gross", bridge.retention_gross.to_string()),
+        ("receipts_to_date", bridge.receipts.to_string()),
+        ("costs_paid_to_date", bridge.paid.to_string()),
+        ("cash_to_date", bridge.receipts.sub(&bridge.paid)?.to_string()),
+        ("collectible_certified_balance", bridge.collectible.to_string()),
+        ("future_cost_cash", bridge.future_cost.to_string()),
         (
             "committed_in_remaining_cost",
             contract.committed_outstanding.to_string(),
@@ -260,11 +324,192 @@ pub fn run(output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
             "Fabricated bridge under supplied assumptions. Uncertified and future unbilled claims are excluded from cash. Retention date is a planning assumption.".into(),
         ),
     ];
-    let json = dumps(&result);
-    write_new(
+    Ok(dumps(&result))
+}
+
+/// `run` with the scenario source and assumptions read from `examples`.
+fn run_from(examples: &Path, output: &PyPath, extra: &Decimal) -> Result<String, Failure> {
+    let (contract, source_bytes) = load(examples, extra)?;
+    let position = engine::measure(&contract)?;
+    let assumptions = assumptions(examples)?;
+    let field = |key: &str| assumptions[key].as_str().unwrap_or_default().to_string();
+    let bridge = bridge(&contract, &position, &field)?;
+    make_folder(output)?;
+    let scenario = write_scenario(output, &source_bytes, &contract)?;
+    let scenario_bytes = write_review(output, &position, &scenario)?;
+    let cash_text = write_cash(output, &bridge, &field)?;
+    let hashes = [
+        report::sha256_hex(cash_text.as_bytes()),
+        report::sha256_hex(&source_bytes),
+        report::sha256_hex(&scenario_bytes),
+    ];
+    let json = summary(&contract, &position, &bridge, hashes)?;
+    // The folder was created empty above, so this name cannot already exist.
+    let written = write_new(
         &output.join("job-to-cash.json").fs(),
         // write_text: text mode, so native line endings.
         text_mode(&format!("{json}\n")).as_bytes(),
-    )?;
+    );
+    written?;
     Ok(json)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::decimal::Signal;
+
+    fn scratch(name: &str) -> PathBuf {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("wip-j2c-{name}-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn zero() -> Decimal {
+        decimal("0")
+    }
+
+    /// `result` with any success reduced to `()`, so a refusal compares whole.
+    fn message<T>(result: Result<T, Failure>) -> Result<(), Failure> {
+        result.map(drop)
+    }
+
+    fn refused(text: impl Into<String>) -> Result<(), Failure> {
+        Err(Failure::Message(text.into()))
+    }
+
+    /// An examples folder holding the shipped scenario with `csv` and `assumptions` edited.
+    fn examples(
+        name: &str,
+        csv: impl Fn(String) -> String,
+        assumptions: impl Fn(String) -> String,
+    ) -> PathBuf {
+        let dir = scratch(name);
+        let read = |file: &str| std::fs::read_to_string(here().join(file)).unwrap();
+        std::fs::write(dir.join("job-to-cash.csv"), csv(read("job-to-cash.csv"))).unwrap();
+        std::fs::write(
+            dir.join("job-cash-assumptions.json"),
+            assumptions(read("job-cash-assumptions.json")),
+        )
+        .unwrap();
+        dir
+    }
+
+    #[test]
+    fn dumps_escapes_as_json_dumps_with_ensure_ascii() {
+        // json.dumps({"k\"\\": "a\n\r\t\b\fé\U0001f600~ "}, indent=2)
+        assert_eq!(
+            dumps(&[("k\"\\", "a\n\r\t\u{8}\u{c}\u{e9}\u{1f600}~ ".into())]),
+            "{\n  \"k\\\"\\\\\": \"a\\n\\r\\t\\b\\f\\u00e9\\ud83d\\ude00~ \"\n}"
+        );
+    }
+
+    #[test]
+    fn a_negative_or_infinite_cost_increase_is_refused() {
+        let out = PyPath::new(&scratch("neg").join("out").to_string_lossy());
+        for extra in ["-1", "Infinity"] {
+            assert_eq!(
+                message(run(&out, &decimal(extra))),
+                refused("Cost increase must be finite and non-negative")
+            );
+        }
+    }
+
+    #[test]
+    fn a_cost_increase_past_the_decimal_context_raises_before_any_file_is_written() {
+        // CPython: Overflow on the addition, InvalidOperation on the cents
+        // quantize, and no output folder in either case.
+        let out = PyPath::new(&scratch("signal").join("out").to_string_lossy());
+        for (extra, signal) in [
+            ("99999999999999999999999999999E999971", Signal::Overflow),
+            ("1E27", Signal::InvalidOperation),
+        ] {
+            assert_eq!(run(&out, &decimal(extra)), Err(Failure::Decimal(signal)));
+            assert!(!out.fs().exists());
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_missing_scenario_source_is_reported_as_python_raised_it() {
+        let dir = scratch("missing");
+        let out = PyPath::new(&dir.join("out").to_string_lossy());
+        let source = dir.join("job-to-cash.csv");
+        assert_eq!(
+            message(run_from(&dir, &out, &zero())),
+            refused(format!(
+                "[Errno 2] No such file or directory: '{}'",
+                source.display()
+            ))
+        );
+    }
+
+    #[test]
+    fn a_scenario_with_two_contracts_is_refused() {
+        let dir = examples(
+            "two",
+            |csv| {
+                let row = csv
+                    .lines()
+                    .nth(1)
+                    .unwrap()
+                    .replace("HUNTER-CIVIL-01", "HUNTER-CIVIL-02");
+                format!("{csv}{row}\n")
+            },
+            |json| json,
+        );
+        let out = PyPath::new(&dir.join("out").to_string_lossy());
+        assert_eq!(
+            message(run_from(&dir, &out, &zero())),
+            refused("The example requires one contract")
+        );
+    }
+
+    #[test]
+    fn receipts_beyond_the_certified_balance_do_not_reconcile() {
+        let dir = examples(
+            "receipts",
+            |csv| csv,
+            |json| json.replace("\"300000\"", "\"900000\""),
+        );
+        let out = PyPath::new(&dir.join("out").to_string_lossy());
+        assert_eq!(
+            message(run_from(&dir, &out, &zero())),
+            refused("Cash or commitment assumptions do not reconcile")
+        );
+        assert!(!dir.join("out").exists(), "nothing is written");
+    }
+
+    #[test]
+    fn missing_parent_folders_are_created_as_mkdir_parents_does() {
+        let dir = scratch("parents");
+        let out = PyPath::new(&dir.join("a").join("b").to_string_lossy());
+        let json = run(&out, &zero()).unwrap();
+        assert!(json.contains("\"contract_id\": \"HUNTER-CIVIL-01\""));
+        for name in [
+            "contracts.csv",
+            "wip-schedule.csv",
+            "wip-review.md",
+            "cash-assumptions.csv",
+            "job-to-cash.json",
+        ] {
+            assert!(dir.join("a").join("b").join(name).is_file(), "{name}");
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_existing_file_is_not_overwritten() {
+        let dir = scratch("exists");
+        let path = dir.join("taken.txt");
+        std::fs::write(&path, "kept").unwrap();
+        assert_eq!(
+            message(write_new(&path, b"new")),
+            refused(format!("[Errno 17] File exists: '{}'", path.display()))
+        );
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "kept");
+    }
 }

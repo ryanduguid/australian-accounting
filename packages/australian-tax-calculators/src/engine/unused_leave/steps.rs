@@ -220,12 +220,13 @@ const BEFORE_LIMIT: [(&str, &str, &str); 1] = [(
 fn marginal_steps(pay: &AdditionalPay, marginal: &Decimal) -> Result<(Vec<Step>, Decimal)> {
     let mut steps = Vec::new();
     let on_earnings = pay.table(&pay.earnings)?;
-    steps.push(pay.table_step(
+    let pushed = pay.table_step(
         "withholding_on_earnings",
         "Schedule 7, 'Marginal rate calculation' step 1 and 'Normal gross earnings'; Schedule 1, 'Using a formula', without the study and training support loan component Schedule 7 excludes",
         (&pay.earnings, "earnings", &[&pay.earnings]),
         on_earnings.clone(),
-    )?);
+    );
+    steps.push(pushed?);
     let (share, with_share, before_limit) =
         spread_withholding(pay, &pay.earnings, &on_earnings, marginal, pay.per_year)?;
     let per_year = int(pay.per_year);
@@ -233,7 +234,7 @@ fn marginal_steps(pay: &AdditionalPay, marginal: &Decimal) -> Result<(Vec<Step>,
         &PER_PERIOD,
         [(&[marginal, &per_year][..], share.clone())],
     ));
-    steps.push(pay.table_step(
+    let pushed = pay.table_step(
         "withholding_on_earnings_and_share",
         "Schedule 7, 'Marginal rate calculation' steps 4 and 5; Schedule 1, 'Using a formula'",
         (
@@ -242,7 +243,8 @@ fn marginal_steps(pay: &AdditionalPay, marginal: &Decimal) -> Result<(Vec<Step>,
             &[&pay.earnings, &share],
         ),
         with_share.clone(),
-    )?);
+    );
+    steps.push(pushed?);
     steps.extend(steps_from(
         &BEFORE_LIMIT,
         [(

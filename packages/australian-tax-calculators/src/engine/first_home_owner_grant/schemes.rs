@@ -170,3 +170,21 @@ pub(super) static SCHEMES: [Scheme; 8] = [
         ],
     },
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::rule;
+
+    #[test]
+    fn rule_has_no_established_home_amount() {
+        let built = rule("2016-01-01", 10_000, (Some(1), None, Some(2)), "authority");
+        assert_eq!(
+            (built.from, built.amount, built.established, built.authority),
+            ("2016-01-01", 10_000, 0, "authority")
+        );
+        assert_eq!(
+            (built.bought, built.built, built.north),
+            (Some(1), None, Some(2))
+        );
+    }
+}

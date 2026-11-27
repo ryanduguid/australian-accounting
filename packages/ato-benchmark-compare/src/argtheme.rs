@@ -70,7 +70,17 @@ pub fn theme(stream: Stream) -> &'static Theme {
 
 /// `_colorize.can_colorize(file=stream)` for a command started without `-I`.
 fn can_colorize(stream: Stream) -> bool {
-    let var = |name: &str| std::env::var_os(name);
+    can_colorize_with(std::env::var_os, || {
+        console::supports_virtual_terminal() && console::isatty(stream)
+    })
+}
+
+/// `can_colorize` with the environment read by `var` and the stream's
+/// terminal checked by `terminal`.
+fn can_colorize_with(
+    var: impl Fn(&'static str) -> Option<std::ffi::OsString>,
+    terminal: impl FnOnce() -> bool,
+) -> bool {
     match var("PYTHON_COLORS").as_deref().and_then(|v| v.to_str()) {
         Some("0") => return false,
         Some("1") => return true,
@@ -85,7 +95,7 @@ fn can_colorize(stream: Stream) -> bool {
     if var("TERM").is_some_and(|v| v == "dumb") {
         return false;
     }
-    console::supports_virtual_terminal() && console::isatty(stream)
+    terminal()
 }
 
 #[cfg(unix)]
@@ -153,5 +163,41 @@ mod console {
 
     pub fn isatty(_stream: Stream) -> bool {
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `can_colorize_with` under the given variables, on a stream that is a
+    /// colour terminal when `tty` is true.
+    fn colours(pairs: &'static [(&'static str, &'static str)], tty: bool) -> bool {
+        can_colorize_with(
+            |name| {
+                pairs
+                    .iter()
+                    .find(|(k, _)| *k == name)
+                    .map(|(_, v)| v.into())
+            },
+            || tty,
+        )
+    }
+
+    #[test]
+    fn colour_follows_python_colorize() {
+        // PYTHON_COLORS decides first, either way.
+        assert!(colours(&[("PYTHON_COLORS", "1"), ("NO_COLOR", "1")], false));
+        assert!(!colours(
+            &[("PYTHON_COLORS", "0"), ("FORCE_COLOR", "1")],
+            true
+        ));
+        // Then NO_COLOR, FORCE_COLOR and a dumb terminal; an empty value is unset.
+        assert!(!colours(&[("NO_COLOR", "1"), ("FORCE_COLOR", "1")], true));
+        assert!(colours(&[("NO_COLOR", ""), ("FORCE_COLOR", "1")], false));
+        assert!(!colours(&[("TERM", "dumb")], true));
+        // Otherwise only a colour terminal.
+        assert!(colours(&[("TERM", "xterm")], true));
+        assert!(!colours(&[], false));
     }
 }

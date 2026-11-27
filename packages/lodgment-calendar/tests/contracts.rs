@@ -174,3 +174,105 @@ fn supplied_facts_never_become_missing_and_unknown_rows_never_gain_a_due_date() 
         }
     }
 }
+
+#[test]
+fn command_names_are_quoted_with_their_control_characters_escaped() {
+    assert_eq!(
+        api::evaluate("a\\b\nc\rd\te", &json!({})).unwrap_err(),
+        r"unknown JSON command: 'a\\b\nc\rd\te'"
+    );
+}
+
+#[test]
+fn a_caller_holiday_mapping_replaces_the_built_in_holidays() {
+    let built_in = holidays::roll(&json!({"day": "2026-12-25"})).unwrap();
+    assert_eq!(built_in[0], "2026-12-29");
+    let caller = holidays::roll(&json!({
+        "day": "2026-12-25",
+        "holidays": {"2026-12-25": "Caller holiday"},
+        "covers_to": "2027-06-30"
+    }))
+    .unwrap();
+    assert_eq!(caller[0], "2026-12-28");
+}
+
+#[test]
+fn malformed_roll_requests_are_refused() {
+    for (request, error) in [
+        (
+            json!({"day": "2026-12-25", "when": 1}),
+            "unknown roll field: \"when\"",
+        ),
+        (
+            json!({"day": "2026-12-25", "holidays": []}),
+            "holidays must be an object",
+        ),
+        (
+            json!({"day": "2026-12-25", "holidays": {"2026-12-25": 1}}),
+            "holiday name must be text",
+        ),
+    ] {
+        assert_eq!(holidays::roll(&request).unwrap_err(), error);
+    }
+}
+
+#[test]
+fn provenance_names_the_program_period_and_its_sources() {
+    let value = lodgment_calendar::provenance();
+    assert_eq!(value["program_year"], "2026-27");
+    assert_eq!(value["covers_from"], "2026-07-01");
+    assert_eq!(value["covers_to"], "2027-06-30");
+    assert_eq!(value["source_checked"], "2026-10-31");
+    assert!(value["sources"].is_array() || value["sources"].is_object());
+    assert!(!value["holiday_provision"].is_null());
+}
+
+#[test]
+fn os_text_and_output_bytes_round_trip() {
+    use lodgment_calendar::cli;
+    let text = cli::decode_os(std::ffi::OsStr::new("due-dates é"));
+    assert_eq!(text, "due-dates é");
+    assert_eq!(cli::output_bytes(&text), "due-dates é".as_bytes());
+}
+
+/// The longest roll a caller can cause: 50 supplied weekdays straight after a recorded
+/// due date. It still ends on a business day, which is why the due-date rows treat a
+/// holiday roll as infallible. Expected values are from the Python original.
+#[test]
+fn fifty_caller_holidays_after_a_due_date_roll_it_to_the_next_business_day() {
+    let table = [
+        "2027-03-01",
+        "2027-03-08",
+        "2027-03-26",
+        "2027-03-29",
+        "2027-04-26",
+        "2027-05-03",
+    ];
+    let mut extra = serde_json::Map::new();
+    let mut day = jiff::civil::date(2027, 2, 28);
+    while extra.len() < 50 {
+        let key = day.to_string();
+        if day.weekday().to_monday_zero_offset() < 5 && !table.contains(&key.as_str()) {
+            extra.insert(key, json!("Synthetic holiday"));
+        }
+        day = day.tomorrow().unwrap();
+    }
+    let mut r = request();
+    r["extra_holidays"] = Value::Object(extra);
+    let actual = api::evaluate("due-dates", &r).unwrap();
+    let row = actual["obligations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["nominal_due_date"] == "2027-02-28")
+        .unwrap();
+    assert_eq!(row["status"], "DETERMINED");
+    assert_eq!(row["due_date"], "2027-05-18");
+    let skipped = row["holiday_roll"]["skipped"].as_array().unwrap();
+    assert_eq!(skipped.len(), 79);
+    assert_eq!(skipped[0], json!({"date":"2027-02-28","reason":"Sunday"}));
+    assert_eq!(
+        skipped[78],
+        json!({"date":"2027-05-17","reason":"Synthetic holiday (caller-supplied)"})
+    );
+}

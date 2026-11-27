@@ -1047,3 +1047,38 @@ fn general_class_results_unchanged() {
         }
     }
 }
+
+/// s 820-427A: with no debt deduction meeting the third party debt
+/// conditions the earnings limit is nil and every debt deduction is
+/// disallowed; with debt deductions of nil nothing is disallowed.
+#[test]
+fn the_third_party_debt_test_without_third_party_debt() {
+    let i = base(
+        "third_party_debt",
+        json!([{"label": "Parent loan", "amount": "1000000.00", "third_party": false}]),
+    );
+    let r = run(&i);
+    assert_eq!(amount(&r, "third_party_earnings_limit"), "0.00");
+    assert_eq!(amount(&r, "total_disallowed_amount"), "1000000.00");
+    assert_eq!(column(&r, "debt_deductions", "disallowed"), ["1000000.00"]);
+    let nil = base(
+        "third_party_debt",
+        json!([{"label": "Bank loan", "amount": "0.00", "third_party": true}]),
+    );
+    let r = run(&nil);
+    assert_eq!(amount(&r, "total_disallowed_amount"), "0.00");
+    assert_eq!(column(&r, "debt_deductions", "disallowed"), ["0.00"]);
+}
+
+/// GLM with $150m on lent: the adjusted on-lent amount ($145m) passes the
+/// total debt amount, so the safe harbour debt amount is the lesser, the
+/// total debt amount.
+#[test]
+fn glm_safe_harbour_takes_the_total_debt_amount_when_it_is_lower() {
+    let mut i = glm();
+    i["average_on_lent_amount"] = json!("150000000.00");
+    let r = run(&i);
+    assert_eq!(amount(&r, "total_debt_amount"), "117437500.00");
+    assert_eq!(amount(&r, "adjusted_on_lent_amount"), "145000000.00");
+    assert_eq!(amount(&r, "safe_harbour_debt_amount"), "117437500.00");
+}

@@ -167,3 +167,20 @@ pub(super) fn fixed_rate_records(first: i64, beside: bool) -> Value {
     }
     json!(records)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn an_hours_diary_that_is_not_json_is_refused() {
+        let error = Diary::read(&Arg::Text("kept".into()), "2025-26", 2025)
+            .err()
+            .unwrap();
+        assert!(
+            error
+                .to_string()
+                .starts_with("hours_diary must be a list of 1 to ")
+        );
+    }
+}

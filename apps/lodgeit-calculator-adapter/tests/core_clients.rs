@@ -381,6 +381,8 @@ fn bad_success_is_transactionally_rejected_without_context() {
         items(&[item(&[("id", "\"not-a-uuid\"")])]),
         items(&[item(&[("code", "1.2")])]),
         items(&[item(&[]), item(&[])]),
+        // core.py's `not isinstance(item, dict)`: an item that is no object.
+        items(&["\"canary\"".to_owned()]),
         b"{\"items\": [], \"nextPageToken\": \"\"}".to_vec(),
         format!(
             "{{\"items\": [], \"nextPageToken\": \"{}\"}}",

@@ -19,53 +19,13 @@ fn in_ranges(table: &[(u32, u32)], cp: u32) -> bool {
         .is_ok()
 }
 
-/// Rust strings cannot hold the lone surrogates a Python str can (command-line
-/// bytes decoded with surrogateescape, or unpaired UTF-16 on Windows). Text
-/// decoded from an OS string writes each one as ESCAPE followed by
-/// U+10F800 + (surrogate - U+D800), and doubles a genuine ESCAPE, so OS strings
-/// map to text one to one. Both are private-use code points at the end of plane 16.
-/// shortcut: text that does not come from an OS string (JSON fields) is not
-/// escaped. If it holds ESCAPE followed by ESCAPE or by U+10F800..U+10FFFF, that
-/// pair prints as an escape; escaping every JSON-derived string would remove it.
-const ESCAPE: char = '\u{10F7FF}';
-const CARRY_OFFSET: u32 = 0x10_F800 - 0xD800;
-
-/// Append a code point (a Unicode scalar value or a lone surrogate) to OS-derived text.
-#[allow(dead_code)]
-pub fn push_code_point(out: &mut String, cp: u32) {
-    match char::from_u32(cp) {
-        Some(ESCAPE) => out.extend([ESCAPE, ESCAPE]),
-        Some(ch) => out.push(ch),
-        None => out.extend([
-            ESCAPE,
-            char::from_u32(cp + CARRY_OFFSET).expect("surrogates map to scalar values"),
-        ]),
-    }
-}
-
-/// The code points text stands for, reading the escapes `push_code_point` writes.
+/// The code points of text. Command-line arguments reach the parsers through
+/// `to_string_lossy`, so text never carries a lone surrogate here.
 pub fn code_points(text: &str) -> impl Iterator<Item = u32> + '_ {
-    let mut chars = text.chars().peekable();
-    std::iter::from_fn(move || {
-        let ch = chars.next()?;
-        if ch != ESCAPE {
-            return Some(ch as u32);
-        }
-        match chars.peek().copied() {
-            Some(ESCAPE) => {
-                chars.next();
-                Some(ESCAPE as u32)
-            }
-            Some(next) if (0x10_F800..=0x10_FFFF).contains(&(next as u32)) => {
-                chars.next();
-                Some(next as u32 - CARRY_OFFSET)
-            }
-            _ => Some(ESCAPE as u32),
-        }
-    })
+    text.chars().map(u32::from)
 }
 
-/// `len(text)` in Python: code points, with each carried lone surrogate counted once.
+/// `len(text)` in Python: code points.
 pub fn py_len(text: &str) -> usize {
     code_points(text).count()
 }
@@ -126,11 +86,10 @@ pub fn repr(text: &str) -> String {
     repr_code_points(&cps)
 }
 
-/// `repr(text)` for text decoded from an OS string (`oserror::decode_os`),
-/// whose lone surrogates are carried as escape pairs.
+/// `repr(text)` for a command-line argument: the same as `repr`, as arguments
+/// carry no lone surrogate (see `code_points`).
 pub fn repr_os(text: &str) -> String {
-    let cps: Vec<u32> = code_points(text).collect();
-    repr_code_points(&cps)
+    repr(text)
 }
 
 #[cfg(test)]
@@ -156,10 +115,10 @@ mod tests {
 
     #[test]
     fn repr_matches_python() {
-        // File text keeps the carrier's code points as themselves; only OS text decodes pairs.
+        // Plane 16 private-use code points print as escapes, from a file or an argument.
         let pair = "\u{10F7FF}\u{10F800}";
         assert_eq!(repr(pair), r"'\U0010f7ff\U0010f800'");
-        assert_eq!(repr_os(pair), r"'\ud800'");
+        assert_eq!(repr_os(pair), r"'\U0010f7ff\U0010f800'");
         assert_eq!(repr("200"), "'200'");
         assert_eq!(repr("it's"), "\"it's\"");
         assert_eq!(repr("a'b\"c"), "'a\\'b\"c'");
@@ -169,3 +128,7 @@ mod tests {
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a_pytext.rs"]
+mod cov_a_tests;
