@@ -380,7 +380,7 @@ fn the_real_path_makes_one_attempt_where_the_default_settings_would_retry() {
     assert!(AdapterConfig::default().max_attempts > BigInt::from(1));
     let stub = stub(503, &Json::obj([("error", Json::str("unavailable"))]));
     let out = record_path("one-attempt");
-    let stopped = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+    let stopped = live::run_to_file(to_stub(&stub), &out, &mut Net, &mut || Ok(()));
     assert_eq!(
         stopped.expect("a pass").as_deref(),
         Some("D7A-1-met-first-real-year")
@@ -400,7 +400,7 @@ fn an_error_part_way_through_keeps_what_was_sent() {
             notes: Vec::new(),
         })
     };
-    let result = live::run_to_file(to_stub(&stub), &out, &mut pause);
+    let result = live::run_to_file(to_stub(&stub), &out, &mut Net, &mut pause);
     assert_eq!(result, Err("OSError: stub failure".to_string()));
     assert_eq!(stub.requests(), 1);
     let record = written(&out);
@@ -413,7 +413,7 @@ fn the_attempt_is_on_disk_before_the_request_arrives() {
     let stub = start(200, None);
     let out = record_path("attempt");
     *stub.seen.watch.lock().unwrap() = Some(out.clone());
-    let _ = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+    let _ = live::run_to_file(to_stub(&stub), &out, &mut Net, &mut || Ok(()));
     let on_disk = stub.seen.on_disk.lock().unwrap().clone().expect("a copy");
     let record = pyjson::loads_standard(&on_disk).expect("JSON");
     assert_eq!(at(&record, "records/0/attempted"), &Json::Bool(true));
@@ -476,7 +476,7 @@ fn an_error_from_invoke_leaves_the_saved_attempt() {
 fn a_lost_connection_keeps_the_request_and_stops() {
     let stub = start(200, None);
     let out = record_path("lost");
-    let result = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+    let result = live::run_to_file(to_stub(&stub), &out, &mut Net, &mut || Ok(()));
     assert_eq!(stub.requests(), 1);
     let record = written(&out);
     assert_eq!(len(at(&record, "records")), 1);
@@ -499,7 +499,7 @@ fn a_malformed_response_keeps_the_request_and_stops() {
     ] {
         let stub = start(200, Some(reply));
         let out = record_path("malformed");
-        let result = live::run_to_file(to_stub(&stub), &out, &mut || Ok(()));
+        let result = live::run_to_file(to_stub(&stub), &out, &mut Net, &mut || Ok(()));
         assert_eq!(stub.requests(), 1);
         let record = written(&out);
         assert_eq!(len(at(&record, "records")), 1);
@@ -532,7 +532,7 @@ fn each_completed_response_is_on_disk_at_the_next_pause() {
         }
         Ok(())
     };
-    assert!(live::run_to_file(to_stub(&stub), &out, &mut pause).is_err());
+    assert!(live::run_to_file(to_stub(&stub), &out, &mut Net, &mut pause).is_err());
     assert_eq!(counts, [1, 2]);
 }
 
@@ -641,7 +641,7 @@ fn a_pass_that_could_not_keep_its_record_never_starts() {
     fs::write(&taken, "an earlier record").expect("a file");
     let missing = record_path("missing").with_file_name("no-such-folder/record.json");
     for out in [&taken, &missing] {
-        let result = live::run_to_file(to_stub(&stub), out, &mut || Ok(()));
+        let result = live::run_to_file(to_stub(&stub), out, &mut Net, &mut || Ok(()));
         assert!(result.is_err(), "{}", out.display());
     }
     assert_eq!(stub.requests(), 0);

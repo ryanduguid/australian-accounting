@@ -1,51 +1,20 @@
-//! `transport::request` behind a `RequestConfig` whose `check_url` accepts
-//! every URL: how urllib and `http.client` split the URL, where they connect
-//! and what they send, or that they refuse before connecting. The trait is
-//! public, so the transport's answer for such a URL is its own behaviour,
-//! not `AdapterConfig::check_url`'s. Expected values are the retired Python
-//! adapter's `transport._attempt` under CPython 3.15.0 (win32), with
+//! `transport::request` under a real `AdapterConfig` (enabled, loopback
+//! allowed, two attempts): URLs that pass `check_url` but that urllib and
+//! `http.client` split, connect to and send in their own way, or refuse
+//! before connecting. Expected values are the retired Python adapter's
+//! `transport.request` with the same configuration under CPython 3.15.0
+//! (win32; no platform-specific code runs in these paths), with
 //! `socket.create_connection` replaced by a socketpair.
 use std::cell::RefCell;
 use std::io::{self, Read, Write};
 use std::rc::Rc;
 
 use lodgeit_calculator_adapter::config::AdapterConfig;
-use lodgeit_calculator_adapter::errors::TRANSPORT;
+use lodgeit_calculator_adapter::errors::{DISALLOWED_TARGET, TRANSPORT};
 use lodgeit_calculator_adapter::pyops::Exc;
-use lodgeit_calculator_adapter::transport::{Call, Connection, Dial, RequestConfig, request};
-use num_bigint::BigInt;
+use lodgeit_calculator_adapter::transport::{Call, Connection, Dial, request};
 
 const OK: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok";
-
-/// The adapter's configuration with the URL check left out.
-struct AnyUrl(AdapterConfig);
-
-impl RequestConfig for AnyUrl {
-    fn require_enabled(&self) -> Result<(), Exc> {
-        Ok(())
-    }
-    fn check_url(&self, _: &str) -> Result<(), Exc> {
-        Ok(())
-    }
-    fn read_timeout(&self) -> f64 {
-        self.0.read_timeout
-    }
-    fn max_response_bytes(&self) -> &BigInt {
-        &self.0.max_response_bytes
-    }
-    fn max_attempts(&self) -> u32 {
-        2
-    }
-    fn retry_backoff_seconds(&self) -> f64 {
-        0.0
-    }
-    fn user_agent(&self) -> &str {
-        "fixture-ua/1.0"
-    }
-    fn extra_headers(&self) -> &[(String, String)] {
-        &self.0.extra_headers
-    }
-}
 
 struct Canned {
     reply: io::Cursor<Vec<u8>>,
@@ -91,14 +60,28 @@ struct Sent {
     wire: String,
 }
 
-fn send(method: &str, url: &str, body: Option<&[u8]>, extra: &[(&str, &str)]) -> Sent {
-    let config = AnyUrl(AdapterConfig {
+/// One request: `hosts` is the allowlist, `extra` the configured headers.
+fn send(
+    method: &str,
+    url: &str,
+    body: Option<&[u8]>,
+    extra: &[(&str, &str)],
+    hosts: &[&str],
+) -> Sent {
+    let config = AdapterConfig {
+        enabled: true,
+        base_url: Some("http://127.0.0.1".into()),
+        allowed_hosts: hosts.iter().map(|&host| host.to_owned()).collect(),
+        allow_loopback: true,
+        user_agent: "fixture-ua/1.0".into(),
         extra_headers: extra
             .iter()
             .map(|&(name, value)| (name.to_owned(), value.to_owned()))
             .collect(),
         ..AdapterConfig::default()
-    });
+    }
+    .checked()
+    .expect("a valid configuration");
     let mut dial = Recorder::default();
     let call = Call {
         method,
@@ -125,12 +108,11 @@ fn send(method: &str, url: &str, body: Option<&[u8]>, extra: &[(&str, &str)]) ->
     }
 }
 
-fn refused_before_connecting(sent: &Sent, case: &str) {
-    assert_eq!(
-        sent.result,
-        Err((TRANSPORT, "no response after 2 attempt(s)".into())),
-        "{case}"
-    );
+fn get(url: &str) -> Sent {
+    send("GET", url, None, &[], &[])
+}
+
+fn nothing_sent(sent: &Sent, case: &str) {
     assert!(sent.dials.is_empty(), "{case}");
     assert!(sent.wire.is_empty(), "{case}");
 }
@@ -143,55 +125,101 @@ fn wire(request_line: &str, host: &str, extra: &str) -> String {
 }
 
 #[test]
-fn inputs_http_client_refuses_fail_every_attempt_without_a_dial() {
-    // urllib: no host given (no `//`), InvalidURL (non-numeric port, a
-    // space in the unquoted host or the path), ValueError (a control
-    // character in the method, an empty header name) and
-    // UnicodeEncodeError (a non-ASCII request line), all before connecting.
-    for (case, method, url, extra) in [
+fn inputs_check_url_passes_but_http_client_refuses_fail_every_attempt_without_a_dial() {
+    // urllib finds no host (urlsplit drops the tab, urllib does not),
+    // InvalidURL (a non-numeric port or a space once the host is decoded,
+    // a space in the path), ValueError (a control character in the method,
+    // an empty header name) and UnicodeEncodeError (a non-ASCII request
+    // line), all before connecting.
+    for (case, method, url, extra, hosts) in [
         (
-            "no // after the scheme",
+            "tab between the slashes",
             "GET",
-            "http:127.0.0.1/v1/rates",
+            "http:/\t/127.0.0.1/v1/rates",
+            &[][..],
             &[][..],
         ),
         (
-            "non-numeric port",
+            "encoded colon: non-numeric port",
             "GET",
-            "http://127.0.0.1:abc/v1/rates",
+            "https://h%3Aabc/v1/rates",
             &[],
+            &["h%3aabc"],
         ),
-        ("encoded space in host", "GET", "http://a%20b/v1/rates", &[]),
+        (
+            "encoded space in host",
+            "GET",
+            "https://a%20b/v1/rates",
+            &[],
+            &["a%20b"],
+        ),
         (
             "control character in method",
             "G\x01T",
             "http://127.0.0.1/v1/rates",
             &[],
+            &[],
         ),
-        ("space in path", "GET", "http://127.0.0.1/v1/ra tes", &[]),
-        ("non-ASCII path", "GET", "http://127.0.0.1/v1/r\u{e9}", &[]),
+        (
+            "space in path",
+            "GET",
+            "http://127.0.0.1/v1/rates/a b",
+            &[],
+            &[],
+        ),
+        (
+            "non-ASCII path",
+            "GET",
+            "http://127.0.0.1/v1/rates/r\u{e9}",
+            &[],
+            &[],
+        ),
         (
             "empty header name",
             "GET",
             "http://127.0.0.1/v1/rates",
             &[("", "1")],
+            &[],
         ),
     ] {
-        refused_before_connecting(&send(method, url, None, extra), case);
+        let sent = send(method, url, None, extra, hosts);
+        assert_eq!(
+            sent.result,
+            Err((TRANSPORT, "no response after 2 attempt(s)".into())),
+            "{case}"
+        );
+        nothing_sent(&sent, case);
     }
 }
 
 #[test]
-fn a_query_straight_after_the_host_gets_a_leading_slash() {
-    let sent = send("GET", "http://127.0.0.1?q=1", None, &[]);
-    assert_eq!(sent.result, Ok("ok".into()));
-    assert_eq!(sent.dials, [("127.0.0.1".to_owned(), 80)]);
-    assert_eq!(sent.wire, wire("GET /?q=1 HTTP/1.1", "127.0.0.1", ""));
+fn check_url_refuses_every_url_whose_path_does_not_follow_the_host_with_a_slash() {
+    // Why urllib's `_splithost` never needs to add a leading `/`: a query,
+    // a fragment or an empty path after the host is refused first.
+    let swallow = "a query string or fragment on a base URL would swallow the route built from it";
+    let no_route = "path / is not one of the routes this adapter calls. A URL found in a response body is \
+         data, not a destination.";
+    for (url, reason) in [
+        ("http://127.0.0.1?q=1", swallow),
+        ("http://127.0.0.1?/v1/rates", swallow),
+        ("http://127.0.0.1#/v1/rates", swallow),
+        ("http://127.0.0.1#a#/v1/rates", swallow),
+        ("http://127.0.0.1?", no_route),
+        ("http://127.0.0.1", no_route),
+    ] {
+        let sent = get(url);
+        assert_eq!(
+            sent.result,
+            Err((DISALLOWED_TARGET, format!("{url}: {reason}"))),
+            "{url}"
+        );
+        nothing_sent(&sent, url);
+    }
 }
 
 #[test]
 fn an_empty_port_dials_the_default_and_keeps_the_host_header() {
-    let sent = send("GET", "http://127.0.0.1:/v1/rates", None, &[]);
+    let sent = get("http://127.0.0.1:/v1/rates");
     assert_eq!(sent.result, Ok("ok".into()));
     assert_eq!(sent.dials, [("127.0.0.1".to_owned(), 80)]);
     assert_eq!(sent.wire, wire("GET /v1/rates HTTP/1.1", "127.0.0.1:", ""));
@@ -199,7 +227,7 @@ fn an_empty_port_dials_the_default_and_keeps_the_host_header() {
 
 #[test]
 fn a_bracketed_host_dials_the_address_inside_the_brackets() {
-    let sent = send("GET", "http://[::1]/v1/rates", None, &[]);
+    let sent = get("http://[::1]/v1/rates");
     assert_eq!(sent.result, Ok("ok".into()));
     assert_eq!(sent.dials, [("::1".to_owned(), 80)]);
     assert_eq!(sent.wire, wire("GET /v1/rates HTTP/1.1", "[::1]", ""));
@@ -219,7 +247,13 @@ fn a_transfer_encoding_header_sends_the_body_chunked() {
         ("3 bytes", &b"abc"[..], "3\r\nabc\r\n0\r\n\r\n"),
         ("empty: the zero-length chunk is skipped", b"", "0\r\n\r\n"),
     ] {
-        let sent = send("POST", "http://127.0.0.1/v1/rates", Some(body), &chunked);
+        let sent = send(
+            "POST",
+            "http://127.0.0.1/v1/rates",
+            Some(body),
+            &chunked,
+            &[],
+        );
         assert_eq!(sent.result, Ok("ok".into()), "{case}");
         assert_eq!(sent.wire, head(tail), "{case}");
     }
@@ -227,7 +261,7 @@ fn a_transfer_encoding_header_sends_the_body_chunked() {
 
 #[test]
 fn a_bodiless_post_sends_a_zero_content_length() {
-    let sent = send("POST", "http://127.0.0.1/v1/rates", None, &[]);
+    let sent = send("POST", "http://127.0.0.1/v1/rates", None, &[], &[]);
     assert_eq!(sent.result, Ok("ok".into()));
     assert_eq!(
         sent.wire,

@@ -20,6 +20,7 @@ use crate::dial::{self, Net};
 use crate::pyjson::{self, Json, Layout};
 use crate::pyops::{Exc, R, json_str, pts};
 use crate::pyvalue::points_lossy;
+use crate::transport::Dial;
 
 /// The gap between requests. The service runs at its operator's expense.
 const PAUSE: Duration = Duration::from_secs(3);
@@ -212,12 +213,19 @@ pub fn pass_config(base_url: &str) -> AdapterConfig {
     }
 }
 
-/// One pass over the real network, its record kept in `out` as it grows. `out`
-/// must not yet exist: a pass that cannot keep its record never starts. Returns
-/// the case the pass stopped at, or an error's text.
+/// The gap the real pass takes between requests.
+pub fn pause() -> R<()> {
+    std::thread::sleep(PAUSE);
+    Ok(())
+}
+
+/// One pass through `dial`, its record kept in `out` as it grows. `out` must
+/// not yet exist: a pass that cannot keep its record never starts. Returns the
+/// case the pass stopped at, or an error's text.
 pub fn run_to_file(
     config: AdapterConfig,
     out: &Path,
+    dial: &mut dyn Dial,
     pause: &mut dyn FnMut() -> R<()>,
 ) -> Result<Option<String>, String> {
     let shown = |error: std::io::Error| format!("{}: {error}", out.display());
@@ -229,12 +237,11 @@ pub fn run_to_file(
         let config = config.checked()?;
         let contract = contract::load("lodgeit-calculators", None)?;
         snapshot = contract.snapshot_id.clone();
-        let mut net = Net;
         let mut sleep = dial::sleep;
         let mut client = Client {
             config: &config,
             contract: &contract,
-            dial: &mut net,
+            dial,
             sleep: &mut sleep,
         };
         let mut save = |pass: &Pass| {
@@ -251,9 +258,14 @@ pub fn run_to_file(
     error.map_or(Ok(stopped), Err)
 }
 
-/// The example's command line. Without `--enable-network`, `--base-url` and
-/// `--out` it exits 2, having sent nothing and made no file.
+/// The example's command line, over the real network with the real pause.
 pub fn cli(args: &[String]) -> u8 {
+    cli_through(args, &mut Net, &mut pause)
+}
+
+/// `cli` through `dial` and `pause`. Without `--enable-network`, `--base-url`
+/// and `--out` it exits 2, having sent nothing and made no file.
+pub fn cli_through(args: &[String], dial: &mut dyn Dial, pause: &mut dyn FnMut() -> R<()>) -> u8 {
     let value = |flag: &str| {
         args.iter()
             .position(|arg| arg == flag)
@@ -267,11 +279,7 @@ pub fn cli(args: &[String]) -> u8 {
         eprintln!("usage: live_trials --enable-network --base-url URL --out FILE");
         return 2;
     };
-    let mut pause = || {
-        std::thread::sleep(PAUSE);
-        Ok(())
-    };
-    match run_to_file(pass_config(base_url), Path::new(out), &mut pause) {
+    match run_to_file(pass_config(base_url), Path::new(out), dial, pause) {
         Ok(None) => 0,
         Ok(Some(case)) => {
             eprintln!("stopped at {case}; read {out}");
