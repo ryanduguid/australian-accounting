@@ -10,9 +10,9 @@ use serde_json::json;
 
 #[test]
 fn an_unknown_worksheet_is_quoted_with_its_escapes() {
-    let error = api::evaluate_coded("periods", &json!({"kind": "a\b\tc\nd\re"})).unwrap_err();
+    let error = api::evaluate_coded("periods", &json!({"kind": "a\\b\tc\nd\re"})).unwrap_err();
     assert_eq!(error.code, "worksheet.unknown");
-    assert_eq!(error.message, r"unknown worksheet 'a\b\tc\nd\re'");
+    assert_eq!(error.message, r"unknown worksheet 'a\\b\tc\nd\re'");
 }
 
 #[test]
