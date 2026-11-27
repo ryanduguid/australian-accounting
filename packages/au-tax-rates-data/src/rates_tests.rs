@@ -187,8 +187,13 @@ fn first_aud() -> Json {
         .expect("an AUD record")
 }
 
+/// `json.dumps(value, sort_keys=True)`: ASCII, so every code point is a char.
 fn dumps(value: &Json) -> Vec<u8> {
-    pyjson::dumps(value, pyjson::Layout::Canonical).into_bytes()
+    pyvalue::dumps_with(value, None, true, true)
+        .into_iter()
+        .map(|cp| char::from_u32(cp).expect("ensure_ascii writes ASCII"))
+        .collect::<String>()
+        .into_bytes()
 }
 
 /// `json.dumps(value, indent=2, ensure_ascii=False)`.

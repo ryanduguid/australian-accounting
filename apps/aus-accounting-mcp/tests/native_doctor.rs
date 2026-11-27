@@ -85,3 +85,21 @@ fn the_help_names_the_doctor_command() {
     assert!(text.contains("  doctor  ") && text.contains(&help));
     assert!(text.contains("AGPL-3.0-or-later with additional terms (see NOTICE)."));
 }
+
+#[test]
+fn doctor_names_one_broken_folder_in_the_singular() {
+    let missing =
+        std::env::temp_dir().join(format!("native-doctor-one-gone-{}", std::process::id()));
+    assert!(!missing.exists());
+    let output = doctor([None, None, Some(missing.as_os_str())]);
+    let text = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(output.status.code(), Some(1));
+    assert!(text.contains(&format!(
+        "  AUS_ACCOUNTING_RULINGS_ROOT: BROKEN: {}: ",
+        missing.to_string_lossy()
+    )));
+    assert!(
+        text.ends_with("\n1 configured folder is broken.\n"),
+        "{text}"
+    );
+}

@@ -153,3 +153,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a_textwrap.rs"]
+mod cov_a_tests;
