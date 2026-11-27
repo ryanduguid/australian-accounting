@@ -196,10 +196,11 @@ pub(super) fn by_month(contract: &Contract) -> Result<BTreeMap<String, Decimal>,
 pub(super) fn by_income_year(contract: &Contract) -> Result<BTreeMap<String, Year>, Refusal> {
     let mut years = BTreeMap::new();
     for (day, amount) in &contract.payments {
-        add_to(
+        let added = add_to(
             &mut year_of(&mut years, income_year(*day).0).payments,
             amount,
-        )?;
+        );
+        added?;
     }
     for period in &contract.periods {
         let (key, opens) = income_year(period.to - 1);

@@ -245,11 +245,12 @@ fn fixed_ratio(a: &ThinCapitalisationArgs, items: &[Deduction], year: &str) -> R
             limit,
         );
         steps.extend([ebitda, limit]);
-        closing(
+        let closed = closing(
             &mut steps,
             "fixed_ratio_earnings_limit",
             "net_debt_deductions",
-        )?;
+        );
+        closed?;
         let (special, rows) = carry::apply(&steps, &carried)?;
         steps.push(special);
         Ok(Worked {
@@ -284,11 +285,12 @@ fn group_ratio(a: &ThinCapitalisationArgs, items: &[Deduction]) -> Result<Worked
             ratio.mul(&ebitda.value)?,
         );
         steps.extend([ebitda, gr, limit]);
-        closing(
+        let closed = closing(
             &mut steps,
             "group_ratio_earnings_limit",
             "net_debt_deductions",
-        )?;
+        );
+        closed?;
         Ok(Worked {
             steps,
             rates: vec![rate("group_ratio", ratio)],

@@ -216,10 +216,11 @@ fn largest_salary(profit: &Decimal, law: &Law) -> Result<Decimal> {
     let fits = |s: &Decimal| -> Result<bool> { Ok(s.add(&super_guarantee(s, law)?)?.le(profit)?) };
     let mut salary = down(&profit.div(&int(1).add(&law.sg_rate)?)?, 2)?;
     if salary.gt(&law.base)? {
-        salary = py_max(
+        let higher = py_max(
             law.base.clone(),
             profit.sub(&super_guarantee(&law.base, law)?)?,
-        )?;
+        );
+        salary = higher?;
     }
     while salary.gt(&int(0))? && !fits(&salary)? {
         salary = salary.sub(&cent)?;

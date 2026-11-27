@@ -99,13 +99,14 @@ pub(super) fn adi(a: &ThinCapitalisationArgs, c: Class, items: &[Deduction]) -> 
                 missing.join(" and ")
             ));
         }
-        shortfall_steps(
+        let stepped = shortfall_steps(
             &mut steps,
             outward,
             eq_id,
             [&least, &eq, &shortfall],
             &debt_capital,
-        )?;
+        );
+        stepped?;
         Ok(Worked {
             steps,
             rates: vec![rate("safe_harbour_capital_rate", "0.06")],
