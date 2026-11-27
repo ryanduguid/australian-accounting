@@ -1915,6 +1915,46 @@ fn single(body: &[M]) -> Option<&Test> {
     }
 }
 
+/// `Assert` (lookahead or lookbehind) at `pos`, then `k`.
+fn assert_op(
+    negative: bool,
+    back: Option<usize>,
+    body: &[M],
+    pos: usize,
+    ctx: &mut Ctx,
+    k: K,
+) -> bool {
+    let from = match back {
+        Some(width) if pos < width => return negative && k(pos, ctx),
+        Some(width) => pos - width,
+        None => pos,
+    };
+    let saved = ctx.caps.clone();
+    let found = first_end(body, from, ctx).is_some();
+    if negative {
+        ctx.caps = saved;
+        return !found && k(pos, ctx);
+    }
+    if found && k(pos, ctx) {
+        return true;
+    }
+    ctx.caps = saved;
+    false
+}
+
+/// `Ref` (backreference) at `pos`, then `k`.
+fn ref_op(g: usize, probe: Probe, pos: usize, ctx: &mut Ctx, k: K) -> bool {
+    let Some((s, e)) = ctx.caps[g] else {
+        return false;
+    };
+    let len = e - s;
+    if pos + len > ctx.text.len() {
+        return false;
+    }
+    let same = (0..len).all(|i| probe.apply(ctx.text[pos + i]) == probe.apply(ctx.text[s + i]));
+    same && k(pos + len, ctx)
+}
+
 /// One non-character op at `pos`, then `k`. A failed attempt leaves the groups as it found them.
 fn one(node: &Op, pos: usize, ctx: &mut Ctx, k: K) -> bool {
     match node {
@@ -1942,18 +1982,7 @@ fn one(node: &Op, pos: usize, ctx: &mut Ctx, k: K) -> bool {
             },
         },
         Op::At(anchor) => at(*anchor, pos, ctx.text) && k(pos, ctx),
-        Op::Ref(g, probe) => {
-            let Some((s, e)) = ctx.caps[*g] else {
-                return false;
-            };
-            let len = e - s;
-            if pos + len > ctx.text.len() {
-                return false;
-            }
-            let same =
-                (0..len).all(|i| probe.apply(ctx.text[pos + i]) == probe.apply(ctx.text[s + i]));
-            same && k(pos + len, ctx)
-        }
+        Op::Ref(g, probe) => ref_op(*g, *probe, pos, ctx, k),
         Op::RefExists(g, yes, no) => {
             let branch = if ctx.caps[*g].is_some() { yes } else { no };
             seq(branch, 0, pos, ctx, k)
@@ -1962,24 +1991,7 @@ fn one(node: &Op, pos: usize, ctx: &mut Ctx, k: K) -> bool {
             negative,
             back,
             body,
-        } => {
-            let from = match back {
-                Some(width) if pos < *width => return *negative && k(pos, ctx),
-                Some(width) => pos - width,
-                None => pos,
-            };
-            let saved = ctx.caps.clone();
-            let found = first_end(body, from, ctx).is_some();
-            if *negative {
-                ctx.caps = saved;
-                return !found && k(pos, ctx);
-            }
-            if found && k(pos, ctx) {
-                return true;
-            }
-            ctx.caps = saved;
-            false
-        }
+        } => assert_op(*negative, *back, body, pos, ctx, k),
         Op::Atomic(body) => {
             let saved = ctx.caps.clone();
             if let Some(end) = first_end(body, pos, ctx)

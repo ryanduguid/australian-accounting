@@ -96,16 +96,19 @@ fn write_text_fails_as_path_write_text_does() {
 
 #[test]
 fn sorted_set_decimal_and_json_edges() {
-    let items = sorted_set(&[Json::Float(f64::NAN), Json::Int(1.into())]).unwrap();
+    let items = sorted_set(vec![Json::Float(f64::NAN), Json::Int(1.into())]).unwrap();
     assert_eq!(items.len(), 2);
-    let huge = Decimal::parse_exact("1e100000001").ok().unwrap();
+    let huge = Decimal::parse_exact("1e200000000").ok().unwrap();
     assert_eq!(
         exc_pair(grouped(&huge, 0).unwrap_err()),
         ("MemoryError", String::new())
     );
     let dir = folder("missing-glob");
     let missing = PyPath::new(&dir.join("absent").to_string_lossy());
-    assert_eq!(glob_json(&missing).unwrap_err().class, "FileNotFoundError");
+    assert_eq!(
+        glob_json(&missing).err().unwrap().class,
+        "FileNotFoundError"
+    );
     std::fs::remove_dir_all(&dir).unwrap();
     assert_eq!(
         exc_pair(json_error(pyjson::DecodeError::Duplicate)),
@@ -116,7 +119,7 @@ fn sorted_set_decimal_and_json_edges() {
     );
     assert!(json_scale_rows(&Json::Null).unwrap().is_empty());
     assert_eq!(
-        exc_pair(parse_text(&pts("10"), &Json::str("unknown")).unwrap_err()),
+        exc_pair(parse_text(&Json::str("unknown"), &pts("10")).err().unwrap()),
         ("KeyError", "'unknown'".to_string())
     );
 }
