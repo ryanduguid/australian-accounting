@@ -430,12 +430,8 @@ fn by_year_steps(earlier: &[Earlier], current: i64, year: &ThisYear) -> Result<V
     let (mut steps, mut pool) = earlier_steps(earlier)?;
     let window = previous_five(&mut pool, current);
     let unused = carried_steps(window, &mut steps)?;
-    steps.extend(concessional_steps(
-        year.balance,
-        year.concessional,
-        &unused,
-        year.cap,
-    )?);
+    let extended = concessional_steps(year.balance, year.concessional, &unused, year.cap);
+    steps.extend(extended?);
     steps.extend(this_year_steps(window, current, year)?);
     if year.proposed.is_some() {
         steps.push(excess_with_proposal(&steps)?);

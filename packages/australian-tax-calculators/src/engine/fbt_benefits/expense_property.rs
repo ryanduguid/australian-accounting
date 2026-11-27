@@ -403,13 +403,8 @@ fn external_payment<'a>(
         .value
         .clone();
     let table = &EXPENSE_DEDUCTIBLE;
-    steps.extend(deductible_steps(
-        table,
-        expenditure,
-        &share,
-        &deduction,
-        &value,
-    )?);
+    let extended = deductible_steps(table, expenditure, &share, &deduction, &value);
+    steps.extend(extended?);
     let authority = "FBTAA s 24(1), TV - ND; FBT return 2026 instructions, item 23E";
     taxable_steps(steps, None, authority)
 }

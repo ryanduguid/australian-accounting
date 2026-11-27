@@ -305,11 +305,12 @@ fn third_party_debt(items: &[Deduction]) -> Result<Worked> {
             .filter(|x| x.third_party == Some(true))
             .map(|x| &x.amount)
             .collect();
-        steps.push(sum_step(
+        let pushed = sum_step(
             "third_party_earnings_limit",
             "s 820-427A(1) and (2): the debt deductions attributable to debt interests satisfying the third party debt conditions",
             &qualifying,
-        )?);
+        );
+        steps.push(pushed?);
         closing(&mut steps, "third_party_earnings_limit", "debt_deductions")?;
         Ok(Worked {
             steps,

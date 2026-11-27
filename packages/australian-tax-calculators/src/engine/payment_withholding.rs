@@ -230,11 +230,12 @@ fn entertainer_no_tfn(earnings: &Decimal, day: i64, foreign: bool) -> Result<Vec
         &[earnings, &day],
         paid.clone(),
     )];
-    steps.extend(no_tfn_steps(
+    let extended = no_tfn_steps(
         ("day_earnings", &paid),
         foreign,
         "Schedule 3, 'When a TFN has not been provided': the payment, ignoring any cents",
-    )?);
+    );
+    steps.extend(extended?);
     Ok(steps)
 }
 

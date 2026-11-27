@@ -589,12 +589,8 @@ fn payout_steps(payout: &Payout, financed: &Decimal, periods: &[Period]) -> Resu
             paid_total.clone(),
         ),
     ];
-    steps.extend(settlement_steps(
-        &payout.amount,
-        financed,
-        &interest,
-        &paid_total,
-    )?);
+    let extended = settlement_steps(&payout.amount, financed, &interest, &paid_total);
+    steps.extend(extended?);
     Ok(steps)
 }
 

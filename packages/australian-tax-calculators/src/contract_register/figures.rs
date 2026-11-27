@@ -385,13 +385,8 @@ pub(super) fn set_out(rows: &[Row], options: &Options) -> Result<SetOut, Refusal
         }
         let own_years = by_income_year(&contract)?;
         merge_years(&mut years, &own_years)?;
-        contracts.push(contract_json(
-            &contract,
-            &result,
-            options,
-            &own_months,
-            &own_years,
-        )?);
+        let pushed = contract_json(&contract, &result, options, &own_months, &own_years);
+        contracts.push(pushed?);
     }
     Ok(SetOut {
         contracts,
