@@ -372,3 +372,18 @@ fn refusals() {
         "input.field_unknown"
     );
 }
+
+/// A share that is not an object is refused, naming it.
+#[test]
+fn a_share_must_be_an_object() {
+    let error = api::evaluate_coded(
+        "small-business-income-offset",
+        &partner(json!([{"amount": "100.00", "deductions": "0.00"}, "200.00"])),
+    )
+    .unwrap_err();
+    assert_eq!(error.code, "small_business_income_offset.shares_invalid");
+    assert_eq!(
+        error.message,
+        "share 2 must be an object with amount and deductions."
+    );
+}
