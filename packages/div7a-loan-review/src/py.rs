@@ -638,6 +638,8 @@ mod tests {
         );
         // int() strips \v but not \x1c, which str.isspace accepts.
         assert_eq!(parse_int("\x0b1", 10).unwrap(), BigInt::from(1));
+        // Non-ASCII spaces read as spaces: int("\u30001\x85") is 1.
+        assert_eq!(parse_int("\u{3000}1\u{85}", 10).unwrap(), BigInt::from(1));
         assert_eq!(
             parse_int("1\x1c", 10).unwrap_err(),
             "invalid literal for int() with base 10: '1\\x1c'"
