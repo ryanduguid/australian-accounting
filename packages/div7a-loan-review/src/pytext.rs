@@ -165,6 +165,7 @@ mod tests {
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
         assert_eq!(repr("a\tb"), "'a\\tb'");
+        assert_eq!(repr("a\\b"), r"'a\\b'");
     }
 
     #[test]
