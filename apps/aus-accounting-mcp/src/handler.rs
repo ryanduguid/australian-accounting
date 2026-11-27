@@ -350,6 +350,10 @@ mod tests {
             "no request is read after the failed write"
         );
         assert!(transport.rejection.is_none());
+        assert!(matches!(
+            Box::pin(transport.close()).as_mut().poll(&mut context),
+            Poll::Ready(Ok(()))
+        ));
     }
     #[test]
     fn close_releases_a_parked_rejection_before_closing_writer() {
