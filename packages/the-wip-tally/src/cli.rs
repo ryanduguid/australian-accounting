@@ -904,12 +904,27 @@ fn require_suffix(path: &PyPath, suffix: &str) -> Result<(), Failure> {
 }
 
 fn refuse_to_write_over_an_input(out: &PyPath, inputs: &[Option<&PyPath>]) -> Result<(), Failure> {
-    let target = py::resolve_text(&out.fs());
     for candidate in inputs.iter().flatten() {
-        if py::same_resolved(&target, &py::resolve_text(&candidate.fs())) {
-            return Err(Failure::Message(format!(
-                "refusing to write {out} because this run reads that same file"
-            )));
+        // `out.resolve() == candidate.resolve()`, an OSError from either naming the candidate.
+        let same = py::resolve_text(&out.fs()).and_then(|target| {
+            Ok(py::same_resolved(
+                &target,
+                &py::resolve_text(&candidate.fs())?,
+            ))
+        });
+        match same {
+            Ok(false) => {}
+            Ok(true) => {
+                return Err(Failure::Message(format!(
+                    "refusing to write {out} because this run reads that same file"
+                )));
+            }
+            Err(e) => {
+                return Err(Failure::Message(format!(
+                    "refusing to write {out}: cannot resolve {candidate} ({})",
+                    py::oserror_bare(&e, py::OsStyle::Errno)
+                )));
+            }
         }
     }
     Ok(())

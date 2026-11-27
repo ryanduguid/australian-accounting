@@ -316,6 +316,15 @@ fn crt_errno(winerror: i32) -> (i32, &'static str) {
 
 /// `str(OSError)` for an operation on `filename` (already rendered as `str(path)`).
 pub fn oserror_str(error: &io::Error, filename: &str, style: OsStyle) -> String {
+    let text = oserror_bare(error, style);
+    match error.raw_os_error() {
+        Some(_) => format!("{text}: {}", repr_str(filename)),
+        None => text,
+    }
+}
+
+/// `str(exc)` for an `OSError` that names no file, as `os.getcwd()` raises.
+pub fn oserror_bare(error: &io::Error, style: OsStyle) -> String {
     let Some(code) = error.raw_os_error() else {
         return error.to_string();
     };
@@ -324,19 +333,15 @@ pub fn oserror_str(error: &io::Error, filename: &str, style: OsStyle) -> String 
     {
         if style == OsStyle::Errno {
             let (errno, text) = crt_errno(code);
-            return format!("[Errno {errno}] {text}: {}", repr_str(filename));
+            return format!("[Errno {errno}] {text}");
         }
         let text = strip_os_suffix(&message).trim_end_matches(|c: char| c == '.' || c <= ' ');
-        format!("[WinError {code}] {text}: {}", repr_str(filename))
+        format!("[WinError {code}] {text}")
     }
     #[cfg(not(windows))]
     {
         let _ = style;
-        format!(
-            "[Errno {code}] {}: {}",
-            strip_os_suffix(&message),
-            repr_str(filename)
-        )
+        format!("[Errno {code}] {}", strip_os_suffix(&message))
     }
 }
 
@@ -463,27 +468,45 @@ impl std::fmt::Display for PyPath {
 }
 
 /// `str(Path(path).resolve())`: symlinks resolved through the longest existing
-/// prefix, the rest normalised lexically, as `os.path.realpath` does.
-pub fn resolve_text(path: &Path) -> String {
-    let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+/// prefix, the rest normalised lexically, as `os.path.realpath` does. A relative
+/// path fails as `os.getcwd()` does when the working directory has been deleted.
+pub fn resolve_text(path: &Path) -> io::Result<String> {
+    let absolute = std::path::absolute(path)?;
     let components: Vec<_> = absolute.components().collect();
-    for split in (0..=components.len()).rev() {
+    for split in (2..=components.len()).rev() {
         let prefix: PathBuf = components[..split].iter().collect();
-        let Ok(mut resolved) = std::fs::canonicalize(&prefix) else {
-            continue;
-        };
-        // `components()` yields `.` only first, and `split` is at least 1 here,
-        // as no empty prefix canonicalises.
-        for component in &components[split..] {
-            if *component == std::path::Component::ParentDir {
-                resolved.pop();
-            } else {
-                resolved.push(component.as_os_str());
-            }
+        if let Ok(resolved) = std::fs::canonicalize(&prefix) {
+            return Ok(with_tail(resolved, &components[split..]));
         }
-        return without_verbatim(resolved.to_string_lossy().into_owned());
     }
-    absolute.to_string_lossy().into_owned()
+    from_root(&absolute, &components)
+}
+
+/// The resolved prefix with the missing tail applied lexically.
+fn with_tail(mut resolved: PathBuf, tail: &[std::path::Component<'_>]) -> String {
+    for component in tail {
+        if *component == std::path::Component::ParentDir {
+            resolved.pop();
+        } else {
+            resolved.push(component.as_os_str());
+        }
+    }
+    without_verbatim(resolved.to_string_lossy().into_owned())
+}
+
+/// Nothing below `/` exists: the rest applies to `/` itself, which always
+/// canonicalises, so its error is the OS's own and cannot arise for `/`.
+#[cfg(not(windows))]
+fn from_root(_: &Path, components: &[std::path::Component<'_>]) -> io::Result<String> {
+    let root = std::fs::canonicalize(components[0])?;
+    Ok(with_tail(root, &components[1..]))
+}
+
+/// No drive or share root exists (a drive letter not mapped): `realpath`
+/// returns the normalised path, which `std::path::absolute` already is.
+#[cfg(windows)]
+fn from_root(absolute: &Path, _: &[std::path::Component<'_>]) -> io::Result<String> {
+    Ok(absolute.to_string_lossy().into_owned())
 }
 
 /// `canonicalize` gives Windows verbatim paths; `realpath` does not.
@@ -854,17 +877,45 @@ mod tests {
             .join("target")
             .join(format!("wip-resolve-{}", std::process::id()));
         std::fs::create_dir_all(&root).unwrap();
-        let real = resolve_text(&root);
+        let real = resolve_text(&root).unwrap();
         // os.path.realpath drops `missing/..` once no prefix beyond `root` exists.
         assert_eq!(
-            resolve_text(&root.join("missing").join("..").join("x.csv")),
-            resolve_text(&root.join("x.csv"))
+            resolve_text(&root.join("missing").join("..").join("x.csv")).unwrap(),
+            resolve_text(&root.join("x.csv")).unwrap()
         );
         assert_eq!(
-            resolve_text(&root.join("x.csv")),
+            resolve_text(&root.join("x.csv")).unwrap(),
             format!("{real}{SEP}x.csv")
         );
         std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    /// CPython 3.14: `str(Path('/wip-tally-no-root/a/../b.csv').resolve())`.
+    #[cfg(not(windows))]
+    #[test]
+    fn a_path_under_a_missing_top_level_folder_resolves_from_the_root() {
+        let path = Path::new("/wip-tally-no-root/a/../b.csv");
+        assert_eq!(resolve_text(path).unwrap(), "/wip-tally-no-root/b.csv");
+        assert_eq!(resolve_text(Path::new("/")).unwrap(), "/");
+    }
+
+    /// CPython 3.15 on Windows, drive Q: unmapped: `Path('Q:/x/../y.csv').resolve()`
+    /// is `Q:\y.csv` and `Path('Q:/a/./b/../c.md').resolve()` is `Q:\a\c.md`.
+    #[cfg(windows)]
+    #[test]
+    fn a_path_on_an_unmapped_drive_is_only_normalised() {
+        let drive = (b'D'..=b'Z')
+            .map(char::from)
+            .find(|d| !Path::new(&format!("{d}:\\")).exists())
+            .expect("an unmapped drive letter");
+        assert_eq!(
+            resolve_text(Path::new(&format!("{drive}:/x/../y.csv"))).unwrap(),
+            format!("{drive}:\\y.csv")
+        );
+        assert_eq!(
+            resolve_text(Path::new(&format!("{drive}:/a/./b/../c.md"))).unwrap(),
+            format!("{drive}:\\a\\c.md")
+        );
     }
 
     #[test]

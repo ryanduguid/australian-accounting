@@ -151,3 +151,50 @@ fn an_undated_schedule_is_checked_against_a_rebuild_as_at_today() {
     );
     assert!(!dir.join("p.md").exists());
 }
+
+/// CPython 3.14 on Linux, run from a working directory deleted before the call.
+#[cfg(unix)]
+#[test]
+fn a_deleted_working_directory_refuses_before_reading_the_inputs() {
+    let dir = folder("cwd-gone");
+    let gone = dir.join("gone");
+    let out = dir.join("o.csv");
+    let run = |args: &[&str]| {
+        let output = Command::new("/bin/sh")
+            .arg("-c")
+            .arg(r#"cd "$1" && rmdir "$1" && shift && exec "$@""#)
+            .arg("sh")
+            .arg(&gone)
+            .arg(env!("CARGO_BIN_EXE_wip-tally"))
+            .args(args)
+            .env("COLUMNS", "80")
+            .env("NO_COLOR", "1")
+            .output()
+            .unwrap();
+        (
+            output.status.code(),
+            text(&output.stdout),
+            text(&output.stderr),
+        )
+    };
+    let out_text = out.to_str().unwrap();
+    for (args, expected) in [
+        (
+            vec!["schedule", "c.csv", "--out", "o.csv"],
+            "error: refusing to write o.csv: cannot resolve c.csv \
+             ([Errno 2] No such file or directory)\n"
+                .to_string(),
+        ),
+        (
+            vec!["schedule", "c.csv", "--out", out_text],
+            format!(
+                "error: refusing to write {out_text}: cannot resolve c.csv \
+                 ([Errno 2] No such file or directory)\n"
+            ),
+        ),
+    ] {
+        std::fs::create_dir_all(&gone).unwrap();
+        assert_eq!(run(&args), (Some(1), String::new(), expected));
+    }
+    assert!(!out.exists());
+}
