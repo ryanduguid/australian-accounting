@@ -452,6 +452,52 @@ pub fn evaluate_outcome(benefit: &CarBenefit, outcome: &Outcome) -> R<Comparison
 mod tests {
     use super::*;
 
+    #[test]
+    fn a_worksheet_failure_is_raised_as_the_python_worksheet_raised_it() {
+        use australian_tax_calculators::decimal::Signal as EngineSignal;
+        let shown = |e: Exc| {
+            (
+                e.class,
+                e.text
+                    .iter()
+                    .filter_map(|&c| char::from_u32(c))
+                    .collect::<String>(),
+            )
+        };
+        let value = engine::Error::Value {
+            code: "fbt.days",
+            message: "days must be positive".into(),
+        };
+        assert_eq!(
+            shown(worksheet_error(value)),
+            ("ValueError", "days must be positive".into())
+        );
+        // The decimal module's `str()` of each trapped signal.
+        let signals = [
+            (
+                EngineSignal::InvalidOperation,
+                "decimal.InvalidOperation",
+                "[<class 'decimal.InvalidOperation'>]",
+            ),
+            (
+                EngineSignal::DivisionByZero,
+                "decimal.DivisionByZero",
+                "[<class 'decimal.DivisionByZero'>]",
+            ),
+            (
+                EngineSignal::Overflow,
+                "decimal.Overflow",
+                "[<class 'decimal.Overflow'>]",
+            ),
+        ];
+        for (signal, class, text) in signals {
+            assert_eq!(
+                shown(worksheet_error(engine::Error::Decimal(signal))),
+                (class, text.into())
+            );
+        }
+    }
+
     fn dec(text: &str) -> Decimal {
         Decimal::parse_exact(text).expect("a literal")
     }
