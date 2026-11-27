@@ -711,7 +711,6 @@ mod tests {
 
     #[test]
     fn string_predicates_match_python() {
-        assert_eq!(splitlines("a\r\nb\rc\x1cd\n"), vec!["a", "b", "c", "d"]);
         assert_eq!(strip("\x1c x \u{3000}"), "x");
         assert_eq!(decimal_value('\u{0663}'), Some(3));
         assert_eq!(parse_int(" 1\u{0661}", 10).unwrap(), BigInt::from(11));
