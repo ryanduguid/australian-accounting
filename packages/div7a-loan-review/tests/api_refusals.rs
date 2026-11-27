@@ -71,3 +71,12 @@ fn register_input_of_the_wrong_shape_is_refused() {
         "needed is required"
     );
 }
+
+#[test]
+fn a_register_row_with_a_bad_year_loan_made_names_the_row_and_column() {
+    let refused = refusal(
+        "minimum-yearly-repayment",
+        json!({ "year_of_income": "2026-27", "mapping": { "year_loan_made": "soon" } }),
+    );
+    assert!(refused.starts_with("row year_loan_made"), "{refused}");
+}

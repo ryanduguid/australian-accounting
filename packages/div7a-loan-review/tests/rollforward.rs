@@ -164,3 +164,14 @@ fn a_balance_repaid_before_a_later_repayment_is_floored_from_that_date() {
         "{caveats:?}"
     );
 }
+
+#[test]
+fn a_negative_repayment_is_refused_by_its_place() {
+    let refused =
+        rollforward(&loan(json!([{"date": "2026-10-01", "amount": "-5.00"}]))).unwrap_err();
+    assert_eq!(
+        refused,
+        "repayments[0].amount is '-5.00'; a negative amount here inverts the shortfall and \
+         reports exposure as money owed back to the borrower"
+    );
+}
