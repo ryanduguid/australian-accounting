@@ -7,6 +7,7 @@
 Run on Linux with CPython 3.15: `python -I tests/data/cov_a8_rates.py`.
 """
 
+import json
 import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
@@ -29,3 +30,24 @@ try:
     Path("/r/a\ud800.txt").write_text("x", encoding="utf-8")
 except UnicodeEncodeError as e:
     print("lone surrogate name", type(e).__name__, e)
+
+print("sorted nan:", sorted({float("nan"), 1}))
+with tempfile.TemporaryDirectory() as tmp:
+    p = Path(tmp) / "f.txt"
+    try:
+        p.write_text("a\ud800b", encoding="utf-8")
+    except UnicodeEncodeError as e:
+        print("lone surrogate body:", type(e).__name__, e, "size:", p.stat().st_size)
+for label, fn in [
+    ("None.strip", lambda: None.strip()),
+    ("json.loads(None)", lambda: json.loads(None)),
+    ("{}[:4]", lambda: {}[:4]),
+    ("join [42]", lambda: ", ".join([42])),
+    ("json.loads(b'\\xff')", lambda: json.loads(b"\xff")),
+    ("[1][1]", lambda: [1][1]),
+]:
+    try:
+        fn()
+    except Exception as e:
+        print(label, type(e).__name__, repr(str(e)))
+print("dup col:", dict(zip(["a", "a"], [1, 2])))

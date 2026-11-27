@@ -139,12 +139,28 @@ fn int_of_a_nan_decimal_is_a_value_error() {
 #[test]
 fn snapshot_pauses_two_seconds_after_each_page() {
     let root = folder("pause");
-    let ctx = package(&root, &["https://www.ato.gov.au/c-page"]);
+    let ctx = package(
+        &root,
+        &[
+            "https://www.ato.gov.au/c-page",
+            "https://www.ato.gov.au/d-page",
+        ],
+    );
     let started = Instant::now();
-    let (code, printed) = snapshot(&ctx, &mut |_| Ok(pts("page")), true);
-    assert!(started.elapsed() >= Duration::from_secs(2));
+    let mut times = Vec::new();
+    let (code, printed) = snapshot(
+        &ctx,
+        &mut |_| {
+            times.push(Instant::now());
+            Ok(pts("page"))
+        },
+        true,
+    );
+    assert_eq!(times.len(), 2);
+    assert!(times[1].duration_since(times[0]) >= Duration::from_secs(2));
+    assert!(started.elapsed() >= Duration::from_secs(4));
     assert_eq!(code.ok(), Some(0));
-    assert_eq!(printed, newlines_of("saved c-page.txt\n"));
+    assert_eq!(printed, newlines_of("saved c-page.txt\nsaved d-page.txt\n"));
     let _ = std::fs::remove_dir_all(&root);
 }
 

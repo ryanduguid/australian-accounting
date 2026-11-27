@@ -335,6 +335,15 @@ fn readlink_deep(path: &str) -> String {
             break;
         };
         path = target.to_string_lossy().into_owned();
+        // CPython's `_nt_readlink` keeps `\\?\` on drive-rooted reparse targets;
+        // Rust's `std::fs::read_link` strips it.
+        if path.len() >= 3
+            && path.as_bytes()[0].is_ascii_alphabetic()
+            && path.as_bytes()[1] == b':'
+            && path.as_bytes()[2] == b'\\'
+        {
+            path = format!("\\\\?\\{path}");
+        }
         if !isabs(&path) {
             let is_link = std::fs::symlink_metadata(&old).is_ok_and(|m| m.file_type().is_symlink());
             if !is_link {

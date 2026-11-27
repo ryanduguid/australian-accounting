@@ -36,5 +36,12 @@ with tempfile.TemporaryDirectory() as tmp:
     os.symlink(tmp + "\\loop-b", tmp + "\\loop-a")
     os.symlink(tmp + "\\loop-a", tmp + "\\loop-b")
     show(tmp + "\\loop-a")
+    os.symlink("rloop-b", tmp + "\\rloop-a")
+    os.symlink("rloop-a", tmp + "\\rloop-b")
+    show(tmp + "\\rloop-a")
+    print(
+        "realpath verbatim loop-a",
+        repr(ntpath.realpath("\\\\?\\" + tmp + "\\loop-a").replace(top, "T")),
+    )
     cwd = ntpath.realpath(os.getcwd())
     print("realpath 'nope-rel' is cwd\\nope-rel:", ntpath.realpath("nope-rel") == cwd + "\\nope-rel")

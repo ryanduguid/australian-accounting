@@ -73,8 +73,19 @@ fn compile_and_search_answer_as_cpython_does() {
             (format!("{case} {got}"), format!("{case} {want}"))
         })
         .unzip();
-    assert_eq!(got.len(), 140);
+    assert_eq!(got.len(), 157);
     assert_eq!(got, want);
+}
+
+#[test]
+fn empty_name_is_not_an_identifier() {
+    assert!(!is_identifier(&[]));
+}
+
+#[test]
+#[should_panic(expected = "pattern \"(\"")]
+fn compile_str_panics_on_an_invalid_pattern() {
+    let _ = compile_str("(", 0);
 }
 
 /// The patterns too long for the table, on the deep stack the matcher's
@@ -99,6 +110,8 @@ fn long_patterns() {
     assert_eq!(answer(&groups, 0, None), deep);
     let plain = format!("{}{}", "(?:".repeat(500), ")".repeat(500));
     assert_eq!(answer(&plain, 0, None), deep);
+    let conds = format!("(a){}{}", "(?(1)".repeat(1050), ")".repeat(1050));
+    assert_eq!(answer(&conds, 0, None), deep);
     let deepest = format!("[a]{}a{}", "(?:".repeat(479), ")".repeat(479));
     assert_eq!(answer(&deepest, 0, Some("aa")), "0-2");
 }

@@ -180,6 +180,26 @@ CASES = [
     ["(?P<>a)", 0, None],
     ["(?P=)", 0, None],
     ["(a(?<=\\1))", 0, None],
+    # Complementary categories in one set, open group in lookbehind conditional,
+    # multiple del flags, supplementary sets, case-folded backrefs, failed repeats.
+    ["[\\d\\D]", 0, "a"],
+    ["[\\S\\s]", 0, "a"],
+    ["[\\W\\w]", 0, "a"],
+    ["[\\w\\W]", 0, "a"],
+    ["((?<=(?(1)a|b)))", 0, None],
+    ["(?-im:a)", 0, "a"],
+    ["[a\\U0001F600]", 0, "\U0001f600"],
+    ["[a\\U00010400]", IC, "\U00010428"],
+    ["[\\U00010400-\\U00010410]", IC | A, "\U00010405"],
+    ["[a\\U0001F600-\\U0001F605]", 0, "\U0001f602"],
+    ["(a)\\1", IC | A, "aA"],
+    ["(a)\\1", IC, "aA"],
+    ["(a)(?(1)b|(?<=a+))", 0, None],
+    ["(a)?\\1", 0, "b"],
+    ["(ab)\\1", 0, "aba"],
+    ["a+?b", 0, "aa"],
+    ["(ab){1,2}?c", 0, "abab"],
+    ["(a)" + "(?(1)" * 1050 + ")" * 1050, 0, None],
 ]
 
 out = []

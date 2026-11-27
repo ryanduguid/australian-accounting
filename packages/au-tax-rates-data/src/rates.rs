@@ -745,12 +745,14 @@ struct Ctx {
     snapshots: PyPath,
 }
 
+#[cfg(feature = "differential")]
 fn env(name: &str) -> Option<String> {
-    if cfg!(feature = "differential") {
-        std::env::var(name).ok()
-    } else {
-        None
-    }
+    std::env::var(name).ok()
+}
+
+#[cfg(not(feature = "differential"))]
+fn env(_: &str) -> Option<String> {
+    None
 }
 
 impl Ctx {
@@ -1578,6 +1580,7 @@ fn parse_text(unit: &Json, text: &[u32]) -> R<Found> {
 // ---------------------------------------------------------------- the browser
 
 fn browser_command() -> Vec<String> {
+    #[cfg(feature = "differential")]
     if let Some(list) = env("RATES_BROWSER")
         && let Ok(Json::Array(items)) = pyjson::loads_standard(&list)
     {
@@ -2076,6 +2079,7 @@ fn build_report(ctx: &Ctx, records: &[Json], pages: &[(Json, Page)], today: &str
 
 /// Today's date in the local time zone, as `YYYY-MM-DD`.
 fn local_today() -> String {
+    #[cfg(feature = "differential")]
     if let Some(today) = env("RATES_TODAY") {
         return today;
     }
