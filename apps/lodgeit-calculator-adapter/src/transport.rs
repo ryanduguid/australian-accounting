@@ -31,8 +31,6 @@ use crate::{py, pyurl, sre};
 const MAXLINE: usize = 65536;
 const MAXHEADERS: usize = 100;
 const MAXINTERIM: usize = 100;
-/// urllib's default `User-agent`, added when the request names none.
-const URLLIB_AGENT: &str = "Python-urllib/3.15";
 
 /// What a request needs from its configuration: `transport._RequestConfig`.
 pub trait RequestConfig {
@@ -473,9 +471,8 @@ fn prepare(call: &Call, headers: &[(String, String)]) -> Option<Prepared> {
     if !known(&asked, &unredirected, "Host") {
         put(&mut unredirected, "Host", &host);
     }
-    if !known(&asked, &unredirected, "User-agent") {
-        put(&mut unredirected, "User-agent", URLLIB_AGENT);
-    }
+    // urllib's default `User-agent` never applies: `request` always sends
+    // the configured one.
     let tls = match scheme.as_str() {
         "https" => true,
         "http" => false,
@@ -580,12 +577,10 @@ fn one_attempt(
         }
     };
     // `sendall` per piece; a TLS stream holds records until flushed.
-    for data in &prepared.sends {
-        if connection.write_all(data).is_err() {
-            return Attempt::Failed(Kind::Open, None);
-        }
-    }
-    if connection.flush().is_err() {
+    let sent = (prepared.sends.iter())
+        .try_for_each(|data| connection.write_all(data))
+        .and_then(|()| connection.flush());
+    if sent.is_err() {
         return Attempt::Failed(Kind::Open, None);
     }
     let response = match Response::begin(&mut *connection, prepared.head) {
@@ -610,11 +605,15 @@ fn one_attempt(
     consume(response, limit, call.url, started)
 }
 
+#[cfg(not(feature = "differential"))]
 fn elapsed_ms(started: Instant) -> u64 {
-    if cfg!(feature = "differential") {
-        return 0;
-    }
     u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX)
+}
+
+/// The differential harness's fixed elapsed time.
+#[cfg(feature = "differential")]
+fn elapsed_ms(_: Instant) -> u64 {
+    0
 }
 
 /// `_consume`: the bounded body, or the failure reading it.
@@ -1175,14 +1174,11 @@ mod tests {
                 retry_safe: true,
                 bearer_token: None,
             };
-            let mut sleeps = 0;
-            let result = request(&config, &mut crate::dial::Net, &call, &mut |_| {
-                sleeps += 1;
-                Ok(())
-            });
-            (result, sleeps)
+            // A retry would sleep first and fail with this class instead.
+            let mut slept = |_: f64| -> R<()> { Err(Exc::msg("AssertionError", "slept")) };
+            request(&config, &mut crate::dial::Net, &call, &mut slept)
         };
-        let (result, _) = call(5.0);
+        let result = call(5.0);
         assert_eq!(result.expect("the server answers").body, b"ok");
         assert!(
             server
@@ -1191,8 +1187,81 @@ mod tests {
                 .starts_with(b"GET /v1/rates HTTP/1.1\r\n")
         );
         // Nothing listens now, but the timeout is refused before the connect.
-        let (result, sleeps) = call(f64::INFINITY);
-        assert_eq!(result.unwrap_err().class, "OverflowError");
-        assert_eq!(sleeps, 0, "an uncaught exception is not retried");
+        // An uncaught exception is not retried, so nothing sleeps.
+        assert_eq!(call(f64::INFINITY).unwrap_err().class, "OverflowError");
+    }
+
+    #[test]
+    fn a_refused_retry_ends_the_attempts_and_raised_shows_its_class() {
+        let unavailable: &[u8] = b"HTTP/1.1 503 X\r\nContent-Length: 0\r\n\r\n";
+        let (result, sent) = run("GET", None, vec![unavailable]);
+        let text: String = result
+            .unwrap_err()
+            .text
+            .into_iter()
+            .filter_map(char::from_u32)
+            .collect();
+        // The 503 is retried; the refused connect is the last attempt.
+        assert_eq!(text, "no response after 2 attempt(s)");
+        assert_eq!(sent.windows(4).filter(|w| w == b"GET ").count(), 1);
+        let raised = Raised(Exc::msg(
+            "OverflowError",
+            "timeout doesn't fit into C timeval",
+        ));
+        assert_eq!(raised.to_string(), "OverflowError");
+    }
+
+    #[test]
+    fn an_interim_100_continue_is_skipped() {
+        let reply: &[u8] =
+            b"HTTP/1.1 100 Continue\r\nX: 1\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok";
+        assert_eq!(run("GET", None, vec![reply]).0.unwrap().body, b"ok");
+    }
+
+    #[test]
+    fn a_200_that_fails_to_open_or_read_is_retried() {
+        // HTTPResponse.begin refuses an HTTP/2.0 status line
+        // (UnknownProtocol), and _safe_read a body shorter than its length
+        // (IncompleteRead); each is a 200 that failed, so it is retried.
+        let ok: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok";
+        let failed: [&'static [u8]; 2] = [
+            b"HTTP/2.0 200 OK\r\nContent-Length: 2\r\n\r\nno",
+            b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nno",
+        ];
+        for reply in failed {
+            let (result, sent) = run("GET", None, vec![reply, ok]);
+            assert_eq!(result.unwrap().body, b"ok");
+            assert_eq!(sent.windows(4).filter(|w| w == b"GET ").count(), 2);
+        }
+    }
+
+    /// Each connection is a full buffer, so `sendall` fails at once.
+    struct Unsendable;
+
+    impl Dial for Unsendable {
+        fn dial(&mut self, _: &str, _: u16, _: bool, _: f64) -> io::Result<Box<dyn Connection>> {
+            Ok(Box::new(io::Cursor::new(Box::<[u8]>::default())))
+        }
+    }
+
+    #[test]
+    fn a_request_that_cannot_be_sent_is_no_response() {
+        let config = AdapterConfig {
+            enabled: true,
+            base_url: Some("http://127.0.0.1".into()),
+            allow_loopback: true,
+            ..AdapterConfig::default()
+        };
+        let call = Call {
+            method: "GET",
+            url: "http://127.0.0.1/v1/rates",
+            body: None,
+            content_type: None,
+            retry_safe: true,
+            bearer_token: None,
+        };
+        let error = request(&config, &mut Unsendable, &call, &mut |_| Ok(())).unwrap_err();
+        let text: String = error.text.into_iter().filter_map(char::from_u32).collect();
+        assert_eq!(text, "no response after 2 attempt(s)");
     }
 }

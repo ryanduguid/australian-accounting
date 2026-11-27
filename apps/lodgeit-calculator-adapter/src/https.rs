@@ -1,120 +1,19 @@
-//! `HTTPSConnection(host, timeout=60)`, `request("GET", path)`,
-//! `getresponse()` and `read()`, as CPython 3.15's `http.client` runs them for
-//! `rates ato-tables`: the request it writes, and `HTTPResponse`'s status
-//! line, header, framing and read rules with their exception messages.
+//! The parts of CPython 3.15's `http.client` that `transport` reuses: the
+//! status line, header and line reading rules with their exception messages,
+//! and the TLS client configuration `dial` connects with.
 //!
 //! TLS is rustls with the operating system's certificate verifier, where
 //! Python uses OpenSSL with the system's root certificates, so a TLS failure
-//! is worded differently; so are name-resolution failures, which Python
-//! reports as `getaddrinfo`'s errors. The connect, each socket read and each
-//! write may take 60 seconds, as Python's socket timeout allows.
-use std::io::{self, BufRead, BufReader, Read, Write};
-use std::net::{TcpStream, ToSocketAddrs};
+//! is worded differently.
+use std::io::{self, BufRead, Read};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
-
-pub(crate) const TIMEOUT: Duration = Duration::from_secs(60);
-/// `http.client`'s limits: line length, header lines, interim responses.
-const MAXLINE: usize = 65536;
-const MAXHEADERS: usize = 100;
-const MAXINTERIM: usize = 100;
-
-/// A response: its status and, for a 200, its body.
-#[derive(Debug)]
-pub struct Response {
-    pub status: u16,
-    pub body: Vec<u8>,
-}
 
 /// The `str()` of the `OSError` or `HTTPException` the exchange raised.
 pub type Failure = String;
 
-/// GET `path` from `host` over HTTPS. The body is read only for a 200, as
-/// the caller raises before reading any other.
-pub fn get(host: &str, path: &str) -> Result<Response, Failure> {
-    let mut stream = connect(host)?;
-    let mut message = format!("GET {path} HTTP/1.1\r\n").into_bytes();
-    message.extend_from_slice(format!("Host: {host}\r\n").as_bytes());
-    message.extend_from_slice(b"Accept-Encoding: identity\r\n\r\n");
-    stream
-        .write_all(&message)
-        .and_then(|()| stream.flush())
-        .map_err(|e| os_error(&e))?;
-    let mut wire = BufReader::with_capacity(1 << 16, stream);
-    let head = begin(&mut wire)?;
-    if head.status != 200 {
-        return Ok(Response {
-            status: head.status,
-            body: Vec::new(),
-        });
-    }
-    let body = if head.chunked {
-        read_chunked(&mut wire)?
-    } else {
-        match head.length {
-            None => read_upto(&mut wire, u64::MAX)?,
-            Some(length) => safe_read(&mut wire, length)?,
-        }
-    };
-    Ok(Response {
-        status: head.status,
-        body,
-    })
-}
-
-/// `socket.create_connection((host, 443), 60)`, then `wrap_socket` with the
-/// host as the server name.
-fn connect(host: &str) -> Result<Stream, Failure> {
-    let addresses = (host, 443)
-        .to_socket_addrs()
-        .map_err(|e| format!("getaddrinfo failed: {e}"))?;
-    let mut last = None;
-    let mut socket = None;
-    for address in addresses {
-        match TcpStream::connect_timeout(&address, TIMEOUT) {
-            Ok(s) => {
-                socket = Some(s);
-                break;
-            }
-            Err(e) => last = Some(e),
-        }
-    }
-    let mut socket = match (socket, last) {
-        (Some(socket), _) => socket,
-        (None, Some(error)) => return Err(os_error(&error)),
-        (None, None) => return Err("getaddrinfo returns an empty list".into()),
-    };
-    let _ = socket.set_nodelay(true);
-    set_timeouts(&socket, TIMEOUT).map_err(|e| os_error(&e))?;
-    let config = tls_config()?;
-    let name = rustls::pki_types::ServerName::try_from(host)
-        .map_err(|e| format!("SSL: {e}"))?
-        .to_owned();
-    let mut session =
-        rustls::ClientConnection::new(config, name).map_err(|e| format!("SSL: {e}"))?;
-    let deadline = Instant::now() + TIMEOUT;
-    while session.is_handshaking() || session.wants_write() {
-        let left = deadline.saturating_duration_since(Instant::now());
-        if left.is_zero() {
-            return Err("_ssl.c: The handshake operation timed out".into());
-        }
-        set_timeouts(&socket, left).map_err(|e| os_error(&e))?;
-        if session.wants_write() {
-            session.write_tls(&mut socket).map_err(|e| os_error(&e))?;
-        } else if !session.wants_read() {
-            return Err("SSL: the handshake stalled".into());
-        } else if session.read_tls(&mut socket).map_err(|e| os_error(&e))? == 0 {
-            return Err(
-                "[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol".into(),
-            );
-        } else if let Err(e) = session.process_new_packets() {
-            let _ = session.write_tls(&mut socket);
-            return Err(format!("SSL: {e}"));
-        }
-    }
-    set_timeouts(&socket, TIMEOUT).map_err(|e| os_error(&e))?;
-    Ok(Stream(Box::new(rustls::StreamOwned::new(session, socket))))
-}
+/// `http.client`'s limits: line length and header lines.
+const MAXLINE: usize = 65536;
+const MAXHEADERS: usize = 100;
 
 pub(crate) fn tls_config() -> Result<Arc<rustls::ClientConfig>, Failure> {
     use rustls_platform_verifier::BuilderVerifierExt;
@@ -127,32 +26,6 @@ pub(crate) fn tls_config() -> Result<Arc<rustls::ClientConfig>, Failure> {
     // _create_https_context offers HTTP/1.1 by ALPN.
     config.alpn_protocols = vec![b"http/1.1".to_vec()];
     Ok(Arc::new(config))
-}
-
-fn set_timeouts(socket: &TcpStream, timeout: Duration) -> io::Result<()> {
-    socket.set_read_timeout(Some(timeout))?;
-    socket.set_write_timeout(Some(timeout))
-}
-
-/// TLS over TCP. A TCP close without TLS's close_notify is an error, as
-/// OpenSSL 3 reports it to Python's `ssl` (`suppress_ragged_eofs` does not
-/// cover it).
-struct Stream(Box<rustls::StreamOwned<rustls::ClientConnection, TcpStream>>);
-
-impl Read for Stream {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.0.read(buf)
-    }
-}
-
-impl Write for Stream {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.0.write(buf)
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        self.0.flush()
-    }
 }
 
 /// `str()` of the `OSError` a socket call raised.
@@ -178,30 +51,6 @@ pub(crate) fn read_line<R: BufRead>(reader: &mut R) -> Result<Vec<u8>, Failure> 
         .read_until(b'\n', &mut line)
         .map_err(|e| os_error(&e))?;
     Ok(line)
-}
-
-/// `fp.read(n)`: `n` bytes or fewer at the end of the stream.
-fn read_upto<R: BufRead>(reader: &mut R, n: u64) -> Result<Vec<u8>, Failure> {
-    let mut data = Vec::new();
-    reader
-        .by_ref()
-        .take(n)
-        .read_to_end(&mut data)
-        .map_err(|e| os_error(&e))?;
-    Ok(data)
-}
-
-/// `_safe_read(amt)`: exactly `amt` bytes or `IncompleteRead`.
-fn safe_read<R: BufRead>(reader: &mut R, amt: u64) -> Result<Vec<u8>, Failure> {
-    let data = read_upto(reader, amt)?;
-    if (data.len() as u64) < amt {
-        return Err(format!(
-            "IncompleteRead({} bytes read, {} more expected)",
-            data.len(),
-            amt - data.len() as u64
-        ));
-    }
-    Ok(data)
 }
 
 pub(crate) fn latin1(bytes: &[u8]) -> String {
@@ -246,11 +95,6 @@ fn py_int(text: &str) -> Option<num_bigint::BigInt> {
     crate::py::parse_int(text, 10).ok()
 }
 
-/// `HTTPResponse._read_status()`: the version and status code.
-pub(crate) fn read_status<R: BufRead>(reader: &mut R) -> Result<(String, u16), Failure> {
-    status_line(&read_line(reader)?)
-}
-
 /// The version and status code from a status line already read.
 pub(crate) fn status_line(raw: &[u8]) -> Result<(String, u16), Failure> {
     if raw.len() > MAXLINE {
@@ -278,11 +122,6 @@ pub(crate) fn status_line(raw: &[u8]) -> Result<(String, u16), Failure> {
     Ok((version, status))
 }
 
-/// `_read_headers(fp)`: the raw lines up to the blank line or the end.
-pub(crate) fn read_headers<R: BufRead>(reader: &mut R) -> Result<Vec<Vec<u8>>, Failure> {
-    header_lines(|| read_line(reader))
-}
-
 /// `_read_headers` over any line source.
 pub(crate) fn header_lines(
     mut next: impl FnMut() -> Result<Vec<u8>, Failure>,
@@ -301,53 +140,6 @@ pub(crate) fn header_lines(
             return Err("got more than 100 headers".into());
         }
     }
-}
-
-struct Head {
-    status: u16,
-    chunked: bool,
-    length: Option<u64>,
-}
-
-/// `HTTPResponse.begin()`: skip `100 Continue`s, check the version, read the
-/// headers and settle the body's framing.
-fn begin<R: BufRead>(reader: &mut R) -> Result<Head, Failure> {
-    let mut found = None;
-    for _ in 0..MAXINTERIM {
-        let (version, status) = read_status(reader)?;
-        if status != 100 {
-            found = Some((version, status));
-            break;
-        }
-        read_headers(reader)?;
-    }
-    let (version, status) = found.ok_or("got more than 100 interim responses")?;
-    if !(version == "HTTP/1.0" || version == "HTTP/0.9" || version.starts_with("HTTP/1.")) {
-        return Err(crate::py::repr_str(&version));
-    }
-    let headers = parse_header_lines(&read_headers(reader)?);
-    let header = |name: &str| {
-        headers
-            .iter()
-            .find(|(key, _)| key.eq_ignore_ascii_case(name))
-            .map(|(_, value)| value.as_str())
-    };
-    let chunked = header("transfer-encoding").is_some_and(|v| v.eq_ignore_ascii_case("chunked"));
-    let mut length = match header("content-length") {
-        // int(length); an invalid or negative length is ignored.
-        Some(text) if !text.is_empty() && !chunked => py_int(text)
-            .filter(|n| n.sign() != num_bigint::Sign::Minus)
-            .map(|n| u64::try_from(&n).unwrap_or(u64::MAX)),
-        _ => None,
-    };
-    if matches!(status, 204 | 304) || (100..200).contains(&status) {
-        length = Some(0);
-    }
-    Ok(Head {
-        status,
-        chunked,
-        length,
-    })
 }
 
 /// `http.client.parse_headers`: the email package's compat32 parse of the
@@ -406,57 +198,125 @@ pub(crate) fn parse_header_lines(raw: &[Vec<u8>]) -> Vec<(String, String)> {
     headers
 }
 
-/// `_read_chunked(None)`.
-fn read_chunked<R: BufRead>(reader: &mut R) -> Result<Vec<u8>, Failure> {
-    let mut value = Vec::new();
-    let incomplete = |value: &[u8]| format!("IncompleteRead({} bytes read)", value.len());
-    loop {
-        let line = read_line(reader)?;
-        if line.len() > MAXLINE {
-            return Err("chunk size".into());
+#[cfg(test)]
+mod tests {
+    //! Expected values are CPython 3.15's: `HTTPResponse._read_status()` on
+    //! the same bytes (a `BadStatusLine` shown as the `repr` of its `line`),
+    //! and `email.parser.Parser(_class=HTTPMessage).parsestr(...).items()`.
+    use super::*;
+
+    fn lines(raw: &[&[u8]]) -> Vec<(String, String)> {
+        parse_header_lines(&raw.iter().map(|line| line.to_vec()).collect::<Vec<_>>())
+    }
+
+    fn pairs(expected: &[(&str, &str)]) -> Vec<(String, String)> {
+        expected
+            .iter()
+            .map(|(name, value)| ((*name).to_owned(), (*value).to_owned()))
+            .collect()
+    }
+
+    #[test]
+    fn a_status_line_is_read_as_python_reads_it() {
+        assert_eq!(
+            status_line(b"HTTP/1.1 200\r\n"),
+            Ok(("HTTP/1.1".into(), 200)),
+            "a status without a reason"
+        );
+        assert_eq!(
+            status_line(b""),
+            Err("Remote end closed connection without response".into())
+        );
+        assert_eq!(status_line(b"HTTP/1.1\r\n"), Err(r"'HTTP/1.1\r\n'".into()));
+        assert_eq!(
+            status_line(&vec![b'x'; 65537]),
+            Err("got more than 65536 bytes when reading status line".into())
+        );
+    }
+
+    #[test]
+    fn a_header_line_past_the_limit_is_refused() {
+        let mut given = vec![b"A: 1\r\n".to_vec(), vec![b'a'; 65537]].into_iter();
+        assert_eq!(
+            header_lines(|| Ok(given.next().unwrap_or_default())),
+            Err("got more than 65536 bytes when reading header line".into())
+        );
+    }
+
+    #[test]
+    fn header_lines_may_end_in_a_lone_cr_or_lf_or_nothing() {
+        assert_eq!(
+            lines(&[b"A: 1\n", b"B: 2"]),
+            pairs(&[("A", "1"), ("B", "2")])
+        );
+        assert_eq!(
+            lines(&[b"A: 1\r", b"B: 2\r\n"]),
+            pairs(&[("A", "1"), ("B", "2")])
+        );
+    }
+
+    #[test]
+    fn continuation_lines_join_the_field_before_them() {
+        assert_eq!(
+            lines(&[b"A: 1\r\n", b" more\r\n", b"\tand\r\n", b"B: 2\r\n"]),
+            pairs(&[("A", "1\r\n more\r\n\tand"), ("B", "2")])
+        );
+        // One before any field has nothing to join and is dropped.
+        assert_eq!(lines(&[b" lead\r\n", b"A: 1\r\n"]), pairs(&[("A", "1")]));
+    }
+
+    #[test]
+    fn a_from_line_or_a_nameless_field_is_skipped_and_a_non_field_ends_them() {
+        assert_eq!(
+            lines(&[b"From someone\r\n", b"A: 1\r\n"]),
+            pairs(&[("A", "1")])
+        );
+        assert_eq!(lines(&[b":empty\r\n", b"A: 1\r\n"]), pairs(&[("A", "1")]));
+        assert_eq!(
+            lines(&[b"A: 1\r\n", b"not a header\r\n", b"B: 2\r\n"]),
+            pairs(&[("A", "1")])
+        );
+    }
+
+    struct Failing(io::ErrorKind);
+
+    impl Read for Failing {
+        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+            Err(io::Error::new(self.0, "bad record mac"))
         }
-        let Some(size) = chunk_size(&line) else {
-            return Err(incomplete(&value));
-        };
-        if size == 0 {
-            let mut count = 0;
-            loop {
-                let line = read_line(reader)?;
-                if line.len() > MAXLINE {
-                    return Err("trailer line".into());
-                }
-                if matches!(line.as_slice(), b"" | b"\r\n" | b"\n") {
-                    return Ok(value);
-                }
-                count += 1;
-                if count > MAXHEADERS {
-                    return Err("got more than 100 headers".into());
-                }
+    }
+
+    #[test]
+    fn a_read_failure_is_worded_as_the_socket_error() {
+        let read = |kind| read_line(&mut io::BufReader::new(Failing(kind)));
+        assert_eq!(read(io::ErrorKind::TimedOut), Err("timed out".into()));
+        assert_eq!(
+            read(io::ErrorKind::UnexpectedEof),
+            Err(
+                "[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1144)"
+                    .into()
+            )
+        );
+        // rustls's alert after the handshake, which Python words as OpenSSL's.
+        assert_eq!(
+            read(io::ErrorKind::InvalidData),
+            Err("SSL: bad record mac".into())
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn another_socket_error_reads_as_pythons_oserror() {
+        struct Reset;
+        impl Read for Reset {
+            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+                Err(io::Error::from_raw_os_error(104))
             }
         }
-        let chunk = read_upto(reader, size)?;
-        value.extend_from_slice(&chunk);
-        if (chunk.len() as u64) < size {
-            return Err(incomplete(&value));
-        }
-        // The CRLF that ends a chunk.
-        if read_upto(reader, 2)?.len() < 2 {
-            return Err(incomplete(&value));
-        }
+        // str(ConnectionResetError(104, os.strerror(104))) on Linux.
+        assert_eq!(
+            read_line(&mut io::BufReader::new(Reset)),
+            Err("[Errno 104] Connection reset by peer".into())
+        );
     }
-}
-
-/// `int(line, 16)` of a chunk-size line without its extensions; a negative
-/// size is refused.
-fn chunk_size(line: &[u8]) -> Option<u64> {
-    let digits = line.split(|&b| b == b';').next().unwrap_or_default();
-    let text = std::str::from_utf8(digits).ok()?;
-    if !text.is_ascii() || text.contains(['\x1c', '\x1d', '\x1e', '\x1f']) {
-        return None;
-    }
-    let n = crate::py::parse_int(text, 16).ok()?;
-    if n.sign() == num_bigint::Sign::Minus {
-        return None;
-    }
-    Some(u64::try_from(&n).unwrap_or(u64::MAX))
 }

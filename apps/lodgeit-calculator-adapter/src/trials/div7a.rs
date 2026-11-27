@@ -500,6 +500,51 @@ pub fn evaluate_outcome(
 mod tests {
     use super::*;
 
+    #[test]
+    fn an_engine_failure_is_raised_as_the_python_engine_raised_it() {
+        let shown = |e: Exc| {
+            (
+                e.class,
+                e.text
+                    .iter()
+                    .filter_map(|&c| char::from_u32(c))
+                    .collect::<String>(),
+            )
+        };
+        assert_eq!(
+            shown(engine_error(Failure::Value("bad year".into()))),
+            ("ValueError", "bad year".into())
+        );
+        // The decimal module's `str()` of each trapped signal.
+        let signals = [
+            (
+                EngineSignal::InvalidOperation,
+                "decimal.InvalidOperation",
+                "[<class 'decimal.InvalidOperation'>]",
+            ),
+            (
+                EngineSignal::DivisionByZero,
+                "decimal.DivisionByZero",
+                "[<class 'decimal.DivisionByZero'>]",
+            ),
+            (
+                EngineSignal::Overflow,
+                "decimal.Overflow",
+                "[<class 'decimal.Overflow'>]",
+            ),
+        ];
+        for (signal, class, text) in signals {
+            assert_eq!(
+                shown(engine_error(Failure::Signal(signal))),
+                (class, text.into())
+            );
+        }
+        assert_eq!(
+            shown(engine_error(Failure::Uncaught("KeyError: 'x'".into()))),
+            ("Exception", "KeyError: 'x'".into())
+        );
+    }
+
     fn case(id: &str) -> Case {
         let cases = load_cases(None).expect("the packaged cases load");
         cases.into_iter().find(|c| c.case_id == id).expect("a case")

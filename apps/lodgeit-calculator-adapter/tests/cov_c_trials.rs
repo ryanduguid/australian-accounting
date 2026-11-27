@@ -1,0 +1,141 @@
+//! `trials::div7a::load_cases` on case files that differ from the packaged
+//! one in a single field. Where the port reads a field as Python's
+//! `Decimal(value)` or `json.loads(text)` does, the expected value or error is
+//! CPython 3.15's for the same input.
+use lodgeit_calculator_adapter::pyjson::{self, Json};
+use lodgeit_calculator_adapter::pyops::Exc;
+use lodgeit_calculator_adapter::pyvalue::dumps_line;
+use lodgeit_calculator_adapter::trials::div7a::{Case, load_cases};
+
+const CASES: &str = include_str!("../fixtures/div7a-cases.json");
+
+fn text(points: &[u32]) -> String {
+    points.iter().filter_map(|&cp| char::from_u32(cp)).collect()
+}
+
+/// The packaged file with the first case's `name` set to `value`.
+fn with_field(name: &str, value: Json) -> Result<Vec<Case>, Exc> {
+    let mut file = pyjson::loads(CASES).expect("the packaged cases");
+    let Json::Object(top) = &mut file else {
+        panic!("an object")
+    };
+    let (_, cases) = top
+        .iter_mut()
+        .find(|(k, _)| k.as_str() == Some("cases"))
+        .unwrap();
+    let Json::Array(cases) = cases else {
+        panic!("a list")
+    };
+    let Json::Object(first) = &mut cases[0] else {
+        panic!("an object")
+    };
+    first
+        .iter_mut()
+        .find(|(k, _)| k.as_str() == Some(name))
+        .expect(name)
+        .1 = value;
+    load_cases(Some(&text(&dumps_line(&file, false))))
+}
+
+fn refusal(result: Result<Vec<Case>, Exc>) -> (String, String) {
+    let e = result.unwrap_err();
+    (e.class.to_owned(), text(&e.text))
+}
+
+fn json(text: &str) -> Json {
+    pyjson::loads(text).unwrap()
+}
+
+#[test]
+fn an_amount_reads_as_python_decimal_reads_a_bool_a_float_or_a_str() {
+    for (given, expected) in [
+        ("100000", "100000"),
+        ("true", "1"),
+        ("1.5", "1.5"),
+        ("\"2.50\"", "2.50"),
+    ] {
+        let cases = with_field("amalgamated_base", json(given)).unwrap();
+        assert_eq!(
+            cases[0].amalgamated_base.to_sci_string(),
+            expected,
+            "Decimal({given})"
+        );
+    }
+}
+
+#[test]
+fn an_amount_python_decimal_refuses_is_refused() {
+    assert_eq!(
+        refusal(with_field("amalgamated_base", json("\"x\""))),
+        (
+            "decimal.InvalidOperation".into(),
+            "[<class 'decimal.ConversionSyntax'>]".into()
+        )
+    );
+    assert_eq!(
+        refusal(with_field("amalgamated_base", Json::Null)),
+        (
+            "TypeError".into(),
+            "conversion from NoneType to Decimal is not supported".into()
+        )
+    );
+}
+
+#[test]
+fn a_field_of_the_wrong_type_names_what_it_should_be() {
+    let cases = [
+        ("case_id", "1", "TypeError", "a fixture field is not a str"),
+        (
+            "loan_term_years",
+            "\"7\"",
+            "TypeError",
+            "a fixture field is not an int",
+        ),
+        (
+            "loan_term_years",
+            "99999999999999999999",
+            "OverflowError",
+            "a fixture int is out of range",
+        ),
+        (
+            "is_first_real_myr_year",
+            "1",
+            "TypeError",
+            "is_first_real_myr_year is not a bool",
+        ),
+        ("repayments", "{}", "TypeError", "repayments is not a list"),
+        ("expected", "[]", "AttributeError", "expected has no items"),
+    ];
+    for (name, value, class, message) in cases {
+        assert_eq!(
+            refusal(with_field(name, json(value))),
+            (class.into(), message.into()),
+            "{name} = {value}"
+        );
+    }
+}
+
+#[test]
+fn a_case_file_json_loads_refuses_is_refused_with_its_error() {
+    assert_eq!(
+        refusal(load_cases(Some("x"))),
+        (
+            "json.decoder.JSONDecodeError".into(),
+            "Expecting value: line 1 column 1 (char 0)".into()
+        )
+    );
+    assert_eq!(
+        refusal(load_cases(Some(&"1".repeat(5000)))),
+        (
+            "ValueError".into(),
+            "Exceeds the limit (4300 digits) for integer string conversion: value has 5000 \
+             digits; use sys.set_int_max_str_digits() to increase the limit"
+                .into()
+        )
+    );
+    // CPython's limit is the stack's, so only the class is compared.
+    assert_eq!(
+        refusal(load_cases(Some(&"[".repeat(1_000_000)))).0,
+        "RecursionError"
+    );
+}
