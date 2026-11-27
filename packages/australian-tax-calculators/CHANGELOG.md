@@ -167,6 +167,9 @@
 
 - `super-crystallisation` cites s 307-225 as ITAA 1997, not the ITTPA 1997;
   its income stream refusal still cites ITTPA 1997 s 307-125.
+- `age-pension` refuses `rate_before_november_1986` stated without
+  `armed_services_payment` true, and `remote_area_child` without
+  `remote_area` true (`input.field_unknown`), instead of ignoring them.
 
 ## 1.4.0
 
