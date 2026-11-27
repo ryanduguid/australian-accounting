@@ -1292,3 +1292,30 @@ pub fn compose(v: &Value) -> Result<Value, Refusal> {
         ],
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_decimal_signal_is_refused_with_its_code_and_name() {
+        let refusal = signal(Signal::DivisionByZero);
+        assert_eq!(refusal.code, "decimal.division_by_zero");
+        assert_eq!(refusal.message, "decimal.DivisionByZero");
+    }
+
+    #[test]
+    fn a_missing_part_object_stays_missing_for_the_part_to_refuse() {
+        assert_eq!(part_input(&json!({}), "medicare-levy", false), Value::Null);
+    }
+
+    #[test]
+    fn a_private_health_input_that_is_not_an_object_is_refused_by_its_part() {
+        let refusal = run_private_health(&json!({PHI: 5}), &mut Map::new()).unwrap_err();
+        assert!(
+            refusal
+                .message
+                .starts_with("private-health-insurance-rebate: ")
+        );
+    }
+}

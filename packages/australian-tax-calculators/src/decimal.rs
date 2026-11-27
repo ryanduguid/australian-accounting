@@ -968,4 +968,9 @@ mod tests {
         assert_eq!(d("0E+3").fixed(2, true), "0.00");
         assert_eq!(d("-0.001").fixed(2, true), "-0.00");
     }
+
+    #[test]
+    fn fix_nan_leaves_a_number_alone() {
+        assert_eq!(d("-1.50").fix_nan().to_sci_string(), "-1.50");
+    }
 }
