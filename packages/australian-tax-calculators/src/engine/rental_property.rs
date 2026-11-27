@@ -342,7 +342,8 @@ fn interest(loans: &Arg, held: &Held) -> Result<(Step, Vec<Value>)> {
                 .div(&whole)?
                 .mul(&available)?
                 .div(&days)?,
-        )?;
+        );
+        let deduction = deduction?;
         terms.push(format!(
             "cents({charged} x {rental} / {whole} x {} / {})",
             held.available, held.days
@@ -409,7 +410,8 @@ fn scale_tax(income: &Decimal, year: &str) -> Result<Decimal> {
         &Arg::Decimal(income.clone()),
         &Arg::Text(year.to_string()),
         &Arg::Bool(true),
-    )?;
+    );
+    let out = out?;
     let tax = out["amounts"]["basic_income_tax"]
         .as_str()
         .expect("an amount");
@@ -517,7 +519,8 @@ fn line_steps(args: &RentalPropertyArgs, share: &Decimal, held: &Held) -> Result
         args.rental_only_expenses,
         "rental_only_expenses",
         &CATEGORIES,
-    )?;
+    );
+    let rental_only = rental_only?;
     let given = |key| line(&income, key).cloned().unwrap_or(int(0));
     let (rent, other) = (given("rental_income"), given("other_rental_income"));
     let gross = step(

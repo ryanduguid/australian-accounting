@@ -127,14 +127,8 @@ fn worked(scale: &Scale, facts: &Facts, threshold: Threshold) -> Result<Vec<Step
     ));
     let ids = ("assumed_taxable_income", "basic_income_tax_assumed");
     let rule = TAX_PAYABLE_ASSUMED;
-    steps.extend(payable(
-        scale,
-        &assumed,
-        &threshold,
-        ids,
-        levy_assumed,
-        rule,
-    )?);
+    let extended = payable(scale, &assumed, &threshold, ids, levy_assumed, rule);
+    steps.extend(extended?);
     Ok(steps)
 }
 

@@ -266,12 +266,13 @@ pub fn home_guarantee(args: &HomeGuaranteeArgs) -> Result<Value> {
     let in_band = band(&lvr, top, date.as_str() >= SPLIT)?;
     let tests = conditions(family, borrowers, !value.gt(&int(limit))?, in_band);
     let deposit = value.sub(&loan)?;
-    let mut out = result(
+    let out = result(
         KIND,
         &year,
         vec![("price_cap", int(limit)), ("deposit", deposit)],
         Vec::new(),
-    )?;
+    );
+    let mut out = out?;
     out["stream"] = json!(if family { "family_home" } else { "first_home" });
     out["area"] = json!(name);
     out["area_code"] = json!(code);

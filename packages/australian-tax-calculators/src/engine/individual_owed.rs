@@ -76,7 +76,8 @@ pub(super) fn owed(facts: &Facts) -> Result<Owed> {
         let basic = amount(
             &foreign_resident_tax(&income, &year, &yes)?,
             "basic_income_tax",
-        )?;
+        );
+        let basic = basic?;
         let nil = int(0);
         return Ok(Owed {
             basic,

@@ -193,14 +193,16 @@ pub fn staff_cost(a: &StaffCostArgs) -> Result<Value> {
         &wages,
         &sup.value,
         &payroll,
-    )?;
+    );
+    let tax = tax?;
     let comp = on_cost(
         "workers_compensation",
         "workers_compensation_rate",
         &wages,
         &sup.value,
         &workers,
-    )?;
+    );
+    let comp = comp?;
     let [annual, monthly] = totals([&wages, &sup.value, &tax.value, &comp.value, &other])?;
     derived_result(KIND, &year, vec![sup, tax, comp, annual, monthly], rates)
 }

@@ -189,7 +189,8 @@ pub(super) fn third_party(
             "third_party_earnings_limit",
             "s 820-427A(1) and (2): the debt deductions attributable to debt interests satisfying the third party debt conditions",
             &qualifying,
-        )?;
+        );
+        let limit = limit?;
         let disallowed = max0(dd.value.sub(&limit.value)?)?;
         let total = step(
             "total_disallowed_amount",

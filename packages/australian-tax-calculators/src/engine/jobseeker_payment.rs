@@ -287,12 +287,8 @@ fn working(
         }
     }
     let reduction = income_reduction(&mut steps, carer, &income)?;
-    steps.push(rate_step(
-        status,
-        &max_rate,
-        &partner_reduction,
-        &reduction,
-    )?);
+    let pushed = rate_step(status, &max_rate, &partner_reduction, &reduction);
+    steps.push(pushed?);
     Ok(steps)
 }
 

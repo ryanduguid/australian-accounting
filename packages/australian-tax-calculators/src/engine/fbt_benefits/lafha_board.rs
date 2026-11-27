@@ -209,7 +209,8 @@ pub fn fbt_board(
         &BOARD_DEDUCTIBLE,
         None,
         authority,
-    )?;
+    );
+    let steps = steps?;
     let rates = vec![
         rate("adult_meal_value", &adult_value),
         rate("child_meal_value", &child_value),
@@ -281,4 +282,17 @@ pub fn fbt_tax_exempt_body_entertainment(
         taxable,
     );
     derived_result(kind, &period, vec![taxable], Vec::new())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::lafha_steps;
+    use crate::decimal::Decimal;
+
+    #[test]
+    #[should_panic(expected = "the 6 amounts LAFHA takes")]
+    fn lafha_steps_take_exactly_6_amounts() {
+        let zero = Decimal::from_int(0);
+        let _ = lafha_steps(&[], &zero, &zero);
+    }
 }
