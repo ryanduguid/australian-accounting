@@ -485,10 +485,13 @@ pub fn resolve_text(path: &Path) -> io::Result<String> {
 /// The resolved prefix with the missing tail applied lexically.
 fn with_tail(mut resolved: PathBuf, tail: &[std::path::Component<'_>]) -> String {
     for component in tail {
-        if *component == std::path::Component::ParentDir {
-            resolved.pop();
-        } else {
-            resolved.push(component.as_os_str());
+        match component {
+            std::path::Component::ParentDir => {
+                resolved.pop();
+            }
+            // Windows verbatim paths (`\\?\...`) keep `.` components through `std::path::absolute`.
+            std::path::Component::CurDir => {}
+            other => resolved.push(other.as_os_str()),
         }
     }
     without_verbatim(resolved.to_string_lossy().into_owned())
@@ -890,13 +893,65 @@ mod tests {
         std::fs::remove_dir_all(&root).unwrap();
     }
 
-    /// CPython 3.14: `str(Path('/wip-tally-no-root/a/../b.csv').resolve())`.
+    /// Windows verbatim paths keep `.` components after `std::path::absolute`;
+    /// `with_tail` drops them just as `ntpath.realpath` does.
+    #[test]
+    fn with_tail_skips_curdir_components() {
+        let tail = [
+            std::path::Component::Normal(std::ffi::OsStr::new("missing")),
+            std::path::Component::CurDir,
+            std::path::Component::Normal(std::ffi::OsStr::new("c.csv")),
+        ];
+        let base = PathBuf::from(format!("{SEP}base"));
+        assert_eq!(
+            with_tail(base, &tail),
+            format!("{SEP}base{SEP}missing{SEP}c.csv")
+        );
+    }
+
+    /// CPython 3.14: `str(Path('/<missing>/a/../b.csv').resolve())`.
     #[cfg(not(windows))]
     #[test]
     fn a_path_under_a_missing_top_level_folder_resolves_from_the_root() {
-        let path = Path::new("/wip-tally-no-root/a/../b.csv");
-        assert_eq!(resolve_text(path).unwrap(), "/wip-tally-no-root/b.csv");
+        let top = (0u32..)
+            .map(|n| format!("/wip-tally-missing-{}-{n}", std::process::id()))
+            .find(|p| std::fs::symlink_metadata(p).is_err())
+            .expect("an absent top-level name");
+        let path = format!("{top}/a/../b.csv");
+        assert_eq!(
+            resolve_text(Path::new(&path)).unwrap(),
+            format!("{top}/b.csv")
+        );
         assert_eq!(resolve_text(Path::new("/")).unwrap(), "/");
+    }
+
+    /// CPython 3.14 on Windows: `Path(r'\\?\C:\<missing>\.\c.csv').resolve()`
+    /// matches `Path(r'\\?\C:\<missing>\c.csv').resolve()`.
+    #[cfg(windows)]
+    #[test]
+    fn a_verbatim_path_with_a_dot_in_a_missing_tail_normalises_it() {
+        let drive = (b'C'..=b'Z')
+            .map(char::from)
+            .find(|d| Path::new(&format!("{d}:\\")).exists())
+            .expect("a mapped drive letter");
+        let missing = (0u32..)
+            .map(|n| format!("wip-tally-missing-{}-{n}", std::process::id()))
+            .find(|name| std::fs::symlink_metadata(format!("{drive}:\\{name}")).is_err())
+            .expect("an absent top-level name");
+        let root = resolve_text(Path::new(&format!("{drive}:\\"))).unwrap();
+        let with_dot = format!("\\\\?\\{drive}:\\{missing}\\.\\c.csv");
+        let plain = format!("\\\\?\\{drive}:\\{missing}\\c.csv");
+        assert_eq!(
+            resolve_text(Path::new(&with_dot)).unwrap(),
+            resolve_text(Path::new(&plain)).unwrap()
+        );
+        assert_eq!(
+            resolve_text(Path::new(&with_dot)).unwrap(),
+            PathBuf::from(&root)
+                .join(&missing)
+                .join("c.csv")
+                .to_string_lossy()
+        );
     }
 
     /// CPython 3.15 on Windows, drive Q: unmapped: `Path('Q:/x/../y.csv').resolve()`
