@@ -580,3 +580,19 @@ fn bad_inputs_are_refused() {
         "input.field_unknown"
     );
 }
+
+/// Item 2 is for a supplier registered after 1 July 2000: a registration
+/// effective on that day is refused.
+#[test]
+fn item_2_refuses_a_registration_effective_on_1_july_2000() {
+    let early = with(
+        valued("500000.00", "300000.00", "2004-03-01"),
+        &[
+            ("registered_on_1_july_2000", json!(false)),
+            ("improved_on_1_july_2000", json!(false)),
+            ("registration_effective_day", json!("2000-07-01")),
+            ("applied_for_registration", json!(false)),
+        ],
+    );
+    assert_eq!(code(&early), "gst_margin_scheme.fact_conflict");
+}

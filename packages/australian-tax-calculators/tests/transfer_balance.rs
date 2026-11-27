@@ -691,3 +691,16 @@ fn contribution_caps_adds_the_release() {
         "excess_contributions.fact_invalid"
     );
 }
+
+#[test]
+fn an_excess_charge_refuses_a_due_date_that_is_not_iso() {
+    let input = excess(
+        "concessional_charge",
+        "2020-21",
+        json!({"additional_tax": "1.00", "tax_due_date": "1 July 2020"}),
+    );
+    assert_eq!(
+        code("excess-contributions", &input),
+        "excess_contributions.fact_invalid"
+    );
+}

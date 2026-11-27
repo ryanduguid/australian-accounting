@@ -490,3 +490,9 @@ fn inputs_and_authorities_state_the_rules() {
     assert!(text("option_payments").contains("or to renew or extend it"));
     assert!(text("sale_price").contains("GST inclusive"));
 }
+
+#[test]
+fn a_vendor_that_is_not_an_object_is_refused() {
+    let input = with(json!({"vendors": [none(), "Jane"]}));
+    assert_eq!(code(&input), "foreign_resident_withholding.vendors_invalid");
+}
