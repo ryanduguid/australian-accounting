@@ -318,7 +318,8 @@ fn fetch_text_get_table_and_namespace_text_edges() {
 
     #[cfg(windows)]
     {
-        let err = run_browser(&[Json::str("__no_such_rates_browser_binary__")]).unwrap_err();
+        let err =
+            run_browser(&[Json::str("C:\\__no_such_rates_browser_binary__.exe")]).unwrap_err();
         assert_eq!(
             exc_pair(err),
             (
