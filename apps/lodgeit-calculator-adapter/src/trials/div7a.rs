@@ -20,8 +20,10 @@ use super::{Comparison, Evaluation, Money, compare_against, put};
 use crate::client::{Client, Outcome, Status};
 use crate::decimal::{Decimal, Signal};
 use crate::p;
-use crate::pyjson::{self, DecodeError, Json};
-use crate::pyops::{Exc, R, S, conversion, decimal_signal, getitem, iterate, pts};
+use crate::pyjson::{self, Json};
+use crate::pyops::{
+    Exc, LoadsError, R, S, conversion, decimal_signal, getitem, iterate, loads_error, pts,
+};
 use crate::pyvalue::str_points;
 
 pub const CALC_URI: &str = "urn:sbrm:calculator:div7a:at";
@@ -217,16 +219,12 @@ pub(super) fn int(value: &Json) -> R<i64> {
 /// `None`.
 pub fn load_cases(text_of_file: Option<&str>) -> R<Vec<Case>> {
     let payload =
-        pyjson::loads_standard(text_of_file.unwrap_or(CASES)).map_err(|error| match error {
-            DecodeError::Invalid(m) if m.starts_with("Exceeds the limit") => {
-                Exc::msg("ValueError", &m)
-            }
-            DecodeError::Invalid(m) => Exc::msg("json.decoder.JSONDecodeError", &m),
-            DecodeError::Recursion(kind) => {
-                Exc::msg("RecursionError", &pyjson::recursion_message(kind))
-            }
-            other => unreachable!("json.loads has no hooks here: {other:?}"),
-        })?;
+        pyjson::loads_standard(text_of_file.unwrap_or(CASES)).map_err(
+            |error| match loads_error(error) {
+                LoadsError::Decode(m) => Exc::msg("json.decoder.JSONDecodeError", &m),
+                LoadsError::Other(exc) => exc,
+            },
+        )?;
     iterate(getitem(&payload, "cases")?)?
         .iter()
         .map(load_case)

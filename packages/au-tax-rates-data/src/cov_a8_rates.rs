@@ -291,8 +291,40 @@ fn table_decode_and_help_flush_errors() {
     let world = World {
         fetch: &mut fetch_text,
         pause: false,
+        table_host: ATO_HOST,
         get: &mut get_table,
     };
     let argv = [OsString::from("--help")];
     assert_eq!(run(&ctx, &argv, world, FailFlush), 120);
+}
+
+#[test]
+fn fetch_text_get_table_and_namespace_text_edges() {
+    let err = fetch_text(&Json::str("https://example.invalid/\0")).unwrap_err();
+    assert_eq!(exc_pair(err), ("ValueError", EMBEDDED_NULL.to_string()));
+
+    let err = get_table("127.0.0.1", "TC2TAXRTE", "/").unwrap_err();
+    assert!(
+        err.contains("Connection refused") || err.contains("actively refused it"),
+        "{err}"
+    );
+
+    let mut ns = Namespace::new();
+    ns.insert("command".into(), Value::Str("validate".into()));
+    ns.insert("empty".into(), Value::None);
+    assert_eq!(namespace_text(&ns, "command"), "validate");
+    assert_eq!(namespace_text(&ns, "empty"), "");
+    assert_eq!(namespace_text(&ns, "missing"), "");
+
+    #[cfg(windows)]
+    {
+        let err = run_browser(&[Json::str("__no_such_rates_browser_binary__")]).unwrap_err();
+        assert_eq!(
+            exc_pair(err),
+            (
+                "FileNotFoundError",
+                "[WinError 2] The system cannot find the file specified".to_string()
+            )
+        );
+    }
 }

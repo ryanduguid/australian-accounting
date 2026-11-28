@@ -528,13 +528,24 @@ pub fn resolve_text(path: &Path) -> String {
                 other => resolved.push(other.as_os_str()),
             }
         }
-        let text = resolved.to_string_lossy().into_owned();
-        return match text.strip_prefix(r"\\?\UNC\") {
-            Some(rest) => format!(r"\\{rest}"),
-            None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
-        };
+        return without_verbatim(resolved.to_string_lossy().into_owned());
     }
     absolute.to_string_lossy().into_owned()
+}
+
+/// Windows' canonical form without its `\\?\` verbatim prefix, as Python shows it.
+#[cfg(windows)]
+fn without_verbatim(text: String) -> String {
+    match text.strip_prefix(r"\\?\UNC\") {
+        Some(rest) => format!(r"\\{rest}"),
+        None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
+    }
+}
+
+/// Elsewhere a canonical path has no verbatim prefix.
+#[cfg(not(windows))]
+fn without_verbatim(text: String) -> String {
+    text
 }
 
 /// `Path.__eq__` between resolved paths: case-insensitive on Windows.
@@ -903,5 +914,16 @@ mod tests {
     fn prefix_chars_takes_at_most_n_characters() {
         assert_eq!(prefix_chars("a\u{e9} b", 2), "a\u{e9}");
         assert_eq!(prefix_chars("ab", 5), "ab");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn without_verbatim_strips_windows_drive_and_unc_prefixes() {
+        assert_eq!(
+            without_verbatim(r"\\?\UNC\server\share\a".into()),
+            r"\\server\share\a"
+        );
+        assert_eq!(without_verbatim(r"\\?\C:\a".into()), r"C:\a");
+        assert_eq!(without_verbatim(r"C:\a".into()), r"C:\a");
     }
 }

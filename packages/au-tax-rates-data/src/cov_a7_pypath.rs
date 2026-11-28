@@ -54,6 +54,7 @@ fn realpath_keeps_what_it_cannot_resolve_as_ntpath_does() {
     for (input, want) in [
         ("\\nope\\deeper", "\\nope\\deeper"),
         ("\\to-absent", "\\absent"),
+        ("\\to-absent\\child", "\\absent\\child"),
         ("\\d\\to-missing", "\\d\\missing"),
         ("\\loop-a", "\\loop-b"),
     ] {
@@ -63,6 +64,14 @@ fn realpath_keeps_what_it_cannot_resolve_as_ntpath_does() {
             "{input}"
         );
     }
+    assert_eq!(
+        final_path_name_nonstrict(&tmp).unwrap(),
+        final_path_name(&tmp).unwrap()
+    );
+    assert_eq!(
+        final_path_name_nonstrict("no_such_relative_entry").unwrap(),
+        "no_such_relative_entry"
+    );
     let cwd = std::env::current_dir().unwrap();
     assert_eq!(
         realpath("nope-rel").unwrap(),
@@ -72,6 +81,9 @@ fn realpath_keeps_what_it_cannot_resolve_as_ntpath_does() {
 }
 
 fn unmapped_drive_in_mask(mask: u32) -> Option<char> {
+    if mask == 0 {
+        return None;
+    }
     (3u8..26)
         .find(|&bit| (mask & (1u32 << bit)) == 0)
         .map(|bit| char::from(b'A' + bit))
@@ -93,6 +105,8 @@ fn check_unmapped_drive(drive: Option<char>) {
     let missing_root = PyPath::new(&format!("{drive}:\\"));
     let err = crate::pyos::makedirs(&missing_root).unwrap_err();
     assert_eq!(err.class(), "FileNotFoundError");
+    let missing_child = format!("{drive}:\\missing");
+    assert_eq!(realpath(&missing_child).unwrap(), missing_child);
 }
 
 fn not_symlink(_: &str) -> bool {
@@ -112,6 +126,7 @@ fn restore_verbatim_prefix_covers_drive_and_unc_targets() {
             "\\\\?\\UNC\\server\\share\\a",
         ),
         ("\\\\.\\NUL", "\\\\.\\NUL"),
+        ("C:relative", "C:relative"),
         ("missing", "missing"),
     ] {
         assert_eq!(restore_verbatim_prefix(input.into()), want, "{input}");
@@ -196,6 +211,7 @@ fn windows_symlink_loops_makedirs_and_json_call_depth_match_cpython() {
     std::fs::remove_dir_all(&base).unwrap();
 
     check_unmapped_drive(unmapped_drive());
+    check_unmapped_drive(unmapped_drive_in_mask(0));
     check_unmapped_drive(unmapped_drive_in_mask(u32::MAX));
 
     let deep = format!("{}NaN{}", "[".repeat(13_861), "]".repeat(13_861));
@@ -206,5 +222,51 @@ fn windows_symlink_loops_makedirs_and_json_call_depth_match_cpython() {
     assert_eq!(
         crate::pyjson::recursion_message("call"),
         "Stack overflow (used 1952 kB) while calling a Python object"
+    );
+}
+
+#[test]
+fn nonstrict_error_and_verbatim_prefix_stripping_match_ntpath() {
+    let disallowed = |_: &str| Err(std::io::Error::from_raw_os_error(1117));
+    let err = final_path_name_nonstrict_with("C:\\io", disallowed, str::to_string).unwrap_err();
+    assert!(err.text.starts_with("[WinError 1117] "), "{}", err.text);
+    assert!(err.text.ends_with(": 'C:\\\\io'"), "{}", err.text);
+
+    // Ordinary UNC input loses \\?\UNC\ when re-resolving the short path agrees.
+    let unc_same = |p: &str| {
+        assert_eq!(p, "\\\\server\\share\\x");
+        Ok("\\\\?\\UNC\\server\\share\\x".to_string())
+    };
+    assert_eq!(
+        realpath_with("\\\\server\\share\\x", unc_same, str::to_string).unwrap(),
+        "\\\\server\\share\\x"
+    );
+
+    // If re-resolving the short path disagrees or fails with a new error, keep the verbatim prefix.
+    let ok_mismatch = |p: &str| {
+        Ok(if p == "C:\\a\\b" {
+            "\\\\?\\C:\\other\\b"
+        } else {
+            assert_eq!(p, "C:\\other\\b");
+            "\\\\?\\C:\\third\\b"
+        }
+        .to_string())
+    };
+    assert_eq!(
+        realpath_with("C:\\a\\b", ok_mismatch, str::to_string).unwrap(),
+        "\\\\?\\C:\\other\\b"
+    );
+
+    let err_mismatch = |p: &str| match p {
+        "C:\\a\\link" => Err(std::io::Error::from_raw_os_error(2)),
+        _ => Err(std::io::Error::from_raw_os_error(5)),
+    };
+    let to_verbatim = |p: &str| {
+        assert_eq!(p, "C:\\a\\link");
+        "\\\\?\\C:\\a\\target".to_string()
+    };
+    assert_eq!(
+        realpath_with("C:\\a\\link", err_mismatch, to_verbatim).unwrap(),
+        "\\\\?\\C:\\a\\target"
     );
 }

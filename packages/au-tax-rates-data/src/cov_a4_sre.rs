@@ -116,4 +116,15 @@ fn long_patterns() {
     assert_eq!(answer(&deepest, 0, Some("aa")), "0-2");
 }
 
+#[test]
+fn group_limit_and_no_else_conditional_match_cpython() {
+    assert!(check_group_limit(MAXGROUPS, MAXGROUPS).is_ok());
+    assert_eq!(
+        check_group_limit(MAXGROUPS + 1, MAXGROUPS),
+        Err(pts("too many groups"))
+    );
+    assert_eq!(answer("(a)?(?(1)b)", 0, Some("ab")), "0-2 0-1");
+    assert_eq!(answer("(a)?(?(1)b)", 0, Some("x")), "0-0 -");
+}
+
 const CASES: &str = include_str!("../tests/data/cov_a4_sre.json");

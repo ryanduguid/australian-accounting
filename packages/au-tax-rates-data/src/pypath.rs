@@ -386,47 +386,53 @@ fn readlink_deep_with(
 /// given there. Only the letter case of such a component can differ.
 /// Ask for the stored name too if a case mismatch is reported for such a path.
 #[cfg(windows)]
+const NONSTRICT_ALLOWED: &[i32] = &[
+    1, 2, 3, 5, 21, 32, 50, 53, 65, 67, 87, 123, 161, 1005, 1920, 1921,
+];
+
+#[cfg(windows)]
+fn join_tail(head: String, tail: &str) -> String {
+    if tail.is_empty() {
+        head
+    } else {
+        join(&head, tail)
+    }
+}
+
+#[cfg(windows)]
 fn final_path_name_nonstrict(path: &str) -> Result<String, crate::pyos::OsError> {
-    const ALLOWED: &[i32] = &[
-        1, 2, 3, 5, 21, 32, 50, 53, 65, 67, 87, 123, 161, 1005, 1920, 1921,
-    ];
+    final_path_name_nonstrict_with(path, final_path_name, readlink_deep)
+}
+
+#[cfg(windows)]
+fn final_path_name_nonstrict_with(
+    path: &str,
+    resolve: impl Fn(&str) -> std::io::Result<String>,
+    readlink: impl Fn(&str) -> String,
+) -> Result<String, crate::pyos::OsError> {
     let mut path = path.to_string();
     let mut tail = String::new();
     while !path.is_empty() {
-        match final_path_name(&path) {
-            Ok(found) => {
-                return Ok(if tail.is_empty() {
-                    found
-                } else {
-                    join(&found, &tail)
-                });
-            }
+        match resolve(&path) {
+            Ok(found) => return Ok(join_tail(found, &tail)),
             Err(error) => {
-                if !ALLOWED.contains(&winerror(&error)) {
+                if !NONSTRICT_ALLOWED.contains(&winerror(&error)) {
                     return Err(crate::pyos::OsError::new(
                         &error,
                         Some(&path),
                         crate::pyos::Style::Native,
                     ));
                 }
-                let new_path = readlink_deep(&path);
+                let new_path = readlink(&path);
                 if new_path != path {
-                    return Ok(if tail.is_empty() {
-                        new_path
-                    } else {
-                        join(&new_path, &tail)
-                    });
+                    return Ok(join_tail(new_path, &tail));
                 }
                 let (head, name) = split(&path);
                 path = head;
                 if !path.is_empty() && name.is_empty() {
                     return Ok(format!("{path}{tail}"));
                 }
-                tail = if tail.is_empty() {
-                    name
-                } else {
-                    join(&name, &tail)
-                };
+                tail = join_tail(name, &tail);
             }
         }
     }
@@ -436,6 +442,15 @@ fn final_path_name_nonstrict(path: &str) -> Result<String, crate::pyos::OsError>
 /// `os.path.realpath(path)`.
 #[cfg(windows)]
 pub fn realpath(path: &str) -> Result<String, crate::pyos::OsError> {
+    realpath_with(path, final_path_name, readlink_deep)
+}
+
+#[cfg(windows)]
+fn realpath_with(
+    path: &str,
+    resolve: impl Fn(&str) -> std::io::Result<String>,
+    readlink: impl Fn(&str) -> String,
+) -> Result<String, crate::pyos::OsError> {
     const PREFIX: &str = "\\\\?\\";
     const UNC_PREFIX: &str = "\\\\?\\UNC\\";
     let mut path = normpath(path);
@@ -449,14 +464,14 @@ pub fn realpath(path: &str) -> Result<String, crate::pyos::OsError> {
         path = join(&cwd.to_string_lossy(), &path);
     }
     let initial_winerror;
-    match final_path_name(&path) {
+    match resolve(&path) {
         Ok(found) => {
             path = found;
             initial_winerror = 0;
         }
         Err(error) => {
             initial_winerror = winerror(&error);
-            path = final_path_name_nonstrict(&path)?;
+            path = final_path_name_nonstrict_with(&path, &resolve, readlink)?;
         }
     }
     if !had_prefix && path.starts_with(PREFIX) {
@@ -464,7 +479,7 @@ pub fn realpath(path: &str) -> Result<String, crate::pyos::OsError> {
             Some(rest) => format!("\\\\{rest}"),
             None => path[PREFIX.len()..].to_string(),
         };
-        match final_path_name(&spath) {
+        match resolve(&spath) {
             Ok(found) if found == path => path = spath,
             Ok(_) => {}
             Err(error) if winerror(&error) == initial_winerror => path = spath,
