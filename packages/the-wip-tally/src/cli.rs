@@ -161,15 +161,11 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
             plain: prog.to_string(),
             coloured: prog.to_string(),
         }];
-        let lines = if !opt_parts.is_empty() {
-            head.extend(opt_parts.iter().cloned());
-            let mut lines = get_lines(&head, &indent, true);
-            lines.extend(get_lines(pos_parts, &indent, false));
-            lines
-        } else {
-            head.extend(pos_parts.iter().cloned());
-            get_lines(&head, &indent, true)
-        };
+        // argparse's `elif pos_parts` branch needs a parser with no options;
+        // every usage here starts with `[-h]`.
+        head.extend(opt_parts.iter().cloned());
+        let mut lines = get_lines(&head, &indent, true);
+        lines.extend(get_lines(pos_parts, &indent, false));
         return lines.join("\n")[prog.len()..].to_string();
     }
     let indent = " ".repeat(prefix_len);
@@ -461,8 +457,7 @@ fn looks_like_negative_number(body: &str) -> bool {
     let mut chars = body.chars();
     match chars.next() {
         Some('.') => chars.next().is_some_and(digit),
-        Some(c) => digit(c),
-        None => false,
+        first => first.is_some_and(digit),
     }
 }
 /// argparse's error for an explicit argument given to a zero-argument flag.
@@ -830,10 +825,6 @@ fn parse_command(
             start = next_option;
         }
         match patterns[start] {
-            Pattern::Unknown => {
-                extras.push(args[start].clone());
-                start += 1;
-            }
             Pattern::Ambiguous(i) => return Err(sub_error(refusals[i].clone())),
             Pattern::Option(i) => {
                 let flag = chosen[i];
@@ -867,7 +858,11 @@ fn parse_command(
                 };
                 parsed.values.insert(option.dest, value);
             }
-            Pattern::Arg | Pattern::Marker => unreachable!("an option starts here"),
+            // `Unknown`: an option pattern starts here, so never `Arg` or `Marker`.
+            _ => {
+                extras.push(args[start].clone());
+                start += 1;
+            }
         }
     }
     let stop = consume_positional(start, &mut parsed);
@@ -909,12 +904,27 @@ fn require_suffix(path: &PyPath, suffix: &str) -> Result<(), Failure> {
 }
 
 fn refuse_to_write_over_an_input(out: &PyPath, inputs: &[Option<&PyPath>]) -> Result<(), Failure> {
-    let target = py::resolve_text(&out.fs());
     for candidate in inputs.iter().flatten() {
-        if py::same_resolved(&target, &py::resolve_text(&candidate.fs())) {
-            return Err(Failure::Message(format!(
-                "refusing to write {out} because this run reads that same file"
-            )));
+        // `out.resolve() == candidate.resolve()`, an OSError from either naming the candidate.
+        let same = py::resolve_text(&out.fs()).and_then(|target| {
+            Ok(py::same_resolved(
+                &target,
+                &py::resolve_text(&candidate.fs())?,
+            ))
+        });
+        match same {
+            Ok(false) => {}
+            Ok(true) => {
+                return Err(Failure::Message(format!(
+                    "refusing to write {out} because this run reads that same file"
+                )));
+            }
+            Err(e) => {
+                return Err(Failure::Message(format!(
+                    "refusing to write {out}: cannot resolve {candidate} ({})",
+                    py::oserror_bare(&e, py::OsStyle::Errno)
+                )));
+            }
         }
     }
     Ok(())
@@ -1161,6 +1171,8 @@ mod tests {
             ("aabc", many_a.as_str(), 0.038834951456310676),
             ("bcaa", trailing_a.as_str(), 0.038834951456310676),
             ("help", "hepl", 0.75),
+            // The left-hand recursion stops at b's "b", which lies past its range.
+            ("bxyz", "axyzb", 0.6666666666666666),
         ] {
             assert_eq!(sequence_ratio(&points(a), &points(b)), want, "{a} {b}");
         }

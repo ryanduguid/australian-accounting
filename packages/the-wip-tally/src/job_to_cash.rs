@@ -192,12 +192,12 @@ fn write_scenario(
     let mut reader = Reader::new(source_bytes);
     let fields = reader
         .next_row()
-        .map_err(|e| Failure::Message(e.to_string()))?
+        .expect("read_contracts has read these bytes")
         .unwrap_or_default();
     let mut rows = Vec::new();
     while let Some(row) = reader
         .next_row()
-        .map_err(|e| Failure::Message(e.to_string()))?
+        .expect("read_contracts has read these bytes")
     {
         if !row.is_empty() {
             rows.push(row);
@@ -218,11 +218,13 @@ fn write_scenario(
     Ok(scenario)
 }
 
-/// Write the WIP schedule and review pack for `position`; returns the scenario bytes.
+/// Write the WIP schedule and review pack for `position`, reading the schedule
+/// back through `read`; returns the scenario bytes.
 fn write_review(
     output: &PyPath,
     position: &ContractPosition,
     scenario: &PyPath,
+    read: fn(&PyPath) -> Result<Vec<u8>, Failure>,
 ) -> Result<Vec<u8>, Failure> {
     let schedule = Schedule {
         as_at: "2026-09-30".into(),
@@ -230,7 +232,7 @@ fn write_review(
     };
     let schedule_path = output.join("wip-schedule.csv");
     report::atomic_write(&schedule_path, &report::schedule_csv(&schedule))?;
-    let schedule_bytes = report::read_bytes(&schedule_path)?;
+    let schedule_bytes = read(&schedule_path)?;
     let scenario_bytes = report::read_bytes(scenario)?;
     let pack = report::build_review_pack(
         &schedule_path,
@@ -336,7 +338,7 @@ fn run_from(examples: &Path, output: &PyPath, extra: &Decimal) -> Result<String,
     let bridge = bridge(&contract, &position, &field)?;
     make_folder(output)?;
     let scenario = write_scenario(output, &source_bytes, &contract)?;
-    let scenario_bytes = write_review(output, &position, &scenario)?;
+    let scenario_bytes = write_review(output, &position, &scenario, report::read_bytes)?;
     let cash_text = write_cash(output, &bridge, &field)?;
     let hashes = [
         report::sha256_hex(cash_text.as_bytes()),
@@ -405,6 +407,26 @@ mod tests {
             dumps(&[("k\"\\", "a\n\r\t\u{8}\u{c}\u{e9}\u{1f600}~ ".into())]),
             "{\n  \"k\\\"\\\\\": \"a\\n\\r\\t\\b\\f\\u00e9\\ud83d\\ude00~ \"\n}"
         );
+    }
+
+    #[test]
+    fn a_schedule_changed_after_it_is_written_is_refused() {
+        // build_review_pack's refusal, worded as CPython's review-pack prints it.
+        let out = PyPath::new(&scratch("changed").to_string_lossy());
+        let (contract, source) = load(&here(), &zero()).unwrap();
+        let position = engine::measure(&contract).unwrap();
+        let scenario = out.join("job-to-cash.csv");
+        std::fs::write(scenario.fs(), &source).unwrap();
+        let changed = |_: &PyPath| Ok(b"as_at\n".to_vec());
+        assert_eq!(
+            message(write_review(&out, &position, &scenario, changed)),
+            refused(format!(
+                "{} does not match the rebuilt schedule; the source file, the mapping and \
+                 --as-at must be the ones that produced it",
+                out.join("wip-schedule.csv")
+            ))
+        );
+        assert!(!out.join("wip-review.md").fs().exists());
     }
 
     #[test]
