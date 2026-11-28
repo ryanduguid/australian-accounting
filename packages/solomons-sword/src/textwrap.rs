@@ -151,5 +151,7 @@ mod tests {
             wrap("a-b-c-d well-known re-enter", 7),
             ["a-b-c-d", "well-", "known", "re-", "enter"]
         );
+        assert_eq!(wrap("abc1-defghijk", 8), ["abc1-", "defghijk"]);
+        assert_eq!(wrap("abc", 0), ["a", "b", "c"]);
     }
 }

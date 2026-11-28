@@ -290,14 +290,18 @@ fn phase_out(fy: i64) -> Result<Decimal> {
 fn tax(fy: i64, x: &Decimal, rate: Rate) -> Result<Decimal> {
     let t = match rate {
         Rate::Resident(threshold) => progressive(x, &resident_bands(fy, threshold))?,
-        Rate::NonResident => progressive(
-            x,
-            &[
-                (d("0"), d("0.30")),
-                (d("135000"), d("0.37")),
-                (d("190000"), d("0.45")),
-            ],
-        )?,
+        Rate::NonResident => {
+            // Finite validated money against constant bands cannot trap a decimal signal.
+            let t = progressive(
+                x,
+                &[
+                    (d("0"), d("0.30")),
+                    (d("135000"), d("0.37")),
+                    (d("190000"), d("0.45")),
+                ],
+            );
+            t?
+        }
         Rate::Flat(r) => x.mul(&d(r))?,
         Rate::Section14 if !x.gt(&d("416"))? => d("0"),
         Rate::Section14 => {
