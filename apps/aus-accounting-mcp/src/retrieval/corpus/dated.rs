@@ -338,3 +338,90 @@ fn dated_page(
     result["refusals"] = json!(refusals.into_iter().take(listed).collect::<Vec<_>>());
     result
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    struct TempDir(PathBuf);
+    impl TempDir {
+        fn new(label: &str) -> Self {
+            static NEXT: AtomicU64 = AtomicU64::new(0);
+            let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("target")
+                .join("scratch")
+                .join(format!(
+                    "aus-accounting-mcp-dated-{label}-{}-{}",
+                    std::process::id(),
+                    NEXT.fetch_add(1, Ordering::Relaxed)
+                ));
+            fs::create_dir_all(&dir).unwrap();
+            Self(dir)
+        }
+    }
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn test_context() -> Context {
+        Context {
+            root: None,
+            limits: Default::default(),
+            denied: false,
+            principal_acts: None,
+            fault: None,
+        }
+    }
+
+    #[test]
+    fn withheld_counts_distinguishes_full_and_partial_rows() {
+        let dir = TempDir::new("withheld");
+        let index = dir.0.join("sections.jsonl");
+        let base = |n: u32, text: &str| {
+            json!({
+                "register_id": "C9999A10002",
+                "act": "Synthetic Act 2098",
+                "row_id": format!("C9999A10002:{n:04}:{n}"),
+                "section": n.to_string(),
+                "heading": format!("{n} Rule"),
+                "text": text,
+                "compilation_date": "2098-07-01",
+                "retrieved": "2099-01-01",
+                "version_is_current": true,
+                "superseded_from": null
+            })
+        };
+        let rows = [
+            base(1, "Synthetic levy receipt rule."),
+            base(2, "Synthetic levy partial row."),
+        ];
+        fs::write(&index, format!("{}\n{}\n", rows[0], rows[1])).unwrap();
+        let on = "2098-01-01";
+        let first = first_row(&index, on).unwrap().unwrap();
+        let query = Query::new(&["synthetic".into(), "levy".into(), "receipt".into()]);
+        let counts =
+            withheld_counts(&test_context(), &index, &query, &[], &|_| true, on, &first).unwrap();
+        assert_eq!(counts, (1, 1));
+    }
+
+    #[test]
+    fn no_eligible_rows_propagates_read_error_on_offset_recheck() {
+        let context = test_context();
+        let query = Query::new(&["synthetic".into(), "levy".into()]);
+        let scope = Scope {
+            context: &context,
+            query: &query,
+            act_terms: &[],
+            in_act: &|_| true,
+            on: "2098-08-01",
+        };
+        let gone = TempDir::new("missing").0.join("missing.jsonl");
+        let empty = json!({"matches": [], "partial_hits": []});
+        let err = no_eligible_rows(&scope, &[gone], &empty, 1).unwrap_err();
+        assert_eq!(err, READ_ERROR);
+    }
+}

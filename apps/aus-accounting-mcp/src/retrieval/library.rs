@@ -370,3 +370,33 @@ pub(super) fn census(context: &Context) -> Result<Value, String> {
     })?;
     Ok(json!({"files":files,"rows":rows,"skipped":skipped}))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    #[test]
+    fn path_refuses_file_whose_canonical_target_leaves_root() {
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join("scratch")
+            .join(format!(
+                "aus-accounting-mcp-lib-escape-{}-{}",
+                std::process::id(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
+        let real = base.join("real");
+        let alias = base.join("alias");
+        fs::create_dir_all(&real).unwrap();
+        fs::write(real.join("doc.md"), "# Doc\n").unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&real, &alias).unwrap();
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_dir(&real, &alias).unwrap();
+        let err = path(&alias, "doc.md").unwrap_err();
+        let _ = fs::remove_dir_all(&base);
+        assert_eq!(err, "The file must remain inside the configured library.");
+    }
+}
