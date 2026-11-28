@@ -71,16 +71,28 @@ fn realpath_keeps_what_it_cannot_resolve_as_ntpath_does() {
     std::fs::remove_dir_all(&base).unwrap();
 }
 
+fn unmapped_drive_in_mask(mask: u32) -> Option<char> {
+    (3u8..26)
+        .find(|&bit| (mask & (1u32 << bit)) == 0)
+        .map(|bit| char::from(b'A' + bit))
+}
+
 fn unmapped_drive() -> Option<char> {
     unsafe extern "system" {
         fn GetLogicalDrives() -> u32;
     }
     // SAFETY: GetLogicalDrives takes no arguments and returns the assigned-drive bitmask.
     // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
-    let mask = unsafe { GetLogicalDrives() };
-    (3u8..26)
-        .find(|&bit| (mask & (1u32 << bit)) == 0)
-        .map(|bit| char::from(b'A' + bit))
+    unmapped_drive_in_mask(unsafe { GetLogicalDrives() })
+}
+
+fn check_unmapped_drive(drive: Option<char>) {
+    let Some(drive) = drive else {
+        return;
+    };
+    let missing_root = PyPath::new(&format!("{drive}:\\"));
+    let err = crate::pyos::makedirs(&missing_root).unwrap_err();
+    assert_eq!(err.class(), "FileNotFoundError");
 }
 
 fn not_symlink(_: &str) -> bool {
@@ -183,11 +195,8 @@ fn windows_symlink_loops_makedirs_and_json_call_depth_match_cpython() {
     );
     std::fs::remove_dir_all(&base).unwrap();
 
-    if let Some(drive) = unmapped_drive() {
-        let missing_root = PyPath::new(&format!("{drive}:\\"));
-        let err = crate::pyos::makedirs(&missing_root).unwrap_err();
-        assert_eq!(err.class(), "FileNotFoundError");
-    }
+    check_unmapped_drive(unmapped_drive());
+    check_unmapped_drive(unmapped_drive_in_mask(u32::MAX));
 
     let deep = format!("{}NaN{}", "[".repeat(13_861), "]".repeat(13_861));
     assert_eq!(
