@@ -325,10 +325,12 @@ pub fn calculate_proportionate_share(
             break;
         }
         let share = &mut shares[i];
+        // Both arguments are finite cent-rounded amounts, so comparison cannot trap.
         let adjustment = py_max(
             share.franking_credit_grossup.neg()?,
             credit_residual.clone(),
-        )?;
+        );
+        let adjustment = adjustment?;
         share.franking_credit_grossup = share.franking_credit_grossup.add(&adjustment)?;
         credit_residual = credit_residual.sub(&adjustment)?;
     }
@@ -351,10 +353,12 @@ pub fn calculate_proportionate_share(
             break;
         }
         let share = &mut shares[i];
+        // Both arguments are finite cent-rounded amounts, so comparison cannot trap.
         let adjustment = py_max(
             share.trust_income_entitlement.neg()?,
             entitlement_residual.clone(),
-        )?;
+        );
+        let adjustment = adjustment?;
         share.trust_income_entitlement = share.trust_income_entitlement.add(&adjustment)?;
         entitlement_residual = entitlement_residual.sub(&adjustment)?;
     }

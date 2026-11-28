@@ -178,9 +178,21 @@ const STACK: (usize, usize, usize, u32) = (128, 128, 8_345_296, 8156);
 /// this much deeper than the levels open around the constant. On Linux the
 /// check never fails before the next level's would.
 #[cfg(windows)]
-const CALL_DEPTH: Option<usize> = Some(544);
+const CALL_DEPTH: usize = 544;
+
+#[cfg(windows)]
+fn plain_constant(value: f64, used: usize) -> Result<Json, DecodeError> {
+    if used + CALL_DEPTH > shifted(STACK.2) {
+        Err(DecodeError::Recursion("call"))
+    } else {
+        Ok(Json::Float(value))
+    }
+}
+
 #[cfg(not(windows))]
-const CALL_DEPTH: Option<usize> = None;
+fn plain_constant(value: f64, _used: usize) -> Result<Json, DecodeError> {
+    Ok(Json::Float(value))
+}
 
 /// `Text`'s `parse_constant`, the client's Python function, checks the stack
 /// this much deeper on entry: measured with `parse_float` and `parse_int` as
@@ -298,10 +310,8 @@ fn decode(text: &str, members: Members, numbers: Numbers) -> Result<Json, Decode
             Err(DecodeError::Hook(format!(
                 "response contains the JSON-invalid constant {name}"
             )))
-        } else if CALL_DEPTH.is_some_and(|depth| used + depth > shifted(STACK.2)) {
-            Err(DecodeError::Recursion("call"))
         } else {
-            Ok(Json::Float(value))
+            plain_constant(value, used)
         }
     };
     if text.starts_with('\u{feff}') {
@@ -424,11 +434,9 @@ fn decode(text: &str, members: Members, numbers: Numbers) -> Result<Json, Decode
                     idx = skip(idx);
                     if idx < len && s[idx] == b']' {
                         idx += 1;
-                        let Some(Frame::Array(items)) = stack.pop() else {
-                            unreachable!()
-                        };
+                        value = Json::Array(std::mem::take(items));
+                        stack.pop();
                         used -= level_cost(true);
-                        value = Json::Array(items);
                         continue;
                     }
                     if idx >= len || s[idx] != b',' {
@@ -450,9 +458,8 @@ fn decode(text: &str, members: Members, numbers: Numbers) -> Result<Json, Decode
                     idx = skip(idx);
                     if idx < len && s[idx] == b'}' {
                         idx += 1;
-                        let Some(Frame::Object(pairs, _)) = stack.pop() else {
-                            unreachable!()
-                        };
+                        let pairs = std::mem::take(pairs);
+                        stack.pop();
                         used -= level_cost(false);
                         if members == Members::Keep {
                             value = Json::Object(pairs);
@@ -710,15 +717,14 @@ pub fn check_round_trip(data: &[u8]) -> Result<(), String> {
             .collect::<Result<_, _>>()?;
         let again =
             loads_standard(&once).map_err(|e| format!("{once:?} does not decode: {e:?}"))?;
-        let twice: Vec<u32> = crate::pyvalue::dumps_with(&again, None, true, false);
-        if twice
+        let twice: String = crate::pyvalue::dumps_with(&again, None, true, false)
             .into_iter()
             .filter_map(char::from_u32)
-            .collect::<String>()
-            != once
-        {
-            return Err(format!("{once:?} changed in a round trip"));
-        }
+            .collect();
+        // The invariant under test: no input is known to break it.
+        (twice == once)
+            .then_some(())
+            .ok_or_else(|| format!("{once:?} changed in a round trip"))?;
     }
     Ok(())
 }
@@ -1065,11 +1071,10 @@ mod tests {
     /// bare message.
     #[test]
     fn the_client_constant_hook_is_refused_short_of_the_limit() {
-        let (arrays, short) = if cfg!(windows) {
-            (13_862, 5)
-        } else {
-            (65_198, 2)
-        };
+        #[cfg(windows)]
+        let (arrays, short) = (13_862, 5);
+        #[cfg(not(windows))]
+        let (arrays, short) = (65_198, 2);
         std::thread::Builder::new()
             .stack_size(512 << 20)
             .spawn(move || {

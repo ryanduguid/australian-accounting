@@ -30,7 +30,6 @@ pub const UNICODE: u32 = 32;
 pub const VERBOSE: u32 = 64;
 pub const ASCII: u32 = 256;
 const LOCALE: u32 = 4;
-const DEBUG: u32 = 128;
 const TYPE_FLAGS: u32 = ASCII | LOCALE | UNICODE;
 
 pub const MAXREPEAT: u64 = 4_294_967_295;
@@ -54,30 +53,18 @@ pub enum CompileError {
     Other(&'static str, String),
 }
 
-impl CompileError {
-    /// The exception's `str()`.
-    pub fn text(&self) -> Vec<u32> {
-        match self {
-            CompileError::Pattern(text) => text.clone(),
-            CompileError::Other(_, message) => pts(message),
-        }
-    }
-}
-
-fn pattern_error(msg: Vec<u32>, pattern: &[u32], pos: Option<usize>) -> CompileError {
+fn pattern_error(msg: Vec<u32>, pattern: &[u32], pos: usize) -> CompileError {
     let mut text = msg;
-    if let Some(pos) = pos {
-        text.extend(pts(&format!(" at position {pos}")));
-        let nl = u32::from('\n');
-        if pattern.contains(&nl) {
-            let before = &pattern[..pos.min(pattern.len())];
-            let lineno = before.iter().filter(|&&c| c == nl).count() + 1;
-            let colno = match before.iter().rposition(|&c| c == nl) {
-                Some(i) => pos - i,
-                None => pos + 1,
-            };
-            text.extend(pts(&format!(" (line {lineno}, column {colno})")));
-        }
+    text.extend(pts(&format!(" at position {pos}")));
+    let nl = u32::from('\n');
+    if pattern.contains(&nl) {
+        let before = &pattern[..pos.min(pattern.len())];
+        let lineno = before.iter().filter(|&&c| c == nl).count() + 1;
+        let colno = match before.iter().rposition(|&c| c == nl) {
+            Some(i) => pos - i,
+            None => pos + 1,
+        };
+        text.extend(pts(&format!(" (line {lineno}, column {colno})")));
     }
     CompileError::Pattern(text)
 }
@@ -234,7 +221,7 @@ impl<'p> Tokenizer<'p> {
                 return Err(pattern_error(
                     pts("bad escape (end of pattern)"),
                     self.string,
-                    Some(self.string.len() - 1),
+                    self.string.len() - 1,
                 ));
             };
             self.index = index + 2;
@@ -311,7 +298,7 @@ impl<'p> Tokenizer<'p> {
     }
 
     fn error(&self, msg: Vec<u32>, offset: usize) -> CompileError {
-        pattern_error(msg, self.string, Some(self.tell() - offset))
+        pattern_error(msg, self.string, self.tell() - offset)
     }
 
     fn checkgroupname(&self, name: &[u32], offset: usize) -> PResult<()> {
@@ -425,6 +412,13 @@ struct State {
     depth: usize,
 }
 
+fn check_group_limit(groups: usize, limit: usize) -> Result<(), Vec<u32>> {
+    if groups > limit {
+        return Err(pts("too many groups"));
+    }
+    Ok(())
+}
+
 impl State {
     fn groups(&self) -> usize {
         self.groupwidths.len()
@@ -433,9 +427,7 @@ impl State {
     fn opengroup(&mut self, name: Option<&[u32]>) -> Result<usize, Vec<u32>> {
         let gid = self.groups();
         self.groupwidths.push(None);
-        if self.groups() > MAXGROUPS {
-            return Err(pts("too many groups"));
-        }
+        check_group_limit(self.groups(), MAXGROUPS)?;
         if let Some(name) = name {
             if let Some(&ogid) = self.groupdict.get(name) {
                 return Err(pts(&format!(
@@ -619,16 +611,16 @@ fn unicode_escape(source: &mut Tokenizer, escape: &mut Vec<u32>) -> PResult<Opti
 }
 
 /// `_class_escape`: an escape inside a character set.
-fn class_escape(source: &mut Tokenizer, this: Tok) -> PResult<Esc> {
+fn class_escape(source: &mut Tokenizer, this: Tok) -> PResult<Item> {
     if let Some(code) = escape_lookup(this) {
-        return Ok(Esc::Node(Node::Literal(code)));
+        return Ok(Item::Literal(code));
     }
     if let Some(Esc::In(cat)) = category_lookup(this) {
-        return Ok(Esc::In(cat));
+        return Ok(Item::Category(cat));
     }
     let mut escape = this.points();
     if let Some(value) = unicode_escape(source, &mut escape)? {
-        return Ok(Esc::Node(Node::Literal(value)));
+        return Ok(Item::Literal(value));
     }
     let c = escape[1];
     if (u32::from('0')..=u32::from('7')).contains(&c) {
@@ -640,18 +632,15 @@ fn class_escape(source: &mut Tokenizer, this: Tok) -> PResult<Esc> {
             msg.extend(pts(" outside of range 0-0o377"));
             return Err(source.error(msg, escape.len()));
         }
-        return Ok(Esc::Node(Node::Literal(value)));
+        return Ok(Item::Literal(value));
     }
     if c == u32::from('8') || c == u32::from('9') {
         return Err(bad_escape(source, &escape));
     }
-    if escape.len() == 2 {
-        if char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic()) {
-            return Err(bad_escape(source, &escape));
-        }
-        return Ok(Esc::Node(Node::Literal(c)));
+    if char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic()) {
+        return Err(bad_escape(source, &escape));
     }
-    Err(bad_escape(source, &escape))
+    Ok(Item::Literal(c))
 }
 
 /// `_escape`: an escape outside a character set.
@@ -702,13 +691,10 @@ fn escape(source: &mut Tokenizer, this: Tok, state: &State) -> PResult<Esc> {
             escape.len() - 1,
         ));
     }
-    if escape.len() == 2 {
-        if char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic()) {
-            return Err(bad_escape(source, &escape));
-        }
-        return Ok(Esc::Node(Node::Literal(c)));
+    if char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic()) {
+        return Err(bad_escape(source, &escape));
     }
-    Err(bad_escape(source, &escape))
+    Ok(Esc::Node(Node::Literal(c)))
 }
 
 fn esc_node(code: Esc) -> Node {
@@ -891,7 +877,7 @@ fn parse_inner(
                 let code1 = if this.escaped.is_some() {
                     class_escape(source, this)?
                 } else {
-                    Esc::Node(Node::Literal(this.c))
+                    Item::Literal(this.c)
                 };
                 if source.matches('-')? {
                     let Some(that) = source.get()? else {
@@ -900,14 +886,14 @@ fn parse_inner(
                         );
                     };
                     if that.is(']') {
-                        set.push(esc_item(&code1));
+                        set.push(code1);
                         set.push(Item::Literal(u32::from('-')));
                         break;
                     }
                     let code2 = if that.escaped.is_some() {
                         class_escape(source, that)?
                     } else {
-                        Esc::Node(Node::Literal(that.c))
+                        Item::Literal(that.c)
                     };
                     let bad = || {
                         let mut msg = pts("bad character range ");
@@ -916,17 +902,15 @@ fn parse_inner(
                         msg.extend(that.points());
                         source.error(msg, this.len() + 1 + that.len())
                     };
-                    let (Esc::Node(Node::Literal(lo)), Esc::Node(Node::Literal(hi))) =
-                        (&code1, &code2)
-                    else {
+                    let (Item::Literal(lo), Item::Literal(hi)) = (code1, code2) else {
                         return Err(bad());
                     };
                     if hi < lo {
                         return Err(bad());
                     }
-                    set.push(Item::Range(*lo, *hi));
+                    set.push(Item::Range(lo, hi));
                 } else {
-                    set.push(esc_item(&code1));
+                    set.push(code1);
                 }
             }
             let set = uniq(set);
@@ -1251,15 +1235,6 @@ fn parse_inner(
     Ok(out)
 }
 
-fn esc_item(code: &Esc) -> Item {
-    match code {
-        Esc::In(cat) => Item::Category(*cat),
-        Esc::Node(Node::Literal(c)) => Item::Literal(*c),
-        // class_escape returns only literals and categories.
-        Esc::Node(_) => Item::Negate,
-    }
-}
-
 fn flag_bit(c: u32) -> Option<u32> {
     Some(match char::from_u32(c)? {
         'i' => IGNORECASE,
@@ -1322,9 +1297,6 @@ fn parse_flags(
         state.flags |= add_flags;
         return Ok(None);
     }
-    if add_flags & DEBUG != 0 {
-        return Err(source.error(pts("bad inline flags: cannot turn on global flag"), 1));
-    }
     if char.is('-') {
         let Some(next) = source.get()? else {
             return Err(source.error(pts("missing flag"), 0));
@@ -1363,9 +1335,6 @@ fn parse_flags(
                 return Err(source.error(pts(msg), char.len()));
             }
         }
-    }
-    if del_flags & DEBUG != 0 {
-        return Err(source.error(pts("bad inline flags: cannot turn off global flag"), 1));
     }
     if add_flags & del_flags != 0 {
         return Err(source.error(pts("bad inline flags: flag turned on and off"), 1));
@@ -1437,6 +1406,11 @@ enum Anchor {
 #[derive(Clone, Debug)]
 enum M {
     Char(Test),
+    Op(Op),
+}
+
+#[derive(Clone, Debug)]
+enum Op {
     Branch(Vec<Vec<M>>),
     Group(usize, Vec<M>),
     Repeat(Rep, u64, u64, Vec<M>),
@@ -1680,7 +1654,7 @@ fn compile_sub(
             Node::Repeat(rep, min, max, body) => {
                 let mut compiled = Vec::new();
                 compile_sub(body, flags, widths, &mut compiled)?;
-                out.push(M::Repeat(*rep, *min, *max, compiled));
+                out.push(M::Op(Op::Repeat(*rep, *min, *max, compiled)));
             }
             Node::Subpattern(group, add, del, body) => {
                 let inner = combine_flags(flags, *add, *del);
@@ -1688,7 +1662,7 @@ fn compile_sub(
                     Some(g) => {
                         let mut compiled = Vec::new();
                         compile_sub(body, inner, widths, &mut compiled)?;
-                        out.push(M::Group(*g, compiled));
+                        out.push(M::Op(Op::Group(*g, compiled)));
                     }
                     None => compile_sub(body, inner, widths, out)?,
                 }
@@ -1696,7 +1670,7 @@ fn compile_sub(
             Node::Atomic(body) => {
                 let mut compiled = Vec::new();
                 compile_sub(body, flags, widths, &mut compiled)?;
-                out.push(M::Atomic(compiled));
+                out.push(M::Op(Op::Atomic(compiled)));
             }
             Node::Failure => out.push(M::Char(Test::Fail)),
             Node::Assert(negative, dir, body) => {
@@ -1716,16 +1690,16 @@ fn compile_sub(
                 };
                 let mut compiled = Vec::new();
                 compile_sub(body, flags, widths, &mut compiled)?;
-                out.push(M::Assert {
+                out.push(M::Op(Op::Assert {
                     negative: *negative,
                     back,
                     body: compiled,
-                });
+                }));
             }
             Node::At(at) => {
                 let multiline = flags & MULTILINE != 0;
                 let unicode = flags & UNICODE != 0;
-                out.push(M::At(match at {
+                out.push(M::Op(Op::At(match at {
                     At::Beginning if multiline => Anchor::BeginningLine,
                     At::Beginning | At::BeginningString => Anchor::Beginning,
                     At::End if multiline => Anchor::EndLine,
@@ -1733,7 +1707,7 @@ fn compile_sub(
                     At::EndString => Anchor::EndString,
                     At::Boundary => Anchor::Boundary(!unicode),
                     At::NonBoundary => Anchor::NonBoundary(!unicode),
-                }));
+                })));
             }
             Node::Branch(items) => {
                 let mut alternatives = Vec::with_capacity(items.len());
@@ -1742,7 +1716,7 @@ fn compile_sub(
                     compile_sub(item, flags, widths, &mut compiled)?;
                     alternatives.push(compiled);
                 }
-                out.push(M::Branch(alternatives));
+                out.push(M::Op(Op::Branch(alternatives)));
             }
             Node::GroupRef(g) => {
                 let probe = if flags & IGNORECASE == 0 {
@@ -1752,7 +1726,7 @@ fn compile_sub(
                 } else {
                     Probe::Lower
                 };
-                out.push(M::Ref(*g, probe));
+                out.push(M::Op(Op::Ref(*g, probe)));
             }
             Node::GroupRefExists(g, yes, no) => {
                 let mut y = Vec::new();
@@ -1761,7 +1735,7 @@ fn compile_sub(
                 if let Some(no) = no {
                     compile_sub(no, flags, widths, &mut n)?;
                 }
-                out.push(M::RefExists(*g, y, n));
+                out.push(M::Op(Op::RefExists(*g, y, n)));
             }
         }
     }
@@ -1805,7 +1779,7 @@ pub fn compile(pattern: &[u32], flags: u32) -> Result<Pattern, CompileError> {
             return Err(pattern_error(
                 pts(&format!("invalid group reference {g}")),
                 pattern,
-                Some(pos),
+                pos,
             ));
         }
     }
@@ -1840,10 +1814,6 @@ impl Match {
     /// `match.span(i)`, or None where group `i` did not take part.
     pub fn span(&self, i: usize) -> Option<(usize, usize)> {
         self.spans.get(i).copied().flatten()
-    }
-
-    pub fn start(&self) -> usize {
-        self.span(0).map_or(0, |s| s.0)
     }
 
     pub fn end(&self) -> usize {
@@ -1900,14 +1870,15 @@ fn seq(nodes: &[M], i: usize, pos: usize, ctx: &mut Ctx, k: K) -> bool {
     let Some(node) = nodes.get(i) else {
         return k(pos, ctx);
     };
-    if let M::Char(test) = node {
-        // A run of single characters needs no continuation frame each.
-        if pos < ctx.text.len() && test.matches(ctx.text[pos]) {
-            return seq(nodes, i + 1, pos + 1, ctx, k);
+    match node {
+        M::Char(test) => {
+            // A run of single characters needs no continuation frame each.
+            pos < ctx.text.len()
+                && test.matches(ctx.text[pos])
+                && seq(nodes, i + 1, pos + 1, ctx, k)
         }
-        return false;
+        M::Op(op) => one(op, pos, ctx, &mut |p, ctx| seq(nodes, i + 1, p, ctx, k)),
     }
-    one(node, pos, ctx, &mut |p, ctx| seq(nodes, i + 1, p, ctx, k))
 }
 
 fn at(anchor: Anchor, pos: usize, text: &[u32]) -> bool {
@@ -1949,14 +1920,53 @@ fn single(body: &[M]) -> Option<&Test> {
     }
 }
 
-/// One node at `pos`, then `k`. A failed attempt leaves the groups as it found them.
-fn one(node: &M, pos: usize, ctx: &mut Ctx, k: K) -> bool {
+/// `Assert` (lookahead or lookbehind) at `pos`, then `k`.
+fn assert_op(
+    negative: bool,
+    back: Option<usize>,
+    body: &[M],
+    pos: usize,
+    ctx: &mut Ctx,
+    k: K,
+) -> bool {
+    let from = match back {
+        Some(width) if pos < width => return negative && k(pos, ctx),
+        Some(width) => pos - width,
+        None => pos,
+    };
+    let saved = ctx.caps.clone();
+    let found = first_end(body, from, ctx).is_some();
+    if negative {
+        ctx.caps = saved;
+        return !found && k(pos, ctx);
+    }
+    if found && k(pos, ctx) {
+        return true;
+    }
+    ctx.caps = saved;
+    false
+}
+
+/// `Ref` (backreference) at `pos`, then `k`.
+fn ref_op(g: usize, probe: Probe, pos: usize, ctx: &mut Ctx, k: K) -> bool {
+    let Some((s, e)) = ctx.caps[g] else {
+        return false;
+    };
+    let len = e - s;
+    if pos + len > ctx.text.len() {
+        return false;
+    }
+    let same = (0..len).all(|i| probe.apply(ctx.text[pos + i]) == probe.apply(ctx.text[s + i]));
+    same && k(pos + len, ctx)
+}
+
+/// One non-character op at `pos`, then `k`. A failed attempt leaves the groups as it found them.
+fn one(node: &Op, pos: usize, ctx: &mut Ctx, k: K) -> bool {
     match node {
-        M::Char(test) => pos < ctx.text.len() && test.matches(ctx.text[pos]) && k(pos + 1, ctx),
-        M::Branch(alternatives) => alternatives
+        Op::Branch(alternatives) => alternatives
             .iter()
             .any(|alternative| seq(alternative, 0, pos, ctx, &mut *k)),
-        M::Group(g, body) => {
+        Op::Group(g, body) => {
             let g = *g;
             seq(body, 0, pos, ctx, &mut |end, ctx| {
                 let old = ctx.caps[g];
@@ -1968,7 +1978,7 @@ fn one(node: &M, pos: usize, ctx: &mut Ctx, k: K) -> bool {
                 false
             })
         }
-        M::Repeat(rep, min, max, body) => match single(body) {
+        Op::Repeat(rep, min, max, body) => match single(body) {
             Some(test) => repeat_one(*rep, *min, *max, test, pos, ctx, k),
             None => match rep {
                 Rep::Max => repeat_max(body, *min, *max, 0, None, pos, ctx, k),
@@ -1976,46 +1986,18 @@ fn one(node: &M, pos: usize, ctx: &mut Ctx, k: K) -> bool {
                 Rep::Possessive => repeat_possessive(body, *min, *max, pos, ctx, k),
             },
         },
-        M::At(anchor) => at(*anchor, pos, ctx.text) && k(pos, ctx),
-        M::Ref(g, probe) => {
-            let Some((s, e)) = ctx.caps[*g] else {
-                return false;
-            };
-            let len = e - s;
-            if pos + len > ctx.text.len() {
-                return false;
-            }
-            let same =
-                (0..len).all(|i| probe.apply(ctx.text[pos + i]) == probe.apply(ctx.text[s + i]));
-            same && k(pos + len, ctx)
-        }
-        M::RefExists(g, yes, no) => {
+        Op::At(anchor) => at(*anchor, pos, ctx.text) && k(pos, ctx),
+        Op::Ref(g, probe) => ref_op(*g, *probe, pos, ctx, k),
+        Op::RefExists(g, yes, no) => {
             let branch = if ctx.caps[*g].is_some() { yes } else { no };
             seq(branch, 0, pos, ctx, k)
         }
-        M::Assert {
+        Op::Assert {
             negative,
             back,
             body,
-        } => {
-            let from = match back {
-                Some(width) if pos < *width => return *negative && k(pos, ctx),
-                Some(width) => pos - width,
-                None => pos,
-            };
-            let saved = ctx.caps.clone();
-            let found = first_end(body, from, ctx).is_some();
-            if *negative {
-                ctx.caps = saved;
-                return !found && k(pos, ctx);
-            }
-            if found && k(pos, ctx) {
-                return true;
-            }
-            ctx.caps = saved;
-            false
-        }
-        M::Atomic(body) => {
+        } => assert_op(*negative, *back, body, pos, ctx, k),
+        Op::Atomic(body) => {
             let saved = ctx.caps.clone();
             if let Some(end) = first_end(body, pos, ctx)
                 && k(end, ctx)
@@ -2324,3 +2306,7 @@ mod tests {
         assert_eq!(lower("AUGUST"), "august");
     }
 }
+
+#[cfg(test)]
+#[path = "cov_a4_sre.rs"]
+mod cov_a4_tests;

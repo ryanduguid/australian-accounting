@@ -79,11 +79,6 @@ pub fn prefix_chars(s: &str, n: usize) -> &str {
     }
 }
 
-/// `len(s)`: a count of code points.
-pub fn char_len(s: &str) -> usize {
-    s.chars().count()
-}
-
 /// `repr(s)` for a `str`.
 pub fn repr_str(s: &str) -> String {
     let quote = if s.contains('\'') && !s.contains('"') {
@@ -152,15 +147,12 @@ fn number_text(s: &str) -> Option<String> {
 
 /// `int(s, base)`; the error is the `ValueError` message.
 pub fn parse_int(s: &str, base: u32) -> Result<BigInt, String> {
+    // CPython takes the first 200 characters, then `%.200R` cuts their repr
+    // to 200 characters, closing quote included.
     let invalid = || {
-        let shown: String = if char_len(s) > 200 {
-            prefix_chars(s, 200).to_string()
-        } else {
-            s.to_string()
-        };
         format!(
             "invalid literal for int() with base {base}: {}",
-            repr_str(&shown)
+            prefix_chars(&repr_str(prefix_chars(s, 200)), 200)
         )
     };
     let text = number_text(s).ok_or_else(invalid)?;
@@ -324,6 +316,15 @@ fn crt_errno(winerror: i32) -> (i32, &'static str) {
 
 /// `str(OSError)` for an operation on `filename` (already rendered as `str(path)`).
 pub fn oserror_str(error: &io::Error, filename: &str, style: OsStyle) -> String {
+    let text = oserror_bare(error, style);
+    match error.raw_os_error() {
+        Some(_) => format!("{text}: {}", repr_str(filename)),
+        None => text,
+    }
+}
+
+/// `str(exc)` for an `OSError` that names no file, as `os.getcwd()` raises.
+pub fn oserror_bare(error: &io::Error, style: OsStyle) -> String {
     let Some(code) = error.raw_os_error() else {
         return error.to_string();
     };
@@ -332,19 +333,15 @@ pub fn oserror_str(error: &io::Error, filename: &str, style: OsStyle) -> String 
     {
         if style == OsStyle::Errno {
             let (errno, text) = crt_errno(code);
-            return format!("[Errno {errno}] {text}: {}", repr_str(filename));
+            return format!("[Errno {errno}] {text}");
         }
         let text = strip_os_suffix(&message).trim_end_matches(|c: char| c == '.' || c <= ' ');
-        format!("[WinError {code}] {text}: {}", repr_str(filename))
+        format!("[WinError {code}] {text}")
     }
     #[cfg(not(windows))]
     {
         let _ = style;
-        format!(
-            "[Errno {code}] {}: {}",
-            strip_os_suffix(&message),
-            repr_str(filename)
-        )
+        format!("[Errno {code}] {}", strip_os_suffix(&message))
     }
 }
 
@@ -462,14 +459,6 @@ impl PyPath {
         out.parts.pop();
         out
     }
-
-    pub fn is_absolute(&self) -> bool {
-        if cfg!(windows) {
-            self.anchor.len() > 2 || self.anchor.starts_with("\\\\")
-        } else {
-            !self.anchor.is_empty()
-        }
-    }
 }
 
 impl std::fmt::Display for PyPath {
@@ -479,40 +468,74 @@ impl std::fmt::Display for PyPath {
 }
 
 /// `str(Path(path).resolve())`: symlinks resolved through the longest existing
-/// prefix, the rest normalised lexically, as `os.path.realpath` does.
-pub fn resolve_text(path: &Path) -> String {
-    let absolute = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+/// prefix, the rest normalised lexically, as `os.path.realpath` does. A relative
+/// path fails as `os.getcwd()` does when the working directory has been deleted.
+pub fn resolve_text(path: &Path) -> io::Result<String> {
+    let absolute = std::path::absolute(path)?;
     let components: Vec<_> = absolute.components().collect();
-    for split in (0..=components.len()).rev() {
+    for split in (2..=components.len()).rev() {
         let prefix: PathBuf = components[..split].iter().collect();
-        let Ok(mut resolved) = std::fs::canonicalize(&prefix) else {
-            continue;
-        };
-        for component in &components[split..] {
-            match component {
-                std::path::Component::ParentDir => {
-                    resolved.pop();
-                }
-                std::path::Component::CurDir => {}
-                other => resolved.push(other.as_os_str()),
-            }
+        if let Ok(resolved) = std::fs::canonicalize(&prefix) {
+            return Ok(with_tail(resolved, &components[split..]));
         }
-        let text = resolved.to_string_lossy().into_owned();
-        return match text.strip_prefix(r"\\?\UNC\") {
-            Some(rest) => format!(r"\\{rest}"),
-            None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
-        };
     }
-    absolute.to_string_lossy().into_owned()
+    from_root(&absolute, &components)
+}
+
+/// The resolved prefix with the missing tail applied lexically.
+fn with_tail(mut resolved: PathBuf, tail: &[std::path::Component<'_>]) -> String {
+    for component in tail {
+        match component {
+            std::path::Component::ParentDir => {
+                resolved.pop();
+            }
+            // Windows verbatim paths (`\\?\...`) keep `.` components through `std::path::absolute`.
+            std::path::Component::CurDir => {}
+            other => resolved.push(other.as_os_str()),
+        }
+    }
+    without_verbatim(resolved.to_string_lossy().into_owned())
+}
+
+/// Nothing below `/` exists: the rest applies to `/` itself, which always
+/// canonicalises, so its error is the OS's own and cannot arise for `/`.
+#[cfg(not(windows))]
+fn from_root(_: &Path, components: &[std::path::Component<'_>]) -> io::Result<String> {
+    let root = std::fs::canonicalize(components[0])?;
+    Ok(with_tail(root, &components[1..]))
+}
+
+/// No drive or share root exists (a drive letter not mapped): `realpath`
+/// returns the normalised path, which `std::path::absolute` already is.
+#[cfg(windows)]
+fn from_root(absolute: &Path, _: &[std::path::Component<'_>]) -> io::Result<String> {
+    Ok(absolute.to_string_lossy().into_owned())
+}
+
+/// `canonicalize` gives Windows verbatim paths; `realpath` does not.
+#[cfg(windows)]
+fn without_verbatim(text: String) -> String {
+    match text.strip_prefix("\\\\?\\UNC\\") {
+        Some(rest) => format!("\\\\{rest}"),
+        None => text.strip_prefix("\\\\?\\").unwrap_or(&text).to_string(),
+    }
+}
+
+#[cfg(not(windows))]
+fn without_verbatim(text: String) -> String {
+    text
 }
 
 /// `Path.__eq__` between resolved paths: case-insensitive on Windows.
+#[cfg(windows)]
 pub fn same_resolved(a: &str, b: &str) -> bool {
-    if cfg!(windows) {
-        a.to_lowercase() == b.to_lowercase()
-    } else {
-        a == b
-    }
+    a.to_lowercase() == b.to_lowercase()
+}
+
+/// `Path.__eq__` between resolved paths.
+#[cfg(not(windows))]
+pub fn same_resolved(a: &str, b: &str) -> bool {
+    a == b
 }
 
 /// A `datetime.date`.
@@ -587,9 +610,9 @@ impl Date {
         while days_before_year(year + 1) < ordinal {
             year += 1;
         }
-        while days_before_year(year) >= ordinal {
-            year -= 1;
-        }
+        // The estimate never overshoots: (year - 1) * 365.2425 <= ordinal - 1, and
+        // the leap days before a year exceed 0.2425 a year by less than one, so
+        // days_before_year(year) < ordinal already.
         let mut rest = ordinal - days_before_year(year);
         let mut month = 1;
         while rest > i64::from(days_in_month(year, month)) {
@@ -776,5 +799,219 @@ mod tests {
         );
         assert_eq!(PyPath::new("./a//b/.").display(), format!("a{SEP}b"));
         assert_eq!(PyPath::new("").display(), ".");
+        // Joining an anchored path replaces the base, as `PurePath / "/x"` does.
+        assert_eq!(
+            PyPath::new("a").join("/etc/x").to_string(),
+            format!("{SEP}etc{SEP}x")
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn two_leading_slashes_stay_an_anchor_on_posix() {
+        assert_eq!(PyPath::new("//srv/x").display(), "//srv/x");
+        assert_eq!(PyPath::new("///srv/x").display(), "/srv/x");
+    }
+
+    // Each value and message below is what CPython's repr() and int() give.
+    #[test]
+    fn repr_escapes_newlines_and_unprintable_astral_characters() {
+        assert_eq!(repr_str("a\nb\rc"), "'a\\nb\\rc'");
+        assert_eq!(repr_str("\u{e0001}"), "'\\U000e0001'");
+    }
+
+    #[test]
+    fn int_reads_signs_prefixes_and_unicode_digits() {
+        for (text, base, want) in [
+            ("-12", 10, -12),
+            ("+7", 10, 7),
+            ("0xff", 16, 255),
+            ("0o17", 8, 15),
+            ("0X_1f", 16, 31),
+            ("ff", 16, 255),
+            ("1_000", 10, 1000),
+            ("\u{661}\u{662}", 10, 12),
+        ] {
+            assert_eq!(parse_int(text, base), Ok(BigInt::from(want)), "{text}");
+        }
+    }
+
+    #[test]
+    fn int_refusals_read_as_python_words_them() {
+        for (text, shown) in [
+            ("1__0", "'1__0'"),
+            ("1_", "'1_'"),
+            ("_1", "'_1'"),
+            ("12a", "'12a'"),
+            ("", "''"),
+            ("1\u{20ac}", "'1\u{20ac}'"),
+        ] {
+            assert_eq!(
+                parse_int(text, 10).unwrap_err(),
+                format!("invalid literal for int() with base 10: {shown}"),
+                "{text}"
+            );
+        }
+        // `%.200R` cuts the representation, so the closing quote goes.
+        assert_eq!(
+            parse_int(&"x".repeat(250), 10).unwrap_err(),
+            format!(
+                "invalid literal for int() with base 10: '{}",
+                "x".repeat(199)
+            )
+        );
+        assert_eq!(
+            parse_int(&"1".repeat(4301), 10).unwrap_err(),
+            "Exceeds the limit (4300 digits) for integer string conversion: value has 4301 \
+             digits; use sys.set_int_max_str_digits() to increase the limit"
+        );
+    }
+
+    #[test]
+    fn an_error_without_an_os_code_prints_its_own_message() {
+        let error = io::Error::other("no code here");
+        assert_eq!(oserror_str(&error, "f.csv", OsStyle::Errno), "no code here");
+        assert_eq!(strip_os_suffix("plain message"), "plain message");
+    }
+
+    #[test]
+    fn a_missing_tail_is_normalised_lexically_after_the_existing_prefix() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join(format!("wip-resolve-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let real = resolve_text(&root).unwrap();
+        // os.path.realpath drops `missing/..` once no prefix beyond `root` exists.
+        assert_eq!(
+            resolve_text(&root.join("missing").join("..").join("x.csv")).unwrap(),
+            resolve_text(&root.join("x.csv")).unwrap()
+        );
+        assert_eq!(
+            resolve_text(&root.join("x.csv")).unwrap(),
+            format!("{real}{SEP}x.csv")
+        );
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    /// Windows verbatim paths keep `.` components after `std::path::absolute`;
+    /// `with_tail` drops them just as `ntpath.realpath` does.
+    #[test]
+    fn with_tail_skips_curdir_components() {
+        let tail = [
+            std::path::Component::Normal(std::ffi::OsStr::new("missing")),
+            std::path::Component::CurDir,
+            std::path::Component::Normal(std::ffi::OsStr::new("c.csv")),
+        ];
+        let base = PathBuf::from(format!("{SEP}base"));
+        assert_eq!(
+            with_tail(base, &tail),
+            format!("{SEP}base{SEP}missing{SEP}c.csv")
+        );
+    }
+
+    /// CPython 3.14: `str(Path('/<missing>/a/../b.csv').resolve())`.
+    #[cfg(not(windows))]
+    #[test]
+    fn a_path_under_a_missing_top_level_folder_resolves_from_the_root() {
+        let top = (0u32..)
+            .map(|n| format!("/wip-tally-missing-{}-{n}", std::process::id()))
+            .find(|p| std::fs::symlink_metadata(p).is_err())
+            .expect("an absent top-level name");
+        let path = format!("{top}/a/../b.csv");
+        assert_eq!(
+            resolve_text(Path::new(&path)).unwrap(),
+            format!("{top}/b.csv")
+        );
+        assert_eq!(resolve_text(Path::new("/")).unwrap(), "/");
+    }
+
+    /// CPython 3.14 on Windows: `Path(r'\\?\C:\<missing>\.\c.csv').resolve()`
+    /// matches `Path(r'\\?\C:\<missing>\c.csv').resolve()`.
+    #[cfg(windows)]
+    #[test]
+    fn a_verbatim_path_with_a_dot_in_a_missing_tail_normalises_it() {
+        let drive = (b'C'..=b'Z')
+            .map(char::from)
+            .find(|d| Path::new(&format!("{d}:\\")).exists())
+            .expect("a mapped drive letter");
+        let missing = (0u32..)
+            .map(|n| format!("wip-tally-missing-{}-{n}", std::process::id()))
+            .find(|name| std::fs::symlink_metadata(format!("{drive}:\\{name}")).is_err())
+            .expect("an absent top-level name");
+        let root = resolve_text(Path::new(&format!("{drive}:\\"))).unwrap();
+        let with_dot = format!("\\\\?\\{drive}:\\{missing}\\.\\c.csv");
+        let plain = format!("\\\\?\\{drive}:\\{missing}\\c.csv");
+        assert_eq!(
+            resolve_text(Path::new(&with_dot)).unwrap(),
+            resolve_text(Path::new(&plain)).unwrap()
+        );
+        assert_eq!(
+            resolve_text(Path::new(&with_dot)).unwrap(),
+            PathBuf::from(&root)
+                .join(&missing)
+                .join("c.csv")
+                .to_string_lossy()
+        );
+    }
+
+    /// CPython 3.15 on Windows, drive Q: unmapped: `Path('Q:/x/../y.csv').resolve()`
+    /// is `Q:\y.csv` and `Path('Q:/a/./b/../c.md').resolve()` is `Q:\a\c.md`.
+    #[cfg(windows)]
+    #[test]
+    fn a_path_on_an_unmapped_drive_is_only_normalised() {
+        let drive = (b'D'..=b'Z')
+            .map(char::from)
+            .find(|d| !Path::new(&format!("{d}:\\")).exists())
+            .expect("an unmapped drive letter");
+        assert_eq!(
+            resolve_text(Path::new(&format!("{drive}:/x/../y.csv"))).unwrap(),
+            format!("{drive}:\\y.csv")
+        );
+        assert_eq!(
+            resolve_text(Path::new(&format!("{drive}:/a/./b/../c.md"))).unwrap(),
+            format!("{drive}:\\a\\c.md")
+        );
+    }
+
+    #[test]
+    fn malformed_iso_dates_and_weeks_are_refused_as_cpython_does() {
+        for bad in [
+            "2026-W01x1",
+            "2026-10x17",
+            "0000-W01-1",
+            "2025-W53",
+            "2026-W00",
+            "2026-W01-0",
+            "2026-W01-8",
+        ] {
+            assert_eq!(Date::fromisoformat(bad), None, "{bad}");
+        }
+    }
+
+    #[test]
+    fn ordinals_convert_as_date_fromordinal_does() {
+        for (ordinal, want) in [
+            (365, "0001-12-31"),
+            (366, "0002-01-01"),
+            (730, "0002-12-31"),
+            (1461, "0004-12-31"),
+            (36524, "0100-12-31"),
+            (36525, "0101-01-01"),
+            (146_096, "0400-12-30"),
+            (146_097, "0400-12-31"),
+            (146_098, "0401-01-01"),
+            (3_652_059, "9999-12-31"),
+        ] {
+            let date = Date::from_ordinal(ordinal).unwrap();
+            assert_eq!(date.isoformat(), want, "{ordinal}");
+            assert_eq!(date.ordinal(), ordinal);
+        }
+        // The year estimate is corrected both ways: every year's first and last day round-trips.
+        for year in 1..=9999 {
+            for (month, day) in [(1, 1), (12, 31)] {
+                let date = Date::new(year, month, day).unwrap();
+                assert_eq!(Date::from_ordinal(date.ordinal()), Some(date), "{year}");
+            }
+        }
     }
 }

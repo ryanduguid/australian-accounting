@@ -6,8 +6,11 @@ use gst_review::{api, cli};
 use std::io::{Read, Write};
 
 fn run_api(command: &str) -> cli::Outcome {
+    run_api_from(command, std::io::stdin())
+}
+fn run_api_from(command: &str, reader: impl Read) -> cli::Outcome {
     let mut bytes = Vec::new();
-    if let Err(e) = std::io::stdin().take((8 << 20) + 1).read_to_end(&mut bytes) {
+    if let Err(e) = reader.take((8 << 20) + 1).read_to_end(&mut bytes) {
         return (2, String::new(), format!("error: {e}\n"));
     }
     let result = if bytes.len() > 8 << 20 {
@@ -20,6 +23,13 @@ fn run_api(command: &str) -> cli::Outcome {
     match result {
         Ok(v) => (0, format!("{v}\n"), String::new()),
         Err(e) => (2, String::new(), format!("error: {e}\n")),
+    }
+}
+fn exit_code(code: i32, out_result: std::io::Result<()>, err_result: std::io::Result<()>) -> i32 {
+    if out_result.is_err() || err_result.is_err() {
+        1
+    } else {
+        code
     }
 }
 fn main() {
@@ -39,9 +49,32 @@ fn main() {
     let err_result = stderr
         .write_all(err.as_bytes())
         .and_then(|()| stderr.flush());
-    std::process::exit(if out_result.is_err() || err_result.is_err() {
-        1
-    } else {
-        code
-    });
+    std::process::exit(exit_code(code, out_result, err_result));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{exit_code, run_api_from};
+    use std::io::{self, ErrorKind, Read};
+
+    struct FailingReader;
+    impl Read for FailingReader {
+        fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+            Err(io::Error::other("read failed"))
+        }
+    }
+
+    #[test]
+    fn stdin_read_failure_returns_exit_two_with_error_message() {
+        let outcome = run_api_from("review-coding", FailingReader);
+        assert_eq!(outcome, (2, String::new(), "error: read failed\n".into()));
+    }
+
+    #[test]
+    fn stream_write_failure_returns_exit_one() {
+        let fail = || Err(io::Error::from(ErrorKind::BrokenPipe));
+        assert_eq!(exit_code(0, fail(), Ok(())), 1);
+        assert_eq!(exit_code(2, Ok(()), fail()), 1);
+        assert_eq!(exit_code(2, Ok(()), Ok(())), 2);
+    }
 }

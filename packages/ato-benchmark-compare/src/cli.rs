@@ -256,15 +256,11 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
             plain: prog.to_string(),
             coloured: prog.to_string(),
         }];
-        let lines = if !opt_parts.is_empty() {
-            head.extend(opt_parts.iter().cloned());
-            let mut lines = get_lines(&head, &indent, true);
-            lines.extend(get_lines(pos_parts, &indent, false));
-            lines
-        } else {
-            head.extend(pos_parts.iter().cloned());
-            get_lines(&head, &indent, true)
-        };
+        // Every usage starts with `[-h]`, so argparse's branch for a parser
+        // without optionals never runs.
+        head.extend(opt_parts.iter().cloned());
+        let mut lines = get_lines(&head, &indent, true);
+        lines.extend(get_lines(pos_parts, &indent, false));
         return lines.join("\n")[prog.len()..].to_string();
     }
     let indent = " ".repeat(prefix_len);
@@ -392,12 +388,9 @@ fn sequence_ratio(a: &[u32], b: &[u32]) -> f64 {
             }
         }
     }
-    let total = a.len() + b.len();
-    if total == 0 {
-        1.0
-    } else {
-        2.0 * matches as f64 / total as f64
-    }
+    // `a` is a command name, never empty, so difflib's 1.0 for 2 empty
+    // sequences never applies.
+    2.0 * matches as f64 / (a.len() + b.len()) as f64
 }
 
 /// `SequenceMatcher.find_longest_match(alo, ahi, blo, bhi)`.
@@ -554,12 +547,8 @@ fn option_prefix_matches<'a>(
 /// count; `\d` is any Unicode decimal digit.
 fn looks_like_negative_number(body: &str) -> bool {
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
-    let mut chars = body.chars();
-    match chars.next() {
-        Some('.') => chars.next().is_some_and(digit),
-        Some(c) => digit(c),
-        None => false,
-    }
+    let rest = body.strip_prefix('.').unwrap_or(body);
+    rest.chars().next().is_some_and(digit)
 }
 
 /// argparse's error for an explicit argument given to a zero-argument flag.
@@ -925,11 +914,8 @@ fn parse_command(
             extras.extend(args[start..next_option].iter().cloned());
             start = next_option;
         }
+        // `start` is the next option, as `start <= last_option` guarantees.
         match patterns[start] {
-            Pattern::Unknown => {
-                extras.push(args[start].clone());
-                start += 1;
-            }
             Pattern::Ambiguous(i) => return Err(sub_error(refusals[i].clone())),
             Pattern::Option(i) => {
                 let flag = chosen[i];
@@ -969,7 +955,11 @@ fn parse_command(
                 };
                 parsed.values.insert(option.dest, value);
             }
-            Pattern::Arg | Pattern::Marker => unreachable!("an option starts here"),
+            // Pattern::Unknown, the only other option pattern.
+            _ => {
+                extras.push(args[start].clone());
+                start += 1;
+            }
         }
     }
     let stop = consume_positional(start, &mut parsed);
@@ -1250,11 +1240,14 @@ fn cmd_compare(parsed: &Parsed, s: &mut Streams) -> Result<i32, Failure> {
         refuse_to_write_over_an_input(&PyPath::new(target), &[Some(pnl_path), Some(mapping_path)])?;
     }
     if let Some(target) = json_target {
+        // Cannot fail here: report::compare has already checked `supplied`, and
+        // compute's 4-place ratios always fit the 2-place percentages.
         let payload = to_evidenced_dict(
             &comparison,
             &supplied,
             serde_json::json!(routing.unreviewed),
-        )?;
+        );
+        let payload = payload?;
         let text = serde_json::to_string_pretty(&serde_json::Value::Object(payload))
             .expect("JSON values serialise")
             + "\n";
@@ -1375,5 +1368,22 @@ mod tests {
         assert!(refuse_to_write_over_an_input(&out, &[None, Some(&other)]).is_ok());
         let same = dir.join("result.json").to_string_lossy().into_owned();
         assert!(refuse_to_write_over_an_input(&out, &[None, Some(&same)]).is_err());
+    }
+
+    #[test]
+    fn option_builders_set_what_each_option_takes() {
+        // The tables call these in const context, which coverage never sees.
+        let year = value("--year", "year", true, Some("tax year"));
+        assert!(year.takes == Takes::Value && year.required);
+        assert_eq!(
+            (year.flag, year.dest, year.help),
+            ("--year", "year", Some("tax year"))
+        );
+        let force = flag("--force", "force", "overwrite");
+        assert!(force.takes == Takes::Flag && !force.required);
+        assert_eq!(
+            (force.flag, force.dest, force.help),
+            ("--force", "force", Some("overwrite"))
+        );
     }
 }

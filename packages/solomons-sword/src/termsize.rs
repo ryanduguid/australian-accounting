@@ -96,6 +96,20 @@ fn stdout_terminal() -> Option<(i64, i64)> {
     None
 }
 
+fn pick_width(columns: i64, lines: i64, terminal: impl FnOnce() -> Option<(i64, i64)>) -> i64 {
+    if columns > 0 && lines > 0 {
+        return columns;
+    }
+    let terminal = terminal();
+    if columns > 0 {
+        return columns;
+    }
+    terminal
+        .map(|(width, _)| width)
+        .filter(|&width| width > 0)
+        .unwrap_or(80)
+}
+
 /// `shutil.get_terminal_size((80, 24)).columns`: $COLUMNS when it is a
 /// positive integer; otherwise the terminal on stdout, else 80. The terminal
 /// is asked whenever either $COLUMNS or $LINES is not a positive integer.
@@ -106,18 +120,7 @@ pub fn columns() -> i64 {
             .and_then(|value| py_int(&value))
             .unwrap_or(0)
     };
-    let columns = env_int("COLUMNS");
-    if columns > 0 && env_int("LINES") > 0 {
-        return columns;
-    }
-    let terminal = stdout_terminal();
-    if columns > 0 {
-        return columns;
-    }
-    terminal
-        .map(|(width, _)| width)
-        .filter(|&width| width > 0)
-        .unwrap_or(80)
+    pick_width(env_int("COLUMNS"), env_int("LINES"), stdout_terminal)
 }
 
 #[cfg(test)]
@@ -133,5 +136,14 @@ mod tests {
         for bad in ["", " ", "4__0", "_40", "40_", "4.0", "0x10", "--1"] {
             assert_eq!(py_int(bad), None, "{bad}");
         }
+    }
+
+    #[test]
+    fn terminal_width_falls_back_when_zero() {
+        assert_eq!(pick_width(50, 10, || None), 50);
+        assert_eq!(pick_width(50, 0, || Some((120, 40))), 50);
+        assert_eq!(pick_width(0, 0, || Some((120, 40))), 120);
+        assert_eq!(pick_width(0, 0, || Some((0, 24))), 80);
+        assert_eq!(pick_width(0, 0, || None), 80);
     }
 }

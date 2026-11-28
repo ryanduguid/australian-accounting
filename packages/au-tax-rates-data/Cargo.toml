@@ -43,3 +43,5 @@ codegen-units = 1
 # Arguments CI runs the built command with (.github/ci/rust_crates.py).
 [package.metadata.ci]
 smoke = "validate"
+# src/pyos.rs has a cfg(windows) path that only the Windows run reaches.
+windows-coverage = true

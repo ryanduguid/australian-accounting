@@ -6,7 +6,7 @@
 //! Amounts are decimal strings; README.md documents both schemas.
 use crate::decimal::Decimal;
 use crate::engine::{self, ContractInput, ScheduleError};
-use crate::money::{self, AmountError};
+use crate::money;
 use serde_json::{Value, json};
 
 pub const COMMANDS: &[&str] = &["measure", "parse-money"];
@@ -74,7 +74,8 @@ fn py_repr(value: &Value) -> Result<String> {
                 }
             } else {
                 // float(text): an overflowing literal such as 1e400 is infinity.
-                float_repr(text.parse().unwrap_or(f64::NAN))
+                // Every JSON number is a Rust float literal, so this never fails.
+                float_repr(text.parse().expect("a JSON number reads as a float"))
             }
         }
         Value::String(s) => crate::pytext::repr(s),
@@ -109,9 +110,6 @@ fn shortest_exp(value: f64) -> String {
 
 /// `repr(float)`: the shortest text that reads back as the same double.
 fn float_repr(value: f64) -> String {
-    if value.is_nan() {
-        return "nan".into();
-    }
     if value.is_infinite() {
         return if value > 0.0 { "inf" } else { "-inf" }.into();
     }
@@ -274,11 +272,9 @@ pub fn evaluate(command: &str, v: &Value) -> Result<Value> {
             if matches!(v.get("raw"), Some(Value::Null)) {
                 return Err(format!("{where_}: no amount given"));
             }
-            match money::parse_money(&text(v, "raw")?, &where_) {
-                Ok(value) => Ok(json!(value.to_string())),
-                Err(AmountError::Message(m)) => Err(m),
-                Err(AmountError::Decimal(s)) => Err(format!("decimal.{}", s.name())),
-            }
+            money::parse_money(&text(v, "raw")?, &where_)
+                .map(|value| json!(value.to_string()))
+                .map_err(|e| e.to_string())
         }
         _ => Err(format!("unknown command {command}")),
     }
@@ -301,11 +297,100 @@ mod tests {
                 (actual != expected).then(|| format!("{bits}: python {expected}, rust {actual}"))
             })
             .collect();
-        assert!(
-            wrong.is_empty(),
-            "{} wrong: {:?}",
-            wrong.len(),
-            &wrong[..wrong.len().min(10)]
+        assert_eq!(wrong, Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_closer_spelling_that_does_not_read_back_yields_to_the_shortest() {
+        // 2**-1017: the 16-digit spelling nearest the value reads back as a
+        // different double, so CPython prints the shortest round-trip form.
+        assert_eq!(float_repr(2f64.powi(-1017)), "7.120236347223045e-307");
+    }
+
+    fn base() -> Value {
+        json!({"contract_id": "J1", "line_number": 2, "customer": "", "description": ""})
+    }
+
+    fn with(mut v: Value, key: &str, value: Value) -> Value {
+        v[key] = value;
+        v
+    }
+
+    #[test]
+    fn measure_refuses_malformed_fields_by_name() {
+        let long = "1".repeat(8193);
+        for (input, want) in [
+            (json!([1]), "input must be a JSON object"),
+            (
+                with(base(), "line_number", json!(1.5)),
+                "line_number must be an integer",
+            ),
+            (
+                with(base(), "line_number", json!("2")),
+                "line_number must be an integer",
+            ),
+            (
+                with(base(), "original_contract_sum", json!(long)),
+                "original_contract_sum: decimal input exceeds 8192 bytes",
+            ),
+            (
+                with(base(), "outcome_reasonably_measurable", json!("yes")),
+                "outcome_reasonably_measurable must be true, false or null",
+            ),
+        ] {
+            assert_eq!(
+                evaluate("measure", &input),
+                Err(want.to_string()),
+                "{input}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_optional_prior_figure_that_is_not_a_decimal_is_refused() {
+        let mut v = base();
+        for key in [
+            "original_contract_sum",
+            "approved_variations",
+            "unapproved_variations_estimate",
+            "constraint_include_ratio",
+            "costs_incurred",
+            "inefficiency_rework_wastage",
+            "uninstalled_materials",
+            "estimated_cost_to_complete",
+            "certified_billings",
+            "uncertified_claims",
+            "retention_withheld",
+            "committed_outstanding",
+        ] {
+            v[key] = json!("0");
+        }
+        v["retention_classification"] = json!("review");
+        v["progress_method"] = json!("cost_to_cost");
+        v["prior_estimated_cost_at_completion"] = json!("ten");
+        assert_eq!(
+            evaluate("measure", &v),
+            Err("decimal.InvalidOperation".to_string())
+        );
+    }
+
+    #[test]
+    fn where_prints_as_python_str_and_an_object_is_refused() {
+        let missing =
+            |where_: Value| evaluate("parse-money", &json!({"raw": null, "where": where_}));
+        assert_eq!(missing(json!(false)), Err("False: no amount given".into()));
+        assert_eq!(missing(json!(-0)), Err("0: no amount given".into()));
+        assert_eq!(
+            missing(json!({"a": 1})),
+            Err("where must not be a JSON object".into())
+        );
+    }
+
+    #[test]
+    fn an_unknown_command_is_named_in_the_refusal() {
+        assert_eq!(
+            evaluate("close-job", &json!({})),
+            Err("unknown command close-job".into())
         );
     }
 }

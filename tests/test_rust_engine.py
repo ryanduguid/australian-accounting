@@ -202,8 +202,9 @@ class RustEngineTests(unittest.TestCase):
             with self.subTest(crate=crate["package"]):
                 self.assertNotIn(f"package: {crate['package']}\n", caller)
         by_name = {crate["package"]: crate for crate in crates}
-        no_extras = dict.fromkeys(("extra-binaries", "extra-examples", "candidate-files"), "")
-        self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate", "candidate-test": "", **no_extras})
+        no_extras = dict.fromkeys(("extra-binaries", "extra-examples", "candidate-files"), "") | {"windows-coverage": "false"}
+        self.assertEqual(by_name["au-tax-rates-data"], {"package": "au-tax-rates-data", "root": "packages", "binary": "rates", "smoke": "validate", "candidate-test": "", **no_extras, "windows-coverage": "true"})
+        self.assertIn("      windows-coverage: ${{ matrix.windows-coverage }}\n", caller)
         self.assertEqual(by_name["au-accounting"], {"package": "au-accounting", "root": "apps", "binary": "au-accounting", "smoke": "--version", "candidate-test": "", **no_extras})
         self.assertEqual(by_name["the-wip-tally"]["binary"], "wip-tally")
         self.assertEqual(by_name["gst-review"]["smoke"], "--api-help")

@@ -1,7 +1,8 @@
-//! Python's `re` for the patterns the records carry.
+//! Python's `re` for the adapter's own patterns.
 //!
-//! A record's `pattern` is Python regular-expression syntax read from data, so
-//! it is parsed as CPython 3.15's `re/_parser.py` parses it: the same
+//! Every pattern is fixed in the source (argparse's argument patterns and
+//! `strptime`'s), none read from data. Each is parsed as CPython 3.15's
+//! `re/_parser.py` parses it: the same
 //! `re.error` messages and positions, the same group count, and the same
 //! `OverflowError` and `ValueError` for repeat counts. The tree is then
 //! matched by a backtracking matcher that follows `_sre`: leftmost search,
@@ -30,7 +31,6 @@ pub const UNICODE: u32 = 32;
 pub const VERBOSE: u32 = 64;
 pub const ASCII: u32 = 256;
 const LOCALE: u32 = 4;
-const DEBUG: u32 = 128;
 const TYPE_FLAGS: u32 = ASCII | LOCALE | UNICODE;
 
 pub const MAXREPEAT: u64 = 4_294_967_295;
@@ -64,20 +64,18 @@ impl CompileError {
     }
 }
 
-fn pattern_error(msg: Vec<u32>, pattern: &[u32], pos: Option<usize>) -> CompileError {
+fn pattern_error(msg: Vec<u32>, pattern: &[u32], pos: usize) -> CompileError {
     let mut text = msg;
-    if let Some(pos) = pos {
-        text.extend(pts(&format!(" at position {pos}")));
-        let nl = u32::from('\n');
-        if pattern.contains(&nl) {
-            let before = &pattern[..pos.min(pattern.len())];
-            let lineno = before.iter().filter(|&&c| c == nl).count() + 1;
-            let colno = match before.iter().rposition(|&c| c == nl) {
-                Some(i) => pos - i,
-                None => pos + 1,
-            };
-            text.extend(pts(&format!(" (line {lineno}, column {colno})")));
-        }
+    text.extend(pts(&format!(" at position {pos}")));
+    let nl = u32::from('\n');
+    if pattern.contains(&nl) {
+        let before = &pattern[..pos.min(pattern.len())];
+        let lineno = before.iter().filter(|&&c| c == nl).count() + 1;
+        let colno = match before.iter().rposition(|&c| c == nl) {
+            Some(i) => pos - i,
+            None => pos + 1,
+        };
+        text.extend(pts(&format!(" (line {lineno}, column {colno})")));
     }
     CompileError::Pattern(text)
 }
@@ -234,7 +232,7 @@ impl<'p> Tokenizer<'p> {
                 return Err(pattern_error(
                     pts("bad escape (end of pattern)"),
                     self.string,
-                    Some(self.string.len() - 1),
+                    self.string.len() - 1,
                 ));
             };
             self.index = index + 2;
@@ -311,7 +309,7 @@ impl<'p> Tokenizer<'p> {
     }
 
     fn error(&self, msg: Vec<u32>, offset: usize) -> CompileError {
-        pattern_error(msg, self.string, Some(self.tell() - offset))
+        pattern_error(msg, self.string, self.tell() - offset)
     }
 
     fn checkgroupname(&self, name: &[u32], offset: usize) -> PResult<()> {
@@ -340,11 +338,10 @@ fn in_ranges(cp: u32, table: &[(u32, u32)]) -> bool {
 
 /// `str.isidentifier`.
 pub fn is_identifier(name: &[u32]) -> bool {
-    let Some((&first, rest)) = name.split_first() else {
-        return false;
-    };
-    (first == u32::from('_') || in_ranges(first, pycase::XID_START))
-        && rest.iter().all(|&c| in_ranges(c, pycase::XID_CONTINUE))
+    name.split_first().is_some_and(|(&first, rest)| {
+        (first == u32::from('_') || in_ranges(first, pycase::XID_START))
+            && rest.iter().all(|&c| in_ranges(c, pycase::XID_CONTINUE))
+    })
 }
 
 fn mapped(cp: u32, table: &[(u32, u32)]) -> u32 {
@@ -432,10 +429,10 @@ impl State {
 
     fn opengroup(&mut self, name: Option<&[u32]>) -> Result<usize, Vec<u32>> {
         let gid = self.groups();
+        // CPython refuses a group past MAXGROUPS (2^30 - 1). Each group
+        // takes at least 2 code points of pattern, and every pattern is a
+        // short literal in the source, so none comes near it.
         self.groupwidths.push(None);
-        if self.groups() > MAXGROUPS {
-            return Err(pts("too many groups"));
-        }
         if let Some(name) = name {
             if let Some(&ogid) = self.groupdict.get(name) {
                 return Err(pts(&format!(
@@ -618,16 +615,16 @@ fn unicode_escape(source: &mut Tokenizer, escape: &mut Vec<u32>) -> PResult<Opti
 }
 
 /// `_class_escape`: an escape inside a character set.
-fn class_escape(source: &mut Tokenizer, this: Tok) -> PResult<Esc> {
+fn class_escape(source: &mut Tokenizer, this: Tok) -> PResult<Item> {
     if let Some(code) = escape_lookup(this) {
-        return Ok(Esc::Node(Node::Literal(code)));
+        return Ok(Item::Literal(code));
     }
     if let Some(Esc::In(cat)) = category_lookup(this) {
-        return Ok(Esc::In(cat));
+        return Ok(Item::Category(cat));
     }
     let mut escape = this.points();
     if let Some(value) = unicode_escape(source, &mut escape)? {
-        return Ok(Esc::Node(Node::Literal(value)));
+        return Ok(Item::Literal(value));
     }
     let c = escape[1];
     if (u32::from('0')..=u32::from('7')).contains(&c) {
@@ -639,18 +636,16 @@ fn class_escape(source: &mut Tokenizer, this: Tok) -> PResult<Esc> {
             msg.extend(pts(" outside of range 0-0o377"));
             return Err(source.error(msg, escape.len()));
         }
-        return Ok(Esc::Node(Node::Literal(value)));
+        return Ok(Item::Literal(value));
     }
-    if c == u32::from('8') || c == u32::from('9') {
+    // unicode_escape leaves a two-character escape as it found it.
+    if c == u32::from('8')
+        || c == u32::from('9')
+        || char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic())
+    {
         return Err(bad_escape(source, &escape));
     }
-    if escape.len() == 2 {
-        if char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic()) {
-            return Err(bad_escape(source, &escape));
-        }
-        return Ok(Esc::Node(Node::Literal(c)));
-    }
-    Err(bad_escape(source, &escape))
+    Ok(Item::Literal(c))
 }
 
 /// `_escape`: an escape outside a character set.
@@ -701,13 +696,11 @@ fn escape(source: &mut Tokenizer, this: Tok, state: &State) -> PResult<Esc> {
             escape.len() - 1,
         ));
     }
-    if escape.len() == 2 {
-        if char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic()) {
-            return Err(bad_escape(source, &escape));
-        }
-        return Ok(Esc::Node(Node::Literal(c)));
+    // unicode_escape leaves a two-character escape as it found it.
+    if char::from_u32(c).is_some_and(|c| c.is_ascii_alphabetic()) {
+        return Err(bad_escape(source, &escape));
     }
-    Err(bad_escape(source, &escape))
+    Ok(Esc::Node(Node::Literal(c)))
 }
 
 fn esc_node(code: Esc) -> Node {
@@ -890,7 +883,7 @@ fn parse_inner(
                 let code1 = if this.escaped.is_some() {
                     class_escape(source, this)?
                 } else {
-                    Esc::Node(Node::Literal(this.c))
+                    Item::Literal(this.c)
                 };
                 if source.matches('-')? {
                     let Some(that) = source.get()? else {
@@ -899,14 +892,14 @@ fn parse_inner(
                         );
                     };
                     if that.is(']') {
-                        set.push(esc_item(&code1));
+                        set.push(code1);
                         set.push(Item::Literal(u32::from('-')));
                         break;
                     }
                     let code2 = if that.escaped.is_some() {
                         class_escape(source, that)?
                     } else {
-                        Esc::Node(Node::Literal(that.c))
+                        Item::Literal(that.c)
                     };
                     let bad = || {
                         let mut msg = pts("bad character range ");
@@ -915,17 +908,15 @@ fn parse_inner(
                         msg.extend(that.points());
                         source.error(msg, this.len() + 1 + that.len())
                     };
-                    let (Esc::Node(Node::Literal(lo)), Esc::Node(Node::Literal(hi))) =
-                        (&code1, &code2)
-                    else {
+                    let (Item::Literal(lo), Item::Literal(hi)) = (code1, code2) else {
                         return Err(bad());
                     };
                     if hi < lo {
                         return Err(bad());
                     }
-                    set.push(Item::Range(*lo, *hi));
+                    set.push(Item::Range(lo, hi));
                 } else {
-                    set.push(esc_item(&code1));
+                    set.push(code1);
                 }
             }
             let set = uniq(set);
@@ -1250,15 +1241,6 @@ fn parse_inner(
     Ok(out)
 }
 
-fn esc_item(code: &Esc) -> Item {
-    match code {
-        Esc::In(cat) => Item::Category(*cat),
-        Esc::Node(Node::Literal(c)) => Item::Literal(*c),
-        // class_escape returns only literals and categories.
-        Esc::Node(_) => Item::Negate,
-    }
-}
-
 fn flag_bit(c: u32) -> Option<u32> {
     Some(match char::from_u32(c)? {
         'i' => IGNORECASE,
@@ -1321,9 +1303,6 @@ fn parse_flags(
         state.flags |= add_flags;
         return Ok(None);
     }
-    if add_flags & DEBUG != 0 {
-        return Err(source.error(pts("bad inline flags: cannot turn on global flag"), 1));
-    }
     if char.is('-') {
         let Some(next) = source.get()? else {
             return Err(source.error(pts("missing flag"), 0));
@@ -1362,9 +1341,6 @@ fn parse_flags(
                 return Err(source.error(pts(msg), char.len()));
             }
         }
-    }
-    if del_flags & DEBUG != 0 {
-        return Err(source.error(pts("bad inline flags: cannot turn off global flag"), 1));
     }
     if add_flags & del_flags != 0 {
         return Err(source.error(pts("bad inline flags: flag turned on and off"), 1));
@@ -1804,7 +1780,7 @@ pub fn compile(pattern: &[u32], flags: u32) -> Result<Pattern, CompileError> {
             return Err(pattern_error(
                 pts(&format!("invalid group reference {g}")),
                 pattern,
-                Some(pos),
+                pos,
             ));
         }
     }
@@ -1899,13 +1875,6 @@ fn seq(nodes: &[M], i: usize, pos: usize, ctx: &mut Ctx, k: K) -> bool {
     let Some(node) = nodes.get(i) else {
         return k(pos, ctx);
     };
-    if let M::Char(test) = node {
-        // A run of single characters needs no continuation frame each.
-        if pos < ctx.text.len() && test.matches(ctx.text[pos]) {
-            return seq(nodes, i + 1, pos + 1, ctx, k);
-        }
-        return false;
-    }
     one(node, pos, ctx, &mut |p, ctx| seq(nodes, i + 1, p, ctx, k))
 }
 

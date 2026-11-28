@@ -285,16 +285,16 @@ pub fn evaluate(benefit: &CarBenefit, client: Option<&mut Client<'_>>) -> R<Comp
             ..common
         });
     }
+    // `except ClassificationRequired`: the only error `request` raises.
     let body = match benefit.request() {
         Ok(body) => body,
-        Err(error) if error.class == CLASSIFICATION_REQUIRED => {
+        Err(error) => {
             return Ok(Comparison {
                 evaluation: Evaluation::ScopeMismatch,
                 reasons: vec![error.text],
                 ..common
             });
         }
-        Err(error) => return Err(error),
     };
     let Some(client) = client else {
         return Ok(Comparison {
@@ -381,22 +381,15 @@ pub fn evaluate_outcome(benefit: &CarBenefit, outcome: &Outcome) -> R<Comparison
         ("grossed_up_taxable_value", local_grossed),
         ("fbt_payable", "fbt_estimate"),
     ] {
-        match (
-            get(&upstream, &pts(upstream_name)),
-            get(&local, &pts(local_name)),
-        ) {
-            (Some(theirs), Some(mine)) => {
-                compared.push((upstream_name, mine.clone(), theirs.clone()));
-            }
-            (Some(_), None) => reasons.push(pts(&format!(
-                "{upstream_name}: the provider returned a figure and the local worksheet \
-                 produced no {local_name}"
-            ))),
-            (None, Some(_)) => reasons.push(pts(&format!(
+        // `engine::fbt` returns every FBT_STEPS amount, both grossed-up
+        // values and fbt_estimate among them: only the provider's can be missing.
+        let mine = get(&local, &pts(local_name)).expect("an aggregate worksheet amount");
+        match get(&upstream, &pts(upstream_name)) {
+            Some(theirs) => compared.push((upstream_name, mine.clone(), theirs.clone())),
+            None => reasons.push(pts(&format!(
                 "{local_name}: the local worksheet produced a figure and the provider returned \
                  no {upstream_name}"
             ))),
-            (None, None) => {}
         }
     }
     compared.sort_by(|a, b| a.0.cmp(b.0));
@@ -451,6 +444,52 @@ pub fn evaluate_outcome(benefit: &CarBenefit, outcome: &Outcome) -> R<Comparison
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_worksheet_failure_is_raised_as_the_python_worksheet_raised_it() {
+        use australian_tax_calculators::decimal::Signal as EngineSignal;
+        let shown = |e: Exc| {
+            (
+                e.class,
+                e.text
+                    .iter()
+                    .filter_map(|&c| char::from_u32(c))
+                    .collect::<String>(),
+            )
+        };
+        let value = engine::Error::Value {
+            code: "fbt.days",
+            message: "days must be positive".into(),
+        };
+        assert_eq!(
+            shown(worksheet_error(value)),
+            ("ValueError", "days must be positive".into())
+        );
+        // The decimal module's `str()` of each trapped signal.
+        let signals = [
+            (
+                EngineSignal::InvalidOperation,
+                "decimal.InvalidOperation",
+                "[<class 'decimal.InvalidOperation'>]",
+            ),
+            (
+                EngineSignal::DivisionByZero,
+                "decimal.DivisionByZero",
+                "[<class 'decimal.DivisionByZero'>]",
+            ),
+            (
+                EngineSignal::Overflow,
+                "decimal.Overflow",
+                "[<class 'decimal.Overflow'>]",
+            ),
+        ];
+        for (signal, class, text) in signals {
+            assert_eq!(
+                shown(worksheet_error(engine::Error::Decimal(signal))),
+                (class, text.into())
+            );
+        }
+    }
 
     fn dec(text: &str) -> Decimal {
         Decimal::parse_exact(text).expect("a literal")

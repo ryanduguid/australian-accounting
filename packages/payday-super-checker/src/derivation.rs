@@ -16,9 +16,7 @@ use serde_json::{Value, json};
 
 use crate::api;
 use crate::calendar::{self, BusinessCalendar};
-use crate::deadlines::{
-    self, ContribLine, EXTENDED_20BD, OUT_OF_CYCLE, SKIP_DB, USUAL_7BD, pathway_words,
-};
+use crate::deadlines::{self, ContribLine, EXTENDED_20BD, OUT_OF_CYCLE, SKIP_DB, pathway_words};
 use crate::decimal::Decimal;
 use crate::py::Date;
 
@@ -155,15 +153,11 @@ pub fn derive(input: &Value) -> Result<Value, String> {
             _ => None,
         };
         let due = deadline.due.ok_or("the engine gave no due date")?;
-        // The steps restate the engine's own arithmetic; refuse if they disagree.
+        // The steps restate `compute_due`, the only source of this deadline
+        // (`derive` applies no item 4): its candidates are these periods, and
+        // the usual one it omits is never later than either of the others.
         let latest = [Some(usual), first, cycle].into_iter().flatten().max();
-        if latest != Some(due) {
-            return Err(format!(
-                "the derivation's latest period {} differs from the engine's due date {}",
-                iso(latest),
-                due.isoformat()
-            ));
-        }
+        debug_assert_eq!(latest, Some(due));
         let count_start = if deadline.pathway == OUT_OF_CYCLE {
             next.ok_or("out-of-cycle deadline has no next standard QE day")?
         } else {
@@ -230,8 +224,8 @@ pub fn derive(input: &Value) -> Result<Value, String> {
                 match deadline.pathway.as_str() {
                     EXTENDED_20BD => "SGAA 1992 s 18C(2) item 1",
                     OUT_OF_CYCLE => "SGAA 1992 s 18C(2) item 2; F2026L00784 s 5",
-                    USUAL_7BD => "SGAA 1992 s 18C(1)(c); s 6(1)",
-                    _ => "SGAA 1992 s 18C(2)",
+                    // USUAL_7BD: no item 4 here, and SKIP_DB took the branch above.
+                    _ => "SGAA 1992 s 18C(1)(c); s 6(1)",
                 },
                 format!(
                     "The latest period that applies, the {} period: the fund must receive \

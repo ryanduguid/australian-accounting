@@ -77,10 +77,6 @@ impl Assessed {
     pub fn is_exposed(&self) -> bool {
         EXPOSED.contains(&self.verdict.as_str())
     }
-
-    pub fn warnings(&self) -> Vec<String> {
-        self.caveats.iter().chain(&self.notes).cloned().collect()
-    }
 }
 
 fn date_problem(line: &ContribLine) -> Option<String> {
@@ -162,25 +158,26 @@ fn same_decimal(a: &Decimal, b: &Decimal) -> Result<bool> {
 
 impl DuplicateKey {
     fn same(&self, other: &DuplicateKey) -> Result<bool> {
-        let optional = |a: &Option<Decimal>, b: &Option<Decimal>| -> Result<bool> {
-            match (a, b) {
-                (None, None) => Ok(true),
-                (Some(a), Some(b)) => same_decimal(a, b),
-                _ => Ok(false),
-            }
+        // A remitted amount is present exactly when there is a remittance
+        // date, and this runs only once the dates are equal, so the two are
+        // both present or both absent.
+        let remitted = || match (
+            &self.effective_remitted_amount,
+            &other.effective_remitted_amount,
+        ) {
+            (Some(a), Some(b)) => same_decimal(a, b),
+            _ => Ok(true),
         };
+        let matched = (
+            &self.effective_matched_amount,
+            &other.effective_matched_amount,
+        );
         Ok(self.employee_id == other.employee_id
             && self.qe_day == other.qe_day
             && same_decimal(&self.sg_amount, &other.sg_amount)?
             && self.remitted == other.remitted
-            && optional(
-                &self.effective_remitted_amount,
-                &other.effective_remitted_amount,
-            )?
-            && same_decimal(
-                &self.effective_matched_amount,
-                &other.effective_matched_amount,
-            )?
+            && remitted()?
+            && same_decimal(matched.0, matched.1)?
             && self.received == other.received
             && self.flags == other.flags)
     }
@@ -475,10 +472,8 @@ fn assessment_facts(result: &mut Assessed, cal: &BusinessCalendar, as_at: Date) 
         }
     }
     let credit = remitted_credit(&line, remitted)?;
-    let mut operational_unremitted = cents(Some(&line.sg_amount))?.sub(&credit)?;
-    if operational_unremitted.lt(&zero())? {
-        operational_unremitted = zero();
-    }
+    // `remitted_credit` never exceeds the cents of `sg_amount`, so this is never negative.
+    let operational_unremitted = cents(Some(&line.sg_amount))?.sub(&credit)?;
     let fully_remitted = operational_unremitted.is_zero();
     let receipt_credit = received_credit(&line, settled)?;
     let receipt_amount_unevidenced =
@@ -1344,15 +1339,11 @@ fn tally_receipts(
         if needs_allocation {
             weigh_allocation(result, terms, &mut tally, &r, &credit, window)?;
         }
-        place_receipt(
-            result,
-            terms,
-            &mut tally,
-            &r,
-            &credit,
-            window,
-            needs_allocation,
-        )?;
+        match place_receipt(result, terms, &mut tally, &r, window) {
+            Placed::OnTime => tally.on_time = tally.on_time.add(&credit)?,
+            Placed::Undecided => {}
+            Placed::Late => count_late_receipt(terms, &mut tally, &r, &credit, needs_allocation)?,
+        }
     }
     Ok(tally)
 }
@@ -1416,22 +1407,27 @@ fn weigh_allocation(
     Ok(())
 }
 
-/// Count one kept receipt as on time, undecided or late.
+enum Placed {
+    OnTime,
+    Undecided,
+    Late,
+}
+
+/// Whether one kept receipt is on time, undecided (saying why) or late.
 fn place_receipt(
     result: &mut Assessed,
     terms: &EventTerms,
     tally: &mut ReceiptTally,
     r: &returned::Receipt,
-    credit: &Decimal,
     window: Date,
-    needs_allocation: bool,
-) -> Result<()> {
+) -> Placed {
     let due = terms.due;
     let possible = terms.possible;
     let past_horizon = terms.past_horizon;
     if r.date <= window {
-        tally.on_time = tally.on_time.add(credit)?;
-    } else if r.date <= due {
+        return Placed::OnTime;
+    }
+    if r.date <= due {
         tally.undecided = true;
         result.caveats.push(format!(
             "the receipt dated {} is not the first eligible contribution, because the \
@@ -1452,9 +1448,9 @@ fn place_receipt(
             result.caveats.push(item4_unknown_text(p));
         }
     } else {
-        count_late_receipt(terms, tally, r, credit, needs_allocation)?;
+        return Placed::Late;
     }
-    Ok(())
+    Placed::Undecided
 }
 
 /// Count a late receipt towards the shortfall if it came before any assessment.

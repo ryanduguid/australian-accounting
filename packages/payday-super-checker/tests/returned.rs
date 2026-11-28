@@ -438,6 +438,12 @@ fn malformed_events_are_refused_and_never_dropped() {
         "E1,2026-08-06,returned,2026-08-12,5.00,,\n",
         "Fill receipt_date",
     );
+    // Events are this crate's own input (the Python engine has no --events):
+    // a return that names no receipt is capped at the amount owed.
+    refuse(
+        "E1,2026-08-06,returned,2026-08-12,150.00,,\n",
+        "a return naming no receipt cannot be more than sg_amount",
+    );
     refuse(
         "E1,2026-08-06,returned,2026-08-12,5.00,2026-08-10,2026-08-09\n",
         "cannot be told",
@@ -1324,4 +1330,64 @@ fn identical_allocation_entries_are_refused() {
         run.stderr
     );
     assert!(run.rows.is_empty());
+}
+
+/// An out-of-cycle first contribution: a later receipt is on time only to the
+/// 7th business day after the next standard payday (13 August), 24 August.
+#[test]
+fn a_later_receipt_on_an_out_of_cycle_first_contribution_runs_from_the_next_payday() {
+    let row =
+        "E1,2026-08-06,120.00,2026-08-07,2026-08-10,yes,yes,2026-08-13,no,120.00,120.00,,no\n";
+    let run = |on: &str| {
+        with_events(
+            row,
+            &format!("{RETURN_PART}{KEPT_PART}{}", resent(on, "40.00")),
+            "2026-09-20",
+        )
+    };
+    let inside = run("2026-08-24");
+    assert_eq!(inside.field(0, "due_date"), "2026-09-03");
+    assert_eq!(inside.field(0, "verdict"), "ON_TIME");
+    let gap = run("2026-08-25");
+    assert_unresolved(&gap, 0, "LATE or ON_TIME");
+    assert!(
+        gap.field(0, "caveats")
+            .contains("on time only to 2026-08-24")
+    );
+}
+
+/// Item 4 carries a later receipt on a first contribution to the aligned
+/// deadline, 14 September, not only to its own.
+#[test]
+fn an_aligned_first_contribution_keeps_the_aligned_deadline_for_a_later_receipt() {
+    let earlier =
+        "E1,2026-08-06,120.00,2026-08-07,2026-08-10,no,yes,2026-09-03,no,120.00,120.00,,no\n";
+    let later = "E1,2026-08-13,120.00,2026-08-14,2026-08-17,yes,no,,no,120.00,120.00,,no\n";
+    let events = "E1,2026-08-13,returned,2026-08-19,40.00,2026-08-17,\n\
+                  E1,2026-08-13,allocated,2026-08-18,80.00,2026-08-17,\n\
+                  E1,2026-08-13,received,2026-09-11,40.00,,\n\
+                  E1,2026-08-13,allocated,2026-09-11,40.00,2026-09-11,\n";
+    let run = with_events(&format!("{earlier}{later}"), events, "2026-09-20");
+    assert_eq!(run.field(1, "pathway"), "ITEM4_ALIGNED", "{}", run.stderr);
+    assert_eq!(run.field(1, "due_date"), "2026-09-14");
+    assert_eq!(run.field(1, "verdict"), "ON_TIME");
+}
+
+/// A first kept receipt after the deadline but within the item 4 date an
+/// earlier, unevidenced payday could give is undecided, naming that date.
+#[test]
+fn a_receipt_inside_a_possible_item_4_extension_is_undecided() {
+    let earlier = "E1,2026-08-06,120.00,2026-08-07,,yes,no,,no,120.00,120.00,,no\n";
+    let later = "E1,2026-08-13,120.00,2026-08-14,2026-08-17,no,no,,no,120.00,120.00,,no\n";
+    let events = "E1,2026-08-13,returned,2026-08-19,120.00,2026-08-17,\n\
+                  E1,2026-08-13,received,2026-08-28,120.00,,\n\
+                  E1,2026-08-13,allocated,2026-08-28,120.00,2026-08-28,\n";
+    let run = with_events(&format!("{earlier}{later}"), events, "2026-09-20");
+    assert_eq!(run.code, 2, "{}", run.stderr);
+    assert_eq!(run.field(1, "due_date"), "2026-08-24");
+    assert_eq!(run.field(1, "verdict"), "UNKNOWN");
+    assert!(
+        run.field(1, "caveats")
+            .contains("could extend this deadline to 2026-09-03")
+    );
 }

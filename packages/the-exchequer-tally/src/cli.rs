@@ -16,7 +16,7 @@ struct Opt {
     flag: &'static str,
     dest: &'static str,
     required: bool,
-    help: Option<&'static str>,
+    help: &'static str,
 }
 
 struct Command {
@@ -25,12 +25,7 @@ struct Command {
     options: &'static [Opt],
 }
 
-const fn opt(
-    flag: &'static str,
-    dest: &'static str,
-    required: bool,
-    help: Option<&'static str>,
-) -> Opt {
+const fn opt(flag: &'static str, dest: &'static str, required: bool, help: &'static str) -> Opt {
     Opt {
         flag,
         dest,
@@ -44,29 +39,19 @@ static COMMANDS: [Command; 2] = [
         name: "bre-test",
         help: "Test Base Rate Entity (BRE) eligibility under s 23AA ITRA 1986",
         options: &[
-            opt(
-                "--fy",
-                "FY",
-                true,
-                Some("Financial Year ending (e.g. 2025)"),
-            ),
-            opt(
-                "--turnover",
-                "TURNOVER",
-                true,
-                Some("Aggregated turnover ($)"),
-            ),
+            opt("--fy", "FY", true, "Financial Year ending (e.g. 2025)"),
+            opt("--turnover", "TURNOVER", true, "Aggregated turnover ($)"),
             opt(
                 "--assessable",
                 "ASSESSABLE",
                 true,
-                Some("Total assessable income ($)"),
+                "Total assessable income ($)",
             ),
             opt(
                 "--passive",
                 "PASSIVE",
                 true,
-                Some("Base Rate Entity Passive Income ($)"),
+                "Base Rate Entity Passive Income ($)",
             ),
         ],
     },
@@ -74,34 +59,32 @@ static COMMANDS: [Command; 2] = [
         name: "dist-statement",
         help: "Generate distribution statement details",
         options: &[
-            opt("--entity", "ENTITY", true, Some("Company name")),
-            opt("--acn", "ACN", true, Some("ACN or ABN")),
-            opt("--recipient", "RECIPIENT", true, Some("Shareholder name")),
+            opt("--entity", "ENTITY", true, "Company name"),
+            opt("--acn", "ACN", true, "ACN or ABN"),
+            opt("--recipient", "RECIPIENT", true, "Shareholder name"),
             opt(
                 "--payment-date",
                 "PAYMENT_DATE",
                 true,
-                Some("Actual payment date YYYY-MM-DD"),
+                "Actual payment date YYYY-MM-DD",
             ),
             opt(
                 "--amount",
                 "AMOUNT",
                 true,
-                Some("Total dividend distribution ($)"),
+                "Total dividend distribution ($)",
             ),
             opt(
                 "--franking-pct",
                 "FRANKING_PCT",
                 false,
-                Some("Franking percentage (e.g. 100)"),
+                "Franking percentage (e.g. 100)",
             ),
             opt(
                 "--tax-rate",
                 "TAX_RATE",
                 true,
-                Some(
-                    "Corporate tax rate for the entity, e.g. 0.25 or 0.30. Required: it is not assumed",
-                ),
+                "Corporate tax rate for the entity, e.g. 0.25 or 0.30. Required: it is not assumed",
             ),
         ],
     },
@@ -160,15 +143,10 @@ fn wrapped_usage(prog: &str, opt_parts: &[Part], pos_parts: &[Part], text_width:
             plain: prog.to_string(),
             coloured: prog.to_string(),
         }];
-        let lines = if !opt_parts.is_empty() {
-            head.extend(opt_parts.iter().cloned());
-            let mut lines = get_lines(&head, &indent, true);
-            lines.extend(get_lines(pos_parts, &indent, false));
-            lines
-        } else {
-            head.extend(pos_parts.iter().cloned());
-            get_lines(&head, &indent, true)
-        };
+        // Both main_usage and command_usage always include -h in opt_parts.
+        head.extend(opt_parts.iter().cloned());
+        let mut lines = get_lines(&head, &indent, true);
+        lines.extend(get_lines(pos_parts, &indent, false));
         return lines.join("\n")[prog.len()..].to_string();
     }
     let indent = " ".repeat(prefix_len);
@@ -212,7 +190,7 @@ fn usage_lines(
     lines
 }
 
-type Row<'a> = (usize, Part, Option<&'a str>);
+type Row<'a> = (usize, Part, &'a str);
 
 /// The rows of one help section; argparse aligns help text across every section of a parser.
 fn action_rows(rows: &[Row], all: &[Row]) -> String {
@@ -229,10 +207,6 @@ fn action_rows(rows: &[Row], all: &[Row]) -> String {
     for (indent, header, help) in rows {
         let action_width = help_position.saturating_sub(indent + 2);
         let pad = " ".repeat(*indent);
-        let Some(help) = help else {
-            out.push_str(&format!("{pad}{}\n", header.coloured));
-            continue;
-        };
         let lines = wrap(help, help_width);
         if pytext::py_len(&header.plain) <= action_width {
             // argparse pads the plain header, then swaps the coloured one in.
@@ -305,14 +279,14 @@ fn main_help(prog: &str, t: &Theme) -> String {
     let mut positional: Vec<Row> = vec![(
         2,
         coloured(&choices(), t.action, t),
-        Some("Available subcommands"),
+        "Available subcommands",
     )];
     positional.extend(
         COMMANDS
             .iter()
-            .map(|c| (4, coloured(c.name, t.action, t), Some(c.help))),
+            .map(|c| (4, coloured(c.name, t.action, t), c.help)),
     );
-    let options: Vec<Row> = vec![(2, help_header(t), Some(HELP_HELP))];
+    let options: Vec<Row> = vec![(2, help_header(t), HELP_HELP)];
     let all: Vec<Row> = positional.iter().chain(&options).cloned().collect();
     let (positional, options) = (action_rows(&positional, &all), action_rows(&options, &all));
     let description = wrap(DESCRIPTION, width().max(11)).join("\n");
@@ -352,7 +326,7 @@ fn command_usage(prog: &str, command: &Command, t: &Theme) -> String {
 }
 
 fn command_help(prog: &str, command: &Command, t: &Theme) -> String {
-    let mut rows = vec![(2, help_header(t), Some(HELP_HELP))];
+    let mut rows = vec![(2, help_header(t), HELP_HELP)];
     rows.extend(command.options.iter().map(|o| {
         let plain = format!("{} {}", o.flag, o.dest);
         let colour = format!(
@@ -561,11 +535,14 @@ fn option_prefix_matches<'a>(
 fn looks_like_negative_number(body: &str) -> bool {
     let digit = |c: char| pytext::decimal_value(c as u32).is_some();
     let mut chars = body.chars();
-    match chars.next() {
-        Some('.') => chars.next().is_some_and(digit),
-        Some(c) => digit(c),
-        None => false,
-    }
+    // Called only on &token[1..] when py_len(token) > 1, so body is non-empty.
+    chars.next().is_some_and(|c| {
+        if c == '.' {
+            chars.next().is_some_and(digit)
+        } else {
+            digit(c)
+        }
+    })
 }
 
 /// argparse's handling of an explicit argument given to the zero-argument help flag.
@@ -978,4 +955,19 @@ pub fn output_bytes(text: &str, stderr: bool) -> Vec<u8> {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn opt_constructor_and_empty_sequence_ratio_work_at_runtime() {
+        let o = opt("--flag", "DEST", false, "Help");
+        assert_eq!(
+            (o.flag, o.dest, o.required, o.help),
+            ("--flag", "DEST", false, "Help")
+        );
+        assert_eq!(sequence_ratio(&[], &[]), 1.0);
+    }
 }

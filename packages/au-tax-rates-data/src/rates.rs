@@ -30,7 +30,7 @@ use std::time::{Duration, Instant};
 use num_bigint::BigInt;
 use num_traits::Zero;
 
-use crate::argparse::{Action, Exit, Parser, Value};
+use crate::argparse::{Action, Exit, Namespace, Parser, Value};
 use crate::decimal::{Conversion, Decimal, Rounding, Signal};
 use crate::py::{self, Date};
 use crate::pyjson::{self, DecodeError, Json, PyStr};
@@ -153,13 +153,11 @@ const ATO_TABLE_FIGURES: [(&str, &str, (&str, &str), Reader); 7] = [
 static INCOME_YEAR: LazyLock<Pattern> = LazyLock::new(|| sre::compile_str(r"^\d{4}-\d{2}$", 0));
 static QC_LINE: LazyLock<Pattern> = LazyLock::new(|| sre::compile_str(r"QC\s?\d+", 0));
 /// `glob.translate("*.json", include_hidden=True)`, case-insensitive on Windows.
-static JSON_NAME: LazyLock<Pattern> = LazyLock::new(|| {
-    if cfg!(windows) {
-        sre::compile_str(r"(?s:[^\\]*\.json)\z", sre::IGNORECASE)
-    } else {
-        sre::compile_str(r"(?s:[^/]*\.json)\z", 0)
-    }
-});
+#[cfg(windows)]
+const JSON_GLOB: (&str, u32) = (r"(?s:[^\\]*\.json)\z", sre::IGNORECASE);
+#[cfg(not(windows))]
+const JSON_GLOB: (&str, u32) = (r"(?s:[^/]*\.json)\z", 0);
+static JSON_NAME: LazyLock<Pattern> = LazyLock::new(|| sre::compile_str(JSON_GLOB.0, JSON_GLOB.1));
 static NUMBER: LazyLock<[(&str, Pattern); 4]> = LazyLock::new(|| {
     [
         ("AUD", r"^\$?([\d,]+(?:\.\d+)?)( million)?$"),
@@ -563,26 +561,23 @@ fn sorted_set(values: Vec<Json>) -> R<Vec<Json>> {
     if unique.len() < 2 {
         return Ok(unique);
     }
+    // A hashable value is None, a number or a str, and None orders with
+    // nothing; so once each neighbour pair compares, every value is a number
+    // or every value is a str, and no comparison in the sort can fail.
     for pair in unique.windows(2) {
         py_compare(&pair[1], &pair[0], "<")?;
     }
-    let mut error = None;
+    let less = |a: &Json, b: &Json| py_compare(a, b, "<").unwrap_or(false);
     unique.sort_by(|a, b| {
-        if py_compare(a, b, "<").unwrap_or_else(|e| {
-            error.get_or_insert(e);
-            false
-        }) {
+        if less(a, b) {
             Ordering::Less
-        } else if py_compare(b, a, "<").unwrap_or(false) {
+        } else if less(b, a) {
             Ordering::Greater
         } else {
             Ordering::Equal
         }
     });
-    match error {
-        Some(e) => Err(e),
-        None => Ok(unique),
-    }
+    Ok(unique)
 }
 
 /// `Decimal(value)` for a decoded JSON value.
@@ -750,12 +745,14 @@ struct Ctx {
     snapshots: PyPath,
 }
 
+#[cfg(feature = "differential")]
 fn env(name: &str) -> Option<String> {
-    if cfg!(feature = "differential") {
-        std::env::var(name).ok()
-    } else {
-        None
-    }
+    std::env::var(name).ok()
+}
+
+#[cfg(not(feature = "differential"))]
+fn env(_: &str) -> Option<String> {
+    None
 }
 
 impl Ctx {
@@ -857,13 +854,13 @@ fn load_records(ctx: &Ctx) -> R<Vec<Json>> {
 /// `Path.write_text(text, encoding="utf-8")`: the file is truncated before a
 /// lone surrogate fails the strict encoding.
 fn write_text(path: Option<&Path>, display: &[u32], text: &[u32]) -> R<()> {
-    let display = pyvalue::points_lossy(display);
     let Some(path) = path else {
         return Err(Exc::msg(
             "UnicodeEncodeError",
-            &pyvalue::utf8_strict_error(&pts(&display)).unwrap_or_default(),
+            &pyvalue::utf8_strict_error(display).unwrap_or_default(),
         ));
     };
+    let display = pyvalue::points_lossy(display);
     let mut file = std::fs::File::create(path)
         .map_err(|e| os_exc(&OsError::new(&e, Some(&display), pyos::Style::Errno)))?;
     let text = line_ends(text);
@@ -1036,10 +1033,11 @@ impl<W: Write> Out<W> {
 
 /// Text-mode output on Windows writes each `\n` as `\r\n`, translated before
 /// the encoding, so an encoding error counts the added `\r`s.
+#[cfg(windows)]
 fn line_ends(text: &[u32]) -> S {
     let mut out = Vec::with_capacity(text.len());
     for &cp in text {
-        if cfg!(windows) && cp == 10 {
+        if cp == 10 {
             out.push(13);
         }
         out.push(cp);
@@ -1047,11 +1045,14 @@ fn line_ends(text: &[u32]) -> S {
     out
 }
 
+#[cfg(not(windows))]
+fn line_ends(text: &[u32]) -> S {
+    text.to_vec()
+}
+
 /// [`line_ends`] for bytes already encoded.
+#[cfg(windows)]
 fn newlines(bytes: &[u8]) -> Vec<u8> {
-    if !cfg!(windows) {
-        return bytes.to_vec();
-    }
     let mut out = Vec::with_capacity(bytes.len());
     for &b in bytes {
         if b == b'\n' {
@@ -1062,7 +1063,30 @@ fn newlines(bytes: &[u8]) -> Vec<u8> {
     out
 }
 
+#[cfg(not(windows))]
+fn newlines(bytes: &[u8]) -> Vec<u8> {
+    bytes.to_vec()
+}
+
 // ---------------------------------------------------------------- checks
+
+/// `subprocess`'s `ValueError` for an argument holding U+0000.
+#[cfg(windows)]
+const EMBEDDED_NULL: &str = "embedded null character";
+#[cfg(not(windows))]
+const EMBEDDED_NULL: &str = "embedded null byte";
+
+/// The `OSError` `subprocess.run` raises when the program cannot start: the
+/// Windows message names no file, the POSIX one names the program.
+#[cfg(windows)]
+fn spawn_error(e: &std::io::Error, _program: &str) -> OsError {
+    OsError::new(e, None, pyos::Style::Native)
+}
+
+#[cfg(not(windows))]
+fn spawn_error(e: &std::io::Error, program: &str) -> OsError {
+    OsError::new(e, Some(program), pyos::Style::Errno)
+}
 
 /// `check_value(unit, value)`.
 fn check_value(unit: &str, value: &Json) -> R<Vec<S>> {
@@ -1268,9 +1292,13 @@ fn validate_record(record: &Json, page_text: Option<&[u32]>) -> R<Vec<S>> {
     if !has(record, "value") {
         problems.push(pts("missing: value"));
     }
-    if !problems.is_empty() {
+    let period_pairs = match record.get("period") {
+        Some(Json::Object(pairs)) => Some(pairs.as_slice()),
+        _ => None,
+    };
+    let (Some(pairs), true) = (period_pairs, problems.is_empty()) else {
         return Ok(problems);
-    }
+    };
     let unit = record.at("unit");
     let Some(unit_name) = unit.as_str().filter(|u| UNITS.contains(u)) else {
         return Ok(vec![p!("unknown unit ", repr_s(unit))]);
@@ -1291,9 +1319,6 @@ fn validate_record(record: &Json, page_text: Option<&[u32]>) -> R<Vec<S>> {
         }
     }
     let period = record.at("period");
-    let Json::Object(pairs) = period else {
-        unreachable!("FIELDS checked the period is a dict");
-    };
     if pairs.is_empty()
         || pairs
             .iter()
@@ -1505,19 +1530,13 @@ fn pattern_problem(record: &Json, pattern: &Json, text: &[u32]) -> R<Option<S>> 
     };
     let captured = &text[start..end];
     let found = parse_text(unit, captured)?;
-    let unit = getitem(record, "unit")?;
     let value = getitem(record, "value")?;
-    let changed = if py_eq(unit, &Json::str("date")) {
-        let Found::Date(iso) = &found else {
-            unreachable!("a date unit reads a date")
-        };
-        !py_eq(&json_str(iso.clone()), value)
-    } else {
-        let expected = str_decimal(value)?;
-        let Found::Number(found) = &found else {
-            unreachable!("a number unit reads a number")
-        };
-        !calc(found.equals(&expected))?
+    let changed = match &found {
+        Found::Date(iso) => !py_eq(&json_str(iso.clone()), value),
+        Found::Number(found) => {
+            let expected = str_decimal(value)?;
+            !calc(found.equals(&expected))?
+        }
     };
     Ok(changed.then(|| p!("value changed: ", str_points(value), " -> ", captured)))
 }
@@ -1556,6 +1575,7 @@ fn parse_text(unit: &Json, text: &[u32]) -> R<Found> {
 // ---------------------------------------------------------------- the browser
 
 fn browser_command() -> Vec<String> {
+    #[cfg(feature = "differential")]
     if let Some(list) = env("RATES_BROWSER")
         && let Ok(Json::Array(items)) = pyjson::loads_standard(&list)
     {
@@ -1583,11 +1603,7 @@ fn run_with_limit(command: &[Json], limit: Duration) -> R<(i64, Option<String>, 
         let points = points_of(s);
         let os = pyos::os_string(&points).map_err(|m| Exc::msg("UnicodeEncodeError", &m))?;
         if points.contains(&0) {
-            return Err(value_error(pts(if cfg!(windows) {
-                "embedded null character"
-            } else {
-                "embedded null byte"
-            })));
+            return Err(value_error(pts(EMBEDDED_NULL)));
         }
         args.push(os);
     }
@@ -1597,13 +1613,7 @@ fn run_with_limit(command: &[Json], limit: Duration) -> R<(i64, Option<String>, 
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .map_err(|e| {
-            os_exc(&if cfg!(windows) {
-                OsError::new(&e, None, pyos::Style::Native)
-            } else {
-                OsError::new(&e, Some(&program), pyos::Style::Errno)
-            })
-        })?;
+        .map_err(|e| os_exc(&spawn_error(&e, &program)))?;
     // Each pipe drains on its own thread, which reports on the channel.
     let (sender, drained) = std::sync::mpsc::channel();
     let pipes: [Option<Box<dyn Read + Send>>; 2] = [
@@ -1800,7 +1810,8 @@ type Page = Result<S, Exc>;
 struct World<'a> {
     fetch: &'a mut dyn FnMut(&Json) -> R<S>,
     pause: bool,
-    get: &'a mut dyn FnMut(&str, &str) -> TableResponse,
+    table_host: &'a str,
+    get: &'a mut dyn FnMut(&str, &str, &str) -> TableResponse,
 }
 
 /// `fetch_all(urls)`, pausing 2 seconds after each page where `pause` is set.
@@ -1873,7 +1884,9 @@ fn cmd_validate(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
     for entry in glob_json(&ctx.data)? {
         let record = match read_text(&entry.path, &entry.display).and_then(|t| loads(&t)) {
             Ok(record) => record,
-            Err(e) if e.is_any(&["OSError", "ValueError", "RecursionError"]) => {
+            // read_text and loads raise only OSError, UnicodeDecodeError/ValueError/JSONDecodeError
+            // and RecursionError, all caught by Python's `except (OSError, ValueError, RecursionError):`.
+            Err(e) => {
                 out.print(&p!(
                     entry.stem(),
                     format!(": cannot be read as a JSON record ({})", e.name())
@@ -1881,7 +1894,6 @@ fn cmd_validate(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
                 failed += 1;
                 continue;
             }
-            Err(e) => return Err(e),
         };
         if !matches!(record, Json::Object(_)) {
             out.print(&p!(entry.stem(), ": must hold one JSON object"))?;
@@ -2064,6 +2076,7 @@ fn build_report(ctx: &Ctx, records: &[Json], pages: &[(Json, Page)], today: &str
 
 /// Today's date in the local time zone, as `YYYY-MM-DD`.
 fn local_today() -> String {
+    #[cfg(feature = "differential")]
     if let Some(today) = env("RATES_TODAY") {
         return today;
     }
@@ -2450,21 +2463,23 @@ fn ato_table_report(records: &[Json], tables: &[(&str, Json)]) -> R<(Vec<S>, usi
 /// A table's status and, for a 200, its body; or the request's failure.
 type TableResponse = Result<(u16, Vec<u8>), String>;
 
-/// `GET path` on the ATO's server, or the injected response under the
+/// `GET path` on `host`, or the injected response under the
 /// differential harness. The body is read only for a 200.
-fn get_table(name: &str, path: &str) -> TableResponse {
-    let Some(dir) = env("RATES_ATO_TABLES") else {
-        return crate::https::get(ATO_HOST, path).map(|r| (r.status, r.body));
-    };
-    let file = |ext: &str| std::fs::read(Path::new(&dir).join(format!("{name}.{ext}")));
-    if let Ok(error) = file("error") {
-        return Err(String::from_utf8_lossy(&error).into_owned());
+fn get_table(host: &str, name: &str, path: &str) -> TableResponse {
+    #[cfg(feature = "differential")]
+    if let Some(dir) = env("RATES_ATO_TABLES") {
+        let file = |ext: &str| std::fs::read(Path::new(&dir).join(format!("{name}.{ext}")));
+        if let Ok(error) = file("error") {
+            return Err(String::from_utf8_lossy(&error).into_owned());
+        }
+        let status = file("status")
+            .ok()
+            .and_then(|s| String::from_utf8_lossy(&s).trim().parse().ok())
+            .unwrap_or(200u16);
+        return Ok((status, file("json").unwrap_or_default()));
     }
-    let status = file("status")
-        .ok()
-        .and_then(|s| String::from_utf8_lossy(&s).trim().parse().ok())
-        .unwrap_or(200u16);
-    Ok((status, file("json").unwrap_or_default()))
+    let _ = name;
+    crate::https::get(host, path).map(|r| (r.status, r.body))
 }
 
 /// The decoded table, or the `OSError` or `ValueError` that ends the command.
@@ -2528,7 +2543,13 @@ fn bytes_decode_error(data: &[u8]) -> String {
 }
 
 fn cmd_ato_tables(ctx: &Ctx, out: &mut Out<impl Write>, world: &mut World) -> R<i32> {
-    ato_tables_with(out, &mut *world.get, || load_records(ctx))
+    let host = world.table_host;
+    let get = &mut *world.get;
+    ato_tables_with(
+        out,
+        |name, path| get(host, name, path),
+        || load_records(ctx),
+    )
 }
 
 fn ato_tables_with(
@@ -2576,9 +2597,17 @@ pub fn main(argv: Vec<OsString>) -> i32 {
     let world = World {
         fetch: &mut fetch_text,
         pause: env("RATES_NO_SLEEP").is_none(),
+        table_host: ATO_HOST,
         get: &mut get_table,
     };
     run(&ctx, &argv, world, std::io::stdout().lock())
+}
+
+fn namespace_text(namespace: &Namespace, key: &str) -> String {
+    match namespace.get(key) {
+        Some(Value::Str(s)) => s.clone(),
+        _ => String::new(),
+    }
 }
 
 const LICENCE_NOTICE: &str = "\n\
@@ -2621,15 +2650,16 @@ fn run(ctx: &Ctx, argv: &[OsString], mut world: World, mut stdout: impl Write) -
         let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
         return 2;
     }
-    let text = |key: &str| match namespace.get(key) {
-        Some(Value::Str(s)) => s.clone(),
-        _ => String::new(),
-    };
     let mut out = Out::new(stdout);
-    let result = match text("command").as_str() {
+    let result = match namespace_text(&namespace, "command").as_str() {
         "snapshot" => cmd_snapshot(ctx, &mut out, &mut world),
         "validate" => cmd_validate(ctx, &mut out),
-        "check" => cmd_check(ctx, &mut out, &text("out"), &mut world),
+        "check" => cmd_check(
+            ctx,
+            &mut out,
+            &namespace_text(&namespace, "out"),
+            &mut world,
+        ),
         _ => cmd_ato_tables(ctx, &mut out, &mut world),
     };
     let code = report(result);
@@ -2653,24 +2683,44 @@ fn report(result: R<i32>) -> i32 {
     match result {
         Ok(code) => code,
         Err(e) => {
-            // stderr's backslashreplace shows a lone surrogate as an escape.
-            let message: String = e
-                .text
-                .iter()
-                .map(|&cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
-                .collect();
-            let last = if message.is_empty() {
-                e.class.to_string()
-            } else {
-                format!("{}: {message}", e.class)
-            };
-            let report = format!("Traceback (most recent call last):\n{last}\n");
-            let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
+            let _ = std::io::stderr().write_all(&newlines(traceback(&e).as_bytes()));
             1
         }
     }
 }
 
+/// The first and last lines of the traceback CPython prints for `e`.
+fn traceback(e: &Exc) -> String {
+    // stderr's backslashreplace shows a lone surrogate as an escape.
+    let message: String = e
+        .text
+        .iter()
+        .map(|&cp| char::from_u32(cp).map_or_else(|| format!("\\u{cp:04x}"), String::from))
+        .collect();
+    let last = if message.is_empty() {
+        e.class.to_string()
+    } else {
+        format!("{}: {message}", e.class)
+    };
+    format!("Traceback (most recent call last):\n{last}\n")
+}
+
 #[cfg(test)]
 #[path = "rates_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "cov_a2_rates.rs"]
+mod cov_a2_tests;
+
+#[cfg(test)]
+#[path = "cov_a4_rates.rs"]
+mod cov_a4_tests;
+
+#[cfg(test)]
+#[path = "cov_a6_rates.rs"]
+mod cov_a6_tests;
+
+#[cfg(test)]
+#[path = "cov_a8_rates.rs"]
+mod cov_a8_tests;

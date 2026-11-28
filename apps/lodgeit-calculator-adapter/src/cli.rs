@@ -10,7 +10,7 @@
 use std::ffi::OsString;
 use std::io::Write;
 
-use crate::argparse::{Action, Exit, Namespace, Parser, Value};
+use crate::argparse::{Action, Exit, Get, Namespace, Parser, Value};
 use crate::client::{self, Client};
 use crate::config::{self, AdapterConfig};
 use crate::contract::{self, Contract};
@@ -21,8 +21,10 @@ use crate::evidence::{self, ReadError};
 use crate::p;
 use crate::py;
 use crate::pyencode::{self, Options};
-use crate::pyjson::{self, DecodeError, Json, Numbers};
-use crate::pyops::{Exc, R, S, get_attr, iterate, json_str, pts, py_sorted, strip};
+use crate::pyjson::{self, Json, Numbers};
+use crate::pyops::{
+    Exc, LoadsError, R, S, get_attr, iterate, json_str, loads_error, pts, py_sorted, strip,
+};
 use crate::pyos::{OsError, Style};
 use crate::pypath::PyPath;
 use crate::pyvalue::{self, repr, str_points, type_name};
@@ -151,7 +153,9 @@ fn flush_failed(stderr: &mut dyn Write, error: &std::io::Error) -> i32 {
 fn line_ends(text: &[u32]) -> S {
     let mut out = Vec::with_capacity(text.len());
     for &cp in text {
-        if cfg!(windows) && cp == 10 {
+        // Compiled for Windows only, where its CI leg tests it.
+        #[cfg(windows)]
+        if cp == 10 {
             out.push(13);
         }
         out.push(cp);
@@ -160,11 +164,10 @@ fn line_ends(text: &[u32]) -> S {
 }
 
 fn newlines(bytes: &[u8]) -> Vec<u8> {
-    if !cfg!(windows) {
-        return bytes.to_vec();
-    }
     let mut out = Vec::with_capacity(bytes.len());
     for &b in bytes {
+        // Compiled for Windows only, where its CI leg tests it.
+        #[cfg(windows)]
         if b == b'\n' {
             out.push(b'\r');
         }
@@ -184,11 +187,9 @@ fn eprint(stderr: &mut dyn Write, text: &[u32]) {
     let _ = stderr.write_all(&newlines(line.as_bytes()));
 }
 
+/// A string argument; every key read here has a string default or is required.
 fn text(ns: &Namespace, key: &str) -> String {
-    match ns.get(key) {
-        Some(Value::Str(s)) => s.clone(),
-        _ => String::new(),
-    }
+    ns.str(key).unwrap_or_default()
 }
 
 pub fn main(argv: Vec<OsString>) -> i32 {
@@ -482,13 +483,13 @@ fn invoke_body(ns: &Namespace, contract: &Contract, path: &PyPath) -> R<Result<J
     };
     let body = match pyjson::loads_numbers(&text, Numbers::DecimalFloats) {
         Ok(body) => body,
-        Err(DecodeError::Invalid(message) | DecodeError::Hook(message)) => {
-            return Ok(Err(pts(&message)));
-        }
-        Err(DecodeError::Recursion(kind)) => {
-            return Err(Exc::msg("RecursionError", &pyjson::recursion_message(kind)));
-        }
-        Err(other) => unreachable!("load_body has no hooks: {other:?}"),
+        // The `except (OSError, JSONDecodeError, ValueError)` around it
+        // reports the digit limit's `ValueError`; a `RecursionError` escapes.
+        Err(error) => match loads_error(error) {
+            LoadsError::Decode(message) => return Ok(Err(pts(&message))),
+            LoadsError::Other(error) if error.is("ValueError") => return Ok(Err(error.text)),
+            LoadsError::Other(error) => return Err(error),
+        },
     };
     let none = Json::Array(Vec::new());
     let fields = get_attr(recorded, "request_number_fields")?.unwrap_or(&none);
@@ -776,25 +777,35 @@ mod tests {
         );
     }
 
-    /// A stdout that refuses every write, as `/dev/full` does.
-    struct Full;
+    /// A stdout on a full disk, as `/dev/full` is: a buffered one takes
+    /// each write and refuses the flush, an unbuffered one refuses each write.
+    struct Full {
+        buffered: bool,
+    }
 
     impl Write for Full {
-        fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            if self.buffered {
+                return Ok(buf.len());
+            }
             Err(std::io::Error::from_raw_os_error(28))
         }
         fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
+            Err(std::io::Error::from_raw_os_error(28))
         }
     }
 
     #[test]
     fn a_stdout_that_cannot_be_written_exits_120_as_pythons_flush_does() {
         // Checked against CPython 3.15 on Linux with stdout on /dev/full.
-        for args in [["contract"], ["--help"]] {
+        for (args, buffered) in [
+            (["contract"], false),
+            (["--help"], false),
+            (["contract"], true),
+        ] {
             let args: Vec<String> = args.iter().map(|a| a.to_string()).collect();
             let mut stderr = Vec::new();
-            assert_eq!(run_with(&args, &mut Full, &mut stderr), 120);
+            assert_eq!(run_with(&args, &mut Full { buffered }, &mut stderr), 120);
             let stderr = String::from_utf8(stderr).unwrap();
             assert!(stderr.starts_with("Exception ignored while flushing sys.stdout:"));
         }

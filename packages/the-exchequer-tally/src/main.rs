@@ -11,9 +11,12 @@ fn emit(mut stream: impl Write, text: &str, stderr: bool, json: bool) -> std::io
     }
     // API text comes from JSON, never from an OS string, so it carries no surrogate
     // escapes to decode: write it as UTF-8 with only the native newline.
-    if cfg!(windows) {
+    #[cfg(windows)]
+    {
         stream.write_all(text.replace('\n', "\r\n").as_bytes())
-    } else {
+    }
+    #[cfg(not(windows))]
+    {
         stream.write_all(text.as_bytes())
     }
 }

@@ -99,9 +99,11 @@ impl Outcome {
 /// `_now()`: UTC, ISO format to the second. The differential build fixes
 /// it, as the harness fixes Python's.
 pub fn now() -> String {
-    if cfg!(feature = "differential") {
-        return "2026-01-01T00:00:00+00:00".into();
-    }
+    // 2026-01-01T00:00:00+00:00, compiled only with the feature so the
+    // default build measures no line it cannot run.
+    #[cfg(feature = "differential")]
+    let seconds: u64 = 1_767_225_600;
+    #[cfg(not(feature = "differential"))]
     let seconds = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_secs());
@@ -180,24 +182,19 @@ fn star(value: &Json) -> R<Vec<Json>> {
 }
 
 /// `item in container`, where `own` says the item came out of `container`
-/// itself, so a list finds it by identity.
+/// itself, so a list finds it by identity. The container has been unpacked
+/// with `star` first, so it is a list, a dict or a str.
 fn contains(container: &Json, item: &Json, own: bool) -> R<bool> {
-    match container {
-        Json::Array(items) => Ok(own || items.iter().any(|i| item_eq(i, item))),
-        Json::Object(_) => Ok(dict_get(container, item)?.is_some()),
-        Json::Str(s) => match item {
-            Json::Str(needle) => Ok(crate::pyops::contains(
-                &s.code_points(),
-                &needle.code_points(),
-            )),
-            other => Err(type_error(&format!(
-                "'in <string>' requires string as left operand, not {}",
-                type_name(other)
-            ))),
-        },
-        other => Err(type_error(&format!(
-            "argument of type '{}' is not a container or iterable",
-            type_name(other)
+    match (container, item) {
+        (Json::Array(items), _) => Ok(own || items.iter().any(|i| item_eq(i, item))),
+        (Json::Object(_), _) => Ok(dict_get(container, item)?.is_some()),
+        (Json::Str(s), Json::Str(needle)) => Ok(crate::pyops::contains(
+            &s.code_points(),
+            &needle.code_points(),
+        )),
+        _ => Err(type_error(&format!(
+            "'in <string>' requires string as left operand, not {}",
+            type_name(item)
         ))),
     }
 }
@@ -605,7 +602,8 @@ impl Client<'_> {
             }
         }
         for (index, name) in names.iter().enumerate() {
-            let Some(value) = dict_get(&parsed, name)? else {
+            // `dict_get` finds only a str key, so a found value has one.
+            let (Some(value), Json::Str(key)) = (dict_get(&parsed, name)?, name) else {
                 if range_fields.contains(&name.as_str().unwrap_or_default())
                     || contains(required, name, index < from_required)?
                 {
@@ -617,10 +615,7 @@ impl Client<'_> {
                 }
                 continue;
             };
-            let Json::Str(name) = name else {
-                unreachable!("only a str key is found")
-            };
-            let name = name.code_points();
+            let name = key.code_points();
             match wire::parse_decimal(value, &name) {
                 Ok(decimal) => match values.iter_mut().find(|(k, _)| *k == name) {
                     Some(slot) => slot.1 = decimal,

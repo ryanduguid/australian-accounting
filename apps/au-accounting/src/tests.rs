@@ -39,6 +39,43 @@ fn numbers_read_as_the_default_parser_reads_them() {
 }
 
 #[test]
+fn a_value_json_cannot_hold_is_refused_as_serde_json_refuses_it() {
+    use serde::de::value::{BytesDeserializer, Error};
+    let mut tokens = Vec::new().into_iter();
+    let ours = PlainValue {
+        tokens: &mut tokens,
+    }
+    .deserialize(BytesDeserializer::<Error>::new(b"x"))
+    .unwrap_err();
+    let own = Value::deserialize(BytesDeserializer::<Error>::new(b"x")).unwrap_err();
+    assert_eq!(ours.to_string(), own.to_string());
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn an_unflushed_stream_is_reported_as_python_reports_its_errno() {
+    // CPython 3.14 on Linux: a pipe with no reader gave this exact report and
+    // exit 120, and `OSError(n, os.strerror(n))` gave each class and text.
+    for (errno, line) in [
+        (32, "BrokenPipeError: [Errno 32] Broken pipe"),
+        (
+            104,
+            "ConnectionResetError: [Errno 104] Connection reset by peer",
+        ),
+        (
+            11,
+            "BlockingIOError: [Errno 11] Resource temporarily unavailable",
+        ),
+        (28, "OSError: [Errno 28] No space left on device"),
+    ] {
+        assert_eq!(
+            unflushed("stdout", &std::io::Error::from_raw_os_error(errno)),
+            format!("Exception ignored while flushing sys.stdout:\n{line}\n")
+        );
+    }
+}
+
+#[test]
 fn keys_sort_unless_the_engine_preserves_order() {
     let text = r#"{"b":{"d":1,"c":[{"f":2,"e":3}]},"a":4}"#;
     let sorted = r#"{"a":4,"b":{"c":[{"e":3,"f":2}],"d":1}}"#;

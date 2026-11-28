@@ -187,8 +187,13 @@ fn first_aud() -> Json {
         .expect("an AUD record")
 }
 
+/// `json.dumps(value, sort_keys=True)`: ASCII, so every code point is a char.
 fn dumps(value: &Json) -> Vec<u8> {
-    pyjson::dumps(value, pyjson::Layout::Canonical).into_bytes()
+    pyvalue::dumps_with(value, None, true, true)
+        .into_iter()
+        .map(|cp| char::from_u32(cp).expect("ensure_ascii writes ASCII"))
+        .collect::<String>()
+        .into_bytes()
 }
 
 /// `json.dumps(value, indent=2, ensure_ascii=False)`.
@@ -1850,10 +1855,12 @@ fn run_with(
 ) -> (i32, String) {
     let argv: Vec<OsString> = args.iter().map(OsString::from).collect();
     let mut stdout = Vec::new();
+    let mut get_with_host = |_host: &str, name: &str, path: &str| get(name, path);
     let world = World {
         fetch,
         pause: false,
-        get,
+        table_host: ATO_HOST,
+        get: &mut get_with_host,
     };
     let code = run(ctx, &argv, world, &mut stdout);
     (code, String::from_utf8(stdout).expect("UTF-8 output"))

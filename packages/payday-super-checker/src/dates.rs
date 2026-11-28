@@ -6,7 +6,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use crate::py::{Date, MAX_DATE};
+use crate::py::Date;
 use crate::pyre::Regex;
 use crate::pytext;
 use crate::strptime_table::{FULL_MONTHS, MONTHS, PATTERNS};
@@ -35,10 +35,6 @@ impl Date {
     /// `date.replace(year=year)`, or None where that day does not exist.
     pub fn with_year(self, year: i64) -> Option<Date> {
         Date::new(year, i64::from(self.month), i64::from(self.day)).ok()
-    }
-
-    pub fn is_max(self) -> bool {
-        self == MAX_DATE
     }
 }
 
@@ -207,6 +203,18 @@ mod tests {
             Some("0001-01-01")
         );
         assert_eq!(strptime_date("0000-01-01", "%Y-%m-%d"), None);
+        assert_eq!(
+            iso(strptime_date(" 5/07/2026", "%d/%m/%Y")).as_deref(),
+            Some("2026-07-05")
+        );
+    }
+
+    /// The reader's ISO shape takes any Unicode digit, but `fromisoformat`
+    /// reads only ASCII ones (CPython 3.15 raises `ValueError` for both).
+    #[test]
+    fn fromisoformat_refuses_other_digits() {
+        assert_eq!(fromisoformat_date("2026-07-0\u{661}"), None);
+        assert_eq!(fromisoformat_date("2026-07-01T1\u{662}:00"), None);
     }
 
     #[test]

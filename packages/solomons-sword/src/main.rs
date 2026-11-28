@@ -56,19 +56,28 @@ fn main() {
 /// binary exits 1 without that message.
 fn finish(code: i32, out: std::io::Result<()>, err: std::io::Result<()>) -> i32 {
     if let Err(e) = &out {
-        if cfg!(unix) {
+        #[cfg(unix)]
+        {
             let _ = std::io::stderr().write_all(unflushed("stdout", e).as_bytes());
             return 120;
         }
-        return 1;
+        #[cfg(not(unix))]
+        {
+            let _ = e;
+            return 1;
+        }
     }
     if err.is_err() {
-        return if cfg!(unix) { 120 } else { 1 };
+        #[cfg(unix)]
+        return 120;
+        #[cfg(not(unix))]
+        return 1;
     }
     code
 }
 
 /// "Exception ignored while flushing sys.stdout:" and the OSError, as Python printed them.
+#[cfg(any(unix, test))]
 fn unflushed(stream: &str, e: &std::io::Error) -> String {
     let code = e.raw_os_error().unwrap_or(0);
     let class = match e.kind() {
@@ -82,4 +91,24 @@ fn unflushed(stream: &str, e: &std::io::Error) -> String {
         .rfind(" (os error ")
         .map_or(text.as_str(), |i| &text[..i]);
     format!("Exception ignored while flushing sys.{stream}:\n{class}: [Errno {code}] {text}\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::ErrorKind;
+
+    #[test]
+    fn unflushed_formats_python_stream_classes() {
+        for (kind, class) in [
+            (ErrorKind::BrokenPipe, "BrokenPipeError"),
+            (ErrorKind::ConnectionReset, "ConnectionResetError"),
+            (ErrorKind::WouldBlock, "BlockingIOError"),
+            (ErrorKind::Other, "OSError"),
+        ] {
+            let msg = unflushed("stdout", &std::io::Error::from(kind));
+            assert!(msg.starts_with("Exception ignored while flushing sys.stdout:\n"));
+            assert!(msg.contains(&format!("{class}: [Errno 0]")));
+        }
+    }
 }

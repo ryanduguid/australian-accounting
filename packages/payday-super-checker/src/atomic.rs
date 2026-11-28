@@ -68,13 +68,17 @@ pub fn write(path: &str, bytes: &[u8], validator: fn(&str) -> Result<PyPath>) ->
 
 /// `tempfile.mkstemp(prefix=".payday-super-checker-", suffix=".tmp", dir=parent)`.
 fn create_temporary(parent: &PyPath) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
-    const LETTERS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789_";
-    let mut seed = std::time::SystemTime::now()
+    let seed = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |t| t.as_nanos() as u64)
         ^ u64::from(std::process::id()).rotate_left(32);
-    let mut last = None;
-    for _ in 0..100 {
+    create_first_free(parent, seed)
+}
+
+/// The 100 staging names `seed` gives, in the order they are tried.
+fn staging_names(mut seed: u64) -> impl Iterator<Item = String> {
+    const LETTERS: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789_";
+    (0..100).map(move |_| {
         let name: String = (0..8)
             .map(|_| {
                 seed ^= seed << 13;
@@ -83,9 +87,17 @@ fn create_temporary(parent: &PyPath) -> std::io::Result<(std::path::PathBuf, std
                 LETTERS[(seed % LETTERS.len() as u64) as usize] as char
             })
             .collect();
-        let candidate = parent
-            .fs()
-            .join(format!(".payday-super-checker-{name}.tmp"));
+        format!(".payday-super-checker-{name}.tmp")
+    })
+}
+
+fn create_first_free(
+    parent: &PyPath,
+    seed: u64,
+) -> std::io::Result<(std::path::PathBuf, std::fs::File)> {
+    let mut last = None;
+    for name in staging_names(seed) {
+        let candidate = parent.fs().join(name);
         let mut options = std::fs::OpenOptions::new();
         options.write(true).create_new(true);
         #[cfg(unix)]
@@ -141,6 +153,27 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    /// `mkstemp` raises `FileExistsError` once every name it tries exists.
+    #[test]
+    fn staging_gives_up_when_every_name_is_taken() {
+        #[cfg(windows)]
+        let base = std::path::PathBuf::from(std::env::var_os("TEMP").expect("TEMP"));
+        #[cfg(not(windows))]
+        let base = std::path::PathBuf::from("/tmp");
+        let dir = base.join(format!("payday-atomic-full-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        for name in staging_names(7) {
+            std::fs::write(dir.join(name), "").unwrap();
+        }
+        let parent = PyPath::new(&dir.to_string_lossy());
+        let err = create_first_free(&parent, 7).unwrap_err();
+        assert_eq!(err.kind(), std::io::ErrorKind::AlreadyExists);
+        let (staged, _) = create_first_free(&parent, 8).unwrap();
+        assert!(staged.starts_with(&dir));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn the_csv_name_is_checked_before_anything_is_staged() {
         let dir = std::env::temp_dir().join(format!("payday-atomic-name-{}", std::process::id()));
@@ -148,11 +181,7 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let target = dir.join("existing-report.txt");
         let err = write(&target.to_string_lossy(), b"new\n", csv_destination).unwrap_err();
-        assert!(
-            err.message().contains("must use a .csv filename"),
-            "{}",
-            err.message()
-        );
+        assert!(err.message().contains("must use a .csv filename"));
         assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 0);
         let _ = std::fs::remove_dir_all(&dir);
     }

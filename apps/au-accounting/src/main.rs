@@ -98,11 +98,9 @@ const ENGINES: &[Engine] = &[
 
 /// UTF-8 with native newlines.
 fn plain(text: &str) -> Vec<u8> {
-    if cfg!(windows) {
-        text.replace('\n', "\r\n").into_bytes()
-    } else {
-        text.as_bytes().to_vec()
-    }
+    #[cfg(windows)]
+    let text = text.replace('\n', "\r\n");
+    text.as_bytes().to_vec()
 }
 
 /// As The Exchequer Tally's own command: JSON results are plain UTF-8, and only
@@ -414,22 +412,19 @@ impl<'de> Visitor<'de> for PlainValue<'_> {
         Ok(Value::String(value.to_owned()))
     }
 
+    // With `arbitrary_precision`, serde_json's `deserialize_any` reads a number
+    // as a u64, an i64 or (every other number) its text through `visit_map`,
+    // so it never calls `visit_f64`.
     fn visit_i64<E: de::Error>(self, value: i64) -> Result<Value, E> {
-        self.number(value.into())
+        Ok(self.number(value.into()))
     }
 
     fn visit_u64<E: de::Error>(self, value: u64) -> Result<Value, E> {
-        self.number(value.into())
+        Ok(self.number(value.into()))
     }
 
-    fn visit_f64<E: de::Error>(self, value: f64) -> Result<Value, E> {
-        self.number(
-            serde_json::Number::from_f64(value).ok_or_else(|| E::custom("number out of range"))?,
-        )
-    }
-
-    fn visit_seq<A: SeqAccess<'de>>(mut self, mut seq: A) -> Result<Value, A::Error> {
-        self.expect(Token::Array)?;
+    fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Value, A::Error> {
+        self.tokens.next();
         let mut values = Vec::new();
         while let Some(value) = seq.next_element_seed(PlainValue {
             tokens: self.tokens,
@@ -440,43 +435,34 @@ impl<'de> Visitor<'de> for PlainValue<'_> {
     }
 
     fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Value, A::Error> {
-        match self.tokens.next() {
-            Some(Token::Number) => {
-                let number =
-                    serde_json::Number::deserialize(de::value::MapAccessDeserializer::new(map))?;
-                plain_number(&number)
-                    .map(Value::Number)
-                    .map_err(de::Error::custom)
-            }
-            Some(Token::Object) => {
-                let mut values = serde_json::Map::new();
-                // Validate every value before insertion, including overwritten
-                // duplicate keys, as the standalone parser does.
-                while let Some(key) = map.next_key::<String>()? {
-                    let value = map.next_value_seed(PlainValue {
-                        tokens: self.tokens,
-                    })?;
-                    values.insert(key, value);
-                }
-                Ok(Value::Object(values))
-            }
-            _ => Err(de::Error::custom("unexpected JSON token")),
+        if self.tokens.next() == Some(Token::Number) {
+            let number =
+                serde_json::Number::deserialize(de::value::MapAccessDeserializer::new(map))?;
+            return plain_number(&number)
+                .map(Value::Number)
+                .map_err(de::Error::custom);
         }
+        let mut values = serde_json::Map::new();
+        // Validate every value before insertion, including overwritten
+        // duplicate keys, as the standalone parser does.
+        while let Some(key) = map.next_key::<String>()? {
+            let value = map.next_value_seed(PlainValue {
+                tokens: self.tokens,
+            })?;
+            values.insert(key, value);
+        }
+        Ok(Value::Object(values))
     }
 }
 
 impl PlainValue<'_> {
-    fn expect<E: de::Error>(&mut self, expected: Token) -> Result<(), E> {
-        if self.tokens.next() == Some(expected) {
-            Ok(())
-        } else {
-            Err(E::custom("unexpected JSON token"))
-        }
-    }
-
-    fn number<E: de::Error>(mut self, number: serde_json::Number) -> Result<Value, E> {
-        self.expect(Token::Number)?;
-        Ok(Value::Number(number))
+    /// Serde visits values in document order, calling `visit_seq`, `visit_map`,
+    /// `visit_i64` or `visit_u64` for each `[`, `{` and number before any value
+    /// inside it, and `json_tokens` lists those kinds in the same order, so
+    /// each visit takes its own value's token.
+    fn number(self, number: serde_json::Number) -> Value {
+        self.tokens.next();
+        Value::Number(number)
     }
 }
 
@@ -501,21 +487,13 @@ fn order_keys(value: Value, preserve_order: bool) -> Value {
     }
 }
 
-/// The number serde_json's default parser reads from `n`'s text: an integer
-/// when it fits u64 or i64 (`-0` is a float), otherwise its finite f64 conversion.
+/// The number serde_json's default parser reads from `n`'s text. An integer
+/// that fits u64 or i64 reaches `visit_u64` or `visit_i64` instead, so `n` is
+/// `-0`, a larger integer, a fraction or an exponent, which that parser reads
+/// as its finite f64 conversion.
 fn plain_number(n: &serde_json::Number) -> Result<serde_json::Number, String> {
-    let text = n.to_string();
-    if !text.bytes().any(|b| b".eE".contains(&b)) {
-        if let Ok(u) = text.parse::<u64>() {
-            return Ok(u.into());
-        }
-        match text.parse::<i64>() {
-            Ok(i) if i != 0 => return Ok(i.into()),
-            _ => {}
-        }
-    }
     // Keep serde_json's decimal conversion, which can round differently from str::parse.
-    serde_json::from_str::<f64>(&text)
+    serde_json::from_str::<f64>(&n.to_string())
         .ok()
         .and_then(serde_json::Number::from_f64)
         .ok_or_else(|| "number out of range".into())

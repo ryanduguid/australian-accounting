@@ -47,22 +47,35 @@ fn main() {
         .write_all(&cli::output_bytes(&out))
         .and_then(|()| stdout.flush());
     let err_result = std::io::stderr().write_all(&cli::output_bytes(&err));
-    std::process::exit(finish(code, out_result, err_result));
+    let unix = cfg!(unix);
+    std::process::exit(finish(
+        code,
+        out_result,
+        err_result,
+        unix,
+        &mut std::io::stderr(),
+    ));
 }
 
 /// The exit status once both streams are written. Python reported a stream
-/// it could not flush at shutdown, on stderr, and exited 120; on Windows the
-/// binary exits 1 without that message.
-fn finish(code: i32, out: std::io::Result<()>, err: std::io::Result<()>) -> i32 {
+/// it could not flush at shutdown, on stderr, and exited 120; on Windows
+/// (`unix` false) the binary exits 1 without that message.
+fn finish(
+    code: i32,
+    out: std::io::Result<()>,
+    err: std::io::Result<()>,
+    unix: bool,
+    stderr: &mut dyn Write,
+) -> i32 {
     if let Err(e) = &out {
-        if cfg!(unix) {
-            let _ = std::io::stderr().write_all(unflushed("stdout", e).as_bytes());
+        if unix {
+            let _ = stderr.write_all(unflushed("stdout", e).as_bytes());
             return 120;
         }
         return 1;
     }
     if err.is_err() {
-        return if cfg!(unix) { 120 } else { 1 };
+        return if unix { 120 } else { 1 };
     }
     code
 }
@@ -81,4 +94,81 @@ fn unflushed(stream: &str, e: &std::io::Error) -> String {
         .rfind(" (os error ")
         .map_or(text.as_str(), |i| &text[..i]);
     format!("Exception ignored while flushing sys.{stream}:\n{class}: [Errno {code}] {text}\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Error;
+
+    /// A stderr that refuses every write, as a closed descriptor does.
+    struct Closed;
+
+    impl Write for Closed {
+        fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+            Err(Error::other("closed"))
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Err(Error::other("closed"))
+        }
+    }
+
+    #[test]
+    fn a_stream_that_cannot_be_written_sets_the_exit_status() {
+        for (unix, failed) in [(true, 120), (false, 1)] {
+            let mut stderr = Vec::new();
+            assert_eq!(finish(3, Ok(()), Ok(()), unix, &mut stderr), 3);
+            assert_eq!(
+                finish(0, Ok(()), Err(Error::other("gone")), unix, &mut stderr),
+                failed
+            );
+            assert!(stderr.is_empty());
+            assert_eq!(
+                finish(0, Err(Error::other("gone")), Ok(()), unix, &mut stderr),
+                failed
+            );
+            // Only Unix reports the unflushed stdout, as Python did.
+            let expected = if unix {
+                unflushed("stdout", &Error::other("gone"))
+            } else {
+                String::new()
+            };
+            assert_eq!(String::from_utf8(stderr).unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn a_stderr_that_also_fails_still_gives_the_exit_status() {
+        assert_eq!(
+            finish(0, Err(Error::other("gone")), Ok(()), true, &mut Closed),
+            120
+        );
+        assert!(Closed.flush().is_err());
+    }
+
+    #[test]
+    fn an_error_without_an_os_code_is_an_oserror_with_errno_0() {
+        assert_eq!(
+            unflushed("stdout", &Error::other("boom")),
+            "Exception ignored while flushing sys.stdout:\nOSError: [Errno 0] boom\n"
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn os_errors_take_python_class_names_and_drop_rusts_suffix() {
+        let message = |code| unflushed("stdout", &Error::from_raw_os_error(code));
+        assert_eq!(
+            message(32),
+            "Exception ignored while flushing sys.stdout:\nBrokenPipeError: [Errno 32] Broken pipe\n"
+        );
+        assert!(
+            message(104).contains("\nConnectionResetError: [Errno 104] Connection reset by peer\n")
+        );
+        assert!(
+            message(11)
+                .contains("\nBlockingIOError: [Errno 11] Resource temporarily unavailable\n")
+        );
+        assert!(message(28).contains("\nOSError: [Errno 28] No space left on device\n"));
+    }
 }

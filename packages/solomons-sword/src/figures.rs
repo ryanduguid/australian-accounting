@@ -134,3 +134,21 @@ pub fn share_out(total: &Decimal, weights: &[Decimal]) -> Result<Vec<Decimal>> {
     }
     Ok(parts)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decimal_signals_format_with_decimal_prefix() {
+        assert_eq!(
+            String::from(Signal::InvalidOperation),
+            "decimal.InvalidOperation"
+        );
+        assert_eq!(
+            String::from(Signal::DivisionByZero),
+            "decimal.DivisionByZero"
+        );
+        assert_eq!(String::from(Signal::Overflow), "decimal.Overflow");
+    }
+}
