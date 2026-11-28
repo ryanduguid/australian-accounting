@@ -103,4 +103,19 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn optional_rejects_non_string_and_amount_rejects_above_limit() {
+        assert_eq!(
+            optional(Some(&Value::from(123)), "amount").unwrap_err(),
+            "amount must be a string or null"
+        );
+        for over in ["1000000000001.00", "10000000000000"] {
+            assert!(
+                amount(over, "amount")
+                    .unwrap_err()
+                    .contains("must not exceed")
+            );
+        }
+    }
 }

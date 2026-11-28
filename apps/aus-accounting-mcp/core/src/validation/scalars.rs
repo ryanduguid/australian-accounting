@@ -283,4 +283,46 @@ mod tests {
             assert_eq!(super::lax_bool(&json!(input)), Err(expected), "{input}");
         }
     }
+
+    #[test]
+    fn scalar_descriptors_handle_whitespace_min_length_strict_bounds_and_bool_literals() {
+        let mut errors = vec![];
+        let str_rule = json!({"strip_whitespace": true, "min_length": 2, "max_length": 4});
+        assert_eq!(
+            super::string(&str_rule, &json!("  ab  "), "s", &json!({}), &mut errors),
+            json!("ab")
+        );
+        assert!(errors.is_empty());
+
+        let one_rule = json!({"min_length": 1, "max_length": 1});
+        let cfg = json!({"str_strip_whitespace": true});
+        super::string(&one_rule, &json!(" "), "a", &cfg, &mut errors);
+        super::string(&one_rule, &json!("ab"), "b", &cfg, &mut errors);
+        assert_eq!(errors[0].code, "string_too_short");
+        assert_eq!(errors[0].message, "String should have at least 1 character");
+        assert_eq!(errors[1].code, "string_too_long");
+        assert_eq!(errors[1].message, "String should have at most 1 character");
+
+        errors.clear();
+        let int_rule = json!({"gt": -5, "lt": -1});
+        super::int(&int_rule, &json!(-5), "n", &mut errors);
+        super::int(&int_rule, &json!(-1), "n", &mut errors);
+        super::int(&int_rule, &json!(-3), "n", &mut errors);
+        super::int(&json!({"le": -1}), &json!(0), "n", &mut errors);
+        assert_eq!(errors.len(), 3);
+        assert_eq!(errors[0].code, "greater_than");
+        assert_eq!(errors[1].code, "less_than");
+        assert_eq!(errors[2].code, "less_than_equal");
+
+        errors.clear();
+        let lit_rule = json!({"expected": [true, false]});
+        assert_eq!(super::literal(&lit_rule, &json!(1), "l", &mut errors), true);
+        assert_eq!(
+            super::literal(&lit_rule, &json!(0), "l", &mut errors),
+            false
+        );
+        super::literal(&lit_rule, &json!(2), "l", &mut errors);
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].code, "literal_error");
+    }
 }
