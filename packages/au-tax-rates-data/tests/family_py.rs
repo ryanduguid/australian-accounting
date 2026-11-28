@@ -149,3 +149,32 @@ fn dates_refuse_a_bad_month_and_read_ordinals_as_python_does() {
     );
     assert_eq!(Date::from_ordinal(3_652_060), None);
 }
+
+#[cfg(windows)]
+#[test]
+fn crt_errno_maps_win32_codes_as_python_does() {
+    for (winerror, expected) in [
+        (2, "[Errno 2] No such file or directory: 'f.json'"),
+        (4, "[Errno 24] Too many open files: 'f.json'"),
+        (5, "[Errno 13] Permission denied: 'f.json'"),
+        (6, "[Errno 9] Bad file descriptor: 'f.json'"),
+        (7, "[Errno 12] Not enough space: 'f.json'"),
+        (10, "[Errno 7] Arg list too long: 'f.json'"),
+        (11, "[Errno 8] Exec format error: 'f.json'"),
+        (17, "[Errno 18] Improper link: 'f.json'"),
+        (80, "[Errno 17] File exists: 'f.json'"),
+        (89, "[Errno 11] Resource temporarily unavailable: 'f.json'"),
+        (109, "[Errno 32] Broken pipe: 'f.json'"),
+        (112, "[Errno 28] No space left on device: 'f.json'"),
+        (128, "[Errno 10] No child processes: 'f.json'"),
+        (145, "[Errno 41] Directory not empty: 'f.json'"),
+        (9999, "[Errno 22] Invalid argument: 'f.json'"),
+    ] {
+        let error = std::io::Error::from_raw_os_error(winerror);
+        assert_eq!(
+            py::oserror_str(&error, "f.json", py::OsStyle::Errno),
+            expected,
+            "winerror {winerror}"
+        );
+    }
+}

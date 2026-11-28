@@ -1855,10 +1855,12 @@ fn run_with(
 ) -> (i32, String) {
     let argv: Vec<OsString> = args.iter().map(OsString::from).collect();
     let mut stdout = Vec::new();
+    let mut get_with_host = |_host: &str, name: &str, path: &str| get(name, path);
     let world = World {
         fetch,
         pause: false,
-        get,
+        table_host: ATO_HOST,
+        get: &mut get_with_host,
     };
     let code = run(ctx, &argv, world, &mut stdout);
     (code, String::from_utf8(stdout).expect("UTF-8 output"))

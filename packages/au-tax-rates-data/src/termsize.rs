@@ -43,20 +43,33 @@ fn stdout_terminal() -> Option<(i64, i64)> {
 }
 
 #[cfg(windows)]
+#[repr(C)]
+#[derive(Default)]
+struct SmallRect {
+    left: i16,
+    top: i16,
+    right: i16,
+    bottom: i16,
+}
+
+#[cfg(windows)]
+fn window_dimensions(ok: bool, window: &SmallRect) -> Option<(i64, i64)> {
+    if !ok {
+        return None;
+    }
+    Some((
+        i64::from(window.right) - i64::from(window.left) + 1,
+        i64::from(window.bottom) - i64::from(window.top) + 1,
+    ))
+}
+
+#[cfg(windows)]
 fn stdout_terminal() -> Option<(i64, i64)> {
     #[repr(C)]
     #[derive(Default)]
     struct Coord {
         x: i16,
         y: i16,
-    }
-    #[repr(C)]
-    #[derive(Default)]
-    struct SmallRect {
-        left: i16,
-        top: i16,
-        right: i16,
-        bottom: i16,
     }
     #[repr(C)]
     #[derive(Default)]
@@ -82,13 +95,7 @@ fn stdout_terminal() -> Option<(i64, i64)> {
         let handle = GetStdHandle(STD_OUTPUT_HANDLE);
         !handle.is_null() && GetConsoleScreenBufferInfo(handle, &mut info) != 0
     };
-    let window = &info.window;
-    ok.then(|| {
-        (
-            i64::from(window.right) - i64::from(window.left) + 1,
-            i64::from(window.bottom) - i64::from(window.top) + 1,
-        )
-    })
+    window_dimensions(ok, &info.window)
 }
 
 #[cfg(not(any(unix, windows)))]
@@ -133,5 +140,18 @@ mod tests {
         for bad in ["", " ", "4__0", "_40", "40_", "4.0", "0x10", "--1"] {
             assert_eq!(py_int(bad), None, "{bad}");
         }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn window_dimensions_match_console_window() {
+        let rect = SmallRect {
+            left: 2,
+            top: 3,
+            right: 81,
+            bottom: 26,
+        };
+        assert_eq!(window_dimensions(true, &rect), Some((80, 24)));
+        assert_eq!(window_dimensions(false, &rect), None);
     }
 }

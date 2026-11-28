@@ -155,3 +155,22 @@ mod console {
         false
     }
 }
+
+#[cfg(all(test, windows))]
+mod tests {
+    use std::io::IsTerminal;
+
+    use super::*;
+
+    #[test]
+    fn windows_isatty_agrees_with_standard_handles() {
+        assert_eq!(
+            console::isatty(Stream::Stdout),
+            std::io::stdout().is_terminal()
+        );
+        assert_eq!(
+            console::isatty(Stream::Stderr),
+            std::io::stderr().is_terminal()
+        );
+    }
+}

@@ -412,6 +412,13 @@ struct State {
     depth: usize,
 }
 
+fn check_group_limit(groups: usize, limit: usize) -> Result<(), Vec<u32>> {
+    if groups > limit {
+        return Err(pts("too many groups"));
+    }
+    Ok(())
+}
+
 impl State {
     fn groups(&self) -> usize {
         self.groupwidths.len()
@@ -420,9 +427,7 @@ impl State {
     fn opengroup(&mut self, name: Option<&[u32]>) -> Result<usize, Vec<u32>> {
         let gid = self.groups();
         self.groupwidths.push(None);
-        if self.groups() > MAXGROUPS {
-            return Err(pts("too many groups"));
-        }
+        check_group_limit(self.groups(), MAXGROUPS)?;
         if let Some(name) = name {
             if let Some(&ogid) = self.groupdict.get(name) {
                 return Err(pts(&format!(

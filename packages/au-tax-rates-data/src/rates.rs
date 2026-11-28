@@ -30,7 +30,7 @@ use std::time::{Duration, Instant};
 use num_bigint::BigInt;
 use num_traits::Zero;
 
-use crate::argparse::{Action, Exit, Parser, Value};
+use crate::argparse::{Action, Exit, Namespace, Parser, Value};
 use crate::decimal::{Conversion, Decimal, Rounding, Signal};
 use crate::py::{self, Date};
 use crate::pyjson::{self, DecodeError, Json, PyStr};
@@ -1292,9 +1292,13 @@ fn validate_record(record: &Json, page_text: Option<&[u32]>) -> R<Vec<S>> {
     if !has(record, "value") {
         problems.push(pts("missing: value"));
     }
-    if !problems.is_empty() {
+    let period_pairs = match record.get("period") {
+        Some(Json::Object(pairs)) => Some(pairs.as_slice()),
+        _ => None,
+    };
+    let (Some(pairs), true) = (period_pairs, problems.is_empty()) else {
         return Ok(problems);
-    }
+    };
     let unit = record.at("unit");
     let Some(unit_name) = unit.as_str().filter(|u| UNITS.contains(u)) else {
         return Ok(vec![p!("unknown unit ", repr_s(unit))]);
@@ -1315,9 +1319,6 @@ fn validate_record(record: &Json, page_text: Option<&[u32]>) -> R<Vec<S>> {
         }
     }
     let period = record.at("period");
-    let Json::Object(pairs) = period else {
-        unreachable!("FIELDS checked the period is a dict");
-    };
     if pairs.is_empty()
         || pairs
             .iter()
@@ -1529,19 +1530,13 @@ fn pattern_problem(record: &Json, pattern: &Json, text: &[u32]) -> R<Option<S>> 
     };
     let captured = &text[start..end];
     let found = parse_text(unit, captured)?;
-    let unit = getitem(record, "unit")?;
     let value = getitem(record, "value")?;
-    let changed = if py_eq(unit, &Json::str("date")) {
-        let Found::Date(iso) = &found else {
-            unreachable!("a date unit reads a date")
-        };
-        !py_eq(&json_str(iso.clone()), value)
-    } else {
-        let expected = str_decimal(value)?;
-        let Found::Number(found) = &found else {
-            unreachable!("a number unit reads a number")
-        };
-        !calc(found.equals(&expected))?
+    let changed = match &found {
+        Found::Date(iso) => !py_eq(&json_str(iso.clone()), value),
+        Found::Number(found) => {
+            let expected = str_decimal(value)?;
+            !calc(found.equals(&expected))?
+        }
     };
     Ok(changed.then(|| p!("value changed: ", str_points(value), " -> ", captured)))
 }
@@ -1815,7 +1810,8 @@ type Page = Result<S, Exc>;
 struct World<'a> {
     fetch: &'a mut dyn FnMut(&Json) -> R<S>,
     pause: bool,
-    get: &'a mut dyn FnMut(&str, &str) -> TableResponse,
+    table_host: &'a str,
+    get: &'a mut dyn FnMut(&str, &str, &str) -> TableResponse,
 }
 
 /// `fetch_all(urls)`, pausing 2 seconds after each page where `pause` is set.
@@ -1888,7 +1884,9 @@ fn cmd_validate(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
     for entry in glob_json(&ctx.data)? {
         let record = match read_text(&entry.path, &entry.display).and_then(|t| loads(&t)) {
             Ok(record) => record,
-            Err(e) if e.is_any(&["OSError", "ValueError", "RecursionError"]) => {
+            // read_text and loads raise only OSError, UnicodeDecodeError/ValueError/JSONDecodeError
+            // and RecursionError, all caught by Python's `except (OSError, ValueError, RecursionError):`.
+            Err(e) => {
                 out.print(&p!(
                     entry.stem(),
                     format!(": cannot be read as a JSON record ({})", e.name())
@@ -1896,7 +1894,6 @@ fn cmd_validate(ctx: &Ctx, out: &mut Out<impl Write>) -> R<i32> {
                 failed += 1;
                 continue;
             }
-            Err(e) => return Err(e),
         };
         if !matches!(record, Json::Object(_)) {
             out.print(&p!(entry.stem(), ": must hold one JSON object"))?;
@@ -2466,21 +2463,23 @@ fn ato_table_report(records: &[Json], tables: &[(&str, Json)]) -> R<(Vec<S>, usi
 /// A table's status and, for a 200, its body; or the request's failure.
 type TableResponse = Result<(u16, Vec<u8>), String>;
 
-/// `GET path` on the ATO's server, or the injected response under the
+/// `GET path` on `host`, or the injected response under the
 /// differential harness. The body is read only for a 200.
-fn get_table(name: &str, path: &str) -> TableResponse {
-    let Some(dir) = env("RATES_ATO_TABLES") else {
-        return crate::https::get(ATO_HOST, path).map(|r| (r.status, r.body));
-    };
-    let file = |ext: &str| std::fs::read(Path::new(&dir).join(format!("{name}.{ext}")));
-    if let Ok(error) = file("error") {
-        return Err(String::from_utf8_lossy(&error).into_owned());
+fn get_table(host: &str, name: &str, path: &str) -> TableResponse {
+    #[cfg(feature = "differential")]
+    if let Some(dir) = env("RATES_ATO_TABLES") {
+        let file = |ext: &str| std::fs::read(Path::new(&dir).join(format!("{name}.{ext}")));
+        if let Ok(error) = file("error") {
+            return Err(String::from_utf8_lossy(&error).into_owned());
+        }
+        let status = file("status")
+            .ok()
+            .and_then(|s| String::from_utf8_lossy(&s).trim().parse().ok())
+            .unwrap_or(200u16);
+        return Ok((status, file("json").unwrap_or_default()));
     }
-    let status = file("status")
-        .ok()
-        .and_then(|s| String::from_utf8_lossy(&s).trim().parse().ok())
-        .unwrap_or(200u16);
-    Ok((status, file("json").unwrap_or_default()))
+    let _ = name;
+    crate::https::get(host, path).map(|r| (r.status, r.body))
 }
 
 /// The decoded table, or the `OSError` or `ValueError` that ends the command.
@@ -2544,7 +2543,13 @@ fn bytes_decode_error(data: &[u8]) -> String {
 }
 
 fn cmd_ato_tables(ctx: &Ctx, out: &mut Out<impl Write>, world: &mut World) -> R<i32> {
-    ato_tables_with(out, &mut *world.get, || load_records(ctx))
+    let host = world.table_host;
+    let get = &mut *world.get;
+    ato_tables_with(
+        out,
+        |name, path| get(host, name, path),
+        || load_records(ctx),
+    )
 }
 
 fn ato_tables_with(
@@ -2592,9 +2597,17 @@ pub fn main(argv: Vec<OsString>) -> i32 {
     let world = World {
         fetch: &mut fetch_text,
         pause: env("RATES_NO_SLEEP").is_none(),
+        table_host: ATO_HOST,
         get: &mut get_table,
     };
     run(&ctx, &argv, world, std::io::stdout().lock())
+}
+
+fn namespace_text(namespace: &Namespace, key: &str) -> String {
+    match namespace.get(key) {
+        Some(Value::Str(s)) => s.clone(),
+        _ => String::new(),
+    }
 }
 
 const LICENCE_NOTICE: &str = "\n\
@@ -2637,15 +2650,16 @@ fn run(ctx: &Ctx, argv: &[OsString], mut world: World, mut stdout: impl Write) -
         let _ = std::io::stderr().write_all(&newlines(report.as_bytes()));
         return 2;
     }
-    let text = |key: &str| match namespace.get(key) {
-        Some(Value::Str(s)) => s.clone(),
-        _ => String::new(),
-    };
     let mut out = Out::new(stdout);
-    let result = match text("command").as_str() {
+    let result = match namespace_text(&namespace, "command").as_str() {
         "snapshot" => cmd_snapshot(ctx, &mut out, &mut world),
         "validate" => cmd_validate(ctx, &mut out),
-        "check" => cmd_check(ctx, &mut out, &text("out"), &mut world),
+        "check" => cmd_check(
+            ctx,
+            &mut out,
+            &namespace_text(&namespace, "out"),
+            &mut world,
+        ),
         _ => cmd_ato_tables(ctx, &mut out, &mut world),
     };
     let code = report(result);

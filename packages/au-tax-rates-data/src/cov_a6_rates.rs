@@ -47,6 +47,7 @@ fn snapshot(ctx: &Ctx, fetch: &mut dyn FnMut(&Json) -> R<S>, pause: bool) -> (R<
     let mut world = World {
         fetch,
         pause,
+        table_host: ATO_HOST,
         get: &mut get_table,
     };
     let code = cmd_snapshot(ctx, &mut out, &mut world);
