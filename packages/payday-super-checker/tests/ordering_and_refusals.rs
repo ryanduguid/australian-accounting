@@ -18,6 +18,7 @@ use payday_super_checker::api::evaluate;
 use payday_super_checker::deadlines::{ITEM4_ALIGNED, SKIP_DB, pathway_words};
 use payday_super_checker::decimal::Decimal;
 use payday_super_checker::py::Date;
+use payday_super_checker::pyre::Regex;
 use payday_super_checker::{derivation, rates, sgc, usi};
 use serde_json::{Value, json};
 
@@ -107,4 +108,12 @@ fn a_usi_file_that_is_not_utf8_names_the_byte() {
          export uses the Windows code page: re-save it as 'CSV UTF-8 (Comma \
          delimited)' and run again."
     );
+}
+
+/// CPython 3.15: `re.match(r"(?:(?=(a))x|a)", "a")` ends at 1 with group 1
+/// None, as the lookahead's capture goes when what follows it fails.
+#[test]
+fn a_lookahead_whose_continuation_fails_keeps_no_capture() {
+    let m = Regex::python(r"(?:(?=(a))x|a)").captures("a").unwrap();
+    assert_eq!((m.group(1), m.end), (None, 1));
 }
