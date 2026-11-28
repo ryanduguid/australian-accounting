@@ -19,6 +19,10 @@ use std::sync::OnceLock;
 pub type Result<T> = std::result::Result<T, String>;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+pub(crate) fn arithmetic<T>(result: decimal::Calc<T>) -> Result<T> {
+    result.map_err(|e| e.name().to_string())
+}
+
 /// The rule sources and their check date, for a freshness report.
 pub fn provenance() -> Value {
     let (coding, bas) = (&constants()["coding"], &constants()["bas"]);
@@ -62,9 +66,7 @@ fn money(value: &Value) -> Option<Decimal> {
     (d.is_finite()
         && d.exponent() >= -2
         && d.abs()
-            .ok()?
-            .le(&Decimal::from_int(1_000_000_000_000))
-            .ok()?)
+            .is_ok_and(|abs| abs.le(&Decimal::from_int(1_000_000_000_000)) == Ok(true)))
     .then_some(d)
 }
 fn repr(value: &Value) -> String {
@@ -152,5 +154,39 @@ mod tests {
         ] {
             assert!(super::date(&json!(text)).is_none(), "{text}");
         }
+    }
+
+    #[test]
+    fn arithmetic_helper_maps_all_decimal_signals() {
+        use super::decimal::Signal;
+        assert_eq!(super::arithmetic(Ok(42)), Ok(42));
+        assert_eq!(
+            super::arithmetic::<()>(Err(Signal::InvalidOperation)),
+            Err("InvalidOperation".into())
+        );
+        assert_eq!(
+            super::arithmetic::<()>(Err(Signal::DivisionByZero)),
+            Err("DivisionByZero".into())
+        );
+        assert_eq!(
+            super::arithmetic::<()>(Err(Signal::Overflow)),
+            Err("Overflow".into())
+        );
+    }
+
+    #[test]
+    fn repr_and_truth_match_python_for_all_json_types() {
+        assert_eq!(super::repr(&json!(true)), "True");
+        assert_eq!(super::repr(&json!(false)), "False");
+        assert_eq!(super::repr(&json!([1, null])), "[1, None]");
+        assert_eq!(super::repr(&json!({"k": true})), "{'k': True}");
+        assert!(super::truth(&json!(true)));
+        assert!(!super::truth(&json!(false)));
+        assert!(super::truth(&json!([1])));
+        assert!(!super::truth(&json!([])));
+        assert!(super::truth(&json!({"a": 1})));
+        assert!(!super::truth(&json!({})));
+        assert!(super::truth(&json!(2.5)));
+        assert!(!super::truth(&json!(0)));
     }
 }

@@ -105,5 +105,6 @@ mod tests {
         assert_eq!(repr("caf\u{e9}"), "'caf\u{e9}'");
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
+        assert_eq!(repr("a\\b\tc\nd\re"), "'a\\\\b\\tc\\nd\\re'");
     }
 }
