@@ -166,5 +166,21 @@ mod tests {
         assert_eq!(repr("caf\u{e9}"), "'caf\u{e9}'");
         assert_eq!(repr_code_points(&[0xD800]), "'\\ud800'");
         assert_eq!(repr("\u{e0001}"), "'\\U000e0001'");
+        assert_eq!(repr("a\\b\tc\nd\re"), r"'a\\b\tc\nd\re'");
+        assert_eq!(repr("\x01\x7f"), r"'\x01\x7f'");
+    }
+
+    #[test]
+    fn code_point_carrier_round_trips_escapes_and_surrogates() {
+        let mut s = String::new();
+        push_code_point(&mut s, ESCAPE as u32);
+        push_code_point(&mut s, 0xD83D);
+        push_code_point(&mut s, 'a' as u32);
+        assert_eq!(s, "\u{10F7FF}\u{10F7FF}\u{10F7FF}\u{10F83D}a");
+        let cps: Vec<u32> = code_points(&s).collect();
+        assert_eq!(cps, vec![ESCAPE as u32, 0xD83D, 'a' as u32]);
+        assert_eq!(repr_os(&s), r"'\U0010f7ff\ud83da'");
+        let bare: Vec<u32> = code_points("\u{10F7FF}x").collect();
+        assert_eq!(bare, vec![ESCAPE as u32, 'x' as u32]);
     }
 }

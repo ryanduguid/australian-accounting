@@ -676,5 +676,78 @@ mod tests {
         assert_eq!(fixed("1.20E-5"), "0.0000120");
         assert_eq!(fixed("0E-3"), "0.000");
         assert_eq!(fixed("0E+3"), "0");
+        assert_eq!(d("-1234567.89").fixed(2, true), "-1,234,567.89");
+        assert_eq!(d("1234.6").fixed(0, true), "1,235");
+        assert_eq!(d("-1234.4").fixed(0, true), "-1,234");
+    }
+
+    #[test]
+    fn division_and_quantize_edge_cases() {
+        let large = d(&format!("1{}", "0".repeat(35)));
+        assert_eq!(
+            large.div(&d("2")).to_sci_string(),
+            "5.000000000000000000000000000E+34"
+        );
+        assert_eq!(
+            d("5").div(&d("9")).to_sci_string(),
+            "0.5555555555555555555555555556"
+        );
+        assert_eq!(
+            d("1").quantize(1_000_000, Rounding::HalfEven),
+            Err(Signal::InvalidOperation)
+        );
+        let z = d("0").quantize(-2, Rounding::HalfEven).unwrap();
+        assert_eq!(z.to_sci_string(), "0.00");
+        assert_eq!(
+            d("9.9999999999999999999999999999").quantize(-27, Rounding::HalfUp),
+            Err(Signal::InvalidOperation)
+        );
+    }
+
+    #[test]
+    fn rounding_modes_down_half_even_and_tiny_rescale() {
+        let q = |s: &str, r: Rounding| d(s).quantize(0, r).unwrap().to_sci_string();
+        assert_eq!(q("1.50", Rounding::Down), "1");
+        assert_eq!(q("1.00", Rounding::Down), "1");
+        assert_eq!(q("2.5", Rounding::HalfEven), "2");
+        assert_eq!(q("3.5", Rounding::HalfEven), "4");
+        assert_eq!(q("0.5", Rounding::HalfEven), "0");
+        assert_eq!(q("0.001", Rounding::HalfUp), "0");
+    }
+
+    #[test]
+    fn special_values_tiny_operands_and_ordering() {
+        assert_eq!(d("Infinity").to_sci_string(), "Infinity");
+        assert_eq!(d("-snan42").to_sci_string(), "-sNaN42");
+        assert_eq!(d("0.0000001").to_sci_string(), "1E-7");
+        assert_eq!(format!("{}", d("1.25")), "1.25");
+        assert!(Decimal::parse("snanabc").is_err());
+        assert!(Decimal::parse("1\u{a0}0").is_err());
+        assert!(Decimal::parse("1e+").is_err());
+        assert!(Decimal::parse("1e100000000000000000000000000").is_err());
+        assert!(Decimal::parse("0e-99999999999999999999").is_err());
+        assert!(Decimal::parse("1e-9999999999999999999").is_err());
+        assert_eq!(d("0").add(&d("1.25")).to_sci_string(), "1.25");
+        assert_eq!(d("1.25").add(&d("0")).to_sci_string(), "1.25");
+        assert_eq!(
+            d("1").add(&d("1e-40")).to_sci_string(),
+            "1.000000000000000000000000000"
+        );
+        assert_eq!(d("1").add(&d("-2")).to_sci_string(), "-1");
+        assert_eq!(
+            d("1e-30").mul(&d("1e-999999")).to_sci_string(),
+            "0E-1000026"
+        );
+        assert_eq!(
+            d("1e-30").mul(&d("1e-999997")).to_sci_string(),
+            "0E-1000026"
+        );
+        assert!(d("0") < d("1"));
+        assert!(d("0") > d("-1"));
+        assert!(d("-1") < d("1"));
+        assert!(d("1") > d("-1"));
+        assert!(d("-2") < d("-1"));
+        assert!(d("-1") > d("-2"));
+        assert_eq!(d("-5").abs().to_sci_string(), "5");
     }
 }

@@ -554,7 +554,9 @@ impl Account {
             cents(&amount)?,
             description.unwrap_or_else(|| desc.into()),
             Some(reference.into()),
-        )?;
+        );
+        // amount is already checked positive and finite above, so Entry::new cannot fail.
+        let entry = entry?;
         // Validate before posting: a refused entry never changes this ledger.
         let single = Self {
             fy: self.fy,
