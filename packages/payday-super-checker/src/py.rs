@@ -536,9 +536,9 @@ pub fn resolve_text(path: &Path) -> String {
 /// Windows' canonical form without its `\\?\` verbatim prefix, as Python shows it.
 #[cfg(windows)]
 fn without_verbatim(text: String) -> String {
-    match text.strip_prefix(r"\\?\UNC\") {
-        Some(rest) => format!(r"\\{rest}"),
-        None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
+    match text.strip_prefix("\\\\?\\UNC\\") {
+        Some(rest) => format!("\\\\{rest}"),
+        None => text.strip_prefix("\\\\?\\").unwrap_or(&text).to_string(),
     }
 }
 
@@ -920,10 +920,10 @@ mod tests {
     #[test]
     fn without_verbatim_strips_windows_drive_and_unc_prefixes() {
         assert_eq!(
-            without_verbatim(r"\\?\UNC\server\share\a".into()),
-            r"\\server\share\a"
+            without_verbatim("\\\\?\\UNC\\server\\share\\a".into()),
+            "\\\\server\\share\\a"
         );
-        assert_eq!(without_verbatim(r"\\?\C:\a".into()), r"C:\a");
-        assert_eq!(without_verbatim(r"C:\a".into()), r"C:\a");
+        assert_eq!(without_verbatim("\\\\?\\C:\\a".into()), "C:\\a");
+        assert_eq!(without_verbatim("C:\\a".into()), "C:\\a");
     }
 }

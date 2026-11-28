@@ -65,11 +65,12 @@ fn realpath_keeps_what_it_cannot_resolve_as_ntpath_does() {
         );
     }
     assert_eq!(
-        final_path_name_nonstrict(&tmp).unwrap(),
+        final_path_name_nonstrict_with(&tmp, final_path_name, readlink_deep).unwrap(),
         final_path_name(&tmp).unwrap()
     );
     assert_eq!(
-        final_path_name_nonstrict("no_such_relative_entry").unwrap(),
+        final_path_name_nonstrict_with("no_such_relative_entry", final_path_name, readlink_deep)
+            .unwrap(),
         "no_such_relative_entry"
     );
     let cwd = std::env::current_dir().unwrap();

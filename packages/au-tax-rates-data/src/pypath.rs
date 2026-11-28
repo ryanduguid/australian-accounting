@@ -400,11 +400,6 @@ fn join_tail(head: String, tail: &str) -> String {
 }
 
 #[cfg(windows)]
-fn final_path_name_nonstrict(path: &str) -> Result<String, crate::pyos::OsError> {
-    final_path_name_nonstrict_with(path, final_path_name, readlink_deep)
-}
-
-#[cfg(windows)]
 fn final_path_name_nonstrict_with(
     path: &str,
     resolve: impl Fn(&str) -> std::io::Result<String>,
