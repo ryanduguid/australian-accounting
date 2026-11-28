@@ -745,12 +745,14 @@ struct Ctx {
     snapshots: PyPath,
 }
 
+#[cfg(feature = "differential")]
 fn env(name: &str) -> Option<String> {
-    if cfg!(feature = "differential") {
-        std::env::var(name).ok()
-    } else {
-        None
-    }
+    std::env::var(name).ok()
+}
+
+#[cfg(not(feature = "differential"))]
+fn env(_: &str) -> Option<String> {
+    None
 }
 
 impl Ctx {
@@ -852,13 +854,13 @@ fn load_records(ctx: &Ctx) -> R<Vec<Json>> {
 /// `Path.write_text(text, encoding="utf-8")`: the file is truncated before a
 /// lone surrogate fails the strict encoding.
 fn write_text(path: Option<&Path>, display: &[u32], text: &[u32]) -> R<()> {
-    let display = pyvalue::points_lossy(display);
     let Some(path) = path else {
         return Err(Exc::msg(
             "UnicodeEncodeError",
-            &pyvalue::utf8_strict_error(&pts(&display)).unwrap_or_default(),
+            &pyvalue::utf8_strict_error(display).unwrap_or_default(),
         ));
     };
+    let display = pyvalue::points_lossy(display);
     let mut file = std::fs::File::create(path)
         .map_err(|e| os_exc(&OsError::new(&e, Some(&display), pyos::Style::Errno)))?;
     let text = line_ends(text);
@@ -1578,6 +1580,7 @@ fn parse_text(unit: &Json, text: &[u32]) -> R<Found> {
 // ---------------------------------------------------------------- the browser
 
 fn browser_command() -> Vec<String> {
+    #[cfg(feature = "differential")]
     if let Some(list) = env("RATES_BROWSER")
         && let Ok(Json::Array(items)) = pyjson::loads_standard(&list)
     {
@@ -2076,6 +2079,7 @@ fn build_report(ctx: &Ctx, records: &[Json], pages: &[(Json, Page)], today: &str
 
 /// Today's date in the local time zone, as `YYYY-MM-DD`.
 fn local_today() -> String {
+    #[cfg(feature = "differential")]
     if let Some(today) = env("RATES_TODAY") {
         return today;
     }
@@ -2702,3 +2706,7 @@ mod cov_a4_tests;
 #[cfg(test)]
 #[path = "cov_a6_rates.rs"]
 mod cov_a6_tests;
+
+#[cfg(test)]
+#[path = "cov_a8_rates.rs"]
+mod cov_a8_tests;

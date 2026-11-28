@@ -138,5 +138,22 @@
 ["x{,", 0, "x{,", "0-3"],
 ["(?P<>a)", 0, null, "missing group name at position 4"],
 ["(?P=)", 0, null, "missing group name at position 4"],
-["(a(?<=\\1))", 0, null, "cannot refer to an open group at position 6"]
+["(a(?<=\\1))", 0, null, "cannot refer to an open group at position 6"],
+["[\\d\\D]", 0, "a", "0-1"],
+["[\\S\\s]", 0, "a", "0-1"],
+["[\\W\\w]", 0, "a", "0-1"],
+["[\\w\\W]", 0, "a", "0-1"],
+["((?<=(?(1)a|b)))", 0, null, "cannot refer to an open group at position 10"],
+["(?-im:a)", 0, "a", "0-1"],
+["[a\\U0001F600]", 0, "\ud83d\ude00", "0-1"],
+["[a\\U00010400]", 2, "\ud801\udc28", "0-1"],
+["[\\U00010400-\\U00010410]", 258, "\ud801\udc05", "0-1"],
+["[a\\U0001F600-\\U0001F605]", 0, "\ud83d\ude02", "0-1"],
+["(a)\\1", 258, "aA", "0-2 0-1"],
+["(a)\\1", 2, "aA", "0-2 0-1"],
+["(a)(?(1)b|(?<=a+))", 0, null, "look-behind requires fixed-width pattern"],
+["(a)?\\1", 0, "b", "no match"],
+["(ab)\\1", 0, "aba", "no match"],
+["a+?b", 0, "aa", "no match"],
+["(ab){1,2}?c", 0, "abab", "no match"]
 ]}
