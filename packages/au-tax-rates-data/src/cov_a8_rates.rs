@@ -80,17 +80,20 @@ fn write_text_fails_as_path_write_text_does() {
             "[Errno 2] No such file or directory: 'T/no-folder/x.txt'".to_string()
         )
     );
-    // A name a POSIX path cannot hold has no file to write.
-    let lone = p!("/r/a", vec![0xD800], ".txt");
-    let e = write_text(None, &lone, &pts("x")).unwrap_err();
-    assert_eq!(
-        exc_pair(e),
-        (
-            "UnicodeEncodeError",
-            "'utf-8' codec can't encode character '\\ud800' in position 4: surrogates not allowed"
-                .to_string()
-        )
-    );
+    #[cfg(unix)]
+    {
+        // A name a POSIX path cannot hold has no file to write.
+        let lone = p!("/r/a", vec![0xD800], ".txt");
+        let e = write_text(None, &lone, &pts("x")).unwrap_err();
+        assert_eq!(
+            exc_pair(e),
+            (
+                "UnicodeEncodeError",
+                "'utf-8' codec can't encode character '\\ud800' in position 4: surrogates not allowed"
+                    .to_string()
+            )
+        );
+    }
     std::fs::remove_dir_all(&dir).unwrap();
 }
 

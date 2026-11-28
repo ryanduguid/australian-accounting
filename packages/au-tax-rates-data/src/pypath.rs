@@ -324,29 +324,52 @@ fn winerror(error: &std::io::Error) -> i32 {
     error.raw_os_error().unwrap_or(0)
 }
 
+/// Restore the verbatim prefix CPython's `_nt_readlink` keeps on drive-rooted
+/// and UNC reparse targets after Rust's `std::fs::read_link` strips `\??\`.
+#[cfg(windows)]
+fn restore_verbatim_prefix(path: String) -> String {
+    if path.len() >= 3
+        && path.as_bytes()[0].is_ascii_alphabetic()
+        && path.as_bytes()[1] == b':'
+        && path.as_bytes()[2] == b'\\'
+    {
+        format!("\\\\?\\{path}")
+    } else if let Some(unc) = path.strip_prefix("\\\\")
+        && !unc.is_empty()
+        && !unc.starts_with(['?', '.', '\\'])
+    {
+        format!("\\\\?\\UNC\\{unc}")
+    } else {
+        path
+    }
+}
+
 /// `ntpath._readlink_deep`, enough for broken symbolic links and junctions.
 #[cfg(windows)]
 fn readlink_deep(path: &str) -> String {
+    readlink_deep_with(
+        path,
+        |p| std::fs::read_link(p).ok(),
+        |p| std::fs::symlink_metadata(p).is_ok_and(|m| m.file_type().is_symlink()),
+    )
+}
+
+#[cfg(windows)]
+fn readlink_deep_with(
+    path: &str,
+    mut read_link: impl FnMut(&str) -> Option<PathBuf>,
+    mut is_symlink: impl FnMut(&str) -> bool,
+) -> String {
     let mut path = path.to_string();
     let mut seen = std::collections::HashSet::new();
     while seen.insert(path.to_lowercase()) {
         let old = path.clone();
-        let Ok(target) = std::fs::read_link(&path) else {
+        let Some(target) = read_link(&path) else {
             break;
         };
-        path = target.to_string_lossy().into_owned();
-        // CPython's `_nt_readlink` keeps `\\?\` on drive-rooted reparse targets;
-        // Rust's `std::fs::read_link` strips it.
-        if path.len() >= 3
-            && path.as_bytes()[0].is_ascii_alphabetic()
-            && path.as_bytes()[1] == b':'
-            && path.as_bytes()[2] == b'\\'
-        {
-            path = format!("\\\\?\\{path}");
-        }
+        path = restore_verbatim_prefix(target.to_string_lossy().into_owned());
         if !isabs(&path) {
-            let is_link = std::fs::symlink_metadata(&old).is_ok_and(|m| m.file_type().is_symlink());
-            if !is_link {
+            if !is_symlink(&old) {
                 path = old;
                 break;
             }

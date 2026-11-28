@@ -71,6 +71,88 @@ fn realpath_keeps_what_it_cannot_resolve_as_ntpath_does() {
     std::fs::remove_dir_all(&base).unwrap();
 }
 
+fn unmapped_drive() -> Option<char> {
+    unsafe extern "system" {
+        fn GetLogicalDrives() -> u32;
+    }
+    // SAFETY: GetLogicalDrives takes no arguments and returns the assigned-drive bitmask.
+    // nosemgrep: rust.lang.security.unsafe-usage.unsafe-usage
+    let mask = unsafe { GetLogicalDrives() };
+    (3u8..26)
+        .find(|&bit| (mask & (1u32 << bit)) == 0)
+        .map(|bit| char::from(b'A' + bit))
+}
+
+fn not_symlink(_: &str) -> bool {
+    false
+}
+
+/// Short drive-rooted and UNC symlink targets regain CPython's verbatim prefix.
+#[test]
+fn restore_verbatim_prefix_covers_drive_and_unc_targets() {
+    use std::os::windows::fs::symlink_file;
+    for (input, want) in [
+        ("C:\\a\\b", "\\\\?\\C:\\a\\b"),
+        ("\\\\server\\share\\a", "\\\\?\\UNC\\server\\share\\a"),
+        ("\\\\?\\C:\\a", "\\\\?\\C:\\a"),
+        (
+            "\\\\?\\UNC\\server\\share\\a",
+            "\\\\?\\UNC\\server\\share\\a",
+        ),
+        ("\\\\.\\NUL", "\\\\.\\NUL"),
+        ("missing", "missing"),
+    ] {
+        assert_eq!(restore_verbatim_prefix(input.into()), want, "{input}");
+    }
+    let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("target")
+        .join(format!("cov-a7-unc-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&base).unwrap();
+    let link = base.join("to-unc");
+    symlink_file("\\\\server\\share\\target", &link).unwrap();
+    let raw = std::fs::read_link(&link)
+        .unwrap()
+        .to_string_lossy()
+        .into_owned();
+    assert_eq!(
+        restore_verbatim_prefix(raw),
+        "\\\\?\\UNC\\server\\share\\target"
+    );
+    std::fs::remove_dir_all(&base).unwrap();
+}
+
+/// Two-link UNC loops stop on CPython 3.15's terminal link for both ordinary and
+/// verbatim inputs; non-symlink relative reparse points stop on the link itself.
+#[test]
+fn unc_readlink_loop_and_non_symlink_reparse_match_cpython() {
+    let unc_loop = |p: &str| match p {
+        "\\\\server\\share\\uloop-a" | "\\\\?\\UNC\\server\\share\\uloop-a" => {
+            Some(PathBuf::from("\\\\server\\share\\uloop-b"))
+        }
+        "\\\\server\\share\\uloop-b" | "\\\\?\\UNC\\server\\share\\uloop-b" => {
+            Some(PathBuf::from("\\\\server\\share\\uloop-a"))
+        }
+        _ => None,
+    };
+    assert_eq!(
+        readlink_deep_with("\\\\server\\share\\uloop-a", unc_loop, not_symlink),
+        "\\\\?\\UNC\\server\\share\\uloop-b"
+    );
+    assert_eq!(
+        readlink_deep_with("\\\\?\\UNC\\server\\share\\uloop-a", unc_loop, not_symlink),
+        "\\\\?\\UNC\\server\\share\\uloop-a"
+    );
+    assert_eq!(
+        readlink_deep_with("\\\\server\\share\\other", unc_loop, not_symlink),
+        "\\\\server\\share\\other"
+    );
+    assert_eq!(
+        readlink_deep_with("C:\\a\\j", |_| Some(PathBuf::from("rel")), not_symlink),
+        "C:\\a\\j"
+    );
+}
+
 /// Relative symlink loops and verbatim inputs match Windows CPython 3.15;
 /// unmapped drive roots fail `makedirs`, and Windows `pyjson` stops at `CALL_DEPTH`.
 #[test]
@@ -101,13 +183,11 @@ fn windows_symlink_loops_makedirs_and_json_call_depth_match_cpython() {
     );
     std::fs::remove_dir_all(&base).unwrap();
 
-    let drive = (b'D'..=b'Z')
-        .map(char::from)
-        .find(|d| !std::path::Path::new(&format!("{d}:\\")).exists())
-        .expect("an unmapped drive letter");
-    let missing_root = PyPath::new(&format!("{drive}:\\"));
-    let err = crate::pyos::makedirs(&missing_root).unwrap_err();
-    assert_eq!(err.class(), "FileNotFoundError");
+    if let Some(drive) = unmapped_drive() {
+        let missing_root = PyPath::new(&format!("{drive}:\\"));
+        let err = crate::pyos::makedirs(&missing_root).unwrap_err();
+        assert_eq!(err.class(), "FileNotFoundError");
+    }
 
     let deep = format!("{}NaN{}", "[".repeat(13_861), "]".repeat(13_861));
     assert_eq!(
