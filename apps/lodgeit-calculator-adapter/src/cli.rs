@@ -777,25 +777,35 @@ mod tests {
         );
     }
 
-    /// A stdout that refuses every write, as `/dev/full` does.
-    struct Full;
+    /// A stdout on a full disk, as `/dev/full` is: a buffered one takes
+    /// each write and refuses the flush, an unbuffered one refuses each write.
+    struct Full {
+        buffered: bool,
+    }
 
     impl Write for Full {
-        fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            if self.buffered {
+                return Ok(buf.len());
+            }
             Err(std::io::Error::from_raw_os_error(28))
         }
         fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
+            Err(std::io::Error::from_raw_os_error(28))
         }
     }
 
     #[test]
     fn a_stdout_that_cannot_be_written_exits_120_as_pythons_flush_does() {
         // Checked against CPython 3.15 on Linux with stdout on /dev/full.
-        for args in [["contract"], ["--help"]] {
+        for (args, buffered) in [
+            (["contract"], false),
+            (["--help"], false),
+            (["contract"], true),
+        ] {
             let args: Vec<String> = args.iter().map(|a| a.to_string()).collect();
             let mut stderr = Vec::new();
-            assert_eq!(run_with(&args, &mut Full, &mut stderr), 120);
+            assert_eq!(run_with(&args, &mut Full { buffered }, &mut stderr), 120);
             let stderr = String::from_utf8(stderr).unwrap();
             assert!(stderr.starts_with("Exception ignored while flushing sys.stdout:"));
         }

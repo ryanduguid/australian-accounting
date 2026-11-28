@@ -348,21 +348,25 @@ impl CoreClient {
         let raw = match transport::request(&self.config, dial, &call, &mut dial::sleep) {
             Ok(raw) => raw,
             Err(error) if error.is(CONFIGURATION) => return fail(CoreCategory::InvalidInput, None),
-            Err(error)
-                if error.is_any(&[
+            // Every other error is one of these: the transport raises
+            // `OverflowError` only for a timeout past the clock, which
+            // `CoreConfig::new` refuses.
+            Err(error) => {
+                let caught = [
                     TRANSPORT,
                     DISALLOWED_TARGET,
                     NOT_ENABLED,
                     "http.client.HTTPException",
                     "OSError",
                     "ValueError",
-                ]) =>
-            {
+                ];
+                debug_assert!(
+                    error.is_any(&caught),
+                    "Core transport raised {}",
+                    error.class
+                );
                 return fail(CoreCategory::Transport, None);
             }
-            // The transport raises `OverflowError` only for a timeout past
-            // the clock, which `CoreConfig::new` refuses.
-            Err(error) => unreachable!("Core transport raised {}", error.class),
         };
         let status = raw.status;
         if status != 200 {
